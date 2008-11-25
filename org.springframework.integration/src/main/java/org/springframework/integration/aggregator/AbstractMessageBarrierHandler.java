@@ -28,8 +28,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -66,7 +69,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  */
 public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>, K>
-		extends AbstractMessageHandler implements InitializingBean {
+		extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -96,6 +99,8 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 
 	protected volatile BlockingQueue<Object> trackedCorrelationIds;
 
+	private volatile boolean autoStartup = true;
+
 	private volatile boolean initialized;
 
 	private volatile TaskScheduler taskScheduler;
@@ -107,10 +112,10 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
+
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
-
 
 	/**
 	 * Specify a channel for sending Messages that arrive after their
@@ -158,11 +163,25 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 	}
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "taskScheduler must not be null");
 		this.taskScheduler = taskScheduler;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		if (this.taskScheduler == null) {
+			this.taskScheduler = IntegrationContextUtils.getRequiredTaskScheduler(beanFactory);
+		}
 	}
 
 	public void afterPropertiesSet() {
 		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
+		if (this.autoStartup) {
+			this.start();
+		}
 		this.initialized = true;
 	}
 

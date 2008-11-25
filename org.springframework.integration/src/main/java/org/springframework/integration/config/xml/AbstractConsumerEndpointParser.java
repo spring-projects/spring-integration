@@ -40,10 +40,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 	protected static final String METHOD_ATTRIBUTE = "method";
 
-	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
-
-	private static final String POLLER_ELEMENT = "poller";
-
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -67,7 +63,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	@Override
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "output-channel");
 		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
 		if (!element.hasAttribute(this.getInputChannelAttributeName())) {
 			return handlerBeanDefinition;
@@ -84,7 +80,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}
 		builder.addPropertyValue("inputChannelName", inputChannelName);
-		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
+		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		if (pollerElement != null) {
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
 		}

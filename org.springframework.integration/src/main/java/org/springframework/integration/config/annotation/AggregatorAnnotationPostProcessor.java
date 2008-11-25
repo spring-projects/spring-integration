@@ -63,6 +63,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		aggregator.setReaperInterval(annotation.reaperInterval());
 		aggregator.setTimeout(annotation.timeout());
 		aggregator.setTrackedCorrelationIdCapacity(annotation.trackedCorrelationIdCapacity());
+		aggregator.setBeanFactory(this.beanFactoryAccessor.getBeanFactory());
 		aggregator.afterPropertiesSet();
 		return aggregator;
 	}
