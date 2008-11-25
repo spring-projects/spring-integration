@@ -37,6 +37,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.util.TestUtils;
 import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
@@ -61,6 +62,7 @@ public class MessageChannelTemplateTests {
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(requestChannel, handler);
+		endpoint.setTrigger(new IntervalTrigger(10));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 	}

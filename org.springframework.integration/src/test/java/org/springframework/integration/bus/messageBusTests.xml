@@ -16,6 +16,11 @@
 	<bean id="endpoint" class="org.springframework.integration.endpoint.PollingConsumer">
 		<constructor-arg ref="sourceChannel"/>
 		<constructor-arg ref="serviceActivator"/>
+		<property name="trigger">
+			<bean class="org.springframework.integration.scheduling.IntervalTrigger">
+				<constructor-arg value="100"/>
+			</bean>
+		</property>
 	</bean>
 
 	<bean id="serviceActivator" class="org.springframework.integration.handler.ServiceActivatingHandler">

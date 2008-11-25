@@ -29,6 +29,8 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractPollingEndpoint;
+import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -128,6 +130,12 @@ public abstract class TestUtils {
 		}
 
 		public void registerEndpoint(String endpointName, AbstractEndpoint endpoint) {
+			if (endpoint instanceof AbstractPollingEndpoint) {
+				DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+				if (accessor.getPropertyValue("trigger") == null) {
+					((AbstractPollingEndpoint) endpoint).setTrigger(new IntervalTrigger(10));
+				}
+			}
 			registerBean(endpointName, endpoint, this);
 		}
 	}

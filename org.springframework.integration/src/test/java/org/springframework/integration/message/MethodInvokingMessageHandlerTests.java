@@ -31,6 +31,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
+import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.util.TestUtils;
 import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
@@ -80,6 +81,7 @@ public class MethodInvokingMessageHandlerTests {
 		assertNull(queue.poll());
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(testBean, "foo");
 		PollingConsumer endpoint = new PollingConsumer(channel, handler);
+		endpoint.setTrigger(new IntervalTrigger(10));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		String result = queue.poll(1000, TimeUnit.MILLISECONDS);

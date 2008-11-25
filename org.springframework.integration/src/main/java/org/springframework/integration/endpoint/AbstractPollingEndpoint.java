@@ -28,7 +28,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -137,9 +136,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (this.initialized) {
 				return;
 			}
-			if (this.trigger == null) {
-				this.trigger = new IntervalTrigger(10);
-			}
+			Assert.notNull(this.trigger, "trigger is required");
 			if (this.transactionManager != null) {
 				if (this.transactionDefinition == null) {
 					this.transactionDefinition = new DefaultTransactionDefinition();

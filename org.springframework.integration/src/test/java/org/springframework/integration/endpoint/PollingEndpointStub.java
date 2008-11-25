@@ -16,10 +16,16 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.scheduling.IntervalTrigger;
+
 /**
  * @author Jonas Partner
  */
 public class PollingEndpointStub extends AbstractPollingEndpoint {
+
+	public PollingEndpointStub() {
+		this.setTrigger(new IntervalTrigger(500));
+	}
 
 	@Override
 	protected boolean doPoll() {
