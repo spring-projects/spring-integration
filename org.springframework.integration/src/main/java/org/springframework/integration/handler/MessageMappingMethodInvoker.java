@@ -130,7 +130,6 @@ public class MessageMappingMethodInvoker {
 			try {
 				if (message != null) {
 					result = invoker.invokeMethod(message);
-					// TODO: set this on the invoker
 					this.methodsExpectingMessage.add(method);
 				}
 			}
