@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
@@ -116,13 +115,14 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void targetAnnotation() throws InterruptedException {
+	public void outboundOnlyServiceActivator() throws InterruptedException {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
+		context.registerChannel("testChannel", new DirectChannel());
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		CountDownLatch latch = new CountDownLatch(1);
-		OutboundChannelAdapterTestBean testBean = new OutboundChannelAdapterTestBean(latch);
+		OutboundOnlyTestBean testBean = new OutboundOnlyTestBean(latch);
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		context.refresh();
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
@@ -297,14 +297,14 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class OutboundChannelAdapterTestBean {
+	private static class OutboundOnlyTestBean {
 
 		private String messageText;
 
 		private CountDownLatch latch;
 
 
-		public OutboundChannelAdapterTestBean(CountDownLatch latch) {
+		public OutboundOnlyTestBean(CountDownLatch latch) {
 			this.latch = latch;
 		}
 
@@ -312,7 +312,7 @@ public class MessagingAnnotationPostProcessorTests {
 			return this.messageText;
 		}
 
-		@ChannelAdapter("testChannel")
+		@ServiceActivator(inputChannel="testChannel")
 		public void countdown(String input) {
 			this.messageText = input;
 			latch.countDown();
