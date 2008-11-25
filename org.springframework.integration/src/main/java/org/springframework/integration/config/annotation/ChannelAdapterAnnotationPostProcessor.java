@@ -18,24 +18,16 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.ChannelAdapter;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.integration.message.MethodInvokingMessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -60,41 +52,21 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 
 	public Object postProcess(Object bean, String beanName, Method method, ChannelAdapter annotation) {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		AbstractEndpoint endpoint = null;
 		MessageChannel channel = this.resolveOrCreateChannel(annotation.value());
-		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
-		if (method.getParameterTypes().length == 0 && hasReturnValue(method)) {
-			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
-			source.setObject(bean);
-			source.setMethod(method);
-			endpoint = this.createInboundChannelAdapter(source, channel, pollerAnnotation);
-		}
-		else if (method.getParameterTypes().length > 0 && !hasReturnValue(method)) {
-			MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(bean, method);
-			endpoint = this.createOutboundChannelAdapter(channel, handler, pollerAnnotation);
-		}
-		else {
-			throw new IllegalArgumentException("The @ChannelAdapter can only be applied to methods"
-					+ " that accept no arguments but have a return value (inbound) or methods that"
-					+ " have no return value but do accept arguments (outbound).");
-		}
-		if (endpoint != null) {
-			String annotationName = ClassUtils.getShortNameAsProperty(annotation.annotationType());
-			String endpointName = beanName + "." + method.getName() + "." + annotationName;
-			this.beanFactory.registerSingleton(endpointName, endpoint);
-			// TODO: move this to IntegrationContextUtils?... common with MAPP
-			if (endpoint instanceof BeanFactoryAware) {
-				((BeanFactoryAware) endpoint).setBeanFactory(beanFactory);
-			}
-			if (endpoint instanceof InitializingBean) {
-				try {
-					((InitializingBean) endpoint).afterPropertiesSet();
-				}
-				catch (Exception e) {
-					throw new BeanInitializationException("failed to initialize annotated channel adapter", e);
-				}
-			}
-		}
+		Assert.isInstanceOf(SubscribableChannel.class, channel,
+				"The channel for an Annotation-based Channel Adapter must be a SubscribableChannel.");
+		Assert.isTrue(method.getParameterTypes().length > 0,
+				"A method annotated with @ChannelAdapter must accept at least one argument.");
+		Assert.isTrue(!hasReturnValue(method),
+				"A method annotated with @ChannelAdapter must not have a return value."
+				+ " Consider using a @ServiceActivator if a reply Message is expected.");
+		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(bean, method);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer((SubscribableChannel) channel, handler);
+		String annotationName = ClassUtils.getShortNameAsProperty(annotation.annotationType());
+		String endpointName = beanName + "." + method.getName() + "." + annotationName;
+		this.beanFactory.registerSingleton(endpointName, endpoint);
+		endpoint.setBeanFactory(beanFactory);
+		endpoint.afterPropertiesSet();
 		return bean;
 	}
 
@@ -108,21 +80,6 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			this.beanFactory.registerSingleton(channelName, directChannel);
 			return directChannel;
 		}
-	}
-
-	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingMessageSource source, MessageChannel channel, Poller pollerAnnotation) {
-		Assert.notNull(pollerAnnotation, "The @Poller annotation is required (at method-level) "
-					+ "when using the @ChannelAdapter annotation with a no-arg method.");
-		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
-		adapter.setSource(source);
-		adapter.setOutputChannel(channel);
-		return adapter;
-	}
-
-	private AbstractEndpoint createOutboundChannelAdapter(MessageChannel channel, MethodInvokingMessageHandler handler, Poller pollerAnnotation) {
-		Assert.isInstanceOf(SubscribableChannel.class, channel,
-				"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
-		return new EventDrivenConsumer((SubscribableChannel) channel, handler);
 	}
 
 	private boolean hasReturnValue(Method method) {
