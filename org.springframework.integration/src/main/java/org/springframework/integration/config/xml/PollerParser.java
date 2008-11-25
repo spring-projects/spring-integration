@@ -55,6 +55,8 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder metadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(PollerMetadata.class);
+		Assert.isTrue(!element.hasAttribute("ref"),
+				"the 'ref' attribute must not be present on a 'poller' element submitted to the parser");
 		configureTrigger(element, metadataBuilder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");

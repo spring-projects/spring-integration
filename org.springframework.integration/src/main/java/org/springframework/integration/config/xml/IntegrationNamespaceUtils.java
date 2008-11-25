@@ -145,6 +145,10 @@ public abstract class IntegrationNamespaceUtils {
 	public static void configurePollerMetadata(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		String pollerMetadataRef = null;
 		if (pollerElement.hasAttribute("ref")) {
+			Assert.isTrue(pollerElement.getAttributes().getLength() == 1,
+					"a 'poller' element that provides a 'ref' must have no other attributes");
+			Assert.isTrue(pollerElement.getChildNodes().getLength() == 0,
+					"a 'poller' element that provides a 'ref' must have no child elements");
 			pollerMetadataRef = pollerElement.getAttribute("ref");
 		}
 		else {
