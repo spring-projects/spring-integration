@@ -32,7 +32,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class HandlerMethodUtils {
+abstract class HandlerMethodUtils {
 
 	/**
 	 * Verifies that the provided Method is capable of handling Messages.
