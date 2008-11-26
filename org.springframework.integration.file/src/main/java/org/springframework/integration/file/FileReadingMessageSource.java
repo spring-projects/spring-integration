@@ -31,7 +31,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
@@ -54,7 +53,7 @@ import org.springframework.util.Assert;
  * 
  * @author Iwein Fuld
  */
-public class FileReadingMessageSource implements MessageSource<File>, MessageDeliveryAware<File> {
+public class FileReadingMessageSource implements MessageSource<File> {
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
