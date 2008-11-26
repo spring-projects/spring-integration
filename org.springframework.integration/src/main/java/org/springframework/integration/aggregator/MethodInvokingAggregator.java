@@ -16,16 +16,19 @@
 
 package org.springframework.integration.aggregator;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.springframework.aop.support.AopUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.util.DefaultMethodResolver;
-import org.springframework.integration.util.MethodResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link AbstractMessageAggregator} adapter for methods annotated with
@@ -36,8 +39,6 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  */
 public class MethodInvokingAggregator extends AbstractMessageAggregator {
-
-	private final MethodResolver methodResolver = new DefaultMethodResolver(Aggregator.class);
 
 	private final MessageListMethodAdapter methodInvoker;
 
@@ -52,7 +53,7 @@ public class MethodInvokingAggregator extends AbstractMessageAggregator {
 
 	public MethodInvokingAggregator(Object object) {
 		Assert.notNull(object, "object must not be null");
-		Method method = this.methodResolver.findMethod(object); 
+		Method method = this.findAggregatorMethod(object);
 		Assert.notNull(method, "unable to resolve Aggregator method on target class ["
 				+ object.getClass() + "]");
 		this.methodInvoker = new MessageListMethodAdapter(object, method);
@@ -71,6 +72,48 @@ public class MethodInvokingAggregator extends AbstractMessageAggregator {
 			return (Message<?>) returnedValue;
 		}
 		return new GenericMessage<Object>(returnedValue);
+	}
+
+
+	private Method findAggregatorMethod(Object candidate) {
+		Class<?> targetClass = AopUtils.getTargetClass(candidate);
+		if (targetClass == null) {
+			targetClass = candidate.getClass();
+		}
+		Method method = this.findAnnotatedMethod(targetClass);
+		if (method == null) {
+			method = this.findSinglePublicMethod(targetClass);
+		}
+		return method;
+	}
+
+	private Method findAnnotatedMethod(final Class<?> targetClass) {
+		final AtomicReference<Method> annotatedMethod = new AtomicReference<Method>();
+		ReflectionUtils.doWithMethods(targetClass, new ReflectionUtils.MethodCallback() {
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation annotation = AnnotationUtils.findAnnotation(method, Aggregator.class);
+				if (annotation != null) {
+					Assert.isNull(annotatedMethod.get(), "found more than one method on target class ["
+							+ targetClass + "] with the annotation type [" + Aggregator.class.getName() + "]");
+					annotatedMethod.set(method);
+				}
+			}
+		});
+		return annotatedMethod.get();
+	}
+
+	private Method findSinglePublicMethod(Class<?> targetClass) {
+		Method result = null;
+		for (Method method : targetClass.getMethods()) {
+			if (!method.getDeclaringClass().equals(Object.class)) {
+				if (result != null) {
+					throw new IllegalArgumentException(
+							"Class [" + targetClass + "] contains more than one public Method.");
+				}
+				result = method;
+			}
+		}
+		return result;
 	}
 
 }
