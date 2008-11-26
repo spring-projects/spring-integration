@@ -33,7 +33,15 @@
 	ThreadPoolTaskExecutor will be created by default.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="task-executor" type="xsd:string"/>
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -110,7 +118,15 @@
 					<xsd:sequence>
 						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
-					<xsd:attribute name="task-executor" type="xsd:string"/>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="error-handler" type="xsd:string"/>
 					<xsd:attribute name="apply-sequence" type="xsd:string"/>
 				</xsd:extension>
@@ -139,8 +155,24 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
-			<xsd:attribute name="default-request-channel" type="xsd:string"/>
-			<xsd:attribute name="default-reply-channel" type="xsd:string"/>
+			<xsd:attribute name="default-request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="default-reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="default-request-timeout" type="xsd:string"/>
 			<xsd:attribute name="default-reply-timeout" type="xsd:string"/>
 		</xsd:complexType>
@@ -167,7 +199,15 @@
 			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID"/>
-		<xsd:attribute name="channel" type="xsd:string"/>
+		<xsd:attribute name="channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="ref" type="xsd:string" use="required"/>
 		<xsd:attribute name="method" type="xsd:string"/>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
@@ -356,7 +396,15 @@
 		<xsd:attribute name="receive-timeout" type="xsd:string"/>
 		<xsd:attribute name="send-timeout" type="xsd:string"/>
 		<xsd:attribute name="max-messages-per-poll" type="xsd:string"/>
-		<xsd:attribute name="task-executor" type="xsd:string"/>
+		<xsd:attribute name="task-executor" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="interval-trigger">
@@ -474,8 +522,24 @@
 	Provides the names of the standard configurable MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="reply-channel" type="xsd:string"/>
-		<xsd:attribute name="error-channel" type="xsd:string"/>
+		<xsd:attribute name="reply-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="error-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="correlation-id" type="xsd:string"/>
 		<xsd:attribute name="expiration-date" type="xsd:string"/>
 		<xsd:attribute name="priority" type="xsd:string"/>
@@ -551,7 +615,15 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputEndpointType">
-					<xsd:attribute name="default-output-channel" type="xsd:string"/>
+					<xsd:attribute name="default-output-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="ref" type="xsd:string"/>
 					<xsd:attribute name="method" type="xsd:string"/>
 				</xsd:extension>
@@ -578,7 +650,15 @@
 				<xsd:extension base="handlerEndpointType">
 					<xsd:attribute name="completion-strategy" type="xsd:string"/>
 					<xsd:attribute name="completion-strategy-method" type="xsd:string"/>
-					<xsd:attribute name="discard-channel" type="xsd:string"/>
+					<xsd:attribute name="discard-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="send-timeout" type="xsd:string"/>
 					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string"/>
 					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string"/>
@@ -598,7 +678,15 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
-					<xsd:attribute name="discard-channel" type="xsd:string"/>
+					<xsd:attribute name="discard-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="send-timeout" type="xsd:string"/>
 					<xsd:attribute name="release-partial-sequences" type="xsd:string"/>
 					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:string"/>
@@ -647,7 +735,15 @@
 	Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="channel" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="selector" type="xsd:string"/>
 		<xsd:attribute name="timeout" type="xsd:string"/>
 	</xsd:complexType>
