@@ -44,7 +44,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Dave Syer
  */
-public class CronSequenceGenerator {
+class CronSequenceGenerator {
 
 	private final BitSet seconds = new BitSet(60);
 

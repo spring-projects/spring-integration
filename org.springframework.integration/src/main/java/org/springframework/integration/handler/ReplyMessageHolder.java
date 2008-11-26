@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
@@ -31,8 +30,6 @@ public class ReplyMessageHolder {
 
 	private final List<MessageBuilder<?>> builders = new ArrayList<MessageBuilder<?>>();
 
-	private volatile Object targetChannel;
-
 
 	public MessageBuilder<?> set(Object messageOrPayload) {
 		return this.createAndAddBuilder(messageOrPayload, true);
@@ -40,18 +37,6 @@ public class ReplyMessageHolder {
 
 	public MessageBuilder<?> add(Object messageOrPayload) {
 		return this.createAndAddBuilder(messageOrPayload, false);
-	}
-
-	public void setTargetChannel(MessageChannel targetChannel) {
-		this.targetChannel = targetChannel;
-	}
-
-	public void setTargetChannelName(String targetChannelName) {
-		this.targetChannel = targetChannelName;
-	}
-
-	protected Object getTargetChannel() {
-		return this.targetChannel;
 	}
 
 	public boolean isEmpty() {

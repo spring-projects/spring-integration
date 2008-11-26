@@ -98,14 +98,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			return;
 		}
-		Object targetChannelValue = replyMessageHolder.getTargetChannel();
-		MessageChannel replyChannel = null;
-		if (targetChannelValue == null) {
-			replyChannel = this.resolveReplyChannel(message);
-		}
-		else if (targetChannelValue instanceof String) {
-			replyChannel = this.channelResolver.resolveChannelName((String) targetChannelValue);
-		}
+		MessageChannel replyChannel = this.resolveReplyChannel(message);
 		MessageHeaders requestHeaders = message.getHeaders();
 		for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
 			builder.copyHeadersIfAbsent(requestHeaders);
