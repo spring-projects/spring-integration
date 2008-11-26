@@ -221,6 +221,16 @@
         return message;
     }
 }]]></programlisting>
+      <note>
+        Keep in mind that <methodname>receive()</methodname> calls are only relevant for
+        <interfacename>PollableChannels</interfacename>. In fact the
+        <interfacename>SubscribableChannel</interfacename> interface does not even define a
+        <methodname>receive()</methodname> method. The reason for this is that when a Message is sent to a
+        <interfacename>SubscribableChannel</interfacename> it will be sent directly to one or more subscribers
+        depending on the type of channel (e.g. a PublishSubscribeChannel sends to all of its subscribers). Therefore,
+        the <methodname>preReceive(..)</methodname> and <methodname>postReceive(..)</methodname> interceptor methods
+        are only invoked when the interceptor is applied to a <interfacename>PollableChannel</interfacename>.
+      </note>
     </para>
   </section>
 
