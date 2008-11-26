@@ -252,6 +252,17 @@ public class FooService {
       location (and besides the XML configuration is not very verbose). If you do prefer to provide channels with the
       annotations however, you just need to enable a BeanPostProcessor. The following element should be added:
       <programlisting language="xml"><![CDATA[ <annotation-config/> ]]></programlisting>
+      <note>
+        When configuring the "inputChannel" and "outputChannel" with annotations, the "inputChannel"
+        <emphasis>must</emphasis> be a reference to a <interfacename>SubscribableChannel</interfacename> instance.
+        Otherwise, it would be necessary to also provide the full poller configuration via annotations, and those
+        settings (e.g. the trigger for scheduling the poller) should be externalized rather than hard-coded within
+        an annotation. If the input channel that you want to receive Messages from is indeed a 
+        <interfacename>PollableChannel</interfacename> instance, one option to consider is the Messaging Bridge.
+        Spring Integration's "bridge" element can be used to connect a PollableChannel directly to a
+        SubscribableChannel. Then, the polling metadata is externally configured, but the annotation option is still
+        available. For more detail see <xref linkend="bridge"/>.
+      </note>
     </para>
   </section>
 
