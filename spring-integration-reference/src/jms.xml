@@ -4,16 +4,20 @@
 <chapter id="jms">
   <title>JMS Support</title>
   <para>
-    Spring Integration provides Channel Adapters for receiving and sending JMS messages. The inbound Channel Adapter
-    uses Spring's <classname>JmsTemplate</classname> to receive based on a polling period, and the outbound Channel
-    Adapter uses the <classname>JmsTemplate</classname> to convert and send a JMS Message on demand.
+    Spring Integration provides Channel Adapters for receiving and sending JMS messages. There are actually two
+    JMS-based inbound Channel Adapters. The first uses Spring's <classname>JmsTemplate</classname> to receive based on
+    a polling period. The second is "message-driven" and relies upon a Spring MessageListener container. There is also
+    an outbound Channel Adapter which uses the <classname>JmsTemplate</classname> to convert and send a JMS Message on
+    demand.
   </para>
   <para>
-    Spring Integration also provides inbound and outbound JMS Gateways. The inbound gateway relies on Spring's
-    <classname>DefaultMessageListenerContainer</classname> for Message-driven reception that is also capable of sending
-    a return value to the "reply-to" Destination as provided by the received Message. The outbound Gateway uses a JMS
-    <classname>QueueRequestor</classname> for request/reply operations. In other words, while the inbound and outbound
-    Channel Adapters are for unidirectional Messaging, the Gateways are intended for handling request/reply operations.
+    Whereas the JMS Channel Adapters are intended for unidirectional Messaging (send-only or receive-only), Spring
+    Integration also provides inbound and outbound JMS Gateways for request/reply operations. The inbound gateway
+    relies on one of Spring's MessageListener container implementations for Message-driven reception that is also
+    capable of sending a return value to the "reply-to" Destination as provided by the received Message. The outbound
+    Gateway sends a JMS Message to a "request-destination" and then receives a reply Message. The "reply-destination"
+    reference (or "reply-destination-name") can be configured explicitly or else the outbound gateway will use a
+    JMS TemporaryQueue.
   </para>
 
   <section id="jms-inbound-channel-adapter">
@@ -23,7 +27,60 @@
       instance or both <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
       (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines an
       inbound Channel Adapter with a <classname>Destination</classname> reference.
-      <programlisting language="xml"><![CDATA[<jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel">
+     <integration:poller>
+         <integration:interval-trigger interval="30" time-unit="SECONDS"/>
+     </integration:poller>
+ </jms:inbound-channel-adapter>]]></programlisting>
+      <note>
+        All of the JMS adapters that require a reference to the ConnectionFactory will automatically look for
+        a bean named "connectionFactory" by default. That is why you don't see a "connection-factory" attribute
+        in many of the examples. However, if your JMS ConnectionFactory has a different bean name, then you will
+        need to provide that attribute.
+      </note>
+    </para>
+    <para>
+      If 'extract-payload' is set to true (which is the default), the received JMS Message will be passed through
+      the MessageConverter. When relying on the default SimpleMessageConverter, this means that the resulting Spring
+      Integration Message will have the JMS Message's body as its payload. A JMS TextMessage will produce a
+      String-based payload, a JMS BytesMessage will produce a byte array payload, and a JMS ObjectMessage's
+      Serializable instance will become the Spring Integration Message's payload. If instead you prefer to have
+      the raw JMS Message as the Spring Integration Message's payload, then set 'extract-payload' to false.
+      <programlisting language="xml"><![CDATA[ <jms:inbound-channel-adapter id="jmsIn"
+                              destination="inQueue"
+                              channel="exampleChannel"
+                              extract-payload="false"/>
+     <integration:poller>
+         <integration:interval-trigger interval="30" time-unit="SECONDS"/>
+     </integration:poller>
+</jms:inbound-channel-adapter>]]></programlisting>
+    </para>
+  </section>
+
+  <section id="jms-message-driven-channel-adapter">
+    <title>Message-Driven Channel Adapter</title>
+    <para>
+      The "message-driven-channel-adapter" requires a reference to either an instance of a Spring MessageListener
+      container (any subclass of <classname>AbstractMessageListenerContainer</classname>) or both  
+      <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
+      (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines a
+      message-driven Channel Adapter with a <classname>Destination</classname> reference.
+      <programlisting language="xml"><![CDATA[ <jms:message-driven-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>]]></programlisting>
+      <note>
+        The Message-Driven adapter also accepts several properties that pertain to the MessageListener container.
+        These values are only considered if you do not provide an actual 'container' reference. In that case,
+        an instance of DefaultMessageListenerContainer will be created and configured based on these properties.
+        For example, you can specify the "transaction-manager" reference, the "concurrent-consumers" value, and
+        several other property references and values. Refer to the JavaDoc and Spring Integration's JMS Schema
+        (spring-integration-jms-1.0.xsd) for more detail.
+      </note>
+    </para>
+    <para>
+      The 'extract-payload' property has the same effect as described above, and once again its default value
+      is 'true'. Of course, the poller sub-element is not required (not accepted actually) for a message-driven
+      Channel Adapter. For most usage scenarios, the message-driven approach is better since the Messages will
+      be passed along to the Spring Integration Message Channel as soon as they are received from the underlying
+      JMS consumer.
     </para>
   </section>
 
@@ -33,57 +90,96 @@
       The <classname>JmsSendingMessageHandler</classname> implements the <interfacename>MessageHandler</interfacename>
       interface and is capable of converting Spring Integration <interfacename>Messages</interfacename> to JMS messages
       and then sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
-      'destination' references (again, the 'destinationName' may be provided in place of the 'destination). As with the
+      'destination' references (again, the 'destinationName' may be provided in place of the 'destination'). As with the
       inbound Channel Adapter, the easiest way to configure this adapter is with the namespace support. The following
       configuration will produce an adapter that receives Spring Integration Messages from the "exampleChannel" and then
       converts those into JMS Messages and sends them to the JMS Destination reference whose bean name is "outQueue".
       <programlisting language="xml"><![CDATA[<jms:outbound-channel-adapter id="jmsOut" destination="outQueue" channel="exampleChannel"/>]]></programlisting>
+    </para>
+    <para>
+      As with the inbound Channel Adapters, there is an 'extract-payload' property. However, the meaning is reversed
+      for the outbound adapter. Rather than applying to the JMS Message, the boolean property applies to the Spring
+      Integration Message payload. In other words, the decision is whether to pass the Spring Integration Message
+      <emphasis>itself</emphasis> as the JMS Message body or whether to pass the Spring Integration Message's
+      payload as the JMS Message body. The default value is once again 'true'. Therefore, if you pass a Spring
+      Integration Message whose payload is a String, a JMS TextMessage will be created. If on the other hand you
+      want to send the actual Spring Integration Message to another system via JMS, then simply set this to 'false'.
+      <note>
+        Regardless of the boolean value for payload extraction, the Spring Integration MessageHeaders will map to
+        JMS properties as long as you are relying on the default converter or provide a reference to another
+        instance of HeaderMappingMessageConverter (the same holds true for 'inbound' adapters except that in
+        those cases, it's the JMS properties mapping <emphasis>to</emphasis> Spring Integration MessageHeaders).
+      </note>
     </para>
   </section>
 
   <section id="jms-inbound-gateway">
     <title>Inbound Gateway</title>
     <para>
-      Spring Integration's message-driven <classname>JmsInboundGateway</classname> delegates to a
-      <interfacename>MessageListener</interfacename> container, supports dynamically adjusting concurrent consumers, and
-      can also handle replies. The <classname>JmsInboundGateway</classname> requires references to a
-      <interfacename>ConnectionFactory</interfacename>, and a <interfacename>Destination</interfacename> (or
-      'destinationName'). The following example defines a <classname>JmsInboundGateway</classname> that receives from the JMS
-      queue called "exampleQueue" and sends to the Spring Integration channel named "exampleChannel".
-      <programlisting language="xml"><![CDATA[<jms:inbound-gateway id="jmsInGateway" destination="inQueue" request-channel="exampleChannel"/>]]></programlisting>
+      Spring Integration's message-driven JMS inbound-gateway delegates to a
+      <interfacename>MessageListener</interfacename> container, supports dynamically adjusting concurrent consumers,
+      and can also handle replies. The inbound gateway requires references to a
+      <interfacename>ConnectionFactory</interfacename>, and a request <interfacename>Destination</interfacename> (or
+      'requestDestinationName'). The following example defines a JMS "inbound-gateway" that receives from the JMS
+      queue referenced by the bean id "inQueue" and sends to the Spring Integration channel named "exampleChannel".
+      <programlisting language="xml"><![CDATA[ <jms:inbound-gateway id="jmsInGateway"
+                      request-destination="inQueue"
+                      request-channel="exampleChannel"/>]]></programlisting>
     </para>
-    <note>
-      The default behavior for an outbound gateway is to reply with the Spring Integration Message as the JMS Message
-      body. This works well when you are connecting two systems that are both running Spring Integration-based
-      applications. However, if you prefer to just send the Spring Integration Message's payload as the JMS reply
-      Message's body, then set the "extract-payload-for-reply" attribute to "true".
-    </note>
+    <para>
+      Since the gateways provide request/reply behavior instead of unidirectional send <emphasis>or</emphasis>
+      receive, they also have two distinct properties for the "payload extraction" (as discussed above for the
+      Channel Adapters' 'extract-payload' setting). For an inbound-gateway, the 'extract-request-payload' property
+      determines whether the received JMS Message body will be extracted. If 'false', the JMS Message itself will
+      become the Spring Integration Message payload. The default is 'true'.
+    </para>
+    <para>
+      Similarly, for an inbound-gateway the 'extract-reply-payload' property applies to the Spring Integration Message
+      that is going to be converted into a reply JMS Message. If you want to pass the whole Spring Integration Message
+      (as the body of a JMS ObjectMessage) then set this to 'false'. By default, it is also 'true' such that the Spring
+      Integration Message <emphasis>payload</emphasis> will be converted into a JMS Message (e.g. String payload
+      becomes a JMS TextMessage).
+    </para>
   </section>
 
   <section id="jms-outbound-gateway">
     <title>Outbound Gateway</title>
     <para>
-      The outbound Gateway uses a <classname>QueueRequestor</classname> so that reply Messages will be automatically
-      correlated. Notice that the "reply-channel" is also provided.
-      <programlisting language="xml"><![CDATA[<jms:outbound-gateway id="jmsOutGateway"
-                      jms-queue="outQueue"
-                      request-channel="outboundJmsRequests"
-                      reply-channel="jmsReplies"/>]]></programlisting>
+      The outbound Gateway creates JMS Messages from Spring Integration Messages and then sends to a
+      'request-destination'. It will then handle the JMS reply Message either by using a selector to
+      receive from the 'reply-destination' that you configure, or if no 'reply-destination' is provided,
+      it will create JMS TemporaryQueues. Notice that the "reply-channel" is also provided.
+      <programlisting language="xml"><![CDATA[ <jms:outbound-gateway id="jmsOutGateway"
+                       request-destination="outQueue"
+                       request-channel="outboundJmsRequests"
+                       reply-channel="jmsReplies"/>]]></programlisting>
     </para>
-    <note>
-      For all of these JMS adapters, you can also specify your own "message-converter" reference. Simply provide the
-      bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
-      ApplicationContext.
-    </note>
+    <para>
+      The 'outbound-gateway' payload extraction properties are inversely related to those of the
+      'inbound-gateway' (see the discussion above). That means that the 'extract-request-payload' property value
+      applies to the Spring Integration Message that is being converted into a JMS Message to be
+      <emphasis>sent as a request</emphasis>, and the 'extract-reply-payload' property value applies to the
+      JMS Message that is <emphasis>received as a reply</emphasis> and then converted into a Spring Integration
+      Message to be subsequently sent to the 'reply-channel' as shown in the example configuration above.
+      <note>
+        For all of these JMS adapters, you can also specify your own "message-converter" reference. Simply provide the
+        bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
+        ApplicationContext. Note, however, that when you provide your own MessageConverter instance, the default
+        HeaderMappingMessageConverter will not be used. This means that the 'extract-request-payload' and
+        'extract-reply-payload' properties will have no effect. Of course, you can provide a reference to your own
+        instance of HeaderMappingMessageConverter. It simply delegates to a MessageConverter while also mapping the
+        Spring Integration MessageHeaders to JMS Message properties and vice-versa.
+      </note>
+    </para>
   </section>
 
   <section id="jms-samples">
     <title>JMS Samples</title>
     <para>
       To experiment with these JMS adapters, check out the samples available within the "jms" package of the
-      "org.springramework.integration.samples" module (in the distribution). There are two samples included. One
+      "org.springframework.integration.samples" module (in the distribution). There are two samples included. One
       provides inbound and outbound Channel Adapters, and the other provides inbound and outbound Gateways. They are
-      configured to run with an embedded ActiveMQ process, but the "common.xml" can easily be modified to support
+      configured to run with an embedded ActiveMQ process, but the "common.xml" file can easily be modified to support
       either a different JMS provider or a standalone ActiveMQ process. In other words, you can split the configuration
       so that the inbound and outbound adapters are running in separate JVMs. If you have ActiveMQ installed, simply
       modify the "brokerURL" property within the configuration to use "tcp://localhost:61616" for example (instead of
