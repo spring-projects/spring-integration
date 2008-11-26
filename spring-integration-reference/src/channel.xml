@@ -299,10 +299,15 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       <title>QueueChannel Configuration</title>
       <para>
         To create a <classname>QueueChannel</classname>, use the "queue" sub-element.
-        You must specify the channel's capacity: 
+        You may specify the channel's capacity:
         <programlisting language="xml">&lt;channel id="exampleChannel"&gt;
     &lt;queue capacity="25"/&gt;
 &lt;/channel&gt;</programlisting>
+        <note>
+          If you do not provide a value for the 'capacity' attribute on this &lt;queue/&gt; sub-element,
+          the resulting queue will be unbounded. To avoid issues such as OutOfMemoryErrors, it's highly
+          recommended to set an explicit value for a bounded queue.
+        </note>
       </para>
     </section>
     <section id="channel-configuration-pubsubchannel">
@@ -312,6 +317,13 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         When using this element, you can also specify the "task-executor" used for publishing
         Messages (if none is specified it simply publishes in the sender's thread): 
         <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" task-executor="someTaskExecutor"/&gt;</programlisting>
+        If you are providing a <emphasis>Resequencer</emphasis> or <emphasis>Aggregator</emphasis> downstream
+        from a <classname>PublishSubscribeChannel</classname>, then you can set the 'apply-sequence' property
+        for the channel. That will indicate that the channel should set the sequence-size and sequence-number
+        Message headers prior to passing the Messages along. For example, if there are 5 subscribers, the
+        sequence-size would be set to 5, and the Messages would have sequence-number header values ranging
+        from 1 to 5. This value is 'false' by default.
+        <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" apply-sequence="true"/&gt;</programlisting
       </para>
     </section>
     <section id="channel-configuration-prioritychannel">
@@ -336,7 +348,8 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="channel-configuration-rendezvouschannel">
       <title>RendezvousChannel Configuration</title>
       <para>
-        The <classname>RendezvousChannel</classname> does not provide any additional configuration options.
+        A <classname>RendezvousChannel</classname> is created when the queue sub-element is
+        a &lt;rendezvous-queue&gt;. It does not provide any additional configuration options.
         <programlisting language="xml"><![CDATA[<channel id="exampleChannel"/>
     <rendezvous-queue/>
 </channel>
