@@ -251,7 +251,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 		public void await() {
 			try {
-				this.latch.await(1000, TimeUnit.MILLISECONDS);
+				this.latch.await(3000, TimeUnit.MILLISECONDS);
 				if (latch.getCount() != 0) {
 					throw new RuntimeException("test timeout");
 				}
