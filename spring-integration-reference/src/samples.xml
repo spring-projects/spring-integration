@@ -79,9 +79,9 @@
 
     <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
-	<poller id="poller" default="true">
-		<interval-trigger interval="1000"/>
-	</poller>
+    <poller id="poller" default="true">
+        <interval-trigger interval="1000"/>
+    </poller>
 
 </beans:beans>]]></programlisting>
       As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
