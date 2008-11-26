@@ -323,7 +323,7 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         Message headers prior to passing the Messages along. For example, if there are 5 subscribers, the
         sequence-size would be set to 5, and the Messages would have sequence-number header values ranging
         from 1 to 5. This value is 'false' by default.
-        <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" apply-sequence="true"/&gt;</programlisting
+        <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" apply-sequence="true"/&gt;</programlisting>
       </para>
     </section>
     <section id="channel-configuration-prioritychannel">
