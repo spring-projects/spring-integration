@@ -209,10 +209,28 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.headerMapper = headerMapper;
 	}
 
+	/**
+	 * This property will take effect if no custom {@link MessageConverter}
+	 * has been provided to the {@link #setMessageConverter(MessageConverter)}
+	 * method. In that case, a {@link HeaderMappingMessageConverter} will be
+	 * used by default, and this value will be passed along to that converter's
+	 * 'extractIntegrationMessagePayload' property.
+	 * 
+	 * @see HeaderMappingMessageConverter#setExtractIntegrationMessagePayload(boolean)
+	 */
 	public void setExtractRequestPayload(boolean extractRequestPayload) {
 		this.extractRequestPayload = extractRequestPayload;
 	}
 
+	/**
+	 * This property will take effect if no custom {@link MessageConverter}
+	 * has been provided to the {@link #setMessageConverter(MessageConverter)}
+	 * method. In that case, a {@link HeaderMappingMessageConverter} will be
+	 * used by default, and this value will be passed along to that converter's
+	 * 'extractJmsMessageBody' property.
+	 * 
+	 * @see HeaderMappingMessageConverter#setExtractJmsMessageBody(boolean)
+	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
 	}
@@ -273,9 +291,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		}
 		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
-			javax.jms.Message jmsReply = JmsOutboundGateway.this.sendAndReceive(requestMessage);
+			javax.jms.Message jmsReply = this.sendAndReceive(requestMessage);
 			if (jmsReply == null) {
-				throw new MessageTimeoutException(message, "failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
+				throw new MessageTimeoutException(message,
+						"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
 			}
 			Object result = this.messageConverter.fromMessage(jmsReply);
 			replyMessageHolder.set(result);
