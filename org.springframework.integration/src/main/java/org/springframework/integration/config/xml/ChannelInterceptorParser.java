@@ -19,16 +19,58 @@ package org.springframework.integration.config.xml;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.Assert;
+
 /**
+ * A helper class for parsing the sub-elements of a channel's
+ * <em>interceptors</em> element.
+ * 
  * @author Mark Fisher
  */
-public class ChannelInterceptorParser extends AbstractInterceptorParser {
+public class ChannelInterceptorParser {
 
-	@Override
-	protected Map<String, BeanDefinitionRegisteringParser> getParserMap() {
-		Map<String, BeanDefinitionRegisteringParser> parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
-		parsers.put("wire-tap", new WireTapParser());
-		return parsers;
+	private final Map<String, BeanDefinitionRegisteringParser> parsers;
+
+
+	public ChannelInterceptorParser() {
+		this.parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
+		this.parsers.put("wire-tap", new WireTapParser());
+	}
+
+
+	@SuppressWarnings("unchecked")
+	public ManagedList parseInterceptors(Element element, ParserContext parserContext) {
+		ManagedList interceptors = new ManagedList();
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node child = childNodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				Element childElement = (Element) child;
+				String localName = child.getLocalName();
+				if ("bean".equals(localName)) {
+					interceptors.add(new RuntimeBeanReference(
+							IntegrationNamespaceUtils.parseBeanDefinitionElement(childElement, parserContext)));
+				}
+				else if ("ref".equals(localName)) {
+					String ref = childElement.getAttribute("bean");
+					interceptors.add(new RuntimeBeanReference(ref));
+				}
+				else {
+					BeanDefinitionRegisteringParser parser = this.parsers.get(localName);
+					Assert.notNull(parser, "unsupported interceptor element '" + localName + "'");
+					String interceptorBeanName = parser.parse(childElement, parserContext);
+					interceptors.add(new RuntimeBeanReference(interceptorBeanName));
+				}
+			}
+		}
+		return interceptors;
 	}
 
 }
