@@ -30,39 +30,25 @@ import org.springframework.util.StringUtils;
  */
 public abstract class JmsAdapterParserUtils {
 
-	public static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
+	static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
 
-	public static final String JMS_TEMPLATE_PROPERTY = "jmsTemplate";
+	static final String JMS_TEMPLATE_PROPERTY = "jmsTemplate";
 
-	public static final String CONNECTION_FACTORY_ATTRIBUTE = "connection-factory";
+	static final String CONNECTION_FACTORY_ATTRIBUTE = "connection-factory";
 
-	public static final String CONNECTION_FACTORY_PROPERTY = "connectionFactory";
+	static final String CONNECTION_FACTORY_PROPERTY = "connectionFactory";
 
-	public static final String DESTINATION_ATTRIBUTE = "destination";
+	static final String DESTINATION_ATTRIBUTE = "destination";
 
-	public static final String DESTINATION_PROPERTY = "destination";
+	static final String DESTINATION_PROPERTY = "destination";
 
-	public static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
+	static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
 
-	public static final String DESTINATION_NAME_PROPERTY = "destinationName";
+	static final String DESTINATION_NAME_PROPERTY = "destinationName";
 
-	public static final String HEADER_MAPPER_ATTRIBUTE = "header-mapper";
+	static final String HEADER_MAPPER_ATTRIBUTE = "header-mapper";
 
-	public static final String HEADER_MAPPER_PROPERTY = "headerMapper";
-
-	public static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
-
-	public static final String MESSAGE_CONVERTER_PROPERTY = "messageConverter";
-
-	private static final String ACKNOWLEDGE_ATTRIBUTE = "acknowledge";
-
-	private static final String ACKNOWLEDGE_AUTO = "auto";
-
-	private static final String ACKNOWLEDGE_CLIENT = "client";
-
-	private static final String ACKNOWLEDGE_DUPS_OK = "dups-ok";
-
-	private static final String ACKNOWLEDGE_TRANSACTED = "transacted";
+	static final String HEADER_MAPPER_PROPERTY = "headerMapper";
 
 
 	public static String determineConnectionFactoryBeanName(Element element) {
@@ -78,19 +64,19 @@ public abstract class JmsAdapterParserUtils {
 	}
 
 	public static Integer parseAcknowledgeMode(Element element) {
-		String acknowledge = element.getAttribute(ACKNOWLEDGE_ATTRIBUTE);
+		String acknowledge = element.getAttribute("acknowledge");
 		if (StringUtils.hasText(acknowledge)) {
 			int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
-			if (ACKNOWLEDGE_TRANSACTED.equals(acknowledge)) {
+			if ("transacted".equals(acknowledge)) {
 				acknowledgeMode = Session.SESSION_TRANSACTED;
 			}
-			else if (ACKNOWLEDGE_DUPS_OK.equals(acknowledge)) {
+			else if ("dups-ok".equals(acknowledge)) {
 				acknowledgeMode = Session.DUPS_OK_ACKNOWLEDGE;
 			}
-			else if (ACKNOWLEDGE_CLIENT.equals(acknowledge)) {
+			else if ("client".equals(acknowledge)) {
 				acknowledgeMode = Session.CLIENT_ACKNOWLEDGE;
 			}
-			else if (!ACKNOWLEDGE_AUTO.equals(acknowledge)) {
+			else if (!"auto".equals(acknowledge)) {
 				throw new BeanCreationException("Invalid JMS 'acknowledge' setting: " +
 						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.");
 			}
