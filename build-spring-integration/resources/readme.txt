@@ -1,13 +1,13 @@
-SPRING INTEGRATION 1.0.0.RC2 (Nov 14, 2008)
--------------------------------------------
+SPRING INTEGRATION 1.0.0 (Nov 26, 2008)
+---------------------------------------
 
-This is the second release candidate for Spring Integration 1.0
+This is the GA release of Spring Integration 1.0
 
-To find out what has changed since RC1, see 'changelog.txt'
+To find out what has changed since the Milestone and Release Candidate versions, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release  and also visit the official Spring Integration home at:
-http://www.springframework.org/spring-integration
+http://www.springsource.org/spring-integration
 
 To checkout the project from the SVN head and build from source, do the following:
 
@@ -28,6 +28,7 @@ To run the code within Eclipse, do the following:
 
 To run the code within Idea, do the following:
 
-   Import the existing Eclipse projects (File > New Project... > Import project from external model > Eclipse)
+   Import the existing Eclipse projects:
+         (File > New Project... > Import project from external model > Eclipse)
    Define a Path Variable named IVY_CACHE (IDE Settings > Path Variables)
    Its value should be: <checkout-dir>/ivy-cache/repository
