@@ -44,6 +44,17 @@
       approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
       an example that uses this "gateway" element.
 	</para>
+    <para>
+      The reason that the attributes on the 'gateway' element are named 'default-request-channel' and
+      'default-reply-channel' is that you may also provide per-method channel references by using the
+      @Gateway annotation.
+      <programlisting language="java"><![CDATA[ public interface Cafe {
+
+     @Gateway(requestChannel="orders")
+     void placeOrder(Order order);
+
+ }]]></programlisting>
+    </para>
   </section>
 
 </chapter>
