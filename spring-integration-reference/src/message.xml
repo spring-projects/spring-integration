@@ -174,11 +174,11 @@ assertEquals("bar", message2.getHeaders().get("foo"));</programlisting>
     <para>
       If you need to create a Message with a new payload but still want to copy the
       headers from an existing Message, you can use one of the 'copy' methods.
-      <programlisting language="java">Message&lt;String&gt; message3 = MessageBuilder.fromPayload("test3")
+      <programlisting language="java">Message&lt;String&gt; message3 = MessageBuilder.withPayload("test3")
         .copyHeaders(message1.getHeaders())
         .build();
 
-Message&lt;String&gt; message4 = MessageBuilder.fromPayload("test4")
+Message&lt;String&gt; message4 = MessageBuilder.withPayload("test4")
         .setHeader("foo", 123)
         .copyHeadersIfAbsent(message1.getHeaders())
         .build();
@@ -189,7 +189,7 @@ assertEquals(123, message4.getHeaders().get("foo"));</programlisting>
       second example above, you can see how to set any user-defined header with <methodname>setHeader</methodname>.
       Finally, there are set methods available for the predefined headers as well as a non-destructive method for
       setting any header (MessageHeaders also defines constants for the pre-defined header names).
-      <programlisting language="java">Message&lt;Integer&gt; importantMessage = MessageBuilder.fromPayload(99)
+      <programlisting language="java">Message&lt;Integer&gt; importantMessage = MessageBuilder.withPayload(99)
         .setPriority(MessagePriority.HIGHEST)
         .build();
 
