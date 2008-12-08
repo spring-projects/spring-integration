@@ -18,6 +18,9 @@ package org.springframework.integration.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -46,10 +49,13 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 
 
 	public Method resolveHandlerMethod(Message<?> message) {
-		Class<?> payloadType = message.getPayload().getClass();
-		Method method = this.methodMap.get(payloadType);
+		Method method = this.methodMap.get(message.getClass());
 		if (method == null) {
-			method = this.findClosestMatch(payloadType);
+			Class<?> payloadType = message.getPayload().getClass();
+			method = this.methodMap.get(payloadType);
+			if (method == null) {
+				method = this.findClosestMatch(payloadType);
+			}
 			if (method == null) {
 				method = this.fallbackMethod;
 			}
@@ -59,35 +65,53 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 
 	private void initMethodMap(Method[] candidates) {
 		for (Method method : candidates) {
-			Class<?> expectedPayloadType = this.determineExpectedPayloadType(method);
-			if (expectedPayloadType == null) {
+			Class<?> expectedType = this.determineExpectedType(method);
+			if (expectedType == null) {
 				Assert.isTrue(fallbackMethod == null,
-						"At most one method can expect only Message headers rather than a payload, " +
+						"At most one method can expect only Message headers rather than a Message or payload, " +
 						"but found two: [" + method + "] and [" + this.fallbackMethod + "]");
 				this.fallbackMethod = method;
 			}
 			else {
-				Assert.isTrue(!this.methodMap.containsKey(expectedPayloadType),
-						"More than one method matches payload type [" + expectedPayloadType +
+				Assert.isTrue(!this.methodMap.containsKey(expectedType),
+						"More than one method matches type [" + expectedType +
 						"]. Consider using annotations or providing a method name.");
-				this.methodMap.put(expectedPayloadType, method);
+				this.methodMap.put(expectedType, method);
 			}
 		}
 	}
 
-	private Class<?> determineExpectedPayloadType(Method method) {
-		Class<?> expectedPayloadType = null;
-		Class<?>[] parameterTypes = method.getParameterTypes();
+	private Class<?> determineExpectedType(Method method) {
+		Class<?> expectedType = null;
+		Type[] parameterTypes = method.getGenericParameterTypes();
 		Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 		for (int i = 0; i < parameterTypes.length; i++) {
 			if (!HandlerMethodUtils.containsHeaderAnnotation(parameterAnnotations[i])) {
-				Assert.isTrue(expectedPayloadType == null,
-						"Message-handling method must only have one parameter expecting a payload. Other " +
-						"parameters may be included but only if they have @Header or @Headers annotations.");
-				expectedPayloadType = parameterTypes[i];
+				Assert.isTrue(expectedType == null,
+						"Message-handling method must only have one parameter expecting a Message or Message payload."
+						+ " Other parameters may be included but only if they have @Header or @Headers annotations.");
+				Type parameterType = parameterTypes[i];
+				if (parameterType instanceof ParameterizedType) {
+					ParameterizedType parameterizedType = (ParameterizedType) parameterType;
+					Type rawType = parameterizedType.getRawType();
+					if (rawType instanceof Class) {
+						Class<?> rawTypeClass = (Class<?>) rawType;
+						if (Message.class.isAssignableFrom(rawTypeClass)) {
+							expectedType = this.determineExpectedTypeFromParameterizedMessageType(parameterizedType);
+						}
+						else {
+							expectedType = rawTypeClass;
+						}
+					}
+				}
+				else if (parameterType instanceof Class) {
+					expectedType = (Class<?>) parameterType;
+				}
+				Assert.notNull(expectedType, "Failed to determine expected type for parameter ["
+						+ parameterType + "] on Method [" + method + "]");
 			}
 		}
-		return expectedPayloadType;
+		return expectedType;
 	}
 
 	private Method findClosestMatch(Class<?> payloadType) {
@@ -105,6 +129,24 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 			this.methodMap.put(payloadType, matchingMethod);
 		}
 		return matchingMethod;
+	}
+
+	private Class<?> determineExpectedTypeFromParameterizedMessageType(ParameterizedType parameterizedType) {
+		Class<?> expectedType = null;
+		Type actualType = parameterizedType.getActualTypeArguments()[0];
+		if (actualType instanceof WildcardType) {
+			WildcardType wildcardType = (WildcardType) actualType;
+			if (wildcardType.getUpperBounds().length == 1) {
+				Type upperBound = wildcardType.getUpperBounds()[0];
+				if (upperBound instanceof Class) {
+					expectedType = (Class<?>) upperBound;
+				}
+			}
+		}
+		else if (actualType instanceof Class) {
+			expectedType = (Class<?>) actualType;
+		}
+		return expectedType;
 	}
 
 	private int getTypeDifferenceWeight(Class<?> expectedType, Class<?> payloadType) {
