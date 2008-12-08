@@ -25,7 +25,6 @@ import java.util.List;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Utility methods for common behavior related to Message-handling methods.
@@ -73,13 +72,11 @@ abstract class HandlerMethodUtils {
 		if (clazz == null) {
 			clazz = object.getClass();
 		}
-		ReflectionUtils.doWithMethods(clazz, new ReflectionUtils.MethodCallback() {
-			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				if (HandlerMethodUtils.isValidHandlerMethod(method)) {
-					candidates.add(method);
-				}
+		for (Method method : clazz.getMethods()) {
+			if (HandlerMethodUtils.isValidHandlerMethod(method)) {
+				candidates.add(method);
 			}
-		});
+		}
 		return candidates.toArray(new Method[candidates.size()]);
 	}
 
