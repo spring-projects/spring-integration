@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import org.springframework.integration.core.MessageHeaders;
+
 /**
  * Pre-defined header names to be used for setting and/or retrieving Mail
  * Message attributes from/to integration Message Headers.
@@ -24,7 +26,7 @@ package org.springframework.integration.mail;
  */
 public abstract class MailHeaders {
 
-	public static final String PREFIX = "spring.integration.mail.";
+	public static final String PREFIX = MessageHeaders.PREFIX + "mail_";
 
 	public static final String SUBJECT = PREFIX + "subject";
 
@@ -36,10 +38,10 @@ public abstract class MailHeaders {
 
 	public static final String FROM = PREFIX + "from";
 
-	public static final String REPLY_TO = PREFIX+ "reply-to";
+	public static final String REPLY_TO = PREFIX+ "replyTo";
 
-	public static final String MULTIPART_MODE = PREFIX + "multipart-mode";
+	public static final String MULTIPART_MODE = PREFIX + "multipartMode";
 
-	public static final String ATTACHMENT_FILENAME = PREFIX + "attachment-filename";
+	public static final String ATTACHMENT_FILENAME = PREFIX + "attachmentFilename";
 
 }

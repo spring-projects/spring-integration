@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Conventions;
 import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.ObjectUtils;
@@ -84,6 +85,7 @@ public class SimpleHeaderEnricherParser extends AbstractTransformerParser {
 			Node node = attributes.item(i);
 			String name = node.getNodeName();
 			if (this.isEligibleHeaderName(name)) {
+				name = Conventions.attributeNameToPropertyName(name);
 				Object value = (this.referenceAttributes.contains(name))
 						? new RuntimeBeanReference(node.getNodeValue())
 						: node.getNodeValue();

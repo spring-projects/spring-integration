@@ -48,7 +48,7 @@ public class ChannelInterceptorTests {
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
-		assertEquals(1, result.getHeaders().get(PreSendReturnsMessageInterceptor.class.getName()));
+		assertEquals(1, result.getHeaders().get(PreSendReturnsMessageInterceptor.class.getSimpleName()));
 	}
 
 	@Test
@@ -161,7 +161,7 @@ public class ChannelInterceptorTests {
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			assertNotNull(message);
 			Message<?> reply = MessageBuilder.fromMessage(message)
-					.setHeader(this.getClass().getName(), counter.incrementAndGet()).build();
+					.setHeader(this.getClass().getSimpleName(), counter.incrementAndGet()).build();
 			return reply;
 		}
 	}

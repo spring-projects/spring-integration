@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ws;
 
+import org.springframework.integration.core.MessageHeaders;
+
 /**
  * Pre-defined header names to be used when storing or retrieving
  * Web Service properties to/from integration Message Headers.
@@ -24,8 +26,8 @@ package org.springframework.integration.ws;
  */
 public abstract class WebServiceHeaders {
 
-	public static final String PREFIX = "spring.integration.ws.";
+	public static final String PREFIX = MessageHeaders.PREFIX + "ws_";
 
-	public static final String SOAP_ACTION = PREFIX + "soap-action";
+	public static final String SOAP_ACTION = PREFIX + "soapAction";
 
 }
