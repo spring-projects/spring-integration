@@ -26,7 +26,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.util.Assert;
@@ -44,12 +43,10 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
 		ManagedList handlerList = new ManagedList();
 		NodeList children = element.getChildNodes();
-		ParserContext childContext = new ParserContext(
-				parserContext.getReaderContext(), parserContext.getDelegate(), builder.getBeanDefinition());
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				String childBeanName = this.parseChild((Element) child, childContext);
+				String childBeanName = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
 				handlerList.add(new RuntimeBeanReference(childBeanName));
 			}
 		}
@@ -57,9 +54,8 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		return builder;
 	}
 
-	private String parseChild(Element element, ParserContext parserContext) {
-		NamespaceHandler handler = parserContext.getReaderContext().getNamespaceHandlerResolver().resolve(element.getNamespaceURI());
-		BeanDefinition beanDefinition = handler.parse(element, parserContext);
+	private String parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
+		BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
 		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 		Assert.isInstanceOf(AbstractBeanDefinition.class, beanDefinition);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
