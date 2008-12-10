@@ -21,8 +21,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.file.transformer.FileToStringTransformer;
-import org.springframework.integration.transformer.Transformer;
 
 /**
  * Parser for the &lt;file-to-string-transformer&gt; element.
@@ -32,8 +30,8 @@ import org.springframework.integration.transformer.Transformer;
 public class FileToStringTransformerParser extends AbstractFilePayloadTransformerParser {
 
 	@Override
-	protected Class<? extends Transformer> getTransformerClass() {
-		return FileToStringTransformer.class;
+	protected String getTransformerClassName() {
+		return "org.springframework.integration.file.transformer.FileToStringTransformer";
 	}
 
 	@Override

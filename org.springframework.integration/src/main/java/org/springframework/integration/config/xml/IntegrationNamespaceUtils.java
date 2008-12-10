@@ -38,6 +38,9 @@ import org.springframework.util.StringUtils;
  */
 public abstract class IntegrationNamespaceUtils {
 
+	static final String BASE_PACKAGE = "org.springframework.integration";
+
+
 	/**
 	 * Populates the specified bean definition property with the value
 	 * of the attribute whose name is provided if that attribute is

@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.mail.transformer.MailToStringTransformer;
-import org.springframework.integration.transformer.Transformer;
 
 /**
  * Parser for the &lt;mail-to-string-transformer&gt; element.
@@ -33,8 +31,8 @@ import org.springframework.integration.transformer.Transformer;
 public class MailToStringTransformerParser extends AbstractTransformerParser {
 
 	@Override
-	protected Class<? extends Transformer> getTransformerClass() {
-		return MailToStringTransformer.class;
+	protected String getTransformerClassName() {
+		return "org.springframework.integration.mail.transformer.MailToStringTransformer";
 	}
 
 	@Override

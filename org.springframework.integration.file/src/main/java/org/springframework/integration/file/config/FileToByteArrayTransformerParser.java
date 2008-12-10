@@ -16,9 +16,6 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
-import org.springframework.integration.transformer.Transformer;
-
 /**
  * Parser for the &lt;file-to-bytes-transformer&gt; element.
  * 
@@ -27,8 +24,8 @@ import org.springframework.integration.transformer.Transformer;
 public class FileToByteArrayTransformerParser extends AbstractFilePayloadTransformerParser {
 
 	@Override
-	protected Class<? extends Transformer> getTransformerClass() {
-		return FileToByteArrayTransformer.class;
+	protected String getTransformerClassName() {
+		return "org.springframework.integration.file.transformer.FileToByteArrayTransformer";
 	}
 
 }

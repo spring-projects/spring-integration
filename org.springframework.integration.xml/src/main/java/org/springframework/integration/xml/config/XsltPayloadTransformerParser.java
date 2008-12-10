@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.transformer.Transformer;
-import org.springframework.integration.xml.transformer.XsltPayloadTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -34,8 +32,8 @@ import org.springframework.util.StringUtils;
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
 	@Override
-	protected Class<? extends Transformer> getTransformerClass() {
-		return XsltPayloadTransformer.class;
+	protected String getTransformerClassName() {
+		return "org.springframework.integration.xml.transformer.XsltPayloadTransformer";
 	}
 
 	@Override

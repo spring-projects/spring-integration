@@ -29,8 +29,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
-import org.springframework.integration.transformer.HeaderEnricher;
-import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -64,8 +62,8 @@ public class SimpleHeaderEnricherParser extends AbstractTransformerParser {
 
 
 	@Override
-	protected Class<? extends Transformer> getTransformerClass() {
-		return HeaderEnricher.class;
+	protected String getTransformerClassName() {
+		return IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher";
 	}
 
 	protected boolean isEligibleHeaderName(String headerName) {
