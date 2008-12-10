@@ -26,7 +26,6 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -65,15 +64,18 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "output-channel");
 		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
-		if (!element.hasAttribute(this.getInputChannelAttributeName())) {
+		String inputChannelAttributeName = this.getInputChannelAttributeName();
+		if (!element.hasAttribute(inputChannelAttributeName)) {
+			if (!parserContext.isNested()) {
+				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
+						+ "' attribute is required for top-level endpoint elements.", element);
+			}
 			return handlerBeanDefinition;
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
 		builder.addConstructorArgReference(handlerBeanName);
-		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
-		Assert.hasText(inputChannelName, "the '" + inputChannelAttributeName + "' attribute is required");
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
 			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
