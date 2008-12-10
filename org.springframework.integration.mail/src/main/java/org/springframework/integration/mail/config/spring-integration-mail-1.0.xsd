@@ -108,8 +108,8 @@
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>		
+		<xsd:attribute name="input-channel" type="xsd:string"/>
+		<xsd:attribute name="output-channel" type="xsd:string"/>		
 	</xsd:complexType>
 
 </xsd:schema>
