@@ -19,10 +19,8 @@ package org.springframework.integration.ws.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
-import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
-import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,20 +31,23 @@ import org.springframework.util.StringUtils;
 public class WebServiceOutboundGatewayParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
-	protected Class<?> getGatewayClass(Element element) {
-		return (StringUtils.hasText(element.getAttribute("marshaller"))) ?
-				MarshallingWebServiceOutboundGateway.class : SimpleWebServiceOutboundGateway.class;
+	protected String getGatewayClassName(Element element) {
+		String simpleClassName = (StringUtils.hasText(element.getAttribute("marshaller"))) ?
+				"MarshallingWebServiceOutboundGateway" : "SimpleWebServiceOutboundGateway";
+		return "org.springframework.integration.ws." + simpleClassName;
 	}
 
 	@Override
-	protected String parseUrl(Element element) {
+	protected String parseUrl(Element element, ParserContext parserContext) {
 		String uri = element.getAttribute("uri");
-		Assert.hasText(uri, "The 'uri' attribute is required.");
+		if (!StringUtils.hasText(uri)) {
+			parserContext.getReaderContext().error("The 'uri' attribute is required.", element);
+		}
 		return uri;
 	}
 
 	@Override
-	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element) {
+	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		String marshallerRef = element.getAttribute("marshaller");
 		if (StringUtils.hasText(marshallerRef)) {
 			builder.addConstructorArgReference(marshallerRef);
@@ -78,8 +79,10 @@ public class WebServiceOutboundGatewayParser extends AbstractRemotingOutboundGat
 		}
 		String messageSenderRef = element.getAttribute("message-sender");
 		String messageSenderListRef = element.getAttribute("message-senders");
-		Assert.isTrue(!(StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)),
-				"Only one of message-sender or message-senders should be specified");
+		if (StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)) {
+			parserContext.getReaderContext().error(
+					"Only one of message-sender or message-senders should be specified", element);
+		}
 		if (StringUtils.hasText(messageSenderRef)) {
 			builder.addPropertyReference("messageSender", messageSenderRef);
 		}
