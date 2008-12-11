@@ -19,11 +19,11 @@ package org.springframework.integration.jms.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
@@ -134,8 +134,9 @@ public class JmsInboundGatewayParserTests {
 		try {
 			new ClassPathXmlApplicationContext("jmsGatewayWithConnectionFactoryOnly.xml", this.getClass());
 		}
-		catch (RuntimeException e) {
-			assertEquals(IllegalArgumentException.class, e.getCause().getClass());
+		catch (BeanDefinitionStoreException e) {
+			assertTrue(e.getMessage().contains("request-destination"));
+			assertTrue(e.getMessage().contains("request-destination-name"));
 			throw e;
 		}
 	}
@@ -145,8 +146,8 @@ public class JmsInboundGatewayParserTests {
 		try {
 			new ClassPathXmlApplicationContext("jmsGatewayWithEmptyConnectionFactory.xml", this.getClass());
 		}
-		catch (RuntimeException e) {
-			assertEquals(BeanCreationException.class, e.getCause().getClass());
+		catch (BeanDefinitionStoreException e) {
+			assertTrue(e.getMessage().contains("connection-factory"));
 			throw e;
 		}
 	}

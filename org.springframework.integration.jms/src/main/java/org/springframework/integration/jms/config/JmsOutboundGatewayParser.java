@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jms.JmsOutboundGateway;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,12 +38,15 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.jms.JmsOutboundGateway");
 		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
 		String requestDestination = element.getAttribute("request-destination");
 		String requestDestinationName = element.getAttribute("request-destination-name");
-		Assert.isTrue(StringUtils.hasText(requestDestination) ^ StringUtils.hasText(requestDestinationName),
-				"Exactly one of the 'request-destination' or 'request-destination-name' attributes is required.");
+		if (!(StringUtils.hasText(requestDestination) ^ StringUtils.hasText(requestDestinationName))) {
+			parserContext.getReaderContext().error(
+					"Exactly one of the 'request-destination' or 'request-destination-name' attributes is required.", element);
+		}
 		if (StringUtils.hasText(requestDestination)) {
 			builder.addPropertyReference("requestDestination", requestDestination);
 		}

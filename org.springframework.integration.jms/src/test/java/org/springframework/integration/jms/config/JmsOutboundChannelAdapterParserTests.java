@@ -18,11 +18,11 @@ package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -80,8 +80,8 @@ public class JmsOutboundChannelAdapterParserTests {
 		try {
 			new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass());
 		}
-		catch (RuntimeException e) {
-			assertEquals(BeanCreationException.class, e.getCause().getClass());
+		catch (BeanDefinitionStoreException e) {
+			assertTrue(e.getMessage().contains("connection-factory"));
 			throw e;
 		}
 	}

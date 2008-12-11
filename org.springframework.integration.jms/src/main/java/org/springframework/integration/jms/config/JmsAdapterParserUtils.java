@@ -16,11 +16,9 @@
 
 package org.springframework.integration.jms.config;
 
-import javax.jms.Session;
-
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -28,7 +26,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class JmsAdapterParserUtils {
+abstract class JmsAdapterParserUtils {
 
 	static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
 
@@ -50,35 +48,48 @@ public abstract class JmsAdapterParserUtils {
 
 	static final String HEADER_MAPPER_PROPERTY = "headerMapper";
 
+	/*
+	 * The following constants match those of javax.jms.Session.
+	 * They are duplicated here to avoid a dependency in tooling.
+	 */
 
-	public static String determineConnectionFactoryBeanName(Element element) {
+	static final int SESSION_TRANSACTED = 0;
+
+	private static final int AUTO_ACKNOWLEDGE = 1;
+
+	private static final int CLIENT_ACKNOWLEDGE = 2;
+
+	private static final int DUPS_OK_ACKNOWLEDGE = 3;
+
+
+	static String determineConnectionFactoryBeanName(Element element, ParserContext parserContext) {
 		String connectionFactoryBeanName = "connectionFactory";
 		if (element.hasAttribute(CONNECTION_FACTORY_ATTRIBUTE)) {
 			connectionFactoryBeanName = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
 			if (!StringUtils.hasText(connectionFactoryBeanName)) {
-				throw new BeanCreationException(
-						"JMS adapter 'connection-factory' attribute must not be empty");
+				parserContext.getReaderContext().error(
+						"JMS adapter 'connection-factory' attribute must not be empty", element);
 			}
 		}
 		return connectionFactoryBeanName;
 	}
 
-	public static Integer parseAcknowledgeMode(Element element) {
+	static Integer parseAcknowledgeMode(Element element, ParserContext parserContext) {
 		String acknowledge = element.getAttribute("acknowledge");
 		if (StringUtils.hasText(acknowledge)) {
-			int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
+			int acknowledgeMode = AUTO_ACKNOWLEDGE;
 			if ("transacted".equals(acknowledge)) {
-				acknowledgeMode = Session.SESSION_TRANSACTED;
+				acknowledgeMode = SESSION_TRANSACTED;
 			}
 			else if ("dups-ok".equals(acknowledge)) {
-				acknowledgeMode = Session.DUPS_OK_ACKNOWLEDGE;
+				acknowledgeMode = DUPS_OK_ACKNOWLEDGE;
 			}
 			else if ("client".equals(acknowledge)) {
-				acknowledgeMode = Session.CLIENT_ACKNOWLEDGE;
+				acknowledgeMode = CLIENT_ACKNOWLEDGE;
 			}
 			else if (!"auto".equals(acknowledge)) {
-				throw new BeanCreationException("Invalid JMS 'acknowledge' setting: " +
-						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.");
+				parserContext.getReaderContext().error("Invalid JMS 'acknowledge' setting: " +
+						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.", element);
 			}
 			return acknowledgeMode;
 		}

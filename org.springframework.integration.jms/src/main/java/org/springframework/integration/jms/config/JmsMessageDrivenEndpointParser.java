@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms.config;
 
-import javax.jms.Session;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -25,10 +23,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jms.ChannelPublishingJmsMessageListener;
-import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
-import org.springframework.jms.listener.DefaultMessageListenerContainer;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -58,8 +52,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return JmsMessageDrivenEndpoint.class;
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.integration.jms.JmsMessageDrivenEndpoint";
 	}
 
 	@Override
@@ -84,30 +78,35 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	private String parseMessageListenerContainer(Element element, ParserContext parserContext) {
 		if (element.hasAttribute("container")) {
 			for (String containerAttribute : containerAttributes) {
-				Assert.isTrue(!element.hasAttribute(containerAttribute), "The '" + containerAttribute +
-						"' attribute should not be provided when specifying a 'container' reference.");
+				if (element.hasAttribute(containerAttribute)) {
+					parserContext.getReaderContext().error("The '" + containerAttribute +
+							"' attribute should not be provided when specifying a 'container' reference.", element);
+				}
 			}
 			return element.getAttribute("container");
 		}
 		// otherwise, we build a DefaultMessageListenerContainer instance
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageListenerContainer.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.jms.listener.DefaultMessageListenerContainer");
 		String destinationAttribute = this.expectReply ? "request-destination" : "destination";
 		String destinationNameAttribute = this.expectReply ? "request-destination-name" : "destination-name";
 		String destination = element.getAttribute(destinationAttribute);
 		String destinationName = element.getAttribute(destinationNameAttribute);
-		Assert.isTrue(StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName),
-				"Exactly one of '" + destinationAttribute + "' or '" + destinationNameAttribute + "' is required.");
+		if (!(StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName))) {
+			parserContext.getReaderContext().error(
+					"Exactly one of '" + destinationAttribute + "' or '" + destinationNameAttribute + "' is required.", element);
+		}
 		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
-				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
+				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		if (StringUtils.hasText(destination)) {
 			builder.addPropertyReference("destination", destination);
 		}
 		else {
 			builder.addPropertyValue("destinationName", destinationName);
 		}
-		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element);
+		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
 		if (acknowledgeMode != null) {
-			if (acknowledgeMode.intValue() == Session.SESSION_TRANSACTED) {
+			if (acknowledgeMode.intValue() == JmsAdapterParserUtils.SESSION_TRANSACTED) {
 				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
 			}
 			else {
@@ -126,7 +125,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 	}
 
 	private String parseMessageListener(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ChannelPublishingJmsMessageListener.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.jms.ChannelPublishingJmsMessageListener");
 		builder.addPropertyValue("expectReply", this.expectReply);
 		if (this.expectReply) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
