@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.Resequencer;
 
 /**
  * Parser for the &lt;resequencer&gt; element.
@@ -29,31 +28,17 @@ import org.springframework.integration.aggregator.Resequencer;
  */
 public class ResequencerParser extends AbstractConsumerEndpointParser {
 
-	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
-
-	private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
-
-	private static final String RELEASE_PARTIAL_SEQUENCES = "release-partial-sequences";
-
-	private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-timeout";
-
-	private static final String REAPER_INTERVAL_ATTRIBUTE = "reaper-interval";
-
-	private static final String TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE = "tracked-correlation-id-capacity";
-
-	private static final String TIMEOUT_ATTRIBUTE = "timeout";
-
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(Resequencer.class);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, RELEASE_PARTIAL_SEQUENCES);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REAPER_INTERVAL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.Resequencer");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "release-partial-sequences");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-partial-result-on-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reaper-interval");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "tracked-correlation-id-capacity");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder;
 	}

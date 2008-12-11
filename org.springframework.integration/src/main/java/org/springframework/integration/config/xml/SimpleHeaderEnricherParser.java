@@ -93,7 +93,7 @@ public class SimpleHeaderEnricherParser extends AbstractTransformerParser {
 				headers.put(name, value);
 			}
 		}
-		this.postProcessHeaders(element, headers);
+		this.postProcessHeaders(element, headers, parserContext);
 		builder.addConstructorArgValue(headers);
 		builder.addPropertyValue("overwrite", this.shouldOverwrite(element));
 	}
@@ -101,7 +101,7 @@ public class SimpleHeaderEnricherParser extends AbstractTransformerParser {
 	/**
 	 * Subclasses may implement this method to provide additional headers.
 	 */
-	protected void postProcessHeaders(Element element, ManagedMap headers) {
+	protected void postProcessHeaders(Element element, ManagedMap headers, ParserContext parserContext) {
 	}
 
 }

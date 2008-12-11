@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -36,7 +34,9 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 	@Override
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		String consumerRef = element.getAttribute("ref");
-		Assert.isTrue(StringUtils.hasText(consumerRef), "The 'ref' attribute is required.");
+		if (!StringUtils.hasText(consumerRef)) {
+			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
+		}
 		if (element.hasAttribute("method")) {
 			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					this.parseConsumer(element, parserContext), parserContext.getRegistry());
@@ -46,7 +46,8 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
+		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageHandler");
 		invokerBuilder.addConstructorArgReference(element.getAttribute("ref"));
 		invokerBuilder.addConstructorArgValue(element.getAttribute("method"));
 		return invokerBuilder.getBeanDefinition();

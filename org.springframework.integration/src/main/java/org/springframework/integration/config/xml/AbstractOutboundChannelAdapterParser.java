@@ -22,8 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -36,10 +35,14 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
+		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
 		builder.addConstructorArgReference(this.parseAndRegisterConsumer(element, parserContext));
 		if (pollerElement != null) {
-			Assert.hasText(channelName, "outbound channel adapter with a 'poller' requires a 'channel' to poll");
+			if (!StringUtils.hasText(channelName)) {
+				parserContext.getReaderContext().error(
+						"outbound channel adapter with a 'poller' requires a 'channel' to poll", element);
+			}
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
@@ -53,7 +56,10 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	 */
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		AbstractBeanDefinition definition = this.parseConsumer(element, parserContext);
-		Assert.notNull(definition, "Consumer parsing must return a BeanDefinition.");
+		if (definition == null) {
+			parserContext.getReaderContext().error(
+					"Consumer parsing must return a BeanDefinition.", element);
+		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				definition, parserContext.getRegistry());
 	}

@@ -22,8 +22,8 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -49,7 +49,7 @@ public class StandardHeaderEnricherParser extends SimpleHeaderEnricherParser {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void postProcessHeaders(Element element, ManagedMap headers) {
+	protected void postProcessHeaders(Element element, ManagedMap headers, ParserContext parserContext) {
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node node = childNodes.item(i);
@@ -60,7 +60,10 @@ public class StandardHeaderEnricherParser extends SimpleHeaderEnricherParser {
 				String ref = headerElement.getAttribute("ref");
 				boolean isValue = StringUtils.hasText(value);
 				boolean isRef = StringUtils.hasText(ref);
-				Assert.isTrue(isValue ^ isRef, "Exactly one of the 'value' or 'ref' attributes is required.");
+				if (!(isValue ^ isRef)) {
+					parserContext.getReaderContext().error(
+							"Exactly one of the 'value' or 'ref' attributes is required.", element);
+				}
 				if (isValue) {
 					headers.put(name, value);
 				}

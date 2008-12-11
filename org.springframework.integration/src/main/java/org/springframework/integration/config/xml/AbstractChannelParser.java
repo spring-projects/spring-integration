@@ -26,8 +26,6 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
-import org.springframework.integration.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -54,12 +52,14 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		String datatypeAttr = element.getAttribute("datatype");
 		if (StringUtils.hasText(datatypeAttr)) {
 			String[] datatypes = StringUtils.commaDelimitedListToStringArray(datatypeAttr);
-			RootBeanDefinition selectorDef = new RootBeanDefinition(PayloadTypeSelector.class);
+			RootBeanDefinition selectorDef = new RootBeanDefinition();
+			selectorDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".selector.PayloadTypeSelector");
 			selectorDef.getConstructorArgumentValues().addGenericArgumentValue(datatypes);
 			String selectorBeanName = parserContext.getReaderContext().generateBeanName(selectorDef);
 			BeanComponentDefinition selectorComponent = new BeanComponentDefinition(selectorDef, selectorBeanName);
 			parserContext.registerBeanComponent(selectorComponent);
-			RootBeanDefinition interceptorDef = new RootBeanDefinition(MessageSelectingInterceptor.class);
+			RootBeanDefinition interceptorDef = new RootBeanDefinition();
+			interceptorDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.interceptor.MessageSelectingInterceptor");
 			interceptorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(selectorBeanName));
 			String interceptorBeanName = parserContext.getReaderContext().generateBeanName(interceptorDef);
 			BeanComponentDefinition interceptorComponent = new BeanComponentDefinition(interceptorDef, interceptorBeanName);

@@ -21,9 +21,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.filter.MethodInvokingSelector;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,7 +32,8 @@ public class FilterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageFilter.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".filter.MessageFilter");
 		builder.addConstructorArgReference(this.parseSelector(element, parserContext));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "throw-exception-on-rejection");
 		return builder;
@@ -43,12 +41,15 @@ public class FilterParser extends AbstractConsumerEndpointParser {
 
 	private String parseSelector(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute("ref");
-		Assert.hasText(ref, "The 'ref' attribute is required.");
+		if (!StringUtils.hasText(ref)) {
+			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
+		}
 		String method = element.getAttribute("method");
 		if (!StringUtils.hasText(method)) {
 			return ref;
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSelector.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".filter.MethodInvokingSelector");
 		builder.addConstructorArgReference(ref);
 		builder.addConstructorArgValue(method);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(

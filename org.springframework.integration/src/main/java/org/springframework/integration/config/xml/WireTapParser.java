@@ -21,8 +21,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.interceptor.WireTap;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,9 +31,12 @@ import org.springframework.util.StringUtils;
 public class WireTapParser implements BeanDefinitionRegisteringParser {
 
 	public String parse(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(WireTap.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.interceptor.WireTap");
 		String targetRef = element.getAttribute("channel");
-		Assert.hasText(targetRef, "the 'channel' attribute is required");
+		if (!StringUtils.hasText(targetRef)) {
+			parserContext.getReaderContext().error("The 'channel' attribute is required.", element);
+		}
 		builder.addConstructorArgReference(targetRef);
 		String selectorRef = element.getAttribute("selector");
 		if (StringUtils.hasText(selectorRef)) {

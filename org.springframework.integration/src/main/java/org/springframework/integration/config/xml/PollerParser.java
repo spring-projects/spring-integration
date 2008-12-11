@@ -27,11 +27,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.scheduling.CronTrigger;
-import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -45,8 +42,9 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
 		String id = super.resolveId(element, definition, parserContext);
 		if (element.getAttribute("default").equals("true")) {
-			Assert.isTrue(!parserContext.getRegistry().isBeanNameInUse(IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME),
-					"only one default <poller/> element is allowed per context");
+			if (parserContext.getRegistry().isBeanNameInUse(IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME)) {
+				parserContext.getReaderContext().error("only one default <poller/> element is allowed per context", element);
+			}
 			parserContext.getRegistry().registerAlias(id, IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME);
 		}
 		return id;
@@ -54,9 +52,12 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder metadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(PollerMetadata.class);
-		Assert.isTrue(!element.hasAttribute("ref"),
-				"the 'ref' attribute must not be present on a 'poller' element submitted to the parser");
+		BeanDefinitionBuilder metadataBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.PollerMetadata");
+		if (element.hasAttribute("ref")) {
+			parserContext.getReaderContext().error(
+					"the 'ref' attribute must not be present on a 'poller' element submitted to the parser", element);
+		}
 		configureTrigger(element, metadataBuilder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
@@ -75,8 +76,10 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		}
 		else {
 			Element cronElement = DomUtils.getChildElementByTagName(pollerElement, "cron-trigger");
-			Assert.notNull(cronElement,
-					"A <poller> element must include either an <interval-trigger/> or <cron-trigger/> child element.");
+			if (cronElement == null) {
+				parserContext.getReaderContext().error(
+						"A <poller> element must include either an <interval-trigger/> or <cron-trigger/> child element.", pollerElement);
+			}
 			triggerBeanName = parseCronTrigger(cronElement, parserContext);
 		}
 		targetBuilder.addPropertyReference("trigger", triggerBeanName);
@@ -87,9 +90,12 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	 */
 	private String parseIntervalTrigger(Element element, ParserContext parserContext) {
 		String interval = element.getAttribute("interval");
-		Assert.hasText(interval, "the 'interval' attribute is required for an <interval-trigger/>");
+		if (!StringUtils.hasText(interval)) {
+			parserContext.getReaderContext().error("the 'interval' attribute is required for an <interval-trigger/>", element);
+		}
 		TimeUnit timeUnit = TimeUnit.valueOf(element.getAttribute("time-unit"));
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(IntervalTrigger.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.IntervalTrigger");
 		builder.addConstructorArgValue(interval);
 		builder.addConstructorArgValue(timeUnit);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "initial-delay");
@@ -102,8 +108,11 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	 */
 	private String parseCronTrigger(Element element, ParserContext parserContext) {
 		String cronExpression = element.getAttribute("expression");
-		Assert.hasText(cronExpression, "the 'expression' attribute is required for a <cron-trigger/>");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
+		if (!StringUtils.hasText(cronExpression)) {
+			parserContext.getReaderContext().error("the 'expression' attribute is required for a <cron-trigger/>", element);
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.CronTrigger");
 		builder.addConstructorArgValue(cronExpression);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}

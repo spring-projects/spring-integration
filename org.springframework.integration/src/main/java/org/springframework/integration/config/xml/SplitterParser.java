@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.SplitterFactoryBean;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,7 +31,8 @@ public class SplitterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SplitterFactoryBean.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
 		if (element.hasAttribute(REF_ATTRIBUTE)) {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
 			builder.addPropertyReference("targetObject", ref);

@@ -24,8 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -72,12 +70,14 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			}
 			return handlerBeanDefinition;
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
 		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
 		builder.addConstructorArgReference(handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
-			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
 			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}

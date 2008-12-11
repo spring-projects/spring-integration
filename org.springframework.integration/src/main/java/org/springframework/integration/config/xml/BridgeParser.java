@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.BridgeHandler;
 
 /**
  * Parser for the &lt;bridge&gt; element.
@@ -31,7 +30,8 @@ public class BridgeParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		return BeanDefinitionBuilder.genericBeanDefinition(BridgeHandler.class);
+		return BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.BridgeHandler");
 	}
 
 }

@@ -20,10 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.PriorityChannel;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -34,7 +30,7 @@ import org.springframework.util.xml.DomUtils;
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
-	private static final String CAPACITY_ATTRIBUTE = "capacity";
+	private static final String CHANNEL_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel";
 
 
 	@Override
@@ -42,11 +38,11 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		BeanDefinitionBuilder builder = null;
 		Element queueElement = null;
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
 			this.parseQueueCapacity(builder, queueElement);
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(PriorityChannel.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".PriorityChannel");
 			this.parseQueueCapacity(builder, queueElement);
 			String comparatorRef = queueElement.getAttribute("comparator");
 			if (StringUtils.hasText(comparatorRef)) {
@@ -54,16 +50,16 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(RendezvousChannel.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".RendezvousChannel");
 		}
 		else {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
 		}
 		return builder;
 	}
 
 	private void parseQueueCapacity(BeanDefinitionBuilder builder, Element queueElement) {
-		String capacity = queueElement.getAttribute(CAPACITY_ATTRIBUTE);
+		String capacity = queueElement.getAttribute("capacity");
 		if (StringUtils.hasText(capacity)) {
 			builder.addConstructorArgValue(Integer.valueOf(capacity));
 		}

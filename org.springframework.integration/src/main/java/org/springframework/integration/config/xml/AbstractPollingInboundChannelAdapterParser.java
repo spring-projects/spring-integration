@@ -21,8 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.SourcePollingChannelAdapterFactoryBean;
-import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -35,8 +34,11 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		String source = this.parseSource(element, parserContext);
-		Assert.hasText(source, "failed to parse source");
-		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SourcePollingChannelAdapterFactoryBean.class);
+		if (!StringUtils.hasText(source)) {
+			parserContext.getReaderContext().error("failed to parse source", element);
+		}
+		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SourcePollingChannelAdapterFactoryBean");
 		adapterBuilder.addPropertyReference("source", source);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");

@@ -21,9 +21,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.CompletionStrategyAdapter;
-import org.springframework.integration.aggregator.MethodInvokingAggregator;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,9 +53,12 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingAggregator.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.MethodInvokingAggregator");
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
+		if (!StringUtils.hasText(ref)) {
+			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
+		}
 		builder.addConstructorArgReference(ref);
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
@@ -87,7 +87,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 	}
 
 	private String createCompletionStrategyAdapter(String ref, String method, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CompletionStrategyAdapter.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.CompletionStrategyAdapter");
 		builder.addConstructorArgReference(ref);
 		builder.addConstructorArgValue(method);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());

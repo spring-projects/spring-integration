@@ -21,9 +21,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.MessageTransformingHandler;
-import org.springframework.integration.transformer.MethodInvokingTransformer;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,21 +30,28 @@ import org.springframework.util.StringUtils;
  */
 public class TransformerParser extends AbstractConsumerEndpointParser {
 
+	private final static String TRANSFORMER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer";
+
+
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageTransformingHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				TRANSFORMER_PACKAGE + ".MessageTransformingHandler");
 		builder.addConstructorArgReference(this.parseTransformer(element, parserContext));
 		return builder;
 	}
 
 	private String parseTransformer(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute("ref");
-		Assert.hasText(ref, "The 'ref' attribute is required.");
+		if (!StringUtils.hasText(ref)) {
+			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
+		}
 		String method = element.getAttribute("method");
 		if (!StringUtils.hasText(method)) {
 			return ref;
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingTransformer.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				TRANSFORMER_PACKAGE + ".MethodInvokingTransformer");
 		builder.addConstructorArgReference(ref);
 		builder.addConstructorArgValue(method);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(

@@ -21,14 +21,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.MessageHandlerChain;
-import org.springframework.util.Assert;
 
 /**
  * Parser for the &lt;chain&gt; element.
@@ -40,7 +38,8 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MessageHandlerChain");
 		ManagedList handlerList = new ManagedList();
 		NodeList children = element.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
@@ -56,10 +55,13 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 
 	private String parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
 		BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
-		Assert.notNull(beanDefinition, "BeanDefinition must not be null");
-		Assert.isInstanceOf(AbstractBeanDefinition.class, beanDefinition);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				(AbstractBeanDefinition) beanDefinition, parserContext.getRegistry());
+		if (beanDefinition == null) {
+			parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
+		}
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, beanName);
+		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+		return beanName;
 	}
 
 }

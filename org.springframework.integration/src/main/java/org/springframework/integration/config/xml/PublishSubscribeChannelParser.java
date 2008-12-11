@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,7 +31,8 @@ public class PublishSubscribeChannelParser extends AbstractChannelParser {
 
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PublishSubscribeChannel.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.PublishSubscribeChannel");
 		String taskExecutorRef = element.getAttribute("task-executor");
 		if (StringUtils.hasText(taskExecutorRef)) {
 			builder.addConstructorArgReference(taskExecutorRef);

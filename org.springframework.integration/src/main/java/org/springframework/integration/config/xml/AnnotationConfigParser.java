@@ -24,25 +24,28 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 
 /**
  * Parser for the &lt;annotation-config&gt; element of the integration namespace.
- * Adds a {@link MessagingAnnotationPostProcessor} to the application context.
+ * Adds a {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor}
+ * to the application context.
  * 
  * @author Mark Fisher
  */
 public class AnnotationConfigParser extends AbstractSingleBeanDefinitionParser {
 
+	private final static String PACKAGE_NAME = IntegrationNamespaceUtils.BASE_PACKAGE + ".config.annotation";
+
+
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return MessagingAnnotationPostProcessor.class;
+	protected String getBeanClassName(Element element) {
+		return PACKAGE_NAME + ".MessagingAnnotationPostProcessor";
 	}
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
-		return "internal." + MessagingAnnotationPostProcessor.class.getName();
+		return PACKAGE_NAME + ".internalMessagingAnnotationPostProcessor";
 	}
 
 	@Override

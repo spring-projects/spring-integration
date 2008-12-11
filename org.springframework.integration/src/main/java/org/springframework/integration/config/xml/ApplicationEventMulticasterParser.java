@@ -25,7 +25,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -40,8 +39,8 @@ import org.springframework.util.StringUtils;
 public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return SimpleApplicationEventMulticaster.class;
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.context.event.SimpleApplicationEventMulticaster";
 	}
 
 	@Override

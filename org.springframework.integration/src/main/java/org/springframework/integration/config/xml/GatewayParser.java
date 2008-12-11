@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -36,8 +35,8 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return GatewayProxyFactoryBean.class;
+	protected String getBeanClassName(Element element) {
+		return IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.GatewayProxyFactoryBean";
 	}
 
 	@Override

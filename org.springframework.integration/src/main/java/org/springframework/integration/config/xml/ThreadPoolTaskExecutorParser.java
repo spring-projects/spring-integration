@@ -23,10 +23,11 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.StringUtils;
 
 /**
+ * Parser for the 'thread-pool-task-executor' element.
+ * 
  * @author Mark Fisher
  */
 public class ThreadPoolTaskExecutorParser extends AbstractSimpleBeanDefinitionParser {
@@ -39,8 +40,8 @@ public class ThreadPoolTaskExecutorParser extends AbstractSimpleBeanDefinitionPa
 
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return ThreadPoolTaskExecutor.class;
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor";
 	}
 
 	@Override

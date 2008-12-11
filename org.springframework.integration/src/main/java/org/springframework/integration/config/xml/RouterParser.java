@@ -21,9 +21,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.config.RouterFactoryBean;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -36,14 +33,18 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterFactoryBean.class);
+		if (!StringUtils.hasText(ref)) {
+			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
 		builder.addPropertyReference("targetObject", ref);
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addPropertyValue("targetMethodName", method);
 		}
-		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(BeanFactoryChannelResolver.class);
+		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.BeanFactoryChannelResolver");
 		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 		builder.addPropertyReference("channelResolver", resolverBeanName);

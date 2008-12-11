@@ -20,8 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,9 +31,12 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatingHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ServiceActivatingHandler");
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
+		if (!StringUtils.hasText(ref)) {
+			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
+		}
 		builder.addConstructorArgReference(ref);
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
