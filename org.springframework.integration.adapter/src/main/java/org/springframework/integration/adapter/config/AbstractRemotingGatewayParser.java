@@ -23,7 +23,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,11 +32,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  */
 public abstract class AbstractRemotingGatewayParser extends AbstractSimpleBeanDefinitionParser {
-
-	protected Class<?> getBeanClass(Element element) {
-		return ConsumerEndpointFactoryBean.class;
-	}
-
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)

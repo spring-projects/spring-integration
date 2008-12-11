@@ -19,7 +19,6 @@ package org.springframework.integration.httpinvoker.config;
 import org.w3c.dom.Element;
 
 import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 
 /**
  * Parser for the &lt;httpinvoker-gateway/&gt; element. 
@@ -29,8 +28,8 @@ import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 public class HttpInvokerInboundGatewayParser extends AbstractRemotingGatewayParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return HttpInvokerInboundGateway.class;
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.integration.httpinvoker.HttpInvokerInboundGateway";
 	}
 
 }

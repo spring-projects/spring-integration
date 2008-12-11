@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,8 +33,8 @@ public class RmiInboundGatewayParser extends AbstractRemotingGatewayParser {
 
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return RmiInboundGateway.class;
+	protected String getBeanClassName(Element element) {
+		return "org.springframework.integration.rmi.RmiInboundGateway";
 	}
 
 	@Override
