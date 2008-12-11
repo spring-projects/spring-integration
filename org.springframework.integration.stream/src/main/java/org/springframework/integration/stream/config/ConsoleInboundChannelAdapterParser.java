@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.integration.stream.CharacterStreamReadingMessageSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,7 +33,8 @@ public class ConsoleInboundChannelAdapterParser extends AbstractPollingInboundCh
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CharacterStreamReadingMessageSource.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.stream.CharacterStreamReadingMessageSource");
 		builder.setFactoryMethod("stdin");
 		String charsetName = element.getAttribute("charset");
 		if (StringUtils.hasText(charsetName)) {

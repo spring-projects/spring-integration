@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,7 +34,7 @@ public class ConsoleOutboundChannelAdapterParser extends AbstractOutboundChannel
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				CharacterStreamWritingMessageHandler.class);
+				"org.springframework.integration.stream.CharacterStreamWritingMessageHandler");
 		if (element.getLocalName().startsWith("stderr")) {
 			builder.setFactoryMethod("stderr");
 		}
