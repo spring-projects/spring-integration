@@ -29,11 +29,11 @@ import org.springframework.util.StringUtils;
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlNamespaceUtils {
+abstract class XmlNamespaceUtils {
 
-	public static final String DOM_RESULT = "DOMResult";
+	private static final String DOM_RESULT = "DOMResult";
 
-	public static final String STRING_RESULT = "StringResult";
+	private static final String STRING_RESULT = "StringResult";
 
 
 	/**
@@ -41,7 +41,7 @@ public class XmlNamespaceUtils {
 	 * a bean definition for a {@link ResultFactory} based on either the
 	 * 'result-factory' or 'result-type' attributes.
 	 */
-	public static void configureResultFactory(BeanDefinitionBuilder builder, String resultType, String resultFactory) {
+	static void configureResultFactory(BeanDefinitionBuilder builder, String resultType, String resultFactory) {
 		boolean bothHaveText = StringUtils.hasText(resultFactory) && StringUtils.hasText(resultType);
 		Assert.state(!bothHaveText, "Only one of 'result-factory' or 'result-type' should be specified.");
 		if (StringUtils.hasText(resultType)) {
