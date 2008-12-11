@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.springframework.integration</groupId>
+	<artifactId>org.springframework.integration.samples</artifactId>
+	<packaging>jar</packaging>
+	<name>Spring Integration Samples</name>
+	<version>1.0.1.RELEASE</version>
+	<dependencies>
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<!--  spring source repository has 1.1.1 but not in repo1 -->
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.jms</groupId>
+			<artifactId>jms</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-core</artifactId>
+			<version>5.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-j2ee-management_1.0_spec</artifactId>
+			<version>1.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			 <groupId>org.springframework.integration</groupId>
+             <artifactId>org.springframework.integration</artifactId>
+             <version>${project.version}</version>
+		</dependency>
+		<dependency>
+			 <groupId>org.springframework.integration</groupId>
+             <artifactId>org.springframework.integration.ws</artifactId>
+             <version>${project.version}</version>
+		</dependency>
+			<dependency>
+			 <groupId>org.springframework.integration</groupId>
+             <artifactId>org.springframework.integration.xml</artifactId>
+             <version>${project.version}</version>
+		</dependency>
+		<dependency>
+			 <groupId>org.springframework.integration</groupId>
+             <artifactId>org.springframework.integration.jms</artifactId>
+             <version>${project.version}</version>
+		</dependency>
+	</dependencies>
+	<properties>
+		<spring.version>2.5.6</spring.version>
+	</properties>
+</project>
