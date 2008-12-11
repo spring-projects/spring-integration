@@ -38,8 +38,17 @@ import org.springframework.util.Assert;
  */
 public class ChannelInvocationDefinitionSource implements ObjectDefinitionSource {
 
-	private final Map<Pattern, ChannelAccessPolicy> patternMappings =
-			new LinkedHashMap<Pattern, ChannelAccessPolicy>();
+	private final Map<Pattern, ChannelAccessPolicy> patternMappings;
+
+
+	public ChannelInvocationDefinitionSource() {
+		this(null);
+	}
+
+	public ChannelInvocationDefinitionSource(Map<Pattern, ChannelAccessPolicy> patternMappings) {
+		this.patternMappings = (patternMappings != null) ? patternMappings
+				: new LinkedHashMap<Pattern, ChannelAccessPolicy>();
+	}
 
 
 	public void addPatternMapping(Pattern pattern, ChannelAccessPolicy accessPolicy) {
