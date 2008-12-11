@@ -16,7 +16,6 @@
 
 package org.springframework.integration.rmi;
 
-import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -46,6 +45,10 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 
 	private volatile RemoteInvocationExecutor remoteInvocationExecutor;
 
+	private volatile RmiServiceExporter exporter;
+
+	private final Object initializationMonitor = new Object();
+
 
 	/**
 	 * Specify the request channel where messages will be sent.
@@ -73,19 +76,25 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 	}
 
 	@Override
-	protected void onInit() throws RemoteException {
-		RmiServiceExporter exporter = new RmiServiceExporter();
-		if (this.registryHost != null) {
-			exporter.setRegistryHost(this.registryHost);
+	protected void onInit() throws Exception {
+		synchronized (this.initializationMonitor) {
+			if (this.exporter == null) {
+				RmiServiceExporter exporter = new RmiServiceExporter();
+				if (this.registryHost != null) {
+					exporter.setRegistryHost(this.registryHost);
+				}
+				exporter.setRegistryPort(this.registryPort);
+				if (this.remoteInvocationExecutor != null) {
+					exporter.setRemoteInvocationExecutor(this.remoteInvocationExecutor);
+				}
+				exporter.setService(this);
+				exporter.setServiceInterface(RemoteMessageHandler.class);
+				exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
+				exporter.afterPropertiesSet();
+				this.exporter = exporter;
+			}
 		}
-		exporter.setRegistryPort(this.registryPort);
-		if (this.remoteInvocationExecutor != null) {
-			exporter.setRemoteInvocationExecutor(this.remoteInvocationExecutor);
-		}
-		exporter.setService(this);
-		exporter.setServiceInterface(RemoteMessageHandler.class);
-		exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
-		exporter.afterPropertiesSet();
+		super.onInit();
 	}
 
 }

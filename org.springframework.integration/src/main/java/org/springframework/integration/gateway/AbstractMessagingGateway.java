@@ -52,6 +52,8 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 	private volatile boolean shouldThrowErrors = true;
 
+	private volatile boolean initialized;
+
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
@@ -106,7 +108,19 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 		this.shouldThrowErrors = shouldThrowErrors;
 	}
 
+	@Override
+	protected void onInit() throws Exception {
+		this.initialized = true;
+	}
+
+	private void initializeIfNecessary() {
+		if (!this.initialized) {
+			this.afterPropertiesSet();
+		}
+	}
+
 	public void send(Object object) {
+		this.initializeIfNecessary();
 		Assert.state(this.requestChannel != null,
 				"send is not supported, because no request channel has been configured");
 		Message<?> message = this.toMessage(object);
@@ -117,6 +131,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 	}
 
 	public Object receive() {
+		this.initializeIfNecessary();
 		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
 		Message<?> message = this.channelTemplate.receive((PollableChannel) this.replyChannel);
@@ -141,6 +156,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 	}
 
 	private Message<?> sendAndReceiveMessage(Message<?> message) {
+		this.initializeIfNecessary();
 		Assert.notNull(message, "request message must not be null");
 		if (this.requestChannel == null) {
 			throw new MessageDeliveryException(message,

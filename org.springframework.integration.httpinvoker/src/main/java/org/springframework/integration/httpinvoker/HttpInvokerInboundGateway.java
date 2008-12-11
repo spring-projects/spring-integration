@@ -62,14 +62,21 @@ public class HttpInvokerInboundGateway extends RemotingInboundGatewaySupport imp
 
 	private volatile HttpInvokerServiceExporter exporter;
 
+	private final Object initializationMonitor = new Object();
+
 
 	@Override
-	protected void onInit() {
-		HttpInvokerServiceExporter exporter = new HttpInvokerServiceExporter();
-		exporter.setService(this);
-		exporter.setServiceInterface(RemoteMessageHandler.class);
-		exporter.afterPropertiesSet();
-		this.exporter = exporter;
+	protected void onInit() throws Exception {
+		synchronized (this.initializationMonitor) {
+			if (this.exporter == null) {
+				HttpInvokerServiceExporter exporter = new HttpInvokerServiceExporter();
+				exporter.setService(this);
+				exporter.setServiceInterface(RemoteMessageHandler.class);
+				exporter.afterPropertiesSet();
+				this.exporter = exporter;
+			}
+		}
+		super.onInit();
 	}
 
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
