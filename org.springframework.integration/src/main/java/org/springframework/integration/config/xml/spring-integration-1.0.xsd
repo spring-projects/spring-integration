@@ -591,6 +591,14 @@
 		</xsd:annotation>
 	</xsd:element>
 
+	<xsd:element name="object-to-string-transformer" type="inputOutputEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Transformer that converts any Object payload to a String by invoking its toString() method.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
