@@ -20,14 +20,10 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -126,15 +122,6 @@ public abstract class IntegrationNamespaceUtils {
 				Conventions.attributeNameToPropertyName(attributeName));
 	}
 
-	public static String parseBeanDefinitionElement(Element element, ParserContext parserContext) {
-		BeanDefinitionParserDelegate beanParser =
-				new BeanDefinitionParserDelegate(parserContext.getReaderContext());
-		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());
-		BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(element);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
-		return beanDefinitionHolder.getBeanName();
-	}
-
 	/**
 	 * Parse a "poller" element to provide a reference for the target
 	 * BeanDefinitionBuilder. If the poller element does not contain a "ref"
@@ -148,19 +135,25 @@ public abstract class IntegrationNamespaceUtils {
 	public static void configurePollerMetadata(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		String pollerMetadataRef = null;
 		if (pollerElement.hasAttribute("ref")) {
-			Assert.isTrue(pollerElement.getAttributes().getLength() == 1,
-					"a 'poller' element that provides a 'ref' must have no other attributes");
-			Assert.isTrue(pollerElement.getChildNodes().getLength() == 0,
-					"a 'poller' element that provides a 'ref' must have no child elements");
+			if (pollerElement.getAttributes().getLength() != 1) {
+				parserContext.getReaderContext().error(
+						"A 'poller' element that provides a 'ref' must have no other attributes.", pollerElement);
+			}
+			if (pollerElement.getChildNodes().getLength() != 0) {
+				parserContext.getReaderContext().error(
+						"A 'poller' element that provides a 'ref' must have no child elements.", pollerElement);
+			}
 			pollerMetadataRef = pollerElement.getAttribute("ref");
 		}
 		else {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(
 					pollerElement, targetBuilder.getBeanDefinition());
-			Assert.notNull(beanDefinition, "BeanDefinition must not be null");
-			Assert.isInstanceOf(AbstractBeanDefinition.class, beanDefinition);
-			pollerMetadataRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					(AbstractBeanDefinition) beanDefinition, parserContext.getRegistry());
+			if (beanDefinition == null) {
+				parserContext.getReaderContext().error("BeanDefinition must not be null", pollerElement);
+			}
+			pollerMetadataRef = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
+			BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, pollerMetadataRef);
+			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}
 		targetBuilder.addPropertyReference("pollerMetadata", pollerMetadataRef);
 	}
