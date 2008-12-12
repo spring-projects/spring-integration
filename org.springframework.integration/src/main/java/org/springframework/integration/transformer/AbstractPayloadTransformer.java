@@ -17,7 +17,6 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
@@ -35,7 +34,7 @@ public abstract class AbstractPayloadTransformer<T, U> implements Transformer {
 	        return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
         }
 		catch (Exception e) {
-        	throw new MessagingException(message, "failed to transform message payload", e);
+        	throw new MessageTransformationException(message, "failed to transform message payload", e);
         }
 	}
 
