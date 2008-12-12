@@ -73,15 +73,19 @@ public class FileWritingMessageHandler implements MessageHandler {
 		Assert.notNull(payload, "message payload must not be null");
 		File file = new File(parentDirectory, this.fileNameGenerator.generateFileName(message));
 		try {
-			if (payload instanceof byte[]) {
-				FileCopyUtils.copy((byte[]) payload, file);
-			}
-			else if (payload instanceof File) {
+			if (payload instanceof File) {
 				FileCopyUtils.copy((File) payload, file);
 			}
-			else {
+			else if (payload instanceof byte[]) {
+				FileCopyUtils.copy((byte[]) payload, file);
+			}
+			else if (payload instanceof String) {
 				OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), this.charset);
-				FileCopyUtils.copy(payload.toString(), writer);
+				FileCopyUtils.copy((String) payload, writer);
+			}
+			else {
+				throw new IllegalArgumentException(
+						"unsupported Message payload type [" + payload.getClass().getName() + "]");
 			}
 		}
 		catch (Exception e) {
