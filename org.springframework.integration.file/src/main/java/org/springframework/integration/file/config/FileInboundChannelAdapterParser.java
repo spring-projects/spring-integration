@@ -16,19 +16,15 @@
 
 package org.springframework.integration.file.config;
 
-import java.util.regex.Pattern;
-
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.integration.file.AcceptOnceFileListFilter;
-import org.springframework.integration.file.CompositeFileListFilter;
-import org.springframework.integration.file.PatternMatchingFileListFilter;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,9 +35,14 @@ import org.springframework.util.StringUtils;
  */
 public class FileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
+	private static final String PACKAGE_NAME = "org.springframework.integration.file";
+
+
 	@Override
+	@SuppressWarnings("unchecked")
 	protected String parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileReadingMessageSource.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				PACKAGE_NAME + ".FileReadingMessageSource");
 		String directory = element.getAttribute("directory");
 		if (StringUtils.hasText(directory)) {
 			builder.addPropertyValue("inputDirectory", directory);
@@ -52,15 +53,30 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		String filenamePattern = element.getAttribute("filename-pattern");
 		if (StringUtils.hasText(filenamePattern)) {
-			Assert.isTrue(!StringUtils.hasText(filter),
-					"at most one of 'filter' and 'filename-pattern' may be provided");
-			AcceptOnceFileListFilter acceptOnceFilter = new AcceptOnceFileListFilter();
-			Pattern pattern = Pattern.compile(filenamePattern);
-			PatternMatchingFileListFilter patternFilter = new PatternMatchingFileListFilter(pattern);
-			CompositeFileListFilter compositeFilter = new CompositeFileListFilter(acceptOnceFilter, patternFilter);
-			builder.addPropertyValue("filter", compositeFilter);
+			if (StringUtils.hasText(filter)) {
+				parserContext.getReaderContext().error(
+						"At most one of 'filter' and 'filename-pattern' may be provided.", element);
+			}
+			String acceptOnceFilterBeanName = this.parseFilter("AcceptOnceFileListFilter", null, parserContext);
+			String patternFilterBeanName = this.parseFilter("PatternMatchingFileListFilter", filenamePattern, parserContext);
+			ManagedList filters = new ManagedList();
+			filters.add(new RuntimeBeanReference(acceptOnceFilterBeanName));
+			filters.add(new RuntimeBeanReference(patternFilterBeanName));
+			String compositeFilterBeanName = this.parseFilter("CompositeFileListFilter", filters, parserContext);
+			builder.addPropertyReference("filter", compositeFilterBeanName);
 		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+	}
+
+	private String parseFilter(String shortClassName, Object constructorArgValue, ParserContext parserContext) {
+		BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				PACKAGE_NAME + "." + shortClassName);
+		filterBuilder.getBeanDefinition().setRole(BeanDefinition.ROLE_SUPPORT);
+		if (constructorArgValue != null) {
+			filterBuilder.addConstructorArgValue(constructorArgValue);
+		}
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				filterBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }
