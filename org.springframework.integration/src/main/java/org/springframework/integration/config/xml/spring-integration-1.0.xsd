@@ -572,14 +572,14 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="ABORT"/>
-					<xsd:enumeration value="CALLER_RUNS"/>
-					<xsd:enumeration value="DISCARD"/>
-					<xsd:enumeration value="DISCARD_OLDEST"/>
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="ABORT"/>
+						<xsd:enumeration value="CALLER_RUNS"/>
+						<xsd:enumeration value="DISCARD"/>
+						<xsd:enumeration value="DISCARD_OLDEST"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -603,6 +603,14 @@
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Transformer that serializes any Object payload that implements Serializable into a byte array.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="payload-deserializing-transformer" type="inputOutputEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Transformer that deserializes a byte array payload into an Object.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
