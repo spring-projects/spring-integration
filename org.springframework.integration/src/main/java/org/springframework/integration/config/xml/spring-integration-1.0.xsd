@@ -599,6 +599,14 @@
 		</xsd:annotation>
 	</xsd:element>
 
+	<xsd:element name="payload-serializing-transformer" type="inputOutputEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Transformer that serializes any Object payload that implements Serializable into a byte array.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
