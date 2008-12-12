@@ -31,7 +31,14 @@ import org.springframework.util.FileCopyUtils;
  * A {@link MessageHandler} implementation that writes the Message payload to a
  * file. If the payload is a File object, it will copy the File to this
  * consumer's directory. If the payload is a byte array or String, it will
- * write it directly. Otherwise, it will invoke toString on the payload Object.
+ * write it directly. Otherwise, the payload type is unsupported, and an
+ * Exception will be thrown.
+ * <p>
+ * Other transformers may be useful to precede this handler. For example,
+ * any Serializable object payload can be converted into a byte array by the
+ * {@link org.springframework.integration.transformer.PayloadSerializingTransformer}.
+ * Likewise, any Object can be converted to a String based on its <code>toString()</code>
+ * method by the {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
  * 
  * @author Mark Fisher
  */
