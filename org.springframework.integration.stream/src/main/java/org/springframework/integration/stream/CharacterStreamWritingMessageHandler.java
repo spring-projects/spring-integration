@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
@@ -133,6 +134,10 @@ public class CharacterStreamWritingMessageHandler implements MessageHandler {
 			}
 			else if (payload instanceof byte[]) {
 				this.writer.write(new String((byte[]) payload));
+			}
+			else if (payload instanceof Exception) {
+				PrintWriter printWriter = new PrintWriter(this.writer, true);
+				((Exception) payload).printStackTrace(printWriter);
 			}
 			else {
 				writer.write(payload.toString());
