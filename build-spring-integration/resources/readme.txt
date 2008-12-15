@@ -1,9 +1,7 @@
-SPRING INTEGRATION 1.0.0 (Nov 26, 2008)
+SPRING INTEGRATION 1.0.1 (Dec 17, 2008)
 ---------------------------------------
 
-This is the GA release of Spring Integration 1.0
-
-To find out what has changed since the Milestone and Release Candidate versions, see 'changelog.txt'
+To find out what has changed since version 1.0.0, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release  and also visit the official Spring Integration home at:
@@ -17,6 +15,9 @@ To checkout the project from the SVN head and build from source, do the followin
 
 The result is available as a zip file in "build-spring-integration/target/artifacts"
 An expanded version is also available in "build-spring-integration/target/package-expanded"
+
+To build the JavaDoc, run 'ant javadoc-api' from within 'build-spring-integration'. The
+result will be available in "build-spring-integration/target/javadoc-api".
 
 To run the code within Eclipse, do the following:
 
