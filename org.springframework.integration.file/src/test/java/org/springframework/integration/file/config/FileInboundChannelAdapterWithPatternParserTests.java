@@ -30,7 +30,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.channel.SubscribableChannel;
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.AcceptOnceFileListFilter;
 import org.springframework.integration.file.CompositeFileListFilter;
@@ -48,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class FileInboundChannelAdapterWithPatternParserTests {
 
 	@Autowired(required=true)
-	private SubscribableChannel channel;
+	private ApplicationContext context;
 
 	@Autowired(required=true)
 	private AbstractEndpoint endpoint;
@@ -63,6 +64,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 
 	@Test
 	public void channelName() {
+		MessageChannel channel = (MessageChannel) context.getBean("adapterWithPattern");
 		assertEquals("adapterWithPattern", channel.getName());		
 	}
 

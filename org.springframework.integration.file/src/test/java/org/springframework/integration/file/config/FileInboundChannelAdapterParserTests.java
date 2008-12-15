@@ -26,7 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.channel.SubscribableChannel;
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class FileInboundChannelAdapterParserTests {
 
 	@Autowired(required=true)
-	SubscribableChannel channel;
+	ApplicationContext context;
 
 	@Autowired(required=true)
 	FileReadingMessageSource source;
@@ -53,6 +54,7 @@ public class FileInboundChannelAdapterParserTests {
 	
 	@Test
 	public void channelName() throws Exception {
+		MessageChannel channel = (MessageChannel) context.getBean("inputDirPoller");
 		assertEquals("Channel should be available under specified id","inputDirPoller", channel.getName());		
 	}
 	

@@ -30,7 +30,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 
@@ -70,7 +70,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 	 */
 	private static void registerTaskSchedulerIfNecessary(BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
-			RootBeanDefinition errorChannelDef = new RootBeanDefinition(QueueChannel.class);
+			RootBeanDefinition errorChannelDef = new RootBeanDefinition(PublishSubscribeChannel.class);
 			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(
 					errorChannelDef, IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
