@@ -3,7 +3,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.integration</groupId>
-	<artifactId>org.springframework.integration.samples</artifactId>
+	<artifactId>spring-integration-samples</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration Samples</name>
 	<version>1.0.1.RELEASE</version>
@@ -36,22 +36,17 @@
 		</dependency>
 		<dependency>
 			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration</artifactId>
-             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration.ws</artifactId>
+             <artifactId>spring-integration-ws</artifactId>
              <version>${project.version}</version>
 		</dependency>
 			<dependency>
 			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration.xml</artifactId>
+             <artifactId>spring-integration-xml</artifactId>
              <version>${project.version}</version>
 		</dependency>
 		<dependency>
 			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration.jms</artifactId>
+             <artifactId>spring-integration-jms</artifactId>
              <version>${project.version}</version>
 		</dependency>
 	</dependencies>

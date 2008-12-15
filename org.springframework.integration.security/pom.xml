@@ -3,14 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.integration</groupId>
-	<artifactId>org.springframework.integration.security</artifactId>
+	<artifactId>spring-integration-security</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration Security Support</name>
 	<version>1.0.1.RELEASE</version>
 	<dependencies>
 		<dependency>
 			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration</artifactId>
+             <artifactId>spring-integration-core</artifactId>
              <version>${project.version}</version>
 		</dependency>
 		<dependency>

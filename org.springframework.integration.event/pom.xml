@@ -3,19 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.integration</groupId>
-	<artifactId>org.springframework.integration.event</artifactId>
+	<artifactId>spring-integration-event</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration ApplicationEvent Support</name>
 	<version>1.0.1.RELEASE</version>
 	<dependencies>
 		<dependency>
 			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration</artifactId>
-             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			 <groupId>org.springframework.integration</groupId>
-             <artifactId>org.springframework.integration.adapter</artifactId>
+             <artifactId>spring-integration-adapter</artifactId>
              <version>${project.version}</version>
 		</dependency>
 	</dependencies>

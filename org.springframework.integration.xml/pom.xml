@@ -3,14 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.integration</groupId>
-	<artifactId>org.springframework.integration.xml</artifactId>
+	<artifactId>spring-integration-xml</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration XML Support</name>
 	<version>1.0.1.RELEASE</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration</artifactId>
+			<artifactId>spring-integration-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -18,12 +18,14 @@
 			<artifactId>activation</artifactId>
 			<!--  spring source repository has 1.1.1 but not in repo1 -->
 			<version>1.1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<artifactId>jaxb-api</artifactId>
 			<groupId>javax.xml.bind</groupId>
 			<!--  spring source repository has 2.1.7 -->
 			<version>2.1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.ws</groupId>
