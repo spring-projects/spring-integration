@@ -43,9 +43,18 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		String id = super.resolveId(element, definition, parserContext);
 		if (element.getAttribute("default").equals("true")) {
 			if (parserContext.getRegistry().isBeanNameInUse(IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME)) {
-				parserContext.getReaderContext().error("only one default <poller/> element is allowed per context", element);
+				parserContext.getReaderContext().error("Only one default <poller/> element is allowed per context.", element);
 			}
-			parserContext.getRegistry().registerAlias(id, IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME);
+			if (StringUtils.hasText(id)) {
+				parserContext.getRegistry().registerAlias(id, IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME);
+			}
+			else {
+				id = IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME;
+			}
+		}
+		else if (!StringUtils.hasText(id)) {
+			parserContext.getReaderContext().error(
+					"The 'id' attribute is required for a top-level poller element unless it is the default poller.", element);
 		}
 		return id;
 	}
