@@ -34,6 +34,7 @@ import org.springframework.util.Assert;
  * {@link MessageChannel}.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryAware {
 
@@ -84,7 +85,8 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 					sent = errorChannel.send(new ErrorMessage(t));
 				}
 			}
-			catch (Throwable ignore) { // message will be logged only
+			catch (Throwable errorDeliveryError) { // message will be logged only
+				logger.error("Error message was not delivered, it will be dumped in the error log", errorDeliveryError);
 			}
 		}
 		if (!sent && logger.isErrorEnabled()) {
