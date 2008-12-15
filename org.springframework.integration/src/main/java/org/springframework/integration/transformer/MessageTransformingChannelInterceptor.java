@@ -29,13 +29,13 @@ import org.springframework.integration.core.MessageChannel;
  */
 public class MessageTransformingChannelInterceptor extends ChannelInterceptorAdapter {
 
-	private final Transformer transfomer;
+	private final Transformer transformer;
 
 	private volatile boolean transformOnSend = true;
 
 
 	public MessageTransformingChannelInterceptor(Transformer transformer) {
-		this.transfomer = transformer;
+		this.transformer = transformer;
 	}
 
 
@@ -50,7 +50,7 @@ public class MessageTransformingChannelInterceptor extends ChannelInterceptorAda
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.transformOnSend) {
-			message = this.transfomer.transform(message);
+			message = this.transformer.transform(message);
 		}
 		return message;
 	}
@@ -58,7 +58,7 @@ public class MessageTransformingChannelInterceptor extends ChannelInterceptorAda
 	@Override
 	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 		if (!this.transformOnSend) {
-			message = this.transfomer.transform(message);
+			message = this.transformer.transform(message);
 		}
 		return message;
 	}
