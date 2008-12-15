@@ -51,7 +51,9 @@
 	Defines a Point-to-Point MessageChannel.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+				<tool:annotation>
+					<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -109,7 +111,9 @@
 	Defines a Publish-Subscribe channel that broadcasts messages to its subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+				<tool:annotation>
+					<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
