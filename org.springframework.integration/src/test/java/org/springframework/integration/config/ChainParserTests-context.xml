@@ -9,6 +9,10 @@
 
 	<channel id="filterInput"/>
 
+	<channel id="pollableInput">
+		<queue/>
+	</channel>
+
 	<channel id="output">
 		<queue/>
 	</channel>
@@ -27,6 +31,14 @@
 			<header name="testValue" value="XYZ"/>
 			<header name="testRef" ref="testHeaderValue"/>
 		</header-enricher>
+		<service-activator ref="testHandler"/>
+	</chain>
+
+	<chain input-channel="pollableInput" output-channel="output">
+		<poller>
+			<interval-trigger interval="10000"/>
+		</poller>
+		<filter ref="typeSelector"/>
 		<service-activator ref="testHandler"/>
 	</chain>
 

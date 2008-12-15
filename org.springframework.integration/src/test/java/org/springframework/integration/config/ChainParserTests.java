@@ -42,6 +42,10 @@ public class ChainParserTests extends AbstractJUnit4SpringContextTests {
 	private MessageChannel filterInput;
 
 	@Autowired
+	@Qualifier("pollableInput")
+	private MessageChannel pollableInput;
+
+	@Autowired
 	@Qualifier("headerEnricherInput")
 	private MessageChannel headerEnricherInput;
 
@@ -81,6 +85,15 @@ public class ChainParserTests extends AbstractJUnit4SpringContextTests {
 		assertEquals("ABC", reply.getHeaders().getCorrelationId());
 		assertEquals("XYZ", reply.getHeaders().get("testValue"));
 		assertEquals(123, reply.getHeaders().get("testRef"));
+	}
+
+	@Test
+	public void chainWithPollableInput() {	
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		this.pollableInput.send(message);
+		Message<?> reply = this.output.receive(3000);
+		assertNotNull(reply);
+		assertEquals("foo", reply.getPayload());
 	}
 
 }

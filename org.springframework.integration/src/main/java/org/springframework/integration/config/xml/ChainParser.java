@@ -44,7 +44,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		NodeList children = element.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
+			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
 				String childBeanName = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
 				handlerList.add(new RuntimeBeanReference(childBeanName));
 			}
