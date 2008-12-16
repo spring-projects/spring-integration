@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<poller id="poller">
+		<interval-trigger interval="5000"/>
+		<advice-chain>
+			<ref bean="adviceBean1"/>
+			<beans:bean class="org.springframework.integration.config.xml.TestAdviceBean">
+				<beans:constructor-arg value="2"/>
+			</beans:bean>
+			<ref bean="adviceBean3"/>
+		</advice-chain>
+	</poller>
+
+	<beans:bean id="adviceBean1" class="org.springframework.integration.config.xml.TestAdviceBean">
+		<beans:constructor-arg value="1"/>
+	</beans:bean>
+
+	<beans:bean id="adviceBean3" class="org.springframework.integration.config.xml.TestAdviceBean">
+		<beans:constructor-arg value="3"/>
+	</beans:bean>
+	
+</beans:beans>

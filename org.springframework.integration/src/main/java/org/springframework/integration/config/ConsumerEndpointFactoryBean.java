@@ -138,6 +138,7 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
 				pollingConsumer.setTransactionManager(this.pollerMetadata.getTransactionManager());
 				pollingConsumer.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());
+				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
 				this.endpoint = pollingConsumer;
 			}
 			else {

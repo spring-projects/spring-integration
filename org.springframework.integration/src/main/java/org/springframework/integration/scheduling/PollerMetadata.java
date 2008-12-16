@@ -16,6 +16,10 @@
 
 package org.springframework.integration.scheduling;
 
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -30,6 +34,8 @@ public class PollerMetadata {
 	private volatile int maxMessagesPerPoll;
 
 	private volatile long receiveTimeout = 1000;
+
+	private List<Advice> adviceChain;
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -60,6 +66,14 @@ public class PollerMetadata {
 
 	public long getReceiveTimeout() {
 		return this.receiveTimeout;
+	}
+
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain = adviceChain;
+	}
+
+	public List<Advice> getAdviceChain() {
+		return this.adviceChain;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {

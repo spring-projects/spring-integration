@@ -119,8 +119,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	public void setAdviceChain(List<Advice> adviceChain) {
-		this.adviceChain.clear();
-		this.adviceChain.addAll(adviceChain);
+		synchronized (this.adviceChain) {
+			this.adviceChain.clear();
+			if (adviceChain != null) {
+				this.adviceChain.addAll(adviceChain);
+			}
+		}
 	}
 
 	private TransactionTemplate getTransactionTemplate() {

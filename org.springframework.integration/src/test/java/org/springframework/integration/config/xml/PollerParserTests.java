@@ -25,6 +25,7 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.scheduling.PollerMetadata;
 
 /**
  * @author Mark Fisher
@@ -60,6 +61,21 @@ public class PollerParserTests {
 	public void topLevelPollerWithoutId() {
 		new ClassPathXmlApplicationContext(
 				"topLevelPollerWithoutId.xml", PollerParserTests.class);
+	}
+
+	@Test
+	public void pollerWithAdviceChain() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"pollerWithAdviceChain.xml", PollerParserTests.class);
+		Object poller = context.getBean("poller");
+		assertNotNull(poller);
+		PollerMetadata metadata = (PollerMetadata) poller;
+		assertNotNull(metadata.getAdviceChain());
+		assertEquals(3, metadata.getAdviceChain().size());
+		assertEquals(context.getBean("adviceBean1"), metadata.getAdviceChain().get(0));
+		assertEquals(TestAdviceBean.class, metadata.getAdviceChain().get(1).getClass());
+		assertEquals(2, ((TestAdviceBean) metadata.getAdviceChain().get(1)).getId());
+		assertEquals(context.getBean("adviceBean3"), metadata.getAdviceChain().get(2));
 	}
 
 }

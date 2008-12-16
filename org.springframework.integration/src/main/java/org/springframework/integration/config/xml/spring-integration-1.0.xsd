@@ -368,9 +368,12 @@
 									<xsd:attributeGroup ref="headerEnricherAttributes"/>
 								</xsd:complexType>
 							</xsd:element>
-							<xsd:element name="transformer" type="handlerType"/>
+							<xsd:element name="object-to-string-transformer" type="handlerType"/>
+							<xsd:element name="payload-deserializing-transformer" type="handlerType"/>
+							<xsd:element name="payload-serializing-transformer" type="handlerType"/>
 							<xsd:element name="service-activator" type="handlerType"/>
 							<xsd:element name="splitter" type="handlerType"/>
+							<xsd:element name="transformer" type="handlerType"/>
 							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
 						</xsd:choice>
 						<xsd:element name="router" minOccurs="0" maxOccurs="1">
@@ -424,6 +427,20 @@
 				<xsd:element ref="cron-trigger"/>
 			</xsd:choice>
 			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
+				<xsd:complexType>
+					<xsd:sequence>
+						<xsd:choice minOccurs="0" maxOccurs="unbounded">
+							<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:attribute name="bean" type="xsd:string" use="required"/>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:choice>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
 		</xsd:sequence>
 		<xsd:attribute name="receive-timeout" type="xsd:string"/>
 		<xsd:attribute name="send-timeout" type="xsd:string"/>

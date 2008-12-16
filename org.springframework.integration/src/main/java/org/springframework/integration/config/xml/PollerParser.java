@@ -19,11 +19,18 @@ package org.springframework.integration.config.xml;
 import java.util.concurrent.TimeUnit;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -69,6 +76,10 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		}
 		configureTrigger(element, metadataBuilder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
+		if (adviceChainElement != null) {
+			configureAdviceChain(adviceChainElement, metadataBuilder, parserContext);
+		}
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		if (txElement != null) {
 			configureTransactionAttributes(txElement, metadataBuilder);
@@ -140,6 +151,41 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		txDefinition.setTimeout(Integer.valueOf(txElement.getAttribute("timeout")));
 		txDefinition.setReadOnly(txElement.getAttribute("read-only").equalsIgnoreCase("true"));
 		targetBuilder.addPropertyValue("transactionDefinition", txDefinition);
+	}
+
+	/**
+	 * Parses the 'advice-chain' element's sub-elements.
+	 */
+	@SuppressWarnings("unchecked")
+	private void configureAdviceChain(Element adviceChainElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+		ManagedList adviceChain = new ManagedList();
+		NodeList childNodes = adviceChainElement.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node child = childNodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				Element childElement = (Element) child;
+				String localName = child.getLocalName();
+				if ("bean".equals(localName)) {
+					BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
+							childElement, targetBuilder.getBeanDefinition());
+					parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
+					adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
+				}
+				else if ("ref".equals(localName)) {
+					String ref = childElement.getAttribute("bean");
+					adviceChain.add(new RuntimeBeanReference(ref));
+				}
+				else {
+					BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
+							childElement, targetBuilder.getBeanDefinition());
+					if (customBeanDefinition == null) {
+						parserContext.getReaderContext().error(
+								"failed to parse custom element '" + localName + "'", childElement);
+					}
+				}
+			}
+		}
+		targetBuilder.addPropertyValue("adviceChain", adviceChain);
 	}
 
 }
