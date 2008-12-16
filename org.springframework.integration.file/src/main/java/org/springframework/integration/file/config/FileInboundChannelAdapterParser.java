@@ -45,6 +45,9 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 				PACKAGE_NAME + ".FileReadingMessageSource");
 		String directory = element.getAttribute("directory");
 		if (StringUtils.hasText(directory)) {
+			if (directory.indexOf(':') == -1) {
+				directory = "file:" + directory;
+			}
 			builder.addPropertyValue("inputDirectory", directory);
 		}
 		String filter = element.getAttribute("filter");
