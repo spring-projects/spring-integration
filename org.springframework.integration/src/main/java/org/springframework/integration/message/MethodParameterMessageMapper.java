@@ -138,7 +138,8 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 					args[i] = message.getHeaders();					
 				}
 			}
-			else if (expectedType.isAssignableFrom(message.getClass())) {
+			else if (expectedType.isAssignableFrom(message.getClass())
+					&& Message.class.isAssignableFrom(expectedType)) {
 				args[i] = message;
 			}
 			else {
