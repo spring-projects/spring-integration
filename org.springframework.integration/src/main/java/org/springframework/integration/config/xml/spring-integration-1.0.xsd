@@ -182,7 +182,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="inbound-channel-adapter" type="channelAdapterType">
+	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Channel Adapter that receives from a MessageSource and sends to a MessageChannel.
@@ -190,13 +190,43 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="outbound-channel-adapter" type="channelAdapterType">
+	<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Channel Adapter that receives from a MessageChannel and sends to a MessageConsumer.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
+
+	<xsd:element name="logging-channel-adapter">
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelAdapterType">
+					<xsd:attribute name="level" default="INFO">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="FATAL"/>
+								<xsd:enumeration value="ERROR"/>
+								<xsd:enumeration value="WARN"/>
+								<xsd:enumeration value="INFO"/>
+								<xsd:enumeration value="DEBUG"/>
+								<xsd:enumeration value="TRACE"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="methodInvokingChannelAdapterType">
+		<xsd:complexContent>
+			<xsd:extension base="channelAdapterType">
+				<xsd:attribute name="ref" type="xsd:string" use="required"/>
+				<xsd:attribute name="method" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:complexType name="channelAdapterType">
 		<xsd:sequence>
@@ -212,8 +242,6 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="ref" type="xsd:string" use="required"/>
-		<xsd:attribute name="method" type="xsd:string"/>
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 	</xsd:complexType>
 

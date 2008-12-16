@@ -86,7 +86,9 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 				}
 			}
 			catch (Throwable errorDeliveryError) { // message will be logged only
-				logger.error("Error message was not delivered, it will be dumped in the error log", errorDeliveryError);
+				if (logger.isWarnEnabled()) {
+					logger.warn("Error message was not delivered.", errorDeliveryError);
+				}
 			}
 		}
 		if (!sent && logger.isErrorEnabled()) {

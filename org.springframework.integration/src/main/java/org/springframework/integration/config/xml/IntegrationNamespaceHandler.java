@@ -23,16 +23,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
 
 /**
  * Namespace handler for the integration namespace.
@@ -42,9 +35,11 @@ import org.springframework.integration.scheduling.SimpleTaskScheduler;
  */
 public class IntegrationNamespaceHandler implements NamespaceHandler {
 
-	private volatile boolean initializedContext;
-
 	private final NamespaceHandlerSupport delegate = new NamespaceHandlerDelegate();
+
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
 
 
 	public void init() {
@@ -52,42 +47,27 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 	}
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		if (!this.initializedContext) {
-			registerTaskSchedulerIfNecessary(parserContext.getRegistry());
-			this.initializedContext = true;
+		if (!this.initialized) {
+			this.registerDefaultConfiguringBeanFactoryPostProcessor(parserContext);
 		}
 		return this.delegate.parse(element, parserContext);
-	}	
+	}
 
 	public BeanDefinitionHolder decorate(Node source, BeanDefinitionHolder definition, ParserContext parserContext) {
 		return this.delegate.decorate(source, definition, parserContext);
 	}
 
-	/**
-	 * Register a TaskScheduler in the given BeanDefinitionRegistry if not yet present.
-	 * The bean name for which this is checking is defined by the constant
-	 * {@link IntegrationContextUtils#TASK_SCHEDULER_BEAN_NAME}.
-	 */
-	private static void registerTaskSchedulerIfNecessary(BeanDefinitionRegistry registry) {
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
-			RootBeanDefinition errorChannelDef = new RootBeanDefinition(PublishSubscribeChannel.class);
-			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(
-					errorChannelDef, IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
-		}
-		TaskExecutor taskExecutor = null;
-		if (!registry.containsBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
-			taskExecutor = IntegrationContextUtils.createThreadPoolTaskExecutor(2, 100, 0, "task-scheduler-");
-			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
-			schedulerBuilder.addConstructorArgValue(taskExecutor);
-			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
-			errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			String errorHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					errorHandlerBuilder.getBeanDefinition(), registry);
-			schedulerBuilder.addPropertyReference("errorHandler", errorHandlerBeanName);
-			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(
-					schedulerBuilder.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerHolder, registry);
+	private void registerDefaultConfiguringBeanFactoryPostProcessor(ParserContext parserContext) {
+		synchronized (this.initializationMonitor) {
+			if (!this.initialized) {
+				String postProcessorSimpleClassName = "DefaultConfiguringBeanFactoryPostProcessor";
+				BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml." + postProcessorSimpleClassName);
+				BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(postProcessorBuilder.getBeanDefinition(),
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + postProcessorSimpleClassName);
+				BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
+				this.initialized = true;
+			}
 		}
 	}
 
@@ -111,6 +91,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("payload-deserializing-transformer", new PayloadDeserializingTransformerParser());
 			registerBeanDefinitionParser("inbound-channel-adapter", new MethodInvokingInboundChannelAdapterParser());
 			registerBeanDefinitionParser("outbound-channel-adapter", new MethodInvokingOutboundChannelAdapterParser());
+			registerBeanDefinitionParser("logging-channel-adapter", new LoggingChannelAdapterParser());
 			registerBeanDefinitionParser("gateway", new GatewayParser());
 			registerBeanDefinitionParser("bridge", new BridgeParser());
 			registerBeanDefinitionParser("chain", new ChainParser());

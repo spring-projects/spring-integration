@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -52,6 +53,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	private ApplicationContext context;
 
 	@Autowired(required=true)
+	@Qualifier("adapterWithPattern.adapter")
 	private AbstractEndpoint endpoint;
 
 	private DirectFieldAccessor accessor;
