@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.errorhandling;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,19 +20,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.integration.annotation.MessageEndpoint;
 
 /**
- * Sends invitations to <code>Guest</code>s and likes to be notified of delivery
- * failures of course.
+ * Sends invitations to <code>PartyGuest</code>s and likes to be notified of
+ * delivery failures of course.
  * 
  * @author Iwein Fuld
- * 
  */
 @MessageEndpoint
 public class PartyHost {
 
-	private final AtomicInteger counter = new AtomicInteger(1);
+	private final AtomicInteger counter = new AtomicInteger(0);
 
 	public Invitation nextInvitation() {
-		return new Invitation(counter.getAndIncrement());
+		return new Invitation(counter.incrementAndGet());
 	}
 
 	public void onInvitationFailed(Invitation inv) {

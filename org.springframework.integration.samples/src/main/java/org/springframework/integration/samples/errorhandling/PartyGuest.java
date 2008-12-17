@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.errorhandling;
 
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -21,12 +22,13 @@ import org.springframework.integration.annotation.MessageEndpoint;
  * address exception message.
  * 
  * @author Iwein Fuld
- * 
  */
 @MessageEndpoint
 public class PartyGuest {
+
 	public void onInvitation(Invitation invitation) {
 		System.out.println("Guest is throwing exception");
 		throw new RuntimeException("Wrong address");
 	}
+
 }

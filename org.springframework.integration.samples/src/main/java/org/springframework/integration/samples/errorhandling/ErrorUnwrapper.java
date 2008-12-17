@@ -12,18 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.errorhandling;
 
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.transformer.Transformer;
-import org.springframework.util.Assert;
 
-public class UnwrappingErrorMessageTransformer implements Transformer {
+/**
+ * @author Iwein Fuld
+ */
+@MessageEndpoint
+public class ErrorUnwrapper {
 
-	public Message<?> transform(Message<?> message) {
-		Assert.isAssignable(ErrorMessage.class, message.getClass());
-		return ((MessagingException) ((ErrorMessage) message).getPayload()).getFailedMessage();
+	@Transformer
+	public Message<?> transform(ErrorMessage errorMessage) {
+		return ((MessagingException) errorMessage.getPayload()).getFailedMessage();
 	}
+
 }

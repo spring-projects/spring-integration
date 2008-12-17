@@ -12,18 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.errorhandling;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+/**
+ * @author Iwein Fuld
+ */
 public class PartyDemo {
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
-		new ClassPathXmlApplicationContext("errorHandlingDemo.xml", PartyDemo.class).start();
-
+		new ClassPathXmlApplicationContext("errorHandlingDemo.xml", PartyDemo.class);
 	}
 
 }
