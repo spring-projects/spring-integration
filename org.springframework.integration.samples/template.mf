@@ -4,11 +4,11 @@ Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
 Import-Template: 
  org.springframework.integration.*;version="[1.0.0, 1.0.1)",
- org.springframework.beans.*;version="[2.5.6, 3.0.0)",
- org.springframework.context.*;version="[2.5.6, 3.0.0)",
- org.springframework.util.*;version="[2.5.6, 3.0.0)",
- org.springframework.stereotype;version="[2.5.6, 3.0.0)",
- org.springframework.core.*;version="[2.5.6, 3.0.0)",
+ org.springframework.beans.*;version="[2.5.6.A, 3.0.0)",
+ org.springframework.context.*;version="[2.5.6.A, 3.0.0)",
+ org.springframework.util.*;version="[2.5.6.A, 3.0.0)",
+ org.springframework.stereotype;version="[2.5.6.A, 3.0.0)",
+ org.springframework.core.*;version="[2.5.6.A, 3.0.0)",
  org.springframework.xml.*;version="[1.5.5.A, 2.0.0)"
 Unversioned-Imports: 
  org.w3c.dom,

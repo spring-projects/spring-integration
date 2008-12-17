@@ -27,10 +27,10 @@
 		</dependency>
 		<dependency org="org.apache.geronimo.specs" name="com.springsource.javax.management.j2ee" rev="1.0.1" conf="provided->compile"/>
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.aop" rev="2.5.6" conf="compile->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.6" conf="compile->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.jms" rev="2.5.6" conf="compile->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.transaction" rev="2.5.6" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.aop" rev="2.5.6.A" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.6.A" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.jms" rev="2.5.6.A" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.transaction" rev="2.5.6.A" conf="compile->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration.ws" rev="latest.integration" conf="compile->compile"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration.xml" rev="latest.integration" conf="compile->compile"/>
