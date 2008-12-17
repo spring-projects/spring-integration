@@ -27,14 +27,54 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
-					<xsd:attribute name="destination" type="xsd:string"/>
+					<xsd:attribute name="destination" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.jms.Destination"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="destination-name" type="xsd:string"/>
-					<xsd:attribute name="channel" type="xsd:string"/>
-					<xsd:attribute name="message-converter" type="xsd:string"/>
-					<xsd:attribute name="header-mapper" type="xsd:string"/>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="message-converter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="header-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
 					<xsd:attribute name="send-timeout" type="xsd:string"/>
-					<xsd:attribute name="transaction-manager" type="xsd:string"/>
+					<xsd:attribute name="transaction-manager" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
@@ -57,12 +97,44 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
-					<xsd:attribute name="destination" type="xsd:string"/>
+					<xsd:attribute name="destination" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.jms.Destination"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="destination-name" type="xsd:string"/>
-					<xsd:attribute name="channel" type="xsd:string"/>
-					<xsd:attribute name="header-mapper" type="xsd:string"/>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="header-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
-					<xsd:attribute name="jms-template" type="xsd:string"/>
+					<xsd:attribute name="jms-template" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jms.core.JmsTemplate"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -77,16 +149,56 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
-					<xsd:attribute name="request-destination" type="xsd:string"/>
+					<xsd:attribute name="request-destination" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.jms.Destination"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="request-destination-name" type="xsd:string"/>
-					<xsd:attribute name="message-converter" type="xsd:string"/>
-					<xsd:attribute name="header-mapper" type="xsd:string"/>
+					<xsd:attribute name="message-converter" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="header-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
 					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
-					<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="request-timeout" type="xsd:string"/>
 					<xsd:attribute name="reply-timeout" type="xsd:string"/>
-					<xsd:attribute name="transaction-manager" type="xsd:string"/>
+					<xsd:attribute name="transaction-manager" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
@@ -108,19 +220,83 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="request-channel" type="xsd:string"/>
-			<xsd:attribute name="reply-channel" type="xsd:string"/>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="request-timeout" type="xsd:string"/>
 			<xsd:attribute name="reply-timeout" type="xsd:string"/>
-			<xsd:attribute name="request-destination" type="xsd:string"/>
+			<xsd:attribute name="request-destination" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="javax.jms.Destination"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="request-destination-name" type="xsd:string"/>
-			<xsd:attribute name="reply-destination" type="xsd:string"/>
+			<xsd:attribute name="reply-destination" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="javax.jms.Destination"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="reply-destination-name" type="xsd:string"/>
-			<xsd:attribute name="destination-resolver" type="xsd:string"/>
+			<xsd:attribute name="destination-resolver" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.jms.support.destination.DestinationResolver"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
-			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory"/>
-			<xsd:attribute name="message-converter" type="xsd:string"/>
-			<xsd:attribute name="header-mapper" type="xsd:string"/>
+			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="javax.jms.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-converter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="header-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="receive-timeout" type="xsd:string"/>
@@ -142,12 +318,44 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
-					<xsd:attribute name="destination" type="xsd:string"/>
+					<xsd:attribute name="destination" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.jms.Destination"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="destination-name" type="xsd:string"/>
-					<xsd:attribute name="channel" type="xsd:string"/>
-					<xsd:attribute name="header-mapper" type="xsd:string"/>
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="header-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.jms.JmsHeaderMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
-					<xsd:attribute name="jms-template" type="xsd:string"/>
+					<xsd:attribute name="jms-template" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.jms.core.JmsTemplate"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -161,7 +369,15 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="jmsAdapterType">
-				<xsd:attribute name="container" type="xsd:string"/>
+				<xsd:attribute name="container" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.jms.listener.AbstractMessageListenerContainer"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="acknowledge" default="auto">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
@@ -206,15 +422,47 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID"/>
-		<xsd:attribute name="connection-factory" type="xsd:string"/>
-		<xsd:attribute name="destination-resolver" type="xsd:string"/>
+		<xsd:attribute name="connection-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.jms.ConnectionFactory"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="destination-resolver" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.jms.support.destination.DestinationResolver"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:ID"/>
-		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>		
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>		
 	</xsd:complexType>
 
 </xsd:schema>
