@@ -25,11 +25,11 @@ import javax.mail.Message.RecipientType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.mail.MailHeaders;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.Assert;
 
@@ -46,23 +46,23 @@ public abstract class AbstractMailMessageTransformer<T> implements Transformer {
 
 	public Message<?> transform(Message<?> message) {
 		Object payload = message.getPayload();
-		if (payload != null && payload instanceof javax.mail.Message) {
-			try {
-				javax.mail.Message mailMessage = (javax.mail.Message) payload;
-				MessageBuilder<T> builder = this.doTransform(mailMessage);
-				if (builder != null) {
-					builder.copyHeaders(this.extractHeaderMapFromMailMessage(mailMessage));
-					message = builder.build();
-				}
-			}
-			catch (Exception e) {
-				throw new MessageMappingException(message, "failed to transform MailMessage", e);
-			}
+		if (!(payload instanceof javax.mail.Message)) {
+			throw new MessageTransformationException(message, this.getClass().getSimpleName()
+					+ " requires a javax.mail.Message payload");
 		}
-		else if (logger.isDebugEnabled()) {
-			logger.debug("unable to transform Message " + message);
+		javax.mail.Message mailMessage = (javax.mail.Message) payload;
+		MessageBuilder<T> builder = null;
+		try {
+			builder = this.doTransform(mailMessage);
 		}
-		return message;
+		catch (Exception e) {
+			throw new MessageTransformationException(message, "failed to transform mail message", e);
+		}
+		if (builder == null) {
+			throw new MessageTransformationException(message, "failed to transform mail message");
+		}
+		builder.copyHeaders(this.extractHeaderMapFromMailMessage(mailMessage));
+		return builder.build();
 	}
 
 	protected abstract MessageBuilder<T> doTransform(javax.mail.Message mailMessage) throws Exception;
