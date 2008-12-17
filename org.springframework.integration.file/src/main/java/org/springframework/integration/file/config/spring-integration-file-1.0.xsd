@@ -29,9 +29,25 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="filter" type="xsd:string"/>
+			<xsd:attribute name="filter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.file.FileListFilter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
@@ -48,9 +64,25 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="filename-generator" type="xsd:string"/>
+			<xsd:attribute name="filename-generator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -84,8 +116,24 @@
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string"/>
-		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="delete-files" type="xsd:string"/>
 	</xsd:complexType>
 
