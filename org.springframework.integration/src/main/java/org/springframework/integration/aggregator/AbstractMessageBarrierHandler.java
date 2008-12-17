@@ -103,11 +103,13 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 
 	private volatile boolean autoStartup = true;
 
-	private volatile boolean initialized;
-
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ScheduledFuture<?> reaperFutureTask;
+
+	private volatile boolean initialized;
+
+	private final Object lifecycleMonitor = new Object();
 
 
 	public AbstractMessageBarrierHandler() {
@@ -179,30 +181,40 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 		}
 	}
 
-	public void afterPropertiesSet() {
-		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
-		if (this.autoStartup) {
-			this.start();
+	public final void afterPropertiesSet() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.initialized) {
+				this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
+				if (this.autoStartup) {
+					this.start();
+				}
+				this.initialized = true;
+			}
 		}
-		this.initialized = true;
 	}
 
 	public boolean isRunning() {
-		return this.reaperFutureTask != null;
+		synchronized (this.lifecycleMonitor) {
+			return this.reaperFutureTask != null;
+		}
 	}
 
 	public void start() {
-		if (this.isRunning()) {
-			return;
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				return;
+			}
+			Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
+			this.reaperFutureTask = this.taskScheduler.schedule(new PrunerTask(),
+					new IntervalTrigger(this.reaperInterval, TimeUnit.MILLISECONDS));
 		}
-		Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
-		this.reaperFutureTask = this.taskScheduler.schedule(new PrunerTask(), new IntervalTrigger(this.reaperInterval,
-				TimeUnit.MILLISECONDS));
 	}
 
 	public void stop() {
-		if (this.isRunning()) {
-			this.reaperFutureTask.cancel(true);
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				this.reaperFutureTask.cancel(true);
+			}
 		}
 	}
 
