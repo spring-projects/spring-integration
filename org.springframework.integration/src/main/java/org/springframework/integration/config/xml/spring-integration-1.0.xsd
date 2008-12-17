@@ -131,7 +131,15 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="error-handler" type="xsd:string"/>
+					<xsd:attribute name="error-handler" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.util.ErrorHandler"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="apply-sequence" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -158,7 +166,15 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
-			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
+			<xsd:attribute name="service-interface" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="direct">
+							<tool:expected-type type="java.lang.Class"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="default-request-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -222,7 +238,15 @@
 	<xsd:complexType name="methodInvokingChannelAdapterType">
 		<xsd:complexContent>
 			<xsd:extension base="channelAdapterType">
-				<xsd:attribute name="ref" type="xsd:string" use="required"/>
+				<xsd:attribute name="ref" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.lang.Object"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="method" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -265,7 +289,15 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="inputOutputEndpointType">
-				<xsd:attribute name="ref" type="xsd:string"/>
+				<xsd:attribute name="ref" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.lang.Object"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="method" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -326,7 +358,15 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
-				<xsd:attribute name="ref" type="xsd:string"/>
+				<xsd:attribute name="ref" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="java.lang.Object"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="method" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -380,7 +420,15 @@
 							<xsd:complexType>
 								<xsd:complexContent>
 									<xsd:extension base="handlerType">
-										<xsd:attribute name="default-output-channel" type="xsd:string"/>
+										<xsd:attribute name="default-output-channel" type="xsd:string">
+											<xsd:annotation>
+												<xsd:appinfo>
+													<tool:annotation kind="ref">
+														<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+													</tool:annotation>
+												</xsd:appinfo>
+											</xsd:annotation>
+										</xsd:attribute>
 									</xsd:extension>
 								</xsd:complexContent>
 							</xsd:complexType>
@@ -433,7 +481,15 @@
 						<xsd:choice minOccurs="0" maxOccurs="unbounded">
 							<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
 								<xsd:complexType>
-									<xsd:attribute name="bean" type="xsd:string" use="required"/>
+									<xsd:attribute name="bean" type="xsd:string" use="required">
+										<xsd:annotation>
+											<xsd:appinfo>
+												<tool:annotation kind="ref">
+													<tool:expected-type type="java.lang.Object"/>
+												</tool:annotation>
+											</xsd:appinfo>
+										</xsd:annotation>
+									</xsd:attribute>
 								</xsd:complexType>
 							</xsd:element>
 							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
@@ -697,7 +753,15 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="ref" type="xsd:string"/>
+					<xsd:attribute name="ref" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.lang.Object"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="method" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -721,7 +785,15 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
-					<xsd:attribute name="completion-strategy" type="xsd:string"/>
+					<xsd:attribute name="completion-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.lang.Object"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="completion-strategy-method" type="xsd:string"/>
 					<xsd:attribute name="discard-channel" type="xsd:string">
 						<xsd:annotation>
@@ -793,7 +865,15 @@
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">
 				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
-						<xsd:attribute name="bean" use="required"/>
+						<xsd:attribute name="bean" use="required">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<tool:annotation kind="ref">
+										<tool:expected-type type="java.lang.Object"/>
+									</tool:annotation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
 				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded"/>
@@ -827,6 +907,11 @@
 				<xsd:documentation><![CDATA[
 	The bean name of the PlatformTransactionManager to use.
 				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="propagation" default="REQUIRED">
