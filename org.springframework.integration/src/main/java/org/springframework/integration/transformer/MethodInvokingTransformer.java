@@ -41,6 +41,11 @@ public class MethodInvokingTransformer implements Transformer {
 		this.invoker = new MessageMappingMethodInvoker(object, methodName);
 	}
 
+	public MethodInvokingTransformer(Object object) {
+		this.invoker = new MessageMappingMethodInvoker(object,
+				org.springframework.integration.annotation.Transformer.class);
+	}
+
 
 	public Message<?> transform(Message<?> message) {
 		Object result = this.invoker.invokeMethod(message);

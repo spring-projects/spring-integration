@@ -19,7 +19,6 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 
@@ -30,32 +29,21 @@ import org.springframework.util.StringUtils;
  */
 public class TransformerParser extends AbstractConsumerEndpointParser {
 
-	private final static String TRANSFORMER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer";
-
-
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				TRANSFORMER_PACKAGE + ".MessageTransformingHandler");
-		builder.addConstructorArgReference(this.parseTransformer(element, parserContext));
-		return builder;
-	}
-
-	private String parseTransformer(Element element, ParserContext parserContext) {
-		String ref = element.getAttribute("ref");
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean");
+		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (!StringUtils.hasText(ref)) {
 			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
+			return null;
 		}
-		String method = element.getAttribute("method");
-		if (!StringUtils.hasText(method)) {
-			return ref;
+		builder.addPropertyReference("targetObject", ref);
+		String method = element.getAttribute(METHOD_ATTRIBUTE);
+		if (StringUtils.hasText(method)) {
+			builder.addPropertyValue("targetMethodName", method);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				TRANSFORMER_PACKAGE + ".MethodInvokingTransformer");
-		builder.addConstructorArgReference(ref);
-		builder.addConstructorArgValue(method);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder;
 	}
 
 }
