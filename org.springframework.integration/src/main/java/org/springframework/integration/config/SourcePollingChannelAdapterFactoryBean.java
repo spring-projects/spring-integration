@@ -127,6 +127,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
 			spca.setTransactionManager(this.pollerMetadata.getTransactionManager());
 			spca.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());
+			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
 			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
