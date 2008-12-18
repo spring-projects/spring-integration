@@ -61,11 +61,14 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 		synchronized (this.initializationMonitor) {
 			if (!this.initialized) {
 				String postProcessorSimpleClassName = "DefaultConfiguringBeanFactoryPostProcessor";
-				BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml." + postProcessorSimpleClassName);
-				BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(postProcessorBuilder.getBeanDefinition(),
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + postProcessorSimpleClassName);
-				BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
+				String postProcessorBeanName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + postProcessorSimpleClassName;
+				if (!parserContext.getRegistry().isBeanNameInUse(postProcessorBeanName)) {
+					BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+							IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml." + postProcessorSimpleClassName);
+					BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
+							postProcessorBuilder.getBeanDefinition(), postProcessorBeanName);
+					BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
+				}
 				this.initialized = true;
 			}
 		}
