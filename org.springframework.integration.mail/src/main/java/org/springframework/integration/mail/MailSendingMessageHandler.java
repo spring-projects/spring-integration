@@ -24,6 +24,7 @@ import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -87,9 +88,13 @@ public class MailSendingMessageHandler implements MessageHandler {
 		if (message.getPayload() instanceof byte[]) {
 			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
 		}
-		else {
+		else if (message.getPayload() instanceof String) {
 			mailMessage = new SimpleMailMessage();
-			mailMessage.setText(message.getPayload().toString());
+			mailMessage.setText((String) message.getPayload());
+		}
+		else {
+			throw new MessageHandlingException(message, "Unable to create MailMessage from payload type ["
+					+ message.getPayload().getClass().getName() + "], expected byte array or String.");
 		}
 		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
