@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  * An implementation of {@link TaskScheduler} that delegates to any instance
  * of {@link TaskExecutor}.
  * 
- * <p>This class implements Lifecycle and provides an {@link #autoStartup}
+ * <p>This class implements ApplicationListener and provides an {@link #autoStartup}
  * property. If <code>true</code>, the scheduler will start automatically upon
  * receiving the {@link ContextRefreshedEvent}. Otherwise, it will require an
  * explicit invocation of its {@link #start()} method. The default value is
