@@ -15,6 +15,8 @@
 
 package org.springframework.integration.samples.errorhandling;
 
+import java.io.IOException;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -24,6 +26,14 @@ public class PartyDemo {
 
 	public static void main(String[] args) {
 		new ClassPathXmlApplicationContext("errorHandlingDemo.xml", PartyDemo.class);
+		System.out.println("hit key to stop");
+		try {
+			System.in.read();
+		}
+		catch (IOException e) {
+ 			throw new RuntimeException(e);
+		}
+		System.exit(0);
 	}
 
 }
