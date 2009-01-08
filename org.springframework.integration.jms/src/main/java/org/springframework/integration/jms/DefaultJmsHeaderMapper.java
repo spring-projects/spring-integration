@@ -91,6 +91,10 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {
+			String messageId = jmsMessage.getJMSMessageID();
+			if (messageId != null) {
+				headers.put(JmsHeaders.MESSAGE_ID, messageId);
+			}
 			String correlationId = jmsMessage.getJMSCorrelationID();
 			if (correlationId != null) {
 				headers.put(JmsHeaders.CORRELATION_ID, correlationId);

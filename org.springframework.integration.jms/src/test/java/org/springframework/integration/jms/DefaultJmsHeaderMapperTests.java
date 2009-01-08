@@ -144,6 +144,18 @@ public class DefaultJmsHeaderMapperTests {
 	}
 
 	@Test
+	public void testJmsMessageIdMappedToHeader() throws JMSException {
+		String messageId = "ID:ABC-123";
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		jmsMessage.setJMSMessageID(messageId);
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
+		Object attrib = headers.get(JmsHeaders.MESSAGE_ID);
+		assertNotNull(attrib);
+		assertSame(messageId, attrib);
+	}
+
+	@Test
 	public void testJmsCorrelationIdMappedToHeader() throws JMSException {
 		String correlationId = "ABC-123";
 		javax.jms.Message jmsMessage = new StubTextMessage();

@@ -29,7 +29,9 @@ public class StubTextMessage implements TextMessage {
 
 	private Destination replyTo;
 
-	private String correlationID;
+	private String messageId;
+
+	private String correlationId;
 
 	private String type;
 
@@ -74,7 +76,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public String getJMSCorrelationID() throws JMSException {
-		return this.correlationID;
+		return this.correlationId;
 	}
 
 	public byte[] getJMSCorrelationIDAsBytes() throws JMSException {
@@ -94,7 +96,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public String getJMSMessageID() throws JMSException {
-		return null;
+		return this.messageId;
 	}
 
 	public int getJMSPriority() throws JMSException {
@@ -125,7 +127,7 @@ public class StubTextMessage implements TextMessage {
 		return this.properties.get(name);
 	}
 
-	public Enumeration getPropertyNames() throws JMSException {
+	public Enumeration<?> getPropertyNames() throws JMSException {
 		return this.properties.keys();
 	}
 
@@ -161,8 +163,8 @@ public class StubTextMessage implements TextMessage {
 		this.properties.put(name, value);
 	}
 
-	public void setJMSCorrelationID(String correlationID) throws JMSException {
-		this.correlationID = correlationID;
+	public void setJMSCorrelationID(String correlationId) throws JMSException {
+		this.correlationId = correlationId;
 	}
 
 	public void setJMSCorrelationIDAsBytes(byte[] correlationID) throws JMSException {
@@ -178,6 +180,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setJMSMessageID(String id) throws JMSException {
+		this.messageId = id;
 	}
 
 	public void setJMSPriority(int priority) throws JMSException {

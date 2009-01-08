@@ -31,6 +31,8 @@ public abstract class JmsHeaders {
 	 */
 	public static final String PREFIX = MessageHeaders.PREFIX + "jms_";
 
+	public static final String MESSAGE_ID = PREFIX + "messageId";
+
 	public static final String CORRELATION_ID = PREFIX + "correlationId";
 
 	public static final String REPLY_TO = PREFIX + "replyTo";
