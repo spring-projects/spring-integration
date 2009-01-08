@@ -110,6 +110,14 @@ public class FileReadingMessageSourceIntegrationTests {
 		assertNotSame(received1 + " == " + received3, received1, received3);
 		assertNotSame(received2 + " == " + received3, received2, received3);
 	}
+	
+	@Test
+	public void inputDirExhausted() throws Exception {
+		assertNotNull(pollableFileSource.receive());
+		assertNotNull(pollableFileSource.receive());
+		assertNotNull(pollableFileSource.receive());
+		assertNull(pollableFileSource.receive());
+	}
 
 	@Test(timeout = 6000)
 	@Repeat(10)

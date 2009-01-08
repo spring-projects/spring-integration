@@ -23,23 +23,25 @@ import java.util.List;
 import org.springframework.util.Assert;
 
 /**
- * A convenience base class for any {@link FileListFilter} whose criteria can
- * be evaluated against each File in isolation. If the entire List of files is
+ * A convenience base class for any {@link FileListFilter} whose criteria can be
+ * evaluated against each File in isolation. If the entire List of files is
  * required for evaluation, implement the FileListFilter interface directly.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public abstract class AbstractFileListFilter implements FileListFilter {
 
 	/**
-	 * Returns the list of files that are accepted by this filter.
+	 * {@inheritDoc}
 	 */
 	public final List<File> filterFiles(File[] files) {
-		Assert.notNull(files,"'files' should not be null.");
 		List<File> accepted = new ArrayList<File>();
-		for (File file : files) {
-			if (this.accept(file)) {
-				accepted.add(file);
+		if (files != null) {
+			for (File file : files) {
+				if (this.accept(file)) {
+					accepted.add(file);
+				}
 			}
 		}
 		return accepted;

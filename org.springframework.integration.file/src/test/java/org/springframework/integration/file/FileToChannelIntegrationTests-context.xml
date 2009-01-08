@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:file="http://www.springframework.org/schema/integration/file"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/file
+			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
+
+	<!-- under test -->
+	<file:inbound-channel-adapter
+		directory="file:${java.io.tmpdir}/FileToChannelIntegrationTests"
+		channel="fileMessages" filter="compositeFilter" />
+
+	<si:channel id="fileMessages">
+		<si:queue capacity="10" />
+	</si:channel>
+
+	<!-- customized filter -->
+	<bean id="compositeFilter"
+		class="org.springframework.integration.file.CompositeFileListFilter">
+		<constructor-arg>
+			<list>
+				<bean
+					class="org.springframework.integration.file.AcceptOnceFileListFilter" />
+				<bean class="org.springframework.integration.file.TestFileListFilter" />
+				<bean
+					class="org.springframework.integration.file.PatternMatchingFileListFilter">
+					<constructor-arg value="^test.*$" />
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>
+
+	<si:poller default="true">
+		<si:interval-trigger interval="10" />
+	</si:poller>
+	
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
+</beans>
