@@ -19,6 +19,7 @@ package org.springframework.integration.file;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -28,6 +29,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.aggregator.Resequencer;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
@@ -35,9 +37,9 @@ import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
 /**
- * PollableSource that creates messages from a file system directory. To prevent
- * messages for certain files, you may supply a {@link FileListFilter}. By
- * default, an {@link AcceptOnceFileListFilter} is used. It ensures files are
+ * {@link MessageSource} that creates messages from a file system directory. To
+ * prevent messages for certain files, you may supply a {@link FileListFilter}.
+ * By default, an {@link AcceptOnceFileListFilter} is used. It ensures files are
  * picked up only once from the directory.
  * <p/>
  * A common problem with reading files is that a file may be detected before it
@@ -48,12 +50,19 @@ import org.springframework.util.Assert;
  * with the default {@link AcceptOnceFileListFilter} would allow for this. See
  * {@link CompositeFileFilter} for a way to do this.
  * <p/>
+ * A {@link Comparator} can be used to ensure internal ordering of the Files in
+ * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
+ * a {@link Resequencer}, but in cases where writing files and failure
+ * downstream are rare it might be sufficient.
+ * <p/>
  * FileReadingMessageSource is fully thread-safe under concurrent receives and
  * message delivery callbacks.
  * 
  * @author Iwein Fuld
  */
 public class FileReadingMessageSource implements MessageSource<File> {
+
+	private static final int INTERNAL_QUEUE_CAPACITY = 5;
 
 	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
@@ -64,9 +73,27 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	 * {@link ConcurrentModificationException} in Java 5. There is no locking
 	 * around the queue, so there is also no iteration.
 	 */
-	private final Queue<File> toBeReceived = new PriorityBlockingQueue<File>();
+	private final Queue<File> toBeReceived;
 
 	private volatile FileListFilter filter = new AcceptOnceFileListFilter();
+
+	/**
+	 * Creates a FileReadingMessageSource with a naturally ordered queue.
+	 */
+	public FileReadingMessageSource() {
+		toBeReceived = new PriorityBlockingQueue<File>(INTERNAL_QUEUE_CAPACITY);
+	}
+
+	/**
+	 * Creates a FileReadingMessageSource with a {@link PriorityBlockingQueue}
+	 * ordered with the passed in {@link Comparator}
+	 * 
+	 * No guarantees about file delivery order can be made under concurrent
+	 * access.
+	 */
+	public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
+		toBeReceived = new PriorityBlockingQueue<File>(INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
+	}
 
 	public void setInputDirectory(Resource inputDirectory) {
 		Assert.notNull(inputDirectory, "inputDirectory cannot be null");
@@ -87,7 +114,7 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	 * and duplication concerns. If multiple filters are required a
 	 * {@link CompositeFileListFilter} can be used to group them together
 	 * <p/>
-	 * <b>Note that the supplied filter must be thread safe</b>.
+	 * <b>Note that the supplied filter must be thread safe.</b>.
 	 */
 	public void setFilter(FileListFilter filter) {
 		Assert.notNull(filter, "'filter' should not be null");

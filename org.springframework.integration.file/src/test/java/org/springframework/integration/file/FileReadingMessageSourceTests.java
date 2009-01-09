@@ -19,8 +19,10 @@ import static org.easymock.classextension.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import java.io.File;
+import java.util.Comparator;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +43,9 @@ public class FileReadingMessageSourceTests {
 
 	private File fileMock = createMock(File.class);
 
-	private Object[] allMocks = new Object[] { inputDirectoryMock, fileMock, inputDirectoryResourceMock };
+	private Comparator<File> comparator = createMock(Comparator.class);
+
+	private Object[] allMocks = new Object[] { inputDirectoryMock, fileMock, inputDirectoryResourceMock, comparator };
 
 	public void prepResource() throws Exception {
 		expect(inputDirectoryResourceMock.exists()).andReturn(true).anyTimes();
@@ -49,11 +53,11 @@ public class FileReadingMessageSourceTests {
 		expect(inputDirectoryMock.canRead()).andReturn(true);
 		replay(inputDirectoryResourceMock, inputDirectoryMock);
 	}
-	
+
 	@Before
 	public void initialize() throws Exception {
 		prepResource();
-		this.source = new FileReadingMessageSource();
+		this.source = new FileReadingMessageSource(comparator);
 		source.setInputDirectory(inputDirectoryResourceMock);
 		reset(allMocks);
 	}
@@ -68,8 +72,7 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void requeueOnFailure() throws Exception {
-		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
-		expect(inputDirectoryMock.listFiles()).andReturn(new File[] {});
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock }).times(2);
 		replay(allMocks);
 		Message received = source.receive();
 		assertNotNull(received);
@@ -80,12 +83,34 @@ public class FileReadingMessageSourceTests {
 
 	@Test
 	public void noDuplication() throws Exception {
-		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
-		expect(inputDirectoryMock.listFiles()).andReturn(new File[] {});
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock }).times(2);
 		replay(allMocks);
 		Message<File> received = source.receive();
 		assertNotNull(received);
 		assertEquals(fileMock, received.getPayload());
+		assertNull(source.receive());
+		verify(allMocks);
+	}
+
+	@Test
+	public void orderedReception() throws Exception {
+		File file1 = createMock(File.class);
+		File file2 = createMock(File.class);
+		File file3 = createMock(File.class);
+		
+		//record the comparator to reverse order the files
+		expect(comparator.compare(file1, file2)).andReturn(1).anyTimes();
+		expect(comparator.compare(file1, file3)).andReturn(1).anyTimes();
+		expect(comparator.compare(file2, file3)).andReturn(1).anyTimes();
+		expect(comparator.compare(file2, file1)).andReturn(-1).anyTimes();
+		expect(comparator.compare(file3, file1)).andReturn(-1).anyTimes();
+		expect(comparator.compare(file3, file2)).andReturn(-1).anyTimes();
+		
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { file2, file3, file1 }).anyTimes();
+		replay(allMocks);
+		assertSame(file3, source.receive().getPayload());
+		assertSame(file2, source.receive().getPayload());
+		assertSame(file1, source.receive().getPayload());
 		assertNull(source.receive());
 		verify(allMocks);
 	}
