@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		targetNamespace="http://www.springframework.org/schema/integration"
-		elementFormDefault="qualified"
-		attributeFormDefault="unqualified">
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	targetNamespace="http://www.springframework.org/schema/integration"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
-	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
-	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -19,7 +17,7 @@
 	<xsd:element name="annotation-config">
 		<xsd:annotation>
 			<xsd:documentation>
-	Enables annotation support for Message Endpoints.
+				Enables annotation support for Message Endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -28,16 +26,18 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines the ApplicationEventMulticaster to use for this ApplicationContext.
-	The "task-executor" reference is optional. If not provided, an instance of
-	ThreadPoolTaskExecutor will be created by default.
+					Defines the ApplicationEventMulticaster to use for this
+					ApplicationContext.
+					The "task-executor" reference is optional. If not provided, an
+					instance of
+					ThreadPoolTaskExecutor will be created by default.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -48,11 +48,11 @@
 	<xsd:element name="channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Point-to-Point MessageChannel.
+				Defines a Point-to-Point MessageChannel.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+					<tool:exports type="org.springframework.integration.core.MessageChannel" />
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -61,11 +61,12 @@
 				<xsd:extension base="channelType">
 					<xsd:sequence>
 						<xsd:choice minOccurs="0" maxOccurs="1">
-							<xsd:element ref="queue"/>
-							<xsd:element ref="priority-queue"/>
-							<xsd:element ref="rendezvous-queue"/>
+							<xsd:element ref="queue" />
+							<xsd:element ref="priority-queue" />
+							<xsd:element ref="rendezvous-queue" />
 						</xsd:choice>
-						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="interceptors" type="channelInterceptorsType"
+							minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -76,10 +77,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a queue for messages. If 'capacity' is specified, it will be a bounded queue.
+					Defines a queue for messages. If 'capacity' is specified, it will be a
+					bounded queue.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="capacity" type="xsd:string"/>
+			<xsd:attribute name="capacity" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -87,11 +89,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a queue with priority-ordering for message reception.
+					Defines a queue with priority-ordering for message reception.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="capacity" type="xsd:string"/>
-			<xsd:attribute name="comparator" type="xsd:string"/>
+			<xsd:attribute name="capacity" type="xsd:string" />
+			<xsd:attribute name="comparator" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -99,7 +101,8 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a rendezvous queue where a sender will block until the receiver arrives or vice-versa.
+					Defines a rendezvous queue where a sender will block until the receiver
+					arrives or vice-versa.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:complexType>
@@ -108,11 +111,12 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Publish-Subscribe channel that broadcasts messages to its subscribers.
+				Defines a Publish-Subscribe channel that broadcasts messages to its
+				subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+					<tool:exports type="org.springframework.integration.core.MessageChannel" />
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
@@ -120,13 +124,15 @@
 			<xsd:complexContent>
 				<xsd:extension base="channelType">
 					<xsd:sequence>
-						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="interceptors" type="channelInterceptorsType"
+							minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+									<tool:expected-type
+										type="org.springframework.core.task.TaskExecutor" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -135,42 +141,44 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.util.ErrorHandler"/>
+									<tool:expected-type
+										type="org.springframework.integration.util.ErrorHandler" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="apply-sequence" type="xsd:string"/>
+					<xsd:attribute name="apply-sequence" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="thread-local-channel" type="channelType"/>
+	<xsd:element name="thread-local-channel" type="channelType" />
 
 	<xsd:complexType name="channelType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a message channel.
+				Defines a message channel.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID" use="required"/>
-		<xsd:attribute name="datatype" type="xsd:string"/>
+		<xsd:attribute name="id" type="xsd:ID" use="required" />
+		<xsd:attribute name="datatype" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="gateway">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Messaging Gateway.
+					Defines a Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID" use="required"/>
-			<xsd:attribute name="service-interface" type="xsd:string" use="required">
+			<xsd:attribute name="id" type="xsd:ID" use="required" />
+			<xsd:attribute name="service-interface" type="xsd:string"
+				use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.Class"/>
+							<tool:expected-type type="java.lang.Class" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -179,7 +187,8 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -188,20 +197,22 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="default-request-timeout" type="xsd:string"/>
-			<xsd:attribute name="default-reply-timeout" type="xsd:string"/>
+			<xsd:attribute name="default-request-timeout" type="xsd:string" />
+			<xsd:attribute name="default-reply-timeout" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Channel Adapter that receives from a MessageSource and sends to a MessageChannel.
+				Defines a Channel Adapter that receives from a MessageSource and sends to a
+				MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -209,7 +220,8 @@
 	<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Channel Adapter that receives from a MessageChannel and sends to a MessageConsumer.
+				Defines a Channel Adapter that receives from a MessageChannel and sends to
+				a MessageConsumer.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -221,12 +233,12 @@
 					<xsd:attribute name="level" default="INFO">
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="FATAL"/>
-								<xsd:enumeration value="ERROR"/>
-								<xsd:enumeration value="WARN"/>
-								<xsd:enumeration value="INFO"/>
-								<xsd:enumeration value="DEBUG"/>
-								<xsd:enumeration value="TRACE"/>
+								<xsd:enumeration value="FATAL" />
+								<xsd:enumeration value="ERROR" />
+								<xsd:enumeration value="WARN" />
+								<xsd:enumeration value="INFO" />
+								<xsd:enumeration value="DEBUG" />
+								<xsd:enumeration value="TRACE" />
 							</xsd:restriction>
 						</xsd:simpleType>
 					</xsd:attribute>
@@ -242,41 +254,47 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="java.lang.Object"/>
+								<tool:expected-type type="java.lang.Object" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="method" type="xsd:string"/>
+				<xsd:attribute name="method" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:complexType name="channelAdapterType">
 		<xsd:sequence>
-			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="poller" type="innerPollerType"
+				minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:ID" />
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type
+							type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		<xsd:attribute name="auto-startup" type="xsd:string"
+			default="true" />
 	</xsd:complexType>
 
 	<xsd:element name="service-activator" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an endpoint for exposing any bean reference as a service that receives
-	request Messages from an 'input-channel' and may send reply Messages to an
-	'output-channel'. The 'ref' may point to an instance that has either a single
-	public method or a method with the @ServiceActivator annotation. Otherwise, the
-	'method' attribute should be provided along with 'ref'.
+				Defines an endpoint for exposing any bean reference as a service that
+				receives
+				request Messages from an 'input-channel' and may send reply Messages to an
+				'output-channel'. The 'ref' may point to an instance that has either
+				a single
+				public method or a method with the @ServiceActivator annotation.
+				Otherwise, the
+				'method' attribute should be provided along with 'ref'.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -284,7 +302,7 @@
 	<xsd:complexType name="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message-handling endpoints.
+				Base type for Message-handling endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -293,12 +311,12 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="java.lang.Object"/>
+								<tool:expected-type type="java.lang.Object" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="method" type="xsd:string"/>
+				<xsd:attribute name="method" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -306,8 +324,9 @@
 	<xsd:complexType name="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message Endpoint elements that accept Messages from an input-channel
-	and also may produce reply Messages to be sent to an output-channel.
+				Base type for Message Endpoint elements that accept Messages from an
+				input-channel
+				and also may produce reply Messages to be sent to an output-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -316,7 +335,8 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								<tool:expected-type
+									type="org.springframework.integration.core.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -328,24 +348,27 @@
 	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message Endpoint elements that accept Messages from an input-channel.
+				Base type for Message Endpoint elements that accept Messages from an
+				input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
 				<xsd:sequence>
-					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="poller" type="innerPollerType"
+						minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								<tool:expected-type
+									type="org.springframework.integration.core.MessageChannel" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="auto-startup" type="xsd:string"/>
+				<xsd:attribute name="auto-startup" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -353,7 +376,7 @@
 	<xsd:complexType name="handlerType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message Handlers.
+				Base type for Message Handlers.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -362,12 +385,12 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="java.lang.Object"/>
+								<tool:expected-type type="java.lang.Object" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="method" type="xsd:string"/>
+				<xsd:attribute name="method" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -375,7 +398,8 @@
 	<xsd:element name="bridge" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an endpoint that passes a Message to the output-channel without modifying it.
+				Defines an endpoint that passes a Message to the output-channel without
+				modifying it.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -383,7 +407,7 @@
 	<xsd:element name="chain">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an endpoint composed of a chain of Message Handlers.
+				Defines an endpoint composed of a chain of Message Handlers.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -395,7 +419,8 @@
 								<xsd:complexType>
 									<xsd:complexContent>
 										<xsd:extension base="handlerType">
-											<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false"/>
+											<xsd:attribute name="throw-exception-on-rejection"
+												type="xsd:string" default="false" />
 										</xsd:extension>
 									</xsd:complexContent>
 								</xsd:complexType>
@@ -403,28 +428,35 @@
 							<xsd:element name="header-enricher">
 								<xsd:complexType>
 									<xsd:sequence>
-										<xsd:element name="header" type="headerElementType" minOccurs="0" maxOccurs="unbounded"/>
+										<xsd:element name="header" type="headerElementType"
+											minOccurs="0" maxOccurs="unbounded" />
 									</xsd:sequence>
-									<xsd:attributeGroup ref="headerEnricherAttributes"/>
+									<xsd:attributeGroup ref="headerEnricherAttributes" />
 								</xsd:complexType>
 							</xsd:element>
-							<xsd:element name="object-to-string-transformer" type="handlerType"/>
-							<xsd:element name="payload-deserializing-transformer" type="handlerType"/>
-							<xsd:element name="payload-serializing-transformer" type="handlerType"/>
-							<xsd:element name="service-activator" type="handlerType"/>
-							<xsd:element name="splitter" type="handlerType"/>
-							<xsd:element name="transformer" type="handlerType"/>
-							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+							<xsd:element name="object-to-string-transformer"
+								type="handlerType" />
+							<xsd:element name="payload-deserializing-transformer"
+								type="handlerType" />
+							<xsd:element name="payload-serializing-transformer"
+								type="handlerType" />
+							<xsd:element name="service-activator" type="handlerType" />
+							<xsd:element name="splitter" type="handlerType" />
+							<xsd:element name="transformer" type="handlerType" />
+							<xsd:any namespace="##other" processContents="strict"
+								minOccurs="0" maxOccurs="unbounded" />
 						</xsd:choice>
 						<xsd:element name="router" minOccurs="0" maxOccurs="1">
 							<xsd:complexType>
 								<xsd:complexContent>
 									<xsd:extension base="handlerType">
-										<xsd:attribute name="default-output-channel" type="xsd:string">
+										<xsd:attribute name="default-output-channel"
+											type="xsd:string">
 											<xsd:annotation>
 												<xsd:appinfo>
 													<tool:annotation kind="ref">
-														<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+														<tool:expected-type
+															type="org.springframework.integration.core.MessageChannel" />
 													</tool:annotation>
 												</xsd:appinfo>
 											</xsd:annotation>
@@ -442,14 +474,15 @@
 	<xsd:element name="poller">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a top-level poller.
+				Defines a top-level poller.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="basePollerType">
-					<xsd:attribute name="id" type="xsd:ID"/>
-					<xsd:attribute name="default" type="xsd:boolean" default="false"/>
+					<xsd:attribute name="id" type="xsd:ID" />
+					<xsd:attribute name="default" type="xsd:boolean"
+						default="false" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -458,7 +491,7 @@
 	<xsd:complexType name="innerPollerType">
 		<xsd:complexContent>
 			<xsd:extension base="basePollerType">
-				<xsd:attribute name="ref" type="xsd:string"/>
+				<xsd:attribute name="ref" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -466,15 +499,16 @@
 	<xsd:complexType name="basePollerType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines the configuration metadata for a poller.
+				Defines the configuration metadata for a poller.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:choice minOccurs="0" maxOccurs="1">
-				<xsd:element ref="interval-trigger"/>
-				<xsd:element ref="cron-trigger"/>
+				<xsd:element ref="interval-trigger" />
+				<xsd:element ref="cron-trigger" />
 			</xsd:choice>
-			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="transactional" type="transactionalType"
+				minOccurs="0" maxOccurs="1" />
 			<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
 				<xsd:complexType>
 					<xsd:sequence>
@@ -485,27 +519,28 @@
 										<xsd:annotation>
 											<xsd:appinfo>
 												<tool:annotation kind="ref">
-													<tool:expected-type type="java.lang.Object"/>
+													<tool:expected-type type="java.lang.Object" />
 												</tool:annotation>
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:attribute>
 								</xsd:complexType>
 							</xsd:element>
-							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+							<xsd:any namespace="##other" processContents="strict"
+								minOccurs="0" maxOccurs="unbounded" />
 						</xsd:choice>
 					</xsd:sequence>
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:sequence>
-		<xsd:attribute name="receive-timeout" type="xsd:string"/>
-		<xsd:attribute name="send-timeout" type="xsd:string"/>
-		<xsd:attribute name="max-messages-per-poll" type="xsd:string"/>
+		<xsd:attribute name="receive-timeout" type="xsd:string" />
+		<xsd:attribute name="send-timeout" type="xsd:string" />
+		<xsd:attribute name="max-messages-per-poll" type="xsd:string" />
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+						<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -516,12 +551,13 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an interval-based trigger.
+					Defines an interval-based trigger.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="interval" type="xsd:string" use="required"/>
-			<xsd:attribute name="initial-delay" type="xsd:string"/>
-			<xsd:attribute name="fixed-rate" type="xsd:string" default="false"/>
+			<xsd:attribute name="interval" type="xsd:string" use="required" />
+			<xsd:attribute name="initial-delay" type="xsd:string" />
+			<xsd:attribute name="fixed-rate" type="xsd:string"
+				default="false" />
 			<xsd:attribute name="time-unit" default="MILLISECONDS">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -532,8 +568,8 @@
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="MILLISECONDS"/>
-						<xsd:enumeration value="SECONDS"/>
+						<xsd:enumeration value="MILLISECONDS" />
+						<xsd:enumeration value="SECONDS" />
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
@@ -544,10 +580,10 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an cron-based trigger.
+					Defines an cron-based trigger.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="expression" type="xsd:string" use="required"/>
+			<xsd:attribute name="expression" type="xsd:string" use="required" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -555,14 +591,14 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a MessageSelector chain.
+					Defines a MessageSelector chain.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">
-				<xsd:element ref="selector"/>
-				<xsd:element ref="selector-chain"/>
+				<xsd:element ref="selector" />
+				<xsd:element ref="selector-chain" />
 			</xsd:choice>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:ID" />
 			<xsd:attribute name="voting-strategy" default="ALL">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -570,13 +606,13 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
-				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="ALL"/>
-					<xsd:enumeration value="ANY"/>
-					<xsd:enumeration value="MAJORITY"/>
-					<xsd:enumeration value="MAJORITY_OR_TIE"/>
-				</xsd:restriction>
-			</xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="ALL" />
+						<xsd:enumeration value="ANY" />
+						<xsd:enumeration value="MAJORITY" />
+						<xsd:enumeration value="MAJORITY_OR_TIE" />
+					</xsd:restriction>
+				</xsd:simpleType>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
@@ -585,26 +621,30 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Provides a MessageSelector reference.
+					Provides a MessageSelector reference. If a method attribute is set the
+					referred bean doesn't need to implement the MessageSelector
+					interface.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="ref" type="xsd:string" use="required"/>
+			<xsd:attribute name="ref" type="xsd:string" use="required" />
+			<xsd:attribute name="method" type="xsd:string" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="header-enricher">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a HeaderEnricher endpoint for values defined in the MessageHeaders.
+				Defines a HeaderEnricher endpoint for values defined in the MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
 					<xsd:sequence>
-						<xsd:element name="header" type="headerElementType" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="header" type="headerElementType"
+							minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
-					<xsd:attributeGroup ref="headerEnricherAttributes"/>
+					<xsd:attributeGroup ref="headerEnricherAttributes" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -613,25 +653,26 @@
 	<xsd:complexType name="headerElementType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Message Header value or ref.
+				Defines a Message Header value or ref.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="name" type="xsd:string" use="required"/>
-		<xsd:attribute name="ref" type="xsd:string"/>
-		<xsd:attribute name="value" type="xsd:string"/>
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+		<xsd:attribute name="ref" type="xsd:string" />
+		<xsd:attribute name="value" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="headerEnricherAttributes">
 		<xsd:annotation>
 			<xsd:documentation>
-	Provides the names of the standard configurable MessageHeaders.
+				Provides the names of the standard configurable MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="reply-channel" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type
+							type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -640,36 +681,41 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type
+							type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="correlation-id" type="xsd:string"/>
-		<xsd:attribute name="expiration-date" type="xsd:string"/>
-		<xsd:attribute name="priority" type="xsd:string"/>
-		<xsd:attribute name="overwrite" type="xsd:string"/>
+		<xsd:attribute name="correlation-id" type="xsd:string" />
+		<xsd:attribute name="expiration-date" type="xsd:string" />
+		<xsd:attribute name="priority" type="xsd:string" />
+		<xsd:attribute name="overwrite" type="xsd:string" />
 	</xsd:attributeGroup>
 
 	<xsd:element name="thread-pool-task-executor">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a ThreadPoolTaskExecutor.
+					Defines a ThreadPoolTaskExecutor.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID" use="required"/>
-			<xsd:attribute name="core-size" type="xsd:string" default="1"/>
+			<xsd:attribute name="id" type="xsd:ID" use="required" />
+			<xsd:attribute name="core-size" type="xsd:string"
+				default="1" />
 			<xsd:attribute name="max-size" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	Specifies the maximum pool size in order to limit the number of concurrent tasks.
-	Otherwise, the default will be Integer.MAX_VALUE.
+						Specifies the maximum pool size in order to limit the number of concurrent
+						tasks.
+						Otherwise, the default will be Integer.MAX_VALUE.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="queue-capacity" type="xsd:string" default="0"/>
-			<xsd:attribute name="keep-alive-seconds" type="xsd:string" default="60"/>
+			<xsd:attribute name="queue-capacity" type="xsd:string"
+				default="0" />
+			<xsd:attribute name="keep-alive-seconds" type="xsd:string"
+				default="60" />
 			<xsd:attribute name="rejection-policy" default="CALLER_RUNS">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -678,10 +724,10 @@
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="ABORT"/>
-						<xsd:enumeration value="CALLER_RUNS"/>
-						<xsd:enumeration value="DISCARD"/>
-						<xsd:enumeration value="DISCARD_OLDEST"/>
+						<xsd:enumeration value="ABORT" />
+						<xsd:enumeration value="CALLER_RUNS" />
+						<xsd:enumeration value="DISCARD" />
+						<xsd:enumeration value="DISCARD_OLDEST" />
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
@@ -691,7 +737,7 @@
 	<xsd:element name="transformer" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer.
+				Defines a Transformer.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -699,7 +745,8 @@
 	<xsd:element name="object-to-string-transformer" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that converts any Object payload to a String by invoking its toString() method.
+				Defines a Transformer that converts any Object payload to a String by
+				invoking its toString() method.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -707,7 +754,8 @@
 	<xsd:element name="payload-serializing-transformer" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that serializes any Object payload that implements Serializable into a byte array.
+				Defines a Transformer that serializes any Object payload that implements
+				Serializable into a byte array.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -715,7 +763,8 @@
 	<xsd:element name="payload-deserializing-transformer" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that deserializes a byte array payload into an Object.
+				Defines a Transformer that deserializes a byte array payload into an
+				Object.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -723,13 +772,14 @@
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Filter.
+				Defines a Filter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
-					<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false"/>
+					<xsd:attribute name="throw-exception-on-rejection"
+						type="xsd:string" default="false" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -738,7 +788,7 @@
 	<xsd:element name="router">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Router.
+				Defines a Router.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -748,7 +798,8 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -757,12 +808,12 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="java.lang.Object"/>
+									<tool:expected-type type="java.lang.Object" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="method" type="xsd:string"/>
+					<xsd:attribute name="method" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -771,7 +822,7 @@
 	<xsd:element name="splitter" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Splitter.
+				Defines a Splitter.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -780,7 +831,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an aggregating message endpoint.
+					Defines an aggregating message endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -789,26 +840,30 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="java.lang.Object"/>
+									<tool:expected-type type="java.lang.Object" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="completion-strategy-method" type="xsd:string"/>
+					<xsd:attribute name="completion-strategy-method"
+						type="xsd:string" />
 					<xsd:attribute name="discard-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="send-timeout" type="xsd:string"/>
-					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string"/>
-					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string"/>
-					<xsd:attribute name="reaper-interval" type="xsd:string"/>
-					<xsd:attribute name="timeout" type="xsd:string"/>
+					<xsd:attribute name="send-timeout" type="xsd:string" />
+					<xsd:attribute name="send-partial-result-on-timeout"
+						type="xsd:string" />
+					<xsd:attribute name="tracked-correlation-id-capacity"
+						type="xsd:string" />
+					<xsd:attribute name="reaper-interval" type="xsd:string" />
+					<xsd:attribute name="timeout" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -818,7 +873,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a resequencing message endpoint.
+					Defines a resequencing message endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -827,17 +882,20 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+									<tool:expected-type
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="send-timeout" type="xsd:string"/>
-					<xsd:attribute name="release-partial-sequences" type="xsd:string"/>
-					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:string"/>
-					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string"/>
-					<xsd:attribute name="reaper-interval" type="xsd:string"/>
-					<xsd:attribute name="timeout" type="xsd:string"/>
+					<xsd:attribute name="send-timeout" type="xsd:string" />
+					<xsd:attribute name="release-partial-sequences" type="xsd:string" />
+					<xsd:attribute name="send-partial-result-on-timeout"
+						type="xsd:string" />
+					<xsd:attribute name="tracked-correlation-id-capacity"
+						type="xsd:string" />
+					<xsd:attribute name="reaper-interval" type="xsd:string" />
+					<xsd:attribute name="timeout" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -847,18 +905,19 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a completion strategy.
+					Defines a completion strategy.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="ref" type="xsd:string" use="required"/>
-			<xsd:attribute name="method" type="xsd:string"/>
+			<xsd:attribute name="ref" type="xsd:string" use="required" />
+			<xsd:attribute name="method" type="xsd:string" />
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="channelInterceptorsType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a list of interceptors. Each element may be a ChannelInterceptor, ref, or inner-bean.
+				Defines a list of interceptors. Each element may be a ChannelInterceptor,
+				ref, or inner-bean.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -869,15 +928,17 @@
 							<xsd:annotation>
 								<xsd:appinfo>
 									<tool:annotation kind="ref">
-										<tool:expected-type type="java.lang.Object"/>
+										<tool:expected-type type="java.lang.Object" />
 									</tool:annotation>
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
-				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded"/>
-				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="wire-tap" type="wireTapType"
+					minOccurs="0" maxOccurs="unbounded" />
+				<xsd:any namespace="##other" processContents="strict"
+					minOccurs="0" maxOccurs="unbounded" />
 			</xsd:choice>
 		</xsd:sequence>
 	</xsd:complexType>
@@ -885,66 +946,71 @@
 	<xsd:complexType name="wireTapType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Wire Tap Channel Interceptor.
+				Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="channel" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type
+							type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="selector" type="xsd:string"/>
-		<xsd:attribute name="timeout" type="xsd:string"/>
+		<xsd:attribute name="selector" type="xsd:string" />
+		<xsd:attribute name="timeout" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:complexType name="transactionalType">
-		<xsd:attribute name="transaction-manager" type="xsd:string" default="transactionManager">
+		<xsd:attribute name="transaction-manager" type="xsd:string"
+			default="transactionManager">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	The bean name of the PlatformTransactionManager to use.
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+						<tool:expected-type
+							type="org.springframework.transaction.PlatformTransactionManager" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="propagation" default="REQUIRED">
 			<xsd:annotation>
-				<xsd:documentation source="java:org.springframework.transaction.annotation.Propagation"><![CDATA[
+				<xsd:documentation
+					source="java:org.springframework.transaction.annotation.Propagation"><![CDATA[
 	The transaction propagation behavior.
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="REQUIRED"/>
-					<xsd:enumeration value="SUPPORTS"/>
-					<xsd:enumeration value="MANDATORY"/>
-					<xsd:enumeration value="REQUIRES_NEW"/>
-					<xsd:enumeration value="NOT_SUPPORTED"/>
-					<xsd:enumeration value="NEVER"/>
-					<xsd:enumeration value="NESTED"/>
+					<xsd:enumeration value="REQUIRED" />
+					<xsd:enumeration value="SUPPORTS" />
+					<xsd:enumeration value="MANDATORY" />
+					<xsd:enumeration value="REQUIRES_NEW" />
+					<xsd:enumeration value="NOT_SUPPORTED" />
+					<xsd:enumeration value="NEVER" />
+					<xsd:enumeration value="NESTED" />
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="isolation" default="DEFAULT">
 			<xsd:annotation>
-				<xsd:documentation source="java:org.springframework.transaction.annotation.Isolation"><![CDATA[
+				<xsd:documentation
+					source="java:org.springframework.transaction.annotation.Isolation"><![CDATA[
 	The transaction isolation level.
 				]]></xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="DEFAULT"/>
-					<xsd:enumeration value="READ_UNCOMMITTED"/>
-					<xsd:enumeration value="READ_COMMITTED"/>
-					<xsd:enumeration value="REPEATABLE_READ"/>
-					<xsd:enumeration value="SERIALIZABLE"/>
+					<xsd:enumeration value="DEFAULT" />
+					<xsd:enumeration value="READ_UNCOMMITTED" />
+					<xsd:enumeration value="READ_COMMITTED" />
+					<xsd:enumeration value="REPEATABLE_READ" />
+					<xsd:enumeration value="SERIALIZABLE" />
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
@@ -955,7 +1021,8 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="read-only" type="xsd:string" default="false">
+		<xsd:attribute name="read-only" type="xsd:string"
+			default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Is this transaction read-only?

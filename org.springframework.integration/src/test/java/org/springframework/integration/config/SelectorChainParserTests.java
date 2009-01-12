@@ -21,24 +21,41 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.integration.selector.MessageSelectorChain;
 import org.springframework.integration.selector.MessageSelectorChain.VotingStrategy;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
+@ContextConfiguration
+@RunWith(SpringJUnit4ClassRunner.class)
 public class SelectorChainParserTests {
+	
+	@Autowired
+	ApplicationContext context;
+	
+	@Test @Ignore
+	public void topLevelSelector() throws Exception {
+		MessageSelector topLevelSelector = (MessageSelector) context.getBean("topLevelSelector");
+	}
 
 	@Test
 	public void selectorChain() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"selectorChainParserTests.xml", this.getClass());
 		MessageSelector selector1 = (MessageSelector) context.getBean("selector1");
 		MessageSelector selector2 = (MessageSelector) context.getBean("selector2");
 		MessageSelectorChain chain = (MessageSelectorChain) context.getBean("selectorChain");
@@ -51,8 +68,6 @@ public class SelectorChainParserTests {
 
 	@Test
 	public void nestedSelectorChain() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"selectorChainParserTests.xml", this.getClass());
 		MessageSelector selector1 = (MessageSelector) context.getBean("selector1");
 		MessageSelector selector2 = (MessageSelector) context.getBean("selector2");
 		MessageSelector selector3 = (MessageSelector) context.getBean("selector3");
@@ -96,5 +111,16 @@ public class SelectorChainParserTests {
 	private VotingStrategy getStrategy(MessageSelectorChain chain) {
 		return (VotingStrategy) new DirectFieldAccessor(chain).getPropertyValue("votingStrategy");
 	}
-
+	
+	public static class StubMessageSelector implements MessageSelector {
+		public boolean accept(Message<?> message) {
+			return true;
+		}
+	}
+	
+	public static class StubPojoSelector {
+		public boolean accept(Message<?> message) {
+			return true;
+		}
+	}
 }

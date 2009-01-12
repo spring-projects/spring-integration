@@ -26,6 +26,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,8 +36,8 @@ import org.springframework.util.StringUtils;
  */
 public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String SELECTOR_CHAIN_CLASSNAME = IntegrationNamespaceUtils.BASE_PACKAGE + ".selector.MessageSelectorChain";
-
+	private static final String SELECTOR_CHAIN_CLASSNAME = IntegrationNamespaceUtils.BASE_PACKAGE
+			+ ".selector.MessageSelectorChain";
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -61,19 +62,39 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 				String nodeName = child.getLocalName();
 				if ("selector".equals(nodeName)) {
 					String ref = ((Element) child).getAttribute("ref");
-					selectors.add(new RuntimeBeanReference(ref));
+					String method = ((Element) child).getAttribute("method");
+					if (!StringUtils.hasText(method)) {
+						selectors.add(new RuntimeBeanReference(ref));
+					}
+					else {
+						selectors.add(buildMethodInvokingSelector(parserContext, ref, method));
+					}
 				}
 				else if ("selector-chain".equals(nodeName)) {
-					BeanDefinitionBuilder nestedBuilder =
-							BeanDefinitionBuilder.genericBeanDefinition(SELECTOR_CHAIN_CLASSNAME);
-					this.parseSelectorChain(nestedBuilder, (Element) child, parserContext);
-					String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-							nestedBuilder.getBeanDefinition(), parserContext.getRegistry());
-					selectors.add(new RuntimeBeanReference(nestedBeanName));
+					selectors.add(buildSelectorChain(parserContext, child));
 				}
 			}
 		}
 		builder.addPropertyValue("selectors", selectors);
 	}
 
+	private RuntimeBeanReference buildSelectorChain(ParserContext parserContext, Node child) {
+		BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(SELECTOR_CHAIN_CLASSNAME);
+		this.parseSelectorChain(nestedBuilder, (Element) child, parserContext);
+		String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(nestedBuilder
+				.getBeanDefinition(), parserContext.getRegistry());
+		RuntimeBeanReference built = new RuntimeBeanReference(nestedBeanName);
+		return built;
+	}
+
+	private RuntimeBeanReference buildMethodInvokingSelector(ParserContext parserContext, String ref, String method) {
+		BeanDefinitionBuilder methodInvokingSelectorBuilder = BeanDefinitionBuilder
+				.genericBeanDefinition(MethodInvokingSelector.class);
+		methodInvokingSelectorBuilder.addConstructorArgValue(new RuntimeBeanReference(ref));
+		methodInvokingSelectorBuilder.addConstructorArgValue(method);
+		RuntimeBeanReference selector = new RuntimeBeanReference(BeanDefinitionReaderUtils.registerWithGeneratedName(
+				methodInvokingSelectorBuilder.getBeanDefinition(), parserContext.getRegistry()));
+		return selector;
+	}
 }
