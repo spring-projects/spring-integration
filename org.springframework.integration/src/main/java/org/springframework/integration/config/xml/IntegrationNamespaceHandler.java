@@ -35,11 +35,14 @@ import org.springframework.beans.factory.xml.ParserContext;
  */
 public class IntegrationNamespaceHandler implements NamespaceHandler {
 
+	private static final String DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME =
+			"DefaultConfiguringBeanFactoryPostProcessor";
+
+	private static final String DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME =
+			IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME;
+
+
 	private final NamespaceHandlerSupport delegate = new NamespaceHandlerDelegate();
-
-	private volatile boolean initialized;
-
-	private final Object initializationMonitor = new Object();
 
 
 	public void init() {
@@ -47,9 +50,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 	}
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		if (!this.initialized) {
-			this.registerDefaultConfiguringBeanFactoryPostProcessor(parserContext);
-		}
+		this.registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(parserContext);
 		return this.delegate.parse(element, parserContext);
 	}
 
@@ -57,20 +58,13 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 		return this.delegate.decorate(source, definition, parserContext);
 	}
 
-	private void registerDefaultConfiguringBeanFactoryPostProcessor(ParserContext parserContext) {
-		synchronized (this.initializationMonitor) {
-			if (!this.initialized) {
-				String postProcessorSimpleClassName = "DefaultConfiguringBeanFactoryPostProcessor";
-				String postProcessorBeanName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internal" + postProcessorSimpleClassName;
-				if (!parserContext.getRegistry().isBeanNameInUse(postProcessorBeanName)) {
-					BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-							IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml." + postProcessorSimpleClassName);
-					BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
-							postProcessorBuilder.getBeanDefinition(), postProcessorBeanName);
-					BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
-				}
-				this.initialized = true;
-			}
+	private void registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(ParserContext parserContext) {
+		if (!parserContext.getRegistry().isBeanNameInUse(DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME)) {
+			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml." + DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME);
+			BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
+					postProcessorBuilder.getBeanDefinition(), DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(postProcessorHolder, parserContext.getRegistry());
 		}
 	}
 
