@@ -18,9 +18,11 @@ package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
+import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -41,6 +43,7 @@ import org.springframework.util.FileCopyUtils;
  * method by the {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class FileWritingMessageHandler implements MessageHandler {
 
@@ -50,13 +53,14 @@ public class FileWritingMessageHandler implements MessageHandler {
 
 	private volatile Charset charset = Charset.defaultCharset(); 
 
-
-	public FileWritingMessageHandler(String parentDirectoryPath) {
-		this(new File(parentDirectoryPath));
-	}
-
-	public FileWritingMessageHandler(File parentDirectory) {
-		this.parentDirectory = parentDirectory;
+	public FileWritingMessageHandler(Resource parentDirectory) {
+		try {
+			this.parentDirectory = parentDirectory.getFile();
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new RuntimeException(e);
+		}
 	}
 
 

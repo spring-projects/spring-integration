@@ -25,9 +25,12 @@ import org.springframework.integration.config.xml.AbstractOutboundChannelAdapter
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'file' namespace.
+ * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'file'
+ * namespace.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
+ * 
  */
 public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
@@ -37,8 +40,11 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		if (!StringUtils.hasText(directory)) {
 			parserContext.getReaderContext().error("directory is required", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.file.FileWritingMessageHandler");
+		if (directory.indexOf(':') == -1) {
+			directory = "file:" + directory;
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition("org.springframework.integration.file.FileWritingMessageHandler");
 		builder.addConstructorArgValue(directory);
 		String fileNameGenerator = element.getAttribute("filename-generator");
 		if (StringUtils.hasText(fileNameGenerator)) {

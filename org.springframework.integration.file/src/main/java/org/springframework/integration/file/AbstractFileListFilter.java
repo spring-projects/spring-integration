@@ -20,8 +20,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.util.Assert;
-
 /**
  * A convenience base class for any {@link FileListFilter} whose criteria can be
  * evaluated against each File in isolation. If the entire List of files is

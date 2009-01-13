@@ -16,22 +16,29 @@
 
 package org.springframework.integration.file;
 
+import static org.easymock.EasyMock.*;
 import java.io.File;
 
 import org.junit.Test;
 
+import org.springframework.core.io.Resource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class FileWritingMessageHandlerTests {
+	
+	private Resource outputDirectory = createMock(Resource.class);
 
 	@Test(expected = MessageHandlingException.class)
-	public void unsupportedType() {
+	public void unsupportedType() throws Exception {
+		expect(outputDirectory.getFile()).andReturn(new File(System.getProperty("java.io.tmpdir"))).anyTimes();
+		replay(outputDirectory);
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
-				new File(System.getProperty("java.io.tmpdir")));
+			outputDirectory	);
 		handler.handleMessage(new GenericMessage<Integer>(99));
 	}
 
