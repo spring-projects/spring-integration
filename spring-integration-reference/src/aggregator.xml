@@ -242,7 +242,7 @@
         to whether a given message group is complete. The bean can be an
         implementation of the CompletionStrategy interface or a POJO. In the
         latter case the completion-strategy-method attribute must be defined
-        as well. <emphasis>Optional (by default, the aggregator
+        as well. <emphasis>Optional (by default, the aggregator will use sequence size and correllation id)
         </emphasis>.</para>
       </callout>
 
