@@ -27,10 +27,9 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines the ApplicationEventMulticaster to use for this
-					ApplicationContext.
-					The "task-executor" reference is optional. If not provided, an
-					instance of
-					ThreadPoolTaskExecutor will be created by default.
+					ApplicationContext. The "task-executor" reference is optional.
+					If not provided, an instance of ThreadPoolTaskExecutor will be
+					created by default.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="task-executor" type="xsd:string">
@@ -61,9 +60,9 @@
 				<xsd:extension base="channelType">
 					<xsd:sequence>
 						<xsd:choice minOccurs="0" maxOccurs="1">
-							<xsd:element ref="queue" />
-							<xsd:element ref="priority-queue" />
-							<xsd:element ref="rendezvous-queue" />
+							<xsd:element name="queue" type="queueType" />
+							<xsd:element name="priority-queue" type="priorityQueueType" />
+							<xsd:element name="rendezvous-queue" type="rendezvousQueueType" />
 						</xsd:choice>
 						<xsd:element name="interceptors" type="channelInterceptorsType"
 							minOccurs="0" maxOccurs="1" />
@@ -73,40 +72,34 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="queue">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines a queue for messages. If 'capacity' is specified, it will be a
-					bounded queue.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="capacity" type="xsd:string" />
-		</xsd:complexType>
-	</xsd:element>
+	<xsd:complexType name="queueType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a queue for messages. If 'capacity' is specified, it will be a
+				bounded queue.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="capacity" type="xsd:string" />
+	</xsd:complexType>
 
-	<xsd:element name="priority-queue">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines a queue with priority-ordering for message reception.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="capacity" type="xsd:string" />
-			<xsd:attribute name="comparator" type="xsd:string" />
-		</xsd:complexType>
-	</xsd:element>
+	<xsd:complexType name="priorityQueueType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a queue with priority-ordering for message reception.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="capacity" type="xsd:string" />
+		<xsd:attribute name="comparator" type="xsd:string" />
+	</xsd:complexType>
 
-	<xsd:element name="rendezvous-queue">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines a rendezvous queue where a sender will block until the receiver
-					arrives or vice-versa.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:complexType>
-	</xsd:element>
+	<xsd:complexType name="rendezvousQueueType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a rendezvous queue where a sender will block until the receiver
+				arrives or vice-versa.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
 
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
@@ -288,13 +281,11 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an endpoint for exposing any bean reference as a service that
-				receives
-				request Messages from an 'input-channel' and may send reply Messages to an
-				'output-channel'. The 'ref' may point to an instance that has either
-				a single
-				public method or a method with the @ServiceActivator annotation.
-				Otherwise, the
-				'method' attribute should be provided along with 'ref'.
+				receives request Messages from an 'input-channel' and may send reply
+				Messages to an 'output-channel'. The 'ref' may point to an instance
+				that has either a single public method or a method with the
+				@ServiceActivator annotation. Otherwise, the 'method' attribute
+				should be provided along with 'ref'.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -504,8 +495,8 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:choice minOccurs="0" maxOccurs="1">
-				<xsd:element ref="interval-trigger" />
-				<xsd:element ref="cron-trigger" />
+				<xsd:element name="interval-trigger" type="intervalTriggerType" />
+				<xsd:element name="cron-trigger" type="cronTriggerType" />
 			</xsd:choice>
 			<xsd:element name="transactional" type="transactionalType"
 				minOccurs="0" maxOccurs="1" />
@@ -547,45 +538,40 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="interval-trigger">
-		<xsd:complexType>
+	<xsd:complexType name="intervalTriggerType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an interval-based trigger.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="interval" type="xsd:string" use="required" />
+		<xsd:attribute name="initial-delay" type="xsd:string" />
+		<xsd:attribute name="fixed-rate" type="xsd:string" default="false" />
+		<xsd:attribute name="time-unit" default="MILLISECONDS">
 			<xsd:annotation>
-				<xsd:documentation>
-					Defines an interval-based trigger.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="interval" type="xsd:string" use="required" />
-			<xsd:attribute name="initial-delay" type="xsd:string" />
-			<xsd:attribute name="fixed-rate" type="xsd:string"
-				default="false" />
-			<xsd:attribute name="time-unit" default="MILLISECONDS">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
+				<xsd:documentation><![CDATA[
 	The java.util.concurrent.TimeUnit enum value. The interval trigger resolution
 	only has millisecond granularity, so we only provide MILLISECONDS and SECONDS.
 	For hourly, daily, and monthly settings, consider using a cron-trigger instead.
-					]]></xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="MILLISECONDS" />
-						<xsd:enumeration value="SECONDS" />
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="cron-trigger">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines an cron-based trigger.
-				</xsd:documentation>
+				]]></xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="expression" type="xsd:string" use="required" />
-		</xsd:complexType>
-	</xsd:element>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="MILLISECONDS" />
+					<xsd:enumeration value="SECONDS" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="cronTriggerType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an cron-based trigger.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="expression" type="xsd:string" use="required" />
+	</xsd:complexType>
 
 	<xsd:element name="selector-chain">
 		<xsd:complexType>
