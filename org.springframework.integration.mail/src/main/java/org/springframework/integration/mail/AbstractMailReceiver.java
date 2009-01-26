@@ -18,6 +18,7 @@ package org.springframework.integration.mail;
 
 import java.util.Properties;
 
+import javax.mail.Authenticator;
 import javax.mail.FetchProfile;
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -40,6 +41,7 @@ import org.springframework.util.Assert;
  * @author Arjen Poutsma
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public abstract class AbstractMailReceiver implements MailReceiver, DisposableBean {
 
@@ -61,6 +63,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 
 	private final Object initializationMonitor = new Object();
 
+	private Authenticator javaMailAuthenticator;
 
 	public AbstractMailReceiver(URLName urlName) {
 		Assert.notNull(urlName, "urlName must not be null");
@@ -72,9 +75,15 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 		this.url = new URLName(url);
 	}
 
-
 	public void setJavaMailProperties(Properties javaMailProperties) {
 		this.javaMailProperties = javaMailProperties;
+	}
+
+	/**
+	 * Optional, sets the Authenticator to be used to obtain a session
+	 */
+	public void setJavaMailAuthenticator(Authenticator javaMailAuthenticator) {
+		this.javaMailAuthenticator = javaMailAuthenticator;
 	}
 
 	public void setMaxFetchSize(int maxFetchSize) {
@@ -98,7 +107,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 
 	private void openSession() throws MessagingException {
 		if (this.session == null) {
-			this.session = Session.getInstance(this.javaMailProperties);
+			this.session = Session.getInstance(this.javaMailProperties, this.javaMailAuthenticator);
 		}
 		if (this.store == null) {
 			this.store = this.session.getStore(this.url);
@@ -173,7 +182,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	 * Fetches the specified messages from this receiver's folder. Default
 	 * implementation {@link Folder#fetch(Message[], FetchProfile) fetches}
 	 * every {@link javax.mail.FetchProfile.Item}.
-	 *
+	 * 
 	 * @param messages the messages to fetch
 	 * @throws MessagingException in case of JavMail errors
 	 */
@@ -186,9 +195,9 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	}
 
 	/**
-	 * Deletes the given messages from this receiver's folder. Only invoked
-	 * when {@link #setDeleteMessages(boolean)} is <code>true</code>.
-	 *
+	 * Deletes the given messages from this receiver's folder. Only invoked when
+	 * {@link #setDeleteMessages(boolean)} is <code>true</code>.
+	 * 
 	 * @param messages the messages to delete
 	 * @throws MessagingException in case of JavaMail errors
 	 */
