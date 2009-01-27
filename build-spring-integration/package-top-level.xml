@@ -11,6 +11,10 @@
 			<property name="package.output.dir" value="${package.output.dir}"/>
 		</all-bundles>
 
+		<ant target="javadoc-api" inheritAll="false">
+			<property name="target.dir" value="${package.docs.dir}"/>
+		</ant>
+
 		<path id="doc.projects">
 			<path location="${basedir}/../spring-integration-reference"/>
 		</path>
