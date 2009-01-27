@@ -12,13 +12,15 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<context:component-scan base-package="org.springframework.integration.samples.errorhandling" />
+	<context:component-scan
+		base-package="org.springframework.integration.samples.errorhandling" />
 
 	<poller default="true" max-messages-per-poll="1">
 		<interval-trigger interval="1000" />
 	</poller>
 
-	<inbound-channel-adapter ref="partyHost" method="nextInvitation" channel="invitations" />
+	<inbound-channel-adapter ref="partyHost"
+		method="nextInvitation" channel="invitations" />
 
 	<channel id="invitations">
 		<queue capacity="100" />
@@ -36,6 +38,13 @@
 		<service-activator ref="partyHost" method="onInvitationFailed" />
 	</chain>
 
-	<stream:stderr-channel-adapter channel="errorChannel" append-newline="true" />
+	<!--
+		If you don't listen to the default error channel you risk losing track
+		of exceptions, as they cannot be passed back to the sender in band. It
+		is recommended to have a generic error handler in your configuration
+		to prevent this.
+	-->
+	<stream:stderr-channel-adapter channel="errorChannel"
+		append-newline="true" />
 
 </beans:beans>
