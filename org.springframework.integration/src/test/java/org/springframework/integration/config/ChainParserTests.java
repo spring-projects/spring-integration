@@ -16,26 +16,35 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 @ContextConfiguration
-public class ChainParserTests extends AbstractJUnit4SpringContextTests {
+@RunWith(SpringJUnit4ClassRunner.class)
+public class ChainParserTests  {
 
 	@Autowired
 	@Qualifier("filterInput")
@@ -56,6 +65,13 @@ public class ChainParserTests extends AbstractJUnit4SpringContextTests {
 	@Autowired
 	@Qualifier("replyOutput")
 	private PollableChannel replyOutput;
+
+	
+	@Autowired
+	@Qualifier("beanInput")
+	private MessageChannel beanInput;
+
+	public static Message successMessage = MessageBuilder.withPayload("success").build();
 
 
 	@Test
@@ -94,6 +110,23 @@ public class ChainParserTests extends AbstractJUnit4SpringContextTests {
 		Message<?> reply = this.output.receive(3000);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
+	}
+	
+	@Test
+	public void chainHandlerBean() throws Exception {
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		this.beanInput.send(message);
+		Message<?> reply = this.output.receive(3000);
+		assertNotNull(reply);
+		assertThat(reply, is(successMessage));
+	}
+	
+	public static class StubHandler extends AbstractReplyProducingMessageHandler {
+		@Override
+		protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
+			replyMessageHolder.add(successMessage);
+		}
+		
 	}
 
 }

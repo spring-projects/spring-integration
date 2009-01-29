@@ -27,19 +27,21 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 
 /**
  * Parser for the &lt;chain&gt; element.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MessageHandlerChain");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MessageHandlerChain");
 		ManagedList handlerList = new ManagedList();
 		NodeList children = element.getChildNodes();
 		for (int i = 0; i < children.getLength(); i++) {
@@ -54,7 +56,13 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 	}
 
 	private String parseChild(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
-		BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
+		BeanDefinition beanDefinition;
+		if (element.getLocalName().equals("bean")) {
+			beanDefinition = parserContext.getDelegate().parseBeanDefinitionElement(element).getBeanDefinition();
+		}
+		else {
+			beanDefinition = parserContext.getDelegate().parseCustomElement(element, parentDefinition);
+		}
 		if (beanDefinition == null) {
 			parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
 		}

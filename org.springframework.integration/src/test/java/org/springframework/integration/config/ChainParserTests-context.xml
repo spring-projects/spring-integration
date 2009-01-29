@@ -1,58 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<channel id="filterInput"/>
-
 	<channel id="pollableInput">
-		<queue/>
+		<queue />
 	</channel>
 
 	<channel id="output">
-		<queue/>
+		<queue />
 	</channel>
 
 	<channel id="replyOutput">
-		<queue/>
+		<queue />
 	</channel>
 
 	<chain input-channel="filterInput" output-channel="output">
-		<filter ref="typeSelector"/>
-		<service-activator ref="testHandler"/>
+		<filter ref="typeSelector" />
+		<service-activator ref="testHandler" />
 	</chain>
 
 	<chain input-channel="headerEnricherInput">
-		<header-enricher reply-channel="replyOutput" correlation-id="ABC">
-			<header name="testValue" value="XYZ"/>
-			<header name="testRef" ref="testHeaderValue"/>
+		<header-enricher reply-channel="replyOutput"
+			correlation-id="ABC">
+			<header name="testValue" value="XYZ" />
+			<header name="testRef" ref="testHeaderValue" />
 		</header-enricher>
-		<service-activator ref="testHandler"/>
+		<service-activator ref="testHandler" />
 	</chain>
 
 	<chain input-channel="pollableInput" output-channel="output">
 		<poller>
-			<interval-trigger interval="10000"/>
+			<interval-trigger interval="10000" />
 		</poller>
-		<filter ref="typeSelector"/>
-		<service-activator ref="testHandler"/>
+		<filter ref="typeSelector" />
+		<service-activator ref="testHandler" />
+	</chain>
+
+	<chain input-channel="beanInput" output-channel="output">
+		<beans:bean
+			class="org.springframework.integration.config.ChainParserTests$StubHandler" />
 	</chain>
 
 	<beans:bean id="testHeaderValue" class="java.lang.Integer">
-		<beans:constructor-arg value="123"/>
+		<beans:constructor-arg value="123" />
 	</beans:bean>
 
-	<beans:bean id="typeSelector" class="org.springframework.integration.selector.PayloadTypeSelector">
-		<beans:constructor-arg value="java.lang.String"/>
+	<beans:bean id="typeSelector"
+		class="org.springframework.integration.selector.PayloadTypeSelector">
+		<beans:constructor-arg value="java.lang.String" />
 	</beans:bean>
 
-	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">
-		<beans:constructor-arg value="1"/>
-		<beans:property name="replyMessageText" value="foo"/>
+	<beans:bean id="testHandler"
+		class="org.springframework.integration.config.TestHandler">
+		<beans:constructor-arg value="1" />
+		<beans:property name="replyMessageText" value="foo" />
 	</beans:bean>
-
 </beans:beans>
