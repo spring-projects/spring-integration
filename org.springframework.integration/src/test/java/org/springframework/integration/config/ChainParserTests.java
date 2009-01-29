@@ -33,9 +33,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
@@ -66,12 +64,11 @@ public class ChainParserTests  {
 	@Qualifier("replyOutput")
 	private PollableChannel replyOutput;
 
-	
 	@Autowired
 	@Qualifier("beanInput")
 	private MessageChannel beanInput;
 
-	public static Message successMessage = MessageBuilder.withPayload("success").build();
+	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
 
 	@Test
@@ -113,14 +110,16 @@ public class ChainParserTests  {
 	}
 	
 	@Test
+	@SuppressWarnings("unchecked")
 	public void chainHandlerBean() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.beanInput.send(message);
-		Message<?> reply = this.output.receive(3000);
+		Message reply = this.output.receive(3000);
 		assertNotNull(reply);
 		assertThat(reply, is(successMessage));
 	}
-	
+
+
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override
 		protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
