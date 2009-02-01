@@ -35,7 +35,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		if (result == null) {
 			return;
 		}
-		Object correlationId = message.getHeaders().getId();
+		Object correlationId = (message.getHeaders().getCorrelationId() != null) ? 
+                message.getHeaders().getCorrelationId(): message.getHeaders().getId();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
 			int sequenceNumber = 0;
