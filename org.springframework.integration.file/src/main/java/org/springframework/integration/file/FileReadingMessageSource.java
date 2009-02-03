@@ -17,7 +17,6 @@
 package org.springframework.integration.file;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -32,7 +31,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.aggregator.Resequencer;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
@@ -108,13 +107,13 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	}
 
 	/**
-	 * Sets a {@link FileFilter} on the {@link PollableSource}. By default a
+	 * Sets a {@link FileListFilter}. By default a
 	 * {@link AcceptOnceFileListFilter} with no bounds is used. In most cases a
-	 * customized {@link FileFilter} will be needed to deal with modification
+	 * customized {@link FileListFilter} will be needed to deal with modification
 	 * and duplication concerns. If multiple filters are required a
 	 * {@link CompositeFileListFilter} can be used to group them together
 	 * <p/>
-	 * <b>Note that the supplied filter must be thread safe.</b>.
+	 * <b>The supplied filter must be thread safe.</b>.
 	 */
 	public void setFilter(FileListFilter filter) {
 		Assert.notNull(filter, "'filter' should not be null");
@@ -127,7 +126,7 @@ public class FileReadingMessageSource implements MessageSource<File> {
 		File file = toBeReceived.poll();
 		// we can't rely on isEmpty for concurrency reasons
 		if (file != null) {
-			message = new GenericMessage<File>(file);
+			message = MessageBuilder.withPayload(file).build();
 			if (logger.isInfoEnabled()) {
 				logger.info("Created message: [" + message + "]");
 			}
