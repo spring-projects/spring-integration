@@ -26,18 +26,21 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.filter.MethodInvokingSelector;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;selector-chain/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String SELECTOR_CHAIN_CLASSNAME = IntegrationNamespaceUtils.BASE_PACKAGE
 			+ ".selector.MessageSelectorChain";
+
+	private static final String METHODINVOKING_SELECTOR_CLASSNAME = IntegrationNamespaceUtils.BASE_PACKAGE
+			+ ".filter.MethodInvokingSelector";
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -79,18 +82,17 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	private RuntimeBeanReference buildSelectorChain(ParserContext parserContext, Node child) {
-		BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(SELECTOR_CHAIN_CLASSNAME);
+		BeanDefinitionBuilder nestedBuilder = BeanDefinitionBuilder.genericBeanDefinition(SELECTOR_CHAIN_CLASSNAME);
 		this.parseSelectorChain(nestedBuilder, (Element) child, parserContext);
-		String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(nestedBuilder
-				.getBeanDefinition(), parserContext.getRegistry());
+		String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(nestedBuilder.getBeanDefinition(),
+				parserContext.getRegistry());
 		RuntimeBeanReference built = new RuntimeBeanReference(nestedBeanName);
 		return built;
 	}
 
 	private RuntimeBeanReference buildMethodInvokingSelector(ParserContext parserContext, String ref, String method) {
 		BeanDefinitionBuilder methodInvokingSelectorBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(MethodInvokingSelector.class);
+				.genericBeanDefinition(METHODINVOKING_SELECTOR_CLASSNAME);
 		methodInvokingSelectorBuilder.addConstructorArgValue(new RuntimeBeanReference(ref));
 		methodInvokingSelectorBuilder.addConstructorArgValue(method);
 		RuntimeBeanReference selector = new RuntimeBeanReference(BeanDefinitionReaderUtils.registerWithGeneratedName(
