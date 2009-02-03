@@ -32,15 +32,16 @@ import org.springframework.util.FileCopyUtils;
 /**
  * A {@link MessageHandler} implementation that writes the Message payload to a
  * file. If the payload is a File object, it will copy the File to this
- * consumer's directory. If the payload is a byte array or String, it will
- * write it directly. Otherwise, the payload type is unsupported, and an
- * Exception will be thrown.
+ * consumer's directory. If the payload is a byte array or String, it will write
+ * it directly. Otherwise, the payload type is unsupported, and an Exception
+ * will be thrown.
  * <p>
- * Other transformers may be useful to precede this handler. For example,
- * any Serializable object payload can be converted into a byte array by the
- * {@link org.springframework.integration.transformer.PayloadSerializingTransformer}.
- * Likewise, any Object can be converted to a String based on its <code>toString()</code>
- * method by the {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
+ * Other transformers may be useful to precede this handler. For example, any
+ * Serializable object payload can be converted into a byte array by the
+ * {@link org.springframework.integration.transformer.PayloadSerializingTransformer}
+ * . Likewise, any Object can be converted to a String based on its
+ * <code>toString()</code> method by the
+ * {@link org.springframework.integration.transformer.ObjectToStringTransformer}.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -51,26 +52,27 @@ public class FileWritingMessageHandler implements MessageHandler {
 
 	private final File parentDirectory;
 
-	private volatile Charset charset = Charset.defaultCharset(); 
+	private volatile Charset charset = Charset.defaultCharset();
 
 	public FileWritingMessageHandler(Resource parentDirectory) {
 		try {
+			Assert.isTrue(parentDirectory.exists(), "Output directory [" + parentDirectory + "] does not exist");
 			this.parentDirectory = parentDirectory.getFile();
+			Assert.isTrue(this.parentDirectory.isDirectory(), "[" + this.parentDirectory + "] is not a directory");
+			Assert.isTrue(this.parentDirectory.canWrite(), "[" + this.parentDirectory + "] should be writable");			
 		}
 		catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new RuntimeException(e);
+			throw new IllegalArgumentException("Inaccessable output directory", e);
 		}
 	}
-
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
 	/**
-	 * Set the charset name to use when writing a File from a
-	 * String-based Message payload.
+	 * Set the charset name to use when writing a File from a String-based
+	 * Message payload.
 	 */
 	public void setCharset(String charset) {
 		Assert.notNull(charset, "charset must not be null");
@@ -95,8 +97,8 @@ public class FileWritingMessageHandler implements MessageHandler {
 				FileCopyUtils.copy((String) payload, writer);
 			}
 			else {
-				throw new IllegalArgumentException(
-						"unsupported Message payload type [" + payload.getClass().getName() + "]");
+				throw new IllegalArgumentException("unsupported Message payload type [" + payload.getClass().getName()
+						+ "]");
 			}
 		}
 		catch (Exception e) {

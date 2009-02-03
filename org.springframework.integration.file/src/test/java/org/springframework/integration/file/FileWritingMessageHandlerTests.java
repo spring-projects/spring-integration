@@ -17,8 +17,15 @@
 package org.springframework.integration.file;
 
 import static org.easymock.EasyMock.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+
 import java.io.File;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.core.io.Resource;
@@ -30,16 +37,50 @@ import org.springframework.integration.message.MessageHandlingException;
  * @author Iwein Fuld
  */
 public class FileWritingMessageHandlerTests {
-	
+
 	private Resource outputDirectory = createMock(Resource.class);
+
+	private FileWritingMessageHandler subject;
+
+	private static File outputDirectoryFile = new File(System.getProperty("java.io.tmpdir") + "/"
+			+ FileWritingMessageHandlerTests.class.getSimpleName());;
+
+	@BeforeClass
+	public static void setupOutputDir() throws Exception {
+		outputDirectoryFile.mkdir();
+	}
+
+
+	@Before
+	public void setup() throws Exception {
+		expect(outputDirectory.getFile()).andReturn(outputDirectoryFile).anyTimes();
+		expect(outputDirectory.exists()).andReturn(true).anyTimes();
+		replay(outputDirectory);
+		subject = new FileWritingMessageHandler(outputDirectory);
+	}
 
 	@Test(expected = MessageHandlingException.class)
 	public void unsupportedType() throws Exception {
-		expect(outputDirectory.getFile()).andReturn(new File(System.getProperty("java.io.tmpdir"))).anyTimes();
-		replay(outputDirectory);
-		FileWritingMessageHandler handler = new FileWritingMessageHandler(
-			outputDirectory	);
-		handler.handleMessage(new GenericMessage<Integer>(99));
+		subject.handleMessage(new GenericMessage<Integer>(99));
+		assertThat(outputDirectoryFile.listFiles()[0], nullValue());
 	}
 
+	@Test
+	public void supportedType() throws Exception {
+		subject.handleMessage(new GenericMessage<String>("test"));
+		assertThat(outputDirectoryFile.listFiles()[0], notNullValue());
+	}
+	
+	@After
+	public void emptyOutputDir() {
+		File[] files = outputDirectoryFile.listFiles();
+		for (File file : files) {
+			file.delete();
+		}
+	}
+
+	@AfterClass
+	public static void cleanupOutputDir() throws Exception {
+		outputDirectoryFile.delete();
+	}
 }
