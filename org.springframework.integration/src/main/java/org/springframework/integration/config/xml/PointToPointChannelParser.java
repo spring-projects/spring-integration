@@ -27,6 +27,7 @@ import org.springframework.util.xml.DomUtils;
  * Parser for the &lt;channel&gt; element.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
@@ -61,7 +62,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	private void parseQueueCapacity(BeanDefinitionBuilder builder, Element queueElement) {
 		String capacity = queueElement.getAttribute("capacity");
 		if (StringUtils.hasText(capacity)) {
-			builder.addConstructorArgValue(Integer.valueOf(capacity));
+			builder.addConstructorArgValue(capacity);
 		}
 	}
 
