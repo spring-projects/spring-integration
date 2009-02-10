@@ -25,7 +25,7 @@ import org.springframework.integration.core.Message;
  * completion (i.e. can trip a barrier).
  * 
  * @author Mark Fisher
- * @see AggregationBarrier
+ * @see AbstractMessageAggregator
  */
 public interface CompletionStrategy {
 
