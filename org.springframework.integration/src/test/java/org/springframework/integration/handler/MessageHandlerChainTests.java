@@ -49,7 +49,7 @@ public class MessageHandlerChainTests {
 	public void chainWithOutputChannel() {
 		handler.handleMessage(message);
 		expectLastCall().times(3);
-		expect(outputChannel.send(eq(message), anyLong())).andReturn(true);
+		expect(outputChannel.send(eq(message))).andReturn(true);
 		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		handlers.add(producer);
@@ -96,7 +96,7 @@ public class MessageHandlerChainTests {
 		handler.handleMessage(message);
 		expectLastCall().times(3);
 		//equality is lost when recreating the message
-		expect(outputChannel.send(isA(Message.class), anyLong())).andReturn(true);
+		expect(outputChannel.send(isA(Message.class))).andReturn(true);
 		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		handlers.add(producer);
@@ -113,8 +113,7 @@ public class MessageHandlerChainTests {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannelName("testChannel").build();
 		handler.handleMessage(message);
 		expectLastCall().times(3);
-		//equality is lost when recreating the message
-		expect(outputChannel.send(isA(Message.class), anyLong())).andReturn(true);
+		expect(outputChannel.send(eq(message))).andReturn(true);
 		replay(allMocks);
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", outputChannel);
@@ -129,39 +128,24 @@ public class MessageHandlerChainTests {
 		chain.handleMessage(message);
 	}
 
-	private class ProducingHandlerStub extends AbstractReplyProducingMessageHandler {
-
+	private class ProducingHandlerStub implements MessageHandler {
+		private MessageChannel output;
+		
 		private final MessageHandler messageHandler;
-
+		
 		public ProducingHandlerStub(MessageHandler handler) {
 			messageHandler = handler;
 		}
-
-		@Override
-		protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
-			messageHandler.handleMessage(requestMessage);
-			replyMessageHolder.add(requestMessage);
+		
+		public void setOutputChannel(MessageChannel channel) {
+			this.output = channel;
+			
 		}
-
+		
+		public void handleMessage(Message<?> message) {
+			messageHandler.handleMessage(message);
+			output.send(message);
+		}
 	}
-//	private class ProducingHandlerStub implements MessageHandler {
-//		private MessageChannel output;
-//		
-//		private final MessageHandler messageHandler;
-//		
-//		public ProducingHandlerStub(MessageHandler handler) {
-//			messageHandler = handler;
-//		}
-//		
-//		void setOutputChannel(MessageChannel channel) {
-//			this.output = channel;
-//			
-//		}
-//		
-//		public void handleMessage(Message<?> message) {
-//			messageHandler.handleMessage(message);
-//			output.send(message);
-//		}
-//	}
 
 }

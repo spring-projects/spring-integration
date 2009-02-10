@@ -18,11 +18,14 @@ package org.springframework.integration.handler;
 
 import java.util.List;
 
+import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.PropertyAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -30,10 +33,36 @@ import org.springframework.util.Assert;
 /**
  * A composite {@link MessageHandler} implementation that invokes a chain of
  * MessageHandler instances in order.
+ * <p/>
+ * Each of the handlers has to implement
+ * <code>public void setOutputChannel(MessageChannel outputChannel);</code>. An
+ * exception is made for the last handler in the case that the chain itself does
+ * not have an output channel. No other assumptions about the type of handler
+ * are made.
+ * <p/>
+ * It is expected that each handler will produce reply messages and send them to
+ * its output channel, although this is not enforced. It is possible to filter
+ * messages in the middle of the chain, for example using a
+ * {@link MessageFilter}.
+ * <p/>
+ * This component can be used from the namespace to improve the readability of
+ * the configuration by removing channels that can be created implicitly.
+ * <p/>
+ * <pre>
+ * &lt;chain&gt;
+ *     &lt;filter ref="someFilter"/&gt;
+ *     &lt;bean class="SomeMessageHandlerImplementation"/&gt;
+ *     &lt;transformer ref="someTransformer"/&gt;
+ *     &lt;aggregator ... /&gt;
+ * &lt;/chain&gt;
+ * </pre>
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler {
+
+	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
 
 	private volatile List<MessageHandler> handlers;
 
@@ -42,7 +71,6 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-
 
 	public void setHandlers(List<MessageHandler> handlers) {
 		this.handlers = handlers;
@@ -76,31 +104,31 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 			boolean first = (i == 0);
 			boolean last = (i == handlers.size() - 1);
 			MessageHandler handler = handlers.get(i);
+			PropertyAccessor accessor = new BeanWrapperImpl(handler);
 			if (!first) {
 				EventDrivenConsumer consumer = new EventDrivenConsumer(channel, handler);
 				consumer.start();
 			}
 			if (!last) {
-				Assert.isInstanceOf(AbstractReplyProducingMessageHandler.class, handler,
-						"All handlers except for the last one in the chain must implement "
-						+ AbstractReplyProducingMessageHandler.class.getName());
 				channel = new DirectChannel();
 				channel.setBeanName("_" + this + ".channel#" + i);
-				((AbstractReplyProducingMessageHandler) handler).setOutputChannel(channel);
+				Assert.notNull(accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY),
+						"All handlers except for the last one in the chain must implement property '"
+								+ OUTPUT_CHANNEL_PROPERTY + "' of type 'MessageChannel'");
+				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, channel);
 			}
-			else if (handler instanceof AbstractReplyProducingMessageHandler) {
+			else if (accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY) != null) {
 				MessageChannel replyChannel = (this.outputChannel != null) ? this.outputChannel
 						: new ReplyForwardingMessageChannel();
-				((AbstractReplyProducingMessageHandler) handler).setOutputChannel(replyChannel);
+				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, replyChannel);
 			}
 			else {
 				Assert.isNull(this.outputChannel,
-						"An output channel was provided, but the final handler in the chain is not an "
-						+ "instance of [" + AbstractReplyProducingMessageHandler.class.getName() + "]");
+						"An output channel was provided, but the final handler in the chain does not implement property '"
+								+ OUTPUT_CHANNEL_PROPERTY + "'  of type 'MessageChannel'");
 			}
 		}
 	}
-
 
 	private class ReplyForwardingMessageChannel implements MessageChannel {
 
@@ -126,10 +154,10 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 				replyChannel = getChannelResolver().resolveChannelName((String) replyChannelHeader);
 			}
 			else {
-				throw new MessageHandlingException(message, "invalid replyChannel type [" + replyChannelHeader.getClass() + "]");
+				throw new MessageHandlingException(message, "invalid replyChannel type ["
+						+ replyChannelHeader.getClass() + "]");
 			}
 			return (timeout >= 0) ? replyChannel.send(message, timeout) : replyChannel.send(message);
 		}
 	}
-
 }
