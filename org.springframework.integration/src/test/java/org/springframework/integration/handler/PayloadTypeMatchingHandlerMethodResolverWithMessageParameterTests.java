@@ -165,6 +165,30 @@ public class PayloadTypeMatchingHandlerMethodResolverWithMessageParameterTests {
 		assertEquals(expected, resolved);
 		assertEquals(new Integer(123), resolved.invoke(service, message));
 	}
+	
+	@Test
+	public void testGenericSuperclass() throws Exception {
+		Object service = new ConcreteTestService();
+		Method[] candidates = HandlerMethodUtils.getCandidateHandlerMethods(service);
+		PayloadTypeMatchingHandlerMethodResolver methodResolver = 
+			new PayloadTypeMatchingHandlerMethodResolver(candidates);
+		Method expected = ConcreteTestService.class.getMethod("genericMethod", Message.class);
+		Message<?> message = MessageBuilder.withPayload("SomeString").build();
+		Method resolved = methodResolver.resolveHandlerMethod(message);
+		assertEquals(expected, resolved);
+		assertEquals(message.getPayload(), resolved.invoke(service, message));
+	}
+	
+	
+	public static class GenericTestService<T extends Message<K>, K> {
+		public K genericMethod(T message) {
+			return message.getPayload();
+		}
+	}
+	
+	public static class ConcreteTestService extends GenericTestService<Message<String>, String> {
+
+	}
 
 
 	public static class TestService {

@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,10 +91,10 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 				Assert.isTrue(expectedType == null,
 						"Message-handling method must only have one parameter expecting a Message or Message payload."
 						+ " Other parameters may be included but only if they have @Header or @Headers annotations.");
-				Type parameterType = parameterTypes[i];
+				Type parameterType = extractRawTypeIfGeneric(parameterTypes[i]);
 				if (parameterType instanceof ParameterizedType) {
 					ParameterizedType parameterizedType = (ParameterizedType) parameterType;
-					Type rawType = parameterizedType.getRawType();
+					Type rawType = extractRawTypeIfGeneric(parameterizedType.getRawType());
 					if (rawType instanceof Class) {
 						Class<?> rawTypeClass = (Class<?>) rawType;
 						if (Message.class.isAssignableFrom(rawTypeClass)) {
@@ -112,6 +113,13 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 			}
 		}
 		return expectedType;
+	}
+
+	private Type extractRawTypeIfGeneric(Type parameterType) {
+		if (parameterType instanceof TypeVariable<?>) {
+			parameterType =  ((TypeVariable<?>) parameterType).getBounds()[0];
+		}
+		return parameterType;
 	}
 
 	private Method findClosestMatch(Class<?> payloadType) {
@@ -133,7 +141,7 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 
 	private Class<?> determineExpectedTypeFromParameterizedMessageType(ParameterizedType parameterizedType) {
 		Class<?> expectedType = null;
-		Type actualType = parameterizedType.getActualTypeArguments()[0];
+		Type actualType = extractRawTypeIfGeneric(parameterizedType.getActualTypeArguments()[0]);
 		if (actualType instanceof WildcardType) {
 			WildcardType wildcardType = (WildcardType) actualType;
 			if (wildcardType.getUpperBounds().length == 1) {
@@ -146,6 +154,7 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 		else if (actualType instanceof Class) {
 			expectedType = (Class<?>) actualType;
 		}
+		
 		return expectedType;
 	}
 
