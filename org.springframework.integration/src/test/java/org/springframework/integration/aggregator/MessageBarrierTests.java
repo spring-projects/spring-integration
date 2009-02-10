@@ -32,7 +32,7 @@ public class MessageBarrierTests {
 
 	@Test
 	public void testMessageRetrieval() {
-		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap());
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap(), null);
 		barrier.getMessages().put("1", new StringMessage("test1"));
 		assertEquals(1, barrier.getMessages().size());
 		barrier.getMessages().put("2", new StringMessage("test2"));
@@ -42,7 +42,7 @@ public class MessageBarrierTests {
 	@Test
 	public void testTimestamp() {
 		long before = System.currentTimeMillis();
-		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap());
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap(), null);
 		long timestamp = barrier.getTimestamp();
 		assertTrue(before <= timestamp);
 		long after = System.currentTimeMillis();
@@ -51,7 +51,7 @@ public class MessageBarrierTests {
 
 	@Test
 	public void testEmptyMessageList() {
-		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap());
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap(), null);
 		assertEquals(0, barrier.getMessages().size());
 	}
 

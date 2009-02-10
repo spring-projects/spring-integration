@@ -111,8 +111,10 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 
 	private final Object lifecycleMonitor = new Object();
 
+    private CorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);
 
-	public AbstractMessageBarrierHandler() {
+
+    public AbstractMessageBarrierHandler() {
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
@@ -181,7 +183,11 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 		}
 	}
 
-	public final void afterPropertiesSet() {
+    public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
+        this.correlationStrategy = correlationStrategy;
+    }
+
+    public final void afterPropertiesSet() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.initialized) {
 				this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
@@ -223,20 +229,20 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		Object correlationId = message.getHeaders().getCorrelationId();
-		if (correlationId == null) {
+		Object correlationKey = this.correlationStrategy.getCorrelationKey(message);
+		if (correlationKey == null) {
 			throw new MessageHandlingException(message, this.getClass().getSimpleName()
-					+ " requires the 'correlationId' property");
+					+ " requires the 'correlationKey' property");
 		}
-		if (this.trackedCorrelationIds.contains(correlationId)) {
+		if (this.trackedCorrelationIds.contains(correlationKey)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Handling of Message group with correlationId '" + correlationId
+				logger.debug("Handling of Message group with correlationKey '" + correlationKey
 						+ "' has already completed or timed out.");
 			}
 			this.discardMessage(message);
 		}
 		else {
-			this.processMessage(message, correlationId);
+			this.processMessage(message, correlationKey);
 		}
 	}
 
@@ -249,10 +255,10 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 		}
 	}
 
-	private void processMessage(Message<?> message, Object correlationId) {
-		MessageBarrier<T,K> barrier = barriers.putIfAbsent(correlationId, createMessageBarrier());
+	private void processMessage(Message<?> message, Object correlationKey) {
+		MessageBarrier<T,K> barrier = barriers.putIfAbsent(correlationKey, createMessageBarrier(correlationKey));
 		if (barrier == null) {
-			barrier = barriers.get(message.getHeaders().getCorrelationId());
+			barrier = barriers.get(correlationKey);
 		}
 		synchronized (barrier) {
 			if (canAddMessage(message, barrier)) {
@@ -335,7 +341,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 	/**
 	 * Factory method for creating a MessageBarrier implementation.
 	 */
-	protected abstract MessageBarrier<T, K> createMessageBarrier();
+	protected abstract MessageBarrier<T, K> createMessageBarrier(Object correlationKey);
 
 	/**
 	 * A method for processing the information in the message barrier after a message has been added or on pruning.

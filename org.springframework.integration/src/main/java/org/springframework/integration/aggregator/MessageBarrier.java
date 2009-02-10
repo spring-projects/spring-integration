@@ -39,18 +39,17 @@ public class MessageBarrier<T extends Map<K, Message<?>>, K> {
 
 	private volatile boolean complete = false;
 
+    private Object correlationKey;
+
 	private final long timestamp = System.currentTimeMillis();
 
-	public MessageBarrier(T messages) {
+	public MessageBarrier(T messages, Object correlationKey) {
 		this.messages = messages;
+		this.correlationKey = correlationKey;
 	}
 
-	public Object getCorrelationId() {
-		if (!messages.isEmpty()) {
-			return messages.values().iterator().next().getHeaders()
-					.getCorrelationId();
-		}
-		return null;
+	public Object getCorrelationKey() {
+		return this.correlationKey;
 	}
 
 	/**

@@ -50,9 +50,9 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 	}
 
 	@Override
-	protected MessageBarrier<SortedMap<Integer, Message<?>>, Integer> createMessageBarrier() {
+	protected MessageBarrier<SortedMap<Integer, Message<?>>, Integer> createMessageBarrier(Object correlationKey) {
 		MessageBarrier<SortedMap<Integer, Message<?>>, Integer> messageBarrier 
-			= new MessageBarrier<SortedMap<Integer, Message<?>>, Integer>(new TreeMap<Integer, Message<?>>());
+			= new MessageBarrier<SortedMap<Integer, Message<?>>, Integer>(new TreeMap<Integer, Message<?>>(), correlationKey);
 		messageBarrier.getMessages().put(0, createFlagMessage(0));
 		return messageBarrier;
 	}
@@ -66,7 +66,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 		if (!CollectionUtils.isEmpty(releasedMessages)) {
 			Message<?> lastMessage =  releasedMessages.get(releasedMessages.size()-1);
 			if (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize() - 1)) {
-				this.removeBarrier(barrier.getCorrelationId());
+				this.removeBarrier(barrier.getCorrelationKey());
 			}
 			this.sendReplies(releasedMessages, this.resolveReplyChannelFromMessage(releasedMessages.get(0)));
 		}

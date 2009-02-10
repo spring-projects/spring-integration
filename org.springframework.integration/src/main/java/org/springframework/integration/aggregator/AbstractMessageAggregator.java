@@ -62,8 +62,8 @@ public abstract class AbstractMessageAggregator extends
 	}
 
 	@Override
-	protected MessageBarrier<Map<Object, Message<?>>, Object> createMessageBarrier() {
-		return new MessageBarrier<Map<Object, Message<?>>, Object>(new LinkedHashMap<Object, Message<?>>());
+	protected MessageBarrier<Map<Object, Message<?>>, Object> createMessageBarrier(Object correlationKey) {
+		return new MessageBarrier<Map<Object, Message<?>>, Object>(new LinkedHashMap<Object, Message<?>>(), correlationKey);
 	}
 
 	@Override
@@ -75,12 +75,12 @@ public abstract class AbstractMessageAggregator extends
 			}
 		}
 		if (barrier.isComplete()) {
-			this.removeBarrier(barrier.getCorrelationId());
+			this.removeBarrier(barrier.getCorrelationKey());
 			Message<?> result = this.aggregateMessages(messageList);
 			if (result != null) {
 				if (result.getHeaders().getCorrelationId() == null) {
 					result = MessageBuilder.fromMessage(result)
-							.setCorrelationId(barrier.getCorrelationId())
+							.setCorrelationId(barrier.getCorrelationKey())
 							.build();
 				}
 				this.sendReply(result, this.resolveReplyChannelFromMessage(messageList.get(0)));
