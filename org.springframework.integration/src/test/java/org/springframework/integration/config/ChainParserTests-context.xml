@@ -47,6 +47,10 @@
 
 	<chain input-channel="aggregatorInput" output-channel="output">
 		<aggregator ref="aggregatorBean" method="aggregate" />
+		<chain>
+			<filter ref="typeSelector" />
+			<service-activator ref="testHandler" />
+		</chain>
 	</chain>
 
 	<beans:bean id="aggregatorBean"

@@ -70,6 +70,9 @@ public class ChainParserTests  {
 	@Autowired
 	@Qualifier("beanInput")
 	private MessageChannel beanInput;
+	@Autowired
+	@Qualifier("aggregatorInput")
+	private MessageChannel aggregatorInput;
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
@@ -122,6 +125,16 @@ public class ChainParserTests  {
 		assertThat(reply, is(successMessage));
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void chainNestingAndAggregation() throws Exception {
+		Message<?> message = MessageBuilder.withPayload("test").setCorrelationId(1).setSequenceSize(1).build();
+		this.aggregatorInput.send(message);
+		Message reply = this.output.receive(3000);
+		assertNotNull(reply);
+		assertThat((String)reply.getPayload(), is("foo"));
+	}
+	
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override
