@@ -22,6 +22,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -35,6 +37,7 @@ import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -127,5 +130,10 @@ public class ChainParserTests  {
 		}
 		
 	}
-
+	
+	public static class StubAggregator {
+		public String aggregate(List<String> strings){
+			return StringUtils.collectionToCommaDelimitedString(strings);
+		}
+	}
 }

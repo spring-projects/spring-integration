@@ -45,6 +45,13 @@
 			class="org.springframework.integration.config.ChainParserTests$StubHandler" />
 	</chain>
 
+	<chain input-channel="aggregatorInput" output-channel="output">
+		<aggregator ref="aggregatorBean" method="aggregate" />
+	</chain>
+
+	<beans:bean id="aggregatorBean"
+		class="org.springframework.integration.config.ChainParserTests$StubAggregator" />
+
 	<beans:bean id="testHeaderValue" class="java.lang.Integer">
 		<beans:constructor-arg value="123" />
 	</beans:bean>

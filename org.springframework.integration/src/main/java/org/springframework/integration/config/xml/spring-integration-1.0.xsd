@@ -26,9 +26,12 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines the ApplicationEventMulticaster to use for this
-					ApplicationContext. The "task-executor" reference is optional.
-					If not provided, an instance of ThreadPoolTaskExecutor will be
+					Defines the ApplicationEventMulticaster to use
+					for this
+					ApplicationContext. The "task-executor" reference is
+					optional.
+					If not provided, an instance of ThreadPoolTaskExecutor
+					will be
 					created by default.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -75,7 +78,8 @@
 	<xsd:complexType name="queueType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a queue for messages. If 'capacity' is specified, it will be a
+				Defines a queue for messages. If 'capacity' is
+				specified, it will be a
 				bounded queue.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -85,7 +89,8 @@
 	<xsd:complexType name="priorityQueueType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a queue with priority-ordering for message reception.
+				Defines a queue with priority-ordering for message
+				reception.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="capacity" type="xsd:string" />
@@ -95,7 +100,8 @@
 	<xsd:complexType name="rendezvousQueueType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a rendezvous queue where a sender will block until the receiver
+				Defines a rendezvous queue where a sender will
+				block until the receiver
 				arrives or vice-versa.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -104,7 +110,8 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Publish-Subscribe channel that broadcasts messages to its
+				Defines a Publish-Subscribe channel that
+				broadcasts messages to its
 				subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
@@ -204,7 +211,8 @@
 	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Channel Adapter that receives from a MessageSource and sends to a
+				Defines a Channel Adapter that receives from a
+				MessageSource and sends to a
 				MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -213,7 +221,8 @@
 	<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Channel Adapter that receives from a MessageChannel and sends to
+				Defines a Channel Adapter that receives from a
+				MessageChannel and sends to
 				a MessageConsumer.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -280,11 +289,16 @@
 	<xsd:element name="service-activator" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint for exposing any bean reference as a service that
-				receives request Messages from an 'input-channel' and may send reply
-				Messages to an 'output-channel'. The 'ref' may point to an instance
-				that has either a single public method or a method with the
-				@ServiceActivator annotation. Otherwise, the 'method' attribute
+				Defines an endpoint for exposing any bean
+				reference as a service that
+				receives request Messages from an
+				'input-channel' and may send reply
+				Messages to an 'output-channel'.
+				The 'ref' may point to an instance
+				that has either a single public
+				method or a method with the
+				@ServiceActivator annotation. Otherwise,
+				the 'method' attribute
 				should be provided along with 'ref'.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -315,9 +329,11 @@
 	<xsd:complexType name="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Base type for Message Endpoint elements that accept Messages from an
+				Base type for Message Endpoint elements that
+				accept Messages from an
 				input-channel
-				and also may produce reply Messages to be sent to an output-channel.
+				and also may produce reply
+				Messages to be sent to an output-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -339,7 +355,8 @@
 	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Base type for Message Endpoint elements that accept Messages from an
+				Base type for Message Endpoint elements that
+				accept Messages from an
 				input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -389,7 +406,8 @@
 	<xsd:element name="bridge" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint that passes a Message to the output-channel without
+				Defines an endpoint that passes a Message to the
+				output-channel without
 				modifying it.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -398,65 +416,25 @@
 	<xsd:element name="chain">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an endpoint composed of a chain of Message Handlers.
+				Defines an endpoint composed of a chain of Message
+				Handlers.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
-					<xsd:sequence>
-						<xsd:choice minOccurs="1" maxOccurs="unbounded">
-							<xsd:element name="filter">
-								<xsd:complexType>
-									<xsd:complexContent>
-										<xsd:extension base="handlerType">
-											<xsd:attribute name="throw-exception-on-rejection"
-												type="xsd:string" default="false" />
-										</xsd:extension>
-									</xsd:complexContent>
-								</xsd:complexType>
-							</xsd:element>
-							<xsd:element name="header-enricher">
-								<xsd:complexType>
-									<xsd:sequence>
-										<xsd:element name="header" type="headerElementType"
-											minOccurs="0" maxOccurs="unbounded" />
-									</xsd:sequence>
-									<xsd:attributeGroup ref="headerEnricherAttributes" />
-								</xsd:complexType>
-							</xsd:element>
-							<xsd:element name="object-to-string-transformer"
-								type="handlerType" />
-							<xsd:element name="payload-deserializing-transformer"
-								type="handlerType" />
-							<xsd:element name="payload-serializing-transformer"
-								type="handlerType" />
-							<xsd:element name="service-activator" type="handlerType" />
-							<xsd:element name="splitter" type="handlerType" />
-							<xsd:element name="transformer" type="handlerType" />
-							<xsd:any namespace="##other" processContents="strict"
-								minOccurs="0" maxOccurs="unbounded" />
-						</xsd:choice>
-						<xsd:element name="router" minOccurs="0" maxOccurs="1">
-							<xsd:complexType>
-								<xsd:complexContent>
-									<xsd:extension base="handlerType">
-										<xsd:attribute name="default-output-channel"
-											type="xsd:string">
-											<xsd:annotation>
-												<xsd:appinfo>
-													<tool:annotation kind="ref">
-														<tool:expected-type
-															type="org.springframework.integration.core.MessageChannel" />
-													</tool:annotation>
-												</xsd:appinfo>
-											</xsd:annotation>
-										</xsd:attribute>
-									</xsd:extension>
-								</xsd:complexContent>
-							</xsd:complexType>
-						</xsd:element>
-					</xsd:sequence>
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:any processContents="strict" namespace="##other"
+							minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element ref="service-activator" />
+						<xsd:element ref="header-enricher" />
+						<xsd:element ref="transformer" />
+						<xsd:element ref="filter" />
+						<xsd:element ref="splitter" />
+						<xsd:element ref="aggregator" />
+						<xsd:element ref="router" />
+						<xsd:element ref="chain" />
+					</xsd:choice>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -546,7 +524,8 @@
 		</xsd:annotation>
 		<xsd:attribute name="interval" type="xsd:string" use="required" />
 		<xsd:attribute name="initial-delay" type="xsd:string" />
-		<xsd:attribute name="fixed-rate" type="xsd:string" default="false" />
+		<xsd:attribute name="fixed-rate" type="xsd:string"
+			default="false" />
 		<xsd:attribute name="time-unit" default="MILLISECONDS">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
@@ -607,8 +586,10 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Provides a MessageSelector reference. If a method attribute is set the
-					referred bean doesn't need to implement the MessageSelector
+					Provides a MessageSelector reference. If a method
+					attribute is set the
+					referred bean doesn't need to implement the
+					MessageSelector
 					interface.
 				</xsd:documentation>
 			</xsd:annotation>
@@ -620,7 +601,8 @@
 	<xsd:element name="header-enricher">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a HeaderEnricher endpoint for values defined in the MessageHeaders.
+				Defines a HeaderEnricher endpoint for values
+				defined in the MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -650,7 +632,8 @@
 	<xsd:attributeGroup name="headerEnricherAttributes">
 		<xsd:annotation>
 			<xsd:documentation>
-				Provides the names of the standard configurable MessageHeaders.
+				Provides the names of the standard configurable
+				MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="reply-channel" type="xsd:string">
@@ -692,9 +675,11 @@
 			<xsd:attribute name="max-size" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specifies the maximum pool size in order to limit the number of concurrent
+						Specifies the maximum pool size in order to
+						limit the number of concurrent
 						tasks.
-						Otherwise, the default will be Integer.MAX_VALUE.
+						Otherwise, the default will be
+						Integer.MAX_VALUE.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -731,7 +716,8 @@
 	<xsd:element name="object-to-string-transformer" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that converts any Object payload to a String by
+				Defines a Transformer that converts any Object
+				payload to a String by
 				invoking its toString() method.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -740,7 +726,8 @@
 	<xsd:element name="payload-serializing-transformer" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that serializes any Object payload that implements
+				Defines a Transformer that serializes any Object
+				payload that implements
 				Serializable into a byte array.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -749,7 +736,8 @@
 	<xsd:element name="payload-deserializing-transformer" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Transformer that deserializes a byte array payload into an
+				Defines a Transformer that deserializes a byte
+				array payload into an
 				Object.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -902,7 +890,8 @@
 	<xsd:complexType name="channelInterceptorsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a list of interceptors. Each element may be a ChannelInterceptor,
+				Defines a list of interceptors. Each element may
+				be a ChannelInterceptor,
 				ref, or inner-bean.
 			</xsd:documentation>
 		</xsd:annotation>
