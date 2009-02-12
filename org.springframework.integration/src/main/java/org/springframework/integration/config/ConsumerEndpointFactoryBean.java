@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  */
 public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean, ApplicationListener {
 
-	private final MessageHandler handler;
+	private volatile MessageHandler handler;
 
 	private volatile String beanName;
 
@@ -58,10 +58,15 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 
 	private final Object initializationMonitor = new Object();
 
+	private final Object handlerMonitor = new Object();
 
-	public ConsumerEndpointFactoryBean(MessageHandler handler) {
+
+	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
-		this.handler = handler;
+		synchronized (this.handlerMonitor) {
+			Assert.isNull(this.handler, "handler cannot be overridden");
+			this.handler = handler;
+		}
 	}
 
 

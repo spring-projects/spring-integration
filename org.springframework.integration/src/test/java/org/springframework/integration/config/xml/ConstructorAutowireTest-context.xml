@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<b:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:b="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+    		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+    		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+	<context:annotation-config />
+
+	<channel id="input" />
+	<channel id="output" />
+
+	<b:bean id="service" class="org.springframework.integration.config.xml.ConstructorAutowireTest$TestService" />
+	<b:bean id="endpoint" class="org.springframework.integration.config.xml.ConstructorAutowireTest$TestEndpoint" />
+
+	<inbound-channel-adapter ref="endpoint" method="aProducer" channel="input">
+		<poller max-messages-per-poll="1">
+			<interval-trigger interval="300" time-unit="SECONDS" />
+		</poller>
+	</inbound-channel-adapter>
+
+	<splitter input-channel="input" output-channel="output" ref="endpoint" method="aSplitter" />
+
+	<service-activator input-channel="output" ref="endpoint" method="aConsumer"/>
+
+</b:beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
-		builder.addConstructorArgReference(this.parseAndRegisterConsumer(element, parserContext));
+		builder.addPropertyReference("handler", this.parseAndRegisterConsumer(element, parserContext));
 		if (pollerElement != null) {
 			if (!StringUtils.hasText(channelName)) {
 				parserContext.getReaderContext().error(

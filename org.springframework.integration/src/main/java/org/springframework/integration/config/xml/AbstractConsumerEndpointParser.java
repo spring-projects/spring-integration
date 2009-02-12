@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.ConsumerEndpointFactoryBean");
 		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
-		builder.addConstructorArgReference(handlerBeanName);
+		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
 			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
