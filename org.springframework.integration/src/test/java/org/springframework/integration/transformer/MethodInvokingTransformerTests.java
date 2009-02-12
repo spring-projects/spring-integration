@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -233,6 +233,15 @@ public class MethodInvokingTransformerTests {
 		assertNull(result.getHeaders().get("prop3"));
 	}
 
+	@Test
+	public void nullReturningMethod() {
+		TestBean testBean = new TestBean();
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "nullReturnValueTest");
+		StringMessage message = new StringMessage("test");
+		Message<?> result = transformer.transform(message);
+		assertNull(result);
+	}
+
 
 	private static class TestBean {
 
@@ -268,6 +277,10 @@ public class MethodInvokingTransformerTests {
 
 		public Message<?> messageReturnValueTest(Message<?> message) {
 			return message;
+		}
+
+		public Object nullReturnValueTest(Message<?> message) {
+			return null;
 		}
 	}
 
