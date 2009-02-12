@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.Map;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Base Message class defining common properties such as id, payload, and headers.
@@ -77,6 +78,25 @@ public class GenericMessage<T> implements Message<T>, Serializable {
 
 	public String toString() {
 		return "[Payload=" + this.payload + "][Headers=" + this.headers + "]";
+	}
+
+	public int hashCode() {
+		return this.headers.hashCode() * 23 + ObjectUtils.nullSafeHashCode(this.payload);
+	}
+
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj != null && obj instanceof GenericMessage) {
+			GenericMessage<?> other = (GenericMessage<?>) obj;
+			if (!this.headers.getId().equals(other.headers.getId())) {
+				return false;
+			}
+			return this.headers.equals(other.headers)
+					&& this.payload.equals(other.payload);
+		}
+		return false;
 	}
 
 }

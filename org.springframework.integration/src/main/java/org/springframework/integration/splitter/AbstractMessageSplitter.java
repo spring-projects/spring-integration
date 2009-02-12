@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.springframework.integration.splitter;
 
 import java.util.Collection;
+import java.util.UUID;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
 
@@ -61,7 +63,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	private void addReply(ReplyMessageHolder replyHolder, Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
 		replyHolder.add(item).setCorrelationId(correlationId)
 				.setSequenceNumber(sequenceNumber)
-				.setSequenceSize(sequenceSize);
+				.setSequenceSize(sequenceSize)
+				.setHeader(MessageHeaders.ID, UUID.randomUUID());
 	}
 
 	/**

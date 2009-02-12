@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public final class MessageBuilder<T> {
 	 * <code>null</code>, the header will be removed.
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		if (StringUtils.hasLength(headerName) && !(this.isReadOnly(headerName))) {
+		if (StringUtils.hasLength(headerName)) {
 			this.modified = true;
 			if (headerValue == null) {
 				this.headers.remove(headerName);
@@ -199,10 +199,6 @@ public final class MessageBuilder<T> {
 			return this.originalMessage;
 		}
 		return new GenericMessage<T>(this.payload, this.headers);
-	}
-
-	private boolean isReadOnly(String key) {
-		return (key.equals(MessageHeaders.ID) || key.equals(MessageHeaders.TIMESTAMP));
 	}
 
 }

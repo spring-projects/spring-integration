@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.UUID;
+
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
@@ -51,6 +54,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)
 						.setSequenceSize(sequenceSize)
+						.setHeader(MessageHeaders.ID, UUID.randomUUID())
 						.build();
 			TaskExecutor executor = this.getTaskExecutor();
 			if (executor != null) {

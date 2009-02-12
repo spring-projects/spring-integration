@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,8 +70,12 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		this.headers = (headers != null)
 				? new HashMap<String, Object>(headers)
 				: new HashMap<String, Object>();
-		this.headers.put(ID, UUID.randomUUID());
-		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
+		if (this.headers.get(ID) == null) {
+			this.headers.put(ID, UUID.randomUUID());
+		}
+		if (this.headers.get(TIMESTAMP) == null) {
+			this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
+		}
 	}
 
 
