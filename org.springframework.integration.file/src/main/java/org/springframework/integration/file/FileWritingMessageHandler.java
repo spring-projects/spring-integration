@@ -48,12 +48,14 @@ import org.springframework.util.FileCopyUtils;
  */
 public class FileWritingMessageHandler implements MessageHandler {
 
+	private static final String TEMPORARY_FILE_SUFFIX =".writing";
+	
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
 	private final File parentDirectory;
 
 	private volatile Charset charset = Charset.defaultCharset();
-
+	
 	public FileWritingMessageHandler(Resource parentDirectory) {
 		try {
 			Assert.isTrue(parentDirectory.exists(), "Output directory [" + parentDirectory + "] does not exist");
@@ -84,7 +86,8 @@ public class FileWritingMessageHandler implements MessageHandler {
 		Assert.notNull(message, "message must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "message payload must not be null");
-		File file = new File(parentDirectory, this.fileNameGenerator.generateFileName(message));
+		String generatedFileName = this.fileNameGenerator.generateFileName(message);
+		File file = new File(parentDirectory, generatedFileName+TEMPORARY_FILE_SUFFIX);
 		try {
 			if (payload instanceof File) {
 				FileCopyUtils.copy((File) payload, file);
@@ -100,6 +103,7 @@ public class FileWritingMessageHandler implements MessageHandler {
 				throw new IllegalArgumentException("unsupported Message payload type [" + payload.getClass().getName()
 						+ "]");
 			}
+			file.renameTo(new File(parentDirectory, generatedFileName));
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(message, "failed to write Message payload to file", e);
