@@ -17,9 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -47,7 +45,7 @@ import org.springframework.util.CollectionUtils;
  * @author Marius Bogoevici
  */
 public abstract class AbstractMessageAggregator extends
-		AbstractMessageBarrierHandler<Map<Object, Message<?>>, Object> {
+		AbstractMessageBarrierHandler<List<Message<?>>> {
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
@@ -62,51 +60,31 @@ public abstract class AbstractMessageAggregator extends
 	}
 
 	@Override
-	protected MessageBarrier<Map<Object, Message<?>>, Object> createMessageBarrier(Object correlationKey) {
-		return new MessageBarrier<Map<Object, Message<?>>, Object>(new LinkedHashMap<Object, Message<?>>(), correlationKey);
+	protected MessageBarrier<List<Message<?>>> createMessageBarrier(Object correlationKey) {
+		return new MessageBarrier<List<Message<?>>>(new ArrayList<Message<?>>(), correlationKey);
 	}
 
 	@Override
-	protected void processBarrier(MessageBarrier<Map<Object, Message<?>>, Object> barrier) {
-		ArrayList<Message<?>> messageList = new ArrayList<Message<?>>(barrier.getMessages().values());
-		if (!barrier.isComplete() && !CollectionUtils.isEmpty(messageList)) {
-			if (this.completionStrategy.isComplete(messageList)) {
+	protected void processBarrier(MessageBarrier<List<Message<?>>> barrier) {
+        if (!barrier.isComplete() && !CollectionUtils.isEmpty(barrier.getMessages())) {
+			if (this.completionStrategy.isComplete(barrier.getMessages())) {
 				barrier.setComplete();
 			}
 		}
 		if (barrier.isComplete()) {
 			this.removeBarrier(barrier.getCorrelationKey());
-			Message<?> result = this.aggregateMessages(messageList);
+			Message<?> result = this.aggregateMessages(barrier.getMessages());
 			if (result != null) {
 				if (result.getHeaders().getCorrelationId() == null) {
 					result = MessageBuilder.fromMessage(result)
 							.setCorrelationId(barrier.getCorrelationKey())
 							.build();
 				}
-				this.sendReply(result, this.resolveReplyChannelFromMessage(messageList.get(0)));
+				this.sendReply(result, this.resolveReplyChannelFromMessage(barrier.getMessages().get(0)));
 			}
 		}
 	}
-	
-	@Override
-	protected boolean canAddMessage(Message<?> message, MessageBarrier<Map<Object, Message<?>>, Object> barrier) {
-		if (!super.canAddMessage(message, barrier)) {
-			return false;
-		}
-		if (barrier.messages.containsKey(message.getHeaders().getId())) {
-			logger.debug("The barrier has received message: " + message
-					+ ", but it already contains a similar message: " 
-					+ barrier.getMessages().get(message.getHeaders().getId()));
-			return false;
-		}
-		return true;
-	}
-	
-	@Override
-	protected void doAddMessage(Message<?> message, MessageBarrier<Map<Object, Message<?>>, Object> barrier) {
-		barrier.getMessages().put(message.getHeaders().getId(), message);
-	}
 
-	protected abstract Message<?> aggregateMessages(List<Message<?>> messages);
+    protected abstract Message<?> aggregateMessages(List<Message<?>> messages);
 
 }

@@ -17,23 +17,24 @@
 package org.springframework.integration.aggregator;
 
 import java.util.Map;
+import java.util.Collection;
 
 import org.springframework.integration.core.Message;
 
 /**
  * Utility class for AbstractMessageBarrierHandler and its subclasses for
- * storing objects while in transit. It is a wrapper around a {@link Map},
+ * storing objects while in transit. It is a wrapper around a {@link java.util.Collection},
  * providing special properties for recording the complete status, the creation
  * time (for determining if a group of messages has timed out), and the
  * correlation id for a group of messages (available after the first message has
  * been added to it). This is a parameterized type, allowing different different
- * client classes to use different types of Maps and their respective features.
+ * client classes to use different types of Collections and their respective features.
  * 
  * This class is not thread-safe and will be synchronized by the calling code.
  * 
  * @author Marius Bogoevici
  */
-public class MessageBarrier<T extends Map<K, Message<?>>, K> {
+public class MessageBarrier<T extends Collection<? extends Message>> {
 
 	protected final T messages;
 

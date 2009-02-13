@@ -63,14 +63,19 @@ import org.springframework.util.Assert;
  * 'discardChannel' if provided unless 'sendPartialResultsOnTimeout' is set to
  * true in which case the incomplete group will be sent to the output channel.
  * <p>
- * Subclasses must decide what kind of a Map they want to use, what is the logic
- * for adding messages to the barrier through the '<code>doAddMessage</code>'
- * method.
+ * Subclasses must decide what kind of a Collection they want to use. The semantics
+ * of adding a Message to the MessageBarrier will be decided by the Collection type.
+ *
+ * Note: this class is not part of the Spring Integration API, but
+ * an internal class, used for implementing components that need to keep
+ * a list of messages until they are ready to be released or processed
+ * (e.g. Resequencer or Aggregator). As such it is subject to change in future
+ * versions.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>, K>
+public abstract class AbstractMessageBarrierHandler<T extends Collection<? extends Message>>
 		extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
@@ -89,7 +94,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 
 	private volatile MessageChannel discardChannel;
 
-	protected final ConcurrentMap<Object, MessageBarrier<T,K>> barriers = new ConcurrentHashMap<Object, MessageBarrier<T,K>>();
+	protected final ConcurrentMap<Object, MessageBarrier<T>> barriers = new ConcurrentHashMap<Object, MessageBarrier<T>>();
 
 	private volatile long timeout = DEFAULT_TIMEOUT;
 
@@ -256,13 +261,13 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 	}
 
 	private void processMessage(Message<?> message, Object correlationKey) {
-		MessageBarrier<T,K> barrier = barriers.putIfAbsent(correlationKey, createMessageBarrier(correlationKey));
+		MessageBarrier<T> barrier = barriers.putIfAbsent(correlationKey, createMessageBarrier(correlationKey));
 		if (barrier == null) {
 			barrier = barriers.get(correlationKey);
 		}
 		synchronized (barrier) {
 			if (canAddMessage(message, barrier)) {
-				doAddMessage(message, barrier);
+				((MessageBarrier)barrier).getMessages().add(message);
 			}
 			processBarrier(barrier);
 		}
@@ -327,7 +332,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 	 * Verifies that a message can be added to the barrier. To be overridden by subclasses, which may add 
 	 * their own verifications. Subclasses overriding this method must call the method from the superclass.
 	 */
-	protected boolean canAddMessage(Message<?> message, MessageBarrier<T, K> barrier) {
+	protected boolean canAddMessage(Message<?> message, MessageBarrier<T> barrier) {
 		if (barrier.isComplete()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Message received after aggregation has already completed: " + message);
@@ -341,7 +346,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 	/**
 	 * Factory method for creating a MessageBarrier implementation.
 	 */
-	protected abstract MessageBarrier<T, K> createMessageBarrier(Object correlationKey);
+	protected abstract MessageBarrier<T> createMessageBarrier(Object correlationKey);
 
 	/**
 	 * A method for processing the information in the message barrier after a message has been added or on pruning.
@@ -350,24 +355,18 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 	 * flag to true before invoking the method.
 	 * @param barrier the {@link MessageBarrier} to be processed
 	 */
-	protected abstract void processBarrier(MessageBarrier<T, K> barrier);
-	
-	/**
-	 * A method implemented by subclasses to add the incoming message to the message barrier. This is deferred to subclasses,
-	 * as they should have full control over how the messages are indexed in the MessageBarrier.
-	 */
-	protected abstract void doAddMessage(Message<?> message, MessageBarrier<T, K> barrier);
+	protected abstract void processBarrier(MessageBarrier<T> barrier);
 
-	/**
+    /**
 	 * A task that runs periodically, pruning the timed-out message barriers.
 	 */
 	private class PrunerTask implements Runnable {
 
 		public void run() {
 			long currentTime = System.currentTimeMillis();
-			for (Map.Entry<Object, MessageBarrier<T,K>> entry : barriers.entrySet()) {
+			for (Map.Entry<Object, MessageBarrier<T>> entry : barriers.entrySet()) {
 				if (currentTime - entry.getValue().getTimestamp() >= timeout) {
-					MessageBarrier<T,K> barrier = entry.getValue();
+					MessageBarrier<T> barrier = entry.getValue();
 					synchronized (barrier) {
 						removeBarrier(entry.getKey());
 						if (sendPartialResultOnTimeout) {
@@ -375,12 +374,12 @@ public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>
 							processBarrier(barrier);
 						}
 						else {
-							for (Object message : barrier.getMessages().values()) {
+							for (Message message : barrier.getMessages()) {
 								if (logger.isDebugEnabled()) {
 									logger.debug("Handling of Message group with correlationId '" + entry.getKey()
 											+ "' has timed out.");
 								}
-								discardMessage((Message<?>) message);
+								discardMessage(message);
 							}
 						}
 					}

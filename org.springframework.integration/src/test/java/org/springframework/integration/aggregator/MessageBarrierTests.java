@@ -17,12 +17,16 @@
 package org.springframework.integration.aggregator;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher
@@ -32,17 +36,17 @@ public class MessageBarrierTests {
 
 	@Test
 	public void testMessageRetrieval() {
-		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap(), null);
-		barrier.getMessages().put("1", new StringMessage("test1"));
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashSet(), null);
+		barrier.getMessages().add(new StringMessage("test1"));
 		assertEquals(1, barrier.getMessages().size());
-		barrier.getMessages().put("2", new StringMessage("test2"));
+		barrier.getMessages().add(new StringMessage("test2"));
 		assertEquals(2, barrier.getMessages().size());
 	}
 
 	@Test
 	public void testTimestamp() {
 		long before = System.currentTimeMillis();
-		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap(), null);
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashSet(), null);
 		long timestamp = barrier.getTimestamp();
 		assertTrue(before <= timestamp);
 		long after = System.currentTimeMillis();
@@ -51,7 +55,7 @@ public class MessageBarrierTests {
 
 	@Test
 	public void testEmptyMessageList() {
-		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap(), null);
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashSet(), null);
 		assertEquals(0, barrier.getMessages().size());
 	}
 

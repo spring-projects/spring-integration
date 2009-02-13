@@ -17,10 +17,11 @@
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -38,9 +39,14 @@ import org.springframework.util.CollectionUtils;
  * '<code>correlationId</code>' from {@link AbstractMessageBarrierHandler}
  * apply here as well.
  *
+ * Note: messages with the same sequence number will be treated as equivalent
+ * by this class (i.e. after a message with a given sequence number is received,
+ * further messages from withing the same group, that have the same sequence number,
+ * will be ignored.
+ *
  * @author Marius Bogoevici
  */
-public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer, Message<?>>, Integer> {
+public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message<?>>> {
 
 	private volatile boolean releasePartialSequences = true;
 
@@ -50,15 +56,19 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 	}
 
 	@Override
-	protected MessageBarrier<SortedMap<Integer, Message<?>>, Integer> createMessageBarrier(Object correlationKey) {
-		MessageBarrier<SortedMap<Integer, Message<?>>, Integer> messageBarrier 
-			= new MessageBarrier<SortedMap<Integer, Message<?>>, Integer>(new TreeMap<Integer, Message<?>>(), correlationKey);
-		messageBarrier.getMessages().put(0, createFlagMessage(0));
+	protected MessageBarrier<SortedSet<Message<?>>> createMessageBarrier(Object correlationKey) {
+		MessageBarrier<SortedSet<Message<?>>> messageBarrier
+			= new MessageBarrier<SortedSet<Message<?>>>(new TreeSet<Message<?>>( new Comparator<Message<?>>() {
+            public int compare(Message<?> message, Message<?> message1) {
+                return message.getHeaders().getSequenceNumber().compareTo(message1.getHeaders().getSequenceNumber());
+            }
+        }), correlationKey);
+		messageBarrier.getMessages().add(createFlagMessage(0));
 		return messageBarrier;
 	}
 	
 	@Override
-	protected void processBarrier(MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+	protected void processBarrier(MessageBarrier<SortedSet<Message<?>>> barrier) {
 		if (hasReceivedAllMessages(barrier.getMessages())) {
 			barrier.setComplete();
 		}
@@ -72,17 +82,17 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 		}
 	}
 
-	private boolean hasReceivedAllMessages(SortedMap <Integer, Message<?>> messages) {
-		Message<?> firstMessage = messages.get(messages.firstKey());
-		Message<?> lastMessage = messages.get(messages.lastKey());
+	private boolean hasReceivedAllMessages(SortedSet<Message<?>> messages) {
+		Message<?> firstMessage = messages.first();
+		Message<?> lastMessage = messages.last();
 		return (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize())
 				&& (lastMessage.getHeaders().getSequenceNumber() - firstMessage.getHeaders().getSequenceNumber() == messages.size() - 1));
 	}
 
-	private List<Message<?>> releaseAvailableMessages(MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+	private List<Message<?>> releaseAvailableMessages(MessageBarrier<SortedSet<Message<?>>> barrier) {
 		if (this.releasePartialSequences || barrier.isComplete()) {
 			ArrayList<Message<?>> releasedMessages = new ArrayList<Message<?>>();
-			Iterator<Message<?>> it = barrier.getMessages().values().iterator();
+			Iterator<Message<?>> it = barrier.getMessages().iterator();
 			//remove the initial flag from the list
 			Message<?> flag = it.next();
 			it.remove();
@@ -99,7 +109,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 				}
 			}
 			//re-insert the flag so that we know where to start releasing next
-			barrier.getMessages().put(lastReleasedSequenceNumber, createFlagMessage(lastReleasedSequenceNumber));
+			barrier.getMessages().add(createFlagMessage(lastReleasedSequenceNumber));
 			return releasedMessages;
 		}
 		else {
@@ -109,29 +119,23 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 
 	@Override
 	protected boolean canAddMessage(Message<?> message,
-			MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+			MessageBarrier<SortedSet<Message<?>>> barrier) {
 		if (!super.canAddMessage(message, barrier)) {
 			return false;
 		}
-		Message<?> flagMessage = barrier.getMessages().get(barrier.getMessages().firstKey());
-		if (barrier.messages.containsKey(message.getHeaders().getSequenceNumber()) 
+		Message<?> flagMessage = barrier.getMessages().first();
+		if (barrier.messages.contains(message)
 				|| flagMessage.getHeaders().getSequenceNumber() >= message.getHeaders().getSequenceNumber()) {
 			logger.debug("A message with the same sequence number has been already received: " + message);
 			return false;
 		}
-		Message<?> lastMessage = barrier.getMessages().get(barrier.getMessages().lastKey());
+		Message<?> lastMessage = barrier.getMessages().last();
 		if (lastMessage != flagMessage
 				&& lastMessage.getHeaders().getSequenceSize() < message.getHeaders().getSequenceNumber()) {
 			logger.debug("The message has a sequence number which is larger than the sequence size: "+ message);
 			return false;
 		}
 		return true;
-	}
-	
-	@Override
-	protected void doAddMessage(Message<?> message, MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
-		//add the message to the barrier, indexing it by its sequence number
-		barrier.getMessages().put(message.getHeaders().getSequenceNumber(), message);
 	}
 
 	private static Message<Integer> createFlagMessage(int sequenceNumber) {
