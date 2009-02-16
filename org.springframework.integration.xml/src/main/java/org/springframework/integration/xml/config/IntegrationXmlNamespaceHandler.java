@@ -31,6 +31,7 @@ public class IntegrationXmlNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("xpath-selector", new XPathSelectorParser());
 		registerBeanDefinitionParser("xpath-expression", new XPathExpressionParser());
 		registerBeanDefinitionParser("xpath-splitter", new XPathMessageSplitterParser());
+		registerBeanDefinitionParser("validating-router", new XmlPayloadValidatingRouterParser());
 	}
 
 }

@@ -15,17 +15,23 @@
  */
 package org.springframework.integration.xml;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
 
 import junit.framework.Assert;
 
 import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -79,6 +85,31 @@ public class DefaultXmlPayloadConverterTests {
 	public void testGetNodePassingDocument() {
 		Node n = converter.convertToNode(testDocument);
 		XMLAssert.assertXMLEqual(testDocument, (Document) n);
+	}
+	
+	
+	@Test
+	public void testGetSourcePassingDocumet() throws Exception{
+		Source source = converter.convertToSource(testDocument);
+		assertEquals(DOMSource.class, source.getClass());
+	}
+	
+	@Test
+	public void testGetSourcePassingString() throws Exception{
+		Source source = converter.convertToSource(testDocumentAsString);
+		assertEquals(StringSource.class, source.getClass());
+	}
+	
+	@Test
+	public void testGetSourcePassingSource() throws Exception{
+		SAXSource passedInSource = new SAXSource();
+		Source source = converter.convertToSource(passedInSource);
+		assertEquals(source, passedInSource);
+	}
+	
+	@Test(expected=MessagingException.class)
+	public void testInvalidPayload(){
+		converter.convertToSource(12);
 	}
 
 }

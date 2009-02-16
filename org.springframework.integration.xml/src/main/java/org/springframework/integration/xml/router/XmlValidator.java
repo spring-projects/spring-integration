@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml;
+package org.springframework.integration.xml.router;
 
 import javax.xml.transform.Source;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
-/**
- * Converter for creating XML {@link Document} instances
- * 
- * @author Jonas Partner
- */
-public interface XmlPayloadConverter {
-
-	public Document convertToDocument(Object object);
-
-	public Node convertToNode(Object object);
+public interface XmlValidator {
 	
-	public Source convertToSource(Object object);
+	public boolean isValid(Source source) ;
 
 }

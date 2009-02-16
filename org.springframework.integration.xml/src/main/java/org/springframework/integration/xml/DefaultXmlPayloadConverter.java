@@ -21,12 +21,14 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
 
+import org.springframework.integration.core.MessagingException;
+import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
-
-import org.springframework.integration.core.MessagingException;
 
 /**
  * Default implementation of {@link XmlPayloadConverter}.
@@ -69,6 +71,20 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 			return (Node) object;
 		}
 		return convertToDocument(object);
+	}
+	
+	public Source convertToSource(Object object){
+		Source source;
+		if(object instanceof Source){
+			source = (Source)object;
+		} else if (object instanceof Document){
+			source = new DOMSource((Document)object);
+		} else if (object instanceof String){
+			source = new StringSource((String)object);
+		} else {
+			throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+		}
+		return source;
 	}
 
 	protected synchronized DocumentBuilder getDocumentBuilder() {
