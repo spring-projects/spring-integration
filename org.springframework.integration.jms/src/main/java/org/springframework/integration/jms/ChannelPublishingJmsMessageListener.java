@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.jms.listener.SessionAwareMessageListener;
@@ -46,6 +48,8 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	private volatile boolean extractRequestPayload = true;
 
 	private volatile boolean extractReplyPayload = true;
+
+	private volatile Destination defaultReplyDestination;
 
 	private volatile JmsHeaderMapper headerMapper;
 
@@ -82,6 +86,14 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	 */
 	public void setReplyTimeout(long replyTimeout) {
 		this.channelTemplate.setReceiveTimeout(replyTimeout);
+	}
+
+	/**
+	 * Specify the default reply Destination. If a request Message does not provide
+	 * a 'JMSReplyTo' property, replies will be sent to this by default.
+	 */
+	public void setDefaultReplyDestination(Destination defaultReplyDestination) {
+		this.defaultReplyDestination = defaultReplyDestination;
 	}
 
 	/**
@@ -152,11 +164,19 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 		else {
 			Message<?> replyMessage = this.channelTemplate.sendAndReceive(requestMessage);
 			if (replyMessage != null) {
+				Destination destination = jmsMessage.getJMSReplyTo();
+				if (destination == null) {
+					destination = this.defaultReplyDestination;
+				}
+				if (destination == null) {
+					throw new MessagingException(replyMessage, "Unable to send JMS reply. The request Message "
+							+ "has no 'JMSReplyTo' property, and this listener has no 'defaultReplyDestination'.");
+				}
 				javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
 				if (jmsReply.getJMSCorrelationID() == null) {
 					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 				}
-				MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
+				MessageProducer producer = session.createProducer(destination);
 				producer.send(jmsReply);
 			}
 		}
