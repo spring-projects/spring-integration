@@ -157,7 +157,7 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 				}
 				MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
-				producer.send(jmsMessage.getJMSReplyTo(), jmsReply);
+				producer.send(jmsReply);
 			}
 		}
 	}
