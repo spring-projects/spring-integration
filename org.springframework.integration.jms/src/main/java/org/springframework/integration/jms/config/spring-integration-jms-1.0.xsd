@@ -159,6 +159,17 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="request-destination-name" type="xsd:string"/>
+					<xsd:attribute name="default-reply-destination" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.jms.Destination"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="default-reply-queue-name" type="xsd:string"/>
+					<xsd:attribute name="default-reply-topic-name" type="xsd:string"/>
 					<xsd:attribute name="message-converter" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
