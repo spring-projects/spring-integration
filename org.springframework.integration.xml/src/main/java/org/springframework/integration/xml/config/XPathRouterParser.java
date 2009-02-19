@@ -54,6 +54,7 @@ public class XPathRouterParser extends AbstractConsumerEndpointParser {
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		String channelResolver = element.getAttribute("channel-resolver");
 		String resolutionRequired = element.getAttribute("resolution-required");
+		String defaultOutputChannel = element.getAttribute("default-output-channel");
 		
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
 				element.getNamespaceURI(), "xpath-expression");
@@ -87,6 +88,9 @@ public class XPathRouterParser extends AbstractConsumerEndpointParser {
 			builder.addPropertyReference("channelResolver", channelResolver);
 		}
 		
+		if(StringUtils.hasText(defaultOutputChannel)){
+			builder.addPropertyReference("defaultOutputChannel", defaultOutputChannel);
+		}
 		
 		return builder;
 	}

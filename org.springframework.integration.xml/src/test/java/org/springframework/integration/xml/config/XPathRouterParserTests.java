@@ -29,6 +29,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
@@ -39,13 +40,18 @@ import org.w3c.dom.Document;
 @ContextConfiguration
 public class XPathRouterParserTests {
 
-	String channelConfig = "<si:channel id='test-input'/> <si:channel id='outputOne'><si:queue capacity='10'/></si:channel>";
+	String channelConfig = "<si:channel id='test-input'/> <si:channel id='outputOne'><si:queue capacity='10'/></si:channel>" +
+		"<si:channel id='defaultOutput'><si:queue capacity='10'/></si:channel>";
 	
 	@Autowired @Qualifier("test-input")
 	MessageChannel inputChannel;
 	
 	@Autowired @Qualifier("outputOne")
 	QueueChannel outputChannel;
+	
+	@Autowired @Qualifier("defaultOutput")
+	QueueChannel defaultOutput;
+	
 	
 	ConfigurableApplicationContext appContext;
 	
@@ -154,4 +160,18 @@ public class XPathRouterParserTests {
 		assertEquals("Resolution required not set to true ", true, resolutionRequired);
 	}
 	
+	
+	@Test
+	public void testSetDefaultOutputChannel() throws Exception {
+		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' default-output-channel='defaultOutput' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
+		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Object handler = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(handler);
+		Object defaultOutputChannelValue = accessor.getPropertyValue("defaultOutputChannel");
+		assertEquals("Default output channel not correctly set ", defaultOutput, defaultOutputChannelValue);
+		inputChannel.send(MessageBuilder.withPayload("<unrelated/>").build());
+		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getMesssageCount());
+	}
 }
