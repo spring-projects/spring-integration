@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
@@ -26,7 +27,6 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -39,7 +39,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 	private final Session session = new StubSession("test");
 
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = InvalidDestinationException.class)
 	public void noReplyToAndNoDefault() throws JMSException {
 		final QueueChannel requestChannel = new QueueChannel();
 		this.startBackgroundReplier(requestChannel);
