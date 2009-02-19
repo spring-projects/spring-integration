@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,13 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  */
 public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinitionParser {
+
+	private static final String DEFAULT_REPLY_DESTINATION_ATTRIB = "default-reply-destination";
+
+	private static final String DEFAULT_REPLY_QUEUE_NAME_ATTRIB = "default-reply-queue-name";
+
+	private static final String DEFAULT_REPLY_TOPIC_NAME_ATTRIB = "default-reply-topic-name";
+
 
 	private static String[] containerAttributes = new String[] {
 		JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
@@ -134,6 +141,25 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
+			int defaults = 0;
+			if (StringUtils.hasText(element.getAttribute(DEFAULT_REPLY_DESTINATION_ATTRIB))) {
+				defaults++;
+			}
+			if (StringUtils.hasText(element.getAttribute(DEFAULT_REPLY_QUEUE_NAME_ATTRIB))) {
+				defaults++;
+			}
+			if (StringUtils.hasText(element.getAttribute(DEFAULT_REPLY_TOPIC_NAME_ATTRIB))) {
+				defaults++;
+			}
+			if (defaults > 1) {
+				parserContext.getReaderContext().error("At most one of '" + DEFAULT_REPLY_DESTINATION_ATTRIB
+						+ "', '" + DEFAULT_REPLY_QUEUE_NAME_ATTRIB + "', or '" + DEFAULT_REPLY_TOPIC_NAME_ATTRIB
+						+ "' may be provided.", element);
+			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DEFAULT_REPLY_DESTINATION_ATTRIB);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, DEFAULT_REPLY_QUEUE_NAME_ATTRIB);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, DEFAULT_REPLY_TOPIC_NAME_ATTRIB);
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		}
 		else {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
