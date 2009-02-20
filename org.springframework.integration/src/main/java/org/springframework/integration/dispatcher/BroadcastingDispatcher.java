@@ -31,6 +31,7 @@ import org.springframework.integration.message.MessageHandler;
  * to the other handlers.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class BroadcastingDispatcher extends AbstractDispatcher {
 
@@ -48,8 +49,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
-		int sequenceSize = this.handlers.size();
-		for (final MessageHandler handler : this.handlers) {
+		int sequenceSize = getHandlers().size();
+		for (final MessageHandler handler : getHandlers()) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)
@@ -70,5 +71,4 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		}
 		return true;
 	}
-
 }

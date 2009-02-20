@@ -31,16 +31,17 @@ import org.springframework.integration.message.MessageRejectedException;
  * throw a MessageRejectedException.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class SimpleDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
-		if (this.handlers.size() == 0) {
+		if (this.getHandlers().size() == 0) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
 		int count = 0;
 		int rejectedExceptionCount = 0;
-		for (MessageHandler handler : this.handlers) {
+		for (MessageHandler handler : this.getHandlers()) {
 			count++;
 			if (this.sendMessageToHandler(message, handler)) {
 				return true;

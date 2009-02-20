@@ -16,5 +16,7 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.core/2.5.6.A/org.springframework.core-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.core/2.5.6.A/org.springframework.core-sources-2.5.6.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.transaction/2.5.6.A/org.springframework.transaction-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.transaction/2.5.6.A/org.springframework.transaction-sources-2.5.6.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/2.5.6.A/org.springframework.test-2.5.6.A.jar" sourcepath="IVY_CACHE/org.springframework/org.springframework.test/2.5.6.A/org.springframework.test-sources-2.5.6.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.mockito/com.springsource.org.mockito/1.6.0/com.springsource.org.mockito-1.6.0.jar" sourcepath="/IVY_CACHE/org.mockito/com.springsource.org.mockito/1.6.0/com.springsource.org.mockito-sources-1.6.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.objenesis/com.springsource.org.objenesis/1.0.0/com.springsource.org.objenesis-1.0.0.jar" sourcepath="/IVY_CACHE/org.objenesis/com.springsource.org.objenesis/1.0.0/com.springsource.org.objenesis-sources-1.0.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

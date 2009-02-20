@@ -16,6 +16,8 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -26,20 +28,21 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final Set<MessageHandler> handlers = new CopyOnWriteArraySet<MessageHandler>();
+	private final Set<MessageHandler> handlers = new CopyOnWriteArraySet<MessageHandler>();
 
 	private volatile TaskExecutor taskExecutor;
-
 
 	public boolean addHandler(MessageHandler handler) {
 		return this.handlers.add(handler);
@@ -62,6 +65,10 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.taskExecutor;
 	}
 
+	protected Set<MessageHandler> getHandlers() {
+		return Collections.unmodifiableSet(handlers);
+	}
+	
 	public String toString() {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers;
 	}
@@ -71,16 +78,17 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * "Selective Consumer" throws a {@link MessageRejectedException}.
 	 */
 	protected boolean sendMessageToHandler(Message<?> message, MessageHandler handler) {
+		Assert.notNull(message, "'message' must not be null");
+		Assert.notNull(handler, "'handler' must not be null.");
 		try {
 			handler.handleMessage(message);
 			return true;
 		}
 		catch (MessageRejectedException e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Handler '" + handler + "' rejected Message, continuing with other handlers if available.", e);
+				logger.debug("Handler '" + handler + "' rejected Message, if other handlers are available this dispatcher may try to send to those.", e);
 			}
 			return false;
 		}
 	}
-
 }
