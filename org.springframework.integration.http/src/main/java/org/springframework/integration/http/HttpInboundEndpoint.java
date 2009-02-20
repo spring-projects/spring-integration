@@ -272,6 +272,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 			objectStream.close();
 			byte[] bytes = byteStream.toByteArray();
 			httpResponse.getOutputStream().write(bytes);
+			httpResponse.setContentType("application/x-java-serialized-object");
 			httpResponse.setContentLength(bytes.length);
 			httpResponse.flushBuffer();
 		}
