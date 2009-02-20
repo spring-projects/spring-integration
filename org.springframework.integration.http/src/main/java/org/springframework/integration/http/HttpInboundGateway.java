@@ -16,7 +16,9 @@
 
 package org.springframework.integration.http;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -25,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.web.HttpRequestHandler;
@@ -35,12 +38,31 @@ import org.springframework.web.HttpRequestHandler;
  */
 public class HttpInboundGateway extends SimpleMessagingGateway implements HttpRequestHandler {
 
-	public void handleRequest(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+	private volatile boolean extractPayload = true;
 
-		MessageBuilder<?> builder = MessageBuilder.withPayload(request.getParameterMap());
-		this.populateHeaders(request, builder);
-		Object result = this.sendAndReceive(builder.build());
+
+	/**
+	 * Specify whether the inbound request's content should be passed as
+	 * the payload of the Message. If this is set to 'false', the entire
+	 * request will be sent as the payload. Otherwise, for a GET request
+	 * the parameter map will be the payload, and for a POST request the
+	 * body will be extracted. In the case of a POST request, the type of
+	 * the payload depends on the Content-Type of the request.
+	 * The default value is 'true'. 
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Message<?> message = null;
+		if (this.extractPayload) {
+			message = this.createMessageFromRequestPayload(request);
+		}
+		else {
+			message = MessageBuilder.withPayload(request).build();
+		}
+		Object result = this.sendAndReceive(message);
 		if (result instanceof String) {
 			response.getWriter().print((String) result);
 			response.flushBuffer();
@@ -54,7 +76,57 @@ public class HttpInboundGateway extends SimpleMessagingGateway implements HttpRe
 		}
 	}
 
-	private void populateHeaders(HttpServletRequest request, MessageBuilder<?> builder) {
+	private Message<?> createMessageFromRequestPayload(HttpServletRequest request) throws IOException {
+		Message<?> message = null;
+		String contentType = request.getContentType();
+		if (request.getMethod().equals("GET")) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("received GET request, using parameter map as payload");
+			}
+			MessageBuilder<?> builder = MessageBuilder.withPayload(request.getParameterMap());
+			this.populateHeaders(request, builder, false);
+			message = builder.build();
+		}
+		else if (request.getMethod().equals("POST")) {
+			Object payload = null;
+			if (contentType != null && contentType.startsWith("text")) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("received POST request, creating payload with text content");
+				}
+				StringBuilder sb = new StringBuilder();
+				BufferedReader reader = request.getReader();
+				String line = reader.readLine();
+				while (line != null) {
+					sb.append(line);
+					line = reader.readLine();
+				}
+				payload = sb.toString();
+			}
+			else {
+				InputStream stream = request.getInputStream();
+				int length = request.getContentLength();
+				if (length == -1) {
+					length = 1024;
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("received POST request, creating byte array payload with content lenth: " + length);
+				}
+				byte[] bytes = new byte[length];
+				stream.read(bytes, 0, length);
+				payload = bytes;
+			}
+			MessageBuilder<?> builder = MessageBuilder.withPayload(payload);
+			this.populateHeaders(request, builder, true);
+			message = builder.build();
+		}
+		else {
+			throw new UnsupportedOperationException("unsupported method: " + request.getMethod());
+		}
+		return message;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void populateHeaders(HttpServletRequest request, MessageBuilder<?> builder, boolean includeParameters) {
 		Enumeration<?> headerNames = request.getHeaderNames();
 		if (headerNames != null) {
 			while (headerNames.hasMoreElements()) {
@@ -73,6 +145,9 @@ public class HttpInboundGateway extends SimpleMessagingGateway implements HttpRe
 					}
 				}
 			}
+		}
+		if (includeParameters) {
+			builder.copyHeaders(request.getParameterMap());
 		}
 	}
 
