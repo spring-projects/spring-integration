@@ -6,7 +6,7 @@
 	<artifactId>spring-integration-jms</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration JMS Support</name>
-	<version>1.0.1.RELEASE</version>
+	<version>1.0.2.RELEASE</version>
 	<dependencies>
 		<dependency>
 			 <groupId>org.springframework.integration</groupId>

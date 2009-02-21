@@ -6,7 +6,7 @@
 	<artifactId>spring-integration-stream</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration Stream Support</name>
-	<version>1.0.1.RELEASE</version>
+	<version>1.0.2.RELEASE</version>
 	<dependencies>
 		<dependency>
 			 <groupId>org.springframework.integration</groupId>

@@ -6,7 +6,7 @@
 	<artifactId>spring-integration-samples</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration Samples</name>
-	<version>1.0.1.RELEASE</version>
+	<version>1.0.2.RELEASE</version>
 	<dependencies>
 		<dependency>
 			<groupId>javax.activation</groupId>

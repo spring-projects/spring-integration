@@ -6,7 +6,7 @@
 	<artifactId>spring-integration-http</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration HTTP Support</name>
-	<version>1.0.1.RELEASE</version>
+	<version>1.0.2.RELEASE</version>
 	<dependencies>
 		<dependency>
 			 <groupId>org.springframework</groupId>
