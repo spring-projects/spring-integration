@@ -34,8 +34,6 @@ import org.w3c.dom.Element;
 public class XmlPayloadValidatingRouterParser extends
 		AbstractConsumerEndpointParser {
 
-	private XPathExpressionParser xpathParser = new XPathExpressionParser();
-
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;

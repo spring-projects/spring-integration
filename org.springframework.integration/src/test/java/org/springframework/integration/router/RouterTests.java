@@ -18,11 +18,11 @@ package org.springframework.integration.router;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
@@ -31,6 +31,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
@@ -86,7 +87,7 @@ public class RouterTests {
 	@Test
 	public void nullChannelNameArrayIgnoredByDefault() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
+			protected List<Object> getChannelIndicatorList(Message<?> message)  {
 				return null;
 			}
 		};
@@ -99,7 +100,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelNameArrayThrowsExceptionWhenResolutionRequired() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
+			protected List<Object> getChannelIndicatorList(Message<?> message)  {
 				return null;
 			}
 		};
@@ -114,8 +115,8 @@ public class RouterTests {
 	@Test
 	public void emptyChannelNameArrayIgnoredByDefault() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] {};
+			protected List<Object> getChannelIndicatorList(Message<?> message) {
+				return new ArrayList<Object>();
 			}
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
@@ -127,8 +128,9 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void emptyChannelNameArrayThrowsExceptionWhenResolutionRequired() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] {};
+			@SuppressWarnings("unchecked")
+			protected List<Object> getChannelIndicatorList(Message<?> message) {
+				return CollectionUtils.arrayToList(new String[] {});
 			}
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
@@ -151,8 +153,9 @@ public class RouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelMappingIsRequiredWhenResolvingChannelNamesWithMultiChannelRouter() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] { "notImportant" };
+			@SuppressWarnings("unchecked")
+			protected List<Object> getChannelIndicatorList(Message<?> message){
+				return CollectionUtils.arrayToList(new String[] { "notImportant" });
 			}
 		};
 		router.handleMessage(new StringMessage("this should fail"));
@@ -177,8 +180,9 @@ public class RouterTests {
 	@Test
 	public void beanFactoryWithMultiChannelRouter() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] { "testChannel" };
+			@SuppressWarnings("unchecked")
+			protected List<Object> getChannelIndicatorList(Message<?> message) {
+				return CollectionUtils.arrayToList(new String[] { "testChannel" });
 			}
 		};
 		QueueChannel testChannel = new QueueChannel();

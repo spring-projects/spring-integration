@@ -19,13 +19,15 @@ package org.springframework.integration.router;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Test;
+import java.util.List;
 
+import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
@@ -35,8 +37,9 @@ public class MultiChannelRouterTests {
 	@Test
 	public void routeWithChannelMapping() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] {"channel1", "channel2"};
+			@SuppressWarnings("unchecked")
+			public List<Object> getChannelIndicatorList(Message<?> message) {
+				return CollectionUtils.arrayToList(new String[] {"channel1", "channel2"});
 			}
 		};
 		QueueChannel channel1 = new QueueChannel();
@@ -60,8 +63,9 @@ public class MultiChannelRouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelNameLookupFailure() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] {"noSuchChannel"};
+			@SuppressWarnings("unchecked")
+			public List<Object> getChannelIndicatorList(Message<?> message) {
+				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"} );
 			}
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
@@ -73,8 +77,9 @@ public class MultiChannelRouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelMappingNotAvailable() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] determineTargetChannelNames(Message<?> message) {
-				return new String[] {"noSuchChannel"};
+			@SuppressWarnings("unchecked")
+			public List<Object> getChannelIndicatorList(Message<?> message) {
+				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"});
 			}
 		};
 		Message<String> message = new StringMessage("test");

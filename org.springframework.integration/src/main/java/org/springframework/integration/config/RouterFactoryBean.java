@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
@@ -28,13 +29,17 @@ import org.springframework.util.StringUtils;
  * Factory bean for creating a Message Router.
  * 
  * @author Mark Fisher
+ * @author Jonas Partner
  */
 public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile ChannelResolver channelResolver;
 
 	private volatile MessageChannel defaultOutputChannel;
+	
+	private volatile boolean resolutionRequired;
 
+	private volatile Boolean ignoreChannelNameResolutionFailures;
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
@@ -42,6 +47,14 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
+	}
+	
+	public void setResolutionRequired(boolean resolutionRequired){
+		this.resolutionRequired = resolutionRequired;
+	}
+	
+	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures){
+		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
 
 	@Override
@@ -51,6 +64,12 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}
+		if(ignoreChannelNameResolutionFailures != null ){
+			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter, 
+					"Ignore channel name resolution failures can only set on rotuers extending " + AbstractChannelNameResolvingMessageRouter.class.getName());
+			((AbstractChannelNameResolvingMessageRouter)router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
+		}
+		router.setResolutionRequired(resolutionRequired);
 		return router;
 	}
 

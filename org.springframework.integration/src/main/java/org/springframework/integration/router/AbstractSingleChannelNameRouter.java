@@ -16,6 +16,10 @@
 
 package org.springframework.integration.router;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.integration.core.Message;
 
 /**
@@ -27,9 +31,13 @@ import org.springframework.integration.core.Message;
 public abstract class AbstractSingleChannelNameRouter extends AbstractChannelNameResolvingMessageRouter {
 
 	@Override
-	protected final String[] determineTargetChannelNames(Message<?> message) {
-		String channelName = this.determineTargetChannelName(message);
-		return (channelName != null) ? new String[] { channelName } : null;
+	protected final List<Object> getChannelIndicatorList(Message<?> message) {
+		List<Object> channelList = new ArrayList<Object>();
+		String channelName = determineTargetChannelName(message);
+		if(channelName != null){
+			channelList.add(channelName);
+		}
+		return channelList;
 	}
 
 	/**

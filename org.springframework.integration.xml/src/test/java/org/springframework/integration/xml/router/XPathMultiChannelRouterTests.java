@@ -40,7 +40,7 @@ public class XPathMultiChannelRouterTests {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathMultiChannelRouter router = new XPathMultiChannelRouter(expression);
-		String[] channelNames = router.determineTargetChannelNames(new GenericMessage(doc));
+		Object[] channelNames = router.getChannelIndicatorList(new GenericMessage(doc)).toArray();
 		assertEquals("Wrong number of channels returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "one", channelNames[0]);
 	}
@@ -51,7 +51,7 @@ public class XPathMultiChannelRouterTests {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
 		XPathMultiChannelRouter router = new XPathMultiChannelRouter(expression);
-		String[] channelNames = router.determineTargetChannelNames(new GenericMessage(doc));
+		Object[] channelNames = router.getChannelIndicatorList(new GenericMessage(doc)).toArray();
 		assertEquals("Wrong number of channels returned", 2, channelNames.length);
 		assertEquals("Wrong channel name", "bOne", channelNames[0]);
 		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
@@ -62,7 +62,7 @@ public class XPathMultiChannelRouterTests {
 	public void multipleNodeValuesAsString() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
 		XPathMultiChannelRouter router = new XPathMultiChannelRouter(expression);
-		String[] channelNames = router.determineTargetChannelNames(new GenericMessage("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>"));
+		Object[] channelNames = router.getChannelIndicatorList(new GenericMessage("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>")).toArray();
 		assertEquals("Wrong number of channels returned", 2, channelNames.length);
 		assertEquals("Wrong channel name", "bOne", channelNames[0]);
 		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
@@ -72,14 +72,14 @@ public class XPathMultiChannelRouterTests {
 	public void nonNodePayload() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathMultiChannelRouter router = new XPathMultiChannelRouter(expression);
-		router.determineTargetChannelNames(new StringMessage("test"));
+		router.getChannelIndicatorList(new StringMessage("test"));
 	}
 
 	@Test
 	public void nodePayload() throws Exception {
 		XPathMultiChannelRouter router = new XPathMultiChannelRouter("./three/text()");
 		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three><three>dave</three></two></one>");
-		String[] channelNames =  router.determineTargetChannelNames(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0)));
+		Object[] channelNames =  router.getChannelIndicatorList(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0))).toArray();
 		assertEquals("bob",channelNames[0]);
 		assertEquals("dave",channelNames[1]);
 	}

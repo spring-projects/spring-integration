@@ -49,6 +49,8 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 				resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 		builder.addPropertyReference("channelResolver", resolverBeanName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
 		return builder;
 	}
 

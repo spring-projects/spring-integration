@@ -19,14 +19,13 @@ package org.springframework.integration.xml.router;
 import java.util.List;
 import java.util.Map;
 
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
 
 /**
  * A router that evaluates the XPath expression using
@@ -77,10 +76,9 @@ public class XPathMultiChannelRouter extends AbstractXPathRouter {
 	}
 
 	@SuppressWarnings("unchecked")
-	public String[] determineTargetChannelNames(Message<?> message) {
+	public List<Object> getChannelIndicatorList(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
-		List channelNamesList = getXPathExpression().evaluate(node, this.nodeMapper);
-		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);
+		return getXPathExpression().evaluate(node, this.nodeMapper);
 	}
 
 
@@ -92,4 +90,6 @@ public class XPathMultiChannelRouter extends AbstractXPathRouter {
 
 	}
 
+
+	
 }

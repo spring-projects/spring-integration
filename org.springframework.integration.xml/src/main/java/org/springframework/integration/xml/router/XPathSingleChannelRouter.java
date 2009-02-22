@@ -16,15 +16,16 @@
 
 package org.springframework.integration.xml.router;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
-import org.w3c.dom.Node;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.XPathExpression;
+import org.w3c.dom.Node;
 
 /**
  * Router that evaluates the payload using {@link XPathExpression#evaluateAsString(Node)}
@@ -73,14 +74,20 @@ public class XPathSingleChannelRouter extends AbstractXPathRouter  {
 	 * @throws MessagingException if the {@link XPathExpression} evaluates to
 	 * an empty string
 	 */
-	public String[] determineTargetChannelNames(Message<?> message) {
+	
+	@Override
+	protected List<Object> getChannelIndicatorList(Message<?> message) {
+		List<Object> channels = new ArrayList<Object>();
 		Node node = getConverter().convertToNode(message.getPayload());
 		String result = getXPathExpression().evaluateAsString(node);
 		if (result == null || "".equals(result)) {
 			return null;
+		} else {
+			channels.add(result);
 		}
 		
-		return new String[] { result };
+		return channels;
+	
 	}
 
 }

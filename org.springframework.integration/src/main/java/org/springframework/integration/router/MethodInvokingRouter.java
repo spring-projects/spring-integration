@@ -18,17 +18,13 @@ package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.MessageMappingMethodInvoker;
-import org.springframework.util.Assert;
 
 /**
  * A Message Router that invokes the specified method on the given object. The
@@ -39,12 +35,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingRouter extends AbstractMessageRouter {
+public class MethodInvokingRouter extends AbstractChannelNameResolvingMessageRouter {
 
 	private final MessageMappingMethodInvoker invoker;
 
-	private volatile ChannelResolver channelResolver;
-
+	
 
 	public MethodInvokingRouter(Object object, Method method) {
 		this.invoker = new MessageMappingMethodInvoker(object, method);
@@ -58,68 +53,12 @@ public class MethodInvokingRouter extends AbstractMessageRouter {
 		this.invoker = new MessageMappingMethodInvoker(object, Router.class);
 	}
 
-
-	/**
-	 * Provide the {@link ChannelResolver} strategy to use for methods that
-	 * return a channel name rather than a {@link MessageChannel} instance.
-	 */
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
-	}
-
 	@Override
-	protected final Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+	protected List<Object> getChannelIndicatorList(Message<?> message) {
 		Object result = this.invoker.invokeMethod(message);
-		if (result == null) {
-			return null;
-		}
-		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-		if (result instanceof Collection) {
-			for (Object next : (Collection<?>) result) {
-				this.addChannel(next, channels);
-			}
-		}
-		else if (result instanceof MessageChannel[]) {
-			channels.addAll(Arrays.asList((MessageChannel[]) result));
-		}
-		else if (result instanceof String[]) {
-			for (String channelName : (String[]) result) {
-				this.addChannel(channelName, channels);
-			}
-		}
-		else if (result instanceof MessageChannel) {
-			channels.add((MessageChannel) result);
-		}
-		else if (result instanceof String) {
-			this.addChannel((String) result, channels);
-		}
-		else {
-			throw new IllegalStateException(
-					"router method must return type 'MessageChannel' or 'String'");
-		}
-		return channels;
-	}
-
-	private void addChannel(Object channelOrName, List<MessageChannel> channels) {
-		if (channelOrName == null) {
-			return;
-		}
-		if (channelOrName instanceof MessageChannel) {
-			channels.add((MessageChannel) channelOrName);
-		}
-		else if (channelOrName instanceof String) {
-			String channelName = (String) channelOrName;
-			Assert.state(this.channelResolver != null,
-					"unable to resolve channel names, no ChannelResolver available");
-			MessageChannel channel = this.channelResolver.resolveChannelName(channelName);
-			if (channel == null) {
-				throw new MessagingException("failed to resolve channel name '" + channelName + "'");
-			}
-			channels.add(channel);
-		}
-		else {
-			throw new MessagingException("unsupported return type for router [" + channelOrName.getClass() + "]");
-		}
+		List<Object> asList = new ArrayList<Object>();
+		asList.add(result);
+		return asList;
 	}
 
 }

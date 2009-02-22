@@ -54,5 +54,14 @@
 	<beans:bean id="annotated" class="org.springframework.integration.router.config.RouterParserTests$AnnotatedTestRouterBean">
 		<beans:constructor-arg ref="output4"/>
 	</beans:bean>
+	
+	<channel id="inputForRouterRequiringResolution"/>
+	
+	<router id="resolutionRequiredRouter" ref="pojo" method="route" input-channel="inputForRouterRequiringResolution" resolution-required="true" />
+	
+	<channel id="ignoreChannelNameResolutionFailuresInput"/>
+	<beans:bean id="payloadAsChannelNameRouter" class="org.springframework.integration.router.config.RouterParserTests$ReturnStringPassedInAsChannelNameRouter" />
+	<router id="ignoreChannelNameResolutionFailuresRouter" ref="payloadAsChannelNameRouter" input-channel="ignoreChannelNameResolutionFailuresInput" ignore-channel-name-resolution-failures="true" />  
+	
 
 </beans:beans>

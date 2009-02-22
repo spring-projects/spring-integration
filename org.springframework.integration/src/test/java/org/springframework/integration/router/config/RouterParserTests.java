@@ -24,17 +24,19 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.AbstractMessageRouter;
 
 /**
  * @author Mark Fisher
+ * @author Jonas Partner
  */
 public class RouterParserTests {
 
@@ -97,7 +99,25 @@ public class RouterParserTests {
 		assertNotNull(result);
 		assertEquals("test-annotation", result.getPayload());	
 	}
+	
+	@Test(expected=MessageDeliveryException.class)
+	public void testResolutionRequired() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("inputForRouterRequiringResolution");
+		input.send(new GenericMessage<Integer>(3));
+	}
 
+	
+	@Test
+	public void testIgnoreChannelNameResolutionFailures() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("ignoreChannelNameResolutionFailuresInput");
+		input.send(new StringMessage("channelThatDoesNotExist"));
+	}
 
 	public static class TestRouterImplementation extends AbstractMessageRouter {
 
@@ -127,5 +147,16 @@ public class RouterParserTests {
 			return this.channel;
 		}
 	}
+	
+	public static class ReturnStringPassedInAsChannelNameRouter {
+
+		@Router
+		public String route(Message<?> message) {
+			return (String)message.getPayload();
+		}
+
+		
+	}
+	
 
 }
