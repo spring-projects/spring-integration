@@ -17,7 +17,6 @@
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -58,11 +57,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 	@Override
 	protected MessageBarrier<SortedSet<Message<?>>> createMessageBarrier(Object correlationKey) {
 		MessageBarrier<SortedSet<Message<?>>> messageBarrier
-			= new MessageBarrier<SortedSet<Message<?>>>(new TreeSet<Message<?>>( new Comparator<Message<?>>() {
-            public int compare(Message<?> message, Message<?> message1) {
-                return message.getHeaders().getSequenceNumber().compareTo(message1.getHeaders().getSequenceNumber());
-            }
-        }), correlationKey);
+			= new MessageBarrier<SortedSet<Message<?>>>(new TreeSet<Message<?>>(new MessageSequenceComparator()), correlationKey);
 		messageBarrier.getMessages().add(createFlagMessage(0));
 		return messageBarrier;
 	}
