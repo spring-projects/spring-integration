@@ -54,8 +54,8 @@ import org.springframework.util.Assert;
  * a {@link Resequencer}, but in cases where writing files and failure
  * downstream are rare it might be sufficient.
  * <p/>
- * FileReadingMessageSource is fully thread-safe under concurrent receives and
- * message delivery callbacks.
+ * FileReadingMessageSource is fully thread-safe under concurrent
+ * <code>receive()</code> invocations and message delivery callbacks.
  * 
  * @author Iwein Fuld
  */
@@ -75,6 +75,8 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	private final Queue<File> toBeReceived;
 
 	private volatile FileListFilter filter = new AcceptOnceFileListFilter();
+
+	private boolean scanEachPoll = false;
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue.
@@ -109,8 +111,8 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	/**
 	 * Sets a {@link FileListFilter}. By default a
 	 * {@link AcceptOnceFileListFilter} with no bounds is used. In most cases a
-	 * customized {@link FileListFilter} will be needed to deal with modification
-	 * and duplication concerns. If multiple filters are required a
+	 * customized {@link FileListFilter} will be needed to deal with
+	 * modification and duplication concerns. If multiple filters are required a
 	 * {@link CompositeFileListFilter} can be used to group them together
 	 * <p/>
 	 * <b>The supplied filter must be thread safe.</b>.
@@ -120,9 +122,23 @@ public class FileReadingMessageSource implements MessageSource<File> {
 		this.filter = filter;
 	}
 
+	/**
+	 * Optional. Set this flag if you want to make sure the internal queue is
+	 * refreshed with the latest content of the input directory on each poll.
+	 * <p/>
+	 * By default this implementation will empty its queue before looking at the
+	 * directory again. In cases where order
+	 */
+	public void setScanEachPoll(boolean scanEachPoll) {
+		this.scanEachPoll = scanEachPoll;
+	}
+
 	public Message<File> receive() throws MessagingException {
-		refreshQueue();
 		Message<File> message = null;
+		// rescan only if needed or explicitly configured
+		if (toBeReceived.isEmpty() || scanEachPoll) {
+			scanInputDirectory();
+		}
 		File file = toBeReceived.poll();
 		// we can't rely on isEmpty for concurrency reasons
 		if (file != null) {
@@ -134,7 +150,7 @@ public class FileReadingMessageSource implements MessageSource<File> {
 		return message;
 	}
 
-	private void refreshQueue() {
+	private void scanInputDirectory() {
 		List<File> filteredFiles = filter.filterFiles((inputDirectory.listFiles()));
 		Set<File> freshFiles = new HashSet<File>(filteredFiles);
 		if (!freshFiles.isEmpty()) {
