@@ -136,7 +136,7 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	public Message<File> receive() throws MessagingException {
 		Message<File> message = null;
 		// rescan only if needed or explicitly configured
-		if (toBeReceived.isEmpty() || scanEachPoll) {
+		if (scanEachPoll || toBeReceived.isEmpty()) {
 			scanInputDirectory();
 		}
 		File file = toBeReceived.poll();
