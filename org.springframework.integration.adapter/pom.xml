@@ -9,9 +9,15 @@
 	<version>1.0.2.RELEASE</version>
 	<dependencies>
 		<dependency>
-			 <groupId>org.springframework.integration</groupId>
-             <artifactId>spring-integration-core</artifactId>
-             <version>${project.version}</version>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-core</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.4</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

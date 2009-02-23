@@ -9,9 +9,21 @@
 	<version>1.0.2.RELEASE</version>
 	<dependencies>
 		<dependency>
-			 <groupId>org.springframework.integration</groupId>
-             <artifactId>spring-integration-adapter</artifactId>
-             <version>${project.version}</version>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>2.5.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-adapter</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 </project>
