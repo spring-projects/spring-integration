@@ -20,8 +20,6 @@
 	<context:component-scan base-package="org.springframework.integration.config" use-default-filters="false">
 		<context:include-filter type="regex"
 			expression="org\.springframework\.integration\.config\.annotation\.TestAnnotatedEndpoint.*"/>
-		<context:exclude-filter type="regex"
-			expression="org\.springframework\.integration\.config\.annotation\.TestAnnotatedEndpointWithCompletionStrategyOnly"/>
 	</context:component-scan>
 
 </beans:beans>

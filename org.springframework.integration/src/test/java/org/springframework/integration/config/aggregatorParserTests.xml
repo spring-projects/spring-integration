@@ -24,6 +24,7 @@
 		discard-channel="discardChannel"
 		ref="aggregatorBean" 
 		completion-strategy="completionStrategy"
+        correlation-strategy="correlationStrategy"
 		send-timeout="86420000"
 		send-partial-result-on-timeout="true"
 		reaper-interval="135"
@@ -54,6 +55,8 @@
 
 	<beans:bean id="completionStrategy"
 		class="org.springframework.integration.config.TestCompletionStrategy" />
+
+    <beans:bean id="correlationStrategy" class="org.springframework.integration.config.TestCorrelationStrategy"/>
 
 	<beans:bean id="pojoCompletionStrategy"
 		class="org.springframework.integration.config.MaxValueCompletionStrategy">

@@ -823,6 +823,17 @@
 					</xsd:attribute>
 					<xsd:attribute name="completion-strategy-method"
 						type="xsd:string" />
+                    <xsd:attribute name="correlation-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.lang.Object" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="correlation-strategy-method"
+						type="xsd:string" />
 					<xsd:attribute name="discard-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
+import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
@@ -76,6 +77,7 @@ public class AggregatorParserTests {
 		EventDrivenConsumer endpoint =
 				(EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
+        CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
@@ -87,6 +89,8 @@ public class AggregatorParserTests {
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not injected with the appropriate CompletionStrategy instance",
 				completionStrategy, accessor.getPropertyValue("completionStrategy"));
+        Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
+                correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
 				outputChannel, accessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",

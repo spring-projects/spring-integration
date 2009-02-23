@@ -17,6 +17,8 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -32,6 +34,7 @@ import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class MessageMappingMethodInvokerTests {
 
@@ -92,6 +95,25 @@ public class MessageMappingMethodInvokerTests {
 		Object result = invoker.invokeMethod(request);
 		assertEquals("testing-123", result);
 	}
+
+    @Test
+    public void testVoidMethodsIncludedbyDefault() {
+        MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "testVoidReturningMethods");
+        assertNull(invoker.invokeMethod(MessageBuilder.withPayload("Something").build()));
+        assertEquals(12, invoker.invokeMethod(MessageBuilder.withPayload(12).build()));
+    }
+
+    @Test
+    public void testVoidMethodsExcludedByFlag() {
+        MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "testVoidReturningMethods", true);
+        assertEquals(12, invoker.invokeMethod(MessageBuilder.withPayload(12).build()));
+        try {
+            assertNull(invoker.invokeMethod(MessageBuilder.withPayload("Something").build()));
+            fail();
+        } catch(IllegalArgumentException ex){
+
+        }
+    }
 
 	@Test
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
@@ -182,6 +204,15 @@ public class MessageMappingMethodInvokerTests {
 		public String acceptPayloadAndHeaderAndReturnObject(String s, @Header("number") Integer n) {
 			return s + "-" + n;
 		}
+
+        public void testVoidReturningMethods(String s) {
+            // do nothing
+        }
+
+        public int testVoidReturningMethods(int i) {
+            return i;
+        }
+
 	}
 
 	private static class AnnotatedTestService {
@@ -222,6 +253,7 @@ public class MessageMappingMethodInvokerTests {
 		public Integer integerMethod(Integer i) {
 			return i;
 		}
+
 	}
 
 }

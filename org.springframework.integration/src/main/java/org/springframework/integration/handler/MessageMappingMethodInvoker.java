@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
@@ -40,6 +37,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * A base or helper class for any Messaging component that acts as an adapter
  * by invoking a "plain" (not Message-aware) method on a given target object.
@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * 'methodName', or an Annotation type must be provided.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class MessageMappingMethodInvoker {
 
@@ -78,13 +79,17 @@ public class MessageMappingMethodInvoker {
 		this.methodResolver = this.createResolverForAnnotation(annotationType);
 	}
 
-	public MessageMappingMethodInvoker(Object object, String methodName) {
+    public MessageMappingMethodInvoker(Object object, String methodName) {
+        this(object, methodName, false);
+    }
+
+	public MessageMappingMethodInvoker(Object object, String methodName, boolean requiresReturnValue) {
 		Assert.notNull(object, "object must not be null");
 		Assert.notNull(methodName, "methodName must not be null");
 		this.object = object;
-		this.methodResolver = this.createResolverForMethodName(methodName);
+		this.methodResolver = this.createResolverForMethodName(methodName, requiresReturnValue);
 	}
-
+   
 
 	public Object invokeMethod(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
@@ -164,11 +169,12 @@ public class MessageMappingMethodInvoker {
 		return mapper.fromMessage(message);
 	}
 
-	private HandlerMethodResolver createResolverForMethodName(String methodName) {
+	private HandlerMethodResolver createResolverForMethodName(String methodName, boolean requiresReturnValue) {
 		List<Method> methodsWithName = new ArrayList<Method>();
 		Method[] defaultCandidateMethods = HandlerMethodUtils.getCandidateHandlerMethods(this.object);
 		for (Method method : defaultCandidateMethods) {
-			if (method.getName().equals(methodName)) {
+			if (method.getName().equals(methodName)
+                    && (!requiresReturnValue || !Void.TYPE.equals(method.getReturnType()))) {
 				methodsWithName.add(method);
 			}
 		}

@@ -34,9 +34,13 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
+import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.annotation.CorrelationStrategy;
+import org.springframework.integration.handler.HandlerMethodResolver;
+import org.springframework.integration.handler.StaticHandlerMethodResolver;
 
 /**
  * @author Marius Bogoevici
@@ -99,6 +103,27 @@ public class AggregatorAnnotationTests {
 		Method completionCheckerMethod = (Method) invokerAccessor.getPropertyValue("method");
 		assertEquals("completionChecker", completionCheckerMethod.getName());
 	}
+
+    @Test
+    public void testAnnotationWithCustomCorrelationStrategy() throws Exception {
+        ApplicationContext context = new ClassPathXmlApplicationContext(
+                new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
+        final String endpointName = "endpointWithCorrelationStrategy";
+        AbstractMessageAggregator aggregator = this.getAggregator(context, endpointName);
+        Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
+        Assert.assertTrue(correlationStrategy instanceof CorrelationStrategyAdapter);
+        CorrelationStrategyAdapter completionStrategyAdapter = (CorrelationStrategyAdapter) correlationStrategy;
+        DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(
+                new DirectFieldAccessor(completionStrategyAdapter).getPropertyValue("invoker"));
+        Object targetObject = invokerAccessor.getPropertyValue("object");
+        assertSame(context.getBean(endpointName), targetObject);
+        HandlerMethodResolver completionCheckerMethodResolver = (HandlerMethodResolver) invokerAccessor.getPropertyValue("methodResolver");
+        assertTrue(completionCheckerMethodResolver instanceof StaticHandlerMethodResolver);
+        DirectFieldAccessor resolverAccessor = new DirectFieldAccessor(completionCheckerMethodResolver);
+        Method completionCheckerMethod = (Method) resolverAccessor.getPropertyValue("method");
+		assertEquals("correlate", completionCheckerMethod.getName());                
+    }
+
 
 
 	private AbstractMessageAggregator getAggregator(ApplicationContext context, final String endpointName) {

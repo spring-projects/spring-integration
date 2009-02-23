@@ -24,8 +24,10 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
+import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -48,6 +50,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation) {
 		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean, method);
 		this.configureCompletionStrategy(bean, aggregator);
+        this.configureCorrelationStrategy(bean, aggregator);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.channelResolver.resolveChannelName(discardChannelName);
@@ -78,5 +81,16 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 			}
 		});
 	}
+
+    private void configureCorrelationStrategy(final Object bean, final AbstractMessageAggregator aggregator) {
+        ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+            public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+                Annotation annotation = AnnotationUtils.getAnnotation(method, CorrelationStrategy.class);
+                if (annotation != null) {
+                    aggregator.setCorrelationStrategy(new CorrelationStrategyAdapter(bean, method));
+                }
+            }
+        });
+    }
 
 }
