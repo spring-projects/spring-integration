@@ -72,9 +72,10 @@ import org.springframework.web.servlet.View;
  * {@link #setRequestChannel(org.springframework.integration.core.MessageChannel) request channel},
  * a response will be generated. If a {@link #setView(View) view} has been
  * provided, it will be invoked to render the response, and it will have
- * access to the 'requestMessage' in the model map. If no view is provided,
- * and the 'expectReply' value is <code>false</code> then a simple OK
- * status response will be issued.
+ * access to the request message in the model map. The corresponding key
+ * in that map is determined by the {@link #requestKey} property (with a
+ * default of "requestMessage"). If no view is provided, and the 'expectReply'
+ * value is <code>false</code> then a simple OK status response will be issued.
  * <p/>
  * To handle request-reply scenarios, set the 'expectReply' flag to
  * <code>true</code>. By default, the reply Message's payload will be
@@ -86,14 +87,20 @@ import org.springframework.web.servlet.View;
  * In the request-reply case, if a 'view' is provided, the response will
  * not be generated directly from the reply Message or its extracted payload.
  * Instead, the model map will be passed to that view, and it will contain
- * either 'replyMessage' or 'replyPayload' depending on the value of
- * {@link #extractReplyPayload}. The model map will also contain the
- * original 'requestMessage'. 
+ * either the reply Message or payload depending on the value of
+ * {@link #extractReplyPayload}. The corresponding key in the map will be
+ * determined by the {@link #replyKey} property (with a default of "reply").
+ * The map will also contain the original request Message as described above. 
  * 
  * @author Mark Fisher
  * @since 1.0.2
  */
 public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpRequestHandler {
+
+	private static final String DEFAULT_REQUEST_KEY = "requestMessage";
+
+	private static final String DEFAULT_REPLY_KEY = "reply";
+
 
 	private volatile List<String> supportedMethods = Arrays.asList("GET", "POST");
 
@@ -104,6 +111,10 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile View view;
+
+	private volatile String requestKey = DEFAULT_REQUEST_KEY;
+
+	private volatile String replyKey = DEFAULT_REPLY_KEY; 
 
 
 	/**
@@ -159,6 +170,24 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	 */
 	public void setView(View view) {
 		this.view = view;
+	}
+
+	/**
+	 * Specify the key to be used when storing the request Message in the model
+	 * map. This is only necessary when a {@link #setView(View) view} has been
+	 * provided for rendering the response. The default key is "requestMessage".
+	 */
+	public void setRequestKey(String requestKey) {
+		this.requestKey = (requestKey != null) ? requestKey : DEFAULT_REQUEST_KEY;
+	}
+
+	/**
+	 * Specify the key to be used when storing the reply Message or payload in
+	 * the model map. This is only necessary when a {@link #setView(View) view}
+	 * has been provided for rendering the response. The default key is "reply".
+	 */
+	public void setReplyKey(String replyKey) {
+		this.replyKey = (replyKey != null) ? replyKey : DEFAULT_REPLY_KEY;
 	}
 
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -286,12 +315,9 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 			HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ServletException, IOException {
 		if (this.view != null) {
 			Map<String, Object> model = new HashMap<String, Object>();
-			model.put("requestMessage", requestMessage);
-			if (reply instanceof Message) {
-				model.put("replyMessage", reply);
-			}
-			else if (reply != null) {
-				model.put("replyPayload", reply);
+			model.put(this.requestKey, requestMessage);
+			if (reply != null) {
+				model.put(this.replyKey, reply);
 			}
 			try {
 				this.view.render(model, httpRequest, httpResponse);
