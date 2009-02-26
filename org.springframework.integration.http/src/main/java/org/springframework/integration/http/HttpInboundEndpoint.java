@@ -40,6 +40,56 @@ import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.servlet.View;
 
 /**
+ * An inbound endpoint for handling an HTTP request and generating a response.
+ * <p/>
+ * By default GET and POST requests are accepted, but the 'supportedMethods'
+ * property may be set to include others or limit the options (e.g. POST only).
+ * By default the request will be converted to a Message payload according to
+ * the following rules:
+ * <ul>
+ *    <li>For a GET request, the parameter Map will be used as the payload</li>
+ *    <li>For other request types, the request body will be used as the payload
+ *    and the type will depend on the Content-Type header value. If it
+ *    begins with "text", a String will be created. Otherwise, the payload
+ *    will be a byte array. The parameter Map values are then added as
+ *    Message headers.</li>
+ * </ul>
+ * In both cases, when extracting a request payload, the original request
+ * headers will be passed in the MessageHeaders. Likewise, the following
+ * headers will be added:
+ * <ul>
+ *   <li>{@link HttpHeaders#REQUEST_URL}</li>
+ *   <li>{@link HttpHeaders#REQUEST_METHOD}</li>
+ *   <li>{@link HttpHeaders#USER_PRINCIPAL} (if available)</li>
+ * </ul>
+ * To have the full request object passed in the Message payload instead,
+ * set the {@link #extractRequestPayload} value to <code>false</code>.
+ * This can be useful if you intend to use a MessageTransformer downstream
+ * to convert the request in some custom way.
+ * <p/>
+ * The value for {@link #expectReply} is <code>false</code> by default.
+ * This means that as soon as the Message is created and passed to the
+ * {@link #setRequestChannel(org.springframework.integration.core.MessageChannel) request channel},
+ * a response will be generated. If a {@link #setView(View) view} has been
+ * provided, it will be invoked to render the response, and it will have
+ * access to the 'requestMessage' in the model map. If no view is provided,
+ * and the 'expectReply' value is <code>false</code> then a simple OK
+ * status response will be issued.
+ * <p/>
+ * To handle request-reply scenarios, set the 'expectReply' flag to
+ * <code>true</code>. By default, the reply Message's payload will be
+ * extracted prior to generating a response. The payload must be either
+ * a String, a byte array, or a Serializable object. To have the entire
+ * serialized Message written as the response body, switch the
+ * {@link #extractReplyPayload} value to <code>false</code>.
+ * <p/>
+ * In the request-reply case, if a 'view' is provided, the response will
+ * not be generated directly from the reply Message or its extracted payload.
+ * Instead, the model map will be passed to that view, and it will contain
+ * either 'replyMessage' or 'replyPayload' depending on the value of
+ * {@link #extractReplyPayload}. The model map will also contain the
+ * original 'requestMessage'. 
+ * 
  * @author Mark Fisher
  * @since 1.0.2
  */
