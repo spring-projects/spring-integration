@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2007-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
  * Collection of utility methods to work with Mail transports.
  *
  * @author Arjen Poutsma
+ * @author Mark Fisher
  */
 public abstract class MailTransportUtils {
 
@@ -81,6 +82,10 @@ public abstract class MailTransportUtils {
                 folder.close(expunge);
             }
             catch (MessagingException ex) {
+                logger.debug("Could not close JavaMail Folder", ex);
+            }
+            catch (NullPointerException ex) {
+                // JavaMail prior to 1.4.1 may throw this
                 logger.debug("Could not close JavaMail Folder", ex);
             }
         }
