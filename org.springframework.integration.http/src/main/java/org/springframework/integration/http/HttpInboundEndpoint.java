@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageTimeoutException;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.servlet.View;
 
@@ -303,6 +304,10 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 			}
 			else {
 				reply = this.sendAndReceiveMessage(requestMessage);
+			}
+			if (reply == null) {
+				throw new MessageTimeoutException(requestMessage,
+						"failed to handle Message within specified timeout value");
 			}
 		}
 		else {
