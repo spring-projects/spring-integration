@@ -33,6 +33,9 @@ public abstract class AbstractPayloadTransformer<T, U> implements Transformer {
 	        U result = this.transformPayload((T) message.getPayload());
 	        return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
         }
+		catch (MessageTransformationException e) {
+			throw e;
+		}
 		catch (Exception e) {
         	throw new MessageTransformationException(message, "failed to transform message payload", e);
         }
