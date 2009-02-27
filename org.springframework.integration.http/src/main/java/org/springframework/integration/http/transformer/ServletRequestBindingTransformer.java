@@ -18,7 +18,7 @@ package org.springframework.integration.http.transformer;
 
 import java.util.Map;
 
-import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -26,9 +26,11 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.support.WebBindingInitializer;
+import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 
 /**
- * Message Transformer that expects a {@link ServletRequest} as input and binds
+ * Message Transformer that expects a {@link HttpServletRequest} as input and binds
  * its parameter map to a target instance. The target instance may be a non-singleton
  * bean as specified by the {@link #prototypeBeanName} property. Otherwise, this
  * transformer's {@link #type} must provide a default no-arg constructor.
@@ -36,11 +38,13 @@ import org.springframework.web.bind.ServletRequestDataBinder;
  * @author Mark Fisher
  * @since 1.0.2
  */
-public class ServletRequestBindingTransformer<T> extends AbstractPayloadTransformer<ServletRequest, T> implements BeanFactoryAware {
+public class ServletRequestBindingTransformer<T> extends AbstractPayloadTransformer<HttpServletRequest, T> implements BeanFactoryAware {
 
 	private final Class<T> targetType;
 
 	private volatile String prototypeBeanName;
+
+	private volatile WebBindingInitializer webBindingInitializer;
 
 	private volatile BeanFactory beanFactory;
 
@@ -55,18 +59,29 @@ public class ServletRequestBindingTransformer<T> extends AbstractPayloadTransfor
 		this.prototypeBeanName = prototypeBeanName;
 	}
 
+	public void setWebBindingInitializer(WebBindingInitializer webBindingInitializer) {
+		this.webBindingInitializer = webBindingInitializer;
+	}
+
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected T transformPayload(ServletRequest request) throws Exception {
+	protected T transformPayload(HttpServletRequest request) throws Exception {
 		ServletRequestDataBinder binder = new ServletRequestDataBinder(getTarget());
+		this.initBinder(binder, request);
 		binder.bind(request);
 		// this will immediately throw any bind Exceptions
 		Map map = binder.close();
 		return (T) map.get(ServletRequestDataBinder.DEFAULT_OBJECT_NAME);
+	}
+
+	private void initBinder(ServletRequestDataBinder binder, HttpServletRequest request) {
+		if (this.webBindingInitializer != null) {
+			this.webBindingInitializer.initBinder(binder, new DispatcherServletWebRequest(request));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
