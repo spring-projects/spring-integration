@@ -22,6 +22,9 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
+
+import org.w3c.dom.Document;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
@@ -73,12 +76,17 @@ public class SimpleWebServiceInboundGateway extends SimpleMessagingGateway imple
 			if (replyPayload instanceof Source) {
 				responseSource = (Source) replyPayload;
 			}
+			else if (replyPayload instanceof Document) {
+				responseSource = new DOMSource((Document) replyPayload);
+			}
 			else if (replyPayload instanceof String) {
 				responseSource = new StringSource((String) replyPayload);
 			}
 			else {
 				throw new IllegalArgumentException("The reply Message payload must be a ["
-						+ Source.class.getName() + "] or [java.lang.String]");
+						+ Source.class.getName() + "], [" + Document.class.getName()
+						+ "], or [java.lang.String]. The actual type was ["
+						+ replyPayload.getClass().getName() + "]");
 			}
 			WebServiceMessage response = messageContext.getResponse();
 			this.transformerSupportDelegate.transformSourceToResult(responseSource, response.getPayloadResult());
