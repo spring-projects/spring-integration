@@ -16,14 +16,11 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
@@ -40,22 +37,14 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Set<MessageHandler> handlers = new CopyOnWriteArraySet<MessageHandler>();
+	private final Queue<MessageHandler> handlers = new ConcurrentLinkedQueue<MessageHandler>();
 
 	private volatile TaskExecutor taskExecutor;
 
-	public boolean addHandler(MessageHandler handler) {
-		return this.handlers.add(handler);
-	}
-
-	public boolean removeHandler(MessageHandler handler) {
-		return this.handlers.remove(handler);
-	}
-
 	/**
-	 * Specify a {@link TaskExecutor} for invoking the handlers.
-	 * If none is provided, the invocation will occur in the thread
-	 * that runs this polling dispatcher.
+	 * Specify a {@link TaskExecutor} for invoking the handlers. If none is
+	 * provided, the invocation will occur in the thread that runs this polling
+	 * dispatcher.
 	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
@@ -65,10 +54,21 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.taskExecutor;
 	}
 
-	protected Set<MessageHandler> getHandlers() {
-		return Collections.unmodifiableSet(handlers);
+	protected Queue<MessageHandler> getHandlers() {
+		return handlers;
 	}
-	
+
+	public boolean addHandler(MessageHandler handler) {
+		if (this.handlers.contains(handler)) {
+			return false;
+		}
+		return this.handlers.offer(handler);
+	}
+
+	public boolean removeHandler(MessageHandler handler) {
+		return this.handlers.remove(handler);
+	}
+
 	public String toString() {
 		return this.getClass().getSimpleName() + " with handlers: " + this.handlers;
 	}
@@ -78,7 +78,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * "Selective Consumer" throws a {@link MessageRejectedException}.
 	 */
 	protected boolean sendMessageToHandler(Message<?> message, MessageHandler handler) {
-		Assert.notNull(message, "'message' must not be null");
+		Assert.notNull(message, "'message' must not be null.");
 		Assert.notNull(handler, "'handler' must not be null.");
 		try {
 			handler.handleMessage(message);
@@ -86,7 +86,12 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		}
 		catch (MessageRejectedException e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Handler '" + handler + "' rejected Message, if other handlers are available this dispatcher may try to send to those.", e);
+				logger
+						.debug(
+								"Handler '"
+										+ handler
+										+ "' rejected Message, if other handlers are available this dispatcher may try to send to those.",
+								e);
 			}
 			return false;
 		}

@@ -16,42 +16,42 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Iterator;
+
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 
 /**
- * Basic implementation of {@link MessageDispatcher} that will attempt
- * to send a {@link Message} to one of its handlers. As soon as <em>one</em>
- * of the handlers accepts the Message, the dispatcher will return 'true'.
+ * Basic implementation of {@link MessageDispatcher} that will attempt to send a
+ * {@link Message} to one of its handlers. As soon as <em>one</em> of the
+ * handlers accepts the Message, the dispatcher will return 'true'.
  * <p>
- * If the dispatcher has no handlers, a {@link MessageDeliveryException}
- * will be thrown. If all handlers reject the Message, the dispatcher will
- * throw a MessageRejectedException.
+ * If the dispatcher has no handlers, a {@link MessageDeliveryException} will be
+ * thrown. If all handlers reject the Message, the dispatcher will throw a
+ * MessageRejectedException.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class SimpleDispatcher extends AbstractDispatcher {
+public class FailOverDispatcher extends AbstractSendOnceDispatcher {
 
 	public boolean dispatch(Message<?> message) {
 		if (this.getHandlers().size() == 0) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
-		int count = 0;
-		int rejectedExceptionCount = 0;
-		for (MessageHandler handler : this.getHandlers()) {
-			count++;
-			if (this.sendMessageToHandler(message, handler)) {
-				return true;
+		Iterator<MessageHandler> handlerIterator = this.getHandlers().iterator();
+		boolean sent = false;
+		while (sent == false && handlerIterator.hasNext()) {
+			if (this.sendMessageToHandler(message, handlerIterator.next())) {
+				sent = true;
 			}
-			rejectedExceptionCount++;
 		}
-		if (rejectedExceptionCount == count) {
+		if (!sent) {
 			throw new MessageRejectedException(message, "All of dispatcher's subscribers rejected Message.");
 		}
-		return false;
+		return sent;
 	}
 
 }

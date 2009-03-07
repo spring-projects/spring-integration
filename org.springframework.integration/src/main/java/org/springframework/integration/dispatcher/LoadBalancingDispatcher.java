@@ -15,11 +15,8 @@
  */
 package org.springframework.integration.dispatcher;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -39,21 +36,24 @@ import org.springframework.integration.message.MessageRejectedException;
  * 
  * @author Iwein Fuld
  */
-public class LoadBalancingDispatcher extends AbstractDispatcher {
+public class LoadBalancingDispatcher extends AbstractSendOnceDispatcher {
 
-	private final Queue<MessageHandler> handlerQueue = new ConcurrentLinkedQueue<MessageHandler>();
+	private ReentrantLock queueLock = new ReentrantLock();
 	
 	public boolean dispatch(Message<?> message) {
-		Set<MessageHandler> handlers = new HashSet<MessageHandler>(this.getHandlers());
+		queueLock.lock();
+		Queue<MessageHandler> handlers = this.getHandlers();
 		if (handlers.isEmpty()) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
-		if (this.handlerQueue.isEmpty()){
-			handlerQueue.addAll(handlers);
-		}
 		boolean success = false;
-		while (!handlerQueue.isEmpty() && success == false) {
-			MessageHandler handler = handlerQueue.poll();
+		int size = handlers.size();
+		queueLock.unlock();
+		for (int i = 0; i < size && success == false; i++) {
+			queueLock.lock();
+			MessageHandler handler = handlers.poll();
+			handlers.offer(handler);
+			queueLock.unlock();
 			if (this.sendMessageToHandler(message, handler)) {
 				success = true;
 			}
@@ -63,5 +63,4 @@ public class LoadBalancingDispatcher extends AbstractDispatcher {
 		}
 		return success;
 	}
-
 }

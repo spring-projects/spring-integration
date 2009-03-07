@@ -18,7 +18,9 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -33,6 +35,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 	private static final String CHANNEL_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel";
 
+	private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
 
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
@@ -55,8 +58,22 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 		else {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+			parseDispatcher(element.getAttribute("dispatcher"), builder, parserContext);
 		}
 		return builder;
+	}
+
+	private void parseDispatcher(String dispatcherAttribute, BeanDefinitionBuilder builder, ParserContext parserContext) {
+		if (dispatcherAttribute != null) {
+			if (dispatcherAttribute.equals("fail-over")) {
+				BeanDefinitionBuilder dispatcherBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(DISPATCHER_PACKAGE + ".FailOverDispatcher");
+				dispatcherBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
+				builder.addConstructorArgReference(BeanDefinitionReaderUtils.registerWithGeneratedName(dispatcherBuilder
+						.getBeanDefinition(), parserContext.getRegistry()));
+			}
+		}
+		// rely on the default for round-robin
 	}
 
 	private void parseQueueCapacity(BeanDefinitionBuilder builder, Element queueElement) {

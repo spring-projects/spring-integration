@@ -59,6 +59,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
+
 			<xsd:complexContent>
 				<xsd:extension base="channelType">
 					<xsd:sequence>
@@ -163,6 +164,14 @@
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
 		<xsd:attribute name="datatype" type="xsd:string" />
+		<xsd:attribute name="dispatcher">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="fail-over" />
+					<xsd:enumeration value="round-robin" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="gateway">
@@ -789,7 +798,8 @@
 					</xsd:attribute>
 					<xsd:attribute name="method" type="xsd:string" />
 					<xsd:attribute name="resolution-required" type="xsd:boolean" />
-					<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:boolean" />
+					<xsd:attribute name="ignore-channel-name-resolution-failures"
+						type="xsd:boolean" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -823,7 +833,7 @@
 					</xsd:attribute>
 					<xsd:attribute name="completion-strategy-method"
 						type="xsd:string" />
-                    <xsd:attribute name="correlation-strategy" type="xsd:string">
+					<xsd:attribute name="correlation-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">

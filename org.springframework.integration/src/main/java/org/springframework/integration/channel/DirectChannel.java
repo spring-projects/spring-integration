@@ -16,7 +16,8 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.dispatcher.SimpleDispatcher;
+import org.springframework.integration.dispatcher.AbstractSendOnceDispatcher;
+import org.springframework.integration.dispatcher.LoadBalancingDispatcher;
 
 /**
  * A channel that invokes a single subscriber for each sent Message.
@@ -24,11 +25,15 @@ import org.springframework.integration.dispatcher.SimpleDispatcher;
  * 
  * @author Dave Syer
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
-public class DirectChannel extends AbstractSubscribableChannel<SimpleDispatcher> {
+public class DirectChannel extends AbstractSubscribableChannel<AbstractSendOnceDispatcher> {
 
 	public DirectChannel() {
-		super(new SimpleDispatcher());
+		super(new LoadBalancingDispatcher());
+	}
+	public DirectChannel(AbstractSendOnceDispatcher dispatcher){
+		super(dispatcher);
 	}
 
 }
