@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.dispatcher.AbstractSendOnceDispatcher;
+import org.springframework.integration.dispatcher.AbstractWinningHandlerDispatcher;
 import org.springframework.integration.dispatcher.LoadBalancingDispatcher;
 
 /**
@@ -27,12 +27,12 @@ import org.springframework.integration.dispatcher.LoadBalancingDispatcher;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class DirectChannel extends AbstractSubscribableChannel<AbstractSendOnceDispatcher> {
+public class DirectChannel extends AbstractSubscribableChannel<AbstractWinningHandlerDispatcher> {
 
 	public DirectChannel() {
 		super(new LoadBalancingDispatcher());
 	}
-	public DirectChannel(AbstractSendOnceDispatcher dispatcher){
+	public DirectChannel(AbstractWinningHandlerDispatcher dispatcher){
 		super(dispatcher);
 	}
 

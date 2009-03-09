@@ -16,42 +16,22 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.Iterator;
-
-import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.message.MessageRejectedException;
-
 /**
- * Basic implementation of {@link MessageDispatcher} that will attempt to send a
- * {@link Message} to one of its handlers. As soon as <em>one</em> of the
- * handlers accepts the Message, the dispatcher will return 'true'.
- * <p>
- * If the dispatcher has no handlers, a {@link MessageDeliveryException} will be
- * thrown. If all handlers reject the Message, the dispatcher will throw a
- * MessageRejectedException.
+ * {@link AbstractWinningHandlerDispatcher} that will try it's handlers in the
+ * same order every dispatch.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class FailOverDispatcher extends AbstractSendOnceDispatcher {
+public class FailOverDispatcher extends AbstractWinningHandlerDispatcher {
 
-	public boolean dispatch(Message<?> message) {
-		if (this.getHandlers().size() == 0) {
-			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
-		}
-		Iterator<MessageHandler> handlerIterator = this.getHandlers().iterator();
-		boolean sent = false;
-		while (sent == false && handlerIterator.hasNext()) {
-			if (this.sendMessageToHandler(message, handlerIterator.next())) {
-				sent = true;
-			}
-		}
-		if (!sent) {
-			throw new MessageRejectedException(message, "All of dispatcher's subscribers rejected Message.");
-		}
-		return sent;
+	/**
+	 * Returns the current loop index, so each <code>dispatch</code> will try
+	 * the handlers in the same order.
+	 */
+	@Override
+	protected int getNextHandlerIndex(int size, int loopIndex) {
+		return loopIndex;
 	}
 
 }

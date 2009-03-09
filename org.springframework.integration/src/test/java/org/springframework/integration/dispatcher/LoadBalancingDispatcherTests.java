@@ -17,10 +17,13 @@ package org.springframework.integration.dispatcher;
 
 import static org.mockito.Mockito.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnit44Runner;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 
@@ -32,7 +35,7 @@ import org.springframework.integration.message.MessageHandler;
 @RunWith(MockitoJUnit44Runner.class)
 public class LoadBalancingDispatcherTests {
 
-	private LoadBalancingDispatcher dispatcher = new LoadBalancingDispatcher();
+	private AbstractWinningHandlerDispatcher dispatcher = new LoadBalancingDispatcher();
 
 	@Mock
 	private MessageHandler handler;
@@ -57,5 +60,17 @@ public class LoadBalancingDispatcherTests {
 		dispatcher.dispatch(message);
 		verify(handler).handleMessage(message);
 		verify(differentHandler).handleMessage(message);
+	}
+	@Test
+	public void overFlowCurrentHandlerIndex() throws Exception {
+		dispatcher.addHandler(handler);
+		dispatcher.addHandler(differentHandler);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(dispatcher);
+		((AtomicInteger)accessor.getPropertyValue("currentHandlerIndex")).set(Integer.MAX_VALUE-5);
+		for(long i=0; i < 40; i++){
+			dispatcher.dispatch(message);
+		}
+		verify(handler, atLeast(18)).handleMessage(message);
+		verify(differentHandler, atLeast(18)).handleMessage(message);		
 	}
 }

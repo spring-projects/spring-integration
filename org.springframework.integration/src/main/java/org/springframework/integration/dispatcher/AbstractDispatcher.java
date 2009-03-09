@@ -16,8 +16,9 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +38,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Queue<MessageHandler> handlers = new ConcurrentLinkedQueue<MessageHandler>();
+	private final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -54,15 +55,15 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.taskExecutor;
 	}
 
-	protected Queue<MessageHandler> getHandlers() {
-		return handlers;
+	protected List<MessageHandler> getHandlers() {
+		return Collections.unmodifiableList(handlers);
 	}
 
 	public boolean addHandler(MessageHandler handler) {
 		if (this.handlers.contains(handler)) {
 			return false;
 		}
-		return this.handlers.offer(handler);
+		return this.handlers.add(handler);
 	}
 
 	public boolean removeHandler(MessageHandler handler) {
