@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 
  * @author Iwein Fuld
  */
-public class LoadBalancingDispatcher extends AbstractWinningHandlerDispatcher {
+public class RoundRobinDispatcher extends AbstractWinningHandlerDispatcher {
 
 	private AtomicInteger currentHandlerIndex = new AtomicInteger();
 

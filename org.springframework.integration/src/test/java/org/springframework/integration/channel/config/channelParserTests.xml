@@ -12,7 +12,7 @@
 
 	<channel id="defaultChannel" />
 	
-	<channel id="failOverChannel" dispatcher="fail-over"/>
+	<channel id="failOverChannel" dispatcher="failover"/>
 
 	<publish-subscribe-channel id="publishSubscribeChannel" />
 

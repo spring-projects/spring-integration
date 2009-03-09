@@ -16,11 +16,11 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @RunWith(MockitoJUnit44Runner.class)
-public class LoadBalancingDispatcherConcurrentTests {
+public class RoundRobinDispatcherConcurrentTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private AbstractWinningHandlerDispatcher dispatcher = new LoadBalancingDispatcher();
+	private AbstractWinningHandlerDispatcher dispatcher = new RoundRobinDispatcher();
 
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 

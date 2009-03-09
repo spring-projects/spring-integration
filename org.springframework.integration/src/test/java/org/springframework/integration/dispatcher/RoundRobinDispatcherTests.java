@@ -33,9 +33,9 @@ import org.springframework.integration.message.MessageHandler;
  * 
  */
 @RunWith(MockitoJUnit44Runner.class)
-public class LoadBalancingDispatcherTests {
+public class RoundRobinDispatcherTests {
 
-	private AbstractWinningHandlerDispatcher dispatcher = new LoadBalancingDispatcher();
+	private AbstractWinningHandlerDispatcher dispatcher = new RoundRobinDispatcher();
 
 	@Mock
 	private MessageHandler handler;

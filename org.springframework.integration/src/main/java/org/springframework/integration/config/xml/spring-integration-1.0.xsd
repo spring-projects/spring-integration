@@ -166,9 +166,19 @@
 		<xsd:attribute name="datatype" type="xsd:string" />
 		<xsd:attribute name="dispatcher">
 			<xsd:simpleType>
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines a dispatching strategy for the channel. The default is a round
+						robin load balancer. In case of a publish subscribe channel this
+						attribute will be ignored.
+					</xsd:documentation>
+				</xsd:annotation>
 				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="fail-over" />
-					<xsd:enumeration value="round-robin" />
+					<xsd:enumeration value="failover" />
+					<!--
+						now the other (default) option is round robin load balancing we
+						can add more options later
+					-->
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>

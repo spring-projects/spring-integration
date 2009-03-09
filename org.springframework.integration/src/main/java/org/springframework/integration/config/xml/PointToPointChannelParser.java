@@ -65,7 +65,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 	private void parseDispatcher(String dispatcherAttribute, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		if (dispatcherAttribute != null) {
-			if (dispatcherAttribute.equals("fail-over")) {
+			if (dispatcherAttribute.equals("failover")) {
 				BeanDefinitionBuilder dispatcherBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(DISPATCHER_PACKAGE + ".FailOverDispatcher");
 				dispatcherBuilder.setRole(BeanDefinition.ROLE_SUPPORT);

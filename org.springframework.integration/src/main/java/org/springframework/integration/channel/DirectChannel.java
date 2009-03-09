@@ -17,7 +17,7 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.dispatcher.AbstractWinningHandlerDispatcher;
-import org.springframework.integration.dispatcher.LoadBalancingDispatcher;
+import org.springframework.integration.dispatcher.RoundRobinDispatcher;
 
 /**
  * A channel that invokes a single subscriber for each sent Message.
@@ -30,8 +30,9 @@ import org.springframework.integration.dispatcher.LoadBalancingDispatcher;
 public class DirectChannel extends AbstractSubscribableChannel<AbstractWinningHandlerDispatcher> {
 
 	public DirectChannel() {
-		super(new LoadBalancingDispatcher());
+		super(new RoundRobinDispatcher());
 	}
+	
 	public DirectChannel(AbstractWinningHandlerDispatcher dispatcher){
 		super(dispatcher);
 	}

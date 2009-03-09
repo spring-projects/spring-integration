@@ -38,7 +38,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.dispatcher.FailOverDispatcher;
-import org.springframework.integration.dispatcher.LoadBalancingDispatcher;
+import org.springframework.integration.dispatcher.RoundRobinDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -75,7 +75,7 @@ public class ChannelParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("defaultChannel");
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		assertThat(accessor.getPropertyValue("dispatcher"), is(LoadBalancingDispatcher.class));
+		assertThat(accessor.getPropertyValue("dispatcher"), is(RoundRobinDispatcher.class));
 	}
 
 	@Test
