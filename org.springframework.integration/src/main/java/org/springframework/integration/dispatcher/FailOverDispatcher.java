@@ -22,13 +22,13 @@ import java.util.List;
 import org.springframework.integration.message.MessageHandler;
 
 /**
- * {@link AbstractHandleOnceDispatcher} that will try it's handlers in the
+ * {@link AbstractUnicastDispatcher} that will try it's handlers in the
  * same order every dispatch.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class FailOverDispatcher extends AbstractHandleOnceDispatcher {
+public class FailOverDispatcher extends AbstractUnicastDispatcher {
 
 
 	@Override

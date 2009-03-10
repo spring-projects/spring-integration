@@ -35,7 +35,7 @@ import org.springframework.integration.message.MessageHandler;
 @RunWith(MockitoJUnit44Runner.class)
 public class RoundRobinDispatcherTests {
 
-	private AbstractHandleOnceDispatcher dispatcher = new RoundRobinDispatcher();
+	private AbstractUnicastDispatcher dispatcher = new RoundRobinDispatcher();
 
 	@Mock
 	private MessageHandler handler;

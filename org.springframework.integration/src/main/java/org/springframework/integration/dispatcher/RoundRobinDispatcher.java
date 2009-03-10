@@ -23,13 +23,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.integration.message.MessageHandler;
 
 /**
- * Round-robin implementation of {@link AbstractHandleOnceDispatcher}. This
+ * Round-robin implementation of {@link AbstractUnicastDispatcher}. This
  * implementation will keep track of the index of the handler that has been
  * tried first and use a different starting handler every dispatch.
  * 
  * @author Iwein Fuld
  */
-public class RoundRobinDispatcher extends AbstractHandleOnceDispatcher {
+public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 
 	private AtomicInteger currentHandlerIndex = new AtomicInteger();
 

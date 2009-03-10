@@ -22,7 +22,7 @@ public class RoundRobinDispatcherConcurrentTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private AbstractHandleOnceDispatcher dispatcher = new RoundRobinDispatcher();
+	private AbstractUnicastDispatcher dispatcher = new RoundRobinDispatcher();
 
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
