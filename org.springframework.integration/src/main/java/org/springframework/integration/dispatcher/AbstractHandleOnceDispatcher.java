@@ -1,6 +1,6 @@
 package org.springframework.integration.dispatcher;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
@@ -20,28 +20,25 @@ import org.springframework.integration.message.MessageRejectedException;
  * MessageRejectedException.
  * <p/>
  * The implementations of this class control the order in which the handlers
- * will be tried through the <code>getNextHandler</code> method.
+ * will be tried through the implementation of the {@link #getHandlerIterator(List)} method.
  * 
  * @author Iwein Fuld
  * 
  */
-public abstract class AbstractWinningHandlerDispatcher extends AbstractDispatcher {
+public abstract class AbstractHandleOnceDispatcher extends AbstractDispatcher {
 
 	public final boolean dispatch(Message<?> message) {
 		boolean success = false;
-		List<MessageHandler> triedHandlers = new ArrayList<MessageHandler>();
-		int size;
 		List<MessageHandler> handlers = this.getHandlers();
 		if (handlers.isEmpty()) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
-		size = handlers.size();
-		for (int i = 0; triedHandlers.size() < size && success == false; i++) {
-			MessageHandler handler = handlers.get(getNextHandlerIndex(size, i));
+		Iterator<MessageHandler> handlerIterator = getHandlerIterator(handlers);
+		while (success == false && handlerIterator.hasNext()) {
+			MessageHandler handler = handlerIterator.next();
 			if (this.sendMessageToHandler(message, handler)) {
-				success = true; //we have a winner.
+				success = true; // we have a winner.
 			}
-			triedHandlers.add(handler);
 		}
 		if (!success) {
 			throw new MessageRejectedException(message, "All of dispatcher's subscribers rejected Message.");
@@ -50,12 +47,11 @@ public abstract class AbstractWinningHandlerDispatcher extends AbstractDispatche
 	}
 
 	/**
-	 * Return the next handler index. Subclasses have to implement this method
-	 * to determine the order in which handlers will be invoked.
-	 * 
-	 * @param size the total number of handlers
-	 * @param loopIndex the current index of the loop
+	 * Return the iterator that will be used to loop over the handlers. This
+	 * allows subclasses to control the order of iteration for each
+	 * {@link #dispatch(Message)} invocation.
+	 * @param handlers
+	 * @return
 	 */
-	protected abstract int getNextHandlerIndex(int size, int loopIndex);
-
+	protected abstract Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers);
 }

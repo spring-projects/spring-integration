@@ -22,9 +22,26 @@ import org.springframework.integration.core.Message;
  * Base interface for any component that handles Messages.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public interface MessageHandler {
 
-	void handleMessage(Message<?> message);
+	/**
+	 * Handles the message if possible. If the handler cannot deal with the
+	 * message this will result in a <code>MessageRejectedException</code> e.g.
+	 * in case of a Selective Consumer. When a consumer tries to handle a
+	 * message, but fails to do so, a <code>MessageDeliveryException</code> is
+	 * thrown. In the first case a caller can decide to try other consumers, in
+	 * the second case it is recommended to treat the message as tainted and go
+	 * into an error scenario.
+	 * 
+	 * @param message the message to be handled
+	 * 
+	 * @throws MessageRejectedException if the handler doesn't select these
+	 * types of messages
+	 * @throws MessageDeliveryException when something went wrong during the
+	 * handling
+	 */
+	void handleMessage(Message<?> message) throws MessageRejectedException, MessageDeliveryException;
 
 }

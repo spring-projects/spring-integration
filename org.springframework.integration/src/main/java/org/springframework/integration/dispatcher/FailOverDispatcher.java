@@ -16,22 +16,24 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.integration.message.MessageHandler;
+
 /**
- * {@link AbstractWinningHandlerDispatcher} that will try it's handlers in the
+ * {@link AbstractHandleOnceDispatcher} that will try it's handlers in the
  * same order every dispatch.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class FailOverDispatcher extends AbstractWinningHandlerDispatcher {
+public class FailOverDispatcher extends AbstractHandleOnceDispatcher {
 
-	/**
-	 * Returns the current loop index, so each <code>dispatch</code> will try
-	 * the handlers in the same order.
-	 */
+
 	@Override
-	protected int getNextHandlerIndex(int size, int loopIndex) {
-		return loopIndex;
+	protected Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers) {
+		return handlers.iterator();
 	}
 
 }

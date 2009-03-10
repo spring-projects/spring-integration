@@ -15,25 +15,46 @@
  */
 package org.springframework.integration.dispatcher;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.message.MessageHandler;
+
 /**
- * Round-robin implementation of {@link AbstractWinningHandlerDispatcher}. This
- * implementation will keep track of the index in which its handlers have been
- * tried and return a different handler every dispatch.
+ * Round-robin implementation of {@link AbstractHandleOnceDispatcher}. This
+ * implementation will keep track of the index of the handler that has been
+ * tried first and use a different starting handler every dispatch.
  * 
  * @author Iwein Fuld
  */
-public class RoundRobinDispatcher extends AbstractWinningHandlerDispatcher {
+public class RoundRobinDispatcher extends AbstractHandleOnceDispatcher {
 
 	private AtomicInteger currentHandlerIndex = new AtomicInteger();
 
 	/**
-	 * Keeps track of the last index over multiple <code>dispatch</code>
-	 * invocations. Each invocation of this method will increment the index by
-	 * one, overflowing at <code>size</code>. <code>loopIndex</code> is ignored.
+	 * Returns an iterator that starts at a new point in the list every time the
+	 * first part of the list that is skipped will be used at the end of the
+	 * iteration, so it guarantees all handlers are returned once on subsequent
+	 * <code>next()</code> invocations.
 	 */
-	protected int getNextHandlerIndex(int size, int loopIndex) {
+	@Override
+	protected Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers) {
+		int size = handlers.size();
+		int nextHandlerStartIndex = getNextHandlerStartIndex(size);
+		List<MessageHandler> reorderedHandlers = new ArrayList<MessageHandler>(handlers.subList(nextHandlerStartIndex,
+				size));
+		reorderedHandlers.addAll(handlers.subList(0, nextHandlerStartIndex));
+		return reorderedHandlers.iterator();
+	}
+
+	/**
+	 * Keeps track of the last index over multiple dispatches. Each invocation
+	 * of this method will increment the index by one, overflowing at
+	 * <code>size</code>.
+	 */
+	private int getNextHandlerStartIndex(int size) {
 		int indexTail = currentHandlerIndex.getAndIncrement() % size;
 		return indexTail < 0 ? indexTail + size : indexTail;
 	}

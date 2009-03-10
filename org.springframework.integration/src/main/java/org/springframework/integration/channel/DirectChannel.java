@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.dispatcher.AbstractWinningHandlerDispatcher;
+import org.springframework.integration.dispatcher.AbstractHandleOnceDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinDispatcher;
 
 /**
@@ -27,13 +27,13 @@ import org.springframework.integration.dispatcher.RoundRobinDispatcher;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class DirectChannel extends AbstractSubscribableChannel<AbstractWinningHandlerDispatcher> {
+public class DirectChannel extends AbstractSubscribableChannel<AbstractHandleOnceDispatcher> {
 
 	public DirectChannel() {
 		super(new RoundRobinDispatcher());
 	}
 	
-	public DirectChannel(AbstractWinningHandlerDispatcher dispatcher){
+	public DirectChannel(AbstractHandleOnceDispatcher dispatcher){
 		super(dispatcher);
 	}
 
