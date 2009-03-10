@@ -8,7 +8,7 @@
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
 	<channel id="queueChannel">
-		<queue capacity="10"/>
+		<queue capacity="1"/>
 	</channel>
 
 	<outbound-channel-adapter id="outboundWithImplicitChannel" ref="consumer"/>

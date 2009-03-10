@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.DirectChannel;
@@ -35,25 +36,44 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
  * @author Mark Fisher
  */
-@ContextConfiguration
-public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests {
+public class ChannelAdapterParserTests {
+
+	private AbstractApplicationContext applicationContext;
+
 
 	@Before
-	public void startContext() {
-		((AbstractApplicationContext) this.applicationContext).start();
+	public void setUp() {
+		this.applicationContext = new ClassPathXmlApplicationContext(
+				"ChannelAdapterParserTests-context.xml", this.getClass());
 	}
 
 	@After
-	public void stopContext() {
-		((AbstractApplicationContext) this.applicationContext).stop();
+	public void tearDown() {
+		this.applicationContext.close();
 	}
 
+
+	@Test
+	public void methodInvokingSourceStoppedByApplicationContext() {
+		String beanName = "methodInvokingSource";
+		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
+		Object adapter = this.applicationContext.getBean(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		this.applicationContext.start();
+		Message<?> message = channel.receive(1000);
+		assertNotNull(message);
+		assertEquals("source test", testBean.getMessage());
+		this.applicationContext.stop();
+		message = channel.receive(100);
+		assertNull(message);
+	}
 
 	@Test
 	public void targetOnly() {
@@ -101,10 +121,57 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
 		((SourcePollingChannelAdapter) adapter).start();
+		Message<?> message = channel.receive(100);
+		assertNotNull(message);
+		assertEquals("source test", testBean.getMessage());
+		((SourcePollingChannelAdapter) adapter).stop();
+	}
+
+	@Test
+	public void methodInvokingSourceNotStarted() {
+		String beanName = "methodInvokingSource";
+		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
+		Object adapter = this.applicationContext.getBean(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		Message<?> message = channel.receive(100);
+		assertNull(message);
+	}
+
+	@Test
+	public void methodInvokingSourceStopped() {
+		String beanName = "methodInvokingSource";
+		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
+		Object adapter = this.applicationContext.getBean(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		((SourcePollingChannelAdapter) adapter).start();
 		Message<?> message = channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
 		((SourcePollingChannelAdapter) adapter).stop();
+		message = channel.receive(100);
+		assertNull(message);
+	}
+
+	@Test
+	public void methodInvokingSourceStartedByApplicationContext() {
+		String beanName = "methodInvokingSource";
+		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
+		Object adapter = this.applicationContext.getBean(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		this.applicationContext.start();
+		Message<?> message = channel.receive(1000);
+		assertNotNull(message);
+		assertEquals("source test", testBean.getMessage());
+		this.applicationContext.stop();
 	}
 
 	@Test(expected = ChannelResolutionException.class)

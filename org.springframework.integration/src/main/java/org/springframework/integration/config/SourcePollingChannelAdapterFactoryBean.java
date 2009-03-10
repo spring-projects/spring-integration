@@ -23,6 +23,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -35,7 +36,8 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean {
+public class SourcePollingChannelAdapterFactoryBean
+		implements FactoryBean, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, Lifecycle {
 
 	private volatile MessageSource<?> source;
 
@@ -135,6 +137,29 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 			spca.afterPropertiesSet();
 			this.adapter = spca;
 			this.initialized = true;
+		}
+	}
+
+	/*
+	 * Lifecycle implementation (delegates to the created adapter).
+	 */
+
+	public boolean isRunning() {
+		if (this.adapter == null) {
+			return false;
+		}
+		return this.adapter.isRunning();
+	}
+
+	public void start() {
+		if (this.adapter != null) {
+			this.adapter.start();
+		}
+	}
+
+	public void stop() {
+		if (this.adapter != null) {
+			this.adapter.stop();
 		}
 	}
 
