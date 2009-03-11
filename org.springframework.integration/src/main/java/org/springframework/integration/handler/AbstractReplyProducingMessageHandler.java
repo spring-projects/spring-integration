@@ -26,6 +26,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
@@ -102,7 +103,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		MessageHeaders requestHeaders = message.getHeaders();
 		for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
 			builder.copyHeadersIfAbsent(requestHeaders);
-			this.sendReplyMessage(builder.build(), replyChannel);
+			Message<?> replyMessage = builder.build();
+			if (!this.sendReplyMessage(replyMessage, replyChannel)) {
+				throw new MessageDeliveryException(replyMessage, "failed to send reply Message");
+			}
 		}
 	}
 
