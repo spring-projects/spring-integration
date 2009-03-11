@@ -36,9 +36,11 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnit44Runner;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 
@@ -47,7 +49,6 @@ import org.springframework.ws.context.MessageContext;
  * @author Iwein Fuld
  * 
  */
-
 @RunWith(MockitoJUnit44Runner.class)
 public class SimpleWebServiceInboundGatewayTests {
 
@@ -94,18 +95,15 @@ public class SimpleWebServiceInboundGatewayTests {
 		assertTrue(output.toString().endsWith(input));
 	}
 
-	@Test(timeout = 5000)
+	@Test(expected = MessageDeliveryException.class)
 	public void invokePoxSourceTimeout() throws Exception {
-		//this is tells the story of a message silently dropped on timeout see INT-593
 		gateway.setRequestTimeout(10);
 		gateway.setReplyTimeout(10);
 		when(requestChannel.send(isA(Message.class), anyLong())).thenReturn(false);
 		when(request.getPayloadSource()).thenReturn(payloadSource);
 		gateway.invoke(context);
-		verify(requestChannel).send(messageWithPayload(payloadSource),
-				anyLong());
-		verify(requestChannel, never()).send(isA(Message.class));
 	}
+
 
 	private Message<?> messageWithPayload(final Object payload) {
 		return argThat(new BaseMatcher<Message<?>>() {

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -245,7 +246,7 @@ public class MessageChannelTemplate implements InitializingBean {
 				.setErrorChannel(replyChannel)
 				.build();
 		if (!this.doSend(request, channel)) {
-			return null;
+			throw new MessageDeliveryException(request, "failed to send message to channel");
 		}
 		return this.doReceive(replyChannel);
 	}
