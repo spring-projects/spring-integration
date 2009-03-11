@@ -38,6 +38,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.scheduling.IntervalTrigger;
@@ -296,7 +297,9 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 						.setHeaderIfAbsent(MessageHeaders.REPLY_CHANNEL, defaultReplyChannel)
 						.build();
 			}
-			this.channelTemplate.send(message, replyChannel);
+			if (!this.channelTemplate.send(message, replyChannel)) {
+				throw new MessageDeliveryException(message, "failed to send reply Message");
+			}
 		}
 		else if (logger.isWarnEnabled()) {
 			logger.warn("unable to determine reply target for aggregation result: " + message);
