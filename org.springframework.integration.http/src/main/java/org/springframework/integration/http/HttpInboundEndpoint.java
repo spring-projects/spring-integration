@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -48,7 +49,9 @@ import org.springframework.web.servlet.View;
  * By default the request will be converted to a Message payload according to
  * the following rules:
  * <ul>
- *    <li>For a GET request, the parameter Map will be used as the payload</li>
+ *    <li>For a GET request, the parameter Map will be used as the payload.
+ *    The map's keys will be Strings, and the values will be String arrays
+ *    as described for {@link ServletRequest#getParameterMap()}</li>.
  *    <li>For other request types, the request body will be used as the payload
  *    and the type will depend on the Content-Type header value. If it
  *    begins with "text", a String will be created. Otherwise, the payload
