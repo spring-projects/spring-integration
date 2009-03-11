@@ -1,4 +1,4 @@
-/* Copyright 2002-2008 the original author or authors.
+/* Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dispatcher;
 
 import java.util.Iterator;
@@ -26,19 +27,18 @@ import org.springframework.integration.message.MessageRejectedException;
  * Implementation of {@link MessageDispatcher} that will attempt to send a
  * {@link Message} to at most one of its handlers. The handlers will be tried
  * one by one. As soon as <em>one</em> of the handlers accepts the Message, the
- * dispatcher will return <code>true</code> and ignore the rest of it's
- * handlers.
+ * dispatcher will return <code>true</code> and ignore the rest of its handlers.
  * <p/>
  * If the dispatcher has no handlers, a {@link MessageDeliveryException} will be
  * thrown. If all handlers reject the Message, the dispatcher will throw a
- * MessageRejectedException.
+ * {@link MessageRejectedException}.
  * <p/>
  * The implementations of this class control the order in which the handlers
  * will be tried through the implementation of the {@link #getHandlerIterator(List)} method.
  * 
  * @author Iwein Fuld
  * @author Mark Fisher
- * 
+ * @since 1.0.2
  */
 public abstract class AbstractUnicastDispatcher extends AbstractDispatcher {
 
@@ -65,8 +65,8 @@ public abstract class AbstractUnicastDispatcher extends AbstractDispatcher {
 	 * Return the iterator that will be used to loop over the handlers. This
 	 * allows subclasses to control the order of iteration for each
 	 * {@link #dispatch(Message)} invocation.
-	 * @param handlers
-	 * @return
+	 * @param handlers all handlers for this dispatcher
 	 */
 	protected abstract Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers);
+
 }
