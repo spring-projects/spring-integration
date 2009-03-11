@@ -29,6 +29,7 @@ import org.w3c.dom.Document;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.server.endpoint.MessageEndpoint;
@@ -52,7 +53,9 @@ public class SimpleWebServiceInboundGateway extends SimpleMessagingGateway imple
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
+		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
 		WebServiceMessage request = messageContext.getRequest();
+		Assert.notNull(request, "Invalid message context: request was null.");
 		MessageBuilder<?> builder = MessageBuilder.withPayload(
 				(this.extractPayload) ? request.getPayloadSource() : request);
 		String[] propertyNames = messageContext.getPropertyNames();
