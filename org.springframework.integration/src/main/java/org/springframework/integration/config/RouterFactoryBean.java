@@ -37,9 +37,10 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile MessageChannel defaultOutputChannel;
 	
-	private volatile boolean resolutionRequired;
+	private volatile Boolean resolutionRequired;
 
 	private volatile Boolean ignoreChannelNameResolutionFailures;
+
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
@@ -48,12 +49,12 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
 	}
-	
-	public void setResolutionRequired(boolean resolutionRequired){
+
+	public void setResolutionRequired(Boolean resolutionRequired) {
 		this.resolutionRequired = resolutionRequired;
 	}
-	
-	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures){
+
+	public void setIgnoreChannelNameResolutionFailures(Boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
 
@@ -64,12 +65,15 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}
-		if(ignoreChannelNameResolutionFailures != null ){
+		if (this.ignoreChannelNameResolutionFailures != null) {
 			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter, 
-					"Ignore channel name resolution failures can only set on rotuers extending " + AbstractChannelNameResolvingMessageRouter.class.getName());
-			((AbstractChannelNameResolvingMessageRouter)router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
+					"The 'ignoreChannelNameResolutionFailures' property can only be set on routers that extend "
+					+ AbstractChannelNameResolvingMessageRouter.class.getName());
+			((AbstractChannelNameResolvingMessageRouter) router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
 		}
-		router.setResolutionRequired(resolutionRequired);
+		if (this.resolutionRequired != null) {
+			router.setResolutionRequired(this.resolutionRequired);
+		}
 		return router;
 	}
 

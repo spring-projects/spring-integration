@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:channel id="input"/>
+
+	<si:channel id="strings">
+		<si:queue/>
+	</si:channel>
+
+	<si:channel id="discard">
+		<si:queue/>
+	</si:channel>
+
+	<bean id="payloadTypeRouter" class="org.springframework.integration.router.PayloadTypeRouter">
+		<property name="resolutionRequired" value="true"/>
+		<property name="payloadTypeChannelMap">
+			<map>
+				<entry key="java.lang.String" value-ref="strings"/>
+			</map>
+		</property>
+	</bean>
+
+	<si:router id="router"
+		ref="payloadTypeRouter"
+		input-channel="input"
+		default-output-channel="discard"/>
+
+</beans>
