@@ -16,7 +16,9 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
+import org.springframework.util.Assert;
 
 /**
  * A simple MessageHandler implementation that passes the request Message
@@ -26,11 +28,20 @@ import org.springframework.integration.core.Message;
  * 
  * @author Mark Fisher
  */
-public class BridgeHandler extends AbstractReplyProducingMessageHandler {
+public class BridgeHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
+
+	public void afterPropertiesSet() {
+		this.verifyOutputChannel();
+	}
 
 	@Override
 	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
+		this.verifyOutputChannel();
 		replyMessageHolder.set(requestMessage);
+	}
+
+	private void verifyOutputChannel() {
+		Assert.state(super.getOutputChannel() != null, "Bridge handler requires an output channel");
 	}
 
 }

@@ -59,7 +59,6 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
-
 			<xsd:complexContent>
 				<xsd:extension base="channelType">
 					<xsd:sequence>
@@ -422,7 +421,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="bridge" type="inputOutputEndpointType">
+	<xsd:element name="bridge">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an endpoint that passes a Message to the
@@ -430,6 +429,22 @@
 				modifying it.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputEndpointType">
+					<xsd:attribute name="output-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="chain">
