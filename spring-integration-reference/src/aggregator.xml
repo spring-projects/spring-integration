@@ -216,12 +216,11 @@
 
       <para>Spring Integration provides an out-of-the box implementation for
       <code>CorrelationStrategy</code>, the
-      <code><code>Header</code><code>AttributeCorrelationStrategy</code></code>.
-      This implementation returns the value of one of the message headers
-      (whose name is specified by a constructor argument) as the correlation
-      key. By default, the correlation strategy is a
-      HeaderAttributeCorrelationStrategy returning the value of the
-      CORRELATION_ID header attribute.</para>
+      <code>HeaderAttributeCorrelationStrategy</code>. This implementation
+      returns the value of one of the message headers (whose name is specified
+      by a constructor argument) as the correlation key. By default, the
+      correlation strategy is a HeaderAttributeCorrelationStrategy returning
+      the value of the CORRELATION_ID header attribute.</para>
     </section>
   </section>
 
