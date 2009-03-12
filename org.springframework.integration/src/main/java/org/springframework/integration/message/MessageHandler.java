@@ -30,18 +30,23 @@ public interface MessageHandler {
 	 * Handles the message if possible. If the handler cannot deal with the
 	 * message this will result in a <code>MessageRejectedException</code> e.g.
 	 * in case of a Selective Consumer. When a consumer tries to handle a
-	 * message, but fails to do so, a <code>MessageDeliveryException</code> is
-	 * thrown. In the first case a caller can decide to try other consumers, in
-	 * the second case it is recommended to treat the message as tainted and go
-	 * into an error scenario.
+	 * message, but fails to do so, a <code>MessageHandlingException</code> is
+	 * thrown. In case that the handling results in a message being sent failure
+	 * to send that message will result in a
+	 * <code>MessageDeliveryException</code>. In the first case a caller can
+	 * decide to try other consumers, in the second case it is recommended to
+	 * treat the message as tainted and go into an error scenario.
 	 * 
 	 * @param message the message to be handled
 	 * 
 	 * @throws MessageRejectedException if the handler doesn't select these
 	 * types of messages
-	 * @throws MessageDeliveryException when something went wrong during the
+	 * @throws MessageHandlingException when something went wrong during the
 	 * handling
+	 * @throws MessageDeliveryException when this handler failed to deliver the
+	 * reply related to the handling of the message
 	 */
-	void handleMessage(Message<?> message) throws MessageRejectedException, MessageDeliveryException;
+	void handleMessage(Message<?> message) throws MessageRejectedException,
+			MessageHandlingException, MessageDeliveryException;
 
 }
