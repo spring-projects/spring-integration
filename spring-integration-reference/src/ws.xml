@@ -26,29 +26,73 @@
     </para>
   </section>
 
+ <section id="webservices-inbound">
+    <title>Inbound Web Service Gateways</title>
+    <para>
+      To send a message to a channel upon receiving a Web Service invocation, there are two options again: <classname>SimpleWebServiceInboundGateway</classname> and
+      <classname>MarshallingWebServiceInboundGateway</classname>. The former will extract a <interfacename>javax.xml.transform.Source</interfacename> 
+      from the <classname>WebServiceMessage</classname> and set it as the message
+      payload. The latter provides support for implementation of the <interfacename>Marshaller</interfacename>
+      and <interfacename>Unmarshaller</interfacename> interfaces. 
+      If the incoming web service message is a SOAP message the SOAP Action header will be added to the headers of the 
+      <classname>Message</classname> that is forwarded onto the request channel.
+      
+      <programlisting language="java"> simpleGateway = new SimpleWebServiceInboundGateway(uri);
+ simpleGateway.setRequestChannel(forwardOntoThisChannel);
+ simpleGateway.setReplyChannel(listenForResponseHere); //Optional
+
+ marshallingGateway = new MarshallingWebServiceInboundGateway(marshaller);
+ //set request and optionally reply channel
+</programlisting>
+Both gateways implement <interfacename>MessageEndpoint</interfacename> to they can be configured with a <classname>MessageDispatcherServlet</classname> 
+as per standard Spring Web Services configuration.
+    </para>
+    <para>
+      For more detail on how to use these components, see the Spring Web Services reference guide's chapter covering 
+      <ulink url="http://static.springframework.org/spring-ws/sites/1.5/reference/html/server.html">creating a Web Service</ulink>.
+      The chapter covering 
+      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink> is also applicable again.
+    </para>
+  </section>
   <section id="webservices-namespace">
     <title>Web Service Namespace Support</title>
     <para>
       To configure an outbound Web Service Gateway, use the "outbound-gateway" element from the "ws" namespace:
       <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="simpleGateway"
-                    request-channel="inputChannel"
-                    uri="http://example.org"/>]]></programlisting>
-      To use Spring OXM Marshallers and/or Unmarshallers, provide bean references:
+                     request-channel="inputChannel"
+                     uri="http://example.org"/>]]></programlisting>
+                    
+      To set up an inbound Web Service Gateway, use the "inbound-gateway":
+      <programlisting language="xml"><![CDATA[<ws:inbound-gateway id="simpleGateway"
+                    request-channel="inputChannel"/>]]></programlisting>
+                    
+      To use Spring OXM Marshallers and/or Unmarshallers, provide bean references. For outbound:
       <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="marshallingGateway"
+                     request-channel="requestChannel"
+                     uri="http://example.org"
+                     marshaller="someMarshaller"
+                     unmarshaller="someUnmarshaller"/>]]></programlisting>
+      And for inbound:
+      <programlisting language="xml"><![CDATA[<ws:inbound-gateway id="marshallingGateway"
                     request-channel="requestChannel"
-                    uri="http://example.org"
                     marshaller="someMarshaller"
                     unmarshaller="someUnmarshaller"/>]]></programlisting>
+
       <note>
         Most <interfacename>Marshaller</interfacename> implementations also implement the
-        <interfacename>Unmarshaller</interfacename> interface. When using such a Marshaller, only the "marshaller"
-        attribute is necessary. Even when using a Marshaller, you may also provide a reference for the
-        "request-callback".
+        <interfacename>Unmarshaller</interfacename> interface. When using such a 
+		<interfacename>Marshaller</interfacename>, only the "marshaller"
+        attribute is necessary. Even when using a <interfacename>Marshaller</interfacename>, 
+        you may also provide a reference for the "request-callback" on the outbound gateways.
       </note>
     </para>
     <para>
-      For either gateway type, the "message-factory" attribute can also be configured with a reference to any
+      For either outbound gateway type, the "message-factory" attribute can also be configured with a reference to any
       Spring Web Services <interfacename>WebServiceMessageFactory</interfacename> implementation.
+    </para>
+    <para>
+      For the simple inbound gateway type, the "extract-payload" attribute can set to false to forward the entire 
+      <interfacename>WebServiceMessage</interfacename>, instead of just its payload as a <interfacename>Message</interfacename> to the request channel.
     </para>
   </section>
 
