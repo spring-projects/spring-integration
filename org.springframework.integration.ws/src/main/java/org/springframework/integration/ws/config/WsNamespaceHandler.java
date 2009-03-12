@@ -20,11 +20,13 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class WsNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
 		this.registerBeanDefinitionParser("outbound-gateway", new WebServiceOutboundGatewayParser());
+		this.registerBeanDefinitionParser("inbound-gateway", new WebServiceInboundGatewayParser());
 	}
 
 }
