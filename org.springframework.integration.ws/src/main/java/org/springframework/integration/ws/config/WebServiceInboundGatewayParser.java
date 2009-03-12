@@ -12,7 +12,7 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
-*/
+ */
 package org.springframework.integration.ws.config;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,26 +23,32 @@ import org.w3c.dom.Element;
 /**
  * 
  * @author Iwein Fuld
- *
+ * 
  */
-public class WebServiceInboundGatewayParser extends AbstractRemotingGatewayParser {
+public class WebServiceInboundGatewayParser extends
+		AbstractRemotingGatewayParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		String simpleClassName = (StringUtils.hasText(element.getAttribute("marshaller"))) ?
-				"MarshallingWebServiceInboundGateway" : "SimpleWebServiceInboundGateway";
+		String simpleClassName = (StringUtils.hasText(element
+				.getAttribute("marshaller"))) ? "MarshallingWebServiceInboundGateway"
+				: "SimpleWebServiceInboundGateway";
 		return "org.springframework.integration.ws." + simpleClassName;
 	}
-	
+
 	@Override
 	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 		String marshallerRef = element.getAttribute("marshaller");
 		if (StringUtils.hasText(marshallerRef)) {
-			builder.addPropertyReference("marshaller",marshallerRef);
+			builder.addConstructorArgReference(marshallerRef);
 			String unmarshallerRef = element.getAttribute("unmarshaller");
 			if (StringUtils.hasText(unmarshallerRef)) {
-				builder.addPropertyReference("unmarshaller",unmarshallerRef);
+				builder.addConstructorArgReference(unmarshallerRef);
 			}
 		}
+	}
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !(attributeName.endsWith("marshaller")) && super.isEligibleAttribute(attributeName);
 	}
 }
