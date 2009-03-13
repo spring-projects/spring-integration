@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageTimeoutException;
+import org.springframework.util.Assert;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.servlet.View;
 
@@ -126,6 +128,10 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	 * By default, only GET and POST are supported.
 	 */
 	public void setSupportedMethods(String... supportedMethods) {
+		Assert.notEmpty(supportedMethods, "at least one supported method is required");
+		for (int i = 0; i < supportedMethods.length; i++) {
+			supportedMethods[i] = supportedMethods[i].trim().toUpperCase();
+		}
 		this.supportedMethods = Arrays.asList(supportedMethods);
 	}
 
@@ -213,7 +219,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	 * Create a request Message for the provided HTTP request.
 	 * @see #setExtractRequestPayload(boolean)
 	 */
-	private Message<?> createRequestMessage(HttpServletRequest httpRequest) throws IOException {
+	private Message<?> createRequestMessage(HttpServletRequest httpRequest) throws ServletException, IOException {
 		if (this.extractRequestPayload) {
 			return this.createMessageFromHttpRequestContent(httpRequest);
 		}
@@ -222,7 +228,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 		}
 	}
 
-	private Message<?> createMessageFromHttpRequestContent(HttpServletRequest request) throws IOException {
+	private Message<?> createMessageFromHttpRequestContent(HttpServletRequest request) throws ServletException, IOException {
 		Message<?> message = null;
 		String contentType = request.getContentType();
 		if (request.getMethod().equals("GET")) {
@@ -248,6 +254,14 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 					line = reader.readLine();
 				}
 				payload = sb.toString();
+			}
+			else if (contentType != null && contentType.equals("application/x-java-serialized-object")) {
+				try {
+					payload = new ObjectInputStream(request.getInputStream()).readObject();
+				}
+				catch (ClassNotFoundException e) {
+					throw new ServletException("failed to deserialize Object in request", e);
+				}
 			}
 			else {
 				InputStream stream = request.getInputStream();
