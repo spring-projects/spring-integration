@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.server.endpoint.MessageEndpoint;
+import org.springframework.ws.soap.SoapHeader;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
@@ -66,10 +67,13 @@ public class SimpleWebServiceInboundGateway extends SimpleMessagingGateway imple
 		}
 		if (request instanceof SoapMessage) {
 			SoapMessage soapMessage = (SoapMessage) request;
-			Iterator<?> iter = soapMessage.getSoapHeader().getAllAttributes();
-			while (iter.hasNext()) {
-				QName name = (QName) iter.next();
-				builder.setHeader(name.toString(), soapMessage.getSoapHeader().getAttributeValue(name));
+			SoapHeader soapHeader = soapMessage.getSoapHeader();
+			if (soapHeader != null) {
+				Iterator<?> iter = soapHeader.getAllAttributes();
+				while (iter.hasNext()) {
+					QName name = (QName) iter.next();
+					builder.setHeader(name.toString(), soapHeader.getAttributeValue(name));
+				}
 			}
 		}
 		Message<?> replyMessage = this.sendAndReceiveMessage(builder.build());
