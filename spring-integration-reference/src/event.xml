@@ -5,7 +5,7 @@
   <para>
     Spring Integration also provides support for inbound and outbound <classname>ApplicationEvents</classname>.
     To receive events and send to a channel, simply define an instance of Spring Integration's
-    <classname>ApplicationEventListeningChannelAdapter</classname>. This class in an implementation of Spring's
+    <classname>ApplicationEventListeningChannelAdapter</classname>. This class is an implementation of Spring's
     <interfacename>ApplicationListener</interfacename> interface. By default it will pass all received events as
     Spring Integration Messages. To limit based on the type of event, configure the list of event types that you want
     to receive with the 'eventTypes' property.

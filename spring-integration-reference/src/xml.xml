@@ -201,7 +201,7 @@
             <property name="outputChannel" ref="orderItemsChannel" />
         </bean>
     </constructor-arg>
-	<constructor-arg ref="orderChannel" />
+    <constructor-arg ref="orderChannel" />
 </bean>]]></programlisting>	     
 				
 		</para>

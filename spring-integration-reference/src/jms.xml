@@ -53,7 +53,7 @@
      <integration:poller>
          <integration:interval-trigger interval="30" time-unit="SECONDS"/>
      </integration:poller>
-</jms:inbound-channel-adapter>]]></programlisting>
+ </jms:inbound-channel-adapter>]]></programlisting>
     </para>
   </section>
 
@@ -77,9 +77,9 @@
     </para>
     <para>
       The 'extract-payload' property has the same effect as described above, and once again its default value
-      is 'true'. Of course, the poller sub-element is not required (not accepted actually) for a message-driven
-      Channel Adapter. For most usage scenarios, the message-driven approach is better since the Messages will
-      be passed along to the Spring Integration Message Channel as soon as they are received from the underlying
+      is 'true'. The poller sub-element is not applicable for a message-driven
+      Channel Adapter, as it will be actively invoked. For most usage scenarios, the message-driven approach is better since the Messages will
+      be passed along to the <interfacename>MessageChannel</interfacename> as soon as they are received from the underlying
       JMS consumer.
     </para>
   </section>

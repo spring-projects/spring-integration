@@ -57,8 +57,7 @@ Order generateOrder(String productId) {
 }</programlisting>
     </para>
     <para>
-      Transformer methods may also accept the @Header and @Headers annotations. For example, one of those annotations
-      may complement the payload Object as an additional parameter:
+      Transformer methods may also accept the @Header and @Headers annotations that is documented in section <xref  linkend="annotations"/>
 	      <programlisting language="java">@Transformer
 Order generateOrder(String productId, @Header("customerName") String customer) {
     return new Order(productId, customer);

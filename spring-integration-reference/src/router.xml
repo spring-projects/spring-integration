@@ -91,7 +91,7 @@ public List&lt;String&gt; route(Foo payload) {...}</programlisting>
       In addition to payload-based routing, a common requirement is to route based on metadata available within the
       message header as either a property or attribute. Rather than requiring use of the
       <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
-      annotation may also use the same @Header parameter annotation that was introduced above.
+      annotation may also use the @Header parameter annotation that is documented in section <xref  linkend="annotations"/>.
       <programlisting language="java">@Router
 public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
     </para>

@@ -45,6 +45,7 @@
      <service-activator ref="someService" method="someMethod"/>
  </chain>]]></programlisting>
     </para>
+	The &lt;header-enricher&gt; used in the above example will set a message header with name "foo" and value "bar" on the message.
   </section>
 
 </chapter>

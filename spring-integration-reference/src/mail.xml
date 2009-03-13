@@ -100,7 +100,7 @@
     <para>
       When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
       This simplifies the application of the headers mentioned above to any Message prior to sending to the
-      Mail-sending Channel Adapter. Also, note that a boolean value c
+      Mail-sending Channel Adapter.
       <programlisting language="xml"><![CDATA[<mail:header-enricher subject="Example Mail"
                      to="to@example.org"
                      cc="cc@example.org"
