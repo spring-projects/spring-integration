@@ -228,8 +228,8 @@
     <title>Configuring an Aggregator with XML</title>
 
     <para>Spring Integration supports the configuration of an aggregator via
-    XML through the &lt;aggregator/&gt; element. A completely defined sample
-    on how to define such an element is presented below, as well as it:</para>
+	XML through the &lt;aggregator/&gt; element. Below you can see an example of 
+	an aggregator with all optional parameters defined.</para>
 
     <programlisting lang="xml">&lt;channel id="inputChannel"/&gt;
 
