@@ -78,7 +78,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 	}
 
 	public void setReplyChannel(MessageChannel replyChannel) {
-		this.gatewayDelegate.setRequestChannel(replyChannel);
+		this.gatewayDelegate.setReplyChannel(replyChannel);
 	}
 
 	public void setReplyTimeout(long replyTimeout) {
