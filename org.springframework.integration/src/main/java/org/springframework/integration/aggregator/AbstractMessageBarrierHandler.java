@@ -359,8 +359,23 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 	 * @param barrier the {@link MessageBarrier} to be processed
 	 */
 	protected abstract void processBarrier(MessageBarrier<T> barrier);
+	
+	/**
+	 * A method for discarding the content of the message barrier. 
+	 * Can be overridden by subclasses.
+	 * @param entry
+	 * @param barrier
+	 */
+	protected void discardBarrier(MessageBarrier<T> barrier) {
+		for (Message message : barrier.getMessages()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Handling of Message group with correlation key '" + barrier.getCorrelationKey()+ "' has timed out.");
+			}
+			discardMessage(message);
+		}
+	}
 
-    /**
+	/**
 	 * A task that runs periodically, pruning the timed-out message barriers.
 	 */
 	private class PrunerTask implements Runnable {
@@ -377,13 +392,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 							processBarrier(barrier);
 						}
 						else {
-							for (Message message : barrier.getMessages()) {
-								if (logger.isDebugEnabled()) {
-									logger.debug("Handling of Message group with correlationId '" + entry.getKey()
-											+ "' has timed out.");
-								}
-								discardMessage(message);
-							}
+							discardBarrier(barrier);
 						}
 					}
 				}

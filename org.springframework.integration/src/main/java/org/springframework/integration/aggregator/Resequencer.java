@@ -23,7 +23,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -37,10 +36,16 @@ import org.springframework.util.CollectionUtils;
  * All considerations regarding <code>timeout</code> and grouping by
  * '<code>correlationId</code>' from {@link AbstractMessageBarrierHandler}
  * apply here as well.
+ * 
+ * It is assumed that all messages have the same <code>sequence_size</code> header attribute
+ * and that the sequence numbers of the messages are successive, starting with
+ * 1 up to <code>sequenceSize</code>. Messages that do not satisfy this condition are
+ * considered out-of-sequence and thus rejected.
+ * 
  *
  * Note: messages with the same sequence number will be treated as equivalent
  * by this class (i.e. after a message with a given sequence number is received,
- * further messages from withing the same group, that have the same sequence number,
+ * further messages from within the same group, that have the same sequence number,
  * will be ignored.
  *
  * @author Marius Bogoevici
@@ -48,7 +53,9 @@ import org.springframework.util.CollectionUtils;
 public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message<?>>> {
 
 	private volatile boolean releasePartialSequences = true;
-
+	
+	private static final String LAST_RELEASED_SEQUENCE_NUMBER = "last.released.sequence.number";
+	
 
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
@@ -58,13 +65,13 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 	protected MessageBarrier<SortedSet<Message<?>>> createMessageBarrier(Object correlationKey) {
 		MessageBarrier<SortedSet<Message<?>>> messageBarrier
 			= new MessageBarrier<SortedSet<Message<?>>>(new TreeSet<Message<?>>(new MessageSequenceComparator()), correlationKey);
-		messageBarrier.getMessages().add(createFlagMessage(0));
+		messageBarrier.setAttribute(LAST_RELEASED_SEQUENCE_NUMBER, 0);
 		return messageBarrier;
 	}
 	
 	@Override
 	protected void processBarrier(MessageBarrier<SortedSet<Message<?>>> barrier) {
-		if (hasReceivedAllMessages(barrier.getMessages())) {
+		if (hasReceivedAllMessages(barrier)) {
 			barrier.setComplete();
 		}
 		List<Message<?>> releasedMessages = releaseAvailableMessages(barrier);
@@ -77,21 +84,18 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 		}
 	}
 
-	private boolean hasReceivedAllMessages(SortedSet<Message<?>> messages) {
-		Message<?> firstMessage = messages.first();
-		Message<?> lastMessage = messages.last();
-		return (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize())
-				&& (lastMessage.getHeaders().getSequenceNumber() - firstMessage.getHeaders().getSequenceNumber() == messages.size() - 1));
+	private boolean hasReceivedAllMessages(MessageBarrier<SortedSet<Message<?>>> barrier) {
+		int sequenceSize = barrier.getMessages().first().getHeaders().getSequenceSize();
+		int messagesCurrentlyInBarrier = barrier.getMessages().size();
+		int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
+		return (lastReleasedSequenceNumber + messagesCurrentlyInBarrier == sequenceSize);
 	}
 
 	private List<Message<?>> releaseAvailableMessages(MessageBarrier<SortedSet<Message<?>>> barrier) {
 		if (this.releasePartialSequences || barrier.isComplete()) {
 			ArrayList<Message<?>> releasedMessages = new ArrayList<Message<?>>();
 			Iterator<Message<?>> it = barrier.getMessages().iterator();
-			//remove the initial flag from the list
-			Message<?> flag = it.next();
-			it.remove();
-			int lastReleasedSequenceNumber = flag.getHeaders().getSequenceNumber();
+			int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
 			while (it.hasNext()) {
 				Message<?> currentMessage = it.next();
 				if (lastReleasedSequenceNumber == currentMessage.getHeaders().getSequenceNumber() - 1) {
@@ -103,8 +107,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 					break;
 				}
 			}
-			//re-insert the flag so that we know where to start releasing next
-			barrier.getMessages().add(createFlagMessage(lastReleasedSequenceNumber));
+			barrier.setAttribute(LAST_RELEASED_SEQUENCE_NUMBER, lastReleasedSequenceNumber);
 			return releasedMessages;
 		}
 		else {
@@ -113,28 +116,24 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 	}
 
 	@Override
-	protected boolean canAddMessage(Message<?> message,
-			MessageBarrier<SortedSet<Message<?>>> barrier) {
+	protected boolean canAddMessage(Message<?> message, MessageBarrier<SortedSet<Message<?>>> barrier) {
 		if (!super.canAddMessage(message, barrier)) {
 			return false;
 		}
-		Message<?> flagMessage = barrier.getMessages().first();
+		int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
 		if (barrier.messages.contains(message)
-				|| flagMessage.getHeaders().getSequenceNumber() >= message.getHeaders().getSequenceNumber()) {
+				|| lastReleasedSequenceNumber >= message.getHeaders().getSequenceNumber()) {
 			logger.debug("A message with the same sequence number has been already received: " + message);
 			return false;
 		}
-		Message<?> lastMessage = barrier.getMessages().last();
-		if (lastMessage != flagMessage
-				&& lastMessage.getHeaders().getSequenceSize() < message.getHeaders().getSequenceNumber()) {
+		// one can always add a message to the barrier if it's empty. Afterwards, assume that the complete sequence size
+		// 
+		if (!barrier.getMessages().isEmpty() &&
+				barrier.getMessages().first().getHeaders().getSequenceSize() < message.getHeaders().getSequenceNumber()) {
 			logger.debug("The message has a sequence number which is larger than the sequence size: "+ message);
 			return false;
 		}
 		return true;
-	}
-
-	private static Message<Integer> createFlagMessage(int sequenceNumber) {
-		return MessageBuilder.withPayload(sequenceNumber).setSequenceNumber(sequenceNumber).build();
 	}
 
 }

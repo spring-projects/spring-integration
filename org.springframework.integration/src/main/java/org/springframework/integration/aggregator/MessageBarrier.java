@@ -16,6 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
 
@@ -30,6 +31,8 @@ import org.springframework.integration.core.Message;
  * been added to it). This is a parameterized type, allowing different different
  * client classes to use different types of Collections and their respective features.
  * 
+ * Can store/retrieve attributes through its setAttribute() and getAttribute() methods.
+ * 
  * This class is not thread-safe and will be synchronized by the calling code.
  * 
  * @author Marius Bogoevici
@@ -43,6 +46,8 @@ public class MessageBarrier<T extends Collection<? extends Message>> {
     private Object correlationKey;
 
 	private final long timestamp = System.currentTimeMillis();
+	
+	private final Map<String, Object> attributes = new HashMap<String, Object>();
 
 	public MessageBarrier(T messages, Object correlationKey) {
 		this.messages = messages;
@@ -81,5 +86,22 @@ public class MessageBarrier<T extends Collection<? extends Message>> {
 	public T getMessages() {
 		return this.messages;
 	}
+	
+	/**
+	 * Sets a the value of a given attribute on the MessageBarrier.
+	 * @param attributeName
+	 * @param value
+	 */
+	public void setAttribute(String attributeName, Object value) {
+		this.attributes.put(attributeName, value);
+	}
 
+	/**
+	 * Gets the value of a given attribute from the MessageBarrier.
+	 * @param attributeName
+	 */
+	public <V> V getAttribute(String attributeName) {
+		return (V)this.attributes.get(attributeName);
+	}
+	
 }

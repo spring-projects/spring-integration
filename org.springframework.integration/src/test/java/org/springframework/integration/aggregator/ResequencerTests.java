@@ -124,6 +124,37 @@ public class ResequencerTests {
 		assertNotNull(reply4);
 		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
 	}
+	
+	@Test
+	public void testResequencingWithDiscard() throws InterruptedException {
+		QueueChannel discardChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 4, 2, null);
+		Message<?> message2 = createMessage("456", "ABC", 4, 1, null);
+		Message<?> message3 = createMessage("789", "ABC", 4, 4, null);
+		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, null);
+		this.resequencer.setSendPartialResultOnTimeout(false);
+		this.resequencer.setReleasePartialSequences(false);
+		this.resequencer.setDiscardChannel(discardChannel);
+		this.resequencer.setTimeout(90000);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message2);
+		this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
+		Message<?> reply1 = discardChannel.receive(0);
+		Message<?> reply2 = discardChannel.receive(0);
+		Message<?> reply3 = discardChannel.receive(0);
+		// only messages 1 and 2 should have been received by now
+		assertNotNull(reply1);
+		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertNotNull(reply2);
+		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertNull(reply3);
+		// when sending the last message, the whole sequence must have been sent
+		this.resequencer.handleMessage(message4);
+		reply3 = discardChannel.receive(0);
+		assertNull(reply3);
+		Message<?> reply4 = discardChannel.receive(0);
+		assertNull(reply4);
+	}
 
 
 	@Test
