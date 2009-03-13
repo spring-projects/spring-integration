@@ -85,6 +85,9 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 	}
 
 	private boolean hasReceivedAllMessages(MessageBarrier<SortedSet<Message<?>>> barrier) {
+		if(barrier.getMessages().isEmpty()) {
+			return false;
+		}
 		int sequenceSize = barrier.getMessages().first().getHeaders().getSequenceSize();
 		int messagesCurrentlyInBarrier = barrier.getMessages().size();
 		int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
@@ -126,11 +129,14 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 			logger.debug("A message with the same sequence number has been already received: " + message);
 			return false;
 		}
-		// one can always add a message to the barrier if it's empty. Afterwards, assume that the complete sequence size
-		// 
-		if (!barrier.getMessages().isEmpty() &&
-				barrier.getMessages().first().getHeaders().getSequenceSize() < message.getHeaders().getSequenceNumber()) {
+		if (message.getHeaders().getSequenceSize() < message.getHeaders().getSequenceNumber()) {
 			logger.debug("The message has a sequence number which is larger than the sequence size: "+ message);
+			return false;
+		}
+		if (!barrier.getMessages().isEmpty() &&
+				message.getHeaders().getSequenceSize() != barrier.getMessages().first().getHeaders().getSequenceSize()) {
+			logger.debug("The message has a sequence size which is different from other messages handled so far: " + message 
+						+ ", expected value is " + barrier.getMessages().first().getHeaders().getSequenceNumber());
 			return false;
 		}
 		return true;
