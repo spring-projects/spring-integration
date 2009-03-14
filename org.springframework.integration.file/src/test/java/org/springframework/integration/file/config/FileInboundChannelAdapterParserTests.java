@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -47,20 +48,24 @@ public class FileInboundChannelAdapterParserTests {
 	FileReadingMessageSource source;
 
 	DirectFieldAccessor accessor;
-	
-	@Before public void init(){
-		accessor= new DirectFieldAccessor(source);
+
+
+	@Before public void init() {
+		accessor = new DirectFieldAccessor(source);
 	}
-	
+
+
 	@Test
 	public void channelName() throws Exception {
 		MessageChannel channel = (MessageChannel) context.getBean("inputDirPoller");
-		assertEquals("Channel should be available under specified id","inputDirPoller", channel.getName());		
+		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getName());		
 	}
-	
+
 	@Test
 	public void inputDirectory() {	
-		assertEquals("'inputDirectory' should be set",System.getProperty("java.io.tmpdir"), ((File) accessor.getPropertyValue("inputDirectory")).getPath());
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) accessor.getPropertyValue("inputDirectory");
+		assertEquals("'inputDirectory' should be set", expected, actual);
 	}
 	
 	@Test

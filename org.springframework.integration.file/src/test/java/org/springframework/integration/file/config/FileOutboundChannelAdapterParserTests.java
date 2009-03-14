@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,9 @@ public class FileOutboundChannelAdapterParserTests {
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(System.getProperty("java.io.tmpdir"),
-				((File) handlerAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) handlerAccessor.getPropertyValue("parentDirectory");
+		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
 	}
 
@@ -67,8 +68,9 @@ public class FileOutboundChannelAdapterParserTests {
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(System.getProperty("java.io.tmpdir"),
-				((File) handlerAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) handlerAccessor.getPropertyValue("parentDirectory");
+		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
 	}
 

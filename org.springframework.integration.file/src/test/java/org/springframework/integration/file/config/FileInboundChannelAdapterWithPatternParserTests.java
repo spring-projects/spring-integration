@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,9 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 
 	@Test
 	public void inputDirectory() {
-		assertEquals(System.getProperty("java.io.tmpdir"), ((File) accessor.getPropertyValue("inputDirectory")).getPath());
+		File expected = new File(System.getProperty("java.io.tmpdir"));
+		File actual = (File) accessor.getPropertyValue("inputDirectory");
+		assertEquals(expected, actual);
 	}
 
 	@Test
