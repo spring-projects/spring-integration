@@ -27,7 +27,9 @@ import org.springframework.integration.core.MessageHeaders;
 public abstract class JmsHeaders {
 
 	/**
-	 * Prefix for any message header that should be passed for usage by the JMS transport.
+	 * Prefix used for JMS API related headers in order to distinguish from
+	 * user-defined headers and other internal headers (e.g. correlationId).
+	 * @see DefaultJmsHeaderMapper
 	 */
 	public static final String PREFIX = MessageHeaders.PREFIX + "jms_";
 

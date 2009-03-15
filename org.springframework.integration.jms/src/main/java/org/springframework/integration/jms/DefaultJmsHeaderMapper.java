@@ -34,7 +34,20 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**
- * Default implementation of {@link JmsHeaderMapper}. 
+ * Default implementation of {@link JmsHeaderMapper}.
+ * <p/>
+ * This implementation copies JMS API headers (e.g. JMSReplyTo) to and from
+ * Spring Integration Messages. Any user-defined properties will also be copied
+ * from a JMS Message to a Spring Integration Message, and any other headers
+ * on a Spring Integration Message (beyond the JMS API headers) will likewise
+ * be copied to a JMS Message. Those other headers will be copied to the
+ * general properties of a JMS Message whereas the JMS API headers are passed
+ * to the appropriate setter methods (e.g. setJMSReplyTo).
+ * <p/>
+ * Constants for the JMS API headers are defined in {@link JmsHeaders}.
+ * Note that the JMSMessageID and JMSRedelivered flag are only copied
+ * <em>from</em> a JMS Message. Those values will <em>not</em> be passed
+ * along from a Spring Integration Message to an outbound JMS Message.
  * 
  * @author Mark Fisher
  */
