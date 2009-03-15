@@ -14,36 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.transformer;
+package org.springframework.integration.http.mapper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-
-import javax.servlet.ServletRequest;
 
 import org.junit.Test;
 
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.http.DataBindingRequestMapper;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;
 
 /**
  * @author Mark Fisher
  */
-public class ServletRequestBindingTransformerTests {
+public class DataBindingRequestMapperTests {
 
 	@Test
-	public void bindToType() {
-		ServletRequestBindingTransformer<TestBean> transformer =
-				new ServletRequestBindingTransformer<TestBean>(TestBean.class);
+	public void bindToType() throws Exception {
+		DataBindingRequestMapper mapper = new DataBindingRequestMapper(TestBean.class);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter("name", "testBean");
 		request.setParameter("age", "42");
-		Message<ServletRequest> message = new GenericMessage<ServletRequest>(request);
-		Message<?> result = transformer.transform(message);
+		Message<?> result = mapper.mapRequest(request);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		TestBean payload = (TestBean) result.getPayload();
@@ -52,17 +48,15 @@ public class ServletRequestBindingTransformerTests {
 	}
 
 	@Test
-	public void bindToTypeWithBindingInitializer() {
-		ServletRequestBindingTransformer<TestBean> transformer =
-				new ServletRequestBindingTransformer<TestBean>(TestBean.class);
+	public void bindToTypeWithBindingInitializer() throws Exception {
+		DataBindingRequestMapper mapper = new DataBindingRequestMapper(TestBean.class);
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
 		initializer.setDirectFieldAccess(true);
-		transformer.setWebBindingInitializer(initializer);
+		mapper.setWebBindingInitializer(initializer);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter("name", "testBean");
 		request.setParameter("age", "42");
-		Message<ServletRequest> message = new GenericMessage<ServletRequest>(request);
-		Message<?> result = transformer.transform(message);
+		Message<?> result = mapper.mapRequest(request);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		TestBean payload = (TestBean) result.getPayload();
@@ -71,19 +65,17 @@ public class ServletRequestBindingTransformerTests {
 	}
 
 	@Test
-	public void bindToPrototypeBean() {
+	public void bindToPrototypeBean() throws Exception {
 		StaticApplicationContext context = new StaticApplicationContext();
 		MutablePropertyValues properties = new MutablePropertyValues();
 		properties.addPropertyValue("name", "prototype");
 		context.registerPrototype("prototypeTarget", TestBean.class, properties);
-		ServletRequestBindingTransformer<TestBean> transformer =
-				new ServletRequestBindingTransformer<TestBean>(TestBean.class);
-		transformer.setTargetBeanName("prototypeTarget");
-		transformer.setBeanFactory(context);
+		DataBindingRequestMapper mapper = new DataBindingRequestMapper(TestBean.class);
+		mapper.setTargetBeanName("prototypeTarget");
+		mapper.setBeanFactory(context);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter("age", "42");
-		Message<ServletRequest> message = new GenericMessage<ServletRequest>(request);
-		Message<?> result = transformer.transform(message);
+		Message<?> result = mapper.mapRequest(request);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		TestBean payload = (TestBean) result.getPayload();
