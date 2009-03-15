@@ -76,19 +76,17 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-key");
 		}
 		else {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(
 					builder, element, "send-timeout", "requestTimeout");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(
-					builder, element, "extract-payload", "extractRequestPayload");
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "supported-methods");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "view");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-key");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-mapper");
 	}
 
 	private String getInputChannelAttributeName() {

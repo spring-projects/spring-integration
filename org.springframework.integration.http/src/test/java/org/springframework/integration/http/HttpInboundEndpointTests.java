@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.easymock.IAnswer;
@@ -50,6 +51,7 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.web.servlet.View;
@@ -153,14 +155,18 @@ public class HttpInboundEndpointTests {
 	}
 
 	@Test
-	public void handleRequest_withExtractRequestPayloadIsFalse_requestObjectIsInPayload()
+	public void handleRequest_withCustomRequestMapper_requestObjectIsInPayload()
 			throws ServletException, IOException {
-		endpoint.setExtractRequestPayload(false);
+		endpoint.setRequestMapper(new RequestMapper() {
+			public Message<?> mapRequest(HttpServletRequest request) throws Exception {
+				return new StringMessage(request.getRequestURI());
+			}
+		});
 		expect(requestChannel.send(isA(Message.class))).andAnswer(
 			new IAnswer<Boolean>() {
 				@SuppressWarnings("unchecked")
 				public Boolean answer() throws Throwable {
-					assertThat(((Message) getCurrentArguments()[0]).getPayload(), is((Object) request));
+					assertThat(((Message) getCurrentArguments()[0]).getPayload(), is((Object) "/anyurl"));
 					return true;
 				}
 			});

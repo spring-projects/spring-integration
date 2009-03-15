@@ -36,7 +36,6 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="send-timeout" type="xsd:string"/>
 			<xsd:attribute name="supported-methods" type="xsd:string"/>
 			<xsd:attribute name="view" type="xsd:string">
@@ -44,6 +43,15 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.web.servlet.View"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.http.RequestMapper"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -61,7 +69,6 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
 					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
 					<xsd:attribute name="supported-methods" type="xsd:string"/>
 					<xsd:attribute name="view" type="xsd:string">
@@ -69,6 +76,15 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.web.servlet.View"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.RequestMapper"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

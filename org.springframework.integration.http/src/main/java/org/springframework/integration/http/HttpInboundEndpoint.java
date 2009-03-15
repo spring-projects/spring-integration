@@ -16,28 +16,21 @@
 
 package org.springframework.integration.http;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageTimeoutException;
 import org.springframework.util.Assert;
 import org.springframework.web.HttpRequestHandler;
@@ -49,29 +42,11 @@ import org.springframework.web.servlet.View;
  * By default GET and POST requests are accepted, but the 'supportedMethods'
  * property may be set to include others or limit the options (e.g. POST only).
  * By default the request will be converted to a Message payload according to
- * the following rules:
- * <ul>
- *    <li>For a GET request, the parameter Map will be used as the payload.
- *    The map's keys will be Strings, and the values will be String arrays
- *    as described for {@link ServletRequest#getParameterMap()}</li>.
- *    <li>For other request types, the request body will be used as the payload
- *    and the type will depend on the Content-Type header value. If it
- *    begins with "text", a String will be created. Otherwise, the payload
- *    will be a byte array. The parameter Map values are then added as
- *    Message headers.</li>
- * </ul>
- * In both cases, when extracting a request payload, the original request
- * headers will be passed in the MessageHeaders. Likewise, the following
- * headers will be added:
- * <ul>
- *   <li>{@link HttpHeaders#REQUEST_URL}</li>
- *   <li>{@link HttpHeaders#REQUEST_METHOD}</li>
- *   <li>{@link HttpHeaders#USER_PRINCIPAL} (if available)</li>
- * </ul>
- * To have the full request object passed in the Message payload instead,
- * set the {@link #extractRequestPayload} value to <code>false</code>.
- * This can be useful if you intend to use a MessageTransformer downstream
- * to convert the request in some custom way.
+ * the rules of the {@link DefaultRequestMapper}.
+ * <p/>
+ * To customize the mapping of the request to the Message payload, provide
+ * a reference to a {@link RequestMapper} implementation to the
+ * {@link #setRequestMapper(RequestMapper)} method.
  * <p/>
  * The value for {@link #expectReply} is <code>false</code> by default.
  * This means that as soon as the Message is created and passed to the
@@ -112,7 +87,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 
 	private volatile boolean expectReply;
 
-	private volatile boolean extractRequestPayload = true;
+	private volatile RequestMapper requestMapper = new DefaultRequestMapper();
 
 	private volatile boolean extractReplyPayload = true;
 
@@ -145,16 +120,13 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	}
 
 	/**
-	 * Specify whether the inbound request's content should be passed as
-	 * the payload of the Message. If this is set to 'false', the entire
-	 * request will be sent as the payload. Otherwise, for a GET request
-	 * the parameter map will be the payload. For other supported request
-	 * methods, the body will be extracted, and the type of the payload
-	 * depends on the Content-Type of the request.
-	 * The default value is 'true'. 
+	 * Specify a {@link RequestMapper} implementation to map from the
+	 * inbound HTTP request to a Message. The default implementation
+	 * is {@link DefaultRequestMapper}.
 	 */
-	public void setExtractRequestPayload(boolean extractRequestPayload) {
-		this.extractRequestPayload = extractRequestPayload;
+	public void setRequestMapper(RequestMapper requestMapper) {
+		Assert.notNull(requestMapper, "requestMapper must not be null");
+		this.requestMapper = requestMapper;
 	}
 
 	/**
@@ -206,111 +178,22 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 			return;
 		}
 		try {
-			Message<?> requestMessage = this.createRequestMessage(request);
+			Message<?> requestMessage = this.requestMapper.mapRequest(request);
 			Object reply = this.handleRequestMessage(requestMessage);
 			this.generateResponse(requestMessage, reply, request, response);
 		}
-		catch (RequiredContentLengthUnavailableException e) {
-			response.setStatus(HttpServletResponse.SC_LENGTH_REQUIRED);
+		catch (ResponseStatusCodeException e) {
+			response.setStatus(e.getStatusCode());
 		}
-	}
-
-	/**
-	 * Create a request Message for the provided HTTP request.
-	 * @see #setExtractRequestPayload(boolean)
-	 */
-	private Message<?> createRequestMessage(HttpServletRequest httpRequest) throws ServletException, IOException {
-		if (this.extractRequestPayload) {
-			return this.createMessageFromHttpRequestContent(httpRequest);
+		catch (ServletException e) {
+			throw e;
 		}
-		else {
-			return MessageBuilder.withPayload(httpRequest).build();
+		catch (IOException e) {
+			throw e;
 		}
-	}
-
-	private Message<?> createMessageFromHttpRequestContent(HttpServletRequest request) throws ServletException, IOException {
-		Message<?> message = null;
-		String contentType = request.getContentType();
-		if (request.getMethod().equals("GET")) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("received GET request, using parameter map as payload");
-			}
-			MessageBuilder<?> builder = MessageBuilder.withPayload(request.getParameterMap());
-			this.populateHeaders(request, builder, false);
-			message = builder.build();
+		catch (Exception e) {
+			throw new ServletException(e);
 		}
-		else {
-			Object payload = null;
-			if (contentType != null && contentType.startsWith("text")) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("received " + request.getMethod()
-							+ " request, creating payload with text content");
-				}
-				StringBuilder sb = new StringBuilder();
-				BufferedReader reader = request.getReader();
-				String line = reader.readLine();
-				while (line != null) {
-					sb.append(line);
-					line = reader.readLine();
-				}
-				payload = sb.toString();
-			}
-			else if (contentType != null && contentType.equals("application/x-java-serialized-object")) {
-				try {
-					payload = new ObjectInputStream(request.getInputStream()).readObject();
-				}
-				catch (ClassNotFoundException e) {
-					throw new ServletException("failed to deserialize Object in request", e);
-				}
-			}
-			else {
-				InputStream stream = request.getInputStream();
-				int length = request.getContentLength();
-				if (length == -1) {
-					throw new RequiredContentLengthUnavailableException();
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("received " + request.getMethod() + " request, "
-							+ "creating byte array payload with content lenth: " + length);
-				}
-				byte[] bytes = new byte[length];
-				stream.read(bytes, 0, length);
-				payload = bytes;
-			}
-			MessageBuilder<?> builder = MessageBuilder.withPayload(payload);
-			this.populateHeaders(request, builder, true);
-			message = builder.build();
-		}
-		return message;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void populateHeaders(HttpServletRequest request, MessageBuilder<?> builder, boolean includeParameters) {
-		Enumeration<?> headerNames = request.getHeaderNames();
-		if (headerNames != null) {
-			while (headerNames.hasMoreElements()) {
-				String headerName = (String) headerNames.nextElement();
-				Enumeration<?> headerEnum = request.getHeaders(headerName);
-				if (headerEnum != null) {
-					List<Object> headers = new ArrayList<Object>();
-					while (headerEnum.hasMoreElements()) {
-						headers.add(headerEnum.nextElement());
-					}
-					if (headers.size() == 1) {
-						builder.setHeader(headerName, headers.get(0));
-					}
-					else if (headers.size() > 1) {
-						builder.setHeader(headerName, headers);
-					}
-				}
-			}
-		}
-		if (includeParameters) {
-			builder.copyHeaders(request.getParameterMap());
-		}
-		builder.setHeader(HttpHeaders.REQUEST_URL, request.getRequestURL().toString());
-		builder.setHeader(HttpHeaders.REQUEST_METHOD, request.getMethod());
-		builder.setHeader(HttpHeaders.USER_PRINCIPAL, request.getUserPrincipal());
 	}
 
 	private Object handleRequestMessage(Message<?> requestMessage) {
@@ -377,11 +260,6 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 		else {
 			throw new ServletException("failed to generate HTTP response from reply Message");
 		}
-	}
-
-
-	@SuppressWarnings("serial")
-	private static class RequiredContentLengthUnavailableException extends RuntimeException {
 	}
 
 }
