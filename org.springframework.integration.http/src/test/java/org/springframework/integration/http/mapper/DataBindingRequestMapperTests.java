@@ -84,7 +84,7 @@ public class DataBindingRequestMapperTests {
 	}
 
 
-	static class TestBean {
+	public static class TestBean {
 
 		String name;
 
