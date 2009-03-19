@@ -51,7 +51,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.http.RequestMapper"/>
+							<tool:expected-type type="org.springframework.integration.http.InboundRequestMapper"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -84,7 +84,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.http.RequestMapper"/>
+									<tool:expected-type type="org.springframework.integration.http.InboundRequestMapper"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
