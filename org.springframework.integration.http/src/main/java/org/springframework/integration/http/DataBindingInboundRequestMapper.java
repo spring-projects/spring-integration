@@ -32,18 +32,18 @@ import org.springframework.web.bind.support.WebBindingInitializer;
 import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 
 /**
- * RequestMapper implementation that binds the request parameter map to a
- * target instance. The target instance may be a non-singleton bean as
+ * InboundRequestMapper implementation that binds the request parameter map to
+ * a target instance. The target instance may be a non-singleton bean as
  * specified by the {@link #setTargetBeanName(String) 'targetBeanName'}
- * property. Otherwise, this transformer's target type must provide a
- * default no-arg constructor.
+ * property. Otherwise, this mapper's target type must provide a default,
+ * no-arg constructor.
  * 
  * @author Mark Fisher
  * @since 1.0.2
  */
-public class DataBindingRequestMapper implements RequestMapper, BeanFactoryAware, InitializingBean {
+public class DataBindingInboundRequestMapper implements InboundRequestMapper, BeanFactoryAware, InitializingBean {
 
-	private final Class<?> targetType;
+	private volatile Class<?> targetType = Object.class;
 
 	private volatile String targetBeanName;
 
@@ -54,11 +54,19 @@ public class DataBindingRequestMapper implements RequestMapper, BeanFactoryAware
 	private volatile boolean validated;
 
 
-	public DataBindingRequestMapper(Class<?> targetType) {
+	public DataBindingInboundRequestMapper() {
+		this.targetType = Object.class;
+	}
+
+	public DataBindingInboundRequestMapper(Class<?> targetType) {
 		Assert.notNull(targetType, "targetType must not be null");
 		this.targetType = targetType;
 	}
 
+
+	public void setTargetType(Class<?> targetType) {
+		this.targetType = targetType;
+	}
 
 	/**
 	 * Specify the name of a bean definition to use when creating the target
@@ -89,6 +97,10 @@ public class DataBindingRequestMapper implements RequestMapper, BeanFactoryAware
 	}
 
 	public final void afterPropertiesSet() {
+		if (this.targetBeanName == null && Object.class.equals(this.targetType)) {
+			throw new IllegalArgumentException(
+					"When no 'targetBeanName' is provided, the 'targetType' must be more specific than Object.");
+		}
 		this.validateTargetBeanIfNecessary();
 	}
 
@@ -98,12 +110,16 @@ public class DataBindingRequestMapper implements RequestMapper, BeanFactoryAware
 			if (this.beanFactory.isSingleton(this.targetBeanName)) {
 				throw new IllegalArgumentException("binding target bean must not be a singleton");
 			}
+			Class<?> beanType = this.beanFactory.getType(this.targetBeanName);
+			if (beanType != null) {
+				Assert.isAssignable(this.targetType, beanType);
+			}
 			this.validated = true;
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public Message<?> mapRequest(HttpServletRequest request) throws Exception {
+	public Message<?> toMessage(HttpServletRequest request) throws Exception {
 		ServletRequestDataBinder binder = new ServletRequestDataBinder(getTarget());
 		this.initBinder(binder, request);
 		binder.bind(request);

@@ -24,22 +24,22 @@ import org.junit.Test;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.http.DataBindingRequestMapper;
+import org.springframework.integration.http.DataBindingInboundRequestMapper;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;
 
 /**
  * @author Mark Fisher
  */
-public class DataBindingRequestMapperTests {
+public class DataBindingInboundRequestMapperTests {
 
 	@Test
 	public void bindToType() throws Exception {
-		DataBindingRequestMapper mapper = new DataBindingRequestMapper(TestBean.class);
+		DataBindingInboundRequestMapper mapper = new DataBindingInboundRequestMapper(TestBean.class);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter("name", "testBean");
 		request.setParameter("age", "42");
-		Message<?> result = mapper.mapRequest(request);
+		Message<?> result = mapper.toMessage(request);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		TestBean payload = (TestBean) result.getPayload();
@@ -49,14 +49,14 @@ public class DataBindingRequestMapperTests {
 
 	@Test
 	public void bindToTypeWithBindingInitializer() throws Exception {
-		DataBindingRequestMapper mapper = new DataBindingRequestMapper(TestBean.class);
+		DataBindingInboundRequestMapper mapper = new DataBindingInboundRequestMapper(TestBean.class);
 		ConfigurableWebBindingInitializer initializer = new ConfigurableWebBindingInitializer();
 		initializer.setDirectFieldAccess(true);
 		mapper.setWebBindingInitializer(initializer);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter("name", "testBean");
 		request.setParameter("age", "42");
-		Message<?> result = mapper.mapRequest(request);
+		Message<?> result = mapper.toMessage(request);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		TestBean payload = (TestBean) result.getPayload();
@@ -70,12 +70,12 @@ public class DataBindingRequestMapperTests {
 		MutablePropertyValues properties = new MutablePropertyValues();
 		properties.addPropertyValue("name", "prototype");
 		context.registerPrototype("prototypeTarget", TestBean.class, properties);
-		DataBindingRequestMapper mapper = new DataBindingRequestMapper(TestBean.class);
+		DataBindingInboundRequestMapper mapper = new DataBindingInboundRequestMapper(TestBean.class);
 		mapper.setTargetBeanName("prototypeTarget");
 		mapper.setBeanFactory(context);
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setParameter("age", "42");
-		Message<?> result = mapper.mapRequest(request);
+		Message<?> result = mapper.toMessage(request);
 		assertNotNull(result);
 		assertEquals(TestBean.class, result.getPayload().getClass());
 		TestBean payload = (TestBean) result.getPayload();

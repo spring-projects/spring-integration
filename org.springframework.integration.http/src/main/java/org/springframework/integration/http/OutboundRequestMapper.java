@@ -16,26 +16,14 @@
 
 package org.springframework.integration.http;
 
+import org.springframework.integration.message.OutboundMessageMapper;
+
 /**
- * Exception that provides a response status code. This can be used by
- * {@link InboundRequestMapper} implementations to indicate an error.
+ * Strategy for mapping to an {@link HttpRequest} from a message.
  * 
  * @author Mark Fisher
  * @since 1.0.2
  */
-@SuppressWarnings("serial")
-public class ResponseStatusCodeException extends Exception {
-
-	private final int statusCode;
-
-
-	public ResponseStatusCodeException(int statusCode) {
-		this.statusCode = statusCode;
-	}
-
-
-	public int getStatusCode() {
-		return this.statusCode;
-	}
+public interface OutboundRequestMapper extends OutboundMessageMapper<HttpRequest> {
 
 }

@@ -157,8 +157,8 @@ public class HttpInboundEndpointTests {
 	@Test
 	public void handleRequest_withCustomRequestMapper_requestObjectIsInPayload()
 			throws ServletException, IOException {
-		endpoint.setRequestMapper(new RequestMapper() {
-			public Message<?> mapRequest(HttpServletRequest request) throws Exception {
+		endpoint.setRequestMapper(new InboundRequestMapper() {
+			public Message<?> toMessage(HttpServletRequest request) throws Exception {
 				return new StringMessage(request.getRequestURI());
 			}
 		});

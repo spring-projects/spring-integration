@@ -42,11 +42,11 @@ import org.springframework.web.servlet.View;
  * By default GET and POST requests are accepted, but the 'supportedMethods'
  * property may be set to include others or limit the options (e.g. POST only).
  * By default the request will be converted to a Message payload according to
- * the rules of the {@link DefaultRequestMapper}.
+ * the rules of the {@link DefaultInboundRequestMapper}.
  * <p/>
  * To customize the mapping of the request to the Message payload, provide
- * a reference to a {@link RequestMapper} implementation to the
- * {@link #setRequestMapper(RequestMapper)} method.
+ * a reference to an {@link InboundRequestMapper} implementation to the
+ * {@link #setRequestMapper(InboundRequestMapper)} method.
  * <p/>
  * The value for {@link #expectReply} is <code>false</code> by default.
  * This means that as soon as the Message is created and passed to the
@@ -87,7 +87,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 
 	private volatile boolean expectReply;
 
-	private volatile RequestMapper requestMapper = new DefaultRequestMapper();
+	private volatile InboundRequestMapper requestMapper = new DefaultInboundRequestMapper();
 
 	private volatile boolean extractReplyPayload = true;
 
@@ -120,11 +120,11 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	}
 
 	/**
-	 * Specify a {@link RequestMapper} implementation to map from the
+	 * Specify a {@link InboundRequestMapper} implementation to map from the
 	 * inbound HTTP request to a Message. The default implementation
-	 * is {@link DefaultRequestMapper}.
+	 * is {@link DefaultInboundRequestMapper}.
 	 */
-	public void setRequestMapper(RequestMapper requestMapper) {
+	public void setRequestMapper(InboundRequestMapper requestMapper) {
 		Assert.notNull(requestMapper, "requestMapper must not be null");
 		this.requestMapper = requestMapper;
 	}
@@ -178,7 +178,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 			return;
 		}
 		try {
-			Message<?> requestMessage = this.requestMapper.mapRequest(request);
+			Message<?> requestMessage = this.requestMapper.toMessage(request);
 			Object reply = this.handleRequestMessage(requestMessage);
 			this.generateResponse(requestMessage, reply, request, response);
 		}

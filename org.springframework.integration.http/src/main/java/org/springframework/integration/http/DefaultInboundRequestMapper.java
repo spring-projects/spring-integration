@@ -17,7 +17,6 @@
 package org.springframework.integration.http;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
- * Default implementation of {@link RequestMapper} for inbound HttpServletRequests.
+ * Default implementation of {@link InboundRequestMapper} for inbound HttpServletRequests.
  * The request will be mapped according to the following rules:
  * <ul>
  * <li>For a GET request, the parameter Map will be copied as the payload.
@@ -64,16 +63,16 @@ import org.springframework.integration.message.MessageBuilder;
  * @author Mark Fisher
  * @since 1.0.2
  */
-public class DefaultRequestMapper implements RequestMapper {
+public class DefaultInboundRequestMapper implements InboundRequestMapper {
 
 	private Log logger = LogFactory.getLog(getClass());
 
 
-	public Message<?> mapRequest(HttpServletRequest request) throws ServletException, IOException, ResponseStatusCodeException {
+	public Message<?> toMessage(HttpServletRequest request) throws Exception {
 		Message<?> message = null;
 		String contentType = request.getContentType();
 		if (request.getMethod().equals("GET")) {
-			message = this.mapGetRequest(request);
+			message = this.createMessageFromGetRequest(request);
 		}
 		else {
 			Object payload = null;
@@ -121,7 +120,7 @@ public class DefaultRequestMapper implements RequestMapper {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Message<?> mapGetRequest(HttpServletRequest request) {
+	private Message<?> createMessageFromGetRequest(HttpServletRequest request) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("received GET request, using parameter map as payload");
 		}

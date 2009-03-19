@@ -16,26 +16,18 @@
 
 package org.springframework.integration.http;
 
+import java.io.InputStream;
+
 /**
- * Exception that provides a response status code. This can be used by
- * {@link InboundRequestMapper} implementations to indicate an error.
+ * Strategy that will allow a http request response exchange with a remote
+ * server.
  * 
+ * @author Iwein Fuld
  * @author Mark Fisher
  * @since 1.0.2
  */
-@SuppressWarnings("serial")
-public class ResponseStatusCodeException extends Exception {
+public interface HttpRequestExecutor {
 
-	private final int statusCode;
-
-
-	public ResponseStatusCodeException(int statusCode) {
-		this.statusCode = statusCode;
-	}
-
-
-	public int getStatusCode() {
-		return this.statusCode;
-	}
+	InputStream executeRequest(HttpRequest request) throws Exception;
 
 }

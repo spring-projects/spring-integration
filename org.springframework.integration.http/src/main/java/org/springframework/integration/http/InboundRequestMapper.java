@@ -18,16 +18,15 @@ package org.springframework.integration.http;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.message.InboundMessageMapper;
 
 /**
  * Strategy interface for mapping from an inbound {@link HttpServletRequest}
  * to a Message.
  * 
  * @author Mark Fisher
+ * @since 1.0.2
  */
-public interface RequestMapper {
-
-	Message<?> mapRequest(HttpServletRequest request) throws Exception;
+public interface InboundRequestMapper extends InboundMessageMapper<HttpServletRequest> {
 
 }

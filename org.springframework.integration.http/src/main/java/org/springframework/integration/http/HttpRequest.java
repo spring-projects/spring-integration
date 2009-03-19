@@ -16,26 +16,41 @@
 
 package org.springframework.integration.http;
 
+import java.io.ByteArrayOutputStream;
+import java.net.URL;
+
 /**
- * Exception that provides a response status code. This can be used by
- * {@link InboundRequestMapper} implementations to indicate an error.
+ * Representation of an HTTP request to be executed by an implementation of
+ * the {@link HttpRequestExecutor} strategy.
  * 
  * @author Mark Fisher
  * @since 1.0.2
  */
-@SuppressWarnings("serial")
-public class ResponseStatusCodeException extends Exception {
+public interface HttpRequest {
 
-	private final int statusCode;
+	/**
+	 * Return the target URL for this request.
+	 */
+	URL getTargetUrl();
 
+	/**
+	 * Return the request method ("GET", "POST", etc).
+	 */
+	String getRequestMethod();
 
-	public ResponseStatusCodeException(int statusCode) {
-		this.statusCode = statusCode;
-	}
+	/**
+	 * Return the content type for requests.
+	 */
+	String getContentType();
 
+	/**
+	 * Return the content length if known, else <code>null</code>.
+	 */
+	Integer getContentLength();
 
-	public int getStatusCode() {
-		return this.statusCode;
-	}
+	/**
+	 * Return the request body as a {@link ByteArrayOutputStream}.
+	 */
+	ByteArrayOutputStream getBody();
 
 }
