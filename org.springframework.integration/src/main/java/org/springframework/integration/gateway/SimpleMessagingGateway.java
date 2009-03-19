@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.util.Assert;
@@ -55,12 +56,28 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 
 	@Override
 	protected Object fromMessage(Message<?> message) {
-		return this.outboundMapper.fromMessage(message);
+		try {
+			return this.outboundMapper.fromMessage(message);
+		}
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new MessagingException(message, e);
+		}
 	}
 
 	@Override
 	protected Message<?> toMessage(Object object) {
-		return this.inboundMapper.toMessage(object);
+		try {
+			return this.inboundMapper.toMessage(object);
+		}
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new MessagingException("failed to create Message", e);
+		}
 	}
 
 }

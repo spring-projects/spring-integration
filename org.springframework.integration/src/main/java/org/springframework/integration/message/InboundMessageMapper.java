@@ -25,6 +25,6 @@ import org.springframework.integration.core.Message;
  */
 public interface InboundMessageMapper<T> {
 
-	Message<?> toMessage(T object);
+	Message<?> toMessage(T object) throws Exception;
 
 }

@@ -100,8 +100,9 @@ public class MessageMappingMethodInvoker {
 			return null;
 		}
 		Method method = this.methodResolver.resolveHandlerMethod(message);
-		Object[] args = this.createArgumentArrayFromMessage(method, message);
+		Object[] args = null;
 		try {
+			args = this.createArgumentArrayFromMessage(method, message);
 			return this.doInvokeMethod(method, args, message);
 		}
 		catch (InvocationTargetException e) {
@@ -146,7 +147,7 @@ public class MessageMappingMethodInvoker {
 		return result;
 	}
 
-	private Object[] createArgumentArrayFromMessage(Method method, Message<?> message) {
+	private Object[] createArgumentArrayFromMessage(Method method, Message<?> message) throws Exception {
 		Object args[] = null;
 		Object mappingResult = this.methodsExpectingMessage.contains(method)
 				? message : this.resolveParameters(method, message);
@@ -160,7 +161,7 @@ public class MessageMappingMethodInvoker {
 		return args;
 	}
 
-	private Object[] resolveParameters(Method method, Message<?> message) {
+	private Object[] resolveParameters(Method method, Message<?> message) throws Exception {
 		OutboundMessageMapper<Object[]> mapper = this.messageMappers.get(method);
 		if (mapper == null) {
 			mapper = new MethodParameterMessageMapper(method);

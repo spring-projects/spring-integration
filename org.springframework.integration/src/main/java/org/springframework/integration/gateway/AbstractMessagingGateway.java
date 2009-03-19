@@ -135,7 +135,15 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
 		Message<?> message = this.channelTemplate.receive((PollableChannel) this.replyChannel);
-		return this.fromMessage(message);
+		try {
+			return this.fromMessage(message);
+		}
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			else throw new MessagingException(message, e);
+		}
 	}
 
 	public Object sendAndReceive(Object object) {
