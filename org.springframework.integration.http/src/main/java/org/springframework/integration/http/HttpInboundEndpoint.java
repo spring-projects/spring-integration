@@ -120,9 +120,9 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 	}
 
 	/**
-	 * Specify a {@link InboundRequestMapper} implementation to map from the
-	 * inbound HTTP request to a Message. The default implementation
-	 * is {@link DefaultInboundRequestMapper}.
+	 * Specify an {@link InboundRequestMapper} implementation to map from the
+	 * inbound {@link HttpServletRequest} instances to Messages at runtime.
+	 * The default implementation is {@link DefaultInboundRequestMapper}.
 	 */
 	public void setRequestMapper(InboundRequestMapper requestMapper) {
 		Assert.notNull(requestMapper, "requestMapper must not be null");
