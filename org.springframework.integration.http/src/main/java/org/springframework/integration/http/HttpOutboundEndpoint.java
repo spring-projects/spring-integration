@@ -42,10 +42,15 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 
 	/**
-	 * Create an HttpOutboundEndpoint for sending requests to the provided URL.
+	 * Create an HttpOutboundEndpoint that will send requests to the provided
+	 * URL by default. If a Message contains a valid value for the 
+	 * {@link HttpHeaders#REQUEST_URL} header, that will take precedence.
+	 * If a custom {@link OutboundRequestMapper} instance is registered
+	 * through the {@link #setRequestMapper(OutboundRequestMapper)} method,
+	 * this default URL will not be used.
 	 */
-	public HttpOutboundEndpoint(URL url) {
-		this.requestMapper = new DefaultOutboundRequestMapper(url);
+	public HttpOutboundEndpoint(URL defaultUrl) {
+		this.requestMapper = new DefaultOutboundRequestMapper(defaultUrl);
 		this.requestExecutor = new SimpleHttpRequestExecutor();
 	}
 

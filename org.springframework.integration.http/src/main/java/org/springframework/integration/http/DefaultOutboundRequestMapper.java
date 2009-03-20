@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -61,39 +63,24 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		Assert.notNull(message, "message must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "payload must not be null");
+		ByteArrayOutputStream requestBody = new ByteArrayOutputStream();
 		String contentType = null;
-		byte[] bytes = null;
-		Map<String, String[]> parameterMap = null;
-		if (payload instanceof Map) {
-			parameterMap = this.createParameterMap((Map<?,?>) payload);
-			if (parameterMap == null) {
-				Assert.isInstanceOf(Serializable.class, payload);
-				bytes = this.serializePayload((Serializable) payload);
-				contentType = "application/x-java-serialized-object";
-			}
-		}
-		else if (payload instanceof byte[]) {
-			bytes = (byte[]) payload;
-		}
-		else if (payload instanceof String) {
-			bytes = ((String) payload).getBytes(this.charset);
-			contentType = "text/plain";
-		}
-		else if (payload instanceof Serializable) {
-			bytes = this.serializePayload((Serializable) payload);
-			contentType = "application/x-java-serialized-object";
+		URL url = this.resolveUrl(message);
+		Object requestMethodHeader = message.getHeaders().get(HttpHeaders.REQUEST_METHOD);
+		String requestMethod = (requestMethodHeader != null) ?
+				requestMethodHeader.toString().toUpperCase() : "POST";
+		if ("POST".equals(requestMethod) || "PUT".equals(requestMethod)) {
+			contentType = this.writePayloadToRequestBody(payload, requestBody);
 		}
 		else {
-			throw new IllegalArgumentException(
-					"payload must be a byte array, String, Serializable object, or a " +
-					"Map with String typed keys and String or String array typed values.");
+			Assert.isTrue(payload instanceof Map,
+					"Message payload must be a Map for a '" + requestMethod + "' request.");
+			Map<String, String[]> parameterMap = this.createParameterMap((Map<?,?>) payload);
+			Assert.notNull(parameterMap, "Payload must be a Map with String typed keys and " +
+					"String or String array typed values for a '" + requestMethod + "' request.");
+			url = this.addQueryParametersToUrl(url, parameterMap);
 		}
-		URL url = this.resolveUrl(message);
-		String method = (parameterMap != null) ? "GET" : "POST";
-		if (method.equals("GET")) {
-			url = this.addQueryParameters(url, parameterMap);
-		}
-		return new DefaultHttpRequest(url, method, bytes, contentType);
+		return new DefaultHttpRequest(url, requestMethod, requestBody, contentType);
 	}
 
 	/**
@@ -124,6 +111,26 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return parameterMap;
 	}
 
+	private String writePayloadToRequestBody(Object payload, ByteArrayOutputStream byteStream) throws Exception {
+		String contentType = null;
+		if (payload instanceof byte[]) {
+			byteStream.write((byte[]) payload);
+		}
+		else if (payload instanceof String) {
+			byteStream.write(((String) payload).getBytes(this.charset));
+			contentType = "text/plain; charset=" + this.charset;
+		}
+		else if (payload instanceof Serializable) {
+			byteStream.write(this.serializePayload((Serializable) payload));
+			contentType = "application/x-java-serialized-object";
+		}
+		else {
+			throw new IllegalArgumentException("payload must be a byte array, " +
+					"String, or Serializable object for a 'POST' or 'PUT' request");
+		}
+		return contentType;
+	}
+
 	private byte[] serializePayload(Serializable payload) throws IOException {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
@@ -135,13 +142,33 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 
 	/**
 	 * Resolve the request URL for the given Message. This implementation
-	 * simply returns the default URL as provided to the constructor.  
+	 * returns the value associated with the {@link HttpHeaders#REQUEST_URL}
+	 * key if available in the Message's headers. Otherwise, it falls back to
+	 * the default URL as provided to the constructor of this mapper instance.
+	 * @throws MalformedURLException if an error occurs while constructing the URL
 	 */
-	protected URL resolveUrl(Message<?> message) {
-		return this.defaultUrl;
+	private URL resolveUrl(Message<?> message) throws MalformedURLException {
+		Object urlHeader = message.getHeaders().get(HttpHeaders.REQUEST_URL);
+		if (urlHeader == null) {
+			return this.defaultUrl;
+		}
+		if (urlHeader instanceof URL) {
+			return (URL) urlHeader;
+		}
+		if (urlHeader instanceof URI) {
+			return ((URI) urlHeader).toURL();
+		}
+		if (urlHeader instanceof String) {
+			return new URL((String) urlHeader);
+		}
+		throw new IllegalArgumentException("Target URL in Message header must be a URL, URI, or String.");
 	}
 
-	private URL addQueryParameters(URL url, Map<String, String[]> parameterMap) throws Exception {
+	/**
+	 * Constructs a query string by appending the parameter map values to the URL.
+	 * @throws Exception if an error occurs encoding or constructing the URL
+	 */
+	private URL addQueryParametersToUrl(URL url, Map<String, String[]> parameterMap) throws Exception {
 		if (parameterMap == null || parameterMap.size() == 0) {
 			return url;
 		}
@@ -172,6 +199,9 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 	}
 
 
+	/**
+	 * Default implementation of {@link HttpRequest}.
+	 */
 	class DefaultHttpRequest implements HttpRequest {
 
 		private final URL targetUrl;
@@ -183,15 +213,14 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		private volatile ByteArrayOutputStream requestBody;
 
 
-		DefaultHttpRequest(URL targetUrl, String requestMethod, byte[] content, String contentType) throws IOException {
+		DefaultHttpRequest(
+				URL targetUrl, String requestMethod, ByteArrayOutputStream requestBody, String contentType)
+				throws IOException {
 			Assert.notNull(targetUrl, "target url must not be null");
 			this.targetUrl = targetUrl;
-			if (content != null && content.length > 0) {
-				this.requestBody = new ByteArrayOutputStream();
-				this.requestBody.write(content);
-			}
-			this.contentType = contentType;
 			this.requestMethod = (requestMethod != null) ? requestMethod : "POST";
+			this.requestBody = requestBody;
+			this.contentType = contentType;
 		}
 
 
