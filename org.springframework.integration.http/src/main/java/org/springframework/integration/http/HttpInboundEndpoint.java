@@ -235,13 +235,16 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 			httpResponse.setStatus(HttpServletResponse.SC_OK);
 		}
 		else if (reply instanceof String) {
+			httpResponse.setContentType("text/plain");
+			httpResponse.setContentLength(((String) reply).length());
 			httpResponse.getWriter().print((String) reply);
 			httpResponse.flushBuffer();
 		}
 		else if (reply instanceof byte[]) {
 			byte[] bytes = (byte[]) reply;
-			httpResponse.getOutputStream().write(bytes);
+			httpResponse.setContentType("application/octet-stream");
 			httpResponse.setContentLength(bytes.length);
+			httpResponse.getOutputStream().write(bytes);
 			httpResponse.flushBuffer();
 		}
 		else if (reply instanceof Serializable) {
