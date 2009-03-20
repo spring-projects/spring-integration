@@ -159,7 +159,7 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
 			String[] values = entry.getValue();
 			for (String value : values) {
-				char lastChar = urlString.charAt(urlString.length() -1);
+				char lastChar = sb.charAt(sb.length() -1);
 				if (lastChar != '?' && lastChar != '&') {
 					sb.append('&');
 				}
