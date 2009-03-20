@@ -115,6 +115,7 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		String contentType = null;
 		if (payload instanceof byte[]) {
 			byteStream.write((byte[]) payload);
+			contentType = "application/octet-stream";
 		}
 		else if (payload instanceof String) {
 			byteStream.write(((String) payload).getBytes(this.charset));
