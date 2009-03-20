@@ -21,7 +21,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
@@ -60,7 +63,16 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		Assert.notNull(payload, "payload must not be null");
 		String contentType = null;
 		byte[] bytes = null;
-		if (payload instanceof byte[]) {
+		Map<String, String[]> parameterMap = null;
+		if (payload instanceof Map) {
+			parameterMap = this.createParameterMap((Map<?,?>) payload);
+			if (parameterMap == null) {
+				Assert.isInstanceOf(Serializable.class, payload);
+				bytes = this.serializePayload((Serializable) payload);
+				contentType = "application/x-java-serialized-object";
+			}
+		}
+		else if (payload instanceof byte[]) {
 			bytes = (byte[]) payload;
 		}
 		else if (payload instanceof String) {
@@ -68,21 +80,57 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 			contentType = "text/plain";
 		}
 		else if (payload instanceof Serializable) {
-			ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-			ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-			objectStream.writeObject(payload);
-			objectStream.flush();
-			objectStream.close();
-			bytes = byteStream.toByteArray();
+			bytes = this.serializePayload((Serializable) payload);
 			contentType = "application/x-java-serialized-object";
 		}
 		else {
 			throw new IllegalArgumentException(
-					"payload must be a byte array, String, or Serializable object");
+					"payload must be a byte array, String, Serializable object, or a " +
+					"Map with String typed keys and String or String array typed values.");
 		}
 		URL url = this.resolveUrl(message);
-		String method = "POST"; // TODO: support GET for Map payload
+		String method = (parameterMap != null) ? "GET" : "POST";
+		if (method.equals("GET")) {
+			url = this.addQueryParameters(url, parameterMap);
+		}
 		return new DefaultHttpRequest(url, method, bytes, contentType);
+	}
+
+	/**
+	 * Creates a parameter map with String keys and String array values from
+	 * the provided map if possible. If the provided map contains any keys that
+	 * are not String typed, or any values that are not String or String array
+	 * typed, then this method will return <code>null</code>.
+	 */
+	private Map<String, String[]> createParameterMap(Map<?,?> map) {
+		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
+		for (Object key : map.keySet()) {
+			if (!(key instanceof String)) {
+				return null;
+			}
+			String[] stringArrayValue = null;
+			Object value = map.get(key);
+			if (value instanceof String) {
+				stringArrayValue = new String[] { (String) value };
+			}
+			else if (value instanceof String[]) {
+				stringArrayValue = (String[]) value;
+			}
+			else {
+				return null;
+			}
+			parameterMap.put((String) key, stringArrayValue);
+		}
+		return parameterMap;
+	}
+
+	private byte[] serializePayload(Serializable payload) throws IOException {
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+		objectStream.writeObject(payload);
+		objectStream.flush();
+		objectStream.close();
+		return byteStream.toByteArray();
 	}
 
 	/**
@@ -93,6 +141,36 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return this.defaultUrl;
 	}
 
+	private URL addQueryParameters(URL url, Map<String, String[]> parameterMap) throws Exception {
+		if (parameterMap == null || parameterMap.size() == 0) {
+			return url;
+		}
+		String urlString = url.toExternalForm();
+		String fragment = "";
+		int fragmentStartIndex = urlString.indexOf('#');
+		if (fragmentStartIndex != -1) {
+			fragment = urlString.substring(fragmentStartIndex);
+			urlString = urlString.substring(0, fragmentStartIndex);
+		}
+		StringBuilder sb = new StringBuilder(urlString);
+		if (urlString.indexOf('?') == -1) {
+			sb.append('?');
+		}
+		for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+			String[] values = entry.getValue();
+			for (String value : values) {
+				char lastChar = urlString.charAt(urlString.length() -1);
+				if (lastChar != '?' && lastChar != '&') {
+					sb.append('&');
+				}
+				sb.append(URLEncoder.encode(entry.getKey(), this.charset) + "=");
+				sb.append(URLEncoder.encode(value, this.charset));
+			}
+		}
+		sb.append(fragment);
+		return new URL(sb.toString());
+	}
+
 
 	class DefaultHttpRequest implements HttpRequest {
 
@@ -100,20 +178,22 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 
 		private final String requestMethod;
 
-		private final ByteArrayOutputStream requestBody;
-
 		private final String contentType;
+
+		private volatile ByteArrayOutputStream requestBody;
 
 
 		DefaultHttpRequest(URL targetUrl, String requestMethod, byte[] content, String contentType) throws IOException {
 			Assert.notNull(targetUrl, "target url must not be null");
 			this.targetUrl = targetUrl;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			baos.write(content);
-			this.requestBody = baos;
+			if (content != null && content.length > 0) {
+				this.requestBody = new ByteArrayOutputStream();
+				this.requestBody.write(content);
+			}
 			this.contentType = contentType;
 			this.requestMethod = (requestMethod != null) ? requestMethod : "POST";
 		}
+
 
 		public URL getTargetUrl() {
 			return this.targetUrl;
@@ -123,17 +203,18 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 			return this.requestMethod;
 		}
 
+		public String getContentType() {
+			return this.contentType;
+		}
+
+		public Integer getContentLength() {
+			return (this.requestBody != null) ? this.requestBody.size() : null;
+		}
+
 		public ByteArrayOutputStream getBody() {
 			return this.requestBody;
 		}
 
-		public Integer getContentLength() {
-			return this.requestBody.size();
-		}
-
-		public String getContentType() {
-			return this.contentType;
-		}
 	}
 
 }

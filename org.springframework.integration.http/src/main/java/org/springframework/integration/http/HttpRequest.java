@@ -49,7 +49,8 @@ public interface HttpRequest {
 	Integer getContentLength();
 
 	/**
-	 * Return the request body as a {@link ByteArrayOutputStream}.
+	 * Return the request body as a {@link ByteArrayOutputStream},
+	 * or <code>null</code> if this request has no body content.
 	 */
 	ByteArrayOutputStream getBody();
 

@@ -26,6 +26,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,11 +57,11 @@ public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	 * @see java.net.URL#openConnection()
 	 */
 	private HttpURLConnection openConnection(URL url) throws IOException {
-		URLConnection con = url.openConnection();
-		if (!(con instanceof HttpURLConnection)) {
+		URLConnection connection = url.openConnection();
+		if (!(connection instanceof HttpURLConnection)) {
 			throw new IOException("target URL [" + url + "] is not an HTTP URL");
 		}
-		return (HttpURLConnection) con;
+		return (HttpURLConnection) connection;
 	}
 
 	/**
@@ -68,42 +69,55 @@ public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	 * <p>
 	 * The request method (e.g. "POST), "Content-Type" header, and content
 	 * length will be determined from the provided {@link HttpRequest}. 
+	 * @param connection HttpURLConnection the connection to prepare
 	 * @param request HttpRequest for which the connection should be prepared
 	 * @throws IOException if thrown by HttpURLConnection methods
 	 * @see java.net.HttpURLConnection#setRequestMethod
 	 * @see java.net.HttpURLConnection#setRequestProperty
 	 */
-	private void prepareConnection(HttpURLConnection con, HttpRequest request) throws IOException {
-		con.setDoOutput(true);
-		con.setRequestMethod(request.getRequestMethod());
+	private void prepareConnection(HttpURLConnection connection, HttpRequest request) throws IOException {
+		connection.setDoInput(true);
+		String requestMethod = request.getRequestMethod();
+		if ("PUT".equals(requestMethod) || "POST".equals(requestMethod)) {
+			connection.setDoOutput(true);
+		}
+		else {
+			connection.setDoOutput(false);
+		}
+		connection.setRequestMethod(request.getRequestMethod());
 		String contentType = request.getContentType();
 		if (contentType != null) {
-			con.setRequestProperty(HTTP_HEADER_CONTENT_TYPE, contentType);
+			connection.setRequestProperty(HTTP_HEADER_CONTENT_TYPE, contentType);
 		}
 		Integer contentLength = request.getContentLength();
 		if (contentLength != null) {
-			con.setRequestProperty(HTTP_HEADER_CONTENT_LENGTH, contentLength.toString());
+			connection.setRequestProperty(HTTP_HEADER_CONTENT_LENGTH, contentLength.toString());
 		}
 		LocaleContext locale = LocaleContextHolder.getLocaleContext();
 		if (locale != null) {
-			con.setRequestProperty(HTTP_HEADER_ACCEPT_LANGUAGE,
+			connection.setRequestProperty(HTTP_HEADER_ACCEPT_LANGUAGE,
 					StringUtils.toLanguageTag(locale.getLocale()));
 		}
 		if (isAcceptGzipEncoding()) {
-			con.setRequestProperty(HTTP_HEADER_ACCEPT_ENCODING, ENCODING_GZIP);
+			connection.setRequestProperty(HTTP_HEADER_ACCEPT_ENCODING, ENCODING_GZIP);
 		}
 	}
 
-	private void writeRequestBody(HttpURLConnection con, ByteArrayOutputStream baos) throws IOException {
-		baos.writeTo(con.getOutputStream());
+	private void writeRequestBody(HttpURLConnection connection, ByteArrayOutputStream body) throws IOException {
+		if (body != null) {
+			byte[] bytes = body.toByteArray();
+			if (bytes.length > 0) {
+				FileCopyUtils.copy(bytes, connection.getOutputStream());
+			}
+		}
 	}
 
-	private void validateResponse(HttpURLConnection con) throws IOException {
-		if (con.getResponseCode() >= 300) {
+	private void validateResponse(HttpURLConnection connection) throws IOException {
+		if (connection.getResponseCode() >= 300) {
 			throw new IOException(
 					"Did not receive successful HTTP response: status code = "
-							+ con.getResponseCode() + ", status message = ["
-							+ con.getResponseMessage() + "]");
+							+ connection.getResponseCode() + ", status message = ["
+							+ connection.getResponseMessage() + "]");
 		}
 	}
 
@@ -114,21 +128,21 @@ public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	 * This implementation simply reads the HttpURLConnection's InputStream.
 	 * If the response is recognized as GZIP response, the InputStream will be
 	 * wrapped in a GZIPInputStream.
-	 * @param con the HttpURLConnection to read the response body from
+	 * @param connection the HttpURLConnection to read the response body from
 	 * @return an InputStream for the response body
 	 * @throws IOException if thrown by I/O methods
 	 * @see #isGzipResponse
 	 * @see java.util.zip.GZIPInputStream
 	 * @see java.net.HttpURLConnection#getInputStream()
 	 */
-	private InputStream readResponseBody(HttpURLConnection con) throws IOException {
-		if (isGzipResponse(con)) {
+	private InputStream readResponseBody(HttpURLConnection connection) throws IOException {
+		if (isGzipResponse(connection)) {
 			// GZIP response found - need to unzip.
-			return new GZIPInputStream(con.getInputStream());
+			return new GZIPInputStream(connection.getInputStream());
 		}
 		else {
 			// Plain response found.
-			return con.getInputStream();
+			return connection.getInputStream();
 		}
 	}
 
@@ -137,10 +151,10 @@ public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	 * <p>
 	 * This implementation checks whether the HTTP "Content-Encoding" header
 	 * contains "gzip" (in any casing).
-	 * @param con the HttpURLConnection to check
+	 * @param connection the HttpURLConnection to check
 	 */
-	private boolean isGzipResponse(HttpURLConnection con) {
-		String encodingHeader = con.getHeaderField(HTTP_HEADER_CONTENT_ENCODING);
+	private boolean isGzipResponse(HttpURLConnection connection) {
+		String encodingHeader = connection.getHeaderField(HTTP_HEADER_CONTENT_ENCODING);
 		return (encodingHeader != null
 				&& encodingHeader.toLowerCase().indexOf(ENCODING_GZIP) != -1);
 	}
