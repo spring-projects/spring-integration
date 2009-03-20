@@ -17,7 +17,10 @@
 package org.springframework.integration.http;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectStreamException;
 import java.net.URL;
 
 import org.springframework.integration.core.Message;
@@ -90,11 +93,52 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	}
 
 	private Object createReplyPayloadFromResponse(HttpResponse response) throws Exception {
-		ByteArrayOutputStream responseByteStream = new ByteArrayOutputStream();
 		InputStream responseBody = response.getBody();
 		Assert.notNull(responseBody, "received null response body");
+		String contentType = response.getFirstHeader("Content-Type");
+		if (contentType != null && contentType.startsWith("application/x-java-serialized-object")) {
+			return this.deserializePayload(responseBody);
+		}
+		ByteArrayOutputStream responseByteStream = new ByteArrayOutputStream();
 		FileCopyUtils.copy(responseBody, responseByteStream);
+		if (contentType != null && contentType.startsWith("text")) {
+			String charsetName = this.getCharsetName(response);
+			if (charsetName == null) {
+				charsetName = "ISO-8859-1";
+			}
+			return responseByteStream.toString(charsetName);
+		}
 		return responseByteStream.toByteArray();
+	}
+
+	private String getCharsetName(HttpResponse httpResponse) {
+		String contentType = httpResponse.getFirstHeader("Content-Type");
+		if (contentType != null) {
+			int beginIndex = contentType.indexOf("charset=");
+			if (beginIndex != -1) {
+				return contentType.substring(beginIndex + "charset=".length()).trim();
+			}
+		}
+		return null;
+	}
+
+	private Object deserializePayload(InputStream responseBody) throws IOException, ClassNotFoundException {
+		ObjectInputStream objectStream = null;
+		try {
+			objectStream = new ObjectInputStream(responseBody);
+			return objectStream.readObject();
+		}
+		catch (ObjectStreamException e) {
+			throw new IllegalArgumentException("failed to deserialize response", e);
+		}
+		finally {
+			try {
+				objectStream.close();
+			}
+			catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 
 }
