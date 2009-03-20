@@ -16,11 +16,8 @@
 
 package org.springframework.integration.http;
 
-import java.io.InputStream;
-
 /**
- * Strategy that will allow a http request response exchange with a remote
- * server.
+ * Strategy for executing an http request response exchange with a remote server.
  * 
  * @author Iwein Fuld
  * @author Mark Fisher
@@ -28,6 +25,6 @@ import java.io.InputStream;
  */
 public interface HttpRequestExecutor {
 
-	InputStream executeRequest(HttpRequest request) throws Exception;
+	HttpResponse executeRequest(HttpRequest request) throws Exception;
 
 }

@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.springframework.context.i18n.LocaleContext;
@@ -42,12 +44,13 @@ import org.springframework.util.StringUtils;
 public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 
 	@Override
-	protected InputStream doExecuteRequest(HttpRequest request) throws Exception {
+	protected HttpResponse doExecuteRequest(HttpRequest request) throws Exception {
 		HttpURLConnection connection = this.openConnection(request.getTargetUrl());
 		this.prepareConnection(connection, request);
 		this.writeRequestBody(connection, request.getBody());
 		this.validateResponse(connection);
-		return this.readResponseBody(connection);
+		InputStream responseBody = this.readResponseBody(connection);
+		return new DefaultHttpResponse(responseBody, this.getResponseHeaders(connection));
 	}
 
 	/**
@@ -144,6 +147,10 @@ public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 			// Plain response found.
 			return connection.getInputStream();
 		}
+	}
+
+	private Map<String, List<String>> getResponseHeaders(HttpURLConnection connection) {
+		return connection.getHeaderFields();
 	}
 
 	/**

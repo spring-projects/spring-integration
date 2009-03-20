@@ -79,8 +79,8 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
 		try {
 			HttpRequest request = this.requestMapper.fromMessage(requestMessage);
-			InputStream responseBody = this.requestExecutor.executeRequest(request);
-			Object replyPayload = this.createReplyPayloadFromResponse(responseBody);
+			HttpResponse response = this.requestExecutor.executeRequest(request);
+			Object replyPayload = this.createReplyPayloadFromResponse(response);
 			replyMessageHolder.set(replyPayload);
 		}
 		catch (Exception e) {
@@ -89,8 +89,10 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		}
 	}
 
-	private Object createReplyPayloadFromResponse(InputStream responseBody) throws Exception {
+	private Object createReplyPayloadFromResponse(HttpResponse response) throws Exception {
 		ByteArrayOutputStream responseByteStream = new ByteArrayOutputStream();
+		InputStream responseBody = response.getBody();
+		Assert.notNull(responseBody, "received null response body");
 		FileCopyUtils.copy(responseBody, responseByteStream);
 		return responseByteStream.toByteArray();
 	}

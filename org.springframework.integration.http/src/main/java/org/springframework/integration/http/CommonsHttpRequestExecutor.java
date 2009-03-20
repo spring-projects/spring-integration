@@ -20,6 +20,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.httpclient.Header;
@@ -39,8 +44,6 @@ import org.apache.commons.httpclient.methods.TraceMethod;
 
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.integration.http.AbstractHttpRequestExecutor;
-import org.springframework.integration.http.HttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -115,7 +118,7 @@ public class CommonsHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	}
 
 	@Override
-	protected InputStream doExecuteRequest(HttpRequest request) throws Exception {
+	protected HttpResponse doExecuteRequest(HttpRequest request) throws Exception {
 		HttpMethod httpMethod = createHttpMethod(request);
 		try {
 			if (httpMethod instanceof EntityEnclosingMethod) {
@@ -123,7 +126,7 @@ public class CommonsHttpRequestExecutor extends AbstractHttpRequestExecutor {
 			}
 			executeHttpMethod(getHttpClient(), httpMethod);
 			validateResponse(httpMethod);
-			return readResponseBody(httpMethod);
+			return new DefaultHttpResponse(readResponseBody(httpMethod), getResponseHeaders(httpMethod));
 		}
 		finally {
 			// Need to explicitly release because it might be pooled.
@@ -255,6 +258,21 @@ public class CommonsHttpRequestExecutor extends AbstractHttpRequestExecutor {
 			}
 		}
 		return responseStream;
+	}
+
+	private Map<String, List<String>> getResponseHeaders(HttpMethod httpMethod) {
+		Map<String, List<String>> headers = new HashMap<String, List<String>>();
+		for (Header header : httpMethod.getResponseHeaders()) {
+			String name = header.getName();
+			String value = header.getValue();
+			List<String> values = headers.get(name);
+			if (values == null) {
+				values = new ArrayList<String>();
+			}
+			values.add(value);
+			headers.put(name, values);
+		}
+		return Collections.unmodifiableMap(headers);
 	}
 
 	/**

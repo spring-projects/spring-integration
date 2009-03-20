@@ -18,6 +18,9 @@ package org.springframework.integration.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,11 +73,11 @@ public abstract class AbstractHttpRequestExecutor implements HttpRequestExecutor
 	/**
 	 * Execute a request to send its content to its target URL.
 	 * @param request the request to execute
-	 * @return the InputStream result
+	 * @return the HttpResponse result
 	 * @throws IOException if thrown by I/O operations
 	 * @throws Exception in case of general errors
 	 */
-	public final InputStream executeRequest(HttpRequest request) throws Exception {
+	public final HttpResponse executeRequest(HttpRequest request) throws Exception {
 		if (logger.isDebugEnabled()) {
 			StringBuilder sb = new StringBuilder("Sending HTTP request to [" + request.getTargetUrl() + "]");
 			Integer contentLength = request.getContentLength();
@@ -89,6 +92,41 @@ public abstract class AbstractHttpRequestExecutor implements HttpRequestExecutor
 	/**
 	 * Subclasses must implement this method to execute the request.
 	 */
-	protected abstract InputStream doExecuteRequest(HttpRequest request) throws Exception;
+	protected abstract HttpResponse doExecuteRequest(HttpRequest request) throws Exception;
+
+
+	/**
+	 * Default implementation of {@link HttpResponse}.
+	 */
+	class DefaultHttpResponse implements HttpResponse {
+
+		private final InputStream body;
+
+		private final Map<String, List<String>> headers;
+
+
+		public DefaultHttpResponse(InputStream body, Map<String, List<String>> headers) {
+			this.body = body;
+			this.headers = (headers != null) ? headers : Collections.<String, List<String>>emptyMap();
+		}
+
+
+		public InputStream getBody() {
+			return this.body;
+		}
+
+		public String getFirstHeader(String key) {
+			List<String> values = this.headers.get(key);
+			return (values != null && values.size() > 0) ? values.get(0) : null;
+		}
+
+		public Map<String, List<String>> getHeaders() {
+			return this.headers;
+		}
+
+		public List<String> getHeaders(String key) {
+			return this.headers.get(key);
+		}
+	}
 
 }
