@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 /**
  * Implementation of {@link HttpRequestExecutor} that uses {@link HttpURLConnection}
  * directly. This version has limited functionality but no additional dependencies.
- * For more features, see {@link CommonsHttpRequestExecutor}. (TODO)
+ * For more features, see {@link CommonsHttpRequestExecutor}.
  * 
  * @author Juergen Hoeller
  * @author Iwein Fuld
