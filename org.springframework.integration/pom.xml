@@ -2,11 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration-core</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration Core</name>
-	<version>1.0.2.RELEASE</version>
+	<parent>
+		<groupId>org.springframework.integration</groupId>
+		<artifactId>spring-integration-parent</artifactId>
+		<version>1.0.2.RELEASE</version>
+		<relativePath>../build-spring-integration</relativePath>
+	</parent>
 	<dependencies>
 		<dependency>
 			<groupId>cglib</groupId>
@@ -48,12 +52,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>com.springsource.org.mockito</artifactId>
-			<version>1.6.0</version>
-			<scope>test</scope>
+		       <groupId>org.mockito</groupId>
+		       <artifactId>mockito-all</artifactId>
+		       <version>1.6</version>
+		       <scope>test</scope>
 		</dependency>
-
 	</dependencies>
 	<properties>
 		<spring.version>2.5.6</spring.version>

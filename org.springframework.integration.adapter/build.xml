@@ -3,6 +3,8 @@
 
 	<property file="${basedir}/../build.properties"/>
 	<import file="${basedir}/../build-spring-integration/package-bundle.xml"/>
+	<import file="${basedir}/../build-spring-integration/generate-pom.xml"/>
 	<import file="${basedir}/../spring-build/standard/default.xml"/>
+
 
 </project>
