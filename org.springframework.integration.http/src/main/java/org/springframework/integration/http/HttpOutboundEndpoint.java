@@ -41,8 +41,15 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 	private volatile OutboundRequestMapper requestMapper;
 
-	private volatile HttpRequestExecutor requestExecutor;
+	private volatile HttpRequestExecutor requestExecutor = new SimpleHttpRequestExecutor();
 
+
+	/**
+	 * Create an HttpOutboundEndpoint with no default URL.
+	 */
+	public HttpOutboundEndpoint() {
+		this.requestMapper = new DefaultOutboundRequestMapper();
+	}
 
 	/**
 	 * Create an HttpOutboundEndpoint that will send requests to the provided
@@ -54,7 +61,6 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	 */
 	public HttpOutboundEndpoint(URL defaultUrl) {
 		this.requestMapper = new DefaultOutboundRequestMapper(defaultUrl);
-		this.requestExecutor = new SimpleHttpRequestExecutor();
 	}
 
 
@@ -83,20 +89,20 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 		try {
 			HttpRequest request = this.requestMapper.fromMessage(requestMessage);
 			HttpResponse response = this.requestExecutor.executeRequest(request);
-			Object replyPayload = this.createReplyPayloadFromResponse(response);
-			replyMessageHolder.set(replyPayload);
+			Object reply = this.createReplyFromResponse(response);
+			replyMessageHolder.set(reply);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(requestMessage,
-					"failed to execute HTTP request", e);
+			throw new MessageHandlingException(requestMessage, "failed to execute HTTP request", e);
 		}
 	}
 
-	private Object createReplyPayloadFromResponse(HttpResponse response) throws Exception {
+	private Object createReplyFromResponse(HttpResponse response) throws Exception {
 		InputStream responseBody = response.getBody();
 		Assert.notNull(responseBody, "received null response body");
 		String contentType = response.getFirstHeader("Content-Type");
 		if (contentType != null && contentType.startsWith("application/x-java-serialized-object")) {
+			// may be either a payload or a serialized Message instance
 			return this.deserializePayload(responseBody);
 		}
 		ByteArrayOutputStream responseByteStream = new ByteArrayOutputStream();

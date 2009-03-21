@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
 
 /**
@@ -39,16 +40,46 @@ import org.springframework.util.Assert;
  */
 public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 
-	private final URL defaultUrl;
+	private volatile URL defaultUrl;
+
+	private volatile boolean extractPayload = true;
 
 	private volatile String charset = "UTF-8";
 
 
+	/**
+	 * Create a DefaultOutboundRequestMapper with no default URL.
+	 */
+	public DefaultOutboundRequestMapper() {
+	}
+
+	/**
+	 * Create a DefaultOutboundRequestMapper with the given default URL.
+	 */
 	public DefaultOutboundRequestMapper(URL defaultUrl) {
-		Assert.notNull(defaultUrl, "default URL must not be null");
 		this.defaultUrl = defaultUrl;
 	}
 
+
+	/**
+	 * Specify the default URL to use when the outbound message does not
+	 * contain a value for the {@link HttpHeaders#REQUEST_URL} header.
+	 * This default is optional, but if no value is provided, and a Message
+	 * does not contain the header, then a MessageDeliveryException will be
+	 * thrown at runtime.
+	 */
+	public void setDefaultUrl(URL defaultUrl) {
+		this.defaultUrl = defaultUrl;
+	}
+
+	/**
+	 * Specify whether the outbound message's payload should be extracted
+	 * when preparing the request body. Otherwise the Message instance itself
+	 * will be serialized. The default value is <code>true</code>.
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
 
 	/**
 	 * Specify the charset name to use for converting String-typed payloads to
@@ -61,16 +92,26 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 
 	public HttpRequest fromMessage(Message<?> message) throws Exception {
 		Assert.notNull(message, "message must not be null");
-		Object payload = message.getPayload();
-		Assert.notNull(payload, "payload must not be null");
-		ByteArrayOutputStream requestBody = new ByteArrayOutputStream();
-		String contentType = null;
 		URL url = this.resolveUrl(message);
+		if (url == null) {
+			throw new MessageDeliveryException(message, "failed to determine a target URL for Message");
+		}
 		Object requestMethodHeader = message.getHeaders().get(HttpHeaders.REQUEST_METHOD);
 		String requestMethod = (requestMethodHeader != null) ?
 				requestMethodHeader.toString().toUpperCase() : "POST";
+		if (this.extractPayload) {
+			Object payload = message.getPayload();
+			Assert.notNull(payload, "payload must not be null");
+			return this.createRequestFromPayload(payload, url, requestMethod);
+		}
+		return this.createRequestFromMessage(message, url, requestMethod);
+	}
+
+	private HttpRequest createRequestFromPayload(Object payload, URL url, String requestMethod) throws Exception {
+		ByteArrayOutputStream requestBody = new ByteArrayOutputStream();
+		String contentType = null;
 		if ("POST".equals(requestMethod) || "PUT".equals(requestMethod)) {
-			contentType = this.writePayloadToRequestBody(payload, requestBody);
+			contentType = this.writeToRequestBody(payload, requestBody);
 		}
 		else {
 			Assert.isTrue(payload instanceof Map,
@@ -80,6 +121,14 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 					"String or String array typed values for a '" + requestMethod + "' request.");
 			url = this.addQueryParametersToUrl(url, parameterMap);
 		}
+		return new DefaultHttpRequest(url, requestMethod, requestBody, contentType);
+	}
+
+	private HttpRequest createRequestFromMessage(Message<?> message, URL url, String requestMethod) throws Exception {
+		Assert.isTrue("POST".equals(requestMethod) || "PUT".equals(requestMethod),
+				"POST or PUT request method is required when the 'extractPayload' value is false.");
+		ByteArrayOutputStream requestBody = new ByteArrayOutputStream();
+		String contentType = this.writeToRequestBody(message, requestBody);
 		return new DefaultHttpRequest(url, requestMethod, requestBody, contentType);
 	}
 
@@ -111,18 +160,18 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return parameterMap;
 	}
 
-	private String writePayloadToRequestBody(Object payload, ByteArrayOutputStream byteStream) throws Exception {
+	private String writeToRequestBody(Object object, ByteArrayOutputStream byteStream) throws Exception {
 		String contentType = null;
-		if (payload instanceof byte[]) {
-			byteStream.write((byte[]) payload);
+		if (object instanceof byte[]) {
+			byteStream.write((byte[]) object);
 			contentType = "application/octet-stream";
 		}
-		else if (payload instanceof String) {
-			byteStream.write(((String) payload).getBytes(this.charset));
+		else if (object instanceof String) {
+			byteStream.write(((String) object).getBytes(this.charset));
 			contentType = "text/plain; charset=" + this.charset;
 		}
-		else if (payload instanceof Serializable) {
-			byteStream.write(this.serializePayload((Serializable) payload));
+		else if (object instanceof Serializable) {
+			byteStream.write(this.serializeObject((Serializable) object));
 			contentType = "application/x-java-serialized-object";
 		}
 		else {
@@ -132,10 +181,10 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return contentType;
 	}
 
-	private byte[] serializePayload(Serializable payload) throws IOException {
+	private byte[] serializeObject(Serializable object) throws IOException {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-		objectStream.writeObject(payload);
+		objectStream.writeObject(object);
 		objectStream.flush();
 		objectStream.close();
 		return byteStream.toByteArray();
