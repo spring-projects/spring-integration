@@ -29,6 +29,7 @@ public class HttpNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new HttpInboundEndpointParser(false));
 		this.registerBeanDefinitionParser("inbound-gateway", new HttpInboundEndpointParser(true));
+		this.registerBeanDefinitionParser("outbound-gateway", new HttpOutboundGatewayParser());
 	}
 
 }

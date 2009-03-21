@@ -69,6 +69,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
+					<xsd:attribute name="name" type="xsd:string"/>
 					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
 					<xsd:attribute name="supported-methods" type="xsd:string"/>
 					<xsd:attribute name="view" type="xsd:string">
@@ -91,6 +92,42 @@
 					</xsd:attribute>
 					<xsd:attribute name="request-key" type="xsd:string"/>
 					<xsd:attribute name="reply-key" type="xsd:string"/>
+					<xsd:attribute name="reply-timeout" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an outbound HTTP-based Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="default-url" type="xsd:string"/>
+					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
+					<xsd:attribute name="charset" type="xsd:string"/>
+					<xsd:attribute name="request-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.OutboundRequestMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.HttpRequestExecutor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -103,7 +140,6 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID"/>
-		<xsd:attribute name="name" type="xsd:string"/>
 		<xsd:attribute name="request-channel" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -123,7 +159,6 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="request-timeout" type="xsd:string"/>
-		<xsd:attribute name="reply-timeout" type="xsd:string"/>
 	</xsd:complexType>
 
 </xsd:schema>

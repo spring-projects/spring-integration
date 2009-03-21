@@ -189,7 +189,7 @@ public class CommonsHttpRequestExecutor extends AbstractHttpRequestExecutor {
 
 	/**
 	 * Set the given byte stream as the request body.
-	 * <p>The default implementation simply sets the byte stream as the
+	 * <p>This implementation simply sets the byte stream as the
 	 * EntityEnclosingMethod's request body. This can be overridden, for
 	 * example, to write a specific encoding and potentially set appropriate
 	 * HTTP request headers.
@@ -201,7 +201,7 @@ public class CommonsHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	 * @see org.apache.commons.httpclient.methods.PostMethod#setRequestEntity
 	 * @see org.apache.commons.httpclient.methods.InputStreamRequestEntity
 	 */
-	protected void setRequestBody(
+	private void setRequestBody(
 			EntityEnclosingMethod httpMethod, ByteArrayOutputStream baos, String contentType)
 			throws IOException {
 		httpMethod.setRequestEntity(new ByteArrayRequestEntity(baos.toByteArray(), contentType));

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/http
+			http://www.springframework.org/schema/integration/http/spring-integration-http-1.0.xsd">
+
+	<si:channel id="requests"/>
+
+	<outbound-gateway id="minimalConfig" request-channel="requests"/>
+
+	<si:channel id="replies">
+		<si:queue/>
+	</si:channel>
+
+	<outbound-gateway id="fullConfigWithMapper"
+		request-channel="requests"
+		request-mapper="mapper"
+		request-executor="executor"
+		request-timeout="1234"
+		reply-channel="replies"/>
+
+	<outbound-gateway id="fullConfigWithoutMapper"
+		request-channel="requests"
+		default-url="http://localhost/test"
+		extract-request-payload="false"
+		charset="UTF-8"
+		request-executor="executor"
+		request-timeout="1234"
+		reply-channel="replies"/>
+
+	<beans:bean id="mapper" class="org.springframework.integration.http.DefaultOutboundRequestMapper">
+		<beans:property name="defaultUrl" value="http://localhost/test"/>
+		<beans:property name="charset" value="UTF-8"/>
+		<beans:property name="extractPayload" value="false"/>
+	</beans:bean>
+
+	<beans:bean id="executor" class="org.springframework.integration.http.SimpleHttpRequestExecutor"/>
+
+</beans:beans>
