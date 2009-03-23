@@ -19,7 +19,6 @@ package org.springframework.integration.aggregator;
 import static org.junit.Assert.assertEquals;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 
 import org.junit.Test;
@@ -33,7 +32,7 @@ public class HeaderAttributeCorrelationStrategyTests {
     public void testHeaderAttributeCorrelationStrategy() {
         String testedHeaderValue = "@!arbitraryTestValue!@";
         String testHeaderName = "header.for.test";
-        Message message = MessageBuilder.withPayload("irrelevantData").setHeader(testHeaderName, testedHeaderValue).build();
+        Message<?> message = MessageBuilder.withPayload("irrelevantData").setHeader(testHeaderName, testedHeaderValue).build();
         HeaderAttributeCorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(testHeaderName);
         assertEquals(testedHeaderValue, correlationStrategy.getCorrelationKey(message));
     }

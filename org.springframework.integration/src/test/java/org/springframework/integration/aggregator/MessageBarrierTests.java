@@ -16,21 +16,18 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
 
+import java.util.LinkedHashSet;
+
+import org.junit.Test;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher
  */
+@SuppressWarnings("unchecked")
 public class MessageBarrierTests {
 
 

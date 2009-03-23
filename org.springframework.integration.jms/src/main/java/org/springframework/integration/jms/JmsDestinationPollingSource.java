@@ -63,13 +63,14 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 		this.extractPayload = extractPayload;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
 		Object receivedObject = this.getJmsTemplate().receiveAndConvert();
 		if (receivedObject == null) {
 			return null;
 		}
 		if (receivedObject instanceof Message) {
-			return (Message<Object>) receivedObject;
+			return (Message) receivedObject;
 		}
 		return new GenericMessage<Object>(receivedObject);
 	}

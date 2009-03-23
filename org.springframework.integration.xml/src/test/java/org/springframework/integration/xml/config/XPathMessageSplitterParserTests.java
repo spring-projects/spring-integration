@@ -80,9 +80,9 @@ public class XPathMessageSplitterParserTests {
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
 		assertTrue("Splitter failed to create documents ",
-				((Message) outputChannel.receive(1000)).getPayload() instanceof Document);
+				((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document);
 		assertTrue("Splitter failed to create documents ",
-				((Message) outputChannel.receive(1000)).getPayload() instanceof Document);
+				((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document);
 	}
 
 	@Test

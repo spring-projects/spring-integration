@@ -76,7 +76,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierHandler<T extends Collection<? extends Message>>
+public abstract class AbstractMessageBarrierHandler<T extends Collection<? extends Message<?>>>
 		extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
@@ -261,6 +261,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void processMessage(Message<?> message, Object correlationKey) {
 		MessageBarrier<T> barrier = barriers.putIfAbsent(correlationKey, createMessageBarrier(correlationKey));
 		if (barrier == null) {
@@ -366,8 +367,9 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 	 * @param entry
 	 * @param barrier
 	 */
+	
 	protected void discardBarrier(MessageBarrier<T> barrier) {
-		for (Message message : barrier.getMessages()) {
+		for (Message<?> message : barrier.getMessages()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Handling of Message group with correlation key '" + barrier.getCorrelationKey()+ "' has timed out.");
 			}

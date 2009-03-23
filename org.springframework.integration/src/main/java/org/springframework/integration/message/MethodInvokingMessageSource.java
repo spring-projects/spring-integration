@@ -75,6 +75,7 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
 		if (this.invoker == null) {
 			this.afterPropertiesSet();

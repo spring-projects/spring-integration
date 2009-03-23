@@ -37,7 +37,7 @@ import org.springframework.integration.core.Message;
  * 
  * @author Marius Bogoevici
  */
-public class MessageBarrier<T extends Collection<? extends Message>> {
+public class MessageBarrier<T extends Collection<? extends Message<?>>> {
 
 	protected final T messages;
 

@@ -23,6 +23,7 @@ public class MethodInvokingSelectorParserTests {
 	@Autowired
 	MessageSelectorChain chain;
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void configOK() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(chain);

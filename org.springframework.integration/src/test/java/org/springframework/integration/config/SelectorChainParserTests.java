@@ -26,10 +26,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.MessageSelector;
@@ -49,7 +47,7 @@ public class SelectorChainParserTests {
 	@Autowired
 	ApplicationContext context;
 	
-	@Test @Ignore
+	@Test @Ignore 
 	public void topLevelSelector() throws Exception {
 		MessageSelector topLevelSelector = (MessageSelector) context.getBean("topLevelSelector");
 	}

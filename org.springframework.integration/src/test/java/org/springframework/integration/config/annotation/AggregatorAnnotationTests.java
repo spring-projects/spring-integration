@@ -38,7 +38,6 @@ import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.handler.HandlerMethodResolver;
 import org.springframework.integration.handler.StaticHandlerMethodResolver;
 

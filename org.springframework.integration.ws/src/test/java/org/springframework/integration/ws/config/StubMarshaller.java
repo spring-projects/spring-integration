@@ -28,6 +28,7 @@ import org.springframework.oxm.XmlMappingException;
  */
 public class StubMarshaller implements Marshaller {
 
+	@SuppressWarnings("unchecked")
 	public boolean supports(Class clazz) {
 		return false;
 	}
