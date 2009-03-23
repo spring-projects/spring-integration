@@ -27,10 +27,14 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 import org.springframework.oxm.AbstractMarshaller;
-import org.springframework.oxm.Marshaller;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * 
+ * @author Iwein Fuld
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class WebServiceInboundGatewayParserTests {

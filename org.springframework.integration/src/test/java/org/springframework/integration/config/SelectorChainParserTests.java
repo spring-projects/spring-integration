@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -46,11 +45,6 @@ public class SelectorChainParserTests {
 	
 	@Autowired
 	ApplicationContext context;
-	
-	@Test @Ignore 
-	public void topLevelSelector() throws Exception {
-		MessageSelector topLevelSelector = (MessageSelector) context.getBean("topLevelSelector");
-	}
 
 	@Test
 	public void selectorChain() {
