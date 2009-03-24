@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration/http"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
@@ -10,10 +9,13 @@
 			http://www.springframework.org/schema/integration/http
 			http://www.springframework.org/schema/integration/http/spring-integration-http-1.0.xsd">
 
-	<si:channel id="requests">
-		<si:queue capacity="1"/>
-	</si:channel>
-
-	<inbound-gateway id="inboundGateway" request-channel="requests"/>
+	<si:publish-subscribe-channel id="requests"/>
+	
+	<si:bridge output-channel="responses" input-channel="requests"/>
+	
+	<si:channel id="responses"/>
+	
+	<inbound-gateway id="inboundGateway" request-channel="requests"
+		reply-channel="responses" />
 
 </beans:beans>

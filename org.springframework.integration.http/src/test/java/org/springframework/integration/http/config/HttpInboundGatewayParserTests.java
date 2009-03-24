@@ -16,21 +16,60 @@
 
 package org.springframework.integration.http.config;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
+import static org.springframework.integration.util.TestUtils.*;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.SubscribableChannel;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.http.HttpInboundEndpoint;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class HttpInboundGatewayParserTests {
 
+	@Autowired
+	private HttpInboundEndpoint gateway;
+
+	@Qualifier("responses")
+	@Autowired
+	MessageChannel responses;
+
+	@Qualifier("requests")
+	@Autowired
+	SubscribableChannel requests;
+	
 	@Test
 	public void checkConfig() {
+		assertNotNull(gateway);
+		assertThat((Boolean) getPropertyValue(gateway, "expectReply"), is(true));
 	}
-
+	
+	@Test(timeout=1000)
+	public void checkFlow() throws Exception {
+		requests.subscribe(handlerExpecting(any(Message.class)));
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("GET");
+		request.setParameter("foo", "bar");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
+		assertThat(response.getContentType(), is("application/x-java-serialized-object"));
+	}
 }
