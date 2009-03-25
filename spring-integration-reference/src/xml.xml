@@ -346,7 +346,7 @@
                        input-channel="orderChannel"
                        output-channel="orderItemsChannel">
     <si-xml:xpath-expression expression="/order/items"/>
-</si-xml:xpath-selector>
+</si-xml:xpath-splitter>
 
 <!-- Split the order into items creating a new document for each item-->
 <si-xml:xpath-splitter id="orderItemDocumentSplitter"
@@ -357,7 +357,7 @@
     <si:poller>
         <si:interval-trigger interval="2000"/>
     </si:poller>
-</si-xml:xpath-selector>]]></programlisting>  
+</si-xml:xpath-splitter>]]></programlisting>  
 		</para>
 		<para>
 			XPath router namespace support allows for the creation of a MessageEndpoint with an input channel but no output channel 
@@ -366,7 +366,7 @@
 			<programlisting language="xml"><![CDATA[<!-- route the message according to exactly one order type channel -->
 <si-xml:xpath-router id="orderTypeRouter" input-channel="orderChannel" multi-channel="false">
     <si-xml:xpath-expression expression="/order/type"/>
-</si-xml:xpath-selector>
+</si-xml:xpath-router>
 
 <!-- route the order to all responders-->
 <si-xml:xpath-router id="responderRouter" input-channel="orderChannel" multi-channel="true">
@@ -374,7 +374,7 @@
     <si:poller>
         <si:interval-trigger interval="2000"/>
     </si:poller>
-</si-xml:xpath-selector>]]></programlisting>
+</si-xml:xpath-router>]]></programlisting>
 		</para>
 	
 		
