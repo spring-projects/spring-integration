@@ -124,7 +124,7 @@
 			To make things easier you can configure the
 			FileWritingMessageHandler as part of an outbound channel adapter
 			using the namespace.
-			<programlisting language="xml"><![CDATA[	<file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}"/>]]></programlisting>
+			<programlisting language="xml"><![CDATA[<file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}"/>]]></programlisting>
 		</para>
 		<para>
 			If you have more elaborate requirements to the payload to file
