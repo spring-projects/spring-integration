@@ -6,7 +6,7 @@
   <section id="http-intro">
     <title>Introduction</title>
     <para>
-      The HTTP support allows for the making of HTTP requests and the processing of inbound Http requests.  Because interaction HTTP is always synchronous, even if all that is returned is a 200 status code the Http support consists of two gateway implementations
+      The HTTP support allows for the making of HTTP requests and the processing of inbound Http requests.  Because interaction over HTTP is always synchronous, even if all that is returned is a 200 status code the Http support consists of two gateway implementations
  	<classname>HttpInboundEndpoint</classname> and <classname>HttpOutboundEndpoint</classname>.
     </para>
    </section>
@@ -17,14 +17,14 @@
 		To receive messages over http you need to use an <classname>HttpInboundEndpoint</classname>.  In common with the HttpInvoker 
 	support the Http Inbound Gateway needs to be deployed within a servlet container.  The easiest way to do this is to provide a servlet 
 	definition in <emphasis>web.xml</emphasis>, see 
-	<xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean defintion for a simple <classname>HttpInboundEndpoint</classname>	
+	<xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple <classname>HttpInboundEndpoint</classname>	
 		<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
 	<property name="requestChannel" ref="httpRequestChannel" />
 	<property name="replyChannel" ref="httpReplyChannel" />	
 </bean>]]></programlisting>
 	The <classname>HttpInboundEndpoint</classname> accepts an instance of <interfacename>InboundRequestMapper</interfacename> which allows 
 	customisation of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>.  If none is 
-	provided the an instance of <classname>DefaultInboundRequestMapper</classname> will be used.  This encapsualtes a simple strategy, which for
+	provided the an instance of <classname>DefaultInboundRequestMapper</classname> will be used.  This encapsulates a simple strategy, which for
 	example will create a String message for a <emphasis>POST</emphasis> request where the content type starts with "text", see the Javadoc for 
 	full details.   		
       </para>
@@ -33,7 +33,7 @@
 	simply acknowledge that the request was received by sending a 200 status code back.  It is possible to customise this response by providing an 
 	implementation of the Spring MVC <interfacename>View</interfacename> which will be invoked with the created <interfacename>Message</interfacename>.  
         In the case that the gateway should expect a reply to the <interfacename>Message</interfacename> then setting the <property>expectReply</property> flag will cause 
-	the gateway to wait for a reponse <interfacename>Message</interfacename> before creating a Http response.  Below is an example of a gateway 
+	the gateway to wait for a response <interfacename>Message</interfacename> before creating an Http response.  Below is an example of a gateway 
 	configured to use a custom view and to wait for a response.  It also shows how to customise the 	Http methods accepted by the gateway, which 
 	are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.    
 	<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
@@ -49,8 +49,9 @@
 	<property name="expectReply" value="true" />
 	<property name="requestMapper" ref="customRequestMapper" />
 </bean>]]></programlisting>
-	
-	
+	The message created from the request will be available in the Model map. The key that is used
+	for that map entry by default is 'requestMessage', but this can be overridden by setting the
+	'requestKey' property on the endpoint's configuration.
      </para>
   </section>	
 
@@ -64,7 +65,7 @@
 </bean>]]></programlisting>
 		This bean definition will execute Http requests by first converting the message to the Http request using an instance of 
 		<classname>DefaultOutboundRequestMapper</classname>.  This will expect to find the request URL in the message header under 
-		the key <emphasis>HttpHeaders.REQUEST_URL</emphasis>.  It is also possilbe to set a default target URL as a constructor argument 
+		the key <emphasis>HttpHeaders.REQUEST_URL</emphasis>.  It is also possible to set a default target URL as a constructor argument 
 		along with other options as shown below.
 		<programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpOutboundEndpoint" >
 	<constructor-arg value="http://localhost:8080/example" />
@@ -105,6 +106,10 @@ By default the Http request will be made using an instance of <classname>SimpleH
 		request-executor="executor"
 		request-timeout="1234"
 		reply-channel="replies"/>]]></programlisting>
+		If you want to provide a custom OutboundRequestMapper, then a reference may be supplied to the
+		'request-mapper' attribute. In that case however you will not be allowed to set the default URL,
+		charset, and 'extract-request-payload' properties since those are all properties of the default
+		mapper (see the JavaDoc for DefaultOutboundRequestMapper for more information).
     </para>
   </section>
 </chapter>
