@@ -90,7 +90,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 		}
 		int sequenceSize = barrier.getMessages().first().getHeaders().getSequenceSize();
 		int messagesCurrentlyInBarrier = barrier.getMessages().size();
-		int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
+		Integer lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
 		return (lastReleasedSequenceNumber + messagesCurrentlyInBarrier == sequenceSize);
 	}
 
@@ -98,7 +98,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 		if (this.releasePartialSequences || barrier.isComplete()) {
 			ArrayList<Message<?>> releasedMessages = new ArrayList<Message<?>>();
 			Iterator<Message<?>> it = barrier.getMessages().iterator();
-			int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
+			Integer lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
 			while (it.hasNext()) {
 				Message<?> currentMessage = it.next();
 				if (lastReleasedSequenceNumber == currentMessage.getHeaders().getSequenceNumber() - 1) {
@@ -123,7 +123,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 		if (!super.canAddMessage(message, barrier)) {
 			return false;
 		}
-		int lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
+		Integer lastReleasedSequenceNumber = barrier.getAttribute(LAST_RELEASED_SEQUENCE_NUMBER);
 		if (barrier.messages.contains(message)
 				|| lastReleasedSequenceNumber >= message.getHeaders().getSequenceNumber()) {
 			logger.debug("A message with the same sequence number has been already received: " + message);
