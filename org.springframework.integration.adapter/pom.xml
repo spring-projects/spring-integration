@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.integration</groupId>
     <artifactId>spring-integration-parent</artifactId>
-    <version>1.0.2.RELEASE</version>
+    <version>1.0.2.SNAPSHOT</version>
     <relativePath>../spring-integration-parent</relativePath>
   </parent>
   <dependencies>
@@ -54,4 +54,5 @@
       </testResource>
     </testResources>
   </build>
+
 </project>
