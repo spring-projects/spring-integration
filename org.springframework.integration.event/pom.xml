@@ -4,9 +4,20 @@
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-event</artifactId>
   <packaging>jar</packaging>
-  <name>Spring Integration Security Support</name>
-  <version>1.0.2.RELEASE</version>
+  <name>Spring Integration Event Support</name>
+  <parent>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-parent</artifactId>
+    <version>1.0.2.RELEASE</version>
+    <relativePath>../spring-integration-parent</relativePath>
+  </parent>
   <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
@@ -20,4 +31,27 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/java</directory>
+        <includes>
+          <include>**/*.xml</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.xsd</include>
+        </includes>
+      </testResource>
+
+      <testResource>
+        <directory>../org.springframework.integration/src/main/java</directory>
+        <includes>
+          <include>**/*.xsd</include>
+        </includes>
+      </testResource>
+    </testResources>
+  </build>
 </project>

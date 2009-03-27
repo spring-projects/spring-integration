@@ -9,7 +9,7 @@
     <groupId>org.springframework.integration</groupId>
     <artifactId>spring-integration-parent</artifactId>
     <version>1.0.2.RELEASE</version>
-    <relativePath>../build-spring-integration</relativePath>
+    <relativePath>../spring-integration-parent</relativePath>
   </parent>
   <dependencies>
     <dependency>
@@ -34,16 +34,66 @@
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-adapter</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.ws</groupId>
       <artifactId>spring-oxm</artifactId>
       <version>1.5.5</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.ws</groupId>
       <artifactId>spring-ws-core</artifactId>
       <version>1.5.5</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>2.5.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>2.5.6</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/java</directory>
+        <includes>
+          <include>**/*.xml</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.xsd</include>
+        </includes>
+      </testResource>
+
+      <testResource>
+        <directory>../org.springframework.integration/src/main/java</directory>
+        <includes>
+          <include>**/*.xsd</include>
+        </includes>
+      </testResource>
+    </testResources>
+  </build>
 </project>

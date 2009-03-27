@@ -5,8 +5,19 @@
   <artifactId>spring-integration-jms</artifactId>
   <packaging>jar</packaging>
   <name>Spring Integration JMS Support</name>
-  <version>1.0.2.RELEASE</version>
+  <parent>
+    <groupId>org.springframework.integration</groupId>
+    <artifactId>spring-integration-parent</artifactId>
+    <version>1.0.2.RELEASE</version>
+    <relativePath>../spring-integration-parent</relativePath>
+  </parent>
   <dependencies>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <version>1.1</version>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>javax.jms</groupId>
       <artifactId>jms</artifactId>
@@ -14,24 +25,57 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
       <version>2.5.6</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-tx</artifactId>
       <version>2.5.6</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-core</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.integration</groupId>
       <artifactId>spring-integration-adapter</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/java</directory>
+        <includes>
+          <include>**/*.xml</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.xsd</include>
+        </includes>
+      </testResource>
+
+      <testResource>
+        <directory>../org.springframework.integration/src/main/java</directory>
+        <includes>
+          <include>**/*.xsd</include>
+        </includes>
+      </testResource>
+    </testResources>
+  </build>
 </project>
