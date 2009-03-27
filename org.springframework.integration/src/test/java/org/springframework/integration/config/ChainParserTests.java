@@ -122,7 +122,7 @@ public class ChainParserTests  {
 		this.beanInput.send(message);
 		Message reply = this.output.receive(3000);
 		assertNotNull(reply);
-		assertThat(reply, is(successMessage));
+		assertEquals(reply, successMessage);
 	}
 
 	@Test
@@ -132,7 +132,7 @@ public class ChainParserTests  {
 		this.aggregatorInput.send(message);
 		Message reply = this.output.receive(3000);
 		assertNotNull(reply);
-		assertThat((String)reply.getPayload(), is("foo"));
+		assertEquals("foo", reply.getPayload());
 	}
 	
 
