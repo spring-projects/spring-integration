@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.integration</groupId>
   <artifactId>spring-integration-parent</artifactId>
-  <version>1.0.2.SNAPSHOT</version>
+  <version>1.0.2.RELEASE</version>
   <name> Spring Integration Parent </name>
   <url>http://www.springsource.org/spring-integration</url>
   <description> Spring Integration parent project. Defines dependencies and common configuration for
