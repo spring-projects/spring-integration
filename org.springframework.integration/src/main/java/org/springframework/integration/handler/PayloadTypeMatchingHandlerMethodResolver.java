@@ -22,9 +22,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
@@ -38,7 +38,7 @@ import org.springframework.util.ClassUtils;
  */
 public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodResolver {
 
-	private final Map<Class<?>, Method> methodMap = new HashMap<Class<?>, Method>();
+	private final Map<Class<?>, Method> methodMap = new ConcurrentHashMap<Class<?>, Method>();
 
 	private volatile Method fallbackMethod;
 
