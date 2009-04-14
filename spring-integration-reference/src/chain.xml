@@ -26,8 +26,20 @@
       </tip>
     </para>
     <para>
-      The handler chain simplifies configuration while internally maintaining the same degree of loose coupling between
-      components, and it is trivial to modify the configuration if at some point a non-linear arrangement is required.
+		The handler chain simplifies configuration while internally maintaining the same degree of loose coupling between
+		components, and it is trivial to modify the configuration if at some point a non-linear arrangement is required. 
+		The chain will be expanded into a linear setup of the listed endpoints, separated by direct 
+		channels. The reply channel header will not be taken into account within the chain: only 
+		after the last handler is invoked will the resulting message be forwarded onto the reply channel or the chain's output 
+		channel. Because of this setup all handlers except the last require a <methodname>setOutputChannel</methodname> 
+		implementation. The last handler only needs an output channel if the outputChannel on the MessageHandlerChain is set. 
+		If this is not the case, the "replyChannel" header needs to be set on each message, so that it is clear where the 
+		message needs to go.
+    </para>
+    <para>
+		In most cases there is no need to implement MessageHandlers yourself. The next section will focus on namespace 
+		support for the chain element. Most Spring Integration enpoints like Service Activators and Transformers are 
+		suitable for use within a <classname>MessageHandlerChain</classname>.
     </para>
   </section>
 
@@ -36,7 +48,7 @@
     <para>
       The &lt;chain&gt; element provides an 'input-channel' attribute, and if the last element in the chain is capable
       of producing reply messages, it may optionally provide an 'output-channel' attribute. The sub-elements are then
-      filters, transformers, splitters, and service-activators. The last element may be a router.
+      filters, transformers, splitters, and service-activators. The last element may also be a router or aggregator.
       <programlisting language="xml"><![CDATA[ <chain input-channel="input" output-channel="output">
      <filter ref="someSelector" throw-exception-on-rejection="true"/>
      <header-enricher error-channel="customErrorChannel">
@@ -45,7 +57,9 @@
      <service-activator ref="someService" method="someMethod"/>
  </chain>]]></programlisting>
     </para>
-	The &lt;header-enricher&gt; used in the above example will set a message header with name "foo" and value "bar" on the message.
+	The &lt;header-enricher&gt; element used in the above example will set a message header with name "foo" and value "bar" on the message.
+	A header enricher is a specialization of Transformer that touches only header values. You could obtain the same result by
+	implementing a MessageHandler that did the header modifications and wiring that as a bean.
   </section>
 
 </chapter>

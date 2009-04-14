@@ -43,16 +43,18 @@ import org.springframework.util.Assert;
  * It is expected that each handler will produce reply messages and send them to
  * its output channel, although this is not enforced. It is possible to filter
  * messages in the middle of the chain, for example using a
- * {@link MessageFilter}.
+ * {@link MessageFilter}. A {@link MessageHandler} returning null will have the
+ * same effect, although this option is less expressive.
  * <p/>
  * This component can be used from the namespace to improve the readability of
  * the configuration by removing channels that can be created implicitly.
  * <p/>
+ * 
  * <pre>
  * &lt;chain&gt;
- *     &lt;filter ref="someFilter"/&gt;
- *     &lt;bean class="SomeMessageHandlerImplementation"/&gt;
- *     &lt;transformer ref="someTransformer"/&gt;
+ *     &lt;filter ref=&quot;someFilter&quot;/&gt;
+ *     &lt;bean class=&quot;SomeMessageHandlerImplementation&quot;/&gt;
+ *     &lt;transformer ref=&quot;someTransformer&quot;/&gt;
  *     &lt;aggregator ... /&gt;
  * &lt;/chain&gt;
  * </pre>
@@ -60,7 +62,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler {
+public class MessageHandlerChain extends IntegrationObjectSupport implements
+		MessageHandler {
 
 	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
 
@@ -83,7 +86,9 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 	public final void afterPropertiesSet() {
 		synchronized (this.initializationMonitor) {
 			if (!this.initialized) {
-				Assert.notEmpty(this.handlers, "handler list must not be empty");
+				Assert
+						.notEmpty(this.handlers,
+								"handler list must not be empty");
 				this.configureChain();
 				this.initialized = true;
 			}
@@ -106,26 +111,33 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 			MessageHandler handler = handlers.get(i);
 			PropertyAccessor accessor = new BeanWrapperImpl(handler);
 			if (!first) {
-				EventDrivenConsumer consumer = new EventDrivenConsumer(channel, handler);
+				EventDrivenConsumer consumer = new EventDrivenConsumer(channel,
+						handler);
 				consumer.start();
 			}
 			if (!last) {
 				channel = new DirectChannel();
 				channel.setBeanName("_" + this + ".channel#" + i);
-				Assert.notNull(accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY),
+				Assert.notNull(accessor
+						.getPropertyType(OUTPUT_CHANNEL_PROPERTY),
 						"All handlers except for the last one in the chain must implement property '"
-								+ OUTPUT_CHANNEL_PROPERTY + "' of type 'MessageChannel'");
+								+ OUTPUT_CHANNEL_PROPERTY
+								+ "' of type 'MessageChannel'");
 				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, channel);
 			}
 			else if (accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY) != null) {
 				MessageChannel replyChannel = (this.outputChannel != null) ? this.outputChannel
 						: new ReplyForwardingMessageChannel();
-				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, replyChannel);
+				accessor
+						.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, replyChannel);
 			}
 			else {
-				Assert.isNull(this.outputChannel,
-						"An output channel was provided, but the final handler in the chain does not implement property '"
-								+ OUTPUT_CHANNEL_PROPERTY + "'  of type 'MessageChannel'");
+				Assert
+						.isNull(
+								this.outputChannel,
+								"An output channel was provided, but the final handler in the chain does not implement property '"
+										+ OUTPUT_CHANNEL_PROPERTY
+										+ "'  of type 'MessageChannel'");
 			}
 		}
 	}
@@ -143,21 +155,26 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 		public boolean send(Message<?> message, long timeout) {
 			Object replyChannelHeader = message.getHeaders().getReplyChannel();
 			if (replyChannelHeader == null) {
-				throw new MessageHandlingException(message, "no replyChannel header available");
+				throw new MessageHandlingException(message,
+						"no replyChannel header available");
 			}
 			MessageChannel replyChannel = null;
 			if (replyChannelHeader instanceof MessageChannel) {
 				replyChannel = (MessageChannel) replyChannelHeader;
 			}
 			else if (replyChannelHeader instanceof String) {
-				Assert.notNull(getChannelResolver(), "ChannelResolver is required");
-				replyChannel = getChannelResolver().resolveChannelName((String) replyChannelHeader);
+				Assert.notNull(getChannelResolver(),
+						"ChannelResolver is required");
+				replyChannel = getChannelResolver().resolveChannelName(
+						(String) replyChannelHeader);
 			}
 			else {
-				throw new MessageHandlingException(message, "invalid replyChannel type ["
-						+ replyChannelHeader.getClass() + "]");
+				throw new MessageHandlingException(message,
+						"invalid replyChannel type ["
+								+ replyChannelHeader.getClass() + "]");
 			}
-			return (timeout >= 0) ? replyChannel.send(message, timeout) : replyChannel.send(message);
+			return (timeout >= 0) ? replyChannel.send(message, timeout)
+					: replyChannel.send(message);
 		}
 	}
 }
