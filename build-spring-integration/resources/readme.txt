@@ -1,5 +1,5 @@
-SPRING INTEGRATION 1.0.2 (Mar 31, 2008)
----------------------------------------
+SPRING INTEGRATION 1.0.2.SR1 (Apr 17, 2009)
+-------------------------------------------
 
 To find out what has changed since version 1.0.1, see 'changelog.txt'
 
