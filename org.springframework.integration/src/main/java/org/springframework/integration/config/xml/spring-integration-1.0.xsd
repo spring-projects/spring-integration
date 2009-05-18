@@ -110,9 +110,8 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Publish-Subscribe channel that
-				broadcasts messages to its
-				subscribers.
+	Defines a Publish-Subscribe channel that
+	broadcasts messages to its subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -153,7 +152,29 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="thread-local-channel" type="channelType" />
+	<xsd:element name="thread-local-channel">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a channel that maintains its Messages
+	on a thread-bound queue.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.integration.core.MessageChannel" />
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:sequence>
+						<xsd:element name="interceptors" type="channelInterceptorsType"
+							minOccurs="0" maxOccurs="1" />
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:complexType name="channelType">
 		<xsd:annotation>

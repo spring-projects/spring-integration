@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,44 @@ package org.springframework.integration.channel.config;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.ThreadLocalChannel;
+import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.StringMessage;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
 public class ThreadLocalChannelParserTests {
 
+	@Autowired @Qualifier("simpleChannel")
+	private MessageChannel simpleChannel;
+
+	@Autowired @Qualifier("channelWithInterceptor")
+	private MessageChannel channelWithInterceptor;
+
+	@Autowired
+	private TestChannelInterceptor interceptor;
+
+
 	@Test
-	public void testChannelType() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"threadLocalChannelParserTests.xml", ThreadLocalChannelParserTests.class);
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
-		assertEquals(ThreadLocalChannel.class, channel.getClass());
+	public void checkType() {
+		assertEquals(ThreadLocalChannel.class, simpleChannel.getClass());
+	}
+
+	@Test
+	public void verifyInterceptor() {
+		assertEquals(0, interceptor.getSendCount());
+		channelWithInterceptor.send(new StringMessage("test"));
+		assertEquals(1, interceptor.getSendCount());
 	}
 
 }

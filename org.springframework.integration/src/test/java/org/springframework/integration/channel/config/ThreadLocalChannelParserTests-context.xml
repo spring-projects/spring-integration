@@ -7,6 +7,14 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<thread-local-channel id="channel"/>
+	<thread-local-channel id="simpleChannel"/>
+
+	<thread-local-channel id="channelWithInterceptor">
+		<interceptors>
+			<beans:ref bean="interceptor"/>
+		</interceptors>
+	</thread-local-channel>
+
+	<beans:bean id="interceptor" class="org.springframework.integration.config.TestChannelInterceptor"/>
 
 </beans:beans>
