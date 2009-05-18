@@ -133,7 +133,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		assertEquals("bad", err.toString());
 	}
 
-    //@Test
+    @Test
 	public void stdoutAdatperWithAppendNewLine() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
