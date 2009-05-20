@@ -12,8 +12,7 @@
 		<queue capacity="5" />
 	</channel>
 
-	<aggregator ref="summer" method="sum" input-channel="input"
-		output-channel="output">
+	<aggregator input-channel="input" output-channel="output">
 		<poller task-executor="executor" max-messages-per-poll="5">
 			<interval-trigger interval="20" />
 		</poller>
@@ -26,7 +25,5 @@
 		<queue capacity="5" />
 	</channel>
 
-	<beans:bean id="summer"
-		class="org.springframework.integration.aggregator.integration.ConcurrentAggregatorIntegrationTests$SummingAggregator" />
 
 </beans:beans>
