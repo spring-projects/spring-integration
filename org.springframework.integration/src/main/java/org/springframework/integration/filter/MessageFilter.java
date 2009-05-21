@@ -17,8 +17,10 @@
 package org.springframework.integration.filter;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
@@ -39,6 +41,8 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 
 	private volatile boolean throwExceptionOnRejection;
 
+	private volatile MessageChannel discardChannel;
+
 
 	/**
 	 * Create a MessageFilter that will delegate to the given
@@ -54,10 +58,27 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	 * Specify whether this filter should throw a 
 	 * {@link MessageRejectedException} when its selector does not accept a
 	 * Message. The default value is <code>false</code> meaning that rejected
-	 * Messages will be quietly dropped.
+	 * Messages will be quietly dropped or sent to the discard channel if
+	 * available. Typically this value would not be <code>true</code> when
+	 * a discard channel is provided, but if so, it will still apply
+	 * (in such a case, the Message will be sent to the discard channel,
+	 * and <emphasis>then</emphasis> the exception will be thrown).
+	 * @see #setDiscardChannel(MessageChannel)
 	 */
 	public void setThrowExceptionOnRejection(boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;
+	}
+
+	/**
+	 * Specify a channel where rejected Messages should be sent. If the discard
+	 * channel is null (the default), rejected Messages will be dropped. However,
+	 * the 'throwExceptionOnRejection' flag determines whether rejected Messages
+	 * trigger an exception. That value is evaluated regardless of the presence
+	 * of a discard channel.
+	 * @see #setThrowExceptionOnRejection(boolean)
+	 */
+	public void setDiscardChannel(MessageChannel discardChannel) {
+		this.discardChannel = discardChannel;
 	}
 
 	@Override
@@ -65,8 +86,17 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 		if (this.selector.accept(message)) {
 			replyHolder.set(message);
 		}
-		else if (this.throwExceptionOnRejection) {
-			throw new MessageRejectedException(message);
+		else {
+			if (this.discardChannel != null) {
+				boolean discarded = this.sendReplyMessage(message, this.discardChannel);
+				if (!discarded) {
+					throw new MessageDeliveryException(message,
+							"failed to send rejected Message to the discard channel");
+				}
+			}
+			if (this.throwExceptionOnRejection) {
+				throw new MessageRejectedException(message);
+			}
 		}
 	}
 

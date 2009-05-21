@@ -130,4 +130,57 @@ public class MessageFilterTests {
 		assertTrue(inputChannel.send(message));
 	}
 
+	@Test
+	public void filterDiscardsMessage() {
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return false;
+			}
+		});
+		filter.setOutputChannel(outputChannel);
+		filter.setDiscardChannel(discardChannel);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
+		endpoint.start();
+		Message<?> message = new StringMessage("test");
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = discardChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals(message, reply);
+		assertNull(outputChannel.receive(0));
+	}
+
+	@Test(expected = MessageRejectedException.class)
+	public void filterDiscardsMessageAndThrowsException() throws Exception {
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return false;
+			}
+		});
+		filter.setOutputChannel(outputChannel);
+		filter.setDiscardChannel(discardChannel);
+		filter.setThrowExceptionOnRejection(true);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
+		endpoint.start();
+		Message<?> message = new StringMessage("test");
+		try {
+			assertTrue(inputChannel.send(message));
+		}
+		catch (Exception e) {
+			throw e;
+		}
+		finally {
+			Message<?> reply = discardChannel.receive(0);
+			assertNotNull(reply);
+			assertEquals(message, reply);
+			assertNull(outputChannel.receive(0));
+		}
+		
+	}
+
 }
