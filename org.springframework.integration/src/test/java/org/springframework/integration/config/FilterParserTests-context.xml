@@ -15,6 +15,14 @@
 		<queue capacity="1"/>
 	</channel>
 
+	<channel id="discardOutput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="discardAndExceptionOutput">
+		<queue capacity="1"/>
+	</channel>
+
 	<filter ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput"/>
 
 	<beans:bean id="selectorBean"
@@ -26,5 +34,18 @@
 
 	<beans:bean id="selectorImpl"
 		class="org.springframework.integration.config.FilterParserTests$TestSelectorImpl"/>
+
+	<filter ref="selectorBean"
+			method="hasText"
+			input-channel="discardInput"
+			output-channel="adapterOutput"
+			discard-channel="discardOutput"/>
+
+	<filter ref="selectorBean"
+			method="hasText"
+			input-channel="discardAndExceptionInput"
+			output-channel="adapterOutput"
+			discard-channel="discardAndExceptionOutput"
+			throw-exception-on-rejection="true"/>
 
 </beans:beans>

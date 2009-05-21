@@ -35,6 +35,7 @@ public class FilterParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".filter.MessageFilter");
 		builder.addConstructorArgReference(this.parseSelector(element, parserContext));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "throw-exception-on-rejection");
 		return builder;
 	}

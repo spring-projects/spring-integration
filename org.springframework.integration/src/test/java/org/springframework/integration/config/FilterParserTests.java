@@ -57,6 +57,18 @@ public class FilterParserTests {
 	@Autowired @Qualifier("exceptionInput")
 	MessageChannel exceptionInput;
 
+	@Autowired @Qualifier("discardInput")
+	MessageChannel discardInput;
+
+	@Autowired @Qualifier("discardOutput")
+	PollableChannel discardOutput;
+
+	@Autowired @Qualifier("discardAndExceptionInput")
+	MessageChannel discardAndExceptionInput;
+
+	@Autowired @Qualifier("discardAndExceptionOutput")
+	PollableChannel discardAndExceptionOutput;
+
 
 	@Test
 	public void filterWithSelectorAdapterAccepts() {
@@ -98,6 +110,31 @@ public class FilterParserTests {
 	@Test(expected = MessageRejectedException.class)
 	public void exceptionThrowingFilterRejects() {
 		exceptionInput.send(new StringMessage(""));
+	}
+
+	@Test
+	public void filterWithDiscardChannel() {
+		discardInput.send(new StringMessage(""));
+		Message<?> discard = discardOutput.receive(0);
+		assertNotNull(discard);
+		assertEquals("", discard.getPayload());
+		assertNull(adapterOutput.receive(0));
+	}
+
+	@Test(expected = MessageRejectedException.class)
+	public void filterWithDiscardChannelAndException() throws Exception {
+		Exception exception = null;
+		try {
+			discardAndExceptionInput.send(new StringMessage(""));
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		Message<?> discard = discardAndExceptionOutput.receive(0);
+		assertNotNull(discard);
+		assertEquals("", discard.getPayload());
+		assertNull(adapterOutput.receive(0));
+		throw exception;
 	}
 
 

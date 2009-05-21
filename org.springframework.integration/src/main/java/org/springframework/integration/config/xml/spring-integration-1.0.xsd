@@ -807,6 +807,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
+					<xsd:attribute name="discard-channel" type="xsd:string"/>
 					<xsd:attribute name="throw-exception-on-rejection"
 						type="xsd:string" default="false" />
 				</xsd:extension>
