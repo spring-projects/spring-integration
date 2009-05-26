@@ -216,9 +216,9 @@ consumer.setTransactionManager(txManager);</programlisting>
                             queue-capacity="20"
                             keep-alive-seconds="120"/>]]></programlisting>
       If no 'task-executor' is provided, the consumer's handler will be invoked in the caller's thread. Note that the
-      "caller" is usually the MessageBus' task scheduler. Also, keep in mind that the 'task-executor' attribute can
+      "caller" is usually the default <interfacename>TaskScheduler</interfacename> (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the 'task-executor' attribute can
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
-      specifying the bean name. The thread pool elements is simply provided for convenience.
+      specifying the bean name. The thread pool element is simply provided for convenience.
     </para>
   </section>
 </chapter>
