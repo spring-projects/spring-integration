@@ -44,7 +44,8 @@
  marshallingGateway = new MarshallingWebServiceInboundGateway(marshaller);
  //set request and optionally reply channel
 </programlisting>
-Both gateways implement <interfacename>MessageEndpoint</interfacename> to they can be configured with a <classname>MessageDispatcherServlet</classname> 
+Both gateways implement the Spring Web Services <interfacename>MessageEndpoint</interfacename>
+interface, so they can be configured with a <classname>MessageDispatcherServlet</classname> 
 as per standard Spring Web Services configuration.
     </para>
     <para>
@@ -91,8 +92,10 @@ as per standard Spring Web Services configuration.
       Spring Web Services <interfacename>WebServiceMessageFactory</interfacename> implementation.
     </para>
     <para>
-      For the simple inbound gateway type, the "extract-payload" attribute can set to false to forward the entire 
-      <interfacename>WebServiceMessage</interfacename>, instead of just its payload as a <interfacename>Message</interfacename> to the request channel.
+      For the simple inbound gateway type, the "extract-payload" attribute can be set to false to forward
+      the entire <interfacename>WebServiceMessage</interfacename> instead of just its payload as a        
+      <interfacename>Message</interfacename> to the request channel. This might be useful, for example,
+      when a custom Transformer works against the <interfacename>WebServiceMessage</interfacename> directly.
     </para>
   </section>
 
