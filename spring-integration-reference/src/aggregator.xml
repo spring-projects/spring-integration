@@ -23,10 +23,10 @@
   <section id="aggregator-functionality">
     <title>Functionality</title>
 
-    <para>The Aggregator combines a group of related messages, by storing and
-    grouping them, until the group is deemed complete. At that point, the
+    <para>The Aggregator combines a group of related messages, by correlating
+    and storing them, until the group is deemed complete. At that point, the
     Aggregator will create a single message by processing the whole group, and
-    will send the result message further.</para>
+    will send that aggregated message as output.</para>
 
     <para>As messages might arrive with a certain delay (or certain messages
     from the group might not arrive at all), the Aggregator can specify a
@@ -41,7 +41,7 @@
     <para>In Spring Integration, the grouping of the messages for aggregation
     is done by default based on their CORRELATION_ID message header (i.e. the
     messages with the same CORRELATION_ID will be grouped together). However,
-    this can be customized, and the users can opt for different other ways of
+    this can be customized, and the users can opt for other ways of
     specifying how the messages should be grouped together, by using a
     CorrelationStrategy (see below).</para>
 
@@ -82,8 +82,8 @@
       message sequence to aggregate is complete and processing them
       afterwards, and implementing the timeout functionality. The
       responsibility of deciding how the messages should be grouped together
-      is delegated to a CorrelationStrategy instance. The responsibility of
-      deciding whether the message sequence is complete is delegated to a
+      is delegated to a <code>CorrelationStrategy</code> instance. The responsibility
+      of deciding whether the message sequence is complete is delegated to a
       <code>CompletionStrategy</code> instance.</para>
 
       <para>A brief highlight of the base
@@ -187,7 +187,7 @@
       <code>SequenceSizeCompletionStrategy</code>. This implementation uses
       the SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for
       deciding when a message group is complete and ready to be
-      aggregated.<code></code></para>
+      aggregated.</para>
     </section>
 
     <section>
@@ -209,10 +209,10 @@
 
       <para>In general, any ordinary Java class (i.e. POJO) can implement the
       correlation decision mechanism, and the rules for mapping a message to
-      method's argument (or arguments) are the same as for a
+      a method's argument (or arguments) are the same as for a
       <code>ServiceActivator</code> (including support for @Header
       annotations). The method must return a value, and the value must not be
-      null.</para>
+      <code>null</code>.</para>
 
       <para>Spring Integration provides an out-of-the box implementation for
       <code>CorrelationStrategy</code>, the
@@ -243,7 +243,7 @@
     completion-strategy-method="checkCompleteness" <co id="aggxml8" />
     correlation-strategy="correlationStrategyBean" <co
         id="aggxmlCorrelationStrategy" />
-    correlation-strategy-method="correlationStrategyMethod" <co
+    correlation-strategy-method="groupNumbersByLastDigit" <co
         id="aggxmlCorrelationStrategyMethod" />
     timeout="42" <co id="aggxml9" />
     send-partial-result-on-timeout="true" <co id="aggxml10" />
@@ -255,7 +255,9 @@
 
 &lt;bean id="aggregatorBean" class="sample.PojoAggregator"/&gt;
 
-&lt;bean id="completionStrategyBean" class="sample.PojoCompletionStrategy"/&gt;</programlisting>
+&lt;bean id="completionStrategyBean" class="sample.PojoCompletionStrategy"/&gt;
+
+&lt;bean id="correlationStrategyBean" class="sample.PojoCorrelationStrategy"/&gt;</programlisting>
 
     <calloutlist>
       <callout arearefs="aggxml1">
@@ -277,7 +279,7 @@
       <callout arearefs="aggxml4">
         <para>The channel where the aggregator will send the messages that
         timed out (if <code>send-partial-results-on-timeout</code> is
-        <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
+        <emphasis>false</emphasis>). <emphasis>Optional</emphasis>.</para>
       </callout>
 
       <callout arearefs="aggxml5">
@@ -288,8 +290,8 @@
 
       <callout arearefs="aggxml6">
         <para>A method defined on the bean referenced by <code>ref</code>,
-        <emphasis><emphasis>that implements the message aggregation
-        algorithm.</emphasis> Optional, with restrictions (see
+        <emphasis>that implements the message aggregation
+        algorithm.</emphasis> <emphasis>Optional, with restrictions (see
         above).</emphasis></para>
       </callout>
 
@@ -304,8 +306,8 @@
 
       <callout arearefs="aggxml8">
         <para>A method defined on the bean referenced by
-        <code>completion-strategy</code>, <emphasis><emphasis>that implements
-        the completion decision algorithm.</emphasis> Optional, with
+        <code>completion-strategy</code>, <emphasis>that implements the
+        completion decision algorithm.</emphasis> <emphasis>Optional, with
         restrictions (requires <code>completion-strategy</code> to be
         present).</emphasis></para>
       </callout>
@@ -321,8 +323,8 @@
 
       <callout arearefs="aggxmlCorrelationStrategyMethod">
         <para>A method defined on the bean referenced by
-        <code>correlation-strategy</code>, <emphasis><emphasis>that implements
-        the completion decision algorithm.</emphasis> Optional, with
+        <code>correlation-strategy</code>, <emphasis>that implements the
+        correlation key algorithm.</emphasis> <emphasis>Optional, with
         restrictions (requires <code>correlation-strategy</code> to be
         present).</emphasis></para>
       </callout>
@@ -393,13 +395,13 @@
 
     <para><programlisting language="java">public class PojoCorrelationStrategy {
 ...
-  public Long groupsNumbersByLastDigit(Long number) {
+  public Long groupNumbersByLastDigit(Long number) {
     return number % 10;
   }
 }</programlisting></para>
 
     <para>For example, this aggregator would group numbers by some criterion
-    (in our case the remainder by dividing to 10) and will hold on the group
+    (in our case the remainder after dividing by 10) and will hold the group
     until the sum of the numbers which represents the payload exceeds a
     certain value.</para>
 
@@ -427,7 +429,7 @@
     ...
   }
 
-  @CompletionStrategy <co id="agganncorrs" />
+  @CorrelationStrategy <co id="agganncorrs" />
   public String correlateBy(OrderItem item) {
     ...
   }
@@ -450,14 +452,14 @@
 
       <callout arearefs="agganncorrs">
         <para id="agann3">An annotation indicating that this method shall be
-        used as the correlation strategy of an aggregator. If not present of
-        the method, the aggregator will use the
+        used as the correlation strategy of an aggregator. If no correlation
+        strategy is indicated, the aggregator will use the
         HeaderAttributeCorrelationStrategy based on CORRELATION_ID.</para>
       </callout>
     </calloutlist>
 
-    <para>All the configuration options provided by xml element are available
-    for the @Aggregator annotation.</para>
+    <para>All the configuration options provided by the xml element are also
+    available for the @Aggregator annotation.</para>
 
     <para>The aggregator can be either referenced explicitly from XML or, if
     the @MessageEndpoint is defined on the class, detected automatically
