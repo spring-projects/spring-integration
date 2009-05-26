@@ -49,13 +49,13 @@
       <title>SubscribableChannel</title>
       <para>
         The <interfacename>SubscribableChannel</interfacename> base interface is implemented by channels that send
-        Messages directly to their subscribed consumers. Therefore, they do not provide receive methods for polling, but
+        Messages directly to their subscribed handlers. Therefore, they do not provide receive methods for polling, but
         instead define methods for handling those subscribers:
         <programlisting language="java">public interface SubscribableChannel extends MessageChannel {
 
-    boolean subscribe(MessageConsumer consumer);
+    boolean subscribe(MessageHandler handler);
 
-    boolean unsubscribe(MessageConsumer consumer);
+    boolean unsubscribe(MessageHandler handler);
 
 }</programlisting>
       </para>
@@ -72,16 +72,16 @@
       <title>PublishSubscribeChannel</title>
       <para>
         The <classname>PublishSubscribeChannel</classname> implementation broadcasts any Message
-        sent to it to all of its subscribed consumers. This is most often used for sending
+        sent to it to all of its subscribed handlers. This is most often used for sending
         <emphasis>Event Messages</emphasis> whose primary role is notification as opposed to
         <emphasis>Document Messages</emphasis> which are generally intended to be processed by
-        a single consumer. Note that the <classname>PublishSubscribeChannel</classname> is
+        a single handler. Note that the <classname>PublishSubscribeChannel</classname> is
         intended for sending only. Since it broadcasts to its subscribers directly when its
         <methodname>send(Message)</methodname> method is invoked, consumers cannot poll for
         Messages (it does not implement <interfacename>PollableChannel</interfacename> and
         therefore has no <methodname>receive()</methodname> method). Instead, any subscriber
-        must be a <interfacename>MessageConsumer</interfacename> itself, and the subscriber's
-        <methodname>send(Message)</methodname> method will be invoked in turn.
+        must be a <interfacename>MessageHandler</interfacename> itself, and the subscriber's
+        <methodname>handleMessage(Message)</methodname> method will be invoked in turn.
       </para>
     </section>
     <section id="channel-implementations-queuechannel">
@@ -144,14 +144,14 @@
         <interfacename>PollableChannel</interfacename> interface, so it dispatches Messages directly to a subscriber.
         As a point-to-point channel, however, it differs from the <classname>PublishSubscribeChannel</classname> in
         that it will only send each Message to a <emphasis>single</emphasis> subscribed
-        <classname>MessageConsumer</classname>. Its primary purpose is to enable a single thread to perform the
-        operations on "both sides" of the channel. For example, if a consumer is subscribed to a
+        <classname>MessageHandler</classname>. Its primary purpose is to enable a single thread to perform the
+        operations on "both sides" of the channel. For example, if a handler is subscribed to a
         <classname>DirectChannel</classname>, then sending a Message to that channel will trigger invocation of that
-        consumer's <methodname>onMessage(Message)</methodname> method <emphasis>directly in the sender's
+        handler's <methodname>handleMessage(Message)</methodname> method <emphasis>directly in the sender's
         thread</emphasis>. The key motivation for providing a channel implementation with this behavior is to support
         transactions that must span across the channel while still benefiting from the abstraction and loose coupling
         that the channel provides. If the send call is invoked within the scope of a transaction, then the outcome of
-        the consumer's invocation (e.g. updating a database record) can play a role in determining the ultimate result
+        the handler's invocation (e.g. updating a database record) can play a role in determining the ultimate result
         of that transaction (commit or rollback).
         <note>
           Since the <classname>DirectChannel</classname> is the simplest option and does not add any additional
@@ -160,7 +160,7 @@
           then to consider which of those needs to provide buffering to throttle input, and to modify those to be
           queue-based <interfacename>PollableChannels</interfacename>. Likewise, if a channel needs to broadcast
           messages, it should not be a <classname>DirectChannel</classname> but rather a
-          <classname>PublishSubscribeChannel</classname>. Below you will see how these can be configured.
+          <classname>PublishSubscribeChannel</classname>. Below you will see how each of these can be configured.
         </note>
       </para>
     </section>
