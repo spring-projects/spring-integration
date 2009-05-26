@@ -49,6 +49,7 @@ import org.springframework.util.CollectionUtils;
  * will be ignored.
  *
  * @author Marius Bogoevici
+ * @author Alex Peters
  */
 public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message<?>>> {
 
@@ -77,7 +78,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 		List<Message<?>> releasedMessages = releaseAvailableMessages(barrier);
 		if (!CollectionUtils.isEmpty(releasedMessages)) {
 			Message<?> lastMessage =  releasedMessages.get(releasedMessages.size()-1);
-			if (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize() - 1)) {
+			if (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize())) {
 				this.removeBarrier(barrier.getCorrelationKey());
 			}
 			this.sendReplies(releasedMessages, this.resolveReplyChannelFromMessage(releasedMessages.get(0)));
@@ -134,7 +135,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 			return false;
 		}
 		if (!barrier.getMessages().isEmpty() &&
-				message.getHeaders().getSequenceSize() != barrier.getMessages().first().getHeaders().getSequenceSize()) {
+				! message.getHeaders().getSequenceSize().equals(barrier.getMessages().first().getHeaders().getSequenceSize())) {
 			logger.debug("The message has a sequence size which is different from other messages handled so far: " + message 
 						+ ", expected value is " + barrier.getMessages().first().getHeaders().getSequenceNumber());
 			return false;

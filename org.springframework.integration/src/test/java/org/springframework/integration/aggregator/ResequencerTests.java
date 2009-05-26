@@ -16,14 +16,15 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -33,6 +34,7 @@ import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Marius Bogoevici
+ * @author Alex Peters
  */
 public class ResequencerTests {
 
@@ -223,17 +225,26 @@ public class ResequencerTests {
 		assertNotNull(reply4);
 		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
 	}
+	
+	@Test
+	public void testRemovalOfBarrierWhenLastMessageOfSequenceArrives() {
+		QueueChannel replyChannel = new QueueChannel();
+		String correlationId = "ABC";
+		Message<?> message1 = createMessage("123", correlationId, 1, 1,
+				replyChannel);
+		resequencer.handleMessage(message1);
+		assertThat(resequencer.barriers.containsKey(correlationId), is(false));
+	}
 
 
 	private static Message<?> createMessage(String payload, Object correlationId,
 	                                        int sequenceSize, int sequenceNumber, MessageChannel replyChannel) {
-		Message<String> message = MessageBuilder.withPayload(payload)
+        return MessageBuilder.withPayload(payload)
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
 				.setReplyChannel(replyChannel)
 				.build();
-		return message;
 	}
 
 	@After
