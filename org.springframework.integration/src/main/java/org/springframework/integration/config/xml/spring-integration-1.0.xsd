@@ -81,9 +81,21 @@
 				Defines a queue for messages. If 'capacity' is
 				specified, it will be a
 				bounded queue.
+
+				A custom Queue implementation can be
+				injected using the 'ref' attribute.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="capacity" type="xsd:string" />
+		<xsd:attribute name="ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.concurrent.BlockingQueue" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="priorityQueueType">
@@ -110,8 +122,8 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Publish-Subscribe channel that
-	broadcasts messages to its subscribers.
+				Defines a Publish-Subscribe channel that
+				broadcasts messages to its subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -155,8 +167,9 @@
 	<xsd:element name="thread-local-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a channel that maintains its Messages
-	on a thread-bound queue.
+				Defines a channel that maintains its Messages
+				on a
+				thread-bound queue.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -188,8 +201,10 @@
 			<xsd:simpleType>
 				<xsd:annotation>
 					<xsd:documentation>
-						Defines a dispatching strategy for the channel. The default is a round
-						robin load balancer. In case of a publish subscribe channel this
+						Defines a dispatching strategy for the channel.
+						The default is a round
+						robin load balancer. In case of a publish
+						subscribe channel this
 						attribute will be ignored.
 					</xsd:documentation>
 				</xsd:annotation>
@@ -453,12 +468,13 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputEndpointType">
-					<xsd:attribute name="output-channel" type="xsd:string" use="required">
+					<xsd:attribute name="output-channel" type="xsd:string"
+						use="required">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-											type="org.springframework.integration.core.MessageChannel" />
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -807,7 +823,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
-					<xsd:attribute name="discard-channel" type="xsd:string"/>
+					<xsd:attribute name="discard-channel" type="xsd:string" />
 					<xsd:attribute name="throw-exception-on-rejection"
 						type="xsd:string" default="false" />
 				</xsd:extension>

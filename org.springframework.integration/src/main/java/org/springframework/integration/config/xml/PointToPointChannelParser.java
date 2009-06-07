@@ -44,6 +44,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
 			this.parseQueueCapacity(builder, queueElement);
+			this.parseQueueRef(builder, queueElement);
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".PriorityChannel");
@@ -62,6 +63,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 		return builder;
 	}
+
 
 	private void parseDispatcher(String dispatcherAttribute, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		if (dispatcherAttribute != null) {
@@ -83,4 +85,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 	}
 
+	private void parseQueueRef(BeanDefinitionBuilder builder, Element queueElement) {
+		String queueRef = queueElement.getAttribute("ref");
+		if (StringUtils.hasText(queueRef)){
+			builder.addConstructorArgReference(queueRef);
+		}
+	}
 }

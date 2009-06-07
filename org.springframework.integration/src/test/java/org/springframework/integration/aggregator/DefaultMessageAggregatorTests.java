@@ -17,8 +17,6 @@ package org.springframework.integration.aggregator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.awt.Button;
 import java.io.Serializable;
@@ -29,9 +27,11 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Alex Peters
+ * @author Iwein Fuld
  * 
  */
 public class DefaultMessageAggregatorTests {
@@ -44,14 +44,12 @@ public class DefaultMessageAggregatorTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test(timeout=1000)
 	public void aggregateMessages_withMultiplePayloads_allAsListInResultMsg() {
 		List<Serializable> anyPayloads = Arrays.asList("foo", "bar", 123L, new Button());
 		List<Message<?>> messageGroup = new ArrayList<Message<?>>(anyPayloads.size());
 		for (Serializable payload : anyPayloads) {
-			Message<Serializable> mock = mock(Message.class);
-			when(mock.getPayload()).thenReturn(payload);
-			messageGroup.add(mock);
+			messageGroup.add(MessageBuilder.withPayload(payload).build());
 		}
 		Message<?> result = aggregator.aggregateMessages(messageGroup);
 		assertThat((List<Serializable>) result.getPayload(), is(anyPayloads));

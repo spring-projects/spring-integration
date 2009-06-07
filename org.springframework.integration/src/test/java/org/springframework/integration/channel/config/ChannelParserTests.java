@@ -48,6 +48,8 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * 
+ * @see ChannelWithCustomQueueParserTests
  */
 public class ChannelParserTests {
 
