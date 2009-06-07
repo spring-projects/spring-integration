@@ -17,6 +17,7 @@ package org.springframework.integration.aggregator.integration;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,7 +71,8 @@ public class DefaultMessageAggregatorIntegrationTests {
 		}
 		Object payload = output.receive().getPayload();
 		assertThat(payload, is(List.class));
-		assertThat((List) payload, is(Arrays.asList(0, 1, 2, 3, 4)));
+		assertTrue(payload + " doesn't contain all of {0,1,2,3,4}", ((List) payload).containsAll(Arrays.asList(0, 1, 2,
+				3, 4)));
 	}
 
 	Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {
@@ -80,5 +82,4 @@ public class DefaultMessageAggregatorIntegrationTests {
 		headers.put(MessageHeaders.CORRELATION_ID, correllationId);
 		return headers;
 	}
-
 }
