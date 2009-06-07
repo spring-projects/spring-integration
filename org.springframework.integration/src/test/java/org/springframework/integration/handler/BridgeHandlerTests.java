@@ -16,25 +16,30 @@
 
 package org.springframework.integration.handler;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
-
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class BridgeHandlerTests {
+
+	private BridgeHandler handler= new BridgeHandler();
 
 	@Test
 	public void simpleBridge() {
 		QueueChannel outputChannel = new QueueChannel();
-		BridgeHandler handler = new BridgeHandler();
 		handler.setOutputChannel(outputChannel);
 		Message<?> request = new StringMessage("test");
 		handler.handleMessage(request);
@@ -43,17 +48,19 @@ public class BridgeHandlerTests {
 		assertEquals(request, reply);
 	}
 
-	@Test(expected = IllegalStateException.class)
-	public void missingOutputChannelVerifiedUponInitialization() {
-		BridgeHandler handler = new BridgeHandler();
-		handler.afterPropertiesSet();
-	}
-
 	@Test(expected = MessageHandlingException.class)
 	public void missingOutputChannelVerifiedAtRuntime() {
-		BridgeHandler handler = new BridgeHandler();
 		Message<?> request = new StringMessage("test");
 		handler.handleMessage(request);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test(timeout=1000)
+	public void missingOutputChannelAllowedForReplyChannelMessages() throws Exception {
+		PollableChannel replyChannel = new QueueChannel();
+		Message request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel ).build();
+		handler.handleMessage(request );
+		assertThat(replyChannel.receive(), is(request));
 	}
 
 }

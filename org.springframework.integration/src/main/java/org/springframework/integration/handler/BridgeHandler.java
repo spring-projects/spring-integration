@@ -16,27 +16,30 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 
 /**
  * A simple MessageHandler implementation that passes the request Message
- * directly to the output channel without modifying it. The main purpose of
- * this handler is to bridge a PollableChannel to a SubscribableChannel or
+ * directly to the output channel without modifying it. The main purpose of this
+ * handler is to bridge a PollableChannel to a SubscribableChannel or
  * vice-versa.
+ * <p/>
+ * The BridgeHandler can be used as a stopper at the end of an assembly line of
+ * channels. In this setup the output channel doesn't have to be set, but if the
+ * output channel is omitted the <tt>REPLY_CHANNEL</tt> MUST be set on the
+ * message.
  * 
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
-public class BridgeHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
-
-	public void afterPropertiesSet() {
-		this.verifyOutputChannel();
-	}
+public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
-		this.verifyOutputChannel();
+		if (requestMessage.getHeaders().getReplyChannel() == null) {
+			this.verifyOutputChannel();
+		}
 		replyMessageHolder.set(requestMessage);
 	}
 
