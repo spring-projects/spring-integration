@@ -469,7 +469,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="inputEndpointType">
 					<xsd:attribute name="output-channel" type="xsd:string"
-						use="required">
+						use="optional">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">

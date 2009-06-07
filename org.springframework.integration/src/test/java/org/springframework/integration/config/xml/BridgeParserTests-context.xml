@@ -1,32 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
+	<!-- pollable to subscribable -->
 	<channel id="pollableChannel">
-		<queue/>
-	</channel>
-
-	<channel id="output1">
-		<queue/>
-	</channel>
-
-	<channel id="subscribableChannel"/>
-
-	<channel id="output2">
-		<queue/>
+		<queue />
 	</channel>
 
 	<bridge input-channel="pollableChannel" output-channel="output1">
 		<poller max-messages-per-poll="2">
-			<interval-trigger interval="3000"/>
+			<interval-trigger interval="3000" />
 		</poller>
 	</bridge>
 
-	<bridge input-channel="subscribableChannel" output-channel="output2"/>
+	<channel id="output1">
+		<queue />
+	</channel>
+
+	<!-- subscribable to pollable -->
+	<channel id="subscribableChannel" />
+
+	<bridge input-channel="subscribableChannel" output-channel="output2" />
+
+	<channel id="output2">
+		<queue />
+	</channel>
+
+	<!-- stopper (uses reply channel header) -->
+	<channel id="stopperChannel" />
+	<bridge input-channel="stopperChannel" />
+
 
 </beans:beans>

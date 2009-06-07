@@ -23,14 +23,18 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 @ContextConfiguration
 public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
@@ -44,13 +48,16 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	private MessageChannel subscribableChannel;
 
 	@Autowired
+	@Qualifier("stopperChannel")
+	private MessageChannel stopperChannel;
+
+	@Autowired
 	@Qualifier("output1")
 	private PollableChannel output1;
 
 	@Autowired
 	@Qualifier("output2")
 	private PollableChannel output2;
-
 
 	@Test
 	public void pollableChannel() {
@@ -66,6 +73,21 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 		this.subscribableChannel.send(message);
 		Message<?> reply = this.output2.receive(0);
 		assertEquals(message, reply);
+	}
+
+	@Test
+	public void stopperWithReplyHeader() {
+		PollableChannel replyChannel = new QueueChannel();
+		Message<?> message = MessageBuilder.withPayload("test3").setReplyChannel(replyChannel).build();
+		this.stopperChannel.send(message);
+		Message<?> reply = replyChannel.receive(0);
+		assertEquals(message, reply);
+	}
+
+	@Test(expected = MessagingException.class)
+	public void stopperWithoutReplyHeader() {
+		Message<?> message = MessageBuilder.withPayload("test3").build();
+		this.stopperChannel.send(message);
 	}
 
 }
