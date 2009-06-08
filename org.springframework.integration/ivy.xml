@@ -28,6 +28,7 @@
 		<dependency org="org.springframework" name="org.springframework.transaction" rev="2.5.6.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.test" rev="2.5.6.A" conf="test->runtime"/>
 		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="1.6.0" conf="test->runtime"/>
+		<dependency org="org.aspectj" name="com.springsource.org.aspectj.weaver" rev="1.6.3.RELEASE" conf="test->runtime"/>
 	</dependencies>
 
 </ivy-module>
