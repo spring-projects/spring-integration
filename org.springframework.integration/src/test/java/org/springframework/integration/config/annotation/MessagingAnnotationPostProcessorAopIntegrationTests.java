@@ -33,6 +33,10 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * @author Iwein Fuld
+ */
+
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MessagingAnnotationPostProcessorAopIntegrationTests {
