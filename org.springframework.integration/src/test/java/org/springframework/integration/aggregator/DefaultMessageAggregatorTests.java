@@ -18,13 +18,10 @@ package org.springframework.integration.aggregator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import java.awt.Button;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -36,22 +33,17 @@ import org.springframework.integration.message.MessageBuilder;
  */
 public class DefaultMessageAggregatorTests {
 
-	DefaultMessageAggregator aggregator;
-
-	@Before
-	public void setUp() {
-		aggregator = new DefaultMessageAggregator();
-	}
+	DefaultMessageAggregator aggregator = new DefaultMessageAggregator();
 
 	@SuppressWarnings("unchecked")
-	@Test(timeout=1000)
+	@Test
 	public void aggregateMessages_withMultiplePayloads_allAsListInResultMsg() {
-		List<Serializable> anyPayloads = Arrays.asList("foo", "bar", 123L, new Button());
+		List<Object> anyPayloads = Arrays.asList("foo", "bar", 123L, new Object());
 		List<Message<?>> messageGroup = new ArrayList<Message<?>>(anyPayloads.size());
-		for (Serializable payload : anyPayloads) {
+		for (Object payload : anyPayloads) {
 			messageGroup.add(MessageBuilder.withPayload(payload).build());
 		}
 		Message<?> result = aggregator.aggregateMessages(messageGroup);
-		assertThat((List<Serializable>) result.getPayload(), is(anyPayloads));
+		assertThat((List<Object>) result.getPayload(), is(anyPayloads));
 	}
 }
