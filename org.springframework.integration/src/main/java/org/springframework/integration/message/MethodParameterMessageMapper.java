@@ -38,17 +38,43 @@ import org.springframework.util.StringUtils;
 
 /**
  * Prepares arguments for handler methods. The method parameters are matched
- * against the Message payload as well as its headers. If a method parameter is
- * annotated with {@link Header @Header}, the annotation's value will be used as
- * a header name. If such an annotation contains no value, then the parameter
- * name will be used as long as the information is available in the class file
- * (requires compilation with debug settings for parameter names). If the
- * {@link Header @Header} annotation is not present, then the parameter will
- * typically match the Message payload. However, if a Map or Properties object
- * is expected, and the paylaod is not itself assignable to that type, then the
- * MessageHeaders' values will be passed in the case of a Map-typed parameter,
- * or the MessageHeaders' String-based values will be passed in the case of a
- * Properties-typed parameter.
+ * against the Message, its payload as well as its headers. A message or payload
+ * parameter must not be annotated, there can be at most one of these. In
+ * certain special cases more than one unannotated parameters can be used (more
+ * on this later) but there should always be at most one parameter that the
+ * message or it's payload.
+ * <p/>
+ * If a method parameter is annotated with {@link Header @Header}, the
+ * annotation's value will be used as a header name. If such an annotation
+ * contains no value, then the parameter name will be used as long as the
+ * information is available in the class file (requires compilation with debug
+ * settings for parameter names). In addition a Map or Properties parameter can
+ * be matched to all the message headers. This can be done explicitly through
+ * the {@link Headers @Headers} annotation, or implicitly by using a non
+ * ambiguous method signature. There can be as many Header annotated parameters
+ * as the user wants. There needs to be only one Headers parameter.
+ * <p/>
+ * If a Map or Properties object is expected, and the payload is not itself
+ * assignable to that type, then the MessageHeaders' values will be passed in
+ * the case of a Map-typed parameter, or the MessageHeaders' String-based values
+ * will be passed in the case of a Properties-typed parameter. In these cases
+ * multiple unannotated parameters are legal.
+ * <p/>
+ * Some examples of legal method signatures:<br/>
+ * <tt>public void dealWith(Object payload);</tt><br/>
+ * <tt>public void dealWith(Message message);</tt><br/>
+ * <tt>public void dealWith(@Header String myHeader, Object payload);</tt><br/>
+ * <tt>public void dealWith(@Header String myHeader, @Header String anotherHeader);</tt>
+ * <br/>
+ * <tt>public void dealWith(@Headers Map headers, Object payload);</tt><br/>
+ * <tt>public void dealWith(@Headers Properties headers, Map payload);</tt><br/>
+ * <tt>public void dealWith(Properties headers, Object payload);</tt><br/>
+ * <p/>
+ * Some examples of illegal method signatures: <br/>
+ * <tt>public void dealWith(Object payload, String payload);</tt><br/>
+ * <tt>public void dealWith(Message message, Object payload);</tt><br/>
+ * <tt>public void dealWith(Properties headers, Map payload);</tt><br/>
+ * 
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -77,7 +103,8 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 			if (metadata.getHeaderAnnotation() == null && !metadata.hasHeadersAnnotation()
 					&& !Message.class.isAssignableFrom(metadata.getParameterType())) {
 				payloadCandidates.add(metadata);
-			} else if (Message.class.isAssignableFrom(metadata.getParameterType())){
+			}
+			else if (Message.class.isAssignableFrom(metadata.getParameterType())) {
 				messagesFound++;
 			}
 		}
@@ -90,8 +117,9 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 				}
 			}
 		}
-		Assert.isTrue(payloadCandidates.size()+messagesFound <= 1, "Could not find at most one message or payload parameter among ["
-				+ parameterMetadata + "] ended up with the candidates [" + payloadCandidates + "]");
+		Assert.isTrue(payloadCandidates.size() + messagesFound <= 1,
+				"Could not find at most one message or payload parameter among [" + parameterMetadata
+						+ "] ended up with the candidates [" + payloadCandidates + "]");
 		MethodParameterMetadata methodParameterMetadata = payloadCandidates.toArray(new MethodParameterMetadata[1])[0];
 		return methodParameterMetadata;
 	}
@@ -133,17 +161,14 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 					Assert.isTrue(!required, "header '" + headerName + "' is required");
 				}
 			}
-			else if (metadata.hasHeadersAnnotation()) {
+			else if (metadata.hasHeadersAnnotation() || metadata.isMapOrProperties()) {
 				if (value != null) {
 					this.addHeadersAnnotatedParameterToMap(value, headers);
 				}
 			}
-			else if (metadata.getParameterType().equals(Message.class)) {
-				message = (Message<?>) value;
-			}
 			else {
-				Assert.isTrue(metadata.isMapOrProperties());
-				this.addHeadersAnnotatedParameterToMap(value, headers);
+				Assert.isTrue(Message.class.isAssignableFrom(metadata.getParameterType()));
+				message = (Message<?>) value;
 			}
 		}
 		if (message != null) {
