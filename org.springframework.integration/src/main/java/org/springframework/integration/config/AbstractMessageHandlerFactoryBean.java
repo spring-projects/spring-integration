@@ -16,6 +16,9 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -26,8 +29,9 @@ import org.springframework.util.Assert;
  * Base class for FactoryBeans that create MessageHandler instances.
  * 
  * @author Mark Fisher
+ * @author Alexander Peters
  */
-public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean {
+public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, BeanFactoryAware {
 
 	private volatile MessageHandler handler;
 
@@ -41,6 +45,8 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean {
 
 	private final Object initializationMonitor = new Object();
 
+	private BeanFactory beanFactory;
+
 
 	public void setTargetObject(Object targetObject) {
 		this.targetObject = targetObject;
@@ -53,14 +59,21 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean {
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
+	
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
 
 	public Object getObject() throws Exception {
 		if (this.handler == null) {
 			this.initializeHandler();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
-			if (this.outputChannel != null
-					&& this.handler instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) this.handler).setOutputChannel(this.outputChannel);
+			if (this.handler instanceof AbstractReplyProducingMessageHandler) {
+				AbstractReplyProducingMessageHandler abstractHandler = (AbstractReplyProducingMessageHandler) this.handler;
+				if(this.outputChannel != null){
+					abstractHandler.setOutputChannel(this.outputChannel);
+				}
+				abstractHandler.setBeanFactory(beanFactory);
 			}
 		}
 		return this.handler;

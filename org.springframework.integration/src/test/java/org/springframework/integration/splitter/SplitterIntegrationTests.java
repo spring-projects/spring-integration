@@ -30,13 +30,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
+ * @author Alexander Peters
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -53,6 +56,9 @@ public class SplitterIntegrationTests {
 	@Autowired
 	@Qualifier("inDefault")
 	MessageChannel inDefault;
+	
+	@Autowired
+	MethodInvokingSplitter splitter;
 
 	private String sentence = "The quick brown fox jumped over the lazy dog";
 
@@ -106,6 +112,14 @@ public class SplitterIntegrationTests {
 		inDefault.send(new GenericMessage<List<String>>(words));
 		assertTrue(receiver.receivedWords.containsAll(words));
 		assertTrue(words.containsAll(receiver.receivedWords));
+	}
+	
+	@Test
+	public void channelResolver_isNotNull() throws Exception {
+		splitter.setOutputChannel(null);
+		Message<String> message = MessageBuilder.withPayload("fooBar")
+				.setReplyChannelName("out").build();
+		inMethodInvoking.send(message);
 	}
 
 }
