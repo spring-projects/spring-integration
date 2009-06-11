@@ -16,8 +16,7 @@
 
 package org.springframework.integration.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -32,6 +31,7 @@ import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class MethodParameterMessageMapperFromMessageTests {
 
@@ -108,6 +108,36 @@ public class MethodParameterMessageMapperFromMessageTests {
 		assertEquals(2, result.size());
 		assertEquals("foo", result.getProperty("prop1"));
 		assertEquals("bar", result.getProperty("prop2"));
+	}
+	
+	@Test
+	public void fromMessageWithPropertiesAndObjectMethod() throws Exception {
+		Method method = TestService.class.getMethod("propertiesHeadersAndPayload", Properties.class, Object.class);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		Message<String> message = MessageBuilder.withPayload("test")
+		.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
+		Object[] args = mapper.fromMessage(message);
+		Properties result = (Properties) args[0];
+		assertEquals(2, result.size());
+		assertEquals("foo", result.getProperty("prop1"));
+		assertEquals("bar", result.getProperty("prop2"));
+		assertEquals("test", args[1]);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void fromMessageWithMapAndObjectMethod() throws Exception {
+		Method method = TestService.class.getMethod("mapHeadersAndPayload", Map.class, Object.class);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		Message<String> message = MessageBuilder.withPayload("test")
+		.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
+		Object[] args = mapper.fromMessage(message);
+		Map result = (Map) args[0];
+		//Map also contains id and timestamp
+		assertEquals(4, result.size());
+		assertEquals("foo", result.get("prop1"));
+		assertEquals("bar", result.get("prop2"));
+		assertEquals("test", args[1]);
 	}
 
 	@Test
@@ -192,6 +222,10 @@ public class MethodParameterMessageMapperFromMessageTests {
 		public Properties propertiesHeaders(@Headers Properties properties) {
 			return properties;
 		}
+		
+	    public Object propertiesHeadersAndPayload(Properties headers, Object payload) {
+	           return payload;
+	    }
 
 		@SuppressWarnings("unchecked")
 		public Map mapPayload(Map map) {
@@ -202,11 +236,14 @@ public class MethodParameterMessageMapperFromMessageTests {
 		public Map mapHeaders(@Headers Map map) {
 			return map;
 		}
+		
+		@SuppressWarnings("unchecked")
+		public Object mapHeadersAndPayload(Map headers, Object payload) {
+			return payload;
+		}
 
 		public Integer integerMethod(Integer i) {
 			return i;
 		}
 	}
-
-
 }

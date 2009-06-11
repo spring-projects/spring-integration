@@ -84,7 +84,7 @@ public class MethodInvokingMessageHandlerTests {
 		endpoint.setTrigger(new IntervalTrigger(10));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		String result = queue.poll(1000, TimeUnit.MILLISECONDS);
+		String result = queue.poll(2000, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
 		assertEquals("testing", result);
 		context.stop();
