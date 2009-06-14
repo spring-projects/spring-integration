@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,25 @@ public class MapBasedChannelResolver implements ChannelResolver {
 
 	private volatile Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
 
+	/**
+	 * Empty constructor for use when providing the channel map via
+	 * {@link #setChannelMap(Map)}.
+	 */
+	public MapBasedChannelResolver() {
+	}
 
+	/**
+	 * Create a {@link ChannelResolver} that uses the provided Map.
+	 * Each String key will resolve to the associated channel value.
+	 */
+	public MapBasedChannelResolver(Map<String, MessageChannel> channelMap) {
+		this.setChannelMap(channelMap);
+	}
+
+	/**
+	 * Provide a map of channels to be used by this resolver.
+	 * Each String key will resolve to the associated channel value.
+	 */
 	public void setChannelMap(Map<String, MessageChannel> channelMap) {
 		Assert.notNull(channelMap, "channelMap must not be null");
 		this.channelMap = channelMap;
