@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
@@ -28,10 +29,11 @@ import org.springframework.integration.message.MessageBuilder;
  * is ignored except the <code>correlationId</code>.
  * 
  * <p>
- * n The default strategy for determining whether a group is complete is based
+ * The default strategy for determining whether a group is complete is based
  * on the '<code>sequenceSize</code>' property of the header. Alternatively, a
  * custom implementation of the {@link CompletionStrategy} may be provided.
  * </p>
+ * 
  * <p>
  * All considerations regarding <code>timeout</code> and grouping by
  * <code>correlationId</code> from {@link AbstractMessageBarrierHandler} apply
@@ -39,7 +41,7 @@ import org.springframework.integration.message.MessageBuilder;
  * </p>
  * 
  * @author Alex Peters
- * 
+ * @since 1.0.3
  */
 public class DefaultMessageAggregator extends AbstractMessageAggregator {
 

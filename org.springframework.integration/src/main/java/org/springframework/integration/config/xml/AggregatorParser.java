@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the <em>aggregator</em> element of the integration namespace.
@@ -55,14 +56,14 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
 	private static final String CORRELATION_STRATEGY_PROPERTY = "correlationStrategy";
 
+
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (StringUtils.hasText(ref)) {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-							+ ".aggregator.MethodInvokingAggregator");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.MethodInvokingAggregator");
 			builder.addConstructorArgReference(ref);
 			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 				String method = element.getAttribute(METHOD_ATTRIBUTE);
@@ -70,9 +71,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 			}
 		}
 		else {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-							+ ".aggregator.DefaultMessageAggregator");
+			builder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultMessageAggregator");
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				DISCARD_CHANNEL_ATTRIBUTE);
@@ -114,9 +114,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
 	private String createAdapter(String ref, String method, String unqualifiedClassName,
 			ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator."
-						+ unqualifiedClassName);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator." + unqualifiedClassName);
 		builder.addConstructorArgReference(ref);
 		builder.addConstructorArgValue(method);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(),
