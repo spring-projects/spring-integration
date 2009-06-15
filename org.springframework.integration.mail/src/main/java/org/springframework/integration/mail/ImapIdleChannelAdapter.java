@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail;
 
+import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -40,6 +41,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private final IdleTask idleTask = new IdleTask();
 
+	private volatile boolean shouldReconnectAutomatically = true;
+
 	private volatile TaskExecutor taskExecutor;
 
 	private final ImapMailReceiver mailReceiver;
@@ -50,6 +53,15 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		this.mailReceiver = mailReceiver;
 	}
 
+
+	/**
+	 * Specify whether the IDLE task should reconnect automatically after
+	 * catching a {@link FolderClosedException} while waiting for messages.
+	 * The default value is <code>true</code>.
+	 */
+	public void setShouldReconnectAutomatically(boolean shouldReconnectAutomatically) {
+		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
+	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
@@ -114,6 +126,9 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 					}
 				}
 				catch (MessagingException e) {
+					if (e instanceof FolderClosedException && shouldReconnectAutomatically) {
+						continue;
+					}
 					handleMailMessagingException(e);
 					return;
 				}
