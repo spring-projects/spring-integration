@@ -66,8 +66,10 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		if (!element.hasAttribute(inputChannelAttributeName)) {
 			if (!parserContext.isNested()) {
+				String elementDescription = IntegrationNamespaceUtils.createElementDescription(element);
 				parserContext.getReaderContext().error("The '" + inputChannelAttributeName
-						+ "' attribute is required for this top-level endpoint element.", element);
+						+ "' attribute is required for the top-level endpoint element "
+						+ elementDescription + ".", element);
 			}
 			return handlerBeanDefinition;
 		}

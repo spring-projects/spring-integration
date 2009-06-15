@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,8 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ServiceActivatingHandler");
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (!StringUtils.hasText(ref)) {
-			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
+			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required for element "
+					+ IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
 		}
 		builder.addConstructorArgReference(ref);
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {

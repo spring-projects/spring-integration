@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Alex Peters
  */
 public abstract class IntegrationNamespaceUtils {
 
@@ -120,6 +121,20 @@ public abstract class IntegrationNamespaceUtils {
 			Element element, String attributeName) {
 		setReferenceIfAttributeDefined(builder, element, attributeName,
 				Conventions.attributeNameToPropertyName(attributeName));
+	}
+
+	/**
+	 * Provides a user friendly description of an element based on its node
+	 * name and, if available, its "id" attribute value. This is useful for
+	 * creating error messages from within bean definition parsers.
+	 */
+	public static String createElementDescription(Element element) {
+		String elementId = "'" + element.getNodeName() + "'";
+		String id = element.getAttribute("id");
+		if (StringUtils.hasText(id)) {
+			elementId += " with id='" + id + "'";
+		}
+		return elementId;
 	}
 
 	/**
