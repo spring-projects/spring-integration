@@ -67,7 +67,7 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 			builder.addConstructorArgReference(ref);
 			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 				String method = element.getAttribute(METHOD_ATTRIBUTE);
-				builder.addConstructorArgValue(method);
+				builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
 			}
 		}
 		else {
@@ -117,7 +117,7 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator." + unqualifiedClassName);
 		builder.addConstructorArgReference(ref);
-		builder.addConstructorArgValue(method);
+		builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(),
 				parserContext.getRegistry());
 	}

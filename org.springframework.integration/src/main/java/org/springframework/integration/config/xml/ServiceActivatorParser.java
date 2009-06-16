@@ -41,7 +41,7 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 		builder.addConstructorArgReference(ref);
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			builder.addConstructorArgValue(method);
+			builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
 		}
 		return builder;
 	}
