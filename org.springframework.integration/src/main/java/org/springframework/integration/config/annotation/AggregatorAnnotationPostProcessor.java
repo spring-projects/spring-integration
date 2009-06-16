@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		aggregator.setReaperInterval(annotation.reaperInterval());
 		aggregator.setTimeout(annotation.timeout());
 		aggregator.setTrackedCorrelationIdCapacity(annotation.trackedCorrelationIdCapacity());
-		aggregator.setBeanFactory(this.beanFactoryAccessor.getBeanFactory());
+		aggregator.setBeanFactory(this.beanFactory);
 		aggregator.afterPropertiesSet();
 		return aggregator;
 	}

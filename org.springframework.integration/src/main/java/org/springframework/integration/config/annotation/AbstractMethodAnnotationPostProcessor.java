@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
@@ -43,14 +43,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
 
 
-	protected final GenericBeanFactoryAccessor beanFactoryAccessor;
+	protected final BeanFactory beanFactory;
 
 	protected final ChannelResolver channelResolver;
 
 
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.beanFactoryAccessor = new GenericBeanFactoryAccessor(beanFactory);
+		this.beanFactory = beanFactory;
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
@@ -78,7 +78,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
 			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 			if (handler instanceof BeanFactoryAware) {
-				((BeanFactoryAware) handler).setBeanFactory(this.beanFactoryAccessor.getBeanFactory());
+				((BeanFactoryAware) handler).setBeanFactory(this.beanFactory);
 			}
 		}
 		return endpoint;
