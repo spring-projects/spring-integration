@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -33,7 +34,9 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -130,7 +133,7 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 		for (int i = 0; i < paramTypes.length; i++) {
 			MethodParameterMetadata metadata = new MethodParameterMetadata(this.method, i);
 			metadata.initParameterNameDiscovery(this.parameterNameDiscoverer);
-			GenericTypeResolver.resolveParameterType(metadata, this.method.getDeclaringClass());
+			GenericTypeResolver.resolveParameterType(metadata.parameter, this.method.getDeclaringClass());
 			parameterMetadata[i] = metadata;
 		}
 		return parameterMetadata;
@@ -242,20 +245,32 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 		}
 	}
 
-	private static class MethodParameterMetadata extends MethodParameter {
+	private static class MethodParameterMetadata {
+
+		private final MethodParameter parameter;
 
 		private volatile Header _headerAnnotation;
 
 		private volatile boolean _hasHeadersAnnotation;
 
 		private MethodParameterMetadata(Method method, int index) {
-			super(method, index);
-			for (Object o : this.getParameterAnnotations()) {
+			this.parameter = new MethodParameter(method, index);
+			Object annotationArray = null;
+			try {
+				// using reflection since Spring 3.0 returns Annotation[] yet Spring 2.5 returns Object[]
+				annotationArray = ReflectionUtils.invokeMethod(
+						this.parameter.getClass().getMethod("getParameterAnnotations", new Class[0]), this.parameter);
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("failed to introspect method parameter annotations", e);
+			}
+			List<?> annotations = CollectionUtils.arrayToList(annotationArray);
+			for (Object o : annotations) {
 				if (o instanceof Header) {
 					this._headerAnnotation = (Header) o;
 				}
 				else if (Headers.class.isInstance(o)) {
-					Assert.isAssignable(Map.class, this.getParameterType(),
+					Assert.isAssignable(Map.class, this.parameter.getParameterType(),
 							"parameter with the @Headers annotation must be assignable to java.util.Map");
 					this._hasHeadersAnnotation = true;
 				}
@@ -271,8 +286,8 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 		}
 
 		boolean isMapOrProperties() {
-			if (Properties.class.isAssignableFrom(this.getParameterType())
-					|| Map.class.isAssignableFrom(this.getParameterType())) {
+			if (Properties.class.isAssignableFrom(this.parameter.getParameterType())
+					|| Map.class.isAssignableFrom(this.parameter.getParameterType())) {
 				return true;
 			}
 			return false;
@@ -284,11 +299,20 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 			}
 			String paramName = this.getHeaderAnnotation().value();
 			if (!StringUtils.hasText(paramName)) {
-				paramName = this.getParameterName();
+				paramName = this.parameter.getParameterName();
 				Assert.state(paramName != null,
 						"No parameter name specified on @Header and unable to discover in class file.");
 			}
 			return paramName;
 		}
+
+		private void initParameterNameDiscovery(ParameterNameDiscoverer parameterNameDiscoverer) {
+			this.parameter.initParameterNameDiscovery(parameterNameDiscoverer);
+		}
+
+		private Class<?> getParameterType() {
+			return this.parameter.getParameterType();
+		}
 	}
+
 }
