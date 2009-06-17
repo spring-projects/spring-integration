@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,8 +61,6 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 	private String parseImapMailReceiver(Element element, ParserContext parserContext) {
 		String uri = element.getAttribute("store-uri");
 		Assert.hasText(uri, "the 'store-uri' attribute is required");
-		Assert.isTrue(uri.toLowerCase().startsWith("imap"),
-				"store-uri must start with 'imap' for the imap idle channel adapter");
 		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(ImapMailReceiver.class);
 		receiverBuilder.addConstructorArgValue(uri);
 		String propertiesRef = element.getAttribute("java-mail-properties");
