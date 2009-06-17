@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.MailReceiver;
-import org.springframework.integration.mail.MailReceivingMessageSource;
-import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -39,38 +35,34 @@ import org.springframework.util.xml.DomUtils;
  */
 public class MailInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
+	private static final String BASE_PACKAGE = "org.springframework.integration.mail";
+
+
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailReceivingMessageSource.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				BASE_PACKAGE + ".MailReceivingMessageSource");
 		builder.addConstructorArgReference(this.parseMailReceiver(element, parserContext));
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 	private String parseMailReceiver(Element element, ParserContext parserContext) {
-		String uri = element.getAttribute("store-uri");
-		Assert.hasText(uri, "the 'store-uri' attribute is required");
-		boolean isPop3 = uri.toLowerCase().startsWith("pop3");
-		boolean isImap = uri.toLowerCase().startsWith("imap");
-		Assert.isTrue(isPop3 || isImap, "the 'store-uri' must begin with 'pop3' or 'imap'");
-		Class<? extends MailReceiver> receiverClass = isPop3 ? Pop3MailReceiver.class : ImapMailReceiver.class;
-		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(receiverClass);
-		receiverBuilder.addConstructorArgValue(uri);
+		String storeUri = element.getAttribute("store-uri");
+		Assert.hasText(storeUri, "the 'store-uri' attribute is required");
+		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				BASE_PACKAGE + ".config.MailReceiverFactoryBean");
+		receiverBuilder.addPropertyValue("storeUri", storeUri);
 		String propertiesRef = element.getAttribute("java-mail-properties");
 		if (StringUtils.hasText(propertiesRef)) {
 			receiverBuilder.addPropertyReference("javaMailProperties", propertiesRef);
 		}
-		boolean configuredFetchSize = false;
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		if (pollerElement != null) {
 			String mmpp = pollerElement.getAttribute("max-messages-per-poll");
 			if (StringUtils.hasText(mmpp)) {
 				receiverBuilder.addPropertyValue("maxFetchSize", mmpp);
-				configuredFetchSize = true;
 			}
-		}
-		if (!configuredFetchSize) {
-			receiverBuilder.addPropertyValue("maxFetchSize", 1);
 		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				receiverBuilder.getBeanDefinition(), parserContext.getRegistry());
