@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<channel id="channel1">
+		<queue capacity="1" />
+	</channel>
+	<channel id="channel2">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="routingChannelA" />
+	<header-value-router input-channel="routingChannelA" header-name="testHeader"/>
+	
+	<channel id="routingChannelB" />
+	<header-value-router input-channel="routingChannelB" header-name="testHeader">
+		<mapping value="1" channel="channel1" />
+		<mapping value="2" channel="channel2" />
+	</header-value-router>
+
+	<gateway id="testServiceA"
+		service-interface="org.springframework.integration.router.config.HeaderValueRouterParserTests$TestServiceA"
+		default-request-channel="routingChannelA" />
+		
+	<gateway id="testServiceB"
+		service-interface="org.springframework.integration.router.config.HeaderValueRouterParserTests$TestServiceB"
+		default-request-channel="routingChannelB" />
+		
+	
+</beans:beans>
