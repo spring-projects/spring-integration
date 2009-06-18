@@ -23,6 +23,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
+import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
 import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -44,12 +45,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile WebServiceMessageCallback requestCallback;
 
+    private final MessageAwareDestinationProvider destinationProvider;
 
-	public AbstractWebServiceOutboundGateway(URI uri, WebServiceMessageFactory messageFactory) {
-		Assert.notNull(uri, "URI must not be null");
-		this.webServiceTemplate = (messageFactory != null) ?
+
+	public AbstractWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
+		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
+		this.destinationProvider = destinationProvider;
+        this.webServiceTemplate = (messageFactory != null) ?
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
-		this.webServiceTemplate.setDefaultUri(uri.toString());
 	}
 
 
@@ -81,15 +84,19 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		return this.webServiceTemplate;
 	}
 
+    protected MessageAwareDestinationProvider getDestinationProvider(){
+        return destinationProvider;
+    }
+
 	@Override
 	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
+		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message),this.getDestinationProvider().getDestination(message));
 		if (responsePayload != null) {
 			replyHolder.set(responsePayload);
 		}
 	}
 
-	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback);
+	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback, URI uri);
 
 	private WebServiceMessageCallback getRequestCallback(Message<?> requestMessage) {
 		if (this.requestCallback != null) {

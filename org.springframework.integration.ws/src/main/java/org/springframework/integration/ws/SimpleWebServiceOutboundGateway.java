@@ -27,6 +27,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
@@ -44,35 +45,35 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	private final SourceExtractor sourceExtractor;
 
 
-	public SimpleWebServiceOutboundGateway(URI uri) {
-		this(uri, null, null);
+	public SimpleWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider) {
+		this(destinationProvider, null, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(URI uri, SourceExtractor sourceExtractor) {
-		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
+	public SimpleWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, SourceExtractor sourceExtractor) {
+		this(destinationProvider, sourceExtractor, (WebServiceMessageFactory) null);
 	}
 
-	public SimpleWebServiceOutboundGateway(URI uri, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
-		super(uri, messageFactory);
+	public SimpleWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
+		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 
 	@Override
-	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback) {
+	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback,URI uri) {
 		if (requestPayload instanceof Source) {
-			return this.getWebServiceTemplate().sendSourceAndReceive(
+			return this.getWebServiceTemplate().sendSourceAndReceive(uri.toString(),
 					(Source) requestPayload, requestCallback, this.sourceExtractor);
 		}
 		if (requestPayload instanceof String) {
 			StringResult result = new StringResult();
-			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
+			this.getWebServiceTemplate().sendSourceAndReceiveToResult(uri.toString(),
 					new StringSource((String) requestPayload), requestCallback, result);
 			return result.toString();
 		}
 		if (requestPayload instanceof Document) {
 			DOMResult result = new DOMResult();
-			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
+			this.getWebServiceTemplate().sendSourceAndReceiveToResult(uri.toString(),
 					new DOMSource((Document) requestPayload), requestCallback, result);
 			return (Document)result.getNode();
 		}

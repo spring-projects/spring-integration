@@ -21,6 +21,9 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
+import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
+import org.springframework.integration.ws.destination.HeaderBasedDestinationProvider;
+import org.springframework.integration.ws.destination.FixedUriDestinationProvider;
 import org.springframework.util.StringUtils;
 
 /**
@@ -37,13 +40,47 @@ public class WebServiceOutboundGatewayParser extends AbstractRemotingOutboundGat
 		return "org.springframework.integration.ws." + simpleClassName;
 	}
 
-	@Override
-	protected String parseUrl(Element element, ParserContext parserContext) {
+
+	protected void buildDestinationProvider(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String uri = element.getAttribute("uri");
-		if (!StringUtils.hasText(uri)) {
-			parserContext.getReaderContext().error("The 'uri' attribute is required.", element);
+        String uriHeader = element.getAttribute("uri-header");
+        String destinationProvider = element.getAttribute("destination-provider");
+
+		if (StringUtils.hasText(destinationProvider)  && (StringUtils.hasText(uri) || StringUtils.hasText(uriHeader))) {
+			parserContext.getReaderContext().error("The 'uri' and/or 'uri-header' can not be specified if setting destination-provider.", element);
 		}
-		return uri;
+
+        if (!StringUtils.hasText(destinationProvider)  && !(StringUtils.hasText(uri) || StringUtils.hasText(uriHeader))) {
+			parserContext.getReaderContext().error("The at least one of 'uri' or 'uri-header' must be specified if not setting destination-provider.", element);
+		}
+
+        if(StringUtils.hasText(destinationProvider)){
+            builder.addConstructorArgReference(destinationProvider);
+        } else if (StringUtils.hasText(uri)  && ! StringUtils.hasText(uriHeader)){
+            BeanDefinitionBuilder destinationProviderBuilder = BeanDefinitionBuilder.genericBeanDefinition(FixedUriDestinationProvider.class);
+            destinationProviderBuilder.getBeanDefinition().getConstructorArgumentValues().addIndexedArgumentValue(0, uri);
+            builder.addConstructorArgValue(destinationProviderBuilder.getBeanDefinition());
+        }else{
+            BeanDefinitionBuilder destinationProviderBuilder = BeanDefinitionBuilder.genericBeanDefinition(HeaderBasedDestinationProvider.class);
+            destinationProviderBuilder.getBeanDefinition().getConstructorArgumentValues().addIndexedArgumentValue(0, uri);
+            destinationProviderBuilder.getBeanDefinition().getConstructorArgumentValues().addIndexedArgumentValue(1, uriHeader);
+            builder.addConstructorArgValue(destinationProviderBuilder.getBeanDefinition());
+        }
+
+	}
+
+
+    @Override
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getGatewayClassName(element));
+		this.buildDestinationProvider(element, parserContext,builder);
+
+        String replyChannel = element.getAttribute("reply-channel");
+		if (StringUtils.hasText(replyChannel)) {
+			builder.addPropertyReference("replyChannel", replyChannel);
+		}
+		this.postProcessGateway(builder, element, parserContext);
+		return builder;
 	}
 
 	@Override

@@ -47,8 +47,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="uri" type="xsd:string" use="required"/>
-			<xsd:attribute name="marshaller" type="xsd:string">
+			<xsd:attribute name="uri" type="xsd:string" />
+            <xsd:attribute name="uri-header" type="xsd:string" />
+            <xsd:attribute name="destination-provider" type="xsd:string" >
+                <xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ws.destination.MessageAwareDestinationProvider"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>    
+            </xsd:attribute>
+            <xsd:attribute name="marshaller" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">

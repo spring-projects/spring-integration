@@ -63,10 +63,19 @@
 	<ws:outbound-gateway id="gatewayWithPoller"
 		                 request-channel="pollableInputChannel"
 	                     uri="http://example.org">
-		<si:poller>
+    	<si:poller>
 			<si:interval-trigger interval="5000"/>
 		</si:poller>
 	</ws:outbound-gateway>
+
+
+    <ws:outbound-gateway id="gatewayWithUriHeader"
+		                 request-channel="inputChannel"
+	                     uri-header="testHeaderName" />
+
+    <ws:outbound-gateway id="gatewayWithDestinationProvider"
+		                 request-channel="inputChannel"
+	                     destination-provider="destinationProvider" />
 
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 
@@ -82,5 +91,8 @@
 		<ref bean="messageSender"/>
 		<bean class="org.springframework.integration.ws.config.StubMessageSender"/>
 	</util:list>
+
+
+    <bean id="destinationProvider" class="org.springframework.integration.ws.config.StubDestinationProvider"/>
 
 </beans>
