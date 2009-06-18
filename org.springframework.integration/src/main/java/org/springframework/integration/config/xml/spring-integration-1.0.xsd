@@ -830,7 +830,43 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-
+	
+	<xsd:element name="header-value-router">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Header Value Router.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputEndpointType">
+					<xsd:sequence>
+						<xsd:element name="mapping" type="mappingType"
+							minOccurs="0" maxOccurs="unbounded">
+						</xsd:element>
+					</xsd:sequence>
+					<xsd:attribute name="default-output-channel"
+						type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="resolution-required"
+						type="xsd:boolean" />
+					<xsd:attribute
+						name="ignore-channel-name-resolution-failures" type="xsd:boolean" />
+					<xsd:attribute name="header-name"
+						type="xsd:string">
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 	<xsd:element name="router">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -1102,4 +1138,9 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
+
+	<xsd:complexType name="mappingType">
+		<xsd:attribute name="value" type="xsd:string"></xsd:attribute>
+		<xsd:attribute name="channel" type="xsd:string"></xsd:attribute>
+	</xsd:complexType>
 </xsd:schema>
