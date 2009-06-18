@@ -27,6 +27,7 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;router/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class RouterParser extends AbstractConsumerEndpointParser {
 
@@ -36,9 +37,18 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 		if (!StringUtils.hasText(ref)) {
 			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
+		BeanDefinitionBuilder builder = this.createBuilder();
 		builder.addPropertyReference("targetObject", ref);
+		return doParse(element, parserContext, builder);
+	}
+	/**
+	 * 
+	 * @param element
+	 * @param parserContext
+	 * @return
+	 */
+	protected BeanDefinitionBuilder doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addPropertyValue("targetMethodName", method);
@@ -52,6 +62,13 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
 		return builder;
+	}
+	/**
+	 * 
+	 * @return
+	 */
+	BeanDefinitionBuilder createBuilder(){
+		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
 	}
 
 }
