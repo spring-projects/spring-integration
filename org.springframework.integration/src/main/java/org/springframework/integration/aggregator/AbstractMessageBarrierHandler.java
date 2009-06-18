@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,7 +157,6 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 	 * Set the number of completed correlationIds to track. Default is 1000.
 	 */
 	public void setTrackedCorrelationIdCapacity(int trackedCorrelationIdCapacity) {
-		Assert.isTrue(trackedCorrelationIdCapacity > 0, "'trackedCorrelationIdCapacity' must be a positive value");
 		this.trackedCorrelationIdCapacity = trackedCorrelationIdCapacity;
 	}
 
@@ -166,7 +165,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 	 * become true. The default is 60000 (1 minute).
 	 */
 	public void setTimeout(long timeout) {
-		Assert.isTrue(timeout >= 0, "'timeout' must not be negative");
+		Assert.isTrue(timeout >= 0, "'timeout' must be a positive value");
 		this.timeout = timeout;
 	}
 
@@ -196,7 +195,9 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
     public final void afterPropertiesSet() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.initialized) {
-				this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
+				if (this.trackedCorrelationIdCapacity > 0) {
+					this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
+				}
 				if (this.autoStartup) {
 					this.start();
 				}
@@ -240,7 +241,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 			throw new MessageHandlingException(message, this.getClass().getSimpleName()
 					+ " requires the 'correlationKey' property");
 		}
-		if (this.trackedCorrelationIds.contains(correlationKey)) {
+		if (this.trackedCorrelationIds != null && this.trackedCorrelationIds.contains(correlationKey)) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Handling of Message group with correlationKey '" + correlationKey
 						+ "' has already completed or timed out.");
@@ -321,7 +322,8 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 	}
 
 	protected final void removeBarrier(Object correlationId) {
-		if (this.barriers.remove(correlationId) != null) {
+		if (this.barriers.remove(correlationId) != null
+				&& this.trackedCorrelationIds != null) {
 			synchronized (this.trackedCorrelationIds) {
 				boolean added = this.trackedCorrelationIds.offer(correlationId);
 				if (!added) {
