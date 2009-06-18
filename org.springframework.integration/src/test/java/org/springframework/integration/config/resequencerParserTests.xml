@@ -21,6 +21,10 @@
 
 	<channel id="inputChannel2"/>
 
+	<channel id="inputChannel3"/>
+
+	<channel id="inputChannel4"/>
+
 	<resequencer id="completelyDefinedResequencer" 
 		input-channel="inputChannel2"
 		output-channel="outputChannel" 
@@ -31,5 +35,20 @@
 		tracked-correlation-id-capacity="99"
 		timeout="42" 
 		release-partial-sequences="false"/>
+
+	<resequencer id="resequencerWithCorrelationStrategyRefOnly"
+		input-channel="inputChannel3"
+		correlation-strategy="testCorrelationStrategy"/>
+
+	<resequencer id="resequencerWithCorrelationStrategyRefAndMethod"
+		input-channel="inputChannel4"
+		correlation-strategy="testCorrelationStrategyPojo"
+		correlation-strategy-method="foo"/>
+
+	<beans:bean id="testCorrelationStrategy"
+		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>
+
+	<beans:bean id="testCorrelationStrategyPojo"
+		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategyPojo"/>
 
 </beans:beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;resequencer&gt; element.
@@ -33,6 +35,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.Resequencer");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
+		this.configureCorrelationStrategy(builder, element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "release-partial-sequences");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-partial-result-on-timeout");
@@ -41,6 +44,26 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder;
+	}
+
+	private void configureCorrelationStrategy(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		String ref = element.getAttribute("correlation-strategy");
+		String method = element.getAttribute("correlation-strategy-method");
+		String correlationStrategyProperty = "correlationStrategy";
+		if (StringUtils.hasText(ref)) {
+			if (StringUtils.hasText(method)) {
+				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.CorrelationStrategyAdapter");
+				adapterBuilder.addConstructorArgReference(ref);
+				adapterBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
+				String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+						adapterBuilder.getBeanDefinition(), parserContext.getRegistry());
+				builder.addPropertyReference(correlationStrategyProperty, adapterBeanName);
+			}
+			else {
+				builder.addPropertyReference(correlationStrategyProperty, ref);
+			}
+		}
 	}
 
 }
