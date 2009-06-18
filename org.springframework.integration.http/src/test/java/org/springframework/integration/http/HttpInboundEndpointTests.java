@@ -95,6 +95,7 @@ public class HttpInboundEndpointTests {
 		endpoint = new HttpInboundEndpoint();
 		endpoint.setRequestChannel(requestChannel);
 		endpoint.setReplyChannel(replyChannel);
+		endpoint.afterPropertiesSet();
 		reset(allmocks);
 		request = new MockHttpServletRequest("GET", "/anyurl");
 		response = new MockHttpServletResponse();
@@ -220,18 +221,18 @@ public class HttpInboundEndpointTests {
 	}
 
 	@Test
-	public void handleRequest_withPOSTRequestAndParamsOnly_sameInMessageHeader()
+	public void handleRequest_withPOSTRequestAndFormContent_sameInMessagePayload()
 			throws ServletException, IOException {
-		addRequestContent("POST", "text/plain", ANY_ENCODING, new byte[0]);
+		addRequestContent("POST", "application/x-www-form-urlencoded", ANY_ENCODING, new byte[0]);
 		final Map<String, String> sourceParams = addAnyParametersToRequest();
 		request.setParameters(sourceParams);
 		expect(requestChannel.send(isA(Message.class))).andAnswer(
 			new IAnswer<Boolean>() {
 				@SuppressWarnings("unchecked")
 				public Boolean answer() throws Throwable {
-					MessageHeaders headers = ((Message) getCurrentArguments()[0]).getHeaders();
+					Map<String, String> payloadMap = (Map<String, String>) ((Message) getCurrentArguments()[0]).getPayload();
 					for (String key : sourceParams.keySet()) {
-						assertThat(headers.get(key),
+						assertThat(payloadMap.get(key),
 								is((Object) new String[] { sourceParams.get(key) }));
 					}
 					return true;
@@ -388,6 +389,7 @@ public class HttpInboundEndpointTests {
 							HttpInboundEndpoint.class.getConstructor(new Class[0]),
 							new Object[0]),
 					HttpInboundEndpoint.class.getMethod("sendAndReceive", Object.class));
+			endpoint.afterPropertiesSet();
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);

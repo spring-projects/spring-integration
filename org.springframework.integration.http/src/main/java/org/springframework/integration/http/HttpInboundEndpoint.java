@@ -29,11 +29,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageTimeoutException;
 import org.springframework.util.Assert;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.View;
 
 /**
@@ -87,7 +90,7 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 
 	private volatile boolean expectReply;
 
-	private volatile InboundRequestMapper requestMapper = new DefaultInboundRequestMapper();
+	private volatile InboundRequestMapper requestMapper;
 
 	private volatile boolean extractReplyPayload = true;
 
@@ -172,7 +175,37 @@ public class HttpInboundEndpoint extends SimpleMessagingGateway implements HttpR
 		this.replyKey = (replyKey != null) ? replyKey : DEFAULT_REPLY_KEY;
 	}
 
+	@Override
+	protected void onInit() throws Exception {
+		if (this.requestMapper == null) {
+			this.configureDefaultRequestMapper();
+		}
+		super.onInit();
+	}
+
+	private void configureDefaultRequestMapper() {
+		DefaultInboundRequestMapper defaultMapper = new DefaultInboundRequestMapper();
+		if (this.getBeanFactory() != null) {
+			try {
+				MultipartResolver multipartResolver = (MultipartResolver)
+						this.getBeanFactory().getBean(DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Using MultipartResolver [" + multipartResolver + "]");
+				}
+				defaultMapper.setMultipartResolver(multipartResolver);
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Unable to locate MultipartResolver with name '" + DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME +
+							"': no multipart request handling will be supported.");
+				}
+			}
+		}
+		this.requestMapper = defaultMapper;
+	}
+
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		Assert.notNull(this.requestMapper, "HttpInboundEndpoint has not been initialized.");
 		if (!this.supportedMethods.contains(request.getMethod())) {
 			response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 			return;
