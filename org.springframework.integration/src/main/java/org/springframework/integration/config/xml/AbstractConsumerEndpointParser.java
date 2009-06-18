@@ -78,7 +78,16 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
 		builder.addPropertyReference("handler", handlerBeanName);
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
-		if (!((BeanFactory) parserContext.getRegistry()).containsBean(inputChannelName)) {
+		boolean channelExists = false;
+		if (parserContext.getRegistry() instanceof BeanFactory) {
+			// BeanFactory also checks ancestor contexts in a hierarchy
+			channelExists = ((BeanFactory) parserContext.getRegistry()).containsBean(inputChannelName);
+		}
+		else {
+			channelExists = parserContext.getRegistry().containsBeanDefinition(inputChannelName);
+		}
+		if (!channelExists) {
+			// create a default DirectChannel instance
 			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.DirectChannel");
 			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
