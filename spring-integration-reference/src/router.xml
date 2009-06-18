@@ -27,6 +27,46 @@
 </bean>]]></programlisting>
       </para>
     </section>
+    <section id="router-implementations-headervaluerouter">
+      <title>HeaderValueRouter</title>
+      <para>
+        A <classname>HeaderValueRouter</classname> will send Messages to the channel based on the individual header value mappings.
+        When <code>HeaderValueRouter</code> is created it is initialized with the <emphasis>name</emphasis> of the header to be evaluated, using <code>constructor-arg</code>.
+        The <emphasis>value</emphasis> of the header could be one of two things:</para>
+      <para>
+        1. Arbitrary value
+     </para>
+     <para>
+        2. Channel name
+     </para>
+     <para>
+        If arbitrary value, then <code>channelResolver</code> should be provided to map <emphasis>header values</emphasis> to <emphasis>channel names</emphasis>.
+		Example below uses <code>MapBasedChannelResolver</code> to set up a map of header values to channel names.
+<programlisting language="xml"><![CDATA[ <bean id="myHeaderValueRouter"
+		class="org.springframework.integration.router.HeaderValueRouter">
+  <constructor-arg value="someHeaderName" /> 
+  <property name="channelResolver">
+    <bean class="org.springframework.integration.channel.MapBasedChannelResolver">
+      <property name="channelMap">
+        <map>
+          <entry key="someHeaderValue" value-ref="channelA" />
+          <entry key="someOtherHeaderValue" value-ref="channelB" />
+        </map>
+      </property>
+    </bean>
+  </property>
+</bean>
+]]></programlisting>
+        If <code>channelResolver</code> is not specified, then <emphasis>header value</emphasis> will be treated as <emphasis>channel name</emphasis> 
+        making configuration much simpler, where no <code>channelResolver</code> needs to be specified.
+<programlisting language="xml"><![CDATA[ 
+<bean id="myHeaderValueRouter"
+	class="org.springframework.integration.router.HeaderValueRouter">
+	<constructor-arg value="someHeaderName" /> 
+</bean>
+]]></programlisting> 
+      </para>
+    </section>
     <section id="router-implementations-recipientlistrouter">
       <title>RecipientListRouter</title>
       <para>
