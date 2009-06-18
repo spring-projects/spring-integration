@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -26,12 +23,15 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * Namespace handler for the integration namespace.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Oleg Zhurakousky
  */
 public class IntegrationNamespaceHandler implements NamespaceHandler {
 
@@ -79,6 +79,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("transformer", new TransformerParser());
 			registerBeanDefinitionParser("filter", new FilterParser());
 			registerBeanDefinitionParser("router", new RouterParser());
+			registerBeanDefinitionParser("header-value-router", new HeaderValueRouterParser());
 			registerBeanDefinitionParser("splitter", new SplitterParser());
 			registerBeanDefinitionParser("aggregator", new AggregatorParser());
 			registerBeanDefinitionParser("resequencer", new ResequencerParser());
