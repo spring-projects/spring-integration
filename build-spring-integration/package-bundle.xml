@@ -7,6 +7,11 @@
 		<dist-jar/>
 		<src-jar/>
 		<ext-jars/>
+		<delete>
+			<fileset dir="${package.lib.dir}">
+				<present targetdir="${package.dist.dir}"/>
+			</fileset>
+		</delete>
 	</target>
 
 </project>
