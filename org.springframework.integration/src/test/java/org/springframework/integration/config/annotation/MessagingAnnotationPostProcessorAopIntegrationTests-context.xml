@@ -7,12 +7,22 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
 	<annotation-config />
+
 	<aop:aspectj-autoproxy />
+
 	<channel id="input"/>
+
+	<channel id="output">
+		<queue capacity="1"/>
+	</channel>
+
 	<beans:bean id="activatedService"
 		class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessorAopIntegrationTests$AnnotatedService" />
+
 	<beans:bean id="handlerAspect"
 		class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessorAopIntegrationTests$HandlerAspect" />
+
 	<beans:bean id="serviceAspect"
 		class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessorAopIntegrationTests$ServiceAspect" />
+
 </beans:beans>

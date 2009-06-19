@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
@@ -57,6 +58,9 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
+		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+			handler = (MessageHandler) ((ConfigurableListableBeanFactory) beanFactory).initializeBean(handler, "_initHandlerFor_" + beanName);
+		}
 		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation);
 		if (endpoint != null) {
 			return endpoint;
