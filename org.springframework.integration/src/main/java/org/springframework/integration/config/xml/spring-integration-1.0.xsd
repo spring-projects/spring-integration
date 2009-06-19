@@ -830,12 +830,15 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="header-value-router">
 		<xsd:annotation>
-			<xsd:documentation>
-				Defines a Header Value Router.
-			</xsd:documentation>
+			<xsd:documentation><![CDATA[
+	Defines a Header Value Router. The 'header-name' attribute specifies which
+	header value to lookup. That header value can then provide the name of a
+	channel to be resolved. Alternatively, 1 or more 'mapping' sub-elements
+	may be provided with expected header values mapped to channels.
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -848,8 +851,14 @@
 							</xsd:complexType>	
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="default-output-channel"
-						type="xsd:string">
+					<xsd:attribute name="header-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Name of the header whose value to use.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="default-output-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -859,22 +868,19 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="resolution-required"
-						type="xsd:boolean" />
-					<xsd:attribute
-						name="ignore-channel-name-resolution-failures" type="xsd:boolean" />
-					<xsd:attribute name="header-name"
-						type="xsd:string">
-					</xsd:attribute>
+					<xsd:attribute name="resolution-required" type="xsd:string"/>
+					<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
 	<xsd:element name="payload-type-router">
 		<xsd:annotation>
-			<xsd:documentation>
-				Defines a Header Value Router.
-			</xsd:documentation>
+			<xsd:documentation><![CDATA[
+	Defines a Payload Type Router. The 'mapping' sub-elements specify the
+	associations between Java types and target channels.
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -887,8 +893,7 @@
 							</xsd:complexType>	
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="default-output-channel"
-						type="xsd:string">
+					<xsd:attribute name="default-output-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -898,22 +903,18 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="resolution-required"
-						type="xsd:boolean" />
-					<xsd:attribute
-						name="ignore-channel-name-resolution-failures" type="xsd:boolean" />
-					<xsd:attribute name="header-name"
-						type="xsd:string">
-					</xsd:attribute>
+					<xsd:attribute name="resolution-required" type="xsd:string"/>
+					<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
 	<xsd:element name="router">
 		<xsd:annotation>
-			<xsd:documentation>
-				Defines a Router.
-			</xsd:documentation>
+			<xsd:documentation><![CDATA[
+	Defines a Router.
+			]]></xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -932,15 +933,14 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="java.lang.Object" />
+									<tool:expected-type type="java.lang.Object"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="method" type="xsd:string" />
-					<xsd:attribute name="resolution-required" type="xsd:boolean" />
-					<xsd:attribute name="ignore-channel-name-resolution-failures"
-						type="xsd:boolean" />
+					<xsd:attribute name="method" type="xsd:string"/>
+					<xsd:attribute name="resolution-required" type="xsd:string"/>
+					<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

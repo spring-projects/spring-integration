@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,14 +41,8 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 		builder.addPropertyReference("targetObject", ref);
 		return doParse(element, parserContext, builder);
 	}
-	/**
-	 * 
-	 * @param element
-	 * @param parserContext
-	 * @return
-	 */
+
 	protected BeanDefinitionBuilder doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addPropertyValue("targetMethodName", method);
@@ -63,12 +57,10 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
 		return builder;
 	}
-	/**
-	 * 
-	 * @return
-	 */
-	BeanDefinitionBuilder createBuilder(){
-		return BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
+
+	BeanDefinitionBuilder createBuilder() {
+		return BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
 	}
 
 }

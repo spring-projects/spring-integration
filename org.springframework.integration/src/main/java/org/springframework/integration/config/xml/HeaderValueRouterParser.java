@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,42 +18,45 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.MapBasedChannelResolver;
-import org.springframework.integration.router.HeaderValueRouter;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;header-value-router/&gt; element.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
+ * @since 1.0.3
  */
 public class HeaderValueRouterParser extends RouterParser {
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder headerValueRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(HeaderValueRouter.class);
+		BeanDefinitionBuilder headerValueRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.HeaderValueRouter");
 		headerValueRouterBuilder.addConstructorArgValue(element.getAttribute("header-name"));
-		
-		BeanDefinitionBuilder mapBasedChannelResolverBuilder = null;
 		// check if mapping is provided otherwise header values will be treated as channel names
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
-		if (childElements != null && childElements.size() > 0){
-			mapBasedChannelResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(MapBasedChannelResolver.class);
+		if (childElements != null && childElements.size() > 0) {
+			BeanDefinitionBuilder mapBasedChannelResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MapBasedChannelResolver");
 			ManagedMap channelMap = new ManagedMap();
 			for (Element childElement : childElements) {
-				channelMap.put(childElement.getAttribute("value"), new RuntimeBeanReference(childElement.getAttribute("channel")));
+				channelMap.put(childElement.getAttribute("value"),
+						new RuntimeBeanReference(childElement.getAttribute("channel")));
 			}
 			mapBasedChannelResolverBuilder.addPropertyValue("channelMap", channelMap);
+			String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					mapBasedChannelResolverBuilder.getBeanDefinition(), parserContext.getRegistry());
+			headerValueRouterBuilder.addPropertyReference("channelResolver", resolverBeanName);
 		}
-		if (mapBasedChannelResolverBuilder != null){
-			headerValueRouterBuilder.addPropertyValue("channelResolver", mapBasedChannelResolverBuilder.getBeanDefinition());
-		}
-		
 		BeanDefinitionBuilder rootBuilder = this.createBuilder();
 		rootBuilder.addPropertyValue("targetObject", headerValueRouterBuilder.getBeanDefinition());
 		return this.doParse(element, parserContext, rootBuilder);
