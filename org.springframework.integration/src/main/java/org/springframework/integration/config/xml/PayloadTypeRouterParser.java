@@ -35,11 +35,11 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class PayloadTypeRouterParser extends RouterParser {
+public class PayloadTypeRouterParser extends AbstractRouterParser {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected void parseRouter(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext) {
 		BeanDefinitionBuilder payloadTypeRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
@@ -56,9 +56,7 @@ public class PayloadTypeRouterParser extends RouterParser {
 			channelMap.put(typeName, new RuntimeBeanReference(childElement.getAttribute("channel")));
 		}
 		payloadTypeRouterBuilder.addPropertyValue("payloadTypeChannelMap", channelMap);
-		BeanDefinitionBuilder rootBuilder = this.createBuilder();
 		rootBuilder.addPropertyValue("targetObject", payloadTypeRouterBuilder.getBeanDefinition());
-		return this.doParse(element, parserContext, rootBuilder);
 	}
-	
+
 }

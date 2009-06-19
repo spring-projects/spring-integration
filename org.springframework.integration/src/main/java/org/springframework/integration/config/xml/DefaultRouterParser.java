@@ -29,20 +29,15 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class RouterParser extends AbstractConsumerEndpointParser {
+public class DefaultRouterParser extends AbstractRouterParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected void parseRouter(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		if (!StringUtils.hasText(ref)) {
 			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
 		}
-		BeanDefinitionBuilder builder = this.createBuilder();
 		builder.addPropertyReference("targetObject", ref);
-		return doParse(element, parserContext, builder);
-	}
-
-	protected BeanDefinitionBuilder doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addPropertyValue("targetMethodName", method);
@@ -52,15 +47,6 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 		builder.addPropertyReference("channelResolver", resolverBeanName);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
-		return builder;
-	}
-
-	BeanDefinitionBuilder createBuilder() {
-		return BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean");
 	}
 
 }

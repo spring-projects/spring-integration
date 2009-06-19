@@ -924,6 +924,7 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="timeout" type="xsd:string"/>
 				<xsd:attribute name="resolution-required" type="xsd:string"/>
 				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string"/>
 			</xsd:extension>

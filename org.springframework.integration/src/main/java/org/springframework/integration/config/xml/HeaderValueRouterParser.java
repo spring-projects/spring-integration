@@ -34,11 +34,11 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class HeaderValueRouterParser extends RouterParser {
+public class HeaderValueRouterParser extends AbstractRouterParser {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected void parseRouter(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext) {
 		BeanDefinitionBuilder headerValueRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.HeaderValueRouter");
 		headerValueRouterBuilder.addConstructorArgValue(element.getAttribute("header-name"));
@@ -57,9 +57,7 @@ public class HeaderValueRouterParser extends RouterParser {
 					mapBasedChannelResolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 			headerValueRouterBuilder.addPropertyReference("channelResolver", resolverBeanName);
 		}
-		BeanDefinitionBuilder rootBuilder = this.createBuilder();
 		rootBuilder.addPropertyValue("targetObject", headerValueRouterBuilder.getBeanDefinition());
-		return this.doParse(element, parserContext, rootBuilder);
 	}
 
 }
