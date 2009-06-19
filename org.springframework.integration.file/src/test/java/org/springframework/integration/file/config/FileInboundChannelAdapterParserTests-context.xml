@@ -13,6 +13,7 @@
 	<inbound-channel-adapter id="inputDirPoller"
 			directory="file:${java.io.tmpdir}"
 			filter="filter"
+			comparator="testComparator"
 			auto-startup="false">
 		<integration:poller>
 			<integration:interval-trigger interval="5000"/>
@@ -26,5 +27,8 @@
 	</beans:bean>
 
 	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
+	<beans:bean id="testComparator"
+		class="org.springframework.integration.file.config.FileInboundChannelAdapterParserTests$TestComparator"/>
 
 </beans:beans>

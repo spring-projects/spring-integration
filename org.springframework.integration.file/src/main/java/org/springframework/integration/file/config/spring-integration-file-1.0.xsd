@@ -21,7 +21,8 @@
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures an inbound Channel Adapter that polls a directory.
+	Configures an inbound Channel Adapter that polls a directory and sends
+	Messages whose payloads are instances of java.io.File.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -39,6 +40,14 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="comparator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Specify a Comparator to be used when ordering Files. If none is provided, the
+	order will be determined by the java.io.File implementation of Comparable.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="filter" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
