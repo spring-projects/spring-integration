@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,9 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	private volatile ChannelResolver channelResolver;
 
 	private volatile MessageChannel defaultOutputChannel;
-	
+
+	private volatile Long timeout;
+
 	private volatile Boolean resolutionRequired;
 
 	private volatile Boolean ignoreChannelNameResolutionFailures;
@@ -48,6 +50,10 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
+	}
+
+	public void setTimeout(Long timeout) {
+		this.timeout = timeout;
 	}
 
 	public void setResolutionRequired(Boolean resolutionRequired) {
@@ -64,6 +70,9 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		AbstractMessageRouter router = this.createRouter(targetObject, targetMethodName);
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
+		}
+		if (this.timeout != null) {
+			router.setTimeout(timeout.longValue());
 		}
 		if (this.ignoreChannelNameResolutionFailures != null) {
 			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter, 

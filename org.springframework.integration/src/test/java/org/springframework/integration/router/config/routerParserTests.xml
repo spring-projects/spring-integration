@@ -62,6 +62,8 @@
 	<channel id="ignoreChannelNameResolutionFailuresInput"/>
 	<beans:bean id="payloadAsChannelNameRouter" class="org.springframework.integration.router.config.RouterParserTests$ReturnStringPassedInAsChannelNameRouter" />
 	<router id="ignoreChannelNameResolutionFailuresRouter" ref="payloadAsChannelNameRouter" input-channel="ignoreChannelNameResolutionFailuresInput" ignore-channel-name-resolution-failures="true" />  
-	
+
+	<channel id="timeoutRouterChannel"/>
+	<router id="routerWithTimeout" ref="payloadAsChannelNameRouter" timeout="1234" input-channel="timeoutRouterChannel"/>
 
 </beans:beans>

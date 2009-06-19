@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,11 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -33,6 +36,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.MethodInvokingRouter;
 
 /**
  * @author Mark Fisher
@@ -109,7 +113,6 @@ public class RouterParserTests {
 		input.send(new GenericMessage<Integer>(3));
 	}
 
-	
 	@Test
 	public void testIgnoreChannelNameResolutionFailures() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
@@ -118,6 +121,19 @@ public class RouterParserTests {
 		MessageChannel input = (MessageChannel) context.getBean("ignoreChannelNameResolutionFailuresInput");
 		input.send(new StringMessage("channelThatDoesNotExist"));
 	}
+
+	@Test
+	public void timeoutValueConfigured() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(context.getBean("routerWithTimeout"));
+		MethodInvokingRouter router = (MethodInvokingRouter) endpointAccessor.getPropertyValue("handler");
+		MessageChannelTemplate template = (MessageChannelTemplate)
+				new DirectFieldAccessor(router).getPropertyValue("channelTemplate");
+		Long timeout = (Long) new DirectFieldAccessor(template).getPropertyValue("sendTimeout");
+		assertEquals(new Long(1234), timeout);
+	}
+
 
 	public static class TestRouterImplementation extends AbstractMessageRouter {
 
