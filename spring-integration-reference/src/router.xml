@@ -26,6 +26,18 @@
     </property>
 </bean>]]></programlisting>
       </para>
+      <para>
+      Configuration of <classname>PayloadTypeRouter</classname> is also supported via namespace support provided by Spring Integration (see <xref linkend="configuration-namespace"/>),
+      which essentially simplifies configuration by combining <code>&lt;router/&gt;</code> configuration and its corresponding implementation defined using <code>&lt;bean/&gt;</code> element 
+      into a single and more concise configuration element.
+      Example below demonstrates <classname>PayloadTypeRouter</classname> configuration which is equivalent to the one above using Spring Integration namespace support:
+      </para>
+      <para>
+      <programlisting language="xml"><![CDATA[<payload-type-router input-channel="routingChannel">
+	<mapping type="java.lang.String" channel="stringChannel" />
+	<mapping type="java.lang.Integer" channel="integerChannel" />
+</payload-type-router>]]></programlisting>
+	</para>
     </section>
     <section id="router-implementations-headervaluerouter">
       <title>HeaderValueRouter</title>
@@ -66,6 +78,21 @@
 </bean>
 ]]></programlisting> 
       </para>
+      <para>
+      Similar to the <classname>PayloadTypeRouter</classname>, configuration of <classname>HeaderValueRouter</classname> is also supported via namespace support provided by Spring Integration (see <xref linkend="configuration-namespace"/>).
+      Example below demonstrates two types of namespace-based configuration of <classname>HeaderValueRouter</classname> which are equivalent to the ones above using Spring Integration namespace support:
+      </para>
+      <para>1. Configuration where mapping of header values to channels is required</para>
+      <para>
+      <programlisting language="xml"><![CDATA[<header-value-router input-channel="routingChannel" header-name="testHeader">
+	<mapping value="someHeaderValue" channel="channelA" />
+	<mapping value="someOtherHeaderValue" channel="channelB" />
+</header-value-router>]]></programlisting>
+	</para>
+	<para>2. Configuration where mapping of header values is not required if header values themselves represent the channel names</para>
+      <para>
+      <programlisting language="xml"><![CDATA[<header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
+	</para>
     </section>
     <section id="router-implementations-recipientlistrouter">
       <title>RecipientListRouter</title>

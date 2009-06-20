@@ -33,6 +33,10 @@
         <firstname>Jonas</firstname>
         <surname>Partner</surname>
       </author>
+      <author>
+        <firstname>Oleg</firstname>
+        <surname>Zhurakousky</surname>
+      </author>
     </authorgroup>
 
     <legalnotice><para>&copy; SpringSource Inc., 2008</para></legalnotice>
