@@ -13,7 +13,9 @@
 	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
 	<channel id="orders"/>
-	<splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
+	<splitter input-channel="orders" method="split" output-channel="drinks">
+		<beans:bean class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
+	</splitter>
 
 	<channel id="drinks"/>
 	<router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
@@ -32,8 +34,6 @@
     <aggregator input-channel="preparedDrinks" ref="waiter" method="prepareDelivery" output-channel="deliveries"/>
 
 	<stream:stdout-channel-adapter id="deliveries"/>
-
-	<beans:bean id="orderSplitter" class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
 
 	<beans:bean id="drinkRouter" class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
 
