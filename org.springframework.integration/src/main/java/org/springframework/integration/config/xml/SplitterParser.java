@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
@@ -26,14 +27,17 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;splitter/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class SplitterParser extends AbstractConsumerEndpointParser {
+public class SplitterParser extends AbstractInnerDefinitionAwareEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseEndpoint(Element element, ParserContext parserContext, BeanDefinition innerDefinition) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
-		if (element.hasAttribute(REF_ATTRIBUTE)) {
+		if (innerDefinition != null){
+			builder.addPropertyValue("targetObject", innerDefinition);
+		} else if (element.hasAttribute(REF_ATTRIBUTE)) {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
 			builder.addPropertyReference("targetObject", ref);
 			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {

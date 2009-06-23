@@ -82,7 +82,8 @@
 				specified, it will be a
 				bounded queue.
 
-				A custom Queue implementation can be
+				A custom Queue implementation
+				can be
 				injected using the 'ref' attribute.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -776,7 +777,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="transformer" type="handlerEndpointType">
+	<xsd:element name="transformer" type="innerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer.
@@ -843,12 +844,12 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="routerType">
-					<xsd:sequence>	
+					<xsd:sequence>
 						<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
 							<xsd:complexType>
-								<xsd:attribute name="value" type="xsd:string"/>
-								<xsd:attribute name="channel" type="xsd:string"/>
-							</xsd:complexType>	
+								<xsd:attribute name="value" type="xsd:string" />
+								<xsd:attribute name="channel" type="xsd:string" />
+							</xsd:complexType>
 						</xsd:element>
 					</xsd:sequence>
 					<xsd:attribute name="header-name" type="xsd:string">
@@ -873,12 +874,12 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="routerType">
-					<xsd:sequence>	
+					<xsd:sequence>
 						<xsd:element name="mapping" minOccurs="1" maxOccurs="unbounded">
 							<xsd:complexType>
-								<xsd:attribute name="type" type="xsd:string"/>
-								<xsd:attribute name="channel" type="xsd:string"/>
-							</xsd:complexType>	
+								<xsd:attribute name="type" type="xsd:string" />
+								<xsd:attribute name="channel" type="xsd:string" />
+							</xsd:complexType>
 						</xsd:element>
 					</xsd:sequence>
 				</xsd:extension>
@@ -900,12 +901,12 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="java.lang.Object"/>
+									<tool:expected-type type="java.lang.Object" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="method" type="xsd:string"/>
+					<xsd:attribute name="method" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -924,14 +925,15 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="timeout" type="xsd:string"/>
-				<xsd:attribute name="resolution-required" type="xsd:string"/>
-				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string"/>
+				<xsd:attribute name="timeout" type="xsd:string" />
+				<xsd:attribute name="resolution-required" type="xsd:string" />
+				<xsd:attribute name="ignore-channel-name-resolution-failures"
+					type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="splitter" type="handlerEndpointType">
+	<xsd:element name="splitter" type="innerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Splitter.
@@ -1010,7 +1012,8 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="correlation-strategy-method" type="xsd:string" />
+					<xsd:attribute name="correlation-strategy-method"
+						type="xsd:string" />
 					<xsd:attribute name="discard-channel" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1164,4 +1167,14 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
+
+    <xsd:complexType name="innerEndpointDefinitionAware">
+    	<xsd:complexContent>
+				<xsd:extension base="handlerEndpointType">
+					<xsd:choice>
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
+				</xsd:extension>
+		</xsd:complexContent>
+    </xsd:complexType>
 </xsd:schema>

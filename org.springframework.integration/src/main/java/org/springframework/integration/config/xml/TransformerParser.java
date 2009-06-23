@@ -16,34 +16,41 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;transformer/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class TransformerParser extends AbstractConsumerEndpointParser {
+public class TransformerParser extends AbstractInnerDefinitionAwareEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseEndpoint(Element element, ParserContext parserContext, BeanDefinition innerDefinition) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean");
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		if (!StringUtils.hasText(ref)) {
-			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
-			return null;
-		}
-		builder.addPropertyReference("targetObject", ref);
+	
+		if (innerDefinition != null){
+			builder.addPropertyValue("targetObject", innerDefinition);
+		} else {
+			String ref = element.getAttribute(REF_ATTRIBUTE);
+			if (!StringUtils.hasText(ref)) {
+				parserContext.getReaderContext().error("Either \"ref\" attribute or inner bean (<bean/>) definition of concrete implementation of " +
+														"this Transformer is required.", element);
+				return null;
+			}
+			builder.addPropertyReference("targetObject", ref);
+		}	
+		
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(method)) {
 			builder.addPropertyValue("targetMethodName", method);
 		}
 		return builder;
 	}
-
 }
