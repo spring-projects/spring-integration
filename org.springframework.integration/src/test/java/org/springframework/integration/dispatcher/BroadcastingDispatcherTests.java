@@ -255,14 +255,19 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		dispatcher.dispatch(new StringMessage("test"));
+		Message<?> inputMessage = new StringMessage("test");
+		Object originalId = inputMessage.getHeaders().getId();
+		dispatcher.dispatch(inputMessage);
 		assertEquals(3, messages.size());
 		assertEquals(1, (int) messages.get(0).getHeaders().getSequenceNumber());
 		assertEquals(3, (int) messages.get(0).getHeaders().getSequenceSize());
+		assertEquals(originalId, messages.get(0).getHeaders().getCorrelationId());
 		assertEquals(2, (int) messages.get(1).getHeaders().getSequenceNumber());
 		assertEquals(3, (int) messages.get(1).getHeaders().getSequenceSize());
+		assertEquals(originalId, messages.get(1).getHeaders().getCorrelationId());
 		assertEquals(3, (int) messages.get(2).getHeaders().getSequenceNumber());
 		assertEquals(3, (int) messages.get(2).getHeaders().getSequenceSize());
+		assertEquals(originalId, messages.get(2).getHeaders().getCorrelationId());
 	}
 
 

@@ -55,6 +55,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)
 						.setSequenceSize(sequenceSize)
+						.setCorrelationId(message.getHeaders().getId())
 						.setHeader(MessageHeaders.ID, UUID.randomUUID())
 						.build();
 			TaskExecutor executor = this.getTaskExecutor();
