@@ -288,6 +288,11 @@
 			<xsd:complexContent>
 				<xsd:extension base="channelAdapterType">
 					<xsd:attribute name="level" default="INFO">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Specify the log level.
+							]]></xsd:documentation>
+						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
 								<xsd:enumeration value="FATAL" />
@@ -298,6 +303,14 @@
 								<xsd:enumeration value="TRACE" />
 							</xsd:restriction>
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="log-full-message">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Specify whether to log the full message. If false, only the payload will be logged.
+	This value will be false by default.
+							]]></xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

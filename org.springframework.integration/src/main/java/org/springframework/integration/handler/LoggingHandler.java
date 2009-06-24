@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ import org.springframework.integration.core.Message;
 import org.springframework.util.StringUtils;
 
 /**
- * MessageHandler implementation that logs the Message payload. If the payload
- * is assignable to Throwable, it will log the stack trace.
+ * MessageHandler implementation that simply logs the Message or its payload
+ * depending on the value of the 'shouldLogFullMessage' property. If logging
+ * the payload, and it is assignable to Throwable, it will log the stack trace.
+ * By default, it will log the payload only.
  * 
  * @author Mark Fisher
  * @since 1.0.1
@@ -33,6 +35,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	private static enum Level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
 
+
+	private boolean shouldLogFullMessage;
 
 	private final Level level;
 
@@ -52,9 +56,17 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 
+	/**
+	 * Specify whether to log the full Message. Otherwise, only the payload
+	 * will be logged. This value is <code>false</code> by default.
+	 */
+	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
+		this.shouldLogFullMessage = shouldLogFullMessage;
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Object logMessage = message.getPayload();
+		Object logMessage = (this.shouldLogFullMessage) ? message : message.getPayload();
 		if (logMessage instanceof Throwable) {
 			StringWriter stringWriter = new StringWriter();
 			((Throwable) logMessage).printStackTrace(new PrintWriter(stringWriter, true));
