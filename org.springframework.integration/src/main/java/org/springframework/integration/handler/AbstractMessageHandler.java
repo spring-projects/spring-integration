@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageHandler;
@@ -33,10 +34,20 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandler implements MessageHandler {
+public abstract class AbstractMessageHandler implements MessageHandler, Ordered {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
+
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
+	}
 
 	public final void handleMessage(Message<?> message) {
 		Assert.notNull(message == null, "Message must not be null");
