@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
  * or otherwise resolvable in advance based on static metadata.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class StaticHandlerMethodResolver implements HandlerMethodResolver {
 
@@ -35,8 +36,6 @@ public class StaticHandlerMethodResolver implements HandlerMethodResolver {
 
 	public StaticHandlerMethodResolver(Method method) {
 		Assert.notNull(method, "method must not be null");
-		Assert.notEmpty(method.getParameterTypes(),
-				"Message-handling method [" + method + "] must accept at least one parameter.");
 		Assert.isTrue(HandlerMethodUtils.isValidHandlerMethod(method),
 				"Invalid Message-handling method [" + method + "]");
 		this.method = method;

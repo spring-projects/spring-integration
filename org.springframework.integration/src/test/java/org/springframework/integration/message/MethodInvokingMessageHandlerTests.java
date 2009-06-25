@@ -37,6 +37,7 @@ import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MethodInvokingMessageHandlerTests {
 
@@ -46,9 +47,9 @@ public class MethodInvokingMessageHandlerTests {
 		handler.handleMessage(new GenericMessage<String>("test"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void invalidMethodWithNoArgs() {
-		new MethodInvokingMessageHandler(new TestSink(), "invalidMethodWithNoArgs");
+		new MethodInvokingMessageHandler(new TestSink(), "validMethodWithNoArgs");
 	}
 
 	@Test(expected = MessagingException.class)
@@ -118,7 +119,7 @@ public class MethodInvokingMessageHandlerTests {
 		public void validMethod(String s) {
 		}
 
-		public void invalidMethodWithNoArgs() {
+		public void validMethodWithNoArgs() {
 		}
 
 		public String methodWithReturnValue(String s) {

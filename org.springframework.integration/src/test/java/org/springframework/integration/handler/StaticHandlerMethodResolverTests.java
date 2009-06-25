@@ -28,6 +28,7 @@ import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class StaticHandlerMethodResolverTests {
 
@@ -37,7 +38,7 @@ public class StaticHandlerMethodResolverTests {
 		new StaticHandlerMethodResolver(method);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgMethodIsNotValid() throws Exception {
 		Method method = TestBean.class.getDeclaredMethod("noArgMethod", new Class<?>[0]);
 		new StaticHandlerMethodResolver(method);

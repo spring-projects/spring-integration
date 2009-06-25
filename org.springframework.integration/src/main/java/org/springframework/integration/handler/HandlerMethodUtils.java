@@ -30,6 +30,7 @@ import org.springframework.integration.annotation.Headers;
  * Utility methods for common behavior related to Message-handling methods.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 abstract class HandlerMethodUtils {
 
@@ -47,9 +48,6 @@ abstract class HandlerMethodUtils {
 			return false;
 		}
 		Class<?>[] parameterTypes = method.getParameterTypes();
-		if (parameterTypes.length == 0) {
-			return false;
-		}
 		if (parameterTypes.length > 1) {
 			// at most one parameter can be lacking @Header or @Headers
 			boolean foundPayloadParam = false;

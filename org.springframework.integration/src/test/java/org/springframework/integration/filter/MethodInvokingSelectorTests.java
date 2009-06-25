@@ -29,6 +29,7 @@ import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MethodInvokingSelectorTests {
 
@@ -60,13 +61,13 @@ public class MethodInvokingSelectorTests {
 		assertFalse(selector.accept(new GenericMessage<Integer>(99)));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "noArgs");
 		selector.accept(new StringMessage("test"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("noArgs", new Class[] {});
