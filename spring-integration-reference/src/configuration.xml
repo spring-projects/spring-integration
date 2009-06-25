@@ -150,7 +150,9 @@
       Whenever relying on Spring Integration's XML namespace support, a default "errorChannel" bean will be
       created behind the scenes. However, you can just as easily define your own if you want to control the
       settings.
-      <programlisting language="xml"><![CDATA[ <channel id="errorChannel" capacity="500"/>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <channel id="errorChannel">
+     <queue capacity="500"/>
+ </channel>]]></programlisting>
     </para>
     <para>
       The most important thing to understand here is that the Messaging-based error handling will only apply
