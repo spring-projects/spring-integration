@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,6 +76,16 @@ public class PollerParserTests {
 		assertEquals(TestAdviceBean.class, metadata.getAdviceChain().get(1).getClass());
 		assertEquals(2, ((TestAdviceBean) metadata.getAdviceChain().get(1)).getId());
 		assertEquals(context.getBean("adviceBean3"), metadata.getAdviceChain().get(2));
+	}
+
+	@Test
+	public void pollerWithReceiveTimeout() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"pollerWithReceiveTimeout.xml", PollerParserTests.class);
+		Object poller = context.getBean("poller");
+		assertNotNull(poller);
+		PollerMetadata metadata = (PollerMetadata) poller;
+		assertEquals(1234, metadata.getReceiveTimeout());
 	}
 
 }

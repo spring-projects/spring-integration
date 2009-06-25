@@ -76,6 +76,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		}
 		configureTrigger(element, metadataBuilder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "receive-timeout");
 		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
 		if (adviceChainElement != null) {
 			configureAdviceChain(adviceChainElement, metadataBuilder, parserContext);
