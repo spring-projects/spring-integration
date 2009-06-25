@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ abstract class HandlerMethodUtils {
 
 	/**
 	 * Verifies that the provided Method is capable of handling Messages.
-	 * It must accept at least one parameter, and if it expects more than one
-	 * parameter, at most one of them may expect the payload object. Others
-	 * must be annotated for accepting Message header values.
+	 * It must be public, and not defined directly on Object. If it expects
+	 * more than one parameter, at most one of them may expect the payload
+	 * object. Others must be annotated for accepting Message header values.
 	 */
 	public static boolean isValidHandlerMethod(Method method) {
 		if (method.getDeclaringClass().equals(Object.class)) {
