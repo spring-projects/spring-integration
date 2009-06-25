@@ -69,6 +69,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, "output-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(handlerBuilder, element, "order");
 		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		if (!element.hasAttribute(inputChannelAttributeName)) {
@@ -108,10 +109,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();
 	}
-	/**
-	 * 
-	 * @return
-	 */
+
+	@SuppressWarnings("unchecked")
 	protected BeanDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext){
 		// parses out inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");

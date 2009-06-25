@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,8 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 
 	private volatile MessageChannel outputChannel;
 
+	private volatile Integer order;
+
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
@@ -59,7 +61,11 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
-	
+
+	public void setOrder(Integer order) {
+		this.order = order;
+	}
+
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
@@ -70,8 +76,11 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 			Assert.notNull(this.handler, "failed to create MessageHandler");
 			if (this.handler instanceof AbstractReplyProducingMessageHandler) {
 				AbstractReplyProducingMessageHandler abstractHandler = (AbstractReplyProducingMessageHandler) this.handler;
-				if(this.outputChannel != null){
+				if (this.outputChannel != null) {
 					abstractHandler.setOutputChannel(this.outputChannel);
+				}
+				if (this.order != null) {
+					abstractHandler.setOrder(this.order.intValue());
 				}
 				abstractHandler.setBeanFactory(beanFactory);
 			}
