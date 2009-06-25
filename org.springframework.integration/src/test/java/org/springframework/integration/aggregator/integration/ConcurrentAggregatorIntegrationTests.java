@@ -40,6 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Iwein Fuld
  * @author Alex Peters
+ * @author Oleg Zhurakousky
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -61,7 +62,7 @@ public class ConcurrentAggregatorIntegrationTests {
 		assertThat(aggregator, is(MethodInvokingAggregator.class));
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout=5000)
 	public void aggregate() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
@@ -86,6 +87,7 @@ public class ConcurrentAggregatorIntegrationTests {
 		headers.put(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
 		headers.put(MessageHeaders.CORRELATION_ID, correllationId);
+		headers.put(MessageHeaders.ID, 1);
 		return headers;
 	}
 
