@@ -354,7 +354,7 @@
 			default="true" />
 	</xsd:complexType>
 
-	<xsd:element name="service-activator" type="handlerEndpointType">
+	<xsd:element name="service-activator" type="innerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an endpoint for exposing any bean
@@ -907,9 +907,13 @@
 	Spring-managed object as specified by the "ref" and "method" attributes.
 			]]></xsd:documentation>
 		</xsd:annotation>
+
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="routerType">
+					<xsd:choice>
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attribute name="ref" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -923,6 +927,7 @@
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
+
 	</xsd:element>
 
 	<xsd:complexType name="routerType">
@@ -1181,13 +1186,13 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-    <xsd:complexType name="innerEndpointDefinitionAware">
-    	<xsd:complexContent>
-				<xsd:extension base="handlerEndpointType">
-					<xsd:choice>
-						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-					</xsd:choice>
-				</xsd:extension>
+	<xsd:complexType name="innerEndpointDefinitionAware">
+		<xsd:complexContent>
+			<xsd:extension base="handlerEndpointType">
+				<xsd:choice>
+					<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+				</xsd:choice>
+			</xsd:extension>
 		</xsd:complexContent>
-    </xsd:complexType>
+	</xsd:complexType>
 </xsd:schema>

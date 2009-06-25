@@ -28,10 +28,11 @@ import org.w3c.dom.Element;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class TransformerParser extends AbstractInnerDefinitionAwareEndpointParser {
+public class TransformerParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseEndpoint(Element element, ParserContext parserContext, BeanDefinition innerDefinition) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinition innerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean");
 	

@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
@@ -26,19 +27,27 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;service-activator&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinition innerHandlerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
+		
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ServiceActivatingHandler");
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		if (!StringUtils.hasText(ref)) {
-			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required for element "
-					+ IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
+		if (innerHandlerDefinition != null){
+			builder.addConstructorArgValue(innerHandlerDefinition);
+		} else {
+			String ref = element.getAttribute(REF_ATTRIBUTE);
+			if (!StringUtils.hasText(ref)) {
+				parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required for element "
+						+ IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
+			}
+			builder.addConstructorArgReference(ref);
 		}
-		builder.addConstructorArgReference(ref);
+		
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");

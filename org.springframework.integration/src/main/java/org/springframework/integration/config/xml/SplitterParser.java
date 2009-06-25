@@ -29,10 +29,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class SplitterParser extends AbstractInnerDefinitionAwareEndpointParser {
+public class SplitterParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseEndpoint(Element element, ParserContext parserContext, BeanDefinition innerDefinition) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinition innerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
 		if (innerDefinition != null){

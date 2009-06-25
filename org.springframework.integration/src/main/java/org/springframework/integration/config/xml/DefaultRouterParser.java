@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -33,11 +34,17 @@ public class DefaultRouterParser extends AbstractRouterParser {
 
 	@Override
 	protected void parseRouter(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		if (!StringUtils.hasText(ref)) {
-			parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
+		BeanDefinition innerDefinition 	= this.parseInnerHandlerDefinition(element, parserContext);
+		if (innerDefinition != null){
+			builder.addPropertyValue("targetObject", innerDefinition);
+		} else {
+			String ref = element.getAttribute(REF_ATTRIBUTE);
+			if (!StringUtils.hasText(ref)) {
+				parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
+			}
+			builder.addPropertyReference("targetObject", ref);
 		}
-		builder.addPropertyReference("targetObject", ref);
+		
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addPropertyValue("targetMethodName", method);

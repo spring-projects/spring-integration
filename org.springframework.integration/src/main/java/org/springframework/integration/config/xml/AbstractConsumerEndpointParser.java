@@ -16,21 +16,28 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class parser for elements that create Message Endpoints.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinitionParser {
 
@@ -100,6 +107,26 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();
+	}
+	/**
+	 * 
+	 * @return
+	 */
+	protected BeanDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext){
+		// parses out inner bean definition for concrete implementation if defined
+		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
+		BeanDefinition innerDefinition = null;
+		if (childElements != null && childElements.size() == 1){
+			Element beanElement = childElements.get(0);
+			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
+			innerDefinition = delegate.parseBeanDefinitionElement(beanElement).getBeanDefinition();
+		}
+		
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		Assert.isTrue(!(StringUtils.hasText(ref) && innerDefinition != null), "Ambiguous definition. Inner bean " + 
+				(innerDefinition == null ? innerDefinition : innerDefinition.getBeanClassName()) + " declaration and \"ref\" " + ref + 
+		       " are not allowed together.");
+		return innerDefinition;
 	}
 
 }
