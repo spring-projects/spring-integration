@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
@@ -43,8 +44,8 @@ public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 	protected Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers) {
 		int size = handlers.size();
 		int nextHandlerStartIndex = getNextHandlerStartIndex(size);
-		List<MessageHandler> reorderedHandlers = new ArrayList<MessageHandler>(handlers.subList(nextHandlerStartIndex,
-				size));
+		List<MessageHandler> reorderedHandlers = new ArrayList<MessageHandler>(
+				handlers.subList(nextHandlerStartIndex, size));
 		reorderedHandlers.addAll(handlers.subList(0, nextHandlerStartIndex));
 		return reorderedHandlers.iterator();
 	}
@@ -58,4 +59,5 @@ public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 		int indexTail = currentHandlerIndex.getAndIncrement() % size;
 		return indexTail < 0 ? indexTail + size : indexTail;
 	}
+
 }
