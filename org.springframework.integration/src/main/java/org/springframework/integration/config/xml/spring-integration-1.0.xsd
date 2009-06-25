@@ -8,7 +8,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 
-	<xsd:annotation>
+	<xsd:annotation> 
 		<xsd:documentation><![CDATA[
 	Defines the core configuration elements for Spring Integration.
 		]]></xsd:documentation>

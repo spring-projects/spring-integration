@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
- * @author Oleg Zhurakousky
+ * @author Oleg Zhurakousky 
  */
 public class AggregatorParser extends AbstractConsumerEndpointParser {
 

@@ -54,7 +54,7 @@ import org.springframework.util.StringUtils;
 @ContextConfiguration
 public class InnerDefinitionHandlerAwareEndpointParserTests {
 
-	@Autowired
+	@Autowired 
 	private Properties testConfigurations;
 
 	@Test
