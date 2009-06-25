@@ -967,7 +967,10 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="handlerEndpointType">
+				<xsd:extension base="handlerEndpointType">  
+					<xsd:choice>
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attribute name="completion-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>

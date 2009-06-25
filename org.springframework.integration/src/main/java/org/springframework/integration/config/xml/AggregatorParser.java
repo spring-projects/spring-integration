@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -29,6 +30,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class AggregatorParser extends AbstractConsumerEndpointParser {
 
@@ -59,21 +61,30 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder;
+		BeanDefinition innerHandlerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		if (StringUtils.hasText(ref)) {
+		BeanDefinitionBuilder builder;
+		
+		if (innerHandlerDefinition != null || StringUtils.hasText(ref)){
 			builder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.MethodInvokingAggregator");
-			builder.addConstructorArgReference(ref);
-			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-				String method = element.getAttribute(METHOD_ATTRIBUTE);
-				builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
-			}
-		}
-		else {
+		} else {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultMessageAggregator");
 		}
+		
+		if (innerHandlerDefinition != null){
+			builder.addConstructorArgValue(innerHandlerDefinition);
+		} else {
+			if (StringUtils.hasText(ref)) {		
+				builder.addConstructorArgReference(ref);			
+			}
+		}
+		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
+			String method = element.getAttribute(METHOD_ATTRIBUTE);
+			builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
+		}
+		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
 				DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
