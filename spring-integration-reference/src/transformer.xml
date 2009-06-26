@@ -35,7 +35,26 @@
       and "output-channel" attributes, it requires a "ref". The "ref" may either point to an Object that contains the
       @Transformer annotation on a single method (see below) or it may be combined with an explicit method name value
       provided via the "method" attribute.
+      <programlisting language="xml"><![CDATA[<transformer id="testTransformer" ref="testTransformerBean" input-channel="inChannel" 
+					   method="transform" output-channel="outChannel"/>
+<beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />]]></programlisting>
     </para>
+    <para>
+    Using a "ref" attribute is generally recommended if custom transformer handler implementation can be reused in other <code>&lt;transformer&gt;</code> definitions. However
+if custom transformer handler implementation has to be scoped to a concrete definition of the <code>&lt;transformer&gt;</code>, starting with v1.0.3, Spring Integration supports
+inner bean definitions for custom transformer handlers within the <code>&lt;transformer&gt;</code> element:
+<programlisting language="xml"><![CDATA[<transformer id="testTransformer" input-channel="inChannel" method="transform"
+								output-channel="outChannel">
+	<beans:bean class="org.foo.TestTransformer"/>
+</transformer>]]></programlisting>
+    </para>
+    <note>
+    <para>
+    Using both "ref" attribute and inner handler definition in the same <code>&lt;transformer&gt;</code> configuration
+    is not allowed, as it creates an ambiguous condition and will result in Exception being thrown 
+    </para>
+    </note>
+    
     <para>
       The method that is used for transformation may expect either the <interfacename>Message</interfacename> type or
       the payload type of inbound Messages. The return value of the method can be any type. If the return value is
@@ -43,6 +62,11 @@
       If the return value is <emphasis>null</emphasis>, then no reply Message will be sent (effectively the same
       behavior as a Message Filter). Otherwise, the return value will be sent as the payload of a Message.
     </para>
+	<note>
+	<para>Using both "ref" attribute and inner handler definition in the same <code>&lt;router&gt;</code> configuration is not 
+	allowed, as it creates an ambiguous condition and will result in Exception being thrown</para>
+	</note>
+    
   </section>
 
   <section id="transformer-annotation">

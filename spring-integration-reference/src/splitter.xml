@@ -97,7 +97,11 @@
         <callout arearefs="split2">
           <para>A reference to a bean defined in the application context. The
           bean must implement the splitting logic as described in the section
-          above. <emphasis>Required</emphasis>.</para>
+          above. <emphasis>Optional</emphasis>.
+          If reference to a bean is not provided, then it is assumed that the <emphasis>payload</emphasis> of the Message that arrived on the <code>input-channel</code> is 
+          an implementation of <emphasis>java.util.Collection</emphasis> and the default splitting logic will be applied on such Collection, 
+          incorporating each individual element into a Message and depositing it on the <code>output-channel</code>.
+          </para>
         </callout>
 
         <callout arearefs="split3">
@@ -117,6 +121,21 @@
           messages can specify a reply channel themselves)</emphasis>.</para>
         </callout>
       </calloutlist></para>
+      <para>
+    Using a "ref" attribute is generally recommended if custom splitter handler implementation can be reused in other <code>&lt;splitter&gt;</code> definitions. However
+if custom splitter handler implementation has to be scoped to a concrete definition of the <code>&lt;splitter&gt;</code>, starting with v1.0.3, Spring Integration supports
+inner bean definitions for custom splitter handlers within the <code>&lt;splitter&gt;</code> element:
+<programlisting language="xml"><![CDATA[<splitter id="testSplitter" input-channel="inChannel" method="split"
+								output-channel="outChannel">
+	<beans:bean class="org.foo.TestSplitter"/>
+</spliter>]]></programlisting>
+    </para>
+    <note>
+    <para>
+    Using both "ref" attribute and inner handler definition in the same <code>&lt;splitter&gt;</code> configuration
+    is not allowed, as it creates an ambiguous condition and will result in Exception being thrown. 
+    </para>
+    </note>
   </section>
 
   <section>
