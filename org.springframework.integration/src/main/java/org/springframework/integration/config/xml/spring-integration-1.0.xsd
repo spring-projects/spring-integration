@@ -423,16 +423,13 @@
 	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Base type for Message Endpoint elements that
-				accept Messages from an
-				input-channel.
+	Base type for Message Endpoint elements that accept Messages from an input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
 				<xsd:sequence>
-					<xsd:element name="poller" type="innerPollerType"
-						minOccurs="0" maxOccurs="1" />
+					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string">
 					<xsd:annotation>
@@ -444,6 +441,16 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="order" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this endpoint is connected as a
+	subscriber to a channel. This is particularly relevant when that channel
+	is using a "failover" dispatching strategy. It has no effect when this
+	endpoint itself is a Polling Consumer for a channel with a queue.
+						]]></xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="auto-startup" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
@@ -452,7 +459,7 @@
 	<xsd:complexType name="handlerType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Base type for Message Handlers.
+	Base type for Message Handlers.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -1198,4 +1205,5 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+
 </xsd:schema>
