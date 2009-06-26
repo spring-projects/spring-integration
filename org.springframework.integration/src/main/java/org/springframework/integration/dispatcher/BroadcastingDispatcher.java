@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.task.TaskExecutor;
@@ -49,8 +50,9 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
-		int sequenceSize = getHandlers().size();
-		for (final MessageHandler handler : getHandlers()) {
+		List<MessageHandler> handlers = this.getHandlers();
+		int sequenceSize = handlers.size();
+		for (final MessageHandler handler : handlers) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,15 @@ package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.OrderComparator;
+import org.springframework.core.Ordered;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
@@ -31,6 +36,14 @@ import org.springframework.util.Assert;
 /**
  * Base class for {@link MessageDispatcher} implementations.
  * 
+ * <p>The {@link Comparator} that determines the order may be provided via the
+ * {@link #setComparator(Comparator)} method. If none is provided, the default
+ * will be an instance of {@link OrderComparator}, and any {@link MessageHandler}
+ * that implements {@link org.springframework.core.Ordered} and has an order
+ * value other than LOWEST_PRECEDENCE will be ordered accordingly. Any other
+ * handlers will be placed at the end of the list in their original
+ * insertion-order.
+ * 
  * @author Mark Fisher
  * @author Iwein Fuld
  */
@@ -38,9 +51,25 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+	private volatile List<MessageHandler> handlers = new LinkedList<MessageHandler>();
+
+	@SuppressWarnings("unchecked")
+	private volatile Comparator<Object> comparator = new OrderComparator();
 
 	private volatile TaskExecutor taskExecutor;
+
+	private final Object handlerListMonitor = new Object();
+
+
+	/**
+	 * Provide a {@link Comparator} that will determine the sorting order of
+	 * the handler list. If no comparator is configured, the default will be
+	 * an instance of {@link OrderComparator}.
+	 */
+	public void setComparator(Comparator<Object> comparator) {
+		Assert.notNull(comparator, "comparator must not be null");
+		this.comparator = comparator;
+	}
 
 	/**
 	 * Specify a {@link TaskExecutor} for invoking the handlers. If none is
@@ -56,18 +85,44 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	protected List<MessageHandler> getHandlers() {
-		return Collections.unmodifiableList(handlers);
+		return Collections.unmodifiableList(this.handlers);
 	}
 
 	public boolean addHandler(MessageHandler handler) {
 		if (this.handlers.contains(handler)) {
 			return false;
 		}
-		return this.handlers.add(handler);
+		if (!this.hasOrder(handler)) {
+			synchronized (this.handlerListMonitor) {
+				return this.handlers.add(handler);
+			}
+		}
+		synchronized (this.handlerListMonitor) {
+			List<MessageHandler> orderedHandlers = new ArrayList<MessageHandler>();
+			orderedHandlers.add(handler);	
+			List<MessageHandler> handlerList = new ArrayList<MessageHandler>(handlers);
+			for (MessageHandler nextHandler : handlerList) {
+				if (this.hasOrder(nextHandler)) {
+					orderedHandlers.add(nextHandler);
+				}
+			}
+			handlerList.removeAll(orderedHandlers);
+			Collections.sort(orderedHandlers, this.comparator);
+			orderedHandlers.addAll(handlerList);
+			this.handlers = orderedHandlers;
+			return true;
+		}
 	}
 
 	public boolean removeHandler(MessageHandler handler) {
-		return this.handlers.remove(handler);
+		synchronized (this.handlerListMonitor) {
+			return this.handlers.remove(handler);
+		}
+	}
+
+	private boolean hasOrder(MessageHandler handler) {
+		return handler instanceof Ordered
+				&& ((Ordered) handler).getOrder() < Ordered.LOWEST_PRECEDENCE;
 	}
 
 	public String toString() {
@@ -87,14 +142,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		}
 		catch (MessageRejectedException e) {
 			if (logger.isDebugEnabled()) {
-				logger
-						.debug(
-								"Handler '"
-										+ handler
-										+ "' rejected Message, if other handlers are available this dispatcher may try to send to those.",
-								e);
+				logger.debug("Handler '" + handler + "' rejected Message, "
+						+ "if other handlers are available this dispatcher may try to send to those.", e);
 			}
 			return false;
 		}
 	}
+
 }
