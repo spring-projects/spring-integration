@@ -24,12 +24,14 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -58,6 +60,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
+		if (handler instanceof AbstractMessageHandler) {
+			Order orderAnnotation = AnnotationUtils.findAnnotation(method, Order.class);
+			if (orderAnnotation != null) {
+				((AbstractMessageHandler) handler).setOrder(orderAnnotation.value());
+			}
+		}
 		if (beanFactory instanceof ConfigurableListableBeanFactory) {
 			handler = (MessageHandler) ((ConfigurableListableBeanFactory) beanFactory).initializeBean(handler, "_initHandlerFor_" + beanName);
 		}
