@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,8 @@ import org.springframework.integration.context.IntegrationContextUtils;
 /**
  * A {@link BeanFactoryPostProcessor} implementation that provides default
  * beans for the error handling and task scheduling if those beans have not
- * already been explicitly defined within the registry.
+ * already been explicitly defined within the registry. It also registers a
+ * single null channel with the bean name "nullChannel".
  * 
  * @author Mark Fisher
  */
@@ -45,6 +46,7 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			this.registerNullChannel(registry);
 			this.registerErrorChannelIfNecessary(registry);
 			this.registerTaskSchedulerIfNecessary(registry);
 		}
@@ -53,6 +55,22 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					+ IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME + "' and '"
 					+ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME + "' cannot be configured.");
 		}
+	}
+
+	/**
+	 * Register a null channel in the given BeanDefinitionRegistry. The bean name is
+	 * defined by the constant {@link IntegrationContextUtils#NULL_CHANNEL_BEAN_NAME}.
+	 */
+	private void registerNullChannel(BeanDefinitionRegistry registry) {
+		if (registry.isBeanNameInUse(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
+			throw new IllegalStateException("The bean name '" +
+					IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME + "' is reserved.");
+		}
+		RootBeanDefinition nullChannelDef = new RootBeanDefinition();
+		nullChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.NullChannel");
+		BeanDefinitionHolder nullChannelHolder = new BeanDefinitionHolder(
+				nullChannelDef, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+		BeanDefinitionReaderUtils.registerBeanDefinition(nullChannelHolder, registry);
 	}
 
 	/**

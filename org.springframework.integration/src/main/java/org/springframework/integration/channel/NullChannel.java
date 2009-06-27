@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.selector.MessageSelector;
 
@@ -32,16 +33,19 @@ import org.springframework.integration.selector.MessageSelector;
  * 
  * @author Mark Fisher
  */
-public class NullChannel implements PollableChannel {
+public class NullChannel implements PollableChannel, BeanNameAware {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private volatile String beanName;
 
 
-	/**
-	 * Always returns <code>null</code>.
-	 */
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
+
 	public String getName() {
-		return null;
+		return this.beanName;
 	}
 
 	public List<Message<?>> clear() {
@@ -54,7 +58,7 @@ public class NullChannel implements PollableChannel {
 
 	public Message<?> receive() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("receive called on null-channel");
+			logger.debug("receive called on null channel");
 		}		
 		return null;
 	}
@@ -65,7 +69,7 @@ public class NullChannel implements PollableChannel {
 
 	public boolean send(Message<?> message) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("message sent to null-channel: " + message);
+			logger.debug("message sent to null channel: " + message);
 		}
 		return true;
 	}

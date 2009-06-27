@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ public abstract class IntegrationContextUtils {
 	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
+
+	public static final String NULL_CHANNEL_BEAN_NAME = "nullChannel";
 
 	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "org.springframework.integration.context.defaultPollerMetadata";
 
