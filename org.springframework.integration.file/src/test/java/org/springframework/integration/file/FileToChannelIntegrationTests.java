@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,9 +40,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileToChannelIntegrationTests {
+
 	private static File inputDir;
 
 	@Autowired
+	@Qualifier("fileMessages")
 	PollableChannel fileMessages;
 
 	@BeforeClass
@@ -90,4 +94,5 @@ public class FileToChannelIntegrationTests {
 		assertNotNull(received.getPayload());
 		assertNull(fileMessages.receive(200));
 	}
+
 }

@@ -50,7 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 public class HttpInboundChannelAdapterParserTests {
 
-	@Autowired
+	@Autowired @Qualifier("requests")
 	private PollableChannel requests;
 
 	@Autowired @Qualifier("defaultAdapter")
