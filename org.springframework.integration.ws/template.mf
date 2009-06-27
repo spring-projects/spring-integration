@@ -9,7 +9,6 @@ Import-Template:
  org.springframework.util;version="[2.5.6.A, 3.0.0)",
  org.springframework.oxm;version="[1.5.5.A, 2.0.0)",
  org.springframework.ws.*;version="[1.5.5.A, 2.0.0)",
- org.springframework.xml.transform;version="[1.5.5.A, 2.0.0)"
-Unversioned-Imports: 
- org.w3c.dom,
- javax.xml.*
+ org.springframework.xml.transform;version="[1.5.5.A, 2.0.0)",
+ org.w3c.dom.*;version="0",
+ javax.xml.*;version="0"

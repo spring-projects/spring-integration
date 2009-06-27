@@ -11,7 +11,5 @@ Import-Template:
  org.springframework.transaction.*;version="[2.5.6.A, 3.0.0)",
  org.springframework.util;version="[2.5.6.A, 3.0.0)",
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
- javax.jms;version="[1.1.0, 2.0.0)";resolution:=optional
-Unversioned-Imports: 
- org.w3c.dom
-
+ javax.jms;version="[1.1.0, 2.0.0)";resolution:=optional,
+ org.w3c.dom.*;version="0"
