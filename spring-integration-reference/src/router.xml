@@ -123,7 +123,7 @@
     <para>
 	  The "router" element provides a simple way to connect a router to an input channel, and also accepts the
       optional default output channel. The "ref" may provide the bean name to one of the implementations described
-      above or custom Router (MessageHandler) implementations:
+      above or a custom Router implementation (extending AbstractMessageRouter):
       <programlisting language="xml"><![CDATA[<router ref="payloadTypeRouter" input-channel="input1" default-output-channel="defaultOutput1"/>
 
 <router ref="recipientListRouter" input-channel="input2" default-output-channel="defaultOutput2"/>
@@ -136,16 +136,20 @@
       "ref" may be combined with an explicit "method" name. When specifying a "method", the same behavior applies as
       described in the @Router annotation section below.
       <programlisting language="xml"><![CDATA[<router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
-      Using a "ref" attribute is generally recommended if custom router handler implementation can be reused in other <code>&lt;router&gt;</code> definitions. However
-if custom router handler implementation has to be scoped to a concrete definition of the <code>&lt;router&gt;</code>, starting with v1.0.3, Spring Integration supports
-inner bean definitions for custom router handlers within the <code>&lt;router&gt;</code> element:
+      Using a "ref" attribute is generally recommended if the custom router implementation can be reused in other
+      <code>&lt;router&gt;</code> definitions. However if the custom router implementation should be scoped to a
+      concrete definition of the <code>&lt;router&gt;</code>, starting with v1.0.3, Spring Integration supports inner
+      bean definitions for custom routers within the <code>&lt;router&gt;</code> element:
 <programlisting language="xml"><![CDATA[<router method="someMethod" input-channel="input3" default-output-channel="defaultOutput3">
 	<beans:bean class="org.foo.MyCustomRouter"/>
 </router>]]></programlisting>
-	</para>
-	<note>
-	<para>Using both "ref" attribute and inner handler definition in the same <code>&lt;router&gt;</code> configuration is not allowed, as it creates an ambiguous condition and will result in Exception being thrown</para>
-	</note>
+    </para>
+    <note>
+      <para>
+        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;router&gt;</code> configuration
+        is not allowed, as it creates an ambiguous condition and will result in Exception being thrown.
+      </para>
+    </note>
   </section>
 
   <section id="router-annotation">
