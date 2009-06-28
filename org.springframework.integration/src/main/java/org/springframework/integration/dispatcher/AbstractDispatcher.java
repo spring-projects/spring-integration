@@ -19,12 +19,11 @@ package org.springframework.integration.dispatcher;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 import org.springframework.core.task.TaskExecutor;
@@ -46,12 +45,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile List<MessageHandler> handlers = new LinkedList<MessageHandler>();
+	private volatile Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
 	@SuppressWarnings("unchecked")
 	private volatile Comparator<Object> comparator = new OrderComparator();
@@ -85,32 +85,12 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	protected List<MessageHandler> getHandlers() {
-		return Collections.unmodifiableList(this.handlers);
+		return Collections.unmodifiableList(new ArrayList(this.handlers));
 	}
 
 	public boolean addHandler(MessageHandler handler) {
-		if (this.handlers.contains(handler)) {
-			return false;
-		}
-		if (!this.hasOrder(handler)) {
-			synchronized (this.handlerListMonitor) {
-				return this.handlers.add(handler);
-			}
-		}
 		synchronized (this.handlerListMonitor) {
-			List<MessageHandler> orderedHandlers = new ArrayList<MessageHandler>();
-			orderedHandlers.add(handler);	
-			List<MessageHandler> handlerList = new ArrayList<MessageHandler>(handlers);
-			for (MessageHandler nextHandler : handlerList) {
-				if (this.hasOrder(nextHandler)) {
-					orderedHandlers.add(nextHandler);
-				}
-			}
-			handlerList.removeAll(orderedHandlers);
-			Collections.sort(orderedHandlers, this.comparator);
-			orderedHandlers.addAll(handlerList);
-			this.handlers = orderedHandlers;
-			return true;
+			return this.handlers.add(handler);
 		}
 	}
 
