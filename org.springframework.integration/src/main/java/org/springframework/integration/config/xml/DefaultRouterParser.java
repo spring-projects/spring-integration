@@ -49,10 +49,13 @@ public class DefaultRouterParser extends AbstractRouterParser {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addPropertyValue("targetMethodName", method);
 		}
-		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.BeanFactoryChannelResolver");
-		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
+		String resolverBeanName = element.getAttribute("channel-resolver");
+		if (!StringUtils.hasText(resolverBeanName)) {
+			BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.BeanFactoryChannelResolver");
+			resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
+		}
 		builder.addPropertyReference("channelResolver", resolverBeanName);
 	}
 

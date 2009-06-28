@@ -914,7 +914,6 @@
 	Spring-managed object as specified by the "ref" and "method" attributes.
 			]]></xsd:documentation>
 		</xsd:annotation>
-
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="routerType">
@@ -931,6 +930,20 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="method" type="xsd:string" />
+					<xsd:attribute name="channel-resolver" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Provides a reference to a ChannelResolver that resolves the return value
+	to the name of a MessageChannel within the application context. If none
+	is provided, the return value is expected to match a channel name exactly.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.channel.ChannelResolver"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
