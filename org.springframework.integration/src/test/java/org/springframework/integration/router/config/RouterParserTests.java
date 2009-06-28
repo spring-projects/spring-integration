@@ -19,6 +19,7 @@ package org.springframework.integration.router.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
@@ -134,6 +136,18 @@ public class RouterParserTests {
 		assertEquals(new Long(1234), timeout);
 	}
 
+	@Test
+	public void channelResolverConfigured() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		Object channelResolverBean = context.getBean("testChannelResolver");
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(context.getBean("routerWithChannelResolver"));
+		MethodInvokingRouter router = (MethodInvokingRouter) endpointAccessor.getPropertyValue("handler");
+		ChannelResolver channelResolver = (ChannelResolver)
+				new DirectFieldAccessor(router).getPropertyValue("channelResolver");
+		assertSame(channelResolverBean, channelResolver);
+	}
+
 
 	public static class TestRouterImplementation extends AbstractMessageRouter {
 
@@ -173,6 +187,14 @@ public class RouterParserTests {
 
 		
 	}
-	
+
+
+	static class TestChannelResover implements ChannelResolver {
+
+		public MessageChannel resolveChannelName(String channelName) {
+			return null;
+		}
+
+	}
 
 }
