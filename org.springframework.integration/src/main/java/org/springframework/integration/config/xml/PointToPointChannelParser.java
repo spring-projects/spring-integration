@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,12 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		Element queueElement = null;
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
-			this.parseQueueCapacity(builder, queueElement);
-			this.parseQueueRef(builder, queueElement);
+			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
+			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
+			if (hasCapacity && hasQueueRef) {
+				parserContext.getReaderContext().error("The 'capacity' attribute is not allowed" +
+						" when providing a 'ref' to a custom queue.", element);
+			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".PriorityChannel");
@@ -78,17 +82,22 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		// rely on the default for round-robin
 	}
 
-	private void parseQueueCapacity(BeanDefinitionBuilder builder, Element queueElement) {
+	private boolean parseQueueCapacity(BeanDefinitionBuilder builder, Element queueElement) {
 		String capacity = queueElement.getAttribute("capacity");
 		if (StringUtils.hasText(capacity)) {
 			builder.addConstructorArgValue(capacity);
+			return true;
 		}
+		return false;
 	}
 
-	private void parseQueueRef(BeanDefinitionBuilder builder, Element queueElement) {
+	private boolean parseQueueRef(BeanDefinitionBuilder builder, Element queueElement) {
 		String queueRef = queueElement.getAttribute("ref");
 		if (StringUtils.hasText(queueRef)){
 			builder.addConstructorArgReference(queueRef);
+			return true;
 		}
+		return false;
 	}
+
 }

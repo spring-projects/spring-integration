@@ -14,6 +14,12 @@
 	
 	<channel id="failOverChannel" dispatcher="failover"/>
 
+	<channel id="channelWithCustomQueue">
+		<queue ref="customQueue"/>
+	</channel>
+
+	<beans:bean id="customQueue" class="java.util.concurrent.LinkedBlockingQueue"/>
+
 	<publish-subscribe-channel id="publishSubscribeChannel" />
 
 	<publish-subscribe-channel id="publishSubscribeChannelWithTaskExecutorRef"

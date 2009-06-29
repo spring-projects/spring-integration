@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -33,6 +34,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -113,6 +115,17 @@ public class ChannelParserTests {
 		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
 		Object taskExecutorBean = context.getBean("taskExecutor");
 		assertEquals(taskExecutorBean, innerExecutor);
+	}
+
+	@Test
+	public void channelWithCustomQueue() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		Object customQueue = context.getBean("customQueue");
+		Object channelWithCustomQueue = context.getBean("channelWithCustomQueue");
+		assertEquals(QueueChannel.class, channelWithCustomQueue.getClass());
+		Object actualQueue = new DirectFieldAccessor(channelWithCustomQueue).getPropertyValue("queue");
+		assertSame(customQueue, actualQueue);
 	}
 
 	@Test
