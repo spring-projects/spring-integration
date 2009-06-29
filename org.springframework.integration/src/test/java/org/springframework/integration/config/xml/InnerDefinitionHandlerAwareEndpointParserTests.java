@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.channel.DirectChannel;
@@ -41,6 +42,7 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.CollectionUtils;
@@ -48,7 +50,7 @@ import org.springframework.util.StringUtils;
 /**
  * 
  * @author Oleg Zhurakousky
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -70,11 +72,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerSplitterDefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("splitter-failure-refAndBean");
-		ByteArrayInputStream stream = new ByteArrayInputStream(xmlConfig.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		this.bootStrap(xmlConfig);
 	}
 	
 	@Test
@@ -91,11 +89,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerTransformerDefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("transformer-failure-refAndBean");
-		ByteArrayInputStream stream = new ByteArrayInputStream(xmlConfig.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		this.bootStrap(xmlConfig);
 	}
 	
 	@Test
@@ -112,11 +106,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerRouterDefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("router-failure-refAndBean");
-		ByteArrayInputStream stream = new ByteArrayInputStream(xmlConfig.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		this.bootStrap(xmlConfig);
 	}
 	
 	@Test
@@ -132,11 +122,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerSADefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("sa-failure-refAndBean");
-		ByteArrayInputStream stream = new ByteArrayInputStream(xmlConfig.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		this.bootStrap(xmlConfig);
 	}
 	
 	@Test
@@ -157,24 +143,34 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testInnerAggregatorDefinitionFailureRefAndInner(){
 		String xmlConfig = testConfigurations.getProperty("aggregator-failure-refAndBean");
-		ByteArrayInputStream stream = new ByteArrayInputStream(xmlConfig.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		this.bootStrap(xmlConfig);
+	}
+	
+	@Test
+	public void testInnerFilterDefinitionSuccess(){
+		String configProperty = testConfigurations.getProperty("filter-inner-success");
+		this.testFilterDefinitionSuccess(configProperty);
+	}
+	
+	@Test
+	public void testRefFilterDefinitionSuccess(){
+		String configProperty = testConfigurations.getProperty("filter-ref-success");
+		System.out.println(configProperty);
+		this.testFilterDefinitionSuccess(configProperty);
+	}
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testInnerFilterDefinitionFailureRefAndInner(){
+		String xmlConfig = testConfigurations.getProperty("filter-failure-refAndBean");
+		this.bootStrap(xmlConfig);
 	}
 	
 	private void testSplitterDefinitionSuccess(String configProperty){
-		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testSplitter");
 		Assert.assertNotNull(splitter);
 		MessageBuilder inChannelMessageBuilder = MessageBuilder.withPayload(new String[]{"One","Two"});
 		Message inMessage = inChannelMessageBuilder.build();
-		DirectChannel inChannel = (DirectChannel) ac.getBean("inChannel");
+		MessageChannel inChannel = (MessageChannel) ac.getBean("inChannel");
 		inChannel.send(inMessage);
 		PollableChannel outChannel = (PollableChannel) ac.getBean("outChannel");
 		Assert.assertTrue(outChannel.receive().getPayload() instanceof String);
@@ -183,11 +179,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 	}
 	
 	private void testTransformerDefinitionSuccess(String configProperty){
-		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer transformer = (EventDrivenConsumer) ac.getBean("testTransformer");
 		Assert.assertNotNull(transformer);
 		MessageBuilder inChannelMessageBuilder = MessageBuilder.withPayload(new String[]{"One","Two"});
@@ -199,11 +191,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		Assert.assertTrue(payload.equals("One,Two"));
 	}
 	private void testRouterDefinitionSuccess(String configProperty){
-		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testRouter");
 		Assert.assertNotNull(splitter);
 		MessageBuilder inChannelMessageBuilder = MessageBuilder.withPayload("1");
@@ -219,11 +207,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		Assert.assertTrue(channel2.receive().getPayload().equals("2"));
 	}
 	private void testSADefinitionSuccess(String configProperty){
-		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		ApplicationContext ac = this.bootStrap(configProperty);
 		EventDrivenConsumer splitter = (EventDrivenConsumer) ac.getBean("testServiceActivator");
 		Assert.assertNotNull(splitter);
 		MessageBuilder inChannelMessageBuilder = MessageBuilder.withPayload("1");
@@ -234,13 +218,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		Assert.assertTrue(channel1.receive().getPayload().equals("1"));
 	}
 	private void testAggregatorDefinitionSuccess(String configProperty){
-		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
-		ac.refresh();
-		ac.start();
+		ApplicationContext ac = this.bootStrap(configProperty);
 		MessageChannel inChannel = (MessageChannel) ac.getBean("inChannel");
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
@@ -249,9 +227,25 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		}
 		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
 		assertEquals(0 + 1 + 2 + 3 + 4, output.receive().getPayload());
-		System.out.println();
+	}
+	private void testFilterDefinitionSuccess(String configProperty){
+		ApplicationContext ac = this.bootStrap(configProperty);
+		MessageChannel input = (MessageChannel) ac.getBean("inChannel");
+		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
+		input.send(new StringMessage("foo"));
+		Message<?> reply = output.receive(0);
+		assertEquals("foo", reply.getPayload());
 	}
 	
+	private ApplicationContext bootStrap(String configProperty){
+		ByteArrayInputStream stream = new ByteArrayInputStream(configProperty.getBytes());
+		GenericApplicationContext ac = new GenericApplicationContext();
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
+		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
+		reader.loadBeanDefinitions(new InputStreamResource(stream));
+		ac.refresh();
+		return ac;
+	}
 	private Map<String, Object> stubHeaders(int sequenceNumber, int sequenceSize, int correllationId) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
@@ -291,6 +285,12 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 				result += number;
 			}
 			return result;
+		}
+	}
+	public static class TestMessageFilter{
+		public boolean filter(String value) {
+			System.out.println(">>>> Filtering");
+			return value.equals("foo");
 		}
 	}
 		

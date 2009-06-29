@@ -52,6 +52,22 @@
       alternative to the more <emphasis>proactive</emphasis> approach of using a Message Router with a single
       point-to-point input channel and multiple output channels.
     </note>
+	<para>
+     Using a "ref" attribute is generally recommended if the custom filter implementation can be reused in other
+      <code>&lt;filter&gt;</code> definitions. However if the custom filter implementation should be scoped to a
+      concrete definition of the <code>&lt;filter&gt;</code>, starting with v1.0.3, Spring Integration supports inner
+      bean definitions for custom filters within the <code>&lt;filter&gt;</code> element:
+<programlisting language="xml"><![CDATA[<filter method="someMethod" input-channel="inChannel" output-channel="outChannel">
+	<beans:bean class="org.foo.MyCustomFilter"/>
+</filter>]]></programlisting>
+    </para>
+    <note>
+      <para>
+        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;filter&gt;</code> configuration
+        is not allowed, as it creates an ambiguous condition and will result in Exception being thrown.
+      </para>
+    </note>
+
   </section>
 
 </chapter>
