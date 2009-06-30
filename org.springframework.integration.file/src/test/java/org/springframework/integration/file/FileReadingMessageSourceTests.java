@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file;
 
 import static org.mockito.Mockito.*;
@@ -34,6 +35,7 @@ import org.springframework.integration.core.Message;
 
 /**
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 @SuppressWarnings("unchecked")
 @RunWith(MockitoJUnit44Runner.class)
@@ -101,6 +103,11 @@ public class FileReadingMessageSourceTests {
 		assertEquals(fileMock, received.getPayload());
 		assertNull(source.receive());
 		verify(inputDirectoryMock,times(2)).listFiles();
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void nullFilter() throws Exception {
+		source.setFilter(null);
 	}
 
 	@Test
