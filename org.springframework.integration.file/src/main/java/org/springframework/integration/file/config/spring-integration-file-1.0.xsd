@@ -66,7 +66,8 @@
 	provided filter is sufficient), but setting this to true will enable it. If a 'filename-pattern'
 	is provided, duplicate prevention will be enabled by default (preceding the pattern matching),
 	but setting this to false will disable it. If neither 'filter' or 'filename-pattern' is provided,
-	duplicate prevention is enabled by default, but setting this to false will disable it.
+	duplicate prevention is enabled by default, but setting this to false will disable it. For more
+	detail on the actual duplicate prevention, see the javadoc for AcceptOnceFileListFilter.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
