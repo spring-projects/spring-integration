@@ -49,6 +49,10 @@ public class FileOutboundChannelAdapterParserTests {
 	@Qualifier("adapterWithCustomNameGenerator")
 	EventDrivenConsumer adapterWithCustomNameGenerator;
 
+	@Autowired
+	@Qualifier("adapterWithDeleteFlag")
+	EventDrivenConsumer adapterWithDeleteFlag;
+
 
 	@Test
 	public void simpleAdapter() {
@@ -60,6 +64,7 @@ public class FileOutboundChannelAdapterParserTests {
 		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
+		assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
 	}
 
 	@Test
@@ -72,6 +77,15 @@ public class FileOutboundChannelAdapterParserTests {
 		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
+	}
+
+	@Test
+	public void adapterWithDeleteFlag() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithDeleteFlag);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
 	}
 
 }
