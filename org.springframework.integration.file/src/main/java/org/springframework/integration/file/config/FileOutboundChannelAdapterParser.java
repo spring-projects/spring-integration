@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -30,7 +31,6 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
- * 
  */
 public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
@@ -46,6 +46,7 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition("org.springframework.integration.file.FileWritingMessageHandler");
 		builder.addConstructorArgValue(directory);
+		builder.addPropertyReference("outputChannel", IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
 		String fileNameGenerator = element.getAttribute("filename-generator");
 		if (StringUtils.hasText(fileNameGenerator)) {
 			builder.addPropertyReference("fileNameGenerator", fileNameGenerator);

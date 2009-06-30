@@ -57,7 +57,7 @@ public class FileOutboundChannelAdapterParserTests {
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) handlerAccessor.getPropertyValue("parentDirectory");
+		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
 	}
@@ -69,7 +69,7 @@ public class FileOutboundChannelAdapterParserTests {
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) handlerAccessor.getPropertyValue("parentDirectory");
+		File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
 		assertEquals(expected, actual);
 		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
 	}
