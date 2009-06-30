@@ -22,6 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
 
@@ -47,6 +48,7 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 				.genericBeanDefinition("org.springframework.integration.file.FileWritingMessageHandler");
 		builder.addConstructorArgValue(directory);
 		builder.addPropertyReference("outputChannel", IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");
 		String fileNameGenerator = element.getAttribute("filename-generator");
 		if (StringUtils.hasText(fileNameGenerator)) {
 			builder.addPropertyReference("fileNameGenerator", fileNameGenerator);

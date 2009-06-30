@@ -105,6 +105,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="delete-source-files" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Specify whether to delete source files after writing to the destination directory.
+	This will take effect if the Message payload is the actual source File instance
+	or if the original File instance (or its path) is available in the header value
+	associated with the FileHeaders.ORIGINAL_FILE constant. The default value is false.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
