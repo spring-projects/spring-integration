@@ -187,8 +187,8 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	}
 
 	public final void afterPropertiesSet() {
-		if (this.messageConverter == null) {
-			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
+		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
+			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter, this.headerMapper);
 			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
 			hmmc.setExtractIntegrationMessagePayload(this.extractReplyPayload);
 			this.messageConverter = hmmc;

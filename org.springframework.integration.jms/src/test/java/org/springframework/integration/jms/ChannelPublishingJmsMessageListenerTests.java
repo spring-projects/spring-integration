@@ -16,12 +16,15 @@
 
 package org.springframework.integration.jms;
 
+import static org.junit.Assert.assertEquals;
+
 import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -30,6 +33,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 /**
  * @author Mark Fisher
@@ -52,6 +56,27 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.onMessage(jmsMessage, session);
 	}
 
+	@Test
+	public void defaultHeaderMappingMessageConverter() {
+		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
+		listener.afterPropertiesSet();
+		Object converter = new DirectFieldAccessor(listener).getPropertyValue("messageConverter");
+		assertEquals(HeaderMappingMessageConverter.class, converter.getClass());
+		Object wrappedConverter = new DirectFieldAccessor(converter).getPropertyValue("converter");
+		assertEquals(SimpleMessageConverter.class, wrappedConverter.getClass());
+	}
+
+	@Test
+	public void customMessageConverterDecoratedForHeaderMapping() {
+		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
+		MessageConverter originalConverter = new TestMessageConverter();
+		listener.setMessageConverter(originalConverter);
+		listener.afterPropertiesSet();
+		Object converter = new DirectFieldAccessor(listener).getPropertyValue("messageConverter");
+		assertEquals(HeaderMappingMessageConverter.class, converter.getClass());
+		Object wrappedConverter = new DirectFieldAccessor(converter).getPropertyValue("converter");
+		assertEquals(originalConverter, wrappedConverter);
+	}
 
 	private void startBackgroundReplier(final PollableChannel channel) {
 		new SimpleAsyncTaskExecutor().execute(new Runnable() {
