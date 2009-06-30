@@ -58,6 +58,18 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
+			<xsd:attribute name="prevent-duplicates" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A boolean flag indicating whether duplicates should be prevented. If a 'filter' reference is
+	provided, duplicate prevention will not be enabled by default (the assumption is that the
+	provided filter is sufficient), but setting this to true will enable it. If a 'filename-pattern'
+	is provided, duplicate prevention will be enabled by default (preceding the pattern matching),
+	but setting this to false will disable it. If neither 'filter' or 'filename-pattern' is provided,
+	duplicate prevention is enabled by default, but setting this to false will disable it.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>

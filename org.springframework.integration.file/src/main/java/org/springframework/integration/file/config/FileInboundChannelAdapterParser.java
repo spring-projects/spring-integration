@@ -19,10 +19,8 @@ package org.springframework.integration.file.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.util.StringUtils;
@@ -39,7 +37,6 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected String parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				PACKAGE_NAME + ".FileReadingMessageSource");
@@ -54,9 +51,18 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 			builder.addPropertyValue("inputDirectory", directory);
 		}
+		String filterBeanName = this.registerFileListFilter(element, parserContext);
+		builder.addPropertyReference("filter", filterBeanName);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+	}
+
+	private String registerFileListFilter(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder factoryBeanBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				PACKAGE_NAME + ".config.FileListFilterFactoryBean");
+		factoryBeanBuilder.setRole(BeanDefinition.ROLE_SUPPORT);
 		String filter = element.getAttribute("filter");
-		if (StringUtils.hasText(filter)){
-			builder.addPropertyReference("filter", filter);
+		if (StringUtils.hasText(filter)) {
+			factoryBeanBuilder.addPropertyReference("filterReference", filter);
 		}
 		String filenamePattern = element.getAttribute("filename-pattern");
 		if (StringUtils.hasText(filenamePattern)) {
@@ -64,26 +70,14 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 				parserContext.getReaderContext().error(
 						"At most one of 'filter' and 'filename-pattern' may be provided.", element);
 			}
-			String acceptOnceFilterBeanName = this.parseFilter("AcceptOnceFileListFilter", null, parserContext);
-			String patternFilterBeanName = this.parseFilter("PatternMatchingFileListFilter", filenamePattern, parserContext);
-			ManagedList filters = new ManagedList();
-			filters.add(new RuntimeBeanReference(acceptOnceFilterBeanName));
-			filters.add(new RuntimeBeanReference(patternFilterBeanName));
-			String compositeFilterBeanName = this.parseFilter("CompositeFileListFilter", filters, parserContext);
-			builder.addPropertyReference("filter", compositeFilterBeanName);
+			factoryBeanBuilder.addPropertyValue("filenamePattern", filenamePattern);
 		}
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-	}
-
-	private String parseFilter(String shortClassName, Object constructorArgValue, ParserContext parserContext) {
-		BeanDefinitionBuilder filterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_NAME + "." + shortClassName);
-		filterBuilder.getBeanDefinition().setRole(BeanDefinition.ROLE_SUPPORT);
-		if (constructorArgValue != null) {
-			filterBuilder.addConstructorArgValue(constructorArgValue);
+		String preventDuplicates = element.getAttribute("prevent-duplicates");
+		if (StringUtils.hasText(preventDuplicates)) {
+			factoryBeanBuilder.addPropertyValue("preventDuplicates", preventDuplicates);
 		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				filterBuilder.getBeanDefinition(), parserContext.getRegistry());
+				factoryBeanBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }
