@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.aggregator.Resequencer;
 import org.springframework.integration.core.Message;
@@ -58,6 +59,7 @@ import org.springframework.util.Assert;
  * <code>receive()</code> invocations and message delivery callbacks.
  * 
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 public class FileReadingMessageSource implements MessageSource<File> {
 
@@ -69,14 +71,15 @@ public class FileReadingMessageSource implements MessageSource<File> {
 
 	/**
 	 * {@link PriorityBlockingQueue#iterator()} throws
-	 * {@link ConcurrentModificationException} in Java 5. There is no locking
-	 * around the queue, so there is also no iteration.
+	 * {@link java.util.ConcurrentModificationException} in Java 5.
+	 * There is no locking around the queue, so there is also no iteration.
 	 */
 	private final Queue<File> toBeReceived;
 
 	private volatile FileListFilter filter = new AcceptOnceFileListFilter();
 
 	private boolean scanEachPoll = false;
+
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue.
@@ -113,7 +116,7 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	 * {@link AcceptOnceFileListFilter} with no bounds is used. In most cases a
 	 * customized {@link FileListFilter} will be needed to deal with
 	 * modification and duplication concerns. If multiple filters are required a
-	 * {@link CompositeFileListFilter} can be used to group them together
+	 * {@link CompositeFileListFilter} can be used to group them together.
 	 * <p/>
 	 * <b>The supplied filter must be thread safe.</b>.
 	 */
@@ -151,7 +154,12 @@ public class FileReadingMessageSource implements MessageSource<File> {
 	}
 
 	private void scanInputDirectory() {
-		List<File> filteredFiles = filter.filterFiles((inputDirectory.listFiles()));
+		File[] fileArray = inputDirectory.listFiles();
+		if (fileArray == null) {
+			throw new MessagingException("Either the path [" + this.inputDirectory 
+					+ "] does not denote a directory, or an I/O error has occured.");
+		}
+		List<File> filteredFiles = this.filter.filterFiles(fileArray);
 		Set<File> freshFiles = new HashSet<File>(filteredFiles);
 		if (!freshFiles.isEmpty()) {
 			toBeReceived.addAll(freshFiles);
@@ -180,4 +188,5 @@ public class FileReadingMessageSource implements MessageSource<File> {
 			logger.debug("Sent: " + sentMessage);
 		}
 	}
+
 }
