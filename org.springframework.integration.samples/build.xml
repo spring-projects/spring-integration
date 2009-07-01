@@ -6,6 +6,12 @@
 	<import file="${basedir}/../build-spring-integration/generate-pom.xml" />
 	<import file="${basedir}/../spring-build/standard/default.xml" />
 
+	<target name="clean" depends="common-common.clean">
+		<delete verbose="true" includeemptydirs="true">
+			<fileset dir="${basedir}" includes="*/target/**"/>
+		</delete>
+	</target>
+
 	<target name="package" depends="package-bundle.package">
 		<mkdir dir="${package.output.dir}/samples" />
 		<copy todir="${package.output.dir}/samples">
