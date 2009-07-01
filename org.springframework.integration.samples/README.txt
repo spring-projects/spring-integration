@@ -1,26 +1,29 @@
-Build samples using Maven (http://maven.apache.org)
+Instructions for building the samples using Maven (http://maven.apache.org)
+-------------------------------------------------------------------------------
 
-1. Open command prompt and navigate to 'samples' directory in the root of the project distribution
+1. Open a command prompt and navigate to the 'samples' directory within the
+root of the project distribution:
 
 	#> cd samples
 	
-2. Build samples 
+2. Build the samples and install them into your local Maven repository:
 
 	#> mvn install
 	
-You should see the following output:
+You should see output similar to the following:
 . . . .
 [INFO] Reactor Summary:
 [INFO] ------------------------------------------------------------------------
-[INFO] Spring Integration Samples ............................ SUCCESS [3.956s]
-[INFO] Unnamed - cafe:cafe:jar:1.0.3 ......................... SUCCESS [6.704s]
-[INFO] Unnamed - errorhandling:errorhandling:jar:1.0.3 ....... SUCCESS [0.467s]
-[INFO] Unnamed - helloworld:helloworld:jar:1.0.3 ............. SUCCESS [0.442s]
-[INFO] Unnamed - jms:jms:jar:1.0.3 ........................... SUCCESS [0.464s]
-[INFO] Unnamed - oddeven:oddeven:jar:1.0.3 ................... SUCCESS [0.378s]
-[INFO] Unnamed - quote:quote:jar:1.0.3 ....................... SUCCESS [0.381s]
-[INFO] Unnamed - ws:ws:jar:1.0.3 ............................. SUCCESS [0.420s]
-[INFO] Unnamed - xml:xml:jar:1.0.3 ........................... SUCCESS [0.388s]
+[INFO] Spring Integration Samples ............................ SUCCESS [2.910s]
+[INFO] Unnamed - cafe:cafe:jar:1.0.3 ......................... SUCCESS [2.750s]
+[INFO] Unnamed - errorhandling:errorhandling:jar:1.0.3 ....... SUCCESS [1.427s]
+[INFO] Unnamed - filecopy:filecopy:jar:1.0.3 ................. SUCCESS [1.257s]
+[INFO] Unnamed - helloworld:helloworld:jar:1.0.3 ............. SUCCESS [0.943s]
+[INFO] Unnamed - jms:jms:jar:1.0.3 ........................... SUCCESS [0.801s]
+[INFO] Unnamed - oddeven:oddeven:jar:1.0.3 ................... SUCCESS [1.009s]
+[INFO] Unnamed - quote:quote:jar:1.0.3 ....................... SUCCESS [0.697s]
+[INFO] Unnamed - ws:ws:jar:1.0.3 ............................. SUCCESS [0.714s]
+[INFO] Unnamed - xml:xml:jar:1.0.3 ........................... SUCCESS [0.690s]
 [INFO] ------------------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESSFUL
@@ -28,22 +31,28 @@ You should see the following output:
 [INFO] Total time: 13 seconds
 . . . .
 
-You are ready to start working with samples
+Once you see BUILD SUCCESSFUL, you are ready to start working with samples.
 
-You can do so by doing one of two things
-1. If your Java IDE is integrated with Maven (e.g., Eclipse/STS with Maven plug-in - highly recommended) then you can import 
-individual projects into the workspace as Maven projects and start using them by following documentation in the 
-javadoc of *Demo.java files.
+You can do so in one of two ways:
+
+1. If your Java IDE is integrated with Maven (e.g., SpringSource Tool Suite or
+Eclipse with a Maven plug-in is highly recommended), then you can import the
+projects into a workspace as Maven projects and start using them by following
+the documentation in the javadoc of the various *Demo.java files.
 
 For example:
-File -> Import -> General -> Existing Project into Workspace and Browse to a specific project.
+    File -> Import -> General -> Existing Projects into Workspace
+    Browse to the 'samples' directory or a specific project's sub-directory
 
-2. If you prefer to configure project on your own and simply need the right JARs in the class path, you can build samples 
-using a pre-configured Maven profile which will copy all project dependencies (JARs) in the 'lib' directory of each project:
+2. If you prefer to configure the projects on your own and simply need the
+right JARs on the class path, you can build the samples using a pre-configured
+Maven profile which will copy all project dependencies (JARs) in the 'lib'
+directory of each project:
 
 	#> mvn install -P classpath
 	
-Open any project and you will see the 'lib' directory with all the JARs required to run this demos
-Now you can configure your IDE to point to this directory.
+Open any project and you will see the 'lib' directory with all of the JARs
+required to run the demos. Now you can configure your IDE to point to those
+directories.
 
 Happy integration :-)
