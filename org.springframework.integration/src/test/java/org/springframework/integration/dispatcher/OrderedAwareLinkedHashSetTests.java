@@ -16,6 +16,7 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Test;
@@ -130,6 +131,145 @@ public class OrderedAwareLinkedHashSetTests {
 		assertEquals(o10, elements[9]);
 	}
 	
+	@Test
+	public void testConcurrent(){
+		for(int i = 0; i < 1000; i++){
+			this.doConcurrent();
+		}
+	}
+	private void doConcurrent(){
+		final OrderedAwareLinkedHashSet setToTest = new OrderedAwareLinkedHashSet();
+		final Object o1 = new Foo(3);
+		final Object o2 = new Foo(1);
+		final Object o3 = new Foo(2);
+		final Object o4 = new Foo(2);
+		final Object o5 = new Foo(Ordered.LOWEST_PRECEDENCE);
+		final Object o6 = new Foo(Ordered.LOWEST_PRECEDENCE);
+		final Object o7 = new Foo(Ordered.HIGHEST_PRECEDENCE);
+		final Object o8 = new Foo(Ordered.HIGHEST_PRECEDENCE);
+		final Object o9 = new Foo(4);
+		final Object o10 = new Foo(2);
+		Thread t1 = new Thread(new Runnable() {
+			public void run() {
+				setToTest.add(o1);
+				setToTest.add(o3);
+				setToTest.add(o5);
+				setToTest.add(o7);
+				setToTest.add(o9);
+			}
+		});
+		Thread t2 = new Thread(new Runnable() {
+			public void run() {
+				setToTest.add(o2);				
+				setToTest.add(o4);				
+				setToTest.add(o6);				
+				setToTest.add(o8);			
+				setToTest.add(o10);	
+			}
+		});
+		Thread t3 = new Thread(new Runnable() {
+			public void run() {
+				setToTest.add(1);				
+				setToTest.add(new Foo(2));				
+				setToTest.add(3);				
+				setToTest.add(new Foo(9));			
+				setToTest.add(8);	
+			}
+		});
+		t1.start();
+		t2.start();
+		t3.start();
+		try {
+			t1.join();
+			t2.join();
+			t3.join();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		
+			
+		assertEquals(15, setToTest.size());
+	}
+	/**
+	 * Will test addAll operation including the removal and adding an object in the concurrent environment
+	 */
+	@Test
+	public void testConcurrentAll(){
+		for(int i = 0; i < 1000; i++){
+			this.doConcurrentAll();
+		}
+	}
+	public void doConcurrentAll(){
+		final List tempList = new ArrayList();
+		Object o1 = new Foo(3);
+		Object o2 = new Foo(1);
+		Object o3 = "Bla";
+		Object o4 = new Foo(2);
+		final Object o5 = new Foo(Ordered.LOWEST_PRECEDENCE);
+		Object o6 = new Foo(Ordered.LOWEST_PRECEDENCE);
+		final Object o7 = new Foo(Ordered.HIGHEST_PRECEDENCE);
+		Object o8 = new Foo(Ordered.HIGHEST_PRECEDENCE);
+		Object o9 = new Foo(4);
+		Object o10 = "Baz";
+		
+		tempList.add(o1);
+		tempList.add(o2);
+		tempList.add(o3);
+		tempList.add(o4);
+		tempList.add(o5);
+		tempList.add(o6);
+		tempList.add(o7);
+		tempList.add(o8);
+		tempList.add(o9);
+		tempList.add(o10);		
+		final OrderedAwareLinkedHashSet orderAwareSet = new OrderedAwareLinkedHashSet();
+		Thread t1 = new Thread(new Runnable() {
+			public void run() {
+				orderAwareSet.addAll(tempList);
+				orderAwareSet.remove(o5);
+				orderAwareSet.remove(o7);
+			}
+		});
+		final List tempList2 = new ArrayList();
+		final Foo foo5 = new Foo(5);
+		Foo foo6 = new Foo(6);
+		tempList2.add(foo6);
+		tempList2.add(foo5);
+		tempList2.add(new Foo(30));
+		tempList2.add(new Foo(10));
+		tempList2.add(1);
+		tempList2.add(new Foo(28));
+		tempList2.add(10);
+		tempList2.add(13);
+		tempList2.add(new Foo(63));
+		Thread t2 = new Thread(new Runnable() {
+			public void run() {
+				orderAwareSet.addAll(tempList2);
+				orderAwareSet.remove(foo5);
+			}
+		});
+		Thread t3 = new Thread(new Runnable() {
+			public void run() {
+				orderAwareSet.add("hello");
+				orderAwareSet.add("hello again");	
+			}
+		});		
+
+		t1.start();
+		t2.start();
+		t3.start();
+		try {
+			t1.join();
+			t2.join();
+			t3.join();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		Object[] elements = orderAwareSet.toArray();
+		assertEquals(18, elements.length);
+	}
 	private static class Foo implements Ordered {
 		private int order;
 		public Foo(int order){

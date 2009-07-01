@@ -89,9 +89,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	public boolean addHandler(MessageHandler handler) {
-		synchronized (this.handlerListMonitor) {
-			return this.handlers.add(handler);
-		}
+		return this.handlers.add(handler);
 	}
 
 	public boolean removeHandler(MessageHandler handler) {
