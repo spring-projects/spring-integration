@@ -2,7 +2,14 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <appendix id="samples">
   <title>Spring Integration Samples</title>
-
+	<para>
+	Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are distributed as independent Maven-based projects 
+	(<ulink url="http://maven.apache.org/">http://maven.apache.org/</ulink>) to minimize the setup time.
+	Since each project is also an Eclipse-based project, they could be imported as is using "Import existing project wizard". 
+	If you prefer other IDE, configuration should be very trivial, since a special Maven profile was setup to download all the 
+	required dependencies required by all samples.
+	Detailed instructions on how to run samples provided in README file located in the <emphasis>samples</emphasis> directory of the main distribution. 
+	</para>
   <section id="samples-cafe">
     <title>The Cafe Sample</title>
     <para>
