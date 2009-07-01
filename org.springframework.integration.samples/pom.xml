@@ -8,7 +8,9 @@
 	<version>1.0.3</version>
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
-
+	<properties>
+		<release.version>1.0.3.BUILD-20090701033844</release.version>
+	</properties>
 	<modules>
 		<module>cafe</module>
 		<module>errorhandling</module>
@@ -24,69 +26,69 @@
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.stream</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.adapter</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.event</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.file</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.http</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.httpinvoker</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.jms</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.mail</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.rmi</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.security</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.ws</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.xml</artifactId>
-			<version>1.0.3.BUILD-SNAPSHOT</version>
+			<version>${release.version}</version>
 		</dependency>
 		<!--  -->
 	</dependencies>
@@ -149,5 +151,6 @@
 			<url>http://repository.springsource.com/maven/bundles/external</url>
 		</repository>
 	</repositories>
+	
 
 </project>
