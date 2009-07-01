@@ -29,6 +29,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -148,7 +149,14 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			throw new MessageHandlingException(requestMessage, "failed to write Message payload to file", e);
 		}
 		if (resultFile != null) {
-			replyMessageHolder.set(resultFile);
+			if (originalFileFromHeader == null && payload instanceof File) {
+				replyMessageHolder.set(MessageBuilder.withPayload(resultFile)
+						.setHeader(FileHeaders.ORIGINAL_FILE, (File) payload)
+						.build());
+			}
+			else {
+				replyMessageHolder.set(resultFile);
+			}
 		}
 	}
 

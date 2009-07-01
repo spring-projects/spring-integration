@@ -18,26 +18,27 @@ package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 
 /**
- * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'file'
- * namespace.
+ * Parser for the 'outbound-gateway' element of the file namespace.
  * 
  * @author Mark Fisher
- * @author Iwein Fuld
+ * @since 1.0.3
  */
-public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class FileOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = FileWritingMessageHandlerBeanDefinitionBuilder.configure(
-				element, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME, parserContext);
-		return (builder != null ? builder.getBeanDefinition() : null);
+	protected String getInputChannelAttributeName() {
+		return "request-channel";
+	}
+
+	@Override
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		String replyChannel = element.getAttribute("reply-channel");
+ 		return FileWritingMessageHandlerBeanDefinitionBuilder.configure(element, replyChannel, parserContext);
 	}
 
 }

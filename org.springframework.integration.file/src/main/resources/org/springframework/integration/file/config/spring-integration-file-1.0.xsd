@@ -82,41 +82,81 @@
 	Configures an outbound Channel Adapter that writes Message payloads to a File.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="filename-generator" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="delete-source-files" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
+			<xsd:complexContent>
+				<xsd:extension base="outboundFileBaseType">
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Configures an outbound Gateway that writes request Message payloads to a File and
+	then generates a reply Message containing the newly written File as its payload.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="outboundFileBaseType">
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="outboundFileBaseType">
+		<xsd:sequence>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="directory" type="xsd:string" use="required"/>
+		<xsd:attribute name="filename-generator" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="delete-source-files" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
 	Specify whether to delete source files after writing to the destination directory.
 	This will take effect if the Message payload is the actual source File instance
 	or if the original File instance (or its path) is available in the header value
 	associated with the FileHeaders.ORIGINAL_FILE constant. The default value is false.
-					]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
 
 	<xsd:element name="file-to-string-transformer">
 		<xsd:complexType>
