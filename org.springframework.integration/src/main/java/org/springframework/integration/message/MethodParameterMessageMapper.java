@@ -100,39 +100,52 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
+
 	public MethodParameterMessageMapper(Method method) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
-		parameterMetadata = this.initializeParameterMetadata();
-		payloadParameterMetadata = getPayloadParameterFrom(parameterMetadata);
+		this.parameterMetadata = this.initializeParameterMetadata();
+		this.payloadParameterMetadata = getPayloadParameterFrom(this.parameterMetadata);
 	}
 
-	private MethodParameterMetadata getPayloadParameterFrom(MethodParameterMetadata[] parameterMetadata) {
+
+	private MethodParameterMetadata getPayloadParameterFrom(MethodParameterMetadata[] mpm) {
 		Set<MethodParameterMetadata> payloadCandidates = new HashSet<MethodParameterMetadata>();
-		int messagesFound = 0;
-		for (MethodParameterMetadata metadata : parameterMetadata) {
-			if (metadata.getHeaderAnnotation() == null && !metadata.hasHeadersAnnotation()
-					&& !Message.class.isAssignableFrom(metadata.getParameterType())) {
-				payloadCandidates.add(metadata);
+		int messageTypedParameterCount = 0;
+		for (MethodParameterMetadata metadata : mpm) {
+			if (Message.class.isAssignableFrom(metadata.getParameterType())) {
+				// expecting Message, not a payload candidate
+				messageTypedParameterCount++;
 			}
-			else if (Message.class.isAssignableFrom(metadata.getParameterType())) {
-				messagesFound++;
+			else if (metadata.getHeaderAnnotation() == null && !metadata.hasHeadersAnnotation()) {
+				// not expecting Message, and not explicitly annotated for headers
+				payloadCandidates.add(metadata);
 			}
 		}
 		if (payloadCandidates.size() > 1) {
 			Iterator<MethodParameterMetadata> iterator = payloadCandidates.iterator();
 			while (iterator.hasNext()) {
 				Class<?> type = iterator.next().getParameterType();
-				if (Map.class.isAssignableFrom(type) || Properties.class.isAssignableFrom(type)) {
+				if (Map.class.isAssignableFrom(type)) {
+					// Map (or Properties) may accept headers rather than payload
 					iterator.remove();
 				}
 			}
 		}
-		Assert.isTrue(payloadCandidates.size() + messagesFound <= 1,
-				"Could not find at most one message or payload parameter among [" + parameterMetadata
-						+ "] ended up with the candidates [" + payloadCandidates + "]");
-		MethodParameterMetadata methodParameterMetadata = payloadCandidates.toArray(new MethodParameterMetadata[1])[0];
-		return methodParameterMetadata;
+		if (payloadCandidates.size() + messageTypedParameterCount > 1) {
+			// too many candidates, create a helpful error message
+			int count = 0;
+			String[] candidateTypes = new String[payloadCandidates.size()];
+			for (MethodParameterMetadata candidate : payloadCandidates) {
+				candidateTypes[count++] = candidate.getParameterType().getName();
+			}
+			throw new IllegalArgumentException("At most one message or payload parameter " +
+					"is allowed on handler method [" + this.method.getName() +
+					"], but the following payload candidate types were found [" +
+					StringUtils.arrayToCommaDelimitedString(candidateTypes) +
+					"] and " + messageTypedParameterCount + " Message type(s).");
+		}
+		return (payloadCandidates.isEmpty() ? null : payloadCandidates.iterator().next());
 	}
 
 	private MethodParameterMetadata[] initializeParameterMetadata() {
