@@ -18,6 +18,7 @@
 			<fileset dir="${basedir}"> 
 				<include name="cafe/**" />
 				<include name="errorhandling/**"/>
+				<include name="filecopy/**"/>
 				<include name="helloworld/**"/>
 				<include name="jms/**"/>
 				<include name="oddeven/**"/>

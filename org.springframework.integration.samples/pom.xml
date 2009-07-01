@@ -9,11 +9,12 @@
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
 	<properties>
-		<release.version>1.0.3.BUILD-20090701033844</release.version>
+		<release.version>1.0.3.RELEASE</release.version>
 	</properties>
 	<modules>
 		<module>cafe</module>
 		<module>errorhandling</module>
+		<module>filecopy</module>
 		<module>helloworld</module>
 		<module>jms</module>
 		<module>oddeven</module>
