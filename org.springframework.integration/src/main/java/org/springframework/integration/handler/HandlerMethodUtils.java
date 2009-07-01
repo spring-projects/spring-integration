@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.integration.annotation.Header;
@@ -49,11 +50,14 @@ abstract class HandlerMethodUtils {
 		}
 		Class<?>[] parameterTypes = method.getParameterTypes();
 		if (parameterTypes.length > 1) {
-			// at most one parameter can be lacking @Header or @Headers
+			// at most one parameter can be expecting a Message or payload.
 			boolean foundPayloadParam = false;
 			Annotation[][] allParamAnnotations = method.getParameterAnnotations();
-			for (Annotation[] paramAnnotations : allParamAnnotations) {
-				if (!containsHeaderAnnotation(paramAnnotations)) {
+			for (int i = 0; i < parameterTypes.length; i++) {
+				Class<?> currentType = parameterTypes[i];
+				Annotation[] paramAnnotations = allParamAnnotations[i];
+				// it's possible that a Map is the payload type at runtime, but we can't know that here
+				if (!containsHeaderAnnotation(paramAnnotations) && !Map.class.isAssignableFrom(currentType)) {
 					if (foundPayloadParam) {
 						return false;
 					}

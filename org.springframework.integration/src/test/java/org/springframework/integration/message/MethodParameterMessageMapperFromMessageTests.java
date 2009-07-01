@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,10 +222,10 @@ public class MethodParameterMessageMapperFromMessageTests {
 		public Properties propertiesHeaders(@Headers Properties properties) {
 			return properties;
 		}
-		
-	    public Object propertiesHeadersAndPayload(Properties headers, Object payload) {
-	           return payload;
-	    }
+
+		public Object propertiesHeadersAndPayload(Properties headers, Object payload) {
+			return payload;
+		}
 
 		@SuppressWarnings("unchecked")
 		public Map mapPayload(Map map) {
@@ -236,7 +236,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 		public Map mapHeaders(@Headers Map map) {
 			return map;
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		public Object mapHeadersAndPayload(Map headers, Object payload) {
 			return payload;
@@ -246,4 +246,5 @@ public class MethodParameterMessageMapperFromMessageTests {
 			return i;
 		}
 	}
+
 }
