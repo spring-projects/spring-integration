@@ -75,7 +75,15 @@
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
-			</xsd:attribute>			
+			</xsd:attribute>
+			<xsd:attribute name="ignore-empty-responses" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Indicates whether empty String response payloads should be ignored. The default is TRUE.
+	Set this to FALSE if you want to send empty String responses in reply Messages.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="source-extractor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

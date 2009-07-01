@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
@@ -38,6 +39,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * Base class for outbound Web Service-invoking Messaging Gateways.
  * 
  * @author Mark Fisher
+ * @author Jonas Partner
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -45,7 +47,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile WebServiceMessageCallback requestCallback;
 
-    private final MessageAwareDestinationProvider destinationProvider;
+	private final MessageAwareDestinationProvider destinationProvider;
+
+	private volatile boolean ignoreEmptyResponses = true;
 
 
 	public AbstractWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
@@ -58,6 +62,15 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
+	}
+
+	/**
+	 * Specify whether empty String response payloads should be ignored.
+	 * The default is <code>true</code>. Set this to <code>false</code> if
+	 * you want to send empty String responses in reply Messages.
+	 */
+	public void setIgnoreEmptyResponses(boolean ignoreEmptyResponses) {
+		this.ignoreEmptyResponses = ignoreEmptyResponses;
 	}
 
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
@@ -90,9 +103,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	@Override
 	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message),this.getDestinationProvider().getDestination(message));
+		Object responsePayload = this.doHandle(message.getPayload(),
+				this.getRequestCallback(message), this.getDestinationProvider().getDestination(message));
 		if (responsePayload != null) {
-			replyHolder.set(responsePayload);
+			boolean shouldIgnore = (this.ignoreEmptyResponses
+					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
+			if (!shouldIgnore) {
+				replyHolder.set(responsePayload);
+			}
 		}
 	}
 

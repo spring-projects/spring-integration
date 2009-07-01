@@ -19,6 +19,20 @@
 		<si:queue capacity="10"/>
 	</si:channel>
 
+	<si:channel id="outputChannel">
+		<si:queue capacity="10"/>
+	</si:channel>
+
+	<ws:outbound-gateway id="gatewayWithReplyChannel"
+	                     request-channel="inputChannel"
+	                     uri="http://example.org"
+	                     reply-channel="outputChannel"/>
+
+	<ws:outbound-gateway id="gatewayWithIgnoreEmptyResponsesFalse"
+	                     request-channel="inputChannel"
+	                     uri="http://example.org"
+	                     ignore-empty-responses="false"/>
+
 	<ws:outbound-gateway id="gatewayWithDefaultSourceExtractor"
 		                 request-channel="inputChannel"
 	                     uri="http://example.org"/>
