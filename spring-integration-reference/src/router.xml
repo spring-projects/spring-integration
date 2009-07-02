@@ -116,6 +116,19 @@
       no matching payload for a PayloadTypeRouter and no "defaultOutputChannel" has been specified), then an Exception
       will be thrown.
     </note>
+     <para>
+      Configuration for <classname>RecipientListRouter</classname> is also supported via namespace support provided by Spring Integration (see <xref linkend="configuration-namespace"/>).
+      Example below demonstrates namespace-based configuration of <classname>RecipientListRouter</classname> and all the supported attributes using Spring Integration namespace support:
+      </para>
+      <para>
+      <programlisting language="xml"><![CDATA[<recipient-list-router id="customRouter" input-channel="routingChannel"
+				timeout="1234"
+				ignore-send-failures="true"
+				apply-sequence="true">
+	<recipient channel="channel1"/>
+	<recipient channel="channel2"/>
+</recipient-list-router>]]></programlisting>
+	</para>
   </section>
 
   <section id="router-namespace">
