@@ -12,6 +12,22 @@
 				<present targetdir="${package.dist.dir}"/>
 			</fileset>
 		</delete>
+		<mkdir dir="${package.output.dir}/samples" />
+		<copy todir="${package.output.dir}/samples">
+			<fileset dir="${basedir}/../org.springframework.integration.samples"> 
+				<include name="cafe/**" />
+				<include name="errorhandling/**"/>
+				<include name="filecopy/**"/>
+				<include name="helloworld/**"/>
+				<include name="jms/**"/>
+				<include name="oddeven/**"/>
+				<include name="quote/**"/>
+				<include name="ws/**"/>
+				<include name="xml/**"/>
+				<include name="pom.xml"/>
+				<include name="README.txt"/>
+			</fileset>
+		</copy>
 	</target>
 
 </project>

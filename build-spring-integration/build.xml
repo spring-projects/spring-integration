@@ -15,7 +15,6 @@
 		<pathelement location="${basedir}/../org.springframework.integration.rmi"/>
 		<pathelement location="${basedir}/../org.springframework.integration.stream"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
-		<pathelement location="${basedir}/../org.springframework.integration.samples"/>
 	</path>
 
 	<property file="${basedir}/../build.properties"/>

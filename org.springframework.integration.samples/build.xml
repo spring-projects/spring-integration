@@ -2,7 +2,6 @@
 <project name="org.springframework.integration.samples">
 
 	<property file="${basedir}/../build.properties" />
-	<import file="${basedir}/../build-spring-integration/package-bundle.xml" />
 	<import file="${basedir}/../build-spring-integration/generate-pom.xml" />
 	<import file="${basedir}/../spring-build/standard/default.xml" />
 
@@ -10,25 +9,6 @@
 		<delete verbose="true" includeemptydirs="true">
 			<fileset dir="${basedir}" includes="*/target/**" defaultexcludes="false"/>
 		</delete>
-	</target>
-
-	<target name="package" depends="package-bundle.package">
-		<mkdir dir="${package.output.dir}/samples" />
-		<copy todir="${package.output.dir}/samples">
-			<fileset dir="${basedir}"> 
-				<include name="cafe/**" />
-				<include name="errorhandling/**"/>
-				<include name="filecopy/**"/>
-				<include name="helloworld/**"/>
-				<include name="jms/**"/>
-				<include name="oddeven/**"/>
-				<include name="quote/**"/>
-				<include name="ws/**"/>
-				<include name="xml/**"/>
-				<include name="pom.xml"/>
-				<include name="README.txt"/>
-			</fileset>
-		</copy>
 	</target>
 
 </project>
