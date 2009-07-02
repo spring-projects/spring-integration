@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.mail.ImapIdleChannelAdapter;
-import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -35,8 +33,11 @@ import org.springframework.util.StringUtils;
  */
 public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
-	protected Class<?> getBeanClass(Element element) {
-		return ImapIdleChannelAdapter.class;
+	private static final String BASE_PACKAGE = "org.springframework.integration.mail";
+
+
+	protected String getBeanClassName(Element element) {
+		return BASE_PACKAGE + ".ImapIdleChannelAdapter";
 	}
 
 	protected boolean shouldGenerateId() {
@@ -56,12 +57,17 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 		if (StringUtils.hasText(taskExecutorRef)) {
 			builder.addPropertyReference("taskExecutor", taskExecutorRef);
 		}
+		String autoStartup = element.getAttribute("auto-startup");
+		if (StringUtils.hasText(autoStartup)) {
+			builder.addPropertyValue("autoStartup", autoStartup);
+		}
 	}
 
 	private String parseImapMailReceiver(Element element, ParserContext parserContext) {
 		String uri = element.getAttribute("store-uri");
 		Assert.hasText(uri, "the 'store-uri' attribute is required");
-		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(ImapMailReceiver.class);
+		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				BASE_PACKAGE + ".ImapMailReceiver");
 		receiverBuilder.addConstructorArgValue(uri);
 		String propertiesRef = element.getAttribute("java-mail-properties");
 		if (StringUtils.hasText(propertiesRef)) {

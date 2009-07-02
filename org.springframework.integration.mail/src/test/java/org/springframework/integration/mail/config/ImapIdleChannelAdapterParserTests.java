@@ -17,6 +17,8 @@
 package org.springframework.integration.mail.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import java.util.Properties;
 
@@ -28,61 +30,59 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.integration.mail.ImapMailReceiver;
-import org.springframework.integration.mail.MailReceivingMessageSource;
-import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Jonas Partner
  * @author Mark Fisher
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class PollingMailSourceParserTests {
+public class ImapIdleChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 
 	@Test
-	public void imapAdapter() {
-		Object adapter = context.getBean("imapAdapter");
-		assertEquals(SourcePollingChannelAdapter.class, adapter.getClass());
+	public void simpleAdapter() {
+		Object adapter = context.getBean("simpleAdapter");
+		assertEquals(ImapIdleChannelAdapter.class, adapter.getClass());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 		Object channel = context.getBean("channel");
-		assertEquals(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		Object source = adapterAccessor.getPropertyValue("source");
-		assertEquals(MailReceivingMessageSource.class, source.getClass());
-		Object receiver = new DirectFieldAccessor(source).getPropertyValue("mailReceiver");
+		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
+		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Object url = receiverAccessor.getPropertyValue("url");
+		assertEquals(new URLName("imap:foo"), url);
+		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
+		assertEquals(0, properties.size());
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+	}
+
+	@Test
+	public void customAdapter() {
+		Object adapter = context.getBean("customAdapter");
+		assertEquals(ImapIdleChannelAdapter.class, adapter.getClass());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Object channel = context.getBean("channel");
+		Object executor = context.getBean("executor");
+		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertSame(executor, adapterAccessor.getPropertyValue("taskExecutor"));
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());
 		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
 		Object url = receiverAccessor.getPropertyValue("url");
 		assertEquals(new URLName("imap:foo"), url);
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
 		assertEquals("bar", properties.getProperty("foo"));
-	}
-
-	@Test
-	public void pop3Adapter() {
-		Object adapter = context.getBean("pop3Adapter");
-		assertEquals(SourcePollingChannelAdapter.class, adapter.getClass());
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
-		Object channel = context.getBean("channel");
-		assertEquals(channel, adapterAccessor.getPropertyValue("outputChannel"));
-		Object source = adapterAccessor.getPropertyValue("source");
-		assertEquals(MailReceivingMessageSource.class, source.getClass());
-		Object receiver = new DirectFieldAccessor(source).getPropertyValue("mailReceiver");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
-		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
-		Object url = receiverAccessor.getPropertyValue("url");
-		assertEquals(new URLName("pop3:bar"), url);
-		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
-		assertEquals("bar", properties.getProperty("foo"));
+		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
 	}
 
 }

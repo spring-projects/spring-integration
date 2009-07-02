@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/mail
+			http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">
+
+	<integration:channel id="channel"/>
+
+	<mail:inbound-channel-adapter id="imapAdapter"
+			store-uri="imap:foo" java-mail-properties="props" channel="channel" auto-startup="false"/>
+
+	<mail:inbound-channel-adapter id="pop3Adapter"
+			store-uri="pop3:bar" java-mail-properties="props" channel="channel" auto-startup="false"/>
+
+	<util:properties id="props">
+		<prop key="foo">bar</prop>
+	</util:properties>
+
+	<integration:poller default="true">
+		<integration:interval-trigger interval="60" time-unit="SECONDS"/>
+	</integration:poller>
+
+</beans>
