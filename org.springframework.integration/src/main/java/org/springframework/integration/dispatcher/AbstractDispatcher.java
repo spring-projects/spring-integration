@@ -25,12 +25,12 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.OrderComparator;
-import org.springframework.core.Ordered;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -51,25 +51,12 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
-
-	@SuppressWarnings("unchecked")
-	private volatile Comparator<Object> comparator = new OrderComparator();
+	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
 	private volatile TaskExecutor taskExecutor;
 
 	private final Object handlerListMonitor = new Object();
 
-
-	/**
-	 * Provide a {@link Comparator} that will determine the sorting order of
-	 * the handler list. If no comparator is configured, the default will be
-	 * an instance of {@link OrderComparator}.
-	 */
-	public void setComparator(Comparator<Object> comparator) {
-		Assert.notNull(comparator, "comparator must not be null");
-		this.comparator = comparator;
-	}
 
 	/**
 	 * Specify a {@link TaskExecutor} for invoking the handlers. If none is
@@ -84,6 +71,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.taskExecutor;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected List<MessageHandler> getHandlers() {
 		return Collections.unmodifiableList(new ArrayList(this.handlers));
 	}
@@ -98,13 +86,9 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		}
 	}
 
-	private boolean hasOrder(MessageHandler handler) {
-		return handler instanceof Ordered
-				&& ((Ordered) handler).getOrder() < Ordered.LOWEST_PRECEDENCE;
-	}
-
 	public String toString() {
-		return this.getClass().getSimpleName() + " with handlers: " + this.handlers;
+		String handlerList = StringUtils.collectionToCommaDelimitedString(this.handlers);
+		return this.getClass().getSimpleName() + " with handlers: " + handlerList;
 	}
 
 	/**
