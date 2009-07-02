@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<channel id="channel1">
+		<queue capacity="1" />
+	</channel>
+	<channel id="channel2">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="routingChannel" />
+	<recipient-list-router input-channel="routingChannel" timeout="1000">
+		<recipient channel="channel1"/>
+		<recipient channel="channel2"/>
+	</recipient-list-router>
+</beans:beans>

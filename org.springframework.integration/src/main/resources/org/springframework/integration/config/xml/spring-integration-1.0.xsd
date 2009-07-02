@@ -883,6 +883,27 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="recipient-list-router">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+	Defines a Recipient List Router. 
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="routerType">
+					<xsd:sequence>
+						<xsd:element name="recipient" minOccurs="1" maxOccurs="unbounded">
+							<xsd:complexType>
+								<xsd:attribute name="channel" type="xsd:string" />
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="payload-type-router">
 		<xsd:annotation>

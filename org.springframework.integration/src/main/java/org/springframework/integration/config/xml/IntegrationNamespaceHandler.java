@@ -82,6 +82,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("router", new DefaultRouterParser());
 			registerBeanDefinitionParser("header-value-router", new HeaderValueRouterParser());
 			registerBeanDefinitionParser("payload-type-router", new PayloadTypeRouterParser());
+			registerBeanDefinitionParser("recipient-list-router", new RecipientListRouterParser());		
 			registerBeanDefinitionParser("splitter", new SplitterParser());
 			registerBeanDefinitionParser("aggregator", new AggregatorParser());
 			registerBeanDefinitionParser("resequencer", new ResequencerParser());
