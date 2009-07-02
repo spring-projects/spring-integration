@@ -8,7 +8,7 @@
 
 	<target name="clean" depends="common-common.clean">
 		<delete verbose="true" includeemptydirs="true">
-			<fileset dir="${basedir}" includes="*/target/**"/>
+			<fileset dir="${basedir}" includes="*/target/**" defaultexcludes="false"/>
 		</delete>
 	</target>
 
