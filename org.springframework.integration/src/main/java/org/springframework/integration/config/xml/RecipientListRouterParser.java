@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
 import java.util.List;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -23,7 +26,6 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;recipient-list-router/&gt; element.
@@ -34,13 +36,13 @@ import org.w3c.dom.Element;
 public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder recipientListRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.RecipientListRouter");
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "recipient");
 		Assert.notEmpty(childElements,
-				"Recipient channel(s) must be defined (e.g., <recipient channel=\"channel1\"/>)");
-	
+				"At least one recipient channel must be defined (e.g., <recipient channel=\"channel1\"/>).");
 		ManagedList channelList = new ManagedList();
 		for (Element childElement : childElements) {
 			channelList.add(new RuntimeBeanReference(childElement.getAttribute("channel")));

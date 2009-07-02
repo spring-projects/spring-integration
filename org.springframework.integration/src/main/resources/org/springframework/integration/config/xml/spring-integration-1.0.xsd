@@ -863,7 +863,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="routerType">
+				<xsd:extension base="channelResolvingRouterType">
 					<xsd:sequence>
 						<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
 							<xsd:complexType>
@@ -892,7 +892,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="routerType">
+				<xsd:extension base="baseRouterType">
 					<xsd:sequence>
 						<xsd:element name="recipient" minOccurs="1" maxOccurs="unbounded">
 							<xsd:complexType>
@@ -900,6 +900,8 @@
 							</xsd:complexType>
 						</xsd:element>
 					</xsd:sequence>
+					<xsd:attribute name="ignore-send-failures" type="xsd:string"/>
+					<xsd:attribute name="apply-sequence" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -914,7 +916,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="routerType">
+				<xsd:extension base="channelResolvingRouterType">
 					<xsd:sequence>
 						<xsd:element name="mapping" minOccurs="1" maxOccurs="unbounded">
 							<xsd:complexType>
@@ -937,7 +939,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="routerType">
+				<xsd:extension base="channelResolvingRouterType">
 					<xsd:choice>
 						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
@@ -968,12 +970,11 @@
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
-
 	</xsd:element>
 
-	<xsd:complexType name="routerType">
+	<xsd:complexType name="channelResolvingRouterType">
 		<xsd:complexContent>
-			<xsd:extension base="inputEndpointType">
+			<xsd:extension base="baseRouterType">
 				<xsd:attribute name="default-output-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -984,10 +985,16 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="timeout" type="xsd:string" />
 				<xsd:attribute name="resolution-required" type="xsd:string" />
-				<xsd:attribute name="ignore-channel-name-resolution-failures"
-					type="xsd:string" />
+				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="baseRouterType">
+		<xsd:complexContent>
+			<xsd:extension base="inputEndpointType">
+				<xsd:attribute name="timeout" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
