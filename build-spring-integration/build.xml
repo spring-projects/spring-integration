@@ -26,7 +26,7 @@
 
 	<target name="clean" depends="common-multi-bundle.clean">
 		<delete verbose="true" includeemptydirs="true">
-			<fileset dir="${basedir}/../org.springframework.integration.samples" includes="*/target/**" defaultexcludes="false"/>
+			<fileset dir="${basedir}/../spring-integration-samples" includes="*/target/**" defaultexcludes="false"/>
 		</delete>
 	</target>
 
