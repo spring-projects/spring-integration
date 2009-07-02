@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.router.config;
-/**
- * Parser for the &lt;recipient-list-router/&gt; element.
- * 
- * @author Oleg Zhurakousky
- * @since 1.0.3
- */
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -31,30 +30,61 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.router.RecipientListRouter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+/**
+ * @author Oleg Zhurakousky
+ * @author Mark Fisher
+ * @since 1.0.3
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class RecipientListRouterParserTests {
+
 	@Autowired
 	private ConfigurableApplicationContext context;
+
 	@Autowired
-	@Qualifier("routingChannel")
+	@Qualifier("routingChannelA")
 	private MessageChannel channel;
 
 	@Test
-	public void testRecipientListRouterNamespaceConfig() {
+	public void checkMessageRouting() {
 		context.start();
-		
-		Message message = new GenericMessage<Integer>(1);
+		Message<?> message = new GenericMessage<Integer>(1);
 		channel.send(message);
-		
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
 		assertTrue(chanel1.receive().getPayload().equals(1));
 		assertTrue(chanel2.receive().getPayload().equals(1));
-		
 	}
-	
+
+	@Test
+	public void simpleRouter() {
+		Object endpoint = context.getBean("simpleRouter");
+		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(RecipientListRouter.class, handler.getClass());
+		RecipientListRouter router = (RecipientListRouter) handler;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
+		assertEquals(new Long(-1), new DirectFieldAccessor(
+				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("applySequence"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreSendFailures"));
+	}
+
+	@Test
+	public void customRouter() {
+		Object endpoint = context.getBean("customRouter");
+		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(RecipientListRouter.class, handler.getClass());
+		RecipientListRouter router = (RecipientListRouter) handler;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
+		assertEquals(new Long(1234), new DirectFieldAccessor(
+				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("applySequence"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreSendFailures"));
+	}
 
 }
