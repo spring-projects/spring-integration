@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
@@ -27,39 +28,41 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+
 /**
- *
  * Special Set that maintains the following semantics:
- * All elements that are un-ordered (do not implement {@link Ordered} interface or annotated {@link Order} annotation) 
- * will be stored in the order in which they were added, maintaining the semantics of the {@link LinkedHashSet}.
- * However, for all {@link Ordered} elements a {@link Comparator} (instantiated by default) for this implementation of {@link Set}, 
- * will be used. Those elements will have 
- * precedence over un-ordered elements. If elements have the same order but themselves do not equal to one another
- * they will be placed to the right (appended next to) of the element with the same order, thus preserving the order 
- * of the insertion and maintaining {@link LinkedHashSet} semantics.
+ * All elements that are un-ordered (do not implement {@link Ordered} interface or annotated
+ * {@link Order} annotation) will be stored in the order in which they were added, maintaining the
+ * semantics of the {@link LinkedHashSet}. However, for all {@link Ordered} elements a
+ * {@link Comparator} (instantiated by default) for this implementation of {@link Set}, will be
+ * used. Those elements will have precedence over un-ordered elements. If elements have the same
+ * order but themselves do not equal to one another the more recent addition will be placed to the
+ * right of (appended next to) the existing element with the same order, thus preserving the order
+ * of the insertion  and maintaining {@link LinkedHashSet} semantics for the un-ordered elements.
  * 
  * @author Oleg Zhurakousky
  * @since 1.0.3
  */
+@SuppressWarnings({"unchecked", "serial"})
 class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 
 	private final OrderComparator comparator = new OrderComparator();
+
 	private final Lock lock = new ReentrantLock();
+
+
 	/**
-	 * Every time when Ordered element is added via this method
-	 * this Set will be re-sorted, otherwise the element is simply added to the end of the stack.
-	 * If adding multiple objects for performance reasons it is recommended to use
-	 * addAll(Collection c) method which first adds all the elements to this set
-	 * and then calls reinitializeThis() method.
-	 * Added element must not be null;
+	 * Every time an Ordered element is added via this method this
+	 * Set will be re-sorted, otherwise the element is simply added
+	 * to the end. Added element must not be null.
 	 */
-	public  boolean add(E o){
+	public boolean add(E o) {
 		Assert.notNull(o,"Can not add NULL object");
 		lock.lock();
 		try {			
 			boolean present = false;
 			if (o instanceof Ordered){
-				present = this.reinitializeThis(o);
+				present = this.addOrderedElement((Ordered) o);
 			} else {
 				present = super.add(o);
 			}
@@ -68,11 +71,11 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 			lock.unlock();
 		}	
 	}
+
 	/**
-	 * Adds all elements in this Collection and then resorts this set
-	 * via call to the reinitializeThis() method
+	 * Adds all elements in this Collection.
 	 */
-	public  boolean addAll(Collection<? extends E> c){
+	public boolean addAll(Collection<? extends E> c) {
 		Assert.notNull(c,"Can not merge with NULL set");
 		lock.lock();
 		try {
@@ -84,10 +87,11 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 			lock.unlock();
 		}
 	}
+
 	/**
-	 * 
+	 * {@inheritDoc} 
 	 */
-	public  boolean remove(Object o){
+	public boolean remove(Object o) {
 		lock.lock();
 		try {
 			return super.remove(o);
@@ -95,8 +99,9 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 			lock.unlock();
 		}
 	}
+
 	/**
-	 * 
+	 * {@inheritDoc} 
 	 */
 	public boolean removeAll(Collection<?> c){
 		if (CollectionUtils.isEmpty(c)){
@@ -104,18 +109,13 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		}
 		lock.lock();
 		try {
-			super.removeAll(c);	
-			return true;
+			return super.removeAll(c);
 		} finally {
 			lock.unlock();
 		}
-		
 	}
 
-	/**
-	 * 
-	 */
-	private boolean reinitializeThis(Object adding){	
+	private boolean addOrderedElement(Ordered adding) {	
 		boolean added = false;
 		E[] tempUnorderedElements = (E[]) this.toArray();
 		if (super.contains(adding)){
@@ -128,8 +128,8 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		} else {
 			Set tempSet = new LinkedHashSet();
 			for (E current : tempUnorderedElements) {
-				if (current instanceof Ordered && adding instanceof Ordered){
-					if (((Ordered)adding).getOrder() < ((Ordered)current).getOrder()){
+				if (current instanceof Ordered) {
+					if (this.comparator.compare(adding, current) < 0) {
 						added = super.add((E) adding);
 						super.add(current);
 					}  else {
@@ -148,4 +148,5 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		}
 		return added;
 	}
+
 }
