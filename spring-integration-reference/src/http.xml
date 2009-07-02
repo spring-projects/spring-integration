@@ -24,9 +24,13 @@
 </bean>]]></programlisting>
 	The <classname>HttpInboundEndpoint</classname> accepts an instance of <interfacename>InboundRequestMapper</interfacename> which allows 
 	customisation of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>.  If none is 
-	provided the an instance of <classname>DefaultInboundRequestMapper</classname> will be used.  This encapsulates a simple strategy, which for
+	provided an instance of <classname>DefaultInboundRequestMapper</classname> will be used.  This encapsulates a simple strategy, which for
 	example will create a String message for a <emphasis>POST</emphasis> request where the content type starts with "text", see the Javadoc for 
 	full details.   		
+      </para>
+      <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a <emphasis>MultipartHttpServletRequest</emphasis>, 
+      then the 'content type' can be checked. If it is known, and begins with "text", then the <emphasis>MultipartFile</emphasis> can be copied to a String in the parameter 
+      map. If the 'content type does not begin with "text", then the <emphasis>MultipartFile</emphasis> can be copied to a byte array within the parameter map instead.
       </para>
       <para>
 		In sending a response to the client there are a number of ways to customise the behaviour of the gateway.  By default the gateway will 
@@ -34,7 +38,7 @@
 	implementation of the Spring MVC <interfacename>View</interfacename> which will be invoked with the created <interfacename>Message</interfacename>.  
         In the case that the gateway should expect a reply to the <interfacename>Message</interfacename> then setting the <property>expectReply</property> flag will cause 
 	the gateway to wait for a response <interfacename>Message</interfacename> before creating an Http response.  Below is an example of a gateway 
-	configured to use a custom view and to wait for a response.  It also shows how to customise the 	Http methods accepted by the gateway, which 
+	configured to use a custom view and to wait for a response.  It also shows how to customise the Http methods accepted by the gateway, which 
 	are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.    
 	<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
 	<property name="requestChannel" ref="httpRequestChannel" />
@@ -52,6 +56,9 @@
 	The message created from the request will be available in the Model map. The key that is used
 	for that map entry by default is 'requestMessage', but this can be overridden by setting the
 	'requestKey' property on the endpoint's configuration.
+     </para>
+     <para>
+     Starting wit this release 
      </para>
   </section>	
 

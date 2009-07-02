@@ -127,6 +127,27 @@
 			<programlisting language="xml"><![CDATA[<file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}"/>]]></programlisting>
 		</para>
 		<para>
+		Namespace based configuration also supports <code>delete-source-files</code> attribute which if set to  <code>true</code>  
+		will trigger deletion of the original source files after writing to a destination.
+		The default value for that flag is <code>false</code> 
+		<programlisting language="xml"><![CDATA[<file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}" 
+							delete-source-files="true"/>]]></programlisting>
+		<note>
+			<para>
+				The <code>delete-source-files</code> attribute will only have an effect if the inbound Message has a File payload or
+	 			<classname>FileHeaders.ORIGINAL_FILE</classname> header value containing either a File instance or a String representing the original file path.
+			</para>
+		</note>
+		</para>
+		<para>
+			In cases where you want to continue processing messages based on the written File you can use <code>outbound-gateway</code> which plays a very similar role
+			as the <code>outbound-channel-adapter</code>. However instead of writing a file It will send it over to the reply channel
+		<programlisting language="xml"><![CDATA[<file:outbound-gateway id="mover" request-channel="moveInput" 
+					reply-channel="output"
+					directory="${java.io.tmpdir}/anyDir" 
+					delete-source-files="true"/>]]></programlisting>		
+		</para>
+		<para>
 			If you have more elaborate requirements to the payload to file
 			conversion you could extend the FileWritingMessageHandler, but a
 			much better option is to rely on a

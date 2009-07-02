@@ -220,5 +220,22 @@ consumer.setTransactionManager(txManager);</programlisting>
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
       specifying the bean name. The thread pool element is simply provided for convenience.
     </para>
+     <para>
+    	You can also use Polling consumers to emulate event-driven semantics. With a long receive-timeout and a short trigger 
+    	interval you can effectively approximate event-driven behavior even for a polled message source.
+    </para>
+    <para>
+    A good use case that shows how this approach could be aplied is event-driven files via <code>inbound-channel-adapter</code> where drop of the 
+    file into a directory woudl essentially become an event for that file to be picked up and sent throught the process.
+    	<programlisting language="xml"><![CDATA[<file:inbound-channel-adapter id="filesIn"
+       directory="file:${input.directory.property}">  
+	<si:poller receive-timeout="30000">
+    		<si:interval-trigger interval="10"/>
+	</si:poller>    
+</file:inbound-channel-adapter>]]></programlisting>
+	Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread which does not use much of CPU resurces
+    </para>
+    
+    
   </section>
 </chapter>
