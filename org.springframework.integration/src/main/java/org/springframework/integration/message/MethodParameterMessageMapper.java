@@ -63,12 +63,13 @@ import org.springframework.util.StringUtils;
  * expecting multiple headers (with or without the @Headers annotation).
  * <p/>
  * If a Map or Properties object is expected, and the payload is not itself
- * assignable to that type, then the MessageHeaders' values will be passed in
- * the case of a Map-typed parameter, or the MessageHeaders' String-based values
- * will be passed in the case of a Properties-typed parameter. In these cases
- * multiple unannotated parameters are legal. If, however, the actual payload
- * type is a Map or Properties instance, then this ambiguity cannot be
- * resolved. For that reason, it is recommended to use the explicit
+ * assignable to that type or capable of being converted to that type, then
+ * the MessageHeaders' values will be passed in the case of a Map-typed
+ * parameter, or the MessageHeaders' String-based values will be passed in the
+ * case of a Properties-typed parameter. In these cases multiple unannotated
+ * parameters are legal. If, however, the actual payload type is a Map or
+ * Properties instance, then this ambiguity cannot be resolved. For that
+ * reason, it is highly recommended to use the explicit
  * {@link Headers @Headers} annotation whenever possible.
  * <p/>
  * Some examples of legal method signatures:<br/>
@@ -215,7 +216,7 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
 			Class<?> expectedType = metadata.getParameterType();
 			Header headerAnnotation = metadata.getHeaderAnnotation();
-			if (metadata == payloadParameterMetadata) {
+			if (metadata == this.payloadParameterMetadata) {
 				args[i] = message.getPayload();
 			}
 			else if (headerAnnotation != null) {

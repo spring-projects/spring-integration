@@ -18,9 +18,11 @@ package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,6 +37,7 @@ import org.springframework.integration.handler.ServiceActivatingHandler;
 
 /**
  * @author Mark Fisher
+ * @since 1.0.3
  */
 public class PayloadAndHeaderMappingTests {
 
@@ -205,6 +208,192 @@ public class PayloadAndHeaderMappingTests {
 	}
 
 	@Test
+	public void headerMapOnlyWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("headerMapOnly", Map.class);
+		String payload = "test";
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(payload, bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertTrue(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
+	public void headerMapOnlyWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("headerMapOnly", Map.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("abc", 1);
+		payload.put("xyz", "test");
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertTrue(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
+	public void mapOnlyNoAnnotationsWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("mapOnlyNoAnnotations", Map.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("payload", 1);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertEquals(payload, bean.lastPayload);
+		assertNull(bean.lastHeaders);
+	}
+
+	@Test
+	public void mapOnlyNoAnnotationsWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("mapOnlyNoAnnotations", Map.class);
+		String payload = "test";
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertTrue(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
+	public void mapOnlyNoAnnotationsWithIntegerPayload() throws Exception {
+		MessageHandler handler = this.getHandler("mapOnlyNoAnnotations", Map.class);
+		Integer payload = new Integer(123);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertTrue(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
+	public void propertiesOnlyNoAnnotationsWithPropertiesPayload() throws Exception {
+		MessageHandler handler = this.getHandler("propertiesOnlyNoAnnotations", Properties.class);
+		Properties payload = new Properties();
+		payload.setProperty("payload", "1");
+		Map<String, Object> headers = new HashMap<String, Object>();
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertEquals(payload, bean.lastPayload);
+		assertNull(bean.lastHeaders);
+	}
+
+	@Test
+	public void propertiesOnlyNoAnnotationsWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("propertiesOnlyNoAnnotations", Properties.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("payload", 1);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertEquals(payload, bean.lastPayload);
+		assertNull(bean.lastHeaders);
+	}
+
+	@Test
+	public void propertiesOnlyNoAnnotationsWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("propertiesOnlyNoAnnotations", Properties.class);
+		String payload = "payload=abc";
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastHeaders);
+		// String payload should have been converted to Properties
+		assertNotNull(bean.lastPayload);
+		assertTrue(bean.lastPayload instanceof Properties);
+		Properties payloadProps = (Properties) bean.lastPayload;
+		assertTrue(payloadProps.containsKey("payload"));
+		assertEquals("abc", payloadProps.get("payload"));
+	}
+
+	@Test
+	public void propertiesOnlyNoAnnotationsWithIntegerPayload() throws Exception {
+		MessageHandler handler = this.getHandler("propertiesOnlyNoAnnotations", Properties.class);
+		Integer payload = new Integer(123);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+	}
+
+	@Test
+	public void headerPropertiesOnlyWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("headerPropertiesOnly", Properties.class);
+		String payload = "test";
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertFalse(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
+	public void headerPropertiesOnlyWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("headerPropertiesOnly", Properties.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("abc", 1);
+		payload.put("xyz", "test");
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertFalse(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
+	public void headerPropertiesOnlyWithPropertiesPayload() throws Exception {
+		MessageHandler handler = this.getHandler("headerPropertiesOnly", Properties.class);
+		Properties payload = new Properties();
+		payload.setProperty("abc", "1");
+		payload.setProperty("xyz", "2");
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		headers.put("baz", 99);
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertTrue(bean.lastHeaders.containsKey("foo"));
+		assertTrue(bean.lastHeaders.containsKey("bar"));
+		assertFalse(bean.lastHeaders.containsKey("baz"));
+	}
+
+	@Test
 	public void payloadMapAndHeaderProperties() throws Exception {
 		MessageHandler handler = this.getHandler("payloadMapAndHeaderProperties", Map.class, Properties.class);
 		Map<String, Object> payload = new HashMap<String, Object>();
@@ -245,7 +434,7 @@ public class PayloadAndHeaderMappingTests {
 	}
 
 	@Test
-	public void twoMapsNoAnnotations() throws Exception {
+	public void twoMapsNoAnnotationsWithStringPayload() throws Exception {
 		MessageHandler handler = this.getHandler("twoMapsNoAnnotations", Map.class, Map.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("foo", "1");
@@ -257,6 +446,45 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals("2", bean.lastHeaders.get("bar"));
 		assertEquals("1", bean.lastHeaders.get("foo2"));
 		assertEquals("2", bean.lastHeaders.get("bar2"));
+	}
+
+	@Test(expected = MessageHandlingException.class)
+	public void twoMapsNoAnnotationsWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("twoMapsNoAnnotations", Map.class, Map.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Map<String, Object> payloadMap = new HashMap<String, Object>();
+		payloadMap.put("baz", "99");
+		Message<?> message = MessageBuilder.withPayload(payloadMap).copyHeaders(headers).build();
+		handler.handleMessage(message);
+	}
+
+	@Test
+	public void twoMapsWithAnnotationsWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("twoMapsWithAnnotations", Map.class, Map.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload("test").copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals("1", bean.lastHeaders.get("foo"));
+		assertEquals("2", bean.lastHeaders.get("bar"));
+		assertEquals("1", bean.lastHeaders.get("foo2"));
+		assertEquals("2", bean.lastHeaders.get("bar2"));
+	}
+
+	@Test(expected = MessageHandlingException.class)
+	public void twoMapsWithAnnotationsWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("twoMapsWithAnnotations", Map.class, Map.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Map<String, Object> payloadMap = new HashMap<String, Object>();
+		payloadMap.put("baz", "99");
+		Message<?> message = MessageBuilder.withPayload(payloadMap).copyHeaders(headers).build();
+		handler.handleMessage(message);
 	}
 
 	@Test
@@ -275,7 +503,7 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals("2", bean.lastHeaders.get("bar2"));
 	}
 
-	@Test
+	@Test(expected = MessageHandlingException.class)
 	public void twoMapsNoAnnotationsAndObjectWithMapPayload() throws Exception {
 		MessageHandler handler = this.getHandler("twoMapsNoAnnotationsAndObject",
 				Map.class, Object.class, Map.class);
@@ -286,11 +514,6 @@ public class PayloadAndHeaderMappingTests {
 		Message<?> message = MessageBuilder.withPayload(payloadMap)
 				.copyHeaders(headers).build();
 		handler.handleMessage(message);
-		assertEquals(payloadMap, bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
 	}
 
 	@Test
@@ -309,6 +532,150 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals("1", bean.lastHeaders.get("foo2"));
 		assertEquals("2", bean.lastHeaders.get("bar2"));
 		assertEquals("1", bean.lastHeaders.get("foo3"));
+	}
+
+	@Test
+	public void singleStringHeaderOnlyWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleStringHeaderOnly", String.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload("test")
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals("1", bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleStringHeaderOnlyWithIntegerPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleStringHeaderOnly", String.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload(new Integer(123))
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals("1", bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleStringHeaderOnlyWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleStringHeaderOnly", String.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("foo", 99);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload(payload)
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals("1", bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleIntegerHeaderOnlyWithIntegerPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleIntegerHeaderOnly", Integer.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", new Integer(123));
+		headers.put("bar", new Integer(456));
+		Message<?> message = MessageBuilder.withPayload(new Integer(789))
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleIntegerHeaderOnlyWithIntegerPayloadAndStringHeader() throws Exception {
+		MessageHandler handler = this.getHandler("singleIntegerHeaderOnly", Integer.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "999");
+		headers.put("bar", new Integer(456));
+		Message<?> message = MessageBuilder.withPayload(new Integer(789))
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals(new Integer(999), bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleIntegerHeaderOnlyWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleIntegerHeaderOnly", Integer.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", new Integer(123));
+		headers.put("bar", new Integer(456));
+		Message<?> message = MessageBuilder.withPayload("test")
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleObjectHeaderOnlyWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleObjectHeaderOnly", Object.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "123");
+		headers.put("bar", "456");
+		Message<?> message = MessageBuilder.withPayload("test")
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals("123", bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleObjectHeaderOnlyWithObjectPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleObjectHeaderOnly", Object.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "123");
+		headers.put("bar", "456");
+		Message<?> message = MessageBuilder.withPayload(new Object())
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals("123", bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleObjectHeaderOnlyWithIntegerPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleObjectHeaderOnly", Object.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", new Integer(123));
+		headers.put("bar", new Integer(456));
+		Message<?> message = MessageBuilder.withPayload(new Integer(789))
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
+	}
+
+	@Test
+	public void singleObjectHeaderOnlyWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler("singleObjectHeaderOnly", Object.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("foo", 99);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", new Integer(123));
+		headers.put("bar", new Integer(456));
+		Message<?> message = MessageBuilder.withPayload(payload)
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastPayload);
+		assertEquals(new Integer(123), bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
 	}
 
 
@@ -389,7 +756,48 @@ public class PayloadAndHeaderMappingTests {
 			this.lastPayload = payload;
 		}
 
+		public void headerMapOnly(@Headers Map headers) {
+			this.lastHeaders = headers;
+		}
+
+		public void headerPropertiesOnly(@Headers Properties headers) {
+			this.lastHeaders = headers;
+		}
+
+		public void mapOnlyNoAnnotations(Map map) {
+			if (map.containsKey("payload")) {
+				this.lastPayload = map;
+			}
+			else {
+				this.lastHeaders = map;
+			}
+		}
+
+		public void propertiesOnlyNoAnnotations(Properties props) {
+			if (props.containsKey("payload")) {
+				this.lastPayload = props;
+			}
+			else {
+				this.lastHeaders = props;
+			}
+		}
+
 		public void twoMapsNoAnnotations(Map map1, Map<Object, Object> map2) {
+			this.lastHeaders = new HashMap(map1);
+			for (Map.Entry<Object, Object> entry : map2.entrySet()) {
+				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
+			}
+		}
+
+		public void twoMapsWithAnnotations(@Headers Map map1, @Headers Map<Object, Object> map2) {
+			this.lastHeaders = new HashMap(map1);
+			for (Map.Entry<Object, Object> entry : map2.entrySet()) {
+				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
+			}
+		}
+
+		public void twoMapsWithAnnotationsAndObject(@Headers Map map1, Object o, @Headers Map<Object, Object> map2) {
+			this.lastPayload = o;
 			this.lastHeaders = new HashMap(map1);
 			for (Map.Entry<Object, Object> entry : map2.entrySet()) {
 				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
@@ -410,6 +818,18 @@ public class PayloadAndHeaderMappingTests {
 				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
 			}
 			this.lastHeaders.put("foo3", s);
+		}
+
+		public void singleStringHeaderOnly(@Header("foo") String s) {
+			this.lastHeaders = Collections.singletonMap("foo", s);
+		}
+
+		public void singleIntegerHeaderOnly(@Header("foo") Integer n) {
+			this.lastHeaders = Collections.singletonMap("foo", n);
+		}
+
+		public void singleObjectHeaderOnly(@Header("foo") Object o) {
+			this.lastHeaders = Collections.singletonMap("foo", o);
 		}
 	}
 

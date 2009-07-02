@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
@@ -37,9 +40,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /**
  * A base or helper class for any Messaging component that acts as an adapter
  * by invoking a "plain" (not Message-aware) method on a given target object.
@@ -48,6 +48,7 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @see MethodParameterMessageMapper
  */
 public class MessageMappingMethodInvoker {
 
@@ -130,7 +131,28 @@ public class MessageMappingMethodInvoker {
 				invoker = new DefaultMethodInvoker(this.object, method);
 				this.invokers.put(method, invoker);
 			}
-			result = invoker.invokeMethod(args);
+			try {
+				result = invoker.invokeMethod(args);
+			}
+			catch (NoSuchMethodException e) {
+				// fallback to replace the payload argument with headers if possible
+				boolean foundFallbackCandidate = false;
+				for (int i = 0; i < args.length; i++) {
+					if (message != null && message.getPayload().equals(args[i])
+							&& Map.class.isAssignableFrom(method.getParameterTypes()[i])) {
+						if (foundFallbackCandidate) {
+							// more than one, throw an Exception
+							throw new MessageHandlingException(message, "Failed to resolve ambiguity " +
+									"amongst multiple non-annotated candidates for matching Message headers.", e);
+						}
+						args[i] = message.getHeaders();
+						foundFallbackCandidate = true;
+					}
+				}
+				if (foundFallbackCandidate) {
+					result = invoker.invokeMethod(args);
+				}
+			}
 		}
 		catch (IllegalArgumentException e) {
 			try {
@@ -157,6 +179,22 @@ public class MessageMappingMethodInvoker {
 		}
 		else {
 			args = new Object[] { mappingResult }; 
+		}
+		if (args.length > 1 && message != null && message.getPayload() instanceof Map) {
+			int mapArgCount = 0;
+			boolean resolvedMapArg = false;
+			for (int i = 0; i < args.length; i++) {
+				Object arg = args[i];
+				if (arg instanceof Map && Map.class.isAssignableFrom(method.getParameterTypes()[i])) {
+					mapArgCount++;
+					if (arg.equals(message.getPayload())) {
+						// resolved if there is exactly one match
+						resolvedMapArg = !resolvedMapArg;
+					}
+				}
+			}
+			Assert.isTrue(resolvedMapArg || mapArgCount <= 1,
+					"Unable to resolve argument for Map-typed payload on method [" + method + "].");
 		}
 		return args;
 	}

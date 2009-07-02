@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -78,12 +79,19 @@ public class DefaultMethodInvoker implements MethodInvoker {
 				convertedArgs[i] = converter.convertIfNecessary(args[i], paramTypes[i]);
 			}
 			catch (TypeMismatchException e) {
-				throw new IllegalArgumentException("Failed to convert argument type.", e);
+				if (Map.class.isAssignableFrom(paramTypes[i])) {
+					// may be able to fallback to Message Headers for this argument
+					convertedArgs[i] = args[i];
+				}
+				else {
+					throw new IllegalArgumentException("Failed to convert argument type.", e);
+				}
 			}
 		}
 		this.method.setAccessible(true);
 		if (this.logger.isDebugEnabled()) {
-			logger.debug("invoking method '" + this.method.getName() + "' with arguments " + ObjectUtils.nullSafeToString(convertedArgs));
+			logger.debug("Invoking method [" + this.method + "] with arguments [" +
+					ObjectUtils.nullSafeToString(convertedArgs) + "]");
 		}
 		try {
 			return this.method.invoke(this.object, convertedArgs);
@@ -93,6 +101,10 @@ public class DefaultMethodInvoker implements MethodInvoker {
 			helper.setTargetObject(this.object);
 			helper.setTargetMethod(this.method.getName());
 			helper.setArguments(convertedArgs);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Attempting fallback based on method name [" + this.method.getName() +
+						"] with arguments [" + ObjectUtils.nullSafeToString(convertedArgs) + "]");
+			}
 			helper.prepare();
 			this.method = helper.getPreparedMethod();
 			return this.method.invoke(this.object, convertedArgs);
