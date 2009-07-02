@@ -43,8 +43,8 @@ import org.springframework.util.CollectionUtils;
  */
 class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 
-	OrderComparator comparator = new OrderComparator();
-	Lock lock = new ReentrantLock();
+	private final OrderComparator comparator = new OrderComparator();
+	private final Lock lock = new ReentrantLock();
 	/**
 	 * Every time when Ordered element is added via this method
 	 * this Set will be re-sorted, otherwise the element is simply added to the end of the stack.
@@ -54,9 +54,9 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	 * Added element must not be null;
 	 */
 	public  boolean add(E o){
+		Assert.notNull(o,"Can not add NULL object");
 		lock.lock();
-		try {
-			Assert.notNull(o,"Can not add NULL object");
+		try {			
 			boolean present = false;
 			if (o instanceof Ordered){
 				present = this.reinitializeThis(o);
@@ -73,9 +73,9 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 	 * via call to the reinitializeThis() method
 	 */
 	public  boolean addAll(Collection<? extends E> c){
+		Assert.notNull(c,"Can not merge with NULL set");
 		lock.lock();
 		try {
-			Assert.notNull(c,"Can not merge with NULL set");
 			for (E object : c) {		
 				this.add(object);
 			}		
@@ -148,5 +148,4 @@ class OrderedAwareLinkedHashSet<E> extends LinkedHashSet<E> {
 		}
 		return added;
 	}
-	
 }
