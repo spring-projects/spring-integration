@@ -78,7 +78,6 @@ public class OrderedAwareLinkedHashSetTests {
 		setToTest.add(o9);
 		setToTest.add(o10);		
 		assertEquals(10, setToTest.size());
-		System.out.println(setToTest);
 		Object[] elements = setToTest.toArray();
 		assertEquals(o7, elements[0]);
 		assertEquals(o8, elements[1]);
@@ -118,7 +117,6 @@ public class OrderedAwareLinkedHashSetTests {
 		assertEquals(10, tempList.size());
 		OrderedAwareLinkedHashSet orderAwareSet = new OrderedAwareLinkedHashSet();
 		orderAwareSet.addAll(tempList);
-		System.out.println(orderAwareSet);
 		Object[] elements = orderAwareSet.toArray();
 		assertEquals(o7, elements[0]);
 		assertEquals(o8, elements[1]);

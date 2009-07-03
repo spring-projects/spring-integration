@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<channel id="channel"/>
+
+	<bridge id="endpoint5" input-channel="cannel" order="5"/>
+
+	<header-enricher id="endpoint11" input-channel="channel" correlation-id="x" order="11"/>
+
+	<splitter id="endpoint1" ref="bean" method="handle" input-channel="channel" order="1"/> 
+
+	<object-to-string-transformer id="endpoint13" input-channel="channel" order="13"/>
+
+	<filter id="endpoint8" input-channel="channel" ref="bean" method="filter" order="8"/>
+
+	<resequencer id="endpoint10" input-channel="channel" order="10"/>
+
+	<chain id="endpoint6" input-channel="channel" order="6">
+		<service-activator ref="bean"/>
+	</chain>
+
+	<service-activator id="endpoint3" input-channel="channel" ref="bean" method="handle" order="3"/>
+
+	<payload-deserializing-transformer id="endpoint12" input-channel="channel" order="12"/>
+
+	<aggregator id="endpoint4" input-channel="channel" order="4"/>
+
+	<payload-serializing-transformer id="endpoint9" input-channel="channel" order="9"/>
+
+	<router id="endpoint7" input-channel="channel" ref="bean" method="handle" order="7"/>
+
+	<transformer id="endpoint2" input-channel="channel" ref="bean" order="2"/>
+
+	<beans:bean id="bean" class="org.springframework.integration.config.xml.OrderedHandlersTests$TestBean"/>
+
+</beans:beans>

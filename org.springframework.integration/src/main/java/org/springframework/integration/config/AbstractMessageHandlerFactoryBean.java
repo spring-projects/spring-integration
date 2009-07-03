@@ -21,6 +21,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -74,15 +75,14 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 		if (this.handler == null) {
 			this.initializeHandler();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
-			if (this.handler instanceof AbstractReplyProducingMessageHandler) {
-				AbstractReplyProducingMessageHandler abstractHandler = (AbstractReplyProducingMessageHandler) this.handler;
-				if (this.outputChannel != null) {
-					abstractHandler.setOutputChannel(this.outputChannel);
-				}
-				if (this.order != null) {
-					abstractHandler.setOrder(this.order.intValue());
-				}
-				abstractHandler.setBeanFactory(beanFactory);
+			if (this.handler instanceof AbstractReplyProducingMessageHandler && this.outputChannel != null) {
+				((AbstractReplyProducingMessageHandler) this.handler).setOutputChannel(this.outputChannel);
+			}
+			if (this.handler instanceof BeanFactoryAware) {
+				((BeanFactoryAware) this.handler).setBeanFactory(beanFactory);
+			}
+			if (this.handler instanceof AbstractMessageHandler && this.order != null) {
+				((AbstractMessageHandler) this.handler).setOrder(this.order.intValue());
 			}
 		}
 		return this.handler;

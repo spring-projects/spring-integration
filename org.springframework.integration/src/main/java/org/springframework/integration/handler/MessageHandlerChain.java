@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.PropertyAccessor;
+import org.springframework.core.Ordered;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
@@ -62,13 +63,15 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler {
+public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler, Ordered {
 
 	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
 
 	private volatile List<MessageHandler> handlers;
 
 	private volatile MessageChannel outputChannel;
+
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 	private volatile boolean initialized;
 
@@ -81,6 +84,14 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
 	}
 
 	public final void afterPropertiesSet() {
