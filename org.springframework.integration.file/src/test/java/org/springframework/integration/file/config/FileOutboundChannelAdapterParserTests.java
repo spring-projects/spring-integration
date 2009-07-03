@@ -53,6 +53,10 @@ public class FileOutboundChannelAdapterParserTests {
 	@Qualifier("adapterWithDeleteFlag")
 	EventDrivenConsumer adapterWithDeleteFlag;
 
+	@Autowired
+	@Qualifier("adapterWithOrder")
+	EventDrivenConsumer adapterWithOrder;
+
 
 	@Test
 	public void simpleAdapter() {
@@ -86,6 +90,21 @@ public class FileOutboundChannelAdapterParserTests {
 				adapterAccessor.getPropertyValue("handler");
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(Boolean.TRUE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
+	}
+
+	@Test
+	public void adapterWithOrder() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(555, handlerAccessor.getPropertyValue("order"));
+	}
+
+	@Test
+	public void adapterWithAutoStartupFalse() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 	}
 
 }
