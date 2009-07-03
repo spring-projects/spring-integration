@@ -8,7 +8,7 @@
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 
-	<xsd:annotation> 
+	<xsd:annotation>
 		<xsd:documentation><![CDATA[
 	Defines the core configuration elements for Spring Integration.
 		]]></xsd:documentation>
@@ -26,9 +26,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines the ApplicationEventMulticaster to use for this ApplicationContext.
-	The "task-executor" reference is optional. If not provided, an instance of
-	ThreadPoolTaskExecutor will be created by default.
+					Defines the ApplicationEventMulticaster to use for this
+					ApplicationContext.
+					The "task-executor" reference is optional. If not provided, an
+					instance of
+					ThreadPoolTaskExecutor will be created by default.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="task-executor" type="xsd:string">
@@ -221,11 +223,26 @@
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:restriction base="xsd:string">
-					<xsd:enumeration value="failover" />
-					<!--
-						now the other (default) option is round robin load balancing we
-						can add more options later
-					-->
+					<xsd:enumeration value="failover">
+						<xsd:annotation>
+							<xsd:documentation>
+								Defines a fail over dispatching strategy. 
+								If message delivery to the primary Message Handler failed an 
+								attempt will be made to deliver the message to the secondary and so on... 
+								Primary, secondary etc... is determined by the 'order' attribute on the Message Handlers.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+					<xsd:enumeration value="round-robin">
+					<xsd:annotation>
+							<xsd:documentation>
+								[DEFAULT] Defines a Round Robin dispatching strategy which allows for 
+								load balancing of messages between multiple Message Handlers. Which message 
+								handler receives the message first is determined by the 'order' attribute 
+								of such Message Handler.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
@@ -287,8 +304,8 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Channel Adapter that receives from a MessageChannel and sends to
-	a method-invoking MessageHandler.
+				Defines a Channel Adapter that receives from a MessageChannel and sends to
+				a method-invoking MessageHandler.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -297,8 +314,8 @@
 					<xsd:attribute name="order">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specifies the order for invocation when this endpoint is connected as a
-	subscriber to a SubscribableChannel.
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -447,13 +464,15 @@
 	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message Endpoint elements that accept Messages from an input-channel.
+				Base type for Message Endpoint elements that accept Messages from an
+				input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
 				<xsd:sequence>
-					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="poller" type="innerPollerType"
+						minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string">
 					<xsd:annotation>
@@ -483,7 +502,7 @@
 	<xsd:complexType name="handlerType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message Handlers.
+				Base type for Message Handlers.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -907,7 +926,7 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="recipient-list-router">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
@@ -924,8 +943,8 @@
 							</xsd:complexType>
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="ignore-send-failures" type="xsd:string"/>
-					<xsd:attribute name="apply-sequence" type="xsd:string"/>
+					<xsd:attribute name="ignore-send-failures" type="xsd:string" />
+					<xsd:attribute name="apply-sequence" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -986,7 +1005,8 @@
 							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.channel.ChannelResolver"/>
+									<tool:expected-type
+										type="org.springframework.integration.channel.ChannelResolver" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -1010,7 +1030,8 @@
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="resolution-required" type="xsd:string" />
-				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string" />
+				<xsd:attribute name="ignore-channel-name-resolution-failures"
+					type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -1039,7 +1060,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="handlerEndpointType">  
+				<xsd:extension base="handlerEndpointType">
 					<xsd:choice>
 						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
