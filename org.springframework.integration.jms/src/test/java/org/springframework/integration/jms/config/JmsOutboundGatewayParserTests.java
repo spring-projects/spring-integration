@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@
  */
 package org.springframework.integration.jms.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
@@ -40,6 +42,17 @@ public class JmsOutboundGatewayParserTests {
 		accessor = new DirectFieldAccessor(gateway);
 		MessageConverter converter = (MessageConverter)accessor.getPropertyValue("messageConverter");
 		assertTrue("Wrong message converter", converter instanceof StubMessageConverter);
+	}
+
+	@Test
+	public void gatewayWithOrder() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundGatewayWithOrder.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("jmsGateway");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		Object order = accessor.getPropertyValue("order");
+		assertEquals(99, order);
 	}
 
 }

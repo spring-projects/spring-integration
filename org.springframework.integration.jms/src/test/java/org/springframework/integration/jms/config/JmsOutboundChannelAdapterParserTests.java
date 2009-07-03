@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,17 @@ public class JmsOutboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+	}
+
+	@Test
+	public void adapterWithOrder() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithOrder.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		Object order = accessor.getPropertyValue("order");
+		assertEquals(123, order);
 	}
 
 	@Test

@@ -314,6 +314,14 @@
 			<xsd:attribute name="delivery-mode" type="xsd:string"/>
 			<xsd:attribute name="time-to-live" type="xsd:string"/>
 			<xsd:attribute name="priority" type="xsd:string"/>
+			<xsd:attribute name="order" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this gateway is connected as a
+	subscriber to a SubscribableChannel.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -365,6 +373,14 @@
 									<tool:expected-type type="org.springframework.jms.core.JmsTemplate"/>
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this adapter is connected as a
+	subscriber to a SubscribableChannel.
+							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>

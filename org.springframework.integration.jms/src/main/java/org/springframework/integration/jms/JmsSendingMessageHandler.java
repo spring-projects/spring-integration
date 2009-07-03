@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
@@ -27,9 +28,11 @@ import org.springframework.jms.support.converter.MessageConverter;
  * 
  * @author Mark Fisher
  */
-public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter implements MessageHandler {
+public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter implements MessageHandler, Ordered {
 
 	private volatile boolean extractPayload = true;
+
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 
 	/**
@@ -42,6 +45,14 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 	 */
 	public void setExtractPayload(boolean extractPayload) {
 		this.extractPayload = extractPayload;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
 	}
 
 	public final void handleMessage(final Message<?> message) {
