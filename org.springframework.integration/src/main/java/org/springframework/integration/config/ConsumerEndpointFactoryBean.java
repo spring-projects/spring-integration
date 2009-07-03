@@ -24,6 +24,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -38,7 +39,8 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean, ApplicationListener {
+public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware,
+		InitializingBean, Lifecycle, ApplicationListener {
 
 	private volatile MessageHandler handler;
 
@@ -159,6 +161,30 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 			this.initialized = true;
 		}
 	}
+
+	/*
+	 * Lifecycle implementation
+	 */
+
+	public boolean isRunning() {
+		return (this.endpoint != null ? this.endpoint.isRunning() : false);
+	}
+
+	public void start() {
+		if (this.endpoint != null) {
+			this.endpoint.start();
+		}
+	}
+
+	public void stop() {
+		if (this.endpoint != null) {
+			this.endpoint.stop();
+		}
+	}
+
+	/*
+	 * ApplicationListener implementation
+	 */
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (this.endpoint instanceof ApplicationListener) {
