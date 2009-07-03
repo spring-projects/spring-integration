@@ -53,6 +53,10 @@
       Of course, the configuration would be similar for other (potentially more useful) Channel Adapter bridges, such
       as File to JMS, or Mail to File. The various Channel Adapters will be discussed in upcoming chapters.
     </para>
+    <note>
+      <para>If no 'output-channel' is defined on a bridge, the reply channel provided by the inbound Message will
+      be used, if available. If neither output or reply channel is available, an Exception will be thrown.</para>
+    </note>
   </section>
 
 </chapter>
