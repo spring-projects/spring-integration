@@ -176,16 +176,16 @@ public class MethodParameterMessageMapperFromMessageTests {
 		Method method = TestService.class.getMethod("mapPayload", Map.class);
 		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Map<String, Integer> payload = new HashMap<String, Integer>();
-		payload.put("attrib1", new Integer(123));
-		payload.put("attrib2", new Integer(456));
+		payload.put("attrib1", new Integer(88));
+		payload.put("attrib2", new Integer(99));
 		Message<Map<String, Integer>> message = MessageBuilder.withPayload(payload)
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
 		Object[] args = mapper.fromMessage(message);
 		Map<String, Integer> result = (Map<String, Integer>) args[0];
 		assertEquals(2, result.size());
-		assertEquals(new Integer(123), result.get("attrib1"));
-		assertEquals(new Integer(456), result.get("attrib2"));
+		assertEquals(new Integer(88), result.get("attrib1"));
+		assertEquals(new Integer(99), result.get("attrib2"));
 	}
 
 
