@@ -105,11 +105,19 @@
       SimpleTaskScheduler however, you can set the 'autoStartup' property to <emphasis>false</emphasis> instead.
     </para>
     <para>
-      When the endpoints are concurrency-enabled with their own 'taskExecutor' reference, the invocation of the
-      handling methods will happen within that executor's thread pool and not the main scheduler pool. However,
-      when no task-executor is provided for an endpoint's poller, it will be invoked in the dispatcher's thread
-      (with the exception of subscribable channels where the subscribers will be invoked directly). The next
-      section will describe what happens if Exceptions occur within the asynchronous invocations.
+      When Polling Consumers provide an explicit task-executor reference in their configuration, the invocation of
+      the handler methods will happen within that executor's thread pool and not the main scheduler pool. However,
+      when no task-executor is provided for an endpoint's poller, it will be invoked by one of the main scheduler's
+      threads.
+      <note>
+         An endpoint is a <emphasis>Polling Consumer</emphasis> if its input channel is one of the queue-based
+         (i.e. pollable) channels. On the other hand, <emphasis>Event Driven Consumers</emphasis> are those whose
+         input channels have dispatchers instead of queues (i.e. they are subscribable). Such endpoints have no
+         poller configuration since their handlers will be invoked directly.
+      </note>
+      <para>
+        The next section will describe what happens if Exceptions occur within the asynchronous invocations.
+      </para>
     </para>
   </section>
 
@@ -125,21 +133,22 @@
     <para>
       When sending a Message to a channel, the component that ultimately handles that Message may or may not
       be operating within the same thread as the sender. If using a simple default DirectChannel (with the
-      &lt;channel&gt; element that has no &lt;queue&gt; sub-element), the handling will be in the same thread.
-      In that case, if an Exception is thrown, it will be catch-able by the sender (or it may propagate past
-      the sender if it is an uncaught RuntimeException). So far, everything is fine. This is the same behavior
-      as an Exception-throwing operation in a normal call stack. However, when adding the asynchronous aspect,
-      things become much more complicated. For instance, if the 'channel' element <emphasis>does</emphasis>
-      provide a 'queue' sub-element, then the component that handles the Message <emphasis>will</emphasis> be
-      operating in a different thread than the sender. The sender may have dropped the Message and moved on to
-      other things. There is no way for the Exception to be thrown directly back to that sender using standard
-      Exception throwing techniques. Instead, to handle errors for asynchronous processes requires an
-      asynchronous error-handling mechanism as well.
+      &lt;channel&gt; element that has no &lt;queue&gt; sub-element and no 'task-executor' attribute), the
+      Message-handling will occur in the same thread as the Message-sending. In that case, if an Exception
+      is thrown, it can be caught by the sender (or it may propagate past the sender if it is an uncaught
+      RuntimeException). So far, everything is fine. This is the same behavior as an Exception-throwing
+      operation in a normal call stack. However, when adding the asynchronous aspect, things become much
+      more complicated. For instance, if the 'channel' element <emphasis>does</emphasis> provide a 'queue'
+      sub-element, then the component that handles the Message <emphasis>will</emphasis> be operating in a
+      different thread than the sender. The sender may have dropped the Message into the channel and moved
+      on to other things. There is no way for the Exception to be thrown directly back to that sender using
+      standard Exception throwing techniques. Instead, to handle errors for asynchronous processes requires
+      an asynchronous error-handling mechanism as well.
     </para>
     <para>
       Spring Integration supports error handling for its components by publishing errors to a Message Channel.
       Specifically, the Exception will become the payload of a Spring Integration Message. That Message will
-      then be sent to a Message Channel that is resolved in a way that is very similar to the 'replyChannel'
+      then be sent to a Message Channel that is resolved in a way that is similar to the 'replyChannel'
       resolution. First, if the request Message being handled at the time the Exception occurred contains
       an 'errorChannel' header (the header name is defined in the constant: MessageHeaders.ERROR_CHANNEL),
       the ErrorMessage will be sent to that channel. Otherwise, the error handler will send to a "global"
@@ -153,18 +162,25 @@
       <programlisting language="xml"><![CDATA[ <channel id="errorChannel">
      <queue capacity="500"/>
  </channel>]]></programlisting>
+      <note>
+        The default "errorChannel" is a PublishSubscribeChannel.
+      </note>
     </para>
     <para>
-      The most important thing to understand here is that the Messaging-based error handling will only apply
+      The most important thing to understand here is that the messaging-based error handling will only apply
       to Exceptions that are thrown by a Spring Integration task that is executing within a TaskExecutor.
       This does <emphasis>not</emphasis> apply to Exceptions thrown by a handler that is operating within
-      the same thread as the sender (e.g. through a DirectChannel as described above). However, when
-      Exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in
-      <classname>ErrorMessages</classname> and sent to the 'errorChannel' by default. To enable global error
-      handling, simply register a handler on that channel. For example, you can configure Spring Integration's
-      <classname>ErrorMessageExceptionTypeRouter</classname> as the handler of an endpoint that is subscribed to the
-      'errorChannel'. That router can then spread the error messages across multiple channels based on
-      <classname>Exception</classname> type.
+      the same thread as the sender (e.g. through a DirectChannel as described above).
+    </para>
+    <note>
+      When Exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in
+      <classname>ErrorMessages</classname> and sent to the 'errorChannel' as well.
+    </note>
+    <para>
+      To enable global error handling, simply register a handler on that channel. For example, you can configure
+      Spring Integration's <classname>ErrorMessageExceptionTypeRouter</classname> as the handler of an endpoint
+      that is subscribed to the 'errorChannel'. That router can then spread the error messages across multiple
+      channels based on <classname>Exception</classname> type.
     </para>
   </section>
 
@@ -194,8 +210,10 @@ public class FooService {
       this reference: @Transformer, @Router, @Splitter, @Aggregator, @ServiceActivator, and @ChannelAdapter.
     </para>
     <note>
-      The @MessageEndpoint is not required. If you want to configure a POJO reference from the "ref" attribute
-      of a &lt;service-activator/&gt; element, it is sufficient to provide the method-level annotations.
+      The @MessageEndpoint is not required if using XML configuration in combination with annotations. If you want to
+      configure a POJO reference from the "ref" attribute of a &lt;service-activator/&gt; element, it is sufficient to
+      provide the method-level annotations. In that case, the annotation prevents ambiguity even when no "method"
+      attribute exists on the &lt;service-activator/&gt; element.
     </note>
     <para>
       In most cases, the annotated handler method should not require the <classname>Message</classname> type as its
@@ -210,7 +228,7 @@ public class FooService {
 }</programlisting>
     </para>
     <para>
-      When the method parameter should be mapped from a value in the <classname>MessageHeader</classname>, another
+      When the method parameter should be mapped from a value in the <classname>MessageHeaders</classname>, another
       option is to use the parameter-level <interfacename>@Header</interfacename> annotation. In general, methods
       annotated with the Spring Integration annotations can either accept the <classname>Message</classname> itself, the
       message payload, or a header value (with @Header) as the parameter. In fact, the method can accept a combination,
@@ -232,13 +250,27 @@ public class FooService {
     }
 
 }</programlisting>
+      <tip>
+        A Map-typed argument does not strictly require the use of the @Headers annotation. In other words
+        the following is also valid: <programlisting language="java">public void bar(String payload, Map&lt;String, Object&gt; headerMap)</programlisting>
+        However this can lead to unresolvable ambiguities if the payload is itself a Map. For that reason, we
+        highly recommend using the annotation whenever expecting the headers. For a much more detailed
+        description, see the javadoc for <classname>MethodParameterMessageMapper</classname>.
+      </tip>
     </para>
     <para>
       For several of these annotations, when a Message-handling method returns a non-null value, the endpoint will
-      attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
-      the such an endpoint's output channel will be used if available, and the message header's REPLY_CHANNEL value
-      will be the fallback.
-	</para>
+      attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in
+      that such an endpoint's output channel will be used if available, and the REPLY_CHANNEL message header value
+      will be used as a fallback.
+    </para>
+    <tip>
+      The combination of output channels on endpoints and the reply channel message header enables a pipeline approach
+      where multiple components have an output channel, and the final component simply allows the reply message to be
+      forwarded to the reply channel as specified in the original request message. In other words, the final component
+      depends on the information provided by the original sender and can dynamically support any number of clients as a
+      result. This is an example of <ulink url="http://eaipatterns.com/ReturnAddress.html">Return Address</ulink>.
+	</tip>
     <para>
       In addition to the examples shown here, these annotations also support inputChannel and outputChannel properties.
       <programlisting language="java">public class FooService {
@@ -251,9 +283,9 @@ public class FooService {
 }</programlisting>
       That provides a pure annotation-driven alternative to the XML configuration. However, it is generally recommended
       to use XML for the endpoints, since it is easier to keep track of the overall configuration in a single, external
-      location (and besides the XML configuration is not very verbose). If you do prefer to provide channels with the
-      annotations however, you just need to enable a BeanPostProcessor. The following element should be added:
-      <programlisting language="xml"><![CDATA[ <annotation-config/> ]]></programlisting>
+      location (and besides the namespace-based XML configuration is not very verbose). If you do prefer to provide
+      channels with the annotations however, you just need to enable a BeanPostProcessor. The following element should
+      be added: <programlisting language="xml"><![CDATA[ <annotation-config/> ]]></programlisting>
       <note>
         When configuring the "inputChannel" and "outputChannel" with annotations, the "inputChannel"
         <emphasis>must</emphasis> be a reference to a <interfacename>SubscribableChannel</interfacename> instance.
@@ -262,8 +294,8 @@ public class FooService {
         an annotation. If the input channel that you want to receive Messages from is indeed a 
         <interfacename>PollableChannel</interfacename> instance, one option to consider is the Messaging Bridge.
         Spring Integration's "bridge" element can be used to connect a PollableChannel directly to a
-        SubscribableChannel. Then, the polling metadata is externally configured, but the annotation option is still
-        available. For more detail see <xref linkend="bridge"/>.
+        SubscribableChannel. Then, the polling metadata is externally configured, but the annotation option is
+        still available. For more detail see <xref linkend="bridge"/>.
       </note>
     </para>
   </section>
