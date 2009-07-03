@@ -78,15 +78,30 @@
 
       <para>The <code>AbstractMessageAggregator</code> is a
       <code>MessageHandler</code> implementation, encapsulating the common
-      functionalities of an Aggregator, which are: storing messages until the
-      message sequence to aggregate is complete and processing them
-      afterwards, and implementing the timeout functionality. The
-      responsibility of deciding how the messages should be grouped together
+      functionalities of an Aggregator, which are:
+      <itemizedlist>
+        <listitem>
+          <para>correlating messages into a group to be aggregated</para>
+        </listitem>
+        <listitem>
+          <para>maintaining those messages until the group is complete</para>
+        </listitem>
+        <listitem>
+          <para>deciding when the group is in fact complete</para>
+        </listitem>
+        <listitem>
+          <para>processing the completed group into a single aggregated message</para>
+        </listitem>
+        <listitem>
+          <para>recognizing and responding to a timed-out completion attempt</para>
+        </listitem>
+      </itemizedlist>
+      The responsibility of deciding how the messages should be grouped together
       is delegated to a <code>CorrelationStrategy</code> instance. The responsibility
-      of deciding whether the message sequence is complete is delegated to a
+      of deciding whether the message group is complete is delegated to a
       <code>CompletionStrategy</code> instance.</para>
 
-      <para>A brief highlight of the base
+      <para>Here is a brief highlight of the base
       <code>AbstractMessageAggregator</code> (the responsibility of
       implementing the aggregateMessages method is left to the
       developer):</para>
@@ -101,8 +116,28 @@
   protected abstract Message&lt;?&gt; aggregateMessages(List&lt;Message&lt;?&gt;&gt; messages);
 
 }</programlisting>
+      It also inherits the following default CorrelationStrategy:
+      <programlisting language="java">private volatile CorrelationStrategy correlationStrategy =
+          new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);</programlisting>
 
-      <para>For implementing a specific aggregator object for an application,
+      <para>When appropriate, the simplest option is the <code>DefaultMessageAggregator</code>.
+      It creates a single Message whose payload is a List of the payloads received
+      for a given group. It uses the default <code>CorrelationStrategy</code> and
+      <code>CompletionStrategy</code> as shown above. This works well for simple
+      Scatter Gather implementations with either a Splitter, Publish Subscribe Channel,
+      or Recipient List Router upstream.</para>
+
+      <note>
+	    <para>When using a Publish Subscribe Channel or Recipient List Router in this
+        type of scenario, be sure to enable the flag to <emphasis>apply sequence</emphasis>.
+        That will add the necessary headers (correlation id, sequence number and sequence
+        size). That behavior is enabled by default for Splitters in Spring Integration,
+        but it is not enabled for the Publish Subscribe Channel or Recipient List
+        Router because those components may be used in a variety of contexts where
+        those headers are not necessary.</para>
+      </note>
+	
+      <para>When implementing a specific aggregator object for an application,
       a developer can extend <code>AbstractMessageAggregator </code>and
       implement the <code>aggregateMessages</code> method. However, there are
       better suited (which reads, less coupled to the API) solutions for
@@ -187,7 +222,7 @@
       <code>SequenceSizeCompletionStrategy</code>. This implementation uses
       the SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for
       deciding when a message group is complete and ready to be
-      aggregated.</para>
+      aggregated. As shown above, it is also the default strategy.</para>
     </section>
 
     <section>
@@ -330,13 +365,14 @@
       </callout>
 
       <callout arearefs="aggxml9">
-        <para>The timeout for aggregating messages (counted from the arrival
-        of the first message). <emphasis>Optional</emphasis>.</para>
+        <para>The timeout (in milliseconds) for aggregating messages (counted
+        from the arrival of the first message). <emphasis>Optional</emphasis>.
+        </para>
       </callout>
 
       <callout arch="" arearefs="aggxml10">
         <para>Whether upon the expiration of the timeout, the aggregator shall
-        try to aggregate the already arrived messages. <emphasis>Optional
+        try to aggregate the messages that have already arrived. <emphasis>Optional
         (false by default)</emphasis>.</para>
       </callout>
 
@@ -350,31 +386,36 @@
         <para>The capacity of the correlation id tracker. Remembers the
         already processed correlation ids, preventing the formation of new
         groups for messages that arrive after their group has been already
-        processed (aggregated or discarded).
+        processed (aggregated or discarded). Set this value to 0 if you
+        do not want the messages to be discarded in such a scenario.
         <emphasis>Optional</emphasis>.</para>
       </callout>
 
       <callout arearefs="aggxml13">
-        <para>The timeout for sending out messages.
-        <emphasis>Optional</emphasis>.</para>
+        <para>The timeout for sending the aggregated messages to the
+        output or reply channel. <emphasis>Optional</emphasis>.</para>
       </callout>
     </calloutlist>
-<para>
-    Using a "ref" attribute is generally recommended if custom aggregator handler implementation can be reused in other <code>&lt;aggregator&gt;</code> definitions. However
-if custom aggregator handler implementation has to be scoped to a concrete definition of the <code>&lt;aggregator&gt;</code>, starting with v1.0.3, Spring Integration supports
-inner bean definitions for custom aggregator handlers within the <code>&lt;aggregator&gt;</code> element:
-<programlisting language="xml"><![CDATA[<aggregator input-channel="inChannel" method="sum" output-channel="outChannel">
-		<beans:bean class="org.foo.TestAggregator"/>
+
+    <para>Using a "ref" attribute is generally recommended if a custom aggregator handler
+    implementation can be reused in other <code>&lt;aggregator&gt;</code> definitions.
+    However if a custom aggregator handler implementation should be scoped to a concrete
+    definition of the <code>&lt;aggregator&gt;</code>, you can use an inner bean definition
+    (starting with version 1.0.3) for custom aggregator handlers within the
+    <code>&lt;aggregator&gt;</code> element:
+<programlisting language="xml"><![CDATA[<aggregator input-channel="input" method="sum" output-channel="output">
+    <beans:bean class="org.foo.ExampleAggregator"/>
 </aggregator>]]></programlisting>
     </para>
+
     <note>
-    <para>
-    Using both "ref" attribute and inner handler definition in the same <code>&lt;aggregator&gt;</code> configuration
-    is not allowed, as it creates an ambiguous condition and will result in Exception being thrown 
-    </para>
+      <para>Using both a "ref" attribute and an inner bean definition in the same
+      <code>&lt;aggregator&gt;</code> configuration is not allowed, as it creates an
+      ambiguous condition. In such cases, an Exception will be thrown.
+      </para>
     </note>
-    <para>An implementation of the aggregator bean, for example, looks as
-    follows:</para>
+
+    <para>An example implementation of the aggregator bean looks as follows:</para>
 
     <programlisting language="java">public class PojoAggregator {
 
@@ -400,8 +441,13 @@ inner bean definitions for custom aggregator handlers within the <code>&lt;aggre
     }
     return sum &gt;= maxValue;
   }
-}</programlisting>Wherever it makes sense, the completion strategy method and
-    the aggregator method can be combined in a single bean.</para>
+}</programlisting>
+
+      <note>
+        <para>Wherever it makes sense, the completion strategy method and
+        the aggregator method can be combined in a single bean.</para>
+      </note>
+    </para>
 
     <para>An implementation of the correlation strategy bean for the example
     above may be as follows:</para>
@@ -418,9 +464,11 @@ inner bean definitions for custom aggregator handlers within the <code>&lt;aggre
     until the sum of the numbers which represents the payload exceeds a
     certain value.</para>
 
-    <para>Wherever it makes sense, the completion strategy method, correlation
-    strategy method and the aggregator method can be combined in a single bean
-    (all of them or any two).</para>
+    <note>
+      <para>Wherever it makes sense, the completion strategy method, correlation
+      strategy method and the aggregator method can be combined in a single bean
+      (all of them or any two).</para>
+    </note>
   </section>
 
   <section id="aggregator-annotations">
@@ -458,8 +506,8 @@ inner bean definitions for custom aggregator handlers within the <code>&lt;aggre
 
       <callout arearefs="agganncs">
         <para id="aggann2">An annotation indicating that this method shall be
-        used as the completion strategy of an aggregator. If not present of
-        the method, the aggregator will use the
+        used as the completion strategy of an aggregator. If not present on
+        any method, the aggregator will use the
         SequenceSizeCompletionStrategy.</para>
       </callout>
 
@@ -471,11 +519,12 @@ inner bean definitions for custom aggregator handlers within the <code>&lt;aggre
       </callout>
     </calloutlist>
 
-    <para>All the configuration options provided by the xml element are also
+    <para>All of the configuration options provided by the xml element are also
     available for the @Aggregator annotation.</para>
 
     <para>The aggregator can be either referenced explicitly from XML or, if
     the @MessageEndpoint is defined on the class, detected automatically
     through classpath scanning.</para>
+
   </section>
 </chapter>
