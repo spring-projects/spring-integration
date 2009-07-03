@@ -4,23 +4,30 @@
 <chapter id="endpoint">
   <title>Message Endpoints</title>
   <para>
+    The first part of this chapter covers some background theory and reveals quite a bit about the underlying API
+    that drives Spring Integration's various messaging components. This information can be helpful if you want to
+    really understand what's going on behind the scenes. However, if you want to get up and running with the
+    simplified namespace-based configuration of the various elements, feel free to skip ahead to
+    <xref linkend="endpoint-namespace"/> for now.
+  </para>
+  <para>
     As mentioned in the overview, Message Endpoints are responsible for connecting the various messaging components to
     channels. Over the next several chapters, you will see a number of different components that consume Messages. Some
     of these are also capable of sending reply Messages. Sending Messages is quite straightforward. As shown above in
     <xref linkend="channel"/>, it's easy to <emphasis>send</emphasis> a Message to a Message Channel. However,
     receiving is a bit more complicated. The main reason is that there are two types of consumers:
     <ulink url="http://www.eaipatterns.com/PollingConsumer.html">Polling Consumers</ulink> and
-    <ulink url="http://www.eaipatterns.com/EventDrivenConsumer.html">Event-Driven Consumers</ulink>.
+    <ulink url="http://www.eaipatterns.com/EventDrivenConsumer.html">Event Driven Consumers</ulink>.
   </para>
   <para>
-    Of the two, Event-Driven Consumers are much simpler. Without any need to manage and schedule a separate poller
+    Of the two, Event Driven Consumers are much simpler. Without any need to manage and schedule a separate poller
     thread, they are essentially just listeners with a callback method. When connecting to one of Spring Integration's
     subscribable Message Channels, this simple option works great. However, when connecting to a buffering, pollable
     Message Channel, some component has to schedule and manage the polling thread(s). Spring Integration provides
     two different endpoint implementations to accommodate these two types of consumers. Therefore, the consumers
     themselves can simply implement the callback interface. When polling is required, the endpoint acts as a
     "container" for the consumer instance. The benefit is similar to that of using a container for hosting
-    Message-Driven Beans, but since these consumers are simply Spring-managed Objects running within an 
+    Message Driven Beans, but since these consumers are simply Spring-managed Objects running within an 
     ApplicationContext, it more closely resembles Spring's own MessageListener containers.
   </para>
 
@@ -47,9 +54,9 @@
   </section>
 
   <section id="endpoint-eventdrivenconsumer">
-    <title>Event-Driven Consumer</title>
+    <title>Event Driven Consumer</title>
     <para>
-      Because it is the simpler of the two, we will cover the Event-Driven Consumer endpoint first. You may recall that
+      Because it is the simpler of the two, we will cover the Event Driven Consumer endpoint first. You may recall that
       the <interfacename>SubscribableChannel</interfacename> interface provides a <methodname>subscribe()</methodname>
       method and that the method accepts a <interfacename>MessageHandler</interfacename> parameter (as shown in
       <xref linkend="channel-interfaces-subscribablechannel"/>):
@@ -57,9 +64,9 @@
 subscribableChannel.subscribe(messageHandler);
 </programlisting>
       Since a handler that is subscribed to a channel does not have to actively poll that channel, this is an
-      Event-Driven Consumer, and the implementation provided by Spring Integration accepts a
+      Event Driven Consumer, and the implementation provided by Spring Integration accepts a
       a <interfacename>SubscribableChannel</interfacename> and a <interfacename>MessageHandler</interfacename>:
-      <programlisting language="java">SubscribableChannel channel = (SubscribableChannel) context.getBean("exampleSubscribableChannel");
+      <programlisting language="java">SubscribableChannel channel = (SubscribableChannel) context.getBean("subscribableChannel");
 
 EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);</programlisting>
     </para>
@@ -70,7 +77,7 @@ EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
     <para>
       Spring Integration also provides a <classname>PollingConsumer</classname>, and it can be instantiated in
       the same way except that the channel must implement <interfacename>PollableChannel</interfacename>:
-      <programlisting language="java">PollableChannel channel = (PollableChannel) context.getBean("examplePollableChannel");
+      <programlisting language="java">PollableChannel channel = (PollableChannel) context.getBean("pollableChannel");
 
 PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</programlisting>
     </para>
@@ -83,12 +90,12 @@ consumer.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
       Spring Integration currently provides two implementations of the <interfacename>Trigger</interfacename>
       interface: <classname>IntervalTrigger</classname> and <classname>CronTrigger</classname>. The
       <classname>IntervalTrigger</classname> is typically defined with a simple interval (in milliseconds), but
-      also supports an 'initialDelay' property and a boolean 'fixedRate' property (the default is false - i.e.
+      also supports an 'initialDelay' property and a boolean 'fixedRate' property (the default is false, i.e.
       fixed delay):
       <programlisting language="java">IntervalTrigger trigger = new IntervalTrigger(1000);
 trigger.setInitialDelay(5000);
 trigger.setFixedRate(true);</programlisting>
-      The <classname>CronTrigger</classname> simply requires the cron expression (see the Javadoc for details):
+      The <classname>CronTrigger</classname> simply requires a valid cron expression (see the Javadoc for details):
       <programlisting language="java">CronTrigger trigger = new CronTrigger("*/10 * * * * MON-FRI");</programlisting>
     </para>
     <para>
@@ -99,8 +106,29 @@ PollingConsumer consumer = new PollingConsumer(channel, handler);
 consumer.setMaxMessagesPerPoll(10);
 
 consumer.setReceiveTimeout(5000);</programlisting>
-      A Polling Consumer may even delegate to a Spring <interfacename>TaskExecutor</interfacename> and
-      participate in Spring-managed transactions. The following example shows the configuration of both:
+    </para>
+    <para>
+      The 'maxMessagesPerPoll' property specifies the maximum number of messages to receive within a given poll
+      operation. This means that the poller will continue calling receive() <emphasis>without waiting</emphasis>
+      until either <code>null</code> is returned or that max is reached. For example, if a poller has a 10 second
+      interval trigger and a 'maxMessagesPerPoll' setting of 25, and it is polling a channel that has 100 messages
+      in its queue, all 100 messages can be retrieved within 40 seconds. It grabs 25, waits 10 seconds, grabs the
+      next 25, and so on.
+    </para>
+    <para>
+      The 'receiveTimeout' property specifies the amount of time the poller should wait if no messages are
+      available when it invokes the receive operation. For example, consider two options that seem similar on
+      the surface but are actually quite different: the first has an interval trigger of 5 seconds and a receive
+      timeout of 50 milliseconds while the second has an interval trigger of 50 milliseconds and a receive timeout
+      of 5 seconds. The first one may receive a message up to 4950 milliseconds later than it arrived on the channel
+      (if that message arrived immediately after one of its poll calls returned). On the other hand, the second
+      configuration will never miss a message by more than 50 milliseconds. The difference is that the second
+      option requires a thread to wait, but as a result it is able to respond much more quickly to arriving messages.
+      This technique, known as "long polling", can be used to emulate event-driven behavior on a polled source.
+    </para>
+    <para>
+      A Polling Consumer may also delegate to a Spring <interfacename>TaskExecutor</interfacename>, and it can
+      be configured to participate in Spring-managed transactions. The following example shows the configuration of both:
       <programlisting language="java">
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
@@ -159,7 +187,7 @@ consumer.setTransactionManager(txManager);</programlisting>
       If the input channel is a <interfacename>PollableChannel</interfacename>, then the poller configuration is
       required. Specifically, as mentioned above, the 'trigger' is a required property of the PollingConsumer class.
       Therefore, if you omit the "poller" sub-element for a Polling Consumer endpoint's configuration, an Exception
-      will be thrown. However, it is also possible to create top-level pollers in which case only a "ref" is required:
+      may be thrown. However, it is also possible to create top-level pollers in which case only a "ref" is required:
       <programlisting language="xml"><![CDATA[ <poller id="weekdayPoller">
      <cron-trigger expression="*/10 * * * * MON-FRI"/>
  </poller>
@@ -170,9 +198,9 @@ consumer.setTransactionManager(txManager);</programlisting>
     <poller ref="weekdayPoller"/>
  </transformer>]]></programlisting>
       In fact, to simplify the configuration, you can define a global default poller. A single top-level poller within
-      an ApplicationContext may have the default attribute with a value of "true". In that case, any endpoint with a
-      PollableChannel for its input-channel that is defined within the same ApplicationContext and has no explicitly
-      configured 'poller' sub-element will use that default.
+      an ApplicationContext may have the <code>default</code> attribute with a value of "true". In that case, any
+      endpoint with a PollableChannel for its input-channel that is defined within the same ApplicationContext and has
+      no explicitly configured 'poller' sub-element will use that default.
       <programlisting language="xml"><![CDATA[ <poller id="defaultPoller" default="true" max-messages-per-poll="5">
      <interval-trigger interval="3" time-unit="SECONDS"/>
  </poller>
@@ -190,7 +218,7 @@ consumer.setTransactionManager(txManager);</programlisting>
       <programlisting language="xml"><![CDATA[<poller>
     <interval-trigger interval="1000"/>
     <transactional transaction-manager="txManager"
-                   propagation="REQUIRES_NEW"
+                   propagation="REQUIRED"
                    isolation="REPEATABLE_READ"
                    timeout="10000"
                    read-only="false"/>
@@ -216,26 +244,30 @@ consumer.setTransactionManager(txManager);</programlisting>
                             queue-capacity="20"
                             keep-alive-seconds="120"/>]]></programlisting>
       If no 'task-executor' is provided, the consumer's handler will be invoked in the caller's thread. Note that the
-      "caller" is usually the default <interfacename>TaskScheduler</interfacename> (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the 'task-executor' attribute can
+      "caller" is usually the default <interfacename>TaskScheduler</interfacename>
+      (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the 'task-executor' attribute can
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
       specifying the bean name. The thread pool element is simply provided for convenience.
     </para>
      <para>
-    	You can also use Polling consumers to emulate event-driven semantics. With a long receive-timeout and a short trigger 
-    	interval you can effectively approximate event-driven behavior even for a polled message source.
+    	As mentioned in the background section for Polling Consumers above, you can also configure a Polling Consumer
+        in such a way as to emulate event-driven behavior. With a long receive-timeout and a short interval-trigger,
+    	you can ensure a very timely reaction to arriving messages even on a polled message source.
     </para>
     <para>
-    A good use case that shows how this approach could be aplied is event-driven files via <code>inbound-channel-adapter</code> where drop of the 
-    file into a directory woudl essentially become an event for that file to be picked up and sent throught the process.
-    	<programlisting language="xml"><![CDATA[<file:inbound-channel-adapter id="filesIn"
-       directory="file:${input.directory.property}">  
-	<si:poller receive-timeout="30000">
-    		<si:interval-trigger interval="10"/>
-	</si:poller>    
-</file:inbound-channel-adapter>]]></programlisting>
-	Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread which does not use much of CPU resurces
+      A good use case that demonstrates how this approach could be applied is event-driven files via Spring
+      Integration's <code>inbound-channel-adapter</code> in the <code>file</code> namespace where a file dropped
+      into a directory would essentially become an event. That file will be picked up nearly instantaneously and
+      sent through the process.
+      <programlisting language="xml"><![CDATA[ <file:inbound-channel-adapter id="filesIn"
+        directory="file:${input.directory.property}">  
+     <si:poller receive-timeout="30000">
+         <si:interval-trigger interval="10"/>
+     </si:poller>
+ </file:inbound-channel-adapter>]]></programlisting>
+      Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread
+      which does not require nearly as much CPU resource usage as a thrashing, infinite while loop for example.
     </para>
-    
-    
+
   </section>
 </chapter>
