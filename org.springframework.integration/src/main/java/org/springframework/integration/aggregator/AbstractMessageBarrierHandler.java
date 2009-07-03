@@ -66,7 +66,7 @@ import org.springframework.util.Assert;
  * <p>
  * Subclasses must decide what kind of a Collection they want to use. The semantics
  * of adding a Message to the MessageBarrier will be decided by the Collection type.
- *
+ * <p>
  * Note: this class is not part of the Spring Integration API, but
  * an internal class, used for implementing components that need to keep
  * a list of messages until they are ready to be released or processed
@@ -117,7 +117,7 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 
 	private final Object lifecycleMonitor = new Object();
 
-    private CorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);
+    private volatile CorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);
 
 
     public AbstractMessageBarrierHandler() {
