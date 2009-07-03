@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,32 +28,27 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class AbstractSubscribableChannel<T extends MessageDispatcher> extends AbstractMessageChannel implements SubscribableChannel {
-
-	private final T dispatcher;
-
-
-	public AbstractSubscribableChannel(T dispatcher) {
-		Assert.notNull(dispatcher, "dispatcher must not be null");
-		this.dispatcher = dispatcher;
-	}
-
-
-	protected T getDispatcher() {
-		return this.dispatcher;
-	}
+public abstract class AbstractSubscribableChannel extends AbstractMessageChannel implements SubscribableChannel {
 
 	public boolean subscribe(MessageHandler handler) {
-		return this.dispatcher.addHandler(handler);
+		return this.getRequiredDispatcher().addHandler(handler);
 	}
 
 	public boolean unsubscribe(MessageHandler handle) {
-		return this.dispatcher.removeHandler(handle);
+		return this.getRequiredDispatcher().removeHandler(handle);
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		return this.dispatcher.dispatch(message);
+		return this.getRequiredDispatcher().dispatch(message);
 	}
+
+	private MessageDispatcher getRequiredDispatcher() {
+		MessageDispatcher dispatcher = this.getDispatcher();
+		Assert.state(dispatcher != null, "dispatcher must not be null");
+		return dispatcher;
+	}
+
+	protected abstract MessageDispatcher getDispatcher();
 
 }

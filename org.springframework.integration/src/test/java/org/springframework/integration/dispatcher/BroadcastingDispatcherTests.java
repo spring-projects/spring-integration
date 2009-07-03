@@ -62,8 +62,6 @@ public class BroadcastingDispatcherTests {
 
 	@Before
 	public void init() {
-		dispatcher = new BroadcastingDispatcher();
-		dispatcher.setTaskExecutor(taskExecutorMock);
 		reset(globalMocks);
 		defaultTaskExecutorMock();
 	}
@@ -71,7 +69,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void singleTargetWithoutTaskExecutor() throws Exception {
-		dispatcher.setTaskExecutor(null);
+		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
 		targetMock1.handleMessage(messageMock);
 		expectLastCall();
@@ -82,6 +80,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void singleTargetWithTaskExecutor() throws Exception {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		targetMock1.handleMessage(messageMock);
 		expectLastCall();
@@ -92,7 +91,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsWithoutTaskExecutor() {
-		dispatcher.setTaskExecutor(null);
+		dispatcher = new BroadcastingDispatcher();
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
@@ -109,6 +108,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsWithTaskExecutor() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
@@ -125,6 +125,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsPartialFailureFirst() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
@@ -141,6 +142,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsPartialFailureMiddle() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
@@ -157,6 +159,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsPartialFailureLast() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
@@ -173,6 +176,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsAllFail() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		reset(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
@@ -185,6 +189,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void noDuplicateSubscription() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock1);
@@ -197,6 +202,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void removeConsumerBeforeSend() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);
@@ -212,6 +218,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void removeConsumerBetweenSends() {
+		dispatcher = new BroadcastingDispatcher(taskExecutorMock);
 		dispatcher.addHandler(targetMock1);
 		dispatcher.addHandler(targetMock2);
 		dispatcher.addHandler(targetMock3);

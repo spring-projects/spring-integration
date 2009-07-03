@@ -18,14 +18,12 @@ package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.core.OrderComparator;
-import org.springframework.core.task.TaskExecutor;
+
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
@@ -34,14 +32,13 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
- * 
- * <p>The {@link Comparator} that determines the order may be provided via the
- * {@link #setComparator(Comparator)} method. If none is provided, the default
- * will be an instance of {@link OrderComparator}, and any {@link MessageHandler}
- * that implements {@link org.springframework.core.Ordered} and has an order
- * value other than LOWEST_PRECEDENCE will be ordered accordingly. Any other
- * handlers will be placed at the end of the list in their original
- * insertion-order.
+ * <p>
+ * The subclasses implement the actual dispatching strategy, but this base
+ * class manages the registration of {@link MessageHandler}s. Although the
+ * implemented dispatching strategies may invoke handles in different ways
+ * (e.g. round-robin vs. failover), this class does maintain the order of the
+ * underlying collection. See the {@link OrderedAwareLinkedHashSet} for more
+ * detail.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -53,23 +50,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
-	private volatile TaskExecutor taskExecutor;
-
 	private final Object handlerListMonitor = new Object();
 
-
-	/**
-	 * Specify a {@link TaskExecutor} for invoking the handlers. If none is
-	 * provided, the invocation will occur in the thread that runs this polling
-	 * dispatcher.
-	 */
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
-	}
-
-	protected TaskExecutor getTaskExecutor() {
-		return this.taskExecutor;
-	}
 
 	@SuppressWarnings("unchecked")
 	protected List<MessageHandler> getHandlers() {

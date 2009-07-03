@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import org.springframework.integration.util.ErrorHandlingTaskExecutor;
  * 
  * @author Mark Fisher
  */
-public class PublishSubscribeChannel extends AbstractSubscribableChannel<BroadcastingDispatcher> implements BeanFactoryAware {
+public class PublishSubscribeChannel extends AbstractSubscribableChannel implements BeanFactoryAware {
+
+	private volatile BroadcastingDispatcher dispatcher;
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -37,13 +39,18 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel<Broadca
 
 	/**
 	 * Create a PublishSubscribeChannel that will use a {@link TaskExecutor}
-	 * to publish its Messages. 
+	 * to invoke the handlers. If this is null, each invocation will occur in
+	 * the message sender's thread.
 	 */
 	public PublishSubscribeChannel(TaskExecutor taskExecutor) {
-		super(new BroadcastingDispatcher());
 		this.taskExecutor = taskExecutor;
+		this.dispatcher = new BroadcastingDispatcher(taskExecutor);
 	}
 
+	/**
+	 * Create a PublishSubscribeChannel that will invoke the handlers in the
+	 * message sender's thread. 
+	 */
 	public PublishSubscribeChannel() {
 		this(null);
 	}
@@ -65,8 +72,13 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel<Broadca
 				}
 				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 			}
-			this.getDispatcher().setTaskExecutor(this.taskExecutor);
+			this.dispatcher = new BroadcastingDispatcher(this.taskExecutor);
 		}
+	}
+
+	@Override
+	protected BroadcastingDispatcher getDispatcher() {
+		return this.dispatcher;
 	}
 
 }

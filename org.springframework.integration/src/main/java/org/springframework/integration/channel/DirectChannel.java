@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import org.springframework.integration.dispatcher.AbstractUnicastDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinDispatcher;
+import org.springframework.util.Assert;
 
 /**
  * A channel that invokes a single subscriber for each sent Message.
@@ -27,14 +28,24 @@ import org.springframework.integration.dispatcher.RoundRobinDispatcher;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class DirectChannel extends AbstractSubscribableChannel<AbstractUnicastDispatcher> {
+public class DirectChannel extends AbstractSubscribableChannel {
+
+	private final AbstractUnicastDispatcher dispatcher;
+
 
 	public DirectChannel() {
-		super(new RoundRobinDispatcher());
+		this.dispatcher = new RoundRobinDispatcher();
 	}
-	
-	public DirectChannel(AbstractUnicastDispatcher dispatcher){
-		super(dispatcher);
+
+	public DirectChannel(AbstractUnicastDispatcher dispatcher) {
+		Assert.notNull(dispatcher, "dispatcher must not be null");
+		this.dispatcher = dispatcher;
+	}
+
+
+	@Override
+	protected AbstractUnicastDispatcher getDispatcher() {
+		return this.dispatcher;
 	}
 
 }

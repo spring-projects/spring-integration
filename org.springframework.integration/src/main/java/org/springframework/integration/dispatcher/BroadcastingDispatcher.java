@@ -38,6 +38,17 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	private volatile boolean applySequence;
 
+	private final TaskExecutor taskExecutor;
+
+
+	public BroadcastingDispatcher() {
+		this.taskExecutor = null;
+	}
+
+	public BroadcastingDispatcher(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
+
 
 	/**
 	 * Specify whether to apply sequence numbers to the messages
@@ -47,6 +58,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
 	}
+
 
 	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
@@ -60,9 +72,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 						.setCorrelationId(message.getHeaders().getId())
 						.setHeader(MessageHeaders.ID, UUID.randomUUID())
 						.build();
-			TaskExecutor executor = this.getTaskExecutor();
-			if (executor != null) {
-				executor.execute(new Runnable() {
+			if (this.taskExecutor != null) {
+				this.taskExecutor.execute(new Runnable() {
 					public void run() {
 						BroadcastingDispatcher.this.sendMessageToHandler(messageToSend, handler);
 					}
@@ -74,4 +85,5 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		}
 		return true;
 	}
+
 }
