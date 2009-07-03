@@ -26,13 +26,9 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines the ApplicationEventMulticaster to use
-					for this
-					ApplicationContext. The "task-executor" reference is
-					optional.
-					If not provided, an instance of ThreadPoolTaskExecutor
-					will be
-					created by default.
+	Defines the ApplicationEventMulticaster to use for this ApplicationContext.
+	The "task-executor" reference is optional. If not provided, an instance of
+	ThreadPoolTaskExecutor will be created by default.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="task-executor" type="xsd:string">
@@ -273,14 +269,27 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="outbound-channel-adapter" type="methodInvokingChannelAdapterType">
+	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Channel Adapter that receives from a
-				MessageChannel and sends to
-				a MessageConsumer.
+	Defines a Channel Adapter that receives from a MessageChannel and sends to
+	a method-invoking MessageHandler.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="methodInvokingChannelAdapterType">
+					<xsd:attribute name="order">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specifies the order for invocation when this endpoint is connected as a
+	subscriber to a SubscribableChannel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="logging-channel-adapter">

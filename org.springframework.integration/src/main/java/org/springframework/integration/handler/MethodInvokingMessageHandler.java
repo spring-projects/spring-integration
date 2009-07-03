@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
+import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageHandler;
@@ -28,7 +29,10 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingMessageHandler extends MessageMappingMethodInvoker implements MessageHandler {
+public class MethodInvokingMessageHandler extends MessageMappingMethodInvoker implements MessageHandler, Ordered {
+
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
+
 
 	public MethodInvokingMessageHandler(Object object, Method method) {
 		super(object, method);
@@ -40,6 +44,14 @@ public class MethodInvokingMessageHandler extends MessageMappingMethodInvoker im
 		super(object, methodName);
 	}
 
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
+	}
 
 	public void handleMessage(Message<?> message) {
 		Object result = this.invokeMethod(message);

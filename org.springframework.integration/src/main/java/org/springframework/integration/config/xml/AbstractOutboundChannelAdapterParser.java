@@ -46,6 +46,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();
 	}
 
@@ -59,6 +60,10 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		if (definition == null) {
 			parserContext.getReaderContext().error(
 					"Consumer parsing must return a BeanDefinition.", element);
+		}
+		String order = element.getAttribute("order");
+		if (StringUtils.hasText(order)) {
+			definition.getPropertyValues().addPropertyValue("order", order);
 		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				definition, parserContext.getRegistry());
