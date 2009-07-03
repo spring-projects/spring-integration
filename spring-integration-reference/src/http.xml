@@ -28,9 +28,18 @@
 	example will create a String message for a <emphasis>POST</emphasis> request where the content type starts with "text", see the Javadoc for 
 	full details.   		
       </para>
-      <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a <emphasis>MultipartHttpServletRequest</emphasis>, 
-      then the 'content type' can be checked. If it is known, and begins with "text", then the <emphasis>MultipartFile</emphasis> can be copied to a String in the parameter 
-      map. If the 'content type does not begin with "text", then the <emphasis>MultipartFile</emphasis> can be copied to a byte array within the parameter map instead.
+      <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a
+	  <emphasis>MultipartHttpServletRequest</emphasis>, then the 'content type' can be checked. If it is known, and
+	  begins with "text", then the <emphasis>MultipartFile</emphasis> will be copied to a String in the parameter
+	  map. If the content type does not begin with "text", then the <emphasis>MultipartFile</emphasis> will be copied
+	  to a byte array within the parameter map instead.
+	  <note>
+		The HttpInboundEndpoint will locate a MultipartResolver in the context if one exists with the bean name
+		"multipartResolver" (the same name expected by Spring's DispatcherServlet). If it does in fact locate that
+		bean, then the support for MultipartFiles will be enabled on the inbound request mapper. Otherwise, it will
+		fail when trying to map a multipart-file request to a Spring Integration Message. For more on Spring's
+		support for MultipartResolvers, refer to the <ulink url="http://static.springsource.org/spring/docs/2.5.x/reference/mvc.html#mvc-multipart">Spring Reference Manual</ulink>.
+      </note>
       </para>
       <para>
 		In sending a response to the client there are a number of ways to customise the behaviour of the gateway.  By default the gateway will 
@@ -94,11 +103,11 @@ By default the Http request will be made using an instance of <classname>SimpleH
     <para>
 		To configure an inbound http channel adapter which is an instance of <classname>HttpInboundEndpoint</classname> configured 
 		not to expect a response.
-		<programlisting language="xml"><![CDATA[<http:inbound-channel-adapter id="httpChannelAdapter " channel="requests" supported-methods="PUT, DELETE"/>]]></programlisting>
+		<programlisting language="xml"><![CDATA[ <http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" supported-methods="PUT, DELETE"/>]]></programlisting>
     </para>
     <para>
 		To configure an inbound http gateway which expects a response.
-		<programlisting language="xml"><![CDATA[<http:inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>]]></programlisting>
+		<programlisting language="xml"><![CDATA[ <http:inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>]]></programlisting>
     </para>
     <para>
 		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway.

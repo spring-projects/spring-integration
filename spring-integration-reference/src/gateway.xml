@@ -42,7 +42,7 @@
       Then, the "fooService" can be injected into other beans, and the code that invokes the methods on that
       proxied instance of the FooService interface has no awareness of the Spring Integration API. The general
       approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
-      an example that uses this "gateway" element.
+      an example that uses this "gateway" element (in the Cafe demo).
 	</para>
     <para>
       The reason that the attributes on the 'gateway' element are named 'default-request-channel' and

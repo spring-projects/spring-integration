@@ -54,10 +54,10 @@
       fate of the rejected Message. By default (if configured like the example above), the rejected Messages will
       be silently dropped. If rejection should instead indicate an error condition, then set the
       'throw-exception-on-rejection' flag to <code>true</code>:
-      <programlisting language="java"><![CDATA[ <filter input-channel="input" ref="selector"
+      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
       output-channel="output" throw-exception-on-rejection="true"/> ]]></programlisting>
 	  If you want the rejected messages to go to a specific channel, provide that reference as the 'discard-channel':
-      <programlisting language="java"><![CDATA[ <filter input-channel="input" ref="selector"
+      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
       output-channel="output" discard-channel="rejectedMessages"/> ]]></programlisting>
     </para>
     <note>
