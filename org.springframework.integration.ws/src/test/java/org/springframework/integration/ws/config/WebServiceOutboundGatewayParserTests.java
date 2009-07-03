@@ -208,6 +208,23 @@ public class WebServiceOutboundGatewayParserTests {
 	}
 
 	@Test
+	public void simpleGatewayWithOrder() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithOrderAndAutoStartupFalse");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(99, new DirectFieldAccessor(gateway).getPropertyValue("order"));
+	}
+
+	@Test
+	public void simpleGatewayWithStartupFalse() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithOrderAndAutoStartupFalse");
+		assertEquals(Boolean.FALSE, new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup"));
+	}
+
+	@Test
 	public void marshallingGatewayWithAllInOneMarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());

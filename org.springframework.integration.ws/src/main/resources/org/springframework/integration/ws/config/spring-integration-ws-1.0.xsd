@@ -130,6 +130,8 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="message-senders" type="xsd:string"/>
+			<xsd:attribute name="order" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
