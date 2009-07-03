@@ -57,9 +57,6 @@
 	for that map entry by default is 'requestMessage', but this can be overridden by setting the
 	'requestKey' property on the endpoint's configuration.
      </para>
-     <para>
-     Starting wit this release 
-     </para>
   </section>	
 
   <section id="http-outbound">
