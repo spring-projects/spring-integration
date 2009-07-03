@@ -85,12 +85,14 @@ public class HttpOutboundGatewayParserTests {
 
 	@Test
 	public void fullConfigWithMapper() throws Exception {
-		HttpOutboundEndpoint gateway = (HttpOutboundEndpoint) new DirectFieldAccessor(
-				this.fullConfigWithMapperEndpoint).getPropertyValue("handler");
+		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfigWithMapperEndpoint);
+		HttpOutboundEndpoint gateway = (HttpOutboundEndpoint) endpointAccessor.getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.fullConfigWithMapperEndpoint).getPropertyValue("inputChannel");
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(77, accessor.getPropertyValue("order"));
+		assertEquals(Boolean.FALSE, endpointAccessor.getPropertyValue("autoStartup"));
 		Object replyChannel = accessor.getPropertyValue("outputChannel");
 		assertNotNull(replyChannel);
 		assertEquals(this.applicationContext.getBean("replies"), replyChannel);

@@ -23,7 +23,9 @@
 		request-mapper="mapper"
 		request-executor="executor"
 		request-timeout="1234"
-		reply-channel="replies"/>
+		reply-channel="replies"
+		order="77"
+		auto-startup="false"/>
 
 	<outbound-gateway id="fullConfigWithoutMapper"
 		request-channel="requests"
