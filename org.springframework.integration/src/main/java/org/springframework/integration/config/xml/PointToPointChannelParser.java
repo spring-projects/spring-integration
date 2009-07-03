@@ -41,6 +41,8 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = null;
 		Element queueElement = null;
+
+		// configure a queue-based channel if any queue sub-element is defined
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
 			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
@@ -61,8 +63,24 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "rendezvous-queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".RendezvousChannel");
 		}
-		else {
-			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+
+		// verify that the 'task-executor' is not provided if a queue sub-element exists
+		String taskExecutor = element.getAttribute("task-executor");
+		if (queueElement != null && StringUtils.hasText(taskExecutor)) {
+			parserContext.getReaderContext().error("The 'task-executor' attribute " +
+					"and any queue sub-element are mutually exclusive.", element);
+			return null;
+		}
+
+		if (builder == null) {
+			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
+			if (StringUtils.hasText(taskExecutor)) {
+				builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".ExecutorChannel");
+				builder.addConstructorArgReference(taskExecutor);
+			}
+			else {
+				builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+			}
 			parseDispatcher(element.getAttribute("dispatcher"), builder, parserContext);
 		}
 		return builder;
