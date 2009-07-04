@@ -3,6 +3,8 @@
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <bookinfo>
     <title>Spring Integration Reference Manual</title>
+	<titleabbrev>Spring Integration 1.0.3</titleabbrev>
+
 
     <productname>Spring Integration</productname>
     <releaseinfo>1.0.3</releaseinfo>

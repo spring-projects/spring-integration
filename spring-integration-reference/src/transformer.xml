@@ -85,11 +85,9 @@
 	<para>
 		If you need to serialize an Object to a byte array or deserialize a byte array back into an Object,
 		Spring Integration provides symmetrical serialization transformers.
-			<programlisting language="xml"><![CDATA[ <payload-serializing-transformer input-channel="objectsIn"
-             output-channel="bytesOut"/>
+			<programlisting language="xml"><![CDATA[ <payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
 
- <payload-deserializing-transformer input-channel="bytesIn"
-             output-channel="objectsOut"/>]]></programlisting>
+ <payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
 	</para>
 	<para>
 		If you only need to add headers to a Message, and they are not dynamically determined by Message content,
