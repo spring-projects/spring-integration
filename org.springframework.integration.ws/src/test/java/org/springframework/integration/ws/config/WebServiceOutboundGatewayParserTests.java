@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -29,7 +30,6 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
-import org.springframework.integration.ws.destination.HeaderBasedDestinationProvider;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -307,25 +307,7 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(messageFactory, templateAccessor.getPropertyValue("messageFactory"));
 	}
 
-
     @Test
-	public void simpleGatewayWithUriHeader() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithUriHeader");
-		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-        Object destinationProviderObject = accessor.getPropertyValue("destinationProvider");
-        assertNotNull("DestinationProvider not set", destinationProviderObject);
-        assertEquals("Wrong type for destiantion provider", HeaderBasedDestinationProvider.class, destinationProviderObject.getClass());
-	    accessor = new DirectFieldAccessor(destinationProviderObject);
-        Object headerName = accessor.getPropertyValue("headerName");
-        assertEquals("Wrong value for headerName in DestiantionProvider", "testHeaderName", headerName);
-	}
-
-      @Test
 	public void simpleGatewayWithDestinationProvider() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
@@ -334,8 +316,20 @@ public class WebServiceOutboundGatewayParserTests {
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-        Object destinationProviderObject = accessor.getPropertyValue("destinationProvider");
+        Object destinationProviderObject = new DirectFieldAccessor(
+        		accessor.getPropertyValue("webServiceTemplate")).getPropertyValue("destinationProvider");
         StubDestinationProvider stubProvider = (StubDestinationProvider)context.getBean("destinationProvider");
         assertEquals("Wrong DestinationProvider", stubProvider, destinationProviderObject );
     }
+
+    @Test(expected = BeanDefinitionParsingException.class)
+    public void invalidGatewayWithBothUriAndDestinationProvider() {
+    	new ClassPathXmlApplicationContext("invalidGatewayWithBothUriAndDestinationProvider.xml", this.getClass());
+    }
+
+    @Test(expected = BeanDefinitionParsingException.class)
+    public void invalidGatewayWithNeitherUriNorDestinationProvider() {
+    	new ClassPathXmlApplicationContext("invalidGatewayWithNeitherUriNorDestinationProvider.xml", this.getClass());
+    }
+    
 }

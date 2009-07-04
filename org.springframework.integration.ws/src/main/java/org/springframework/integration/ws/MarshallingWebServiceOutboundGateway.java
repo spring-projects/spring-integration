@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package org.springframework.integration.ws;
 
-import java.net.URI;
-
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
-import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
+import org.springframework.ws.client.support.destination.DestinationProvider;
 
 /**
  * An outbound Messaging Gateway for invoking Web Services that also supports
@@ -35,7 +33,7 @@ import org.springframework.integration.ws.destination.MessageAwareDestinationPro
  */
 public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
-	public MarshallingWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, Marshaller marshaller, Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller, Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
@@ -43,29 +41,29 @@ public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutb
 		this.getWebServiceTemplate().setUnmarshaller(unmarshaller);
 	}
 
-	public MarshallingWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, Marshaller marshaller, Unmarshaller unmarshaller) {
+	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller, Unmarshaller unmarshaller) {
 		this(destinationProvider, marshaller, unmarshaller, null);
 	}
 
-	public MarshallingWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, Marshaller marshaller, WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller, WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.isInstanceOf(Unmarshaller.class, marshaller,
 				"Marshaller [" + marshaller + "] does not implement the Unmarshaller interface. " +
 				"Please set an Unmarshaller explicitly by using the " + this.getClass().getName() +
-				"(String uri, Marshaller marshaller, Unmarshaller unmarshaller) constructor.");
+				"(DestinationProvider destinationProvider, Marshaller marshaller, Unmarshaller unmarshaller) constructor.");
 		this.getWebServiceTemplate().setMarshaller(marshaller);
 		this.getWebServiceTemplate().setUnmarshaller((Unmarshaller) marshaller);		
 	}
 
-	public MarshallingWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, Marshaller marshaller) {
+	public MarshallingWebServiceOutboundGateway(DestinationProvider destinationProvider, Marshaller marshaller) {
 		this(destinationProvider, marshaller, (WebServiceMessageFactory) null);
 	}
 
 
 	@Override
-	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback,URI uri) {
-		return this.getWebServiceTemplate().marshalSendAndReceive(uri.toString(),requestPayload, requestCallback);
+	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback) {
+		return this.getWebServiceTemplate().marshalSendAndReceive(requestPayload, requestCallback);
 	}
 
 }

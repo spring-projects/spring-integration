@@ -18,15 +18,37 @@ package org.springframework.integration.ws.config;
 
 import java.net.URI;
 
-import org.springframework.ws.client.support.destination.DestinationProvider;
-
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
+ * @since 1.0.3
  */
-public class StubDestinationProvider implements DestinationProvider {
-	
+import org.springframework.util.Assert;
+import org.springframework.ws.client.support.destination.DestinationProvider;
+
+
+/**
+ * A {@link DestinationProvider} implementation that returns a fixed URI.
+ * This is used by the outbound gateway parser when no 'destination-provider'
+ * reference has been configured.
+ * 
+ * @author Jonas Partner
+ * @author Mark Fisher
+ * @since 1.0.3
+ */
+class FixedUriDestinationProvider implements DestinationProvider {
+
+	private final URI uri;
+
+
+	public FixedUriDestinationProvider(String uri) {
+		Assert.hasText(uri, "uri must not be null or empty");
+		this.uri = URI.create(uri);
+	}
+
+
 	public URI getDestination() {
-		return null;  
+		return this.uri;
 	}
 
 }

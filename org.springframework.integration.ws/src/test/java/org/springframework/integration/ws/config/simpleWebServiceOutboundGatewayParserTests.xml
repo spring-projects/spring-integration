@@ -71,8 +71,7 @@
 	<ws:outbound-gateway id="gatewayWithCustomMessageSenderList"
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
-	                     message-senders="messageSenders">
-	</ws:outbound-gateway>
+	                     message-senders="messageSenders"/>
 	                      
 	<ws:outbound-gateway id="gatewayWithPoller"
 		                 request-channel="pollableInputChannel"
@@ -87,10 +86,6 @@
 	                     uri="http://example.org"
 	                     order="99"
 	                     auto-startup="false"/>
-
-    <ws:outbound-gateway id="gatewayWithUriHeader"
-		                 request-channel="inputChannel"
-	                     uri-header="testHeaderName" />
 
     <ws:outbound-gateway id="gatewayWithDestinationProvider"
 		                 request-channel="inputChannel"

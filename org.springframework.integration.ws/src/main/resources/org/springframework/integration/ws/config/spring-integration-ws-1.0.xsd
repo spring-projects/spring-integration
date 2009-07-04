@@ -28,9 +28,18 @@
 			<xsd:all>
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:all>
-			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	A unique identifier for this Gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="request-channel" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+	The channel where Messages should be sent to invoke the Web Service.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -40,6 +49,11 @@
 			</xsd:attribute>
 			<xsd:attribute name="reply-channel" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+	The channel where Messages created from the Web Service responses will be sent.
+	This is optional. However, if non-empty responses are expected and this is not set,
+	then the request Messages must contain a REPLY_CHANNEL header.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
@@ -47,19 +61,33 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="uri" type="xsd:string" />
-            <xsd:attribute name="uri-header" type="xsd:string" />
-            <xsd:attribute name="destination-provider" type="xsd:string" >
-                <xsd:annotation>
+			<xsd:attribute name="uri" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The Destination URI for this Web Service Gateway. If the URI should be determined at runtime
+	(e.g. registry lookup), then configure a 'destination-provider' reference instead.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+            <xsd:attribute name="destination-provider" type="xsd:string">
+            	<xsd:annotation>
+            		<xsd:documentation>
+	Reference to a DestinationProvider implementation. Either provide this or a 'uri', never both.
+	See org.springframework.ws.client.support.destination.DestinationProvider for more detail.
+            		</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ws.destination.MessageAwareDestinationProvider"/>
+							<tool:expected-type type="org.springframework.ws.client.support.destination.DestinationProvider"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>    
             </xsd:attribute>
             <xsd:attribute name="marshaller" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring OXM Mashaller. If the Marshaller instance also implements
+	the Unmarshaller interface, then the 'unmarshaller' attribute is not required.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.oxm.Marshaller"/>
@@ -69,6 +97,9 @@
 			</xsd:attribute>
 			<xsd:attribute name="unmarshaller" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring OXM Unmarshaller.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.oxm.Unmarshaller"/>
@@ -86,6 +117,9 @@
 			</xsd:attribute>
 			<xsd:attribute name="source-extractor" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring Web Services SourceExtractor.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.ws.client.core.SourceExtractor"/>
@@ -95,6 +129,11 @@
 			</xsd:attribute>
 			<xsd:attribute name="request-callback" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring Web Services WebServiceMessageCallback. This enables changing
+	the Web Service request message after the payload has been written to it but prior
+	to invocation of the actual Web Service. 
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.ws.client.core.WebServiceMessageCallback"/>

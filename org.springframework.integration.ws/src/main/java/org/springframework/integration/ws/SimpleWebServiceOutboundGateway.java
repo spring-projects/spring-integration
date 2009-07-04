@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.springframework.integration.ws;
 
 import java.io.IOException;
-import java.net.URI;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
@@ -27,10 +26,10 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
@@ -45,35 +44,35 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 	private final SourceExtractor sourceExtractor;
 
 
-	public SimpleWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider) {
 		this(destinationProvider, null, null);
 	}
 
-	public SimpleWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, SourceExtractor sourceExtractor) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor sourceExtractor) {
 		this(destinationProvider, sourceExtractor, (WebServiceMessageFactory) null);
 	}
 
-	public SimpleWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
+	public SimpleWebServiceOutboundGateway(DestinationProvider destinationProvider, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
 		super(destinationProvider, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 
 
 	@Override
-	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback,URI uri) {
+	protected Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback) {
 		if (requestPayload instanceof Source) {
-			return this.getWebServiceTemplate().sendSourceAndReceive(uri.toString(),
+			return this.getWebServiceTemplate().sendSourceAndReceive(
 					(Source) requestPayload, requestCallback, this.sourceExtractor);
 		}
 		if (requestPayload instanceof String) {
 			StringResult result = new StringResult();
-			this.getWebServiceTemplate().sendSourceAndReceiveToResult(uri.toString(),
+			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
 					new StringSource((String) requestPayload), requestCallback, result);
 			return result.toString();
 		}
 		if (requestPayload instanceof Document) {
 			DOMResult result = new DOMResult();
-			this.getWebServiceTemplate().sendSourceAndReceiveToResult(uri.toString(),
+			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
 					new DOMSource((Document) requestPayload), requestCallback, result);
 			return (Document)result.getNode();
 		}

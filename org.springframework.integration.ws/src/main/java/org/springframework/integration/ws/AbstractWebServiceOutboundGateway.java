@@ -17,13 +17,11 @@
 package org.springframework.integration.ws;
 
 import java.io.IOException;
-import java.net.URI;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
-import org.springframework.integration.ws.destination.MessageAwareDestinationProvider;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.ws.WebServiceMessage;
@@ -31,6 +29,7 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.client.support.destination.DestinationProvider;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
 import org.springframework.ws.transport.WebServiceMessageSender;
@@ -47,16 +46,14 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	private volatile WebServiceMessageCallback requestCallback;
 
-	private final MessageAwareDestinationProvider destinationProvider;
-
 	private volatile boolean ignoreEmptyResponses = true;
 
 
-	public AbstractWebServiceOutboundGateway(MessageAwareDestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
+	public AbstractWebServiceOutboundGateway(DestinationProvider destinationProvider, WebServiceMessageFactory messageFactory) {
 		Assert.notNull(destinationProvider, "DestinationProvider must not be null");
-		this.destinationProvider = destinationProvider;
         this.webServiceTemplate = (messageFactory != null) ?
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
+		this.webServiceTemplate.setDestinationProvider(destinationProvider);
 	}
 
 
@@ -97,14 +94,9 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		return this.webServiceTemplate;
 	}
 
-    protected MessageAwareDestinationProvider getDestinationProvider(){
-        return destinationProvider;
-    }
-
 	@Override
 	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-		Object responsePayload = this.doHandle(message.getPayload(),
-				this.getRequestCallback(message), this.getDestinationProvider().getDestination(message));
+		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
 		if (responsePayload != null) {
 			boolean shouldIgnore = (this.ignoreEmptyResponses
 					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
@@ -114,7 +106,8 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		}
 	}
 
-	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback, URI uri);
+	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback);
+
 
 	private WebServiceMessageCallback getRequestCallback(Message<?> requestMessage) {
 		if (this.requestCallback != null) {
