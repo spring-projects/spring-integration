@@ -252,19 +252,19 @@ consumer.setTransactionManager(txManager);</programlisting>
      <para>
     	As mentioned in the background section for Polling Consumers above, you can also configure a Polling Consumer
         in such a way as to emulate event-driven behavior. With a long receive-timeout and a short interval-trigger,
-    	you can ensure a very timely reaction to arriving messages even on a polled message source.
-    </para>
-    <para>
-      A good use case that demonstrates how this approach could be applied is event-driven files via Spring
-      Integration's <code>inbound-channel-adapter</code> in the <code>file</code> namespace where a file dropped
-      into a directory would essentially become an event. That file will be picked up nearly instantaneously and
-      sent through the process.
-      <programlisting language="xml"><![CDATA[ <file:inbound-channel-adapter id="filesIn"
-        directory="file:${input.directory.property}">  
-     <si:poller receive-timeout="30000">
-         <si:interval-trigger interval="10"/>
-     </si:poller>
- </file:inbound-channel-adapter>]]></programlisting>
+        you can ensure a very timely reaction to arriving messages even on a polled message source. Note that this
+        will only apply to sources that have a blocking wait call with a timeout. For example, the File poller does
+        not block, each receive() call returns immediately and either contains new files or not. Therefore, even if
+        a poller contains a long receive-timeout, that value would never be usable in such a scenario. On the other
+        hand when using Spring Integration's own queue-based channels, the timeout value does have a chance to
+        participate. The following example demonstrates how a Polling Consumer will receive Messages nearly
+        instantaneously.
+      <programlisting language="xml"><![CDATA[ <service-activator input-channel="someQueueChannel"
+        output-channel="output">  
+     <poller receive-timeout="30000">
+         <interval-trigger interval="10"/>
+     </poller>
+ </service-activator>]]></programlisting>
       Using this approach does not carry much overhead since internally it is nothing more then a timed-wait thread
       which does not require nearly as much CPU resource usage as a thrashing, infinite while loop for example.
     </para>
