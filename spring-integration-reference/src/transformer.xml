@@ -65,12 +65,6 @@
       be sent (effectively the same behavior as a Message Filter returning false). Otherwise, the return value will be
       sent as the payload of an outbound reply Message.
     </para>
-	<note>
-      <para>
-        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;transformer&gt;</code>
-        configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
-      </para>
-	</note>
 	<para>
 		There are a also a few Transformer implementations available out of the box. Because, it is fairly common
 		to use the <methodname>toString()</methodname> representation of an Object, Spring Integration provides an
@@ -97,6 +91,14 @@
  <payload-deserializing-transformer input-channel="bytesIn"
              output-channel="objectsOut"/>]]></programlisting>
 	</para>
+	<para>
+		If you only need to add headers to a Message, and they are not dynamically determined by Message content,
+		then referencing a custom implementation may be overkill. For that reason, Spring Integration provides the
+		'header-enricher' element. 	<programlisting language="xml"><![CDATA[ <header-enricher input-channel="in" output-channel="out">
+     <header name="foo" value="123"/>
+     <header name="bar" ref="someBean"/>
+ </header-enricher>]]></programlisting>
+    </para>
   </section>
 
   <section id="transformer-annotation">
