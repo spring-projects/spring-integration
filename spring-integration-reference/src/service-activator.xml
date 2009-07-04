@@ -34,33 +34,37 @@
       "output-channel" was provided in the endpoint configuration:
       <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
                    ref="somePojo" method="someMethod"/&gt;</programlisting>
-      If no "output-channel" is available, it will then check the Message's <literal>RETURN_ADDRESS</literal> header
+      If no "output-channel" is available, it will then check the Message's <literal>REPLY_CHANNEL</literal> header
       value. If that value is available, it will then check its type. If it is a
       <interfacename>MessageChannel</interfacename>, the reply message will be sent to that channel. If it is a
       <classname>String</classname>, then the endpoint will attempt to resolve the channel name to a channel instance.
       If the channel cannot be resolved, then a <classname>ChannelResolutionException</classname> will be thrown.
     </para>
     <para>
-     The argument in the service method could be either a Message or an arbitrary type. If the later one, then it will be assumed that it is a Payload source,
-      which will be extracted from the message and injected into such service method. This is generally the recommended approach as it follows and promotes
-      a POJO model when working with Spring Integration.
-    Since v1.0.3 of Spring Integration, the service method does not require to have an argument at all, which means you can now implement event-style Service Activators,
-    where all you care about is an invocation of the service method not worrying about the contents of the message. Think of it as a NULL JMS message. An example use-case for such implementation 
-    could be a simple counter/monitor of messages deposited on the input channel.
+      The argument in the service method could be either a Message or an arbitrary type. If the latter, then it will
+      be assumed that it is a Message payload, which will be extracted from the message and injected into such service
+      method. This is generally the recommended approach as it follows and promotes a POJO model when working with Spring
+      Integration. Arguments may also have @Header or @Headers annotations as described in <xref linkend="annotations"/>
     </para>
+    <note>
+       Since v1.0.3 of Spring Integration, the service method is not required to have an argument at all, which means you
+       can now implement event-style Service Activators, where all you care about is an invocation of the service method,
+       not worrying about the contents of the message. Think of it as a NULL JMS message. An example use-case for such an
+       implementation could be a simple counter/monitor of messages deposited on the input channel.
+    </note>
     <para>
-    Using a "ref" attribute is generally recommended if custom Service Activator handler implementation can be reused in other <code>&lt;service-activator&gt;</code> definitions. However
-if custom Service Activator handler implementation has to be scoped to a concrete definition of the <code>&lt;service-activator&gt;</code>, starting with v1.0.3, Spring Integration supports
-inner bean definitions for custom Service Activator handlers within the <code>&lt;service-activator&gt;</code> element:
-<programlisting language="xml"><![CDATA[<service-activator id="testServiceActivator" input-channel="inChannel" 
+      Using a "ref" attribute is generally recommended if the custom Service Activator handler implementation can be reused
+      in other <code>&lt;service-activator&gt;</code> definitions. However if the custom Service Activator handler implementation
+      should be scoped to a single definition of the <code>&lt;service-activator&gt;</code>, you can use an inner bean definition:
+<programlisting language="xml"><![CDATA[<service-activator id="exampleServiceActivator" input-channel="inChannel" 
 						output-channel = "outChannel" method="foo">
-		<beans:bean class="org.foo.TestServiceActivator" /> \
+		<beans:bean class="org.foo.ExampleServiceActivator"/>
 </service-activator>]]></programlisting>
     </para>
     <note>
     <para>
-    Using both "ref" attribute and inner handler definition in the same <code>&lt;service-activator&gt;</code> configuration
-    is not allowed, as it creates an ambiguous condition and will result in Exception being thrown 
+    Using both the "ref" attribute and an inner handler definition in the same <code>&lt;service-activator&gt;</code>
+    configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
     </para>
     </note>
   </section>

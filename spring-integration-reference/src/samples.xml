@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <appendix id="samples">
+
   <title>Spring Integration Samples</title>
-	<para>
-	Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are distributed as independent Maven-based projects 
-	(<ulink url="http://maven.apache.org/">http://maven.apache.org/</ulink>) to minimize the setup time.
-	Since each project is also an Eclipse-based project, they could be imported as is using "Import existing project wizard". 
-	If you prefer other IDE, configuration should be very trivial, since a special Maven profile was setup to download all the 
-	required dependencies required by all samples.
-	Detailed instructions on how to run samples provided in README file located in the <emphasis>samples</emphasis> directory of the main distribution. 
-	</para>
+
+	<note>
+		Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are distributed as independent
+		Maven-based projects (<ulink url="http://maven.apache.org/">http://maven.apache.org/</ulink>) to minimize the setup time.
+		Since each project is also an Eclipse-based project, they can be imported as is using "Import existing project wizard". 
+		If you prefer another IDE, configuration should be very trivial, since a special Maven profile was setup to download all
+		of the required dependencies for all samples. Detailed instructions on how to build and run the samples are provided in
+		the <code>README.txt</code> file located in the <emphasis>samples</emphasis> directory of the main distribution.
+	</note>
+
   <section id="samples-cafe">
     <title>The Cafe Sample</title>
     <para>
@@ -31,7 +34,7 @@
       The <classname>Order</classname> object may contain multiple <classname>OrderItems</classname>. Once the order
       is placed, a <emphasis>Splitter</emphasis> will break the composite order message into a single message per
       drink. Each of these is then processed by a <emphasis>Router</emphasis> that determines whether the drink is hot
-      or cold (checking the <classname>OrderItem</classname> object's 'isIced' property). Finally the
+      or cold (checking the <classname>OrderItem</classname> object's 'isIced' property). The
       <classname>Barista</classname> prepares each drink, but hot and cold drink preparation are handled by two
       distinct methods: 'prepareHotDrink' and 'prepareColdDrink'. The prepared drinks are then sent to the Waiter where
       they are aggregated into a <classname>Delivery</classname> object.
@@ -195,16 +198,10 @@
     }
 }]]></programlisting>
     </para>
-    <para>
-      To run this demo, go to the "samples" directory within the root of the Spring Integration distribution. On
-      Unix/Mac you can run 'cafeDemo.sh', and on Windows you can run 'cafeDemo.bat'. Each of these will by default
-      create a Spring <interfacename>ApplicationContext</interfacename> from the 'cafeDemo.xml' file that is
-      in the "spring-integration-samples" JAR and hence on the classpath (it is the same as the XML above). However, a
-      copy of that file is also available within the "samples" directory, so that you can provide the file name as a
-      command line argument to either 'cafeDemo.sh' or 'cafeDemo.bat'. This will allow you to experiment with the
-      configuration and immediately run the demo with your changes. It is probably a good idea to first copy the
-      original file so that you can make as many changes as you want and still refer back to the original to compare.
-    </para>
+    <tip>
+      To run this sample as well as 8 others, refer to the <code>README.txt</code> within the "samples" directory
+      of the main distribution as described at the beginning of this chapter.
+    </tip>
     <para>
       When you run cafeDemo, you will see that the cold drinks are initially prepared more quickly than the hot drinks.
       Because there is an aggregator, the cold drinks are effectively limited by the rate of the hot drink preparation.
@@ -233,17 +230,16 @@
       then you will notice that occasionally it throttles the input by forcing the task-scheduler (the caller) to invoke
       the operation.
     </para>
-    <para>
+    <note>
       In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
-      sub-element. If you want to explore the sample in more detail, the source JAR is available in the "src"
-      directory: 'org.springframework.integration.samples-sources-1.0.0.jar'.
-    </para>
+      sub-element and then refer to any PlatformTransactionManager instance within the context.
+    </note>
   </section>
 
   <section id="samples-xml-messaging">
     <title>The xml messaging sample</title>
     <para>
-    	The xml messaging sample in <package>org.springframework.integration.samples.xml</package> illustrates how to use 
+    	The xml messaging sample in the <package>org.springframework.integration.samples.xml</package> illustrates how to use 
     	some of the provided components which deal with xml payloads.  The sample uses the idea of processing an order for books
     	represented as xml.   
     </para>
@@ -284,7 +280,6 @@
      xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
 ]]></programlisting>    	 
     </para>
-  </section>
-  
+  </section> 
   
 </appendix>
