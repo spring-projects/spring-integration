@@ -27,10 +27,10 @@
 </bean>]]></programlisting>
       </para>
       <para>
-      Configuration of <classname>PayloadTypeRouter</classname> is also supported via namespace support provided by Spring Integration (see <xref linkend="configuration-namespace"/>),
+      Configuration of <classname>PayloadTypeRouter</classname> is also supported via the namespace provided by Spring Integration (see <xref linkend="configuration-namespace"/>),
       which essentially simplifies configuration by combining <code>&lt;router/&gt;</code> configuration and its corresponding implementation defined using <code>&lt;bean/&gt;</code> element 
       into a single and more concise configuration element.
-      Example below demonstrates <classname>PayloadTypeRouter</classname> configuration which is equivalent to the one above using Spring Integration namespace support:
+      The example below demonstrates <classname>PayloadTypeRouter</classname> configuration which is equivalent to the one above using Spring Integration's namespace support:
       </para>
       <para>
       <programlisting language="xml"><![CDATA[<payload-type-router input-channel="routingChannel">
@@ -52,8 +52,8 @@
         2. Channel name
      </para>
      <para>
-        If arbitrary value, then <code>channelResolver</code> should be provided to map <emphasis>header values</emphasis> to <emphasis>channel names</emphasis>.
-		Example below uses <code>MapBasedChannelResolver</code> to set up a map of header values to channel names.
+        If arbitrary value, then a <code>channelResolver</code> should be provided to map <emphasis>header values</emphasis> to <emphasis>channel names</emphasis>.
+		The example below uses <code>MapBasedChannelResolver</code> to set up a map of header values to channel names.
 <programlisting language="xml"><![CDATA[ <bean id="myHeaderValueRouter"
 		class="org.springframework.integration.router.HeaderValueRouter">
   <constructor-arg value="someHeaderName" /> 
@@ -69,7 +69,7 @@
   </property>
 </bean>
 ]]></programlisting>
-        If <code>channelResolver</code> is not specified, then <emphasis>header value</emphasis> will be treated as <emphasis>channel name</emphasis> 
+        If <code>channelResolver</code> is not specified, then the <emphasis>header value</emphasis> will be treated as a <emphasis>channel name</emphasis> 
         making configuration much simpler, where no <code>channelResolver</code> needs to be specified.
 <programlisting language="xml"><![CDATA[ 
 <bean id="myHeaderValueRouter"
@@ -80,7 +80,7 @@
       </para>
       <para>
       Similar to the <classname>PayloadTypeRouter</classname>, configuration of <classname>HeaderValueRouter</classname> is also supported via namespace support provided by Spring Integration (see <xref linkend="configuration-namespace"/>).
-      Example below demonstrates two types of namespace-based configuration of <classname>HeaderValueRouter</classname> which are equivalent to the ones above using Spring Integration namespace support:
+      The example below demonstrates two types of namespace-based configuration of <classname>HeaderValueRouter</classname> which are equivalent to the ones above using Spring Integration namespace support:
       </para>
       <para>1. Configuration where mapping of header values to channels is required</para>
       <para>
@@ -93,6 +93,12 @@
       <para>
       <programlisting language="xml"><![CDATA[<header-value-router input-channel="routingChannel" header-name="testHeader"/>]]></programlisting>
 	</para>
+	<note>
+      The two router implementations shown above share some common properties, such as "defaultOutputChannel" and "resolutionRequired".
+      If "resolutionRequired" is set to "true", and the router is unable to determine a target channel (e.g. there is
+      no matching payload for a PayloadTypeRouter and no "defaultOutputChannel" has been specified), then an Exception
+      will be thrown.
+    </note>
     </section>
     <section id="router-implementations-recipientlistrouter">
       <title>RecipientListRouter</title>
@@ -110,15 +116,9 @@
 </bean>]]></programlisting>
       </para>
     </section>
-    <note>
-      The router implementations share some common properties, such as "defaultOutputChannel" and "resolutionRequired".
-      If "resolutionRequired" is set to "true", and the router is unable to determine a target channel (e.g. there is
-      no matching payload for a PayloadTypeRouter and no "defaultOutputChannel" has been specified), then an Exception
-      will be thrown.
-    </note>
      <para>
       Configuration for <classname>RecipientListRouter</classname> is also supported via namespace support provided by Spring Integration (see <xref linkend="configuration-namespace"/>).
-      Example below demonstrates namespace-based configuration of <classname>RecipientListRouter</classname> and all the supported attributes using Spring Integration namespace support:
+      The example below demonstrates namespace-based configuration of <classname>RecipientListRouter</classname> and all the supported attributes using Spring Integration namespace support:
       </para>
       <para>
       <programlisting language="xml"><![CDATA[<recipient-list-router id="customRouter" input-channel="routingChannel"
@@ -129,14 +129,19 @@
 	<recipient channel="channel2"/>
 </recipient-list-router>]]></programlisting>
 	</para>
+    <note>
+      The 'apply-sequence' flag here has the same affect as it does for a publish-subscribe-channel,
+      and like publish-subscribe-channel it is disabled by default on the recipient-list-router. Refer to
+      <xref linkend="channel-configuration-pubsubchannel"/> for more information.
+	</note>
   </section>
 
   <section id="router-namespace">
     <title>The &lt;router&gt; element</title>
     <para>
 	  The "router" element provides a simple way to connect a router to an input channel, and also accepts the
-      optional default output channel. The "ref" may provide the bean name to one of the implementations described
-      above or a custom Router implementation (extending AbstractMessageRouter):
+      optional default output channel. The "ref" may provide the bean name of a custom Router implementation
+      (extending AbstractMessageRouter):
       <programlisting language="xml"><![CDATA[<router ref="payloadTypeRouter" input-channel="input1" default-output-channel="defaultOutput1"/>
 
 <router ref="recipientListRouter" input-channel="input2" default-output-channel="defaultOutput2"/>
@@ -151,8 +156,7 @@
       <programlisting language="xml"><![CDATA[<router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
       Using a "ref" attribute is generally recommended if the custom router implementation can be reused in other
       <code>&lt;router&gt;</code> definitions. However if the custom router implementation should be scoped to a
-      concrete definition of the <code>&lt;router&gt;</code>, starting with v1.0.3, Spring Integration supports inner
-      bean definitions for custom routers within the <code>&lt;router&gt;</code> element:
+      concrete definition of the <code>&lt;router&gt;</code>, you can provide an inner bean definition:
 <programlisting language="xml"><![CDATA[<router method="someMethod" input-channel="input3" default-output-channel="defaultOutput3">
 	<beans:bean class="org.foo.MyCustomRouter"/>
 </router>]]></programlisting>
@@ -160,7 +164,7 @@
     <note>
       <para>
         Using both the "ref" attribute and an inner handler definition in the same <code>&lt;router&gt;</code> configuration
-        is not allowed, as it creates an ambiguous condition and will result in Exception being thrown.
+        is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
       </para>
     </note>
   </section>
@@ -189,7 +193,7 @@ public List&lt;String&gt; route(Foo payload) {...}</programlisting>
       In addition to payload-based routing, a common requirement is to route based on metadata available within the
       message header as either a property or attribute. Rather than requiring use of the
       <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
-      annotation may also use the @Header parameter annotation that is documented in section <xref  linkend="annotations"/>.
+      annotation may also use the @Header parameter annotation that is documented in <xref linkend="annotations"/>.
       <programlisting language="java">@Router
 public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
     </para>

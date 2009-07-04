@@ -16,8 +16,9 @@
 
     <para>The Resequencer works in a similar way to the Aggregator, in the
     sense that it uses the CORRELATION_ID to store messages in groups, the
-    difference being that all what the Resequencer does, is to release them in
-    the order of their SEQUENCE_NUMBER.</para>
+    difference being that the Resequencer does not process the messages in
+    any way. It simply releases them in the order of their SEQUENCE_NUMBER
+    header values.</para>
 
     <para>With respect to that, the user might opt to release all messages at
     once (after the whole sequence, according to the SEQUENCE_SIZE, has been
@@ -79,7 +80,7 @@
         </callout>
 
         <callout arearefs="resxml6-co" id="resxml6">
-          <para>The timeout for reordering message sequences (counted from the
+          <para>The timeout (in milliseconds) for reordering message sequences (counted from the
           arrival of the first message). <emphasis>Optional</emphasis>.</para>
         </callout>
 
@@ -110,7 +111,7 @@
       </calloutlist></para>
 
     <note>
-       Since there is no custom behaviour to be implemented in Java classes for resequencers, there is no annotation support for it. 
+       Since there is no custom behavior to be implemented in Java classes for resequencers, there is no annotation support for it. 
     </note>
   </section>
 </chapter>

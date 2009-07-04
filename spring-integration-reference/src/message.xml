@@ -93,6 +93,10 @@
               <entry>java.lang.Object (can be a String or MessageChannel)</entry>
             </row>
             <row>
+              <entry>ERROR_CHANNEL</entry>
+              <entry>java.lang.Object (can be a String or MessageChannel)</entry>
+            </row>
+            <row>
               <entry>SEQUENCE_NUMBER</entry>
               <entry>java.lang.Integer</entry>
             </row>
