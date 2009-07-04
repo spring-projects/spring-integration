@@ -122,9 +122,9 @@
         </callout>
       </calloutlist></para>
       <para>
-    Using a "ref" attribute is generally recommended if custom splitter handler implementation can be reused in other <code>&lt;splitter&gt;</code> definitions. However
-if custom splitter handler implementation has to be scoped to a concrete definition of the <code>&lt;splitter&gt;</code>, starting with v1.0.3, Spring Integration supports
-inner bean definitions for custom splitter handlers within the <code>&lt;splitter&gt;</code> element:
+        Using a "ref" attribute is generally recommended if the custom splitter handler implementation can be reused in other      
+        <code>&lt;splitter&gt;</code> definitions. However if the custom splitter handler implementation should be scoped to a
+        single definition of the <code>&lt;splitter&gt;</code>, you can configure an inner bean definition:
 <programlisting language="xml"><![CDATA[<splitter id="testSplitter" input-channel="inChannel" method="split"
 								output-channel="outChannel">
 	<beans:bean class="org.foo.TestSplitter"/>
@@ -132,8 +132,8 @@ inner bean definitions for custom splitter handlers within the <code>&lt;splitte
     </para>
     <note>
     <para>
-    Using both "ref" attribute and inner handler definition in the same <code>&lt;splitter&gt;</code> configuration
-    is not allowed, as it creates an ambiguous condition and will result in Exception being thrown. 
+       Using both a "ref" attribute and an inner handler definition in the same <code>&lt;splitter&gt;</code>
+       configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
     </para>
     </note>
   </section>
@@ -154,4 +154,5 @@ List&lt;LineItem&gt; extractItems(Order order) {
     return order.getItems()
 }</programlisting></para>
   </section>
+
 </chapter>
