@@ -32,6 +32,12 @@
          <integration:interval-trigger interval="30" time-unit="SECONDS"/>
      </integration:poller>
  </jms:inbound-channel-adapter>]]></programlisting>
+      <tip>
+        Notice from the configuration that the inbound-channel-adapter is a Polling Consumer. That means that
+        it invokes receive() when triggered. This should only be used in situations where polling is done relatively
+        infrequently and timeliness is not important. For all other situations (a vast majority of JMS-based use-cases),
+        the <emphasis>message-driven-channel-adapter</emphasis> described below is a better option.
+      </tip>
       <note>
         All of the JMS adapters that require a reference to the ConnectionFactory will automatically look for
         a bean named "connectionFactory" by default. That is why you don't see a "connection-factory" attribute
@@ -164,10 +170,10 @@
       <note>
         For all of these JMS adapters, you can also specify your own "message-converter" reference. Simply provide the
         bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
-        ApplicationContext. Note, however, that when you provide your own MessageConverter instance, the default
-        HeaderMappingMessageConverter will not be used. This means that the 'extract-request-payload' and
-        'extract-reply-payload' properties will have no effect. Of course, you can provide a reference to your own
-        instance of HeaderMappingMessageConverter. It simply delegates to a MessageConverter while also mapping the
+        ApplicationContext. Note, however, that when you provide your own MessageConverter instance, it will still
+        be wrapped within the HeaderMappingMessageConverter. This means that the 'extract-request-payload'
+        and 'extract-reply-payload' properties may effect what actual objects are passed to your converter. The
+        HeaderMappingMessageConverter itself simply delegates to a target MessageConverter while also mapping the
         Spring Integration MessageHeaders to JMS Message properties and vice-versa.
       </note>
     </para>
@@ -176,14 +182,15 @@
   <section id="jms-samples">
     <title>JMS Samples</title>
     <para>
-      To experiment with these JMS adapters, check out the samples available within the "jms" package of the
-      "org.springframework.integration.samples" module (in the distribution). There are two samples included. One
-      provides inbound and outbound Channel Adapters, and the other provides inbound and outbound Gateways. They are
-      configured to run with an embedded ActiveMQ process, but the "common.xml" file can easily be modified to support
-      either a different JMS provider or a standalone ActiveMQ process. In other words, you can split the configuration
-      so that the inbound and outbound adapters are running in separate JVMs. If you have ActiveMQ installed, simply
-      modify the "brokerURL" property within the configuration to use "tcp://localhost:61616" for example (instead of
-      "vm://localhost").
+      To experiment with these JMS adapters, check out the samples available within the "samples/jms" directory in
+      the distribution. There are two samples included. One provides inbound and outbound Channel Adapters, and the
+      other provides inbound and outbound Gateways. They are configured to run with an embedded ActiveMQ process, but
+      the "common.xml" file can easily be modified to support either a different JMS provider or a standalone
+      ActiveMQ process. In other words, you can split the configuration so that the inbound and outbound adapters are
+      running in separate JVMs. If you have ActiveMQ installed, simply modify the "brokerURL" property within the
+      configuration to use "tcp://localhost:61616" for example (instead of "vm://localhost"). Both of the samples
+      accept input via stdin and then echo back to stdout. Look at the configuration to see how these messages are
+      routed over JMS.
     </para>
   </section>
 

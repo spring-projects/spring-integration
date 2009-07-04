@@ -12,7 +12,7 @@
       <programlisting language="java"> JavaMailSender mailSender = (JavaMailSender) context.getBean("mailSender");
 
  MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);</programlisting>
-      <classname>MailSendingMessageHandler</classname> various mapping strategies use Spring's
+      <classname>MailSendingMessageHandler</classname> has various mapping strategies that use Spring's
       <interfacename>MailMessage</interfacename> abstraction. If the received Message's payload is already
       a MailMessage instance, it will be sent directly. Therefore, it is generally recommended to precede this
       consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple

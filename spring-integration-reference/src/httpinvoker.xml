@@ -28,7 +28,7 @@
   <section id="httpinvoker-inbound">
     <title>HttpInvoker Inbound Gateway</title>
     <para>
-		To receive messages over http you need to use an <classname>HttpInvokerInboundGateway</classname>. Here is an
+		To receive messages over http you can use an <classname>HttpInvokerInboundGateway</classname>. Here is an
 		example bean definition:
 		<programlisting language="xml"><![CDATA[<bean id="inboundGateway"
       class="org.springframework.integration.httpinvoker.HttpInvokerInboundGateway">
