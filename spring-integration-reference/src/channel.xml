@@ -258,6 +258,11 @@
         the <methodname>preReceive(..)</methodname> and <methodname>postReceive(..)</methodname> interceptor methods
         are only invoked when the interceptor is applied to a <interfacename>PollableChannel</interfacename>.
       </note>
+      Spring Integration also provides an implementation of the
+      <ulink url="http://eaipatterns.com/WireTap.html">Wire Tap</ulink> pattern.
+      It is a simple interceptor that sends the Message to another channel without otherwise altering the
+      existing flow. It can be very useful for debugging and monitoring. An example is shown in
+      <xref linkend="channel-wiretap"/>.
     </para>
     <para>
       Because it is rarely necessary to implement all of the interceptor methods, a
@@ -450,19 +455,45 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         <programlisting language="xml"><![CDATA[<thread-local-channel id="threadLocalChannel"/>]]></programlisting>
       </para>
     </section>
-    <para>
-      Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. One or
-      more &lt;interceptor&gt; elements can be added as sub-elements of &lt;channel&gt; (or the more specific element
-      types). Provide the "ref" attribute to reference any Spring-managed object that implements the
-      <interfacename>ChannelInterceptor</interfacename> interface:
-      <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
+
+    <section id="channel-configuration-interceptors">
+	  <title>Channel Interceptor Configuration</title>
+      <para>
+        Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. The
+        &lt;interceptors&gt; sub-element can be added within &lt;channel&gt; (or the more specific element
+        types). Provide the "ref" attribute to reference any Spring-managed object that implements the
+        <interfacename>ChannelInterceptor</interfacename> interface:
+        <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
     ]]><emphasis><![CDATA[<interceptors>
         <ref bean="trafficMonitoringInterceptor"/>
     </interceptors>]]></emphasis><![CDATA[
 </channel>]]></programlisting>
-      In general, it is a good idea to define the interceptor implementations in a separate location since they
-      usually provide common behavior that can be reused across multiple channels.
-    </para>
+        In general, it is a good idea to define the interceptor implementations in a separate location since they
+        usually provide common behavior that can be reused across multiple channels.
+      </para>
+    </section>
+
+    <section id="channel-wiretap">
+	  <title>Wire Tap</title>
+      <para>
+		As mentioned above, Spring Integration provides a simple <emphasis>Wire Tap</emphasis> interceptor out of
+		the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an 'interceptors' element.
+        This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
+		Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <channel id="in">
+     <interceptors>
+         <wire-tap channel="logger"/>
+     </interceptors>
+ </channel>
+
+ <logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
+        <tip>
+			The 'logging-channel-adapter' also accepts a boolean attribute: <emphasis>'log-full-message'</emphasis>.
+			That is <emphasis>false</emphasis> by default so that only the payload is logged. Setting that to
+			<emphasis>true</emphasis> enables logging of all headers in addition to the payload.
+	    </tip>
+      </para>
+	</section>
+
     <note>
       <para>
         If namespace support is enabled, there are also two special channels defined within the context by default:

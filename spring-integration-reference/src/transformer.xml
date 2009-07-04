@@ -40,33 +40,63 @@
 <beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />]]></programlisting>
     </para>
     <para>
-    Using a "ref" attribute is generally recommended if custom transformer handler implementation can be reused in other <code>&lt;transformer&gt;</code> definitions. However
-if custom transformer handler implementation has to be scoped to a concrete definition of the <code>&lt;transformer&gt;</code>, starting with v1.0.3, Spring Integration supports
-inner bean definitions for custom transformer handlers within the <code>&lt;transformer&gt;</code> element:
+      Using a "ref" attribute is generally recommended if the custom transformer handler implementation can be reused in
+      other <code>&lt;transformer&gt;</code> definitions. However if the custom transformer handler implementation should
+      be scoped to a single definition of the <code>&lt;transformer&gt;</code>, you can define an inner bean definition:
 <programlisting language="xml"><![CDATA[<transformer id="testTransformer" input-channel="inChannel" method="transform"
 								output-channel="outChannel">
 	<beans:bean class="org.foo.TestTransformer"/>
 </transformer>]]></programlisting>
     </para>
     <note>
-    <para>
-    Using both "ref" attribute and inner handler definition in the same <code>&lt;transformer&gt;</code> configuration
-    is not allowed, as it creates an ambiguous condition and will result in Exception being thrown 
-    </para>
+      <para>
+        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;transformer&gt;</code>
+        configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+      </para>
     </note>
-    
     <para>
       The method that is used for transformation may expect either the <interfacename>Message</interfacename> type or
-      the payload type of inbound Messages. The return value of the method can be any type. If the return value is
-      itself a <interfacename>Message</interfacename>, that will be passed along to the transformer's output channel.
-      If the return value is <emphasis>null</emphasis>, then no reply Message will be sent (effectively the same
-      behavior as a Message Filter). Otherwise, the return value will be sent as the payload of a Message.
+      the payload type of inbound Messages. It may also accept Message header values either individually or as a full
+      map by using the @Header and @Headers parameter annotations respectively. The return value of the method can be
+      any type. If the return value is itself a <interfacename>Message</interfacename>, that will be passed along to
+      the transformer's output channel. If the return type is a Map, and the original Message payload was
+      <emphasis>not</emphasis> a Map, the entries in that Map will be added to the Message headers of the original
+      Message (the keys must be Strings). If the return value is <emphasis>null</emphasis>, then no reply Message will
+      be sent (effectively the same behavior as a Message Filter returning false). Otherwise, the return value will be
+      sent as the payload of an outbound reply Message.
     </para>
 	<note>
-	<para>Using both "ref" attribute and inner handler definition in the same <code>&lt;router&gt;</code> configuration is not 
-	allowed, as it creates an ambiguous condition and will result in Exception being thrown</para>
+      <para>
+        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;transformer&gt;</code>
+        configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+      </para>
 	</note>
-    
+	<para>
+		There are a also a few Transformer implementations available out of the box. Because, it is fairly common
+		to use the <methodname>toString()</methodname> representation of an Object, Spring Integration provides an
+		<classname>ObjectToStringTransformer</classname> whose output is a Message with a String payload. That String
+		is the result of invoking the toString operation on the inbound Message's payload.
+		<programlisting language="xml"><![CDATA[ <object-to-string-transformer input-channel="in" output-channel="out"/>]]></programlisting>
+		A potential example for this would be sending some arbitrary object to the 'outbound-channel-adapter' in the
+		<emphasis>file</emphasis> namespace. Whereas that Channel Adapter only supports String, byte-array, or
+		<classname>java.io.File</classname> payloads by default, adding this transformer immediately before the
+		adapter will handle the necessary conversion. Of course, that works fine as long as the result of the
+		<methodname>toString()</methodname> call is what you want to be written to the File. Otherwise, you can
+		just provide a custom POJO-based Transformer via the generic 'transformer' element shown previously.
+		<tip>
+			When debugging, this transformer is not typically necessary since the 'logging-channel-adapter' is capable
+			of logging the Message payload. Refer to <xref linkend="channel-wiretap"/> for more detail.
+		</tip>
+	</para>
+	<para>
+		If you need to serialize an Object to a byte array or deserialize a byte array back into an Object,
+		Spring Integration provides symmetrical serialization transformers.
+			<programlisting language="xml"><![CDATA[ <payload-serializing-transformer input-channel="objectsIn"
+             output-channel="bytesOut"/>
+
+ <payload-deserializing-transformer input-channel="bytesIn"
+             output-channel="objectsOut"/>]]></programlisting>
+	</para>
   </section>
 
   <section id="transformer-annotation">
@@ -81,7 +111,7 @@ Order generateOrder(String productId) {
 }</programlisting>
     </para>
     <para>
-      Transformer methods may also accept the @Header and @Headers annotations that is documented in section <xref  linkend="annotations"/>
+      Transformer methods may also accept the @Header and @Headers annotations that is documented in <xref linkend="annotations"/>
 	      <programlisting language="java">@Transformer
 Order generateOrder(String productId, @Header("customerName") String customer) {
     return new Order(productId, customer);
