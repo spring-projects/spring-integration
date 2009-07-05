@@ -34,10 +34,10 @@
 			<interfacename>Transformer</interfacename>.  When configuring xml transformers as beans in 
 			Spring Integration you would normally configure the transformer in conjunction with either 
 			a <classname>MessageTransformingChannelInterceptor</classname> or a 
-			<classname>MessageTransformingConsumer</classname>.  This allows the transformer to be used as either an interceptor,
+			<classname>MessageTransformingHandler</classname>.  This allows the transformer to be used as either an interceptor,
 			which transforms the message as it is sent or received to the channel, or as an endpoint.  Finally the 
 			namespace support will be discussed which allows for the simple configuration of the transformers as 
-			<interfacename>MessageEndpoint</interfacename> instances.
+			elements in XML.
 		</para>
 		<para>
 			<classname>XmlPayloadUnmarshallingTransformer</classname> allows an xml <interfacename>Source</interfacename> 
@@ -103,7 +103,7 @@
 		<para>
 			Namespace support for all xml transformers is provided in the Spring Integration xml namespace, 
 			a template for which can be seen below.  The namespace support for transformers creates an instance of either 
-			<classname>SubscribingConsumerEndpoint</classname> or <classname>PollingConsumerEndpoint</classname> 
+			<classname>EventDrivenConsumer</classname> or <classname>PollingConsumer</classname> 
 			according to the type of the provided input channel.  The namespace support is designed 
 			to reduce the amount of xml configuration by allowing the creation of an endpoint and transformer 
 			using one element.
@@ -143,7 +143,7 @@
     reference to a marshaller.  The optional result-type attribute can be used to control the type of result created, 
     valid values are StringResult or DomResult (the default).  Where the provided result types are not sufficient a 
     reference to a custom implementation of <interfacename>ResultFactory</interfacename> can be provided as an alternative 
-    to setting the result-type attribute using the result-factory attrbitue.  An optional result-transformer can also be 
+    to setting the result-type attribute using the result-factory attribute.  An optional result-transformer can also be 
     specified in order to convert the created <interfacename>Result</interfacename> after marshalling.  
 		<programlisting language="xml"><![CDATA[<si-xml:marshalling-transformer
      input-channel="marshallingTransformerStringResultFactory"
@@ -190,8 +190,9 @@
 			becoming the payload of a new message.  Where it is preferred that each message be a Document
 			the <methodname>createDocuments</methodname> flag can be set.  Where a <classname>String</classname> payload is passed 
 			in the payload will be converted then split before being converted back to a number of String 
-			messages.  The XPath splitter implements <interfacename>MessageConsumer</interfacename> and should 
-			therefore be configured in conjunction with an appropriate endpoint.
+			messages.  The XPath splitter implements <interfacename>MessageHandler</interfacename> and should 
+			therefore be configured in conjunction with an appropriate endpoint (see the namespace support below
+			for a simpler configuration alternative).
 			<programlisting language="xml"><![CDATA[<bean id="splittingEndpoint"
       class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
     <constructor-arg>
@@ -218,13 +219,13 @@
 			are <interfacename>Node</interfacename>, <interfacename>Document</interfacename> and
 			<interfacename>String</interfacename>.  For other payload types a custom implementation 
 			of <interfacename>XmlPayloadConverter</interfacename> can be provided.  The router 
-			implementations use <interfacename>ChannelNameResolver</interfacename> to convert the 
+			implementations use <interfacename>ChannelResolver</interfacename> to convert the 
 			result(s) of the XPath expression to a channel name.  By default a 
-			<classname>BeanFactoryChannelName</classname> strategy will be used, this means that the string returned by the XPath 
+			<classname>BeanFactoryChannelResolver</classname> strategy will be used, this means that the string returned by the XPath 
 			evaluation should correspond directly to the name of a channel.  Where this is not the case
-			an alternative implementation of <interfacename>ChannelNameResolver</interfacename> can 
+			an alternative implementation of <interfacename>ChannelResolver</interfacename> can 
 			be used.  Where there is a simple mapping from Xpath result to channel name
-			the provided <classname>MapBasedChannelName</classname> can be used.
+			the provided <classname>MapBasedChannelResolver</classname> can be used.
 			<programlisting language="xml"><![CDATA[<!-- Expects a channel for each value of order type to exist  -->
 <bean id="singleChannelRoutingEndpoint"
       class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
@@ -301,8 +302,8 @@
 	
 	<section id="xpath-namespace-support">
 		<title>XPath components namespace support</title>
-		<para>All XPath based components have namespace support allowing them to be configured as instances of 
-		<interfacename>MessageEndpoint</interfacename> with the exception of the XPath selectors which are not designed to act as 
+		<para>All XPath based components have namespace support allowing them to be configured as
+		Message Endpoints with the exception of the XPath selectors which are not designed to act as 
 		endpoints.  Each component allows the XPath to either be referenced at the top level or configured via a nested 
 		xpath-expression element.  So the following configurations of an xpath-selector are all valid and represent the general 
 		form of XPath namespace support.  All forms of XPath expression result in the creation of an 
@@ -340,7 +341,7 @@
 </util:map>]]></programlisting>
 		</para>
 		<para>
-			XPath splitter namespace support allows the creation of a MessageEndpoint with an input channel and output channel.
+			XPath splitter namespace support allows the creation of a Message Endpoint with an input channel and output channel.
 			<programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
 <si-xml:xpath-splitter id="orderItemSplitter"
                        input-channel="orderChannel"
@@ -360,7 +361,7 @@
 </si-xml:xpath-splitter>]]></programlisting>  
 		</para>
 		<para>
-			XPath router namespace support allows for the creation of a MessageEndpoint with an input channel but no output channel 
+			XPath router namespace support allows for the creation of a Message Endpoint with an input channel but no output channel 
 			since the output channel is determined dynamically.  The multi-channel attribute causes the creation of a multi channel router capable of 
 			routing a single message to many channels when true and a single channel router when false.
 			<programlisting language="xml"><![CDATA[<!-- route the message according to exactly one order type channel -->
