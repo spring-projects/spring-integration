@@ -36,6 +36,8 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 
 	private volatile ErrorHandler errorHandler;
 
+	private volatile boolean applySequence;
+
 
 	/**
 	 * Create a PublishSubscribeChannel that will use a {@link TaskExecutor}
@@ -61,6 +63,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 	}
 
 	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
 		this.getDispatcher().setApplySequence(applySequence);
 	}
 
@@ -73,6 +76,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 			}
 			this.dispatcher = new BroadcastingDispatcher(this.taskExecutor);
+			this.dispatcher.setApplySequence(this.applySequence);
 		}
 	}
 

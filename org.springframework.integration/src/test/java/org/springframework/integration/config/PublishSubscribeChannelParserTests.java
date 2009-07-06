@@ -82,6 +82,25 @@ public class PublishSubscribeChannelParserTests {
 	}
 
 	@Test
+	public void applySequenceEnabledWithTaskExecutor() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"publishSubscribeChannelParserTests.xml", this.getClass());
+		PublishSubscribeChannel channel = (PublishSubscribeChannel)
+				context.getBean("channelWithApplySequenceEnabledAndTaskExecutor");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
+				accessor.getPropertyValue("dispatcher");
+		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
+		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
+		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
+		assertNotNull(executor);
+		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
+		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
+		assertEquals(context.getBean("pool"), innerExecutor);
+	}
+
+	@Test
 	public void channelWithErrorHandler() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"publishSubscribeChannelParserTests.xml", this.getClass());
