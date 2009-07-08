@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,16 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 
 /**
- * Demonstrates a basic message endpoint. 
+ * Demonstrates a basic Message Endpoint that simply prepends a greeting
+ * ("Hello ") to an inbound String payload from a Message. This is a very
+ * low-level example, using Message Channels directly for both input and
+ * output. Notice that the output channel has a queue sub-element. It is
+ * therefore a PollableChannel and its consumers must invoke receive() as
+ * demonstrated below. The {@link BeanFactoryChannelResolver} is used here
+ * rather than performing a generic dependency lookup from the context.
+ * <p>
+ * View the configuration of the channels and the endpoint (a &lt;service-activator/&gt;
+ * element) in 'helloWorldDemo.xml' within this same package.
  * 
  * @author Mark Fisher
  */
