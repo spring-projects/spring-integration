@@ -1,4 +1,5 @@
-/* Copyright 2002-2008 the original author or authors.
+/**
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +21,19 @@ import java.io.IOException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
+ * Demonstrates the handling of Exceptions in an asynchronous messaging
+ * environment. View the 'errorHandlingDemo.xml' configuration file within
+ * this same package. Notice the use of a &lt;header-enricher/&gt; element
+ * within a &lt;chain/&gt; that establishes an 'error-channel' reference
+ * prior to passing the message to a &lt;service-activator/&gt;.
+ *
  * @author Iwein Fuld
  */
 public class PartyDemo {
 
 	public static void main(String[] args) {
 		new ClassPathXmlApplicationContext("errorHandlingDemo.xml", PartyDemo.class);
-		System.out.println("hit key to stop");
+		System.out.println("hit any key to stop");
 		try {
 			System.in.read();
 		}
