@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,16 @@ package org.springframework.integration.samples.jms;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Bootstrap for starting the JMS Gateways.
+ * A simple bootstrap main() method for starting a pair of JMS Gateways.
+ * Text entered in the console will go through an outbound JMS Gateway from
+ * which it is sent to a JMS Destination. An inbound JMS Gateway is listening
+ * to that same JMS Destination and will send the text to another Spring
+ * Integration channel where it is handled by a service that simply converts
+ * the text to upper case. The upper-case result is then sent in a response
+ * message over JMS so that the outbound Gateway receives it as the reply to
+ * its original request. At that point, the text is logged to the console.
+ * <p>
+ * See the configuration in the three XML files that are referenced below.
  * 
  * @author Mark Fisher
  */

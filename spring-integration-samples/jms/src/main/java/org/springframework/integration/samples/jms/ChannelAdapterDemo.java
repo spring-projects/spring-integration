@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,13 @@ package org.springframework.integration.samples.jms;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Bootstrap for starting the JMS Channel Adapters.
+ * A simple bootstrap main() method for starting a pair of JMS Channel
+ * Adapters. Text entered in the console will go through an outbound
+ * JMS Channel Adapter from which it is sent to a JMS Destination.
+ * An inbound JMS Channel Adapter is listening to that same JMS
+ * Destination and will echo the result in the console.
+ * <p>
+ * See the configuration in the three XML files that are referenced below.
  * 
  * @author Mark Fisher
  */
