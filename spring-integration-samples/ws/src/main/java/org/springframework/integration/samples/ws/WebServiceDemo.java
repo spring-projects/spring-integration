@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
- * Demonstrating a web service invocation through a Web Service MessageHandler.
+ * Demonstrates a web service invocation through a Web Service outbound Gateway.
+ * A header-enricher provides the Soap Action prior to invocation. See the
+ * 'temperatureConversion.xml' configuration file for more detail.
  * 
  * @author Marius Bogoevici
  */
@@ -37,7 +39,7 @@ public class WebServiceDemo {
 		// Compose the XML message according to the server's schema
 		String requestXml =
 				"<FahrenheitToCelsius xmlns=\"http://tempuri.org/\">" +
-				"  <Fahrenheit>90.0</Fahrenheit>" +
+				"    <Fahrenheit>90.0</Fahrenheit>" +
 				"</FahrenheitToCelsius>";
 
 		// Create the Message object
