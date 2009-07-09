@@ -136,6 +136,11 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		this.testAggregatorDefinitionSuccess(configProperty);
 	}
 	@Test
+	public void testInnerConcurrentAggregatorDefinitionSuccessReorderBeanPoller(){
+		String configProperty = testConfigurations.getProperty("aggregator-inner-concurrent-success-reorder-bean-poller");
+		this.testAggregatorDefinitionSuccess(configProperty);
+	}
+	@Test
 	public void testRefAggregatorDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("aggregator-ref-success");
 		this.testAggregatorDefinitionSuccess(configProperty);
