@@ -470,10 +470,6 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
-				<xsd:sequence>
-					<xsd:element name="poller" type="innerPollerType"
-						minOccurs="0" maxOccurs="1" />
-				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -532,6 +528,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputEndpointType">
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:any processContents="strict" namespace="##other"
+							minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element ref="poller" />
+					</xsd:choice>
 					<xsd:attribute name="output-channel" type="xsd:string"
 						use="optional">
 						<xsd:annotation>
@@ -569,6 +570,7 @@
 						<xsd:element ref="aggregator" />
 						<xsd:element ref="router" />
 						<xsd:element ref="chain" />
+						<xsd:element ref="poller" />
 					</xsd:choice>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -848,7 +850,7 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="object-to-string-transformer" type="inputOutputEndpointType">
+	<xsd:element name="object-to-string-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer that converts any Object
@@ -856,9 +858,20 @@
 				invoking its toString() method.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="inputOutputEndpointType">
+                    <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <xsd:any processContents="strict" namespace="##other"
+                            minOccurs="0" maxOccurs="unbounded" />
+                        <xsd:element ref="poller" />
+                    </xsd:choice>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="payload-serializing-transformer" type="inputOutputEndpointType">
+	<xsd:element name="payload-serializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer that serializes any Object
@@ -866,9 +879,20 @@
 				Serializable into a byte array.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="inputOutputEndpointType">
+                    <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <xsd:any processContents="strict" namespace="##other"
+                            minOccurs="0" maxOccurs="unbounded" />
+                        <xsd:element ref="poller" />
+                    </xsd:choice>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="payload-deserializing-transformer" type="inputOutputEndpointType">
+	<xsd:element name="payload-deserializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer that deserializes a byte
@@ -876,6 +900,17 @@
 				Object.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="inputOutputEndpointType">
+                    <xsd:choice minOccurs="1" maxOccurs="unbounded">
+                        <xsd:any processContents="strict" namespace="##other"
+                            minOccurs="0" maxOccurs="unbounded" />
+                        <xsd:element ref="poller" />
+                    </xsd:choice>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="filter">
@@ -983,9 +1018,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="channelResolvingRouterType">
-					<xsd:choice>
-						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-					</xsd:choice>
+					<xsd:all>   
+					  <xsd:element name="poller" type="innerPollerType"
+							minOccurs="0" maxOccurs="1" />          
+	                    <xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />                
+	                </xsd:all>
 					<xsd:attribute name="ref" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1060,10 +1097,7 @@
 				</xsd:documentation>
 			</xsd:annotation> 
 			<xsd:complexContent>
-				<xsd:extension base="handlerEndpointType">
-					<xsd:choice>            
-                    	<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-               		</xsd:choice>
+				<xsd:extension base="innerEndpointDefinitionAware">
 					<xsd:attribute name="completion-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1285,9 +1319,11 @@
 	<xsd:complexType name="innerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
-				<xsd:sequence>            
+				<xsd:all>     			    
                     <xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-                </xsd:sequence>
+                     <xsd:element name="poller" type="innerPollerType"
+						minOccurs="0" maxOccurs="1" />    
+                </xsd:all>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

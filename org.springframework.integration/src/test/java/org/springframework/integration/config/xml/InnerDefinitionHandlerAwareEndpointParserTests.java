@@ -64,6 +64,17 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String configProperty = testConfigurations.getProperty("splitter-inner-success");
 		this.testSplitterDefinitionSuccess(configProperty);
 	}
+	
+	@Test
+	public void testInnerSplitterDefinitionSuccessWithPoller(){
+		String configProperty = testConfigurations.getProperty("splitter-inner-success-with-poller");
+		this.bootStrap(configProperty);
+	}
+	@Test
+	public void testInnerSplitterDefinitionSuccessWithPollerReversedOrder(){
+		String configProperty = testConfigurations.getProperty("splitter-inner-success-with-poller-reversed-order");
+		this.bootStrap(configProperty);
+	}
 	@Test
 	public void testRefSplitterDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("splitter-ref-success");
@@ -135,11 +146,11 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		String configProperty = testConfigurations.getProperty("aggregator-inner-concurrent-success");
 		this.testAggregatorDefinitionSuccess(configProperty);
 	}
-//	@Test
-//	public void testInnerConcurrentAggregatorDefinitionSuccessReorderBeanPoller(){
-//		String configProperty = testConfigurations.getProperty("aggregator-inner-concurrent-success-reorder-bean-poller");
-//		this.testAggregatorDefinitionSuccess(configProperty);
-//	}
+	@Test
+	public void testInnerConcurrentAggregatorDefinitionSuccessReorderBeanPoller(){
+		String configProperty = testConfigurations.getProperty("aggregator-inner-concurrent-success-reorder-bean-poller");
+		this.testAggregatorDefinitionSuccess(configProperty);
+	}
 	@Test
 	public void testRefAggregatorDefinitionSuccess(){
 		String configProperty = testConfigurations.getProperty("aggregator-ref-success");
