@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,25 @@ import org.springframework.integration.message.GenericMessage;
 import org.w3c.dom.Document;
 
 /**
- * 
+ * This example demonstrates the processing of an order for books using 
+ * several of the components provided by the Spring Integration Xml 
+ * module for dealing with Xml payloads. This includes:
+ *
+ * <ul>
+ *    <li>an XPath based implementation of the splitter pattern to split an
+ * order with multiple items into several order messages for separate 
+ * processing.</li>
+ *    <li>XPath expression namespace support to build an XPath expression to
+ * extract the isbn from each order item.</li>
+ *    <li>an XPath router implementation to route messages according to the
+ * evaluation of an XPath expression which tests to see if the order item is in
+ * stock.</li>
+ *    <li>an XSLT transformer implementation to transform the payload of the
+ * order message into a resupply message where the order item is found to be
+ * out of stock.</li>
+ * </ul>
+ *
  * @author Jonas Partner
- * 
  */
 public class BookOrderProcessingSample {
 
