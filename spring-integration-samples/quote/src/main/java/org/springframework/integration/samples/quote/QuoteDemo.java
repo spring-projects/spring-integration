@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,11 @@ package org.springframework.integration.samples.quote;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
+ * Demonstrates a method-invoking inbound Channel Adapter and an
+ * outbound Channel Adapter that writes to stdout. Between them
+ * is an annotated Service Activator. See QuoteService and the
+ * 'quoteDemo.xml' configuration file for more detail.
+ * 
  * @author Mark Fisher
  */
 public class QuoteDemo {
