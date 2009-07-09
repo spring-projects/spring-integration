@@ -1058,7 +1058,7 @@
 				<xsd:documentation>
 					Defines an aggregating message endpoint.
 				</xsd:documentation>
-			</xsd:annotation>
+			</xsd:annotation> 
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
 					<xsd:sequence>            
