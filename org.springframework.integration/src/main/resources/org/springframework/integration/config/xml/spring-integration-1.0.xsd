@@ -1061,11 +1061,9 @@
 			</xsd:annotation> 
 			<xsd:complexContent>
 				<xsd:extension base="handlerEndpointType">
-					<xsd:sequence>            
+					<xsd:choice>            
                     	<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-                     	<xsd:any processContents="strict" namespace="http://www.springframework.org/schema/integration"
-                            minOccurs="0" maxOccurs="unbounded" />
-               		</xsd:sequence>
+               		</xsd:choice>
 					<xsd:attribute name="completion-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1289,8 +1287,6 @@
 			<xsd:extension base="handlerEndpointType">
 				<xsd:sequence>            
                     <xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-                     <xsd:any processContents="strict" namespace="http://www.springframework.org/schema/integration"
-                            minOccurs="0" maxOccurs="unbounded" />
                 </xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
