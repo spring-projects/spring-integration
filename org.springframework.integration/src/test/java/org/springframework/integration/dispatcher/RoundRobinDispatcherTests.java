@@ -1,4 +1,4 @@
-/* Copyright 2002-2008 the original author or authors.
+/* Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,17 @@ package org.springframework.integration.dispatcher;
 
 import static org.mockito.Mockito.*;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnit44Runner;
-import org.springframework.beans.DirectFieldAccessor;
+
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 
 /**
- * 
  * @author Iwein Fuld
- * 
+ * @author Mark Fisher
  */
 @RunWith(MockitoJUnit44Runner.class)
 public class RoundRobinDispatcherTests {
@@ -65,12 +62,10 @@ public class RoundRobinDispatcherTests {
 	public void overFlowCurrentHandlerIndex() throws Exception {
 		dispatcher.addHandler(handler);
 		dispatcher.addHandler(differentHandler);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(dispatcher);
-		((AtomicInteger)accessor.getPropertyValue("currentHandlerIndex")).set(Integer.MAX_VALUE-5);
-		for(long i=0; i < 40; i++){
+		for (int i = 0; i < 7; i++) {
 			dispatcher.dispatch(message);
 		}
-		verify(handler, atLeast(18)).handleMessage(message);
-		verify(differentHandler, atLeast(18)).handleMessage(message);		
+		verify(handler, times(4)).handleMessage(message);
+		verify(differentHandler, times(3)).handleMessage(message);		
 	}
 }

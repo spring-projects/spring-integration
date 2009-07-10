@@ -75,12 +75,12 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			if (this.taskExecutor != null) {
 				this.taskExecutor.execute(new Runnable() {
 					public void run() {
-						BroadcastingDispatcher.this.sendMessageToHandler(messageToSend, handler);
+						handler.handleMessage(messageToSend);
 					}
 				});
 			}
 			else {
-				this.sendMessageToHandler(messageToSend, handler);
+				handler.handleMessage(messageToSend);
 			}
 		}
 		return true;

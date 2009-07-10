@@ -19,26 +19,31 @@ package org.springframework.integration.dispatcher;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 
 /**
- * {@link AbstractUnicastDispatcher} that will try its handlers in the
- * same order every dispatch.
+ * An Exception that encapsulates an aggregated group of Exceptions for use by
+ * dispatchers that may try multiple handler invocations within a single dispatch
+ * operation.
  * 
  * @author Mark Fisher
- * @author Iwein Fuld
+ * @since 1.0.3
  */
-public class FailOverDispatcher extends AbstractUnicastDispatcher {
+@SuppressWarnings("serial")
+public class AggregateMessageDeliverException extends MessageDeliveryException {
 
-	@Override
-	protected void handleExceptions(List<RuntimeException> allExceptions,
-			Message<?> message, boolean isLast) {
-		if (isLast) {
-			if (allExceptions != null && allExceptions.size() == 1) {
-				throw allExceptions.get(0);
-			}
-			throw new AggregateMessageDeliverException(message,
-					"All attempts to deliver Message to MessageHandlers failed.", allExceptions);
-		}
+	private final List<? extends Exception> aggregatedExceptions;
+
+
+	public AggregateMessageDeliverException(Message<?> undeliveredMessage,
+			String description, List<? extends Exception> aggregatedExceptions) {
+		super(undeliveredMessage, description);
+		this.aggregatedExceptions = aggregatedExceptions;
+	}
+
+
+	public List<? extends Exception> getAggregatedExceptions() {
+		return this.aggregatedExceptions;
 	}
 
 }

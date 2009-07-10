@@ -1,9 +1,28 @@
+/* Copyright 2002-2009 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
@@ -11,18 +30,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnit44Runner;
+
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+
+/**
+ * @author Iwein Fuld
+ */
 @RunWith(MockitoJUnit44Runner.class)
 public class RoundRobinDispatcherConcurrentTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private AbstractUnicastDispatcher dispatcher = new RoundRobinDispatcher();
+	private RoundRobinDispatcher dispatcher = new RoundRobinDispatcher();
 
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
@@ -116,7 +140,7 @@ public class RoundRobinDispatcherConcurrentTests {
 	}
 
 	@Test
-	public void noHandlerSkipUnderConcurrentFailure() throws Exception {
+	public void noHandlerSkipUnderConcurrentFailureWithFailover() throws Exception {
 		dispatcher.addHandler(handler1);
 		dispatcher.addHandler(handler2);
 		doThrow(new MessageRejectedException(message)).when(handler1).handleMessage(message);
@@ -144,7 +168,7 @@ public class RoundRobinDispatcherConcurrentTests {
 			scheduler.execute(messageSenderTask);
 		}
 		start.countDown();
-		allDone.await();
+		allDone.await(5000, TimeUnit.MILLISECONDS);
 		assertFalse("not all messages were accepted", failed.get());
 		verify(handler1, times(TOTAL_EXECUTIONS/2)).handleMessage(message);
 		verify(handler2, times(TOTAL_EXECUTIONS)).handleMessage(message);

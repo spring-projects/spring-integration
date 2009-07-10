@@ -15,6 +15,7 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,29 +45,47 @@ public abstract class AbstractUnicastDispatcher extends AbstractDispatcher {
 
 	public final boolean dispatch(Message<?> message) {
 		boolean success = false;
-		List<MessageHandler> handlers = this.getHandlers();
-		if (handlers.isEmpty()) {
+		Iterator<MessageHandler> handlerIterator = this.getHandlerIterator();
+		if (!handlerIterator.hasNext()) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
-		Iterator<MessageHandler> handlerIterator = getHandlerIterator(handlers);
+		List<RuntimeException> exceptions = new ArrayList<RuntimeException>();
 		while (success == false && handlerIterator.hasNext()) {
 			MessageHandler handler = handlerIterator.next();
-			if (this.sendMessageToHandler(message, handler)) {
+			try {
+				handler.handleMessage(message);
 				success = true; // we have a winner.
 			}
-		}
-		if (!success) {
-			throw new MessageRejectedException(message, "All of dispatcher's subscribers rejected Message.");
+			catch (Exception e) {
+				RuntimeException runtimeException = (e instanceof RuntimeException)
+						? (RuntimeException) e
+						: new MessageDeliveryException(message,
+								"Dispatcher failed to deliver Message.", e);
+				exceptions.add(runtimeException);
+				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
+			}
 		}
 		return success;
 	}
 
 	/**
 	 * Return the iterator that will be used to loop over the handlers. This
-	 * allows subclasses to control the order of iteration for each
-	 * {@link #dispatch(Message)} invocation.
-	 * @param handlers all handlers for this dispatcher
+	 * default simply returns the Iterator for the existing handler List. This
+	 * method can be overridden by subclasses to control the order of iteration
+	 * for each {@link #dispatch(Message)} invocation.
 	 */
-	protected abstract Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers);
+	protected Iterator<MessageHandler> getHandlerIterator() {
+		return this.getHandlers().iterator();
+	}
+
+	/**
+	 * Subclasses must implement this method to handle Exceptions that occur
+	 * while dispatching. The list will never be null, will always have a size
+	 * of at least one, and it will be in order with the most recent Exception
+	 * at the end. The 'isLast' flag will be <code>true</code> if the Exception
+	 * occurred during the final iteration of the MessageHandlers.
+	 */
+	protected abstract void handleExceptions(
+			List<RuntimeException> allExceptions, Message<?> message, boolean isLast);
 
 }

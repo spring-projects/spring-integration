@@ -24,10 +24,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,9 +47,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
-	private final Object handlerListMonitor = new Object();
 
-
+	/**
+	 * Returns a copied, unmodifiable List of this dispatcher's handlers.
+	 * This is provided for access by subclasses.
+	 */
 	@SuppressWarnings("unchecked")
 	protected List<MessageHandler> getHandlers() {
 		return Collections.unmodifiableList(new ArrayList(this.handlers));
@@ -63,34 +62,12 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	public boolean removeHandler(MessageHandler handler) {
-		synchronized (this.handlerListMonitor) {
-			return this.handlers.remove(handler);
-		}
+		return this.handlers.remove(handler);
 	}
 
 	public String toString() {
 		String handlerList = StringUtils.collectionToCommaDelimitedString(this.handlers);
 		return this.getClass().getSimpleName() + " with handlers: " + handlerList;
-	}
-
-	/**
-	 * Convenience method available for subclasses. Returns 'true' unless a
-	 * "Selective Consumer" throws a {@link MessageRejectedException}.
-	 */
-	protected boolean sendMessageToHandler(Message<?> message, MessageHandler handler) {
-		Assert.notNull(message, "'message' must not be null.");
-		Assert.notNull(handler, "'handler' must not be null.");
-		try {
-			handler.handleMessage(message);
-			return true;
-		}
-		catch (MessageRejectedException e) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Handler '" + handler + "' rejected Message, "
-						+ "if other handlers are available this dispatcher may try to send to those.", e);
-			}
-			return false;
-		}
 	}
 
 }

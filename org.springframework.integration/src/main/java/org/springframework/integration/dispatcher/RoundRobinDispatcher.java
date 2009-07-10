@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 
 /**
@@ -32,7 +33,14 @@ import org.springframework.integration.message.MessageHandler;
  */
 public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 
-	private AtomicInteger currentHandlerIndex = new AtomicInteger();
+	private volatile boolean failover = true;
+
+	private final AtomicInteger currentHandlerIndex = new AtomicInteger();
+
+
+	public void setFailover(boolean failover) {
+		this.failover = failover;
+	}
 
 	/**
 	 * Returns an iterator that starts at a new point in the list every time the
@@ -41,8 +49,12 @@ public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 	 * <code>next()</code> invocations.
 	 */
 	@Override
-	protected Iterator<MessageHandler> getHandlerIterator(List<MessageHandler> handlers) {
+	protected Iterator<MessageHandler> getHandlerIterator() {
+		List<MessageHandler> handlers = this.getHandlers();
 		int size = handlers.size();
+		if (size == 0) {
+			return handlers.iterator();
+		}
 		int nextHandlerStartIndex = getNextHandlerStartIndex(size);
 		List<MessageHandler> reorderedHandlers = new ArrayList<MessageHandler>(
 				handlers.subList(nextHandlerStartIndex, size));
@@ -58,6 +70,18 @@ public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 	private int getNextHandlerStartIndex(int size) {
 		int indexTail = currentHandlerIndex.getAndIncrement() % size;
 		return indexTail < 0 ? indexTail + size : indexTail;
+	}
+
+	@Override
+	protected void handleExceptions(List<RuntimeException> allExceptions,
+			Message<?> message, boolean isLast) {
+		if (isLast || !this.failover) {
+			if (allExceptions != null && allExceptions.size() == 1) {
+				throw allExceptions.get(0);
+			}
+			throw new AggregateMessageDeliverException(message,
+					"Failed to deliver Message to any MessageHandler.", allExceptions);
+		}
 	}
 
 }
