@@ -45,7 +45,7 @@ public abstract class AbstractSubscribableChannel extends AbstractMessageChannel
 
 	private MessageDispatcher getRequiredDispatcher() {
 		MessageDispatcher dispatcher = this.getDispatcher();
-		Assert.state(dispatcher != null, "dispatcher must not be null");
+		Assert.state(dispatcher != null, "'dispatcher' must not be null");
 		return dispatcher;
 	}
 

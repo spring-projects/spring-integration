@@ -75,7 +75,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 
 
 		ExecutorDecoratingDispatcher(AbstractUnicastDispatcher dispatcher, TaskExecutor taskExecutor) {
-			Assert.notNull(dispatcher, "dispatcher must not be null");
+			Assert.notNull(dispatcher, "'dispatcher' must not be null");
 			this.targetDispatcher = dispatcher;
 			this.taskExecutor = taskExecutor != null ? taskExecutor
 					: new ConcurrentTaskExecutor(Executors.newSingleThreadExecutor());
