@@ -16,6 +16,7 @@
 
 package org.springframework.integration.samples.helloworld;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
@@ -37,17 +38,22 @@ import org.springframework.integration.message.StringMessage;
  * element) in 'helloWorldDemo.xml' within this same package.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class HelloWorldDemo {
 
 	public static void main(String[] args) {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext("helloWorldDemo.xml", HelloWorldDemo.class);
-		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
+		HelloWorldDemo demo = new HelloWorldDemo();
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("helloWorldDemo.xml", HelloWorldDemo.class);	
+		demo.performDemo(applicationContext);
+		applicationContext.stop();
+	}
+	
+	public void performDemo(ApplicationContext applicationContext){
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
 		MessageChannel inputChannel = channelResolver.resolveChannelName("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) channelResolver.resolveChannelName("outputChannel");
 		inputChannel.send(new StringMessage("World"));
-		System.out.println(outputChannel.receive(0).getPayload());
-		context.stop();
+		System.out.println("==> HelloWorldDemo: " + outputChannel.receive(0).getPayload());
 	}
-
 }

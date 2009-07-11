@@ -1,11 +1,45 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <parent>
-    <artifactId>spring-integration-samples</artifactId>
-    <groupId>org.springframework.integration</groupId>
-    <version>1.0.3</version>
-  </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>helloworld</groupId>
-  <artifactId>helloworld</artifactId>
-  <version>1.0.3</version>
-</project>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<artifactId>spring-integration-samples</artifactId>
+		<groupId>org.springframework.integration</groupId>
+		<version>1.0.3</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>helloworld</groupId>
+	<artifactId>helloworld</artifactId>
+	<version>1.0.3</version>
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.osgi</groupId>
+			<artifactId>org.eclipse.osgi</artifactId>
+			<version>3.4.2.R34x_v20080826-1230</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<archive>
+						<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+		<resources>
+		<resource>
+			<filtering>false</filtering>
+			<directory>${basedir}/src/main/resources</directory>
+			<includes>
+				<include>META-INF/spring/*.xml</include>
+			</includes>
+		</resource>
+	</resources>
+	</build>
+	
+	
+
+</project>    
