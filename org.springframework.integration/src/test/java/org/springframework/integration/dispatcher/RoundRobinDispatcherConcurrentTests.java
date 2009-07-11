@@ -46,7 +46,7 @@ public class RoundRobinDispatcherConcurrentTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
-	private RoundRobinDispatcher dispatcher = new RoundRobinDispatcher();
+	private UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
@@ -67,6 +67,7 @@ public class RoundRobinDispatcherConcurrentTests {
 
 	@Before
 	public void initialize() throws Exception {
+		dispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
 		scheduler.setCorePoolSize(10);
 		scheduler.setMaxPoolSize(10);
 		scheduler.initialize();

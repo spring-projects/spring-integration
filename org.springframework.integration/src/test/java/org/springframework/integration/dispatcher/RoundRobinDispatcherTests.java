@@ -15,8 +15,10 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,7 +34,7 @@ import org.springframework.integration.message.MessageHandler;
 @RunWith(MockitoJUnit44Runner.class)
 public class RoundRobinDispatcherTests {
 
-	private AbstractUnicastDispatcher dispatcher = new RoundRobinDispatcher();
+	private UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
 	@Mock
 	private MessageHandler handler;
@@ -42,6 +44,12 @@ public class RoundRobinDispatcherTests {
 
 	@Mock
 	private MessageHandler differentHandler;
+
+	@Before
+	public void setupDispatcher() {
+		this.dispatcher.setLoadBalancingStrategy(new RoundRobinLoadBalancingStrategy());
+	}
+
 
 	@Test
 	public void dispatchMessageWithSingleHandler() throws Exception {

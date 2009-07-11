@@ -12,7 +12,7 @@
 
 	<channel id="defaultChannel" />
 	
-	<channel id="failOverChannel" dispatcher="failover"/>
+	<channel id="channelWithFailoverAttribute" dispatcher="failover"/>
 
 	<channel id="channelWithCustomQueue">
 		<queue ref="customQueue"/>

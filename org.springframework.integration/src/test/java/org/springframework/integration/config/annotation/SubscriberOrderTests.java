@@ -31,7 +31,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.dispatcher.FailOverDispatcher;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 
@@ -45,7 +45,6 @@ public class SubscriberOrderTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
 		RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
-		channelDefinition.getConstructorArgumentValues().addGenericArgumentValue(new FailOverDispatcher());
 		context.registerBeanDefinition("input", channelDefinition);
 		RootBeanDefinition testBeanDefinition = new RootBeanDefinition(TestBean.class);
 		testBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(1);
@@ -72,7 +71,6 @@ public class SubscriberOrderTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
 		RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
-		channelDefinition.getConstructorArgumentValues().addGenericArgumentValue(new FailOverDispatcher());
 		context.registerBeanDefinition("input", channelDefinition);
 		RootBeanDefinition testBeanDefinition = new RootBeanDefinition(TestBean.class);
 		testBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(2);
@@ -112,6 +110,7 @@ public class SubscriberOrderTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
 		RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
+		channelDefinition.getConstructorArgumentValues().addGenericArgumentValue(new RoundRobinLoadBalancingStrategy());
 		context.registerBeanDefinition("input", channelDefinition);
 		RootBeanDefinition testBeanDefinition = new RootBeanDefinition(TestBean.class);
 		testBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(1000);

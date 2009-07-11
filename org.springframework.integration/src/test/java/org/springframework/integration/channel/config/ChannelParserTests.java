@@ -20,6 +20,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -39,8 +40,8 @@ import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagePriority;
-import org.springframework.integration.dispatcher.FailOverDispatcher;
-import org.springframework.integration.dispatcher.RoundRobinDispatcher;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -79,17 +80,22 @@ public class ChannelParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("defaultChannel");
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		assertThat(accessor.getPropertyValue("dispatcher"), is(RoundRobinDispatcher.class));
+		Object dispatcher = accessor.getPropertyValue("dispatcher");
+		assertThat(dispatcher, is(UnicastingDispatcher.class));
+		assertThat(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"),
+				is(RoundRobinLoadBalancingStrategy.class));
 	}
 
 	@Test
-	public void channelWithRoundRobinDispatcher() throws Exception {
+	public void channelWithFailoverDispatcherAttribute() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("failOverChannel");
+		MessageChannel channel = (MessageChannel) context.getBean("channelWithFailoverAttribute");
 		assertEquals(DirectChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
-		assertThat(accessor.getPropertyValue("dispatcher"), is(FailOverDispatcher.class));
+		Object dispatcher = accessor.getPropertyValue("dispatcher");
+		assertThat(dispatcher, is(UnicastingDispatcher.class));
+		assertNull(new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
 	}
 
 	@Test

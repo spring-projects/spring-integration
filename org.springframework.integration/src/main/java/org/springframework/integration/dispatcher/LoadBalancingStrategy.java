@@ -1,5 +1,4 @@
-/*
- * Copyright 2002-2009 the original author or authors.
+/* Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +15,20 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageHandler;
 
 /**
- * {@link AbstractUnicastDispatcher} that will try its handlers in the
- * same order every dispatch.
+ * Strategy for determining the iteration order of a MessageHandler list.
  * 
  * @author Mark Fisher
- * @author Iwein Fuld
+ * @since 1.0.3
  */
-public class FailOverDispatcher extends AbstractUnicastDispatcher {
+public interface LoadBalancingStrategy {
 
-	@Override
-	protected void handleExceptions(List<RuntimeException> allExceptions,
-			Message<?> message, boolean isLast) {
-		if (isLast) {
-			if (allExceptions != null && allExceptions.size() == 1) {
-				throw allExceptions.get(0);
-			}
-			throw new AggregateMessageDeliverException(message,
-					"All attempts to deliver Message to MessageHandlers failed.", allExceptions);
-		}
-	}
+	public Iterator<MessageHandler> getHandlerIterator(Message<?> message, List<MessageHandler> handlers);
 
 }

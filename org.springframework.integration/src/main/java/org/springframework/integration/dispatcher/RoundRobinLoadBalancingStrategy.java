@@ -25,22 +25,18 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 
 /**
- * Round-robin implementation of {@link AbstractUnicastDispatcher}. This
+ * Round-robin implementation of {@link LoadBalancingStrategy}. This
  * implementation will keep track of the index of the handler that has been
  * tried first and use a different starting handler every dispatch.
  * 
  * @author Iwein Fuld
+ * @author Mark Fisher
+ * @since 1.0.3
  */
-public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
-
-	private volatile boolean failover = true;
+public class RoundRobinLoadBalancingStrategy implements LoadBalancingStrategy {
 
 	private final AtomicInteger currentHandlerIndex = new AtomicInteger();
 
-
-	public void setFailover(boolean failover) {
-		this.failover = failover;
-	}
 
 	/**
 	 * Returns an iterator that starts at a new point in the list every time the
@@ -48,9 +44,7 @@ public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 	 * iteration, so it guarantees all handlers are returned once on subsequent
 	 * <code>next()</code> invocations.
 	 */
-	@Override
-	protected Iterator<MessageHandler> getHandlerIterator() {
-		List<MessageHandler> handlers = this.getHandlers();
+	public final Iterator<MessageHandler> getHandlerIterator(final Message<?> message, final List<MessageHandler> handlers) {
 		int size = handlers.size();
 		if (size == 0) {
 			return handlers.iterator();
@@ -70,18 +64,6 @@ public class RoundRobinDispatcher extends AbstractUnicastDispatcher {
 	private int getNextHandlerStartIndex(int size) {
 		int indexTail = currentHandlerIndex.getAndIncrement() % size;
 		return indexTail < 0 ? indexTail + size : indexTail;
-	}
-
-	@Override
-	protected void handleExceptions(List<RuntimeException> allExceptions,
-			Message<?> message, boolean isLast) {
-		if (isLast || !this.failover) {
-			if (allExceptions != null && allExceptions.size() == 1) {
-				throw allExceptions.get(0);
-			}
-			throw new AggregateMessageDeliverException(message,
-					"Failed to deliver Message to any MessageHandler.", allExceptions);
-		}
 	}
 
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
@@ -30,12 +31,12 @@ import org.springframework.integration.message.MessageDeliveryException;
  * @since 1.0.3
  */
 @SuppressWarnings("serial")
-public class AggregateMessageDeliverException extends MessageDeliveryException {
+public class AggregateMessageDeliveryException extends MessageDeliveryException {
 
 	private final List<? extends Exception> aggregatedExceptions;
 
 
-	public AggregateMessageDeliverException(Message<?> undeliveredMessage,
+	public AggregateMessageDeliveryException(Message<?> undeliveredMessage,
 			String description, List<? extends Exception> aggregatedExceptions) {
 		super(undeliveredMessage, description);
 		this.aggregatedExceptions = aggregatedExceptions;
@@ -43,7 +44,7 @@ public class AggregateMessageDeliverException extends MessageDeliveryException {
 
 
 	public List<? extends Exception> getAggregatedExceptions() {
-		return this.aggregatedExceptions;
+		return Collections.unmodifiableList(this.aggregatedExceptions);
 	}
 
 }

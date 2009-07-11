@@ -41,7 +41,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void singleMessage() throws InterruptedException {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.addHandler(createConsumer(TestHandlers.countDownHandler(latch)));
 		dispatcher.dispatch(new StringMessage("test"));
@@ -51,7 +51,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void pointToPoint() throws InterruptedException {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
@@ -65,7 +65,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void noDuplicateSubscriptions() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target = new CountingTestEndpoint(counter, false);
 		dispatcher.addHandler(target);
@@ -81,7 +81,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void removeConsumerBeforeSend() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target1 = new CountingTestEndpoint(counter, false);
 		MessageHandler target2 = new CountingTestEndpoint(counter, false);
@@ -101,7 +101,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void removeConsumerBetweenSends() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target1 = new CountingTestEndpoint(counter, false);
 		MessageHandler target2 = new CountingTestEndpoint(counter, false);
@@ -136,7 +136,7 @@ public class FailOverDispatcherTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void removeConsumerLastTargetCausesDeliveryException() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target = new CountingTestEndpoint(counter, false);
 		dispatcher.addHandler(target);
@@ -153,7 +153,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void firstHandlerReturnsTrue() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target1 = new CountingTestEndpoint(counter, true);
 		MessageHandler target2 = new CountingTestEndpoint(counter, false);
@@ -167,7 +167,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void middleHandlerReturnsTrue() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target1 = new CountingTestEndpoint(counter, false);
 		MessageHandler target2 = new CountingTestEndpoint(counter, true);
@@ -181,7 +181,7 @@ public class FailOverDispatcherTests {
 
 	@Test
 	public void allHandlersReturnFalse() {
-		FailOverDispatcher dispatcher = new FailOverDispatcher();
+		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageHandler target1 = new CountingTestEndpoint(counter, false);
 		MessageHandler target2 = new CountingTestEndpoint(counter, false);

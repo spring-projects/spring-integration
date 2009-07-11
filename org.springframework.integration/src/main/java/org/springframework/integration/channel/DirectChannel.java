@@ -16,9 +16,8 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.dispatcher.AbstractUnicastDispatcher;
-import org.springframework.integration.dispatcher.RoundRobinDispatcher;
-import org.springframework.util.Assert;
+import org.springframework.integration.dispatcher.LoadBalancingStrategy;
+import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
 /**
  * A channel that invokes a single subscriber for each sent Message.
@@ -30,21 +29,36 @@ import org.springframework.util.Assert;
  */
 public class DirectChannel extends AbstractSubscribableChannel {
 
-	private final AbstractUnicastDispatcher dispatcher;
+	private final UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 
 
+	/**
+	 * Create a channel with no {@link LoadBalancingStrategy}.
+	 * The dispatcher for such a channel will invoke its
+	 * MessageHandlers in a fixed-order.
+	 */
 	public DirectChannel() {
-		this.dispatcher = new RoundRobinDispatcher();
 	}
 
-	public DirectChannel(AbstractUnicastDispatcher dispatcher) {
-		Assert.notNull(dispatcher, "dispatcher must not be null");
-		this.dispatcher = dispatcher;
+	/**
+	 * Create a DirectChannel with a {@link LoadBalancingStrategy}. The
+	 * strategy <emphasis>must not</emphasis> be null.
+	 */
+	public DirectChannel(LoadBalancingStrategy loadBalancingStrategy) {
+		this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
 	}
 
+
+	/**
+	 * Specify whether the channel's dispatcher should have failover enabled.
+	 * By default, it will. Set this value to 'false' to disable it.
+	 */
+	public void setFailover(boolean failover) {
+		this.dispatcher.setFailover(failover);
+	}
 
 	@Override
-	protected AbstractUnicastDispatcher getDispatcher() {
+	protected UnicastingDispatcher getDispatcher() {
 		return this.dispatcher;
 	}
 

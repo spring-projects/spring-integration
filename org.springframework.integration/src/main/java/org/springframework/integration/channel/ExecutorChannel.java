@@ -16,21 +16,13 @@
 
 package org.springframework.integration.channel;
 
-import java.util.concurrent.Executors;
-
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.dispatcher.AbstractUnicastDispatcher;
-import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.integration.dispatcher.RoundRobinDispatcher;
-import org.springframework.integration.message.MessageHandler;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
-import org.springframework.util.Assert;
+import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
 /**
  * An implementation of {@link MessageChannel} that delegates to an instance of
- * {@link AbstractUnicastDispatcher} and wraps all send invocations within a
+ * {@link UnicastingDispatcher} and wraps all send invocations within a
  * {@link TaskExecutor}.
  * 
  * @author Mark Fisher
@@ -38,66 +30,17 @@ import org.springframework.util.Assert;
  */
 public class ExecutorChannel extends AbstractSubscribableChannel {
 
-	private final ExecutorDecoratingDispatcher dispatcher;
+	private final UnicastingDispatcher dispatcher;
 
-
-	public ExecutorChannel() {
-		this(null, null);
-	}
 
 	public ExecutorChannel(TaskExecutor taskExecutor) {
-		this(null, taskExecutor);
-	}
-
-	public ExecutorChannel(AbstractUnicastDispatcher dispatcher) {
-		this(dispatcher, null);
-	}
-
-	public ExecutorChannel(AbstractUnicastDispatcher dispatcher, TaskExecutor taskExecutor) {
-		if (dispatcher == null) {
-			dispatcher = new RoundRobinDispatcher();
-		}
-		this.dispatcher = new ExecutorDecoratingDispatcher(dispatcher, taskExecutor);
+		this.dispatcher = new UnicastingDispatcher(taskExecutor);
 	}
 
 
 	@Override
-	protected MessageDispatcher getDispatcher() {
+	protected UnicastingDispatcher getDispatcher() {
 		return this.dispatcher;
-	}
-
-
-	private static class ExecutorDecoratingDispatcher implements MessageDispatcher {
-
-		private final AbstractUnicastDispatcher targetDispatcher;
-
-		private final TaskExecutor taskExecutor;
-
-
-		ExecutorDecoratingDispatcher(AbstractUnicastDispatcher dispatcher, TaskExecutor taskExecutor) {
-			Assert.notNull(dispatcher, "'dispatcher' must not be null");
-			this.targetDispatcher = dispatcher;
-			this.taskExecutor = taskExecutor != null ? taskExecutor
-					: new ConcurrentTaskExecutor(Executors.newSingleThreadExecutor());
-		}
-
-
-		public boolean addHandler(MessageHandler handler) {
-			return this.targetDispatcher.addHandler(handler);
-		}
-
-		public boolean removeHandler(MessageHandler handler) {
-			return this.targetDispatcher.removeHandler(handler);
-		}
-
-		public final boolean dispatch(final Message<?> message) {
-			this.taskExecutor.execute(new Runnable() {
-				public void run() {
-					targetDispatcher.dispatch(message);
-				}
-			});
-			return true;
-		}
 	}
 
 }
