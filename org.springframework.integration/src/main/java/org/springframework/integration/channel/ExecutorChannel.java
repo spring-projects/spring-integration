@@ -18,12 +18,20 @@ package org.springframework.integration.channel;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
 /**
  * An implementation of {@link MessageChannel} that delegates to an instance of
- * {@link UnicastingDispatcher} and wraps all send invocations within a
- * {@link TaskExecutor}.
+ * {@link UnicastingDispatcher} which in turn delegates all dispatching
+ * invocations to a {@link TaskExecutor}.
+ * <p>
+ * <emphasis>NOTE: unlike DirectChannel, the ExecutorChannel does not support a
+ * shared transactional context between sender and handler, because the
+ * {@link TaskExecutor} typically does not block the sender's Thread since it
+ * uses another Thread for the dispatch.</emphasis> (SyncTaskExecutor is an
+ * exception but would provide no value for this channel. If synchronous
+ * dispatching is required, a DirectChannel should be used instead). 
  * 
  * @author Mark Fisher
  * @since 1.0.3
@@ -33,10 +41,31 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	private final UnicastingDispatcher dispatcher;
 
 
+	/**
+	 * Create an ExecutorChannel that delegates to the provided
+	 * {@link TaskExecutor} when dispatching Messages.
+	 */
 	public ExecutorChannel(TaskExecutor taskExecutor) {
 		this.dispatcher = new UnicastingDispatcher(taskExecutor);
 	}
 
+	/**
+	 * Create an ExecutorChannel with a {@link LoadBalancingStrategy}. The
+	 * strategy <emphasis>must not</emphasis> be null.
+	 */
+	public ExecutorChannel(TaskExecutor taskExecutor, LoadBalancingStrategy loadBalancingStrategy) {
+		this(taskExecutor);
+		this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
+	}
+
+
+	/**
+	 * Specify whether the channel's dispatcher should have failover enabled.
+	 * By default, it will. Set this value to 'false' to disable it.
+	 */
+	public void setFailover(boolean failover) {
+		this.dispatcher.setFailover(failover);
+	}
 
 	@Override
 	protected UnicastingDispatcher getDispatcher() {
