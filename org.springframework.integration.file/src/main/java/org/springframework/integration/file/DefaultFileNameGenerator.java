@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,39 @@ package org.springframework.integration.file;
 import java.io.File;
 
 import org.springframework.integration.core.Message;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of the filename generator strategy. It first checks
- * for the "filename" Message header. Next, it checks if the Message payload is
- * a File instance, and if so, it uses the same name. Finally, it falls back to
- * the Message ID and adds the suffix '.msg'.
+ * for a message header whose name matches its 'headerName' property. The
+ * default header name is defined by the constant {@link FileHeaders#FILENAME}.
+ * A custom header name can be provided via {@link #setHeaderName(String)}. If
+ * no String-typed value is associated with that header it checks if the
+ * Message payload is a File instance, and if so, it uses the same name.
+ * Finally, it falls back to the Message ID and adds the suffix '.msg'.
  * 
  * @author Mark Fisher
  */
 public class DefaultFileNameGenerator implements FileNameGenerator {
 
+	private volatile String headerName = FileHeaders.FILENAME;
+
+
+	/**
+	 * Specify a custom header name to check for the file name.
+	 * The default is defined by {@link FileHeaders#FILENAME}.
+	 */
+	public void setHeaderName(String headerName) {
+		Assert.notNull(headerName, "'headerName' must not be null");
+		this.headerName = headerName;
+	}
+
 	public String generateFileName(Message<?> message) {
-		String filenameProperty = message.getHeaders().get(FileHeaders.FILENAME, String.class);
-		if (StringUtils.hasText(filenameProperty)) {
-			return filenameProperty;
+		Object filenameProperty = message.getHeaders().get(this.headerName);
+		if (filenameProperty instanceof String
+				&& StringUtils.hasText((String) filenameProperty)) {
+			return (String) filenameProperty;
 		}
 		if (message.getPayload() instanceof File) {
 			return ((File) message.getPayload()).getName();

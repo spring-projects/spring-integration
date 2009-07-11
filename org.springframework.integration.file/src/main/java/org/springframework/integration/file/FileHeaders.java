@@ -26,7 +26,7 @@ import org.springframework.integration.core.MessageHeaders;
  */
 public abstract class FileHeaders {
 
-	public static final String PREFIX = MessageHeaders.PREFIX + "file_";
+	private static final String PREFIX = MessageHeaders.PREFIX + "file_";
 
 	public static final String FILENAME = PREFIX + "name";
 
