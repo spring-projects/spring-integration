@@ -15,8 +15,11 @@
 
 package org.springframework.integration.dispatcher;
 
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnit44Runner;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 
@@ -66,8 +70,9 @@ public class RoundRobinDispatcherTests {
 		verify(handler).handleMessage(message);
 		verify(differentHandler).handleMessage(message);
 	}
+
 	@Test
-	public void overFlowCurrentHandlerIndex() throws Exception {
+	public void multipleCyclesThroughHandlers() throws Exception {
 		dispatcher.addHandler(handler);
 		dispatcher.addHandler(differentHandler);
 		for (int i = 0; i < 7; i++) {
@@ -76,4 +81,19 @@ public class RoundRobinDispatcherTests {
 		verify(handler, times(4)).handleMessage(message);
 		verify(differentHandler, times(3)).handleMessage(message);		
 	}
+
+	@Test
+	public void currentHandlerIndexOverFlow() throws Exception {
+		dispatcher.addHandler(handler);
+		dispatcher.addHandler(differentHandler);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(dispatcher).getPropertyValue("loadBalancingStrategy"));
+		((AtomicInteger) accessor.getPropertyValue("currentHandlerIndex")).set(Integer.MAX_VALUE-5);
+		for(int i = 0; i < 40; i++) {
+			dispatcher.dispatch(message);
+		}
+		verify(handler, atLeast(18)).handleMessage(message);
+		verify(differentHandler, atLeast(18)).handleMessage(message);
+	}
+
 }
