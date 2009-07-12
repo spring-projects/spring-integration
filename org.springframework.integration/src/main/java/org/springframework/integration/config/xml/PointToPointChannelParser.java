@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -35,6 +37,9 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	private static final String CHANNEL_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel";
 
 	private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
+
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 
 	@Override
@@ -64,16 +69,53 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".RendezvousChannel");
 		}
 
-		// verify that the 'task-executor' is not provided if a queue sub-element exists
-		String taskExecutor = element.getAttribute("task-executor");
-		if (queueElement != null && StringUtils.hasText(taskExecutor)) {
-			parserContext.getReaderContext().error("The 'task-executor' attribute " +
+		Element dispatcherElement = DomUtils.getChildElementByTagName(element, "dispatcher");
+
+		// check for the dispatcher attribute (deprecated)
+		String dispatcherAttribute = element.getAttribute("dispatcher");
+		boolean hasDispatcherAttribute = StringUtils.hasText(dispatcherAttribute);
+		if (hasDispatcherAttribute && logger.isWarnEnabled()) {
+			logger.warn("The 'dispatcher' attribute on the 'channel' element is deprecated. " +
+					"Please use the 'dispatcher' sub-element instead.");
+		}
+
+		// verify that a dispatcher is not provided if a queue sub-element exists
+		if (queueElement != null && (dispatcherElement != null || hasDispatcherAttribute)) {
+			parserContext.getReaderContext().error("The 'dispatcher' attribute or sub-element " +
 					"and any queue sub-element are mutually exclusive.", element);
 			return null;
 		}
 
-		if (builder == null) {
+		if (queueElement != null) {
+			return builder;
+		}
+
+		if (dispatcherElement != null && hasDispatcherAttribute) {
+			parserContext.getReaderContext().error("The 'dispatcher' attribute and 'dispatcher' " +
+					"sub-element are mutually exclusive. NOTE: the attribute is DEPRECATED. " +
+					"Please use the dispatcher sub-element instead.", element);
+			return null;
+		}
+
+		if (hasDispatcherAttribute) {
+			// this attribute is deprecated, but if set, we need to create a DirectChannel
+			// without any LoadBalancerStrategy and the failover flag set to true (default).
+			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+			if (!"failover".equals(dispatcherAttribute)) {
+				// round-robin dispatcher is used by default, the "failover" value simply disables it
+				builder.addConstructorArgValue(new RootBeanDefinition(
+						DISPATCHER_PACKAGE + ".RoundRobinLoadBalancingStrategy", null, null));
+			}
+		}
+		else if (dispatcherElement == null) {
+			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
+			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
+			builder.addConstructorArgValue(new RootBeanDefinition(
+					DISPATCHER_PACKAGE + ".RoundRobinLoadBalancingStrategy", null, null));
+		}
+		else {
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
+			String taskExecutor = dispatcherElement.getAttribute("task-executor");
 			if (StringUtils.hasText(taskExecutor)) {
 				builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".ExecutorChannel");
 				builder.addConstructorArgReference(taskExecutor);
@@ -81,15 +123,15 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			else {
 				builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
 			}
-			// this attribute is deprecated, but if set, we need to create a UnicastingDispatcher
-			// without any LoadBalancerStrategy and the failover flag set to true (default).
-			String dispatcherAttribute = element.getAttribute("dispatcher");
-			if (!"failover".equals(dispatcherAttribute)) {
-				// round-robin dispatcher by default, but TODO first we need to check for the dispatcher element.
+			// unless the 'load-balancer' attribute is explicitly set to 'none',
+			// configure the default RoundRobinLoadBalancingStrategy
+			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
+			if (!"none".equals(loadBalancer)) {
 				builder.addConstructorArgValue(new RootBeanDefinition(
 						DISPATCHER_PACKAGE + ".RoundRobinLoadBalancingStrategy", null, null));
 			}
- 		}
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
+		}
 		return builder;
 	}
 

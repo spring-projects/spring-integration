@@ -64,25 +64,11 @@
 							<xsd:element name="queue" type="queueType" />
 							<xsd:element name="priority-queue" type="priorityQueueType" />
 							<xsd:element name="rendezvous-queue" type="rendezvousQueueType" />
+							<xsd:element name="dispatcher" type="dispatcherType" />
 						</xsd:choice>
 						<xsd:element name="interceptors" type="channelInterceptorsType"
 							minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
-					<xsd:attribute name="task-executor" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation><![CDATA[
-	Provide a TaskExecutor to use when dispatching Messages to this channel's subscribers. This is
-	mutually exclusive with any of the queue sub-elements. Also, when using a TaskExecutor, keep in
-	mind that any transaction active for the sender will NOT propagate to the handler invocation
-	since the TaskExecutor dispatches to the handler on a separate Thread.
-							]]></xsd:documentation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -131,6 +117,73 @@
 				arrives or vice-versa.
 			</xsd:documentation>
 		</xsd:annotation>
+	</xsd:complexType>
+
+	<xsd:complexType name="dispatcherType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines the dispatching configuration for a non-buffering channel
+	(i.e. one without a queue).
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="load-balancer">
+			<xsd:simpleType>
+				<xsd:annotation>
+					<xsd:documentation>
+	Defines a load-balancing strategy for the channel's dispatcher.
+	The default is a round-robin load balancer.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="round-robin">
+						<xsd:annotation>
+							<xsd:documentation>
+	[DEFAULT] Defines a Round Robin dispatching strategy which allows for 
+	load balancing of messages between multiple Message Handlers. Which message 
+	handler receives the message first is determined by the 'order' attribute 
+	of such Message Handler.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+					<xsd:enumeration value="none">
+						<xsd:annotation>
+							<xsd:documentation>
+	No LoadBalancingStrategy will be used.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:enumeration>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="failover" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specifies whether this dispatcher has failover enabled. By default,
+	failover will be enabled. Set this to 'false' to disable it.
+	When enabled and message delivery to the primary Message Handler fails,
+	an  attempt will be made to deliver the message to the next handler and so on...
+	Primary, secondary etc... is determined by the load-balancing strategy in use
+	(e.g. round-robin). If no load-balancer strategy is configured, the order will
+	be fixed in a sequence determined by the 'order' attribute on the Message Handlers
+	(or the @Ordered annotation on adapted methods).
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="task-executor" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Provide a TaskExecutor to use when dispatching Messages to this channel's subscribers. This is
+	mutually exclusive with any of the queue sub-elements. Also, when using a TaskExecutor, keep in
+	mind that any transaction active for the sender will NOT propagate to the handler invocation
+	since the TaskExecutor dispatches to the handler on a separate Thread.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:element name="publish-subscribe-channel">
@@ -215,31 +268,15 @@
 			<xsd:simpleType>
 				<xsd:annotation>
 					<xsd:documentation>
-						Defines a dispatching strategy for the channel.
-						The default is a round
-						robin load balancer. In case of a publish
-						subscribe channel this
-						attribute will be ignored.
+	This attribute is DEPRECATED. Please use the dispatcher sub-element instead.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="failover">
 						<xsd:annotation>
 							<xsd:documentation>
-								Defines a fail over dispatching strategy. 
-								If message delivery to the primary Message Handler failed an 
-								attempt will be made to deliver the message to the secondary and so on... 
-								Primary, secondary etc... is determined by the 'order' attribute on the Message Handlers.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
-					<xsd:enumeration value="round-robin">
-					<xsd:annotation>
-							<xsd:documentation>
-								[DEFAULT] Defines a Round Robin dispatching strategy which allows for 
-								load balancing of messages between multiple Message Handlers. Which message 
-								handler receives the message first is determined by the 'order' attribute 
-								of such Message Handler.
+	Enables failover, but disables load-balancing.
+	See the dispatcher sub-element for more information.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:enumeration>
