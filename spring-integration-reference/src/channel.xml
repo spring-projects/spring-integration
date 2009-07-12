@@ -183,29 +183,56 @@
         </note>
       </para>
       <para>
-        The <classname>DirectChannel</classname> can have one of two dispatcher strategies. These determine how
-        invocations will be ordered in the case that there are multiple handlers subscribed to the same channel.
-        The default strategy is "round-robin" and essentially load-balances across the handlers in rotation. The
-        other strategy is "failover" and it will always try to invoke the first handler, falling back to any
-        subsequent handlers as necessary. The order is determined by an optional order value defined on the
-        handlers themselves or, if no such value exists, the order in which the handlers are subscribed.
+        The <classname>DirectChannel</classname> internally delegates to a Message Dispatcher to invoke its
+        subscribed Message Handlers, and that dispatcher can have a load-balancing strategy. The load-balancer
+        determines how invocations will be ordered in the case that there are multiple handlers subscribed to the
+        same channel. When using the namespace support described below, the default strategy is
+        "round-robin" which essentially load-balances across the handlers in rotation.
+        <note>
+          The "round-robin" strategy is currently the only implementation available out-of-the-box in Spring
+          Integration. Other strategy implementations may be added in future versions.
+        </note>
       </para>
+      <para>
+        The load-balancer also works in combination with a boolean <emphasis>failover</emphasis> property.
+        If the "failover" value is true (the default), then the dispatcher will fall back to any subsequent
+        handlers as necessary when preceding handlers throw Exceptions. The order is determined by an optional
+        order value defined on the handlers themselves or, if no such value exists, the order in which the
+        handlers are subscribed.
+      </para>
+      <para>
+        If a certain situation requires that the dispatcher always try to invoke the first handler, then
+        fallback in the same fixed order sequence every time an error occurs, no load-balancing strategy should
+        be provided. In other words, the dispatcher still supports the failover boolean property even when no
+        load-balancing is enabled. Without load-balancing, however, the invocation of handlers will always begin
+        with the first according to their order. For example, this approach works well when there is a clear
+        definition of primary, secondary, tertiary, and so on. When using the namespace support, the "order"
+        attribute on any endpoint will determine that order.
+      </para>
+      <note>
+          Keep in mind that load-balancing and failover only apply when a channel has more than one
+          subscribed Message Handler. When using the namespace support, this means that more than one
+          endpoint shares the same channel reference in the "input-channel" attribute.
+       </note>
     </section>
     <section id="executor-channel">
       <title>ExecutorChannel</title>
       <para>
         The <classname>ExecutorChannel</classname> is a point-to-point channel that supports
-        the same dispatcher strategies as <classname>DirectChannel</classname>. The key difference is that
-        it delegates to an instance of <interfacename>TaskExecutor</interfacename> to perform the dispatch.
-        This means that the send method typically will not block, but it also means that the handler
-        invocation may not occur in the sender's thread. It therefore <emphasis>does not support
-        transactions spanning the sender and receiving handler</emphasis>.
+        the same dispatcher configuration as <classname>DirectChannel</classname> (load-balancing strategy
+        and the failover boolean property). The key difference between these two dispatching channel types
+        is that the <classname>ExecutorChannel</classname> delegates to an instance of
+        <interfacename>TaskExecutor</interfacename> to perform the dispatch. This means that the send method
+        typically will not block, but it also means that the handler invocation may not occur in the sender's
+        thread. It therefore <emphasis>does not support transactions spanning the sender and receiving
+        handler</emphasis>.
         <tip>
 	      Note that there are occasions where the sender may block. For example, when using a
 	      TaskExecutor with a rejection-policy that throttles back on the client (such as the
           <code>ThreadPoolExecutor.CallerRunsPolicy</code>), the sender's thread will execute
           the method directly anytime the thread pool is at its maximum capacity and the
-          executor's work queue is full.
+          executor's work queue is full. Since that situation would only occur in a non-predictable
+          way, that obviously cannot be relied upon for transactions.
         </tip>
       </para>
     </section>
@@ -364,6 +391,20 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         As mentioned above, <classname>DirectChannel</classname> is the default type.
         <programlisting language="xml"><![CDATA[<channel id="directChannel"/>]]></programlisting>
       </para>
+      <para>
+        A default channel will have a <emphasis>round-robin</emphasis> load-balancer and will also have
+        failover enabled (See the discussion in <xref linkend="channel-implementations-directchannel"/>
+        for more detail). To disable one or both of these, add a &lt;dispatcher/&gt; sub-element and
+        configure the attributes:
+        <programlisting language="xml"><![CDATA[<channel id="failFastChannel">
+    <dispatcher failover="false"/>
+</channel>
+
+<channel id="channelWithFixedOrderSequenceFailover">
+    <dispatcher load-balancer="none"/>
+</channel>
+]]></programlisting>
+      </para>
     </section>
     <section id="channel-configuration-queuechannel">
       <title>QueueChannel Configuration</title>
@@ -406,15 +447,26 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
     <section id="channel-configuration-executorchannel">
       <title>ExecutorChannel</title>
       <para>
-        To create an <classname>ExecutorChannel</classname>, add the 'task-executor' attribute. Its value
-        can reference any <interfacename>TaskExecutor</interfacename> within the context. For example,
-        this enables configuration of a thread-pool for dispatching messages to subscribed handlers.
-        As mentioned above, this does break the "single-threaded" execution context between sender
-        and receiver so that any active transaction context will not be shared by the invocation
-        of the handler (i.e. the handler may throw an Exception, but the send invocation has already
-        returned successfully).
-        <programlisting language="xml">&lt;channel id="executorChannel" task-executor="someExecutor"/&gt;</programlisting>
+        To create an <classname>ExecutorChannel</classname>, add the &lt;dispatcher&gt; sub-element along
+        with a 'task-executor' attribute. Its value can reference any <interfacename>TaskExecutor</interfacename>
+        within the context. For example, this enables configuration of a thread-pool for dispatching messages
+        to subscribed handlers. As mentioned above, this does break the "single-threaded" execution context
+        between sender and receiver so that any active transaction context will not be shared by the invocation
+        of the handler (i.e. the handler may throw an Exception, but the send invocation has already returned
+        successfully).
+        <programlisting language="xml"><![CDATA[<channel id="executorChannel">
+    <dispatcher task-executor="someExecutor"/>
+</channel>]]></programlisting>
       </para>
+      <note>
+        The "load-balancer" and "failover" options are also both available on the dispatcher sub-element
+        as described above in <xref linkend="channel-configuration-directchannel"/>. The same defaults
+        apply as well. So, the channel will have a round-robin load-balancing strategy with failover
+        enabled unless explicit configuration is provided for one or both of those attributes.
+        <programlisting language="xml"><![CDATA[<channel id="executorChannelWithoutFailover">
+    <dispatcher task-executor="someExecutor" failover="false"/>
+</channel>]]></programlisting>
+      </note>
     </section>
     <section id="channel-configuration-prioritychannel">
       <title>PriorityChannel Configuration</title>
