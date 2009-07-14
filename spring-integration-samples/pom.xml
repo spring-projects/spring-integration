@@ -9,7 +9,7 @@
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
 	<properties>
-		<release.version>1.0.3.RELEASE</release.version>
+		<release.version>1.0.3.BUILD-SNAPSHOT</release.version>
 	</properties>
 	<modules>
 		<module>cafe</module>

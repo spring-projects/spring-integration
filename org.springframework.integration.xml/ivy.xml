@@ -25,9 +25,9 @@
 		<dependency org="javax.xml.bind" name="com.springsource.javax.xml.bind" rev="2.1.7" conf="provided->runtime"/>
 		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" conf="provided->runtime"/>
 		<dependency org="org.custommonkey.xmlunit" name="com.springsource.org.custommonkey.xmlunit" rev="1.2.0" conf="test->runtime"/>
-		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.6.A" conf="compile->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.test" rev="2.5.6.A" conf="test->runtime"/>
+		<dependency org="org.junit" name="com.springsource.org.junit" rev="${junit.version}" conf="test->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.context" rev="${spring.version}" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
 		<dependency org="org.springframework.ws" name="org.springframework.oxm" rev="1.5.5.A" conf="compile->runtime">
 			<exclude org="org.springframework"/>
