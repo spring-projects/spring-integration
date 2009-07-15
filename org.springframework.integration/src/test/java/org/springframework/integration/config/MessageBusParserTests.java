@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -25,6 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.SpringVersion;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -61,7 +63,12 @@ public class MessageBusParserTests {
 				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
-		assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+		if (SpringVersion.getVersion().startsWith("2")) {
+			assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+		}
+		else {
+			assertNull(taskExecutor);
+		}
 	}
 
 	@Test
@@ -73,7 +80,12 @@ public class MessageBusParserTests {
 				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
-		assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+		if (SpringVersion.getVersion().startsWith("2")) {
+			assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+		}
+		else {
+			assertNull(taskExecutor);
+		}
 	}
 
 	@Test
