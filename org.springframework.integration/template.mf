@@ -3,7 +3,7 @@ Bundle-Name: Spring Integration Core
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
 Import-Template: 
- org.springframework.*;version="[2.5.6.A, 3.0.0)",
+ org.springframework.*;version="[2.5.6.A, 3.1.0)",
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
  org.aopalliance.*;version="[1.0.0,2.0.0)",
  org.w3c.dom.*;version="0"
