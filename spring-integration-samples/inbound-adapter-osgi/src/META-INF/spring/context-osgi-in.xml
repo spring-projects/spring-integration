@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi-1.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd"
+	xmlns:osgi="http://www.springframework.org/schema/osgi"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:file="http://www.springframework.org/schema/integration/file">
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+	<bean class="org.springframework.integration.samples.inbound.FileCopyDemoBootstrap"/>
+
+   <file:inbound-channel-adapter id="filesIn" directory="file:${java.io.tmpdir}/spring-integration-samples/input">
+		<integration:poller>
+			<integration:interval-trigger interval="5000"/>
+		</integration:poller>
+	</file:inbound-channel-adapter>
+	
+    <osgi:service id="filesInService" ref="filesIn" interface="org.springframework.integration.channel.SubscribableChannel"/>
+</beans>

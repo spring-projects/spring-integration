@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-Version: 1.0.3
+Bundle-Name: Input_adapter_osgi
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: input_adapter_osgi
+Import-Library: org.aspectj;version="[1.6.2.RELEASE,1.6.2.RELEASE]",
+ org.springframework.spring;version="[2.5.6.A,2.5.6.A]"
+Import-Bundle: org.springframework.integration;version="[1.0.3.BUILD-20090711061916,1.0.3.BUILD-20090711061916]",
+ org.springframework.integration.file;version="[1.0.3.BUILD-20090711061916,1.0.3.BUILD-20090711061916]"
+

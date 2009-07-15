@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+		http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi-1.2.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd"
+	xmlns:osgi="http://www.springframework.org/schema/osgi"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:file="http://www.springframework.org/schema/integration/file">
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+	<bean class="org.springframework.integration.samples.filecopy.FileCopyDemoCommon"/>
+	
+	<osgi:reference id="filesInService" interface="org.springframework.integration.channel.SubscribableChannel"/>
+
+
+	<integration:service-activator input-channel="filesInService"
+	 							   output-channel="filesOut"
+                                   ref="exclaimer" method="exclaim"/>
+
+	
+	<file:outbound-channel-adapter id="filesOut" directory="${java.io.tmpdir}/spring-integration-samples/output"/>
+    
+	<bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
+ <!-- -->
+</beans>
