@@ -72,6 +72,15 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify whether to automatically create the source directory if it does not yet exist when this
+	adapter is being initialized. The default value is 'true'. If set to 'false' and the directory
+	does not exist upon initialization, an Exception will be thrown.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -162,6 +171,15 @@
 	Specifies the order for invocation when this endpoint is connected as a
 	subscriber to a SubscribableChannel.
 				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify whether to automatically create the destination directory if it does not yet exist
+	when this adapter is being initialized. The default value is 'true'. If set to 'false' and
+	the directory does not exist upon initialization, an Exception will be thrown.
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="auto-startup" type="xsd:string"/>

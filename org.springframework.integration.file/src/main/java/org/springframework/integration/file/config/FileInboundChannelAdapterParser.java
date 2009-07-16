@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -51,6 +52,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 			builder.addPropertyValue("inputDirectory", directory);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		String filterBeanName = this.registerFileListFilter(element, parserContext);
 		builder.addPropertyReference("filter", filterBeanName);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());

@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -57,7 +58,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Iwein Fuld
  * @author Alex Peters
  */
-public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
+public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
 	private static final String TEMPORARY_FILE_SUFFIX =".writing";
 
@@ -68,6 +69,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	private final File destinationDirectory;
 
+	private volatile boolean autoCreateDirectory = true;
+
 	private volatile boolean deleteSourceFiles;
 
 	private volatile Charset charset = Charset.defaultCharset();
@@ -75,19 +78,25 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 	public FileWritingMessageHandler(Resource destinationDirectory) {
 		try {
-			Assert.isTrue(destinationDirectory.exists(),
-					"Output directory [" + destinationDirectory + "] does not exist");
 			this.destinationDirectory = destinationDirectory.getFile();
-			Assert.isTrue(this.destinationDirectory.isDirectory(),
-					"[" + this.destinationDirectory + "] is not a directory");
-			Assert.isTrue(this.destinationDirectory.canWrite(),
-					"[" + this.destinationDirectory + "] is not writable");			
 		}
 		catch (IOException e) {
-			throw new IllegalArgumentException("Inaccessible output directory", e);
+			throw new IllegalArgumentException(
+					"Unexpected IOException when looking for destination directory: " + destinationDirectory, e);
 		}
 	}
 
+
+	/**
+	 * Specify whether to create the destination directory automatically if it
+	 * does not yet exist upon initialization. By default, this value is
+	 * <emphasis>true</emphasis>. If set to <emphasis>false</emphasis> and the
+	 * destination directory does not exist, an Exception will be thrown upon
+	 * initialization.
+	 */
+	public void setAutoCreateDirectory(boolean autoCreateDirectory) {
+		this.autoCreateDirectory = autoCreateDirectory;
+	}
 
 	/**
 	 * Provide the {@link FileNameGenerator} strategy to use when generating
@@ -117,6 +126,18 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		Assert.notNull(charset, "charset must not be null");
 		Assert.isTrue(Charset.isSupported(charset), "Charset '" + charset + "' is not supported.");
 		this.charset = Charset.forName(charset);
+	}
+
+	public void afterPropertiesSet() {
+		if (!this.destinationDirectory.exists() && this.autoCreateDirectory) {
+			this.destinationDirectory.mkdirs();
+		}
+		Assert.isTrue(destinationDirectory.exists(),
+				"Destination directory [" + destinationDirectory + "] does not exist.");
+		Assert.isTrue(this.destinationDirectory.isDirectory(),
+				"Destination path [" + this.destinationDirectory + "] does not point to a directory.");
+		Assert.isTrue(this.destinationDirectory.canWrite(),
+				"Destination directory [" + this.destinationDirectory + "] is not writable.");
 	}
 
 	@Override

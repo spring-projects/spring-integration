@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-2.5.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/file
+			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
+
+	<si:channel id="channel1"/>
+	<si:channel id="channel2"/>
+	<si:channel id="channel3"/>
+	<si:channel id="channel4"/>
+	<si:channel id="channel5"/>
+	<si:channel id="channel6"/>
+
+	<file:inbound-channel-adapter id="defaultInbound"
+		channel="channel1"
+		directory="file:${java.io.tmpdir}${file.separator}AutoCreateDirectoryIntegrationTests${file.separator}defaultInbound"
+		auto-startup="false"/>
+
+	<file:inbound-channel-adapter id="customInbound"
+		channel="channel2"
+		directory="file:${java.io.tmpdir}${file.separator}AutoCreateDirectoryIntegrationTests${file.separator}customInbound"
+		auto-startup="false"
+		auto-create-directory="false"/>
+
+	<file:outbound-channel-adapter id="defaultOutbound"
+		channel="channel3"
+		directory="file:${java.io.tmpdir}${file.separator}AutoCreateDirectoryIntegrationTests${file.separator}defaultOutbound"
+		auto-startup="false"/>
+
+	<file:outbound-channel-adapter id="customOutbound"
+		channel="channel4"
+		directory="file:${java.io.tmpdir}${file.separator}AutoCreateDirectoryIntegrationTests${file.separator}customOutbound"
+		auto-startup="false"
+		auto-create-directory="false"/>
+
+	<file:outbound-gateway id="defaultOutboundGateway"
+		request-channel="channel5"
+		directory="file:${java.io.tmpdir}${file.separator}AutoCreateDirectoryIntegrationTests${file.separator}defaultOutboundGateway"
+		auto-startup="false"/>
+
+	<file:outbound-gateway id="customOutboundGateway"
+		request-channel="channel6"
+		directory="file:${java.io.tmpdir}${file.separator}AutoCreateDirectoryIntegrationTests${file.separator}customOutboundGateway"
+		auto-startup="false"
+		auto-create-directory="false"/>
+
+	<context:property-placeholder/>
+
+	<si:poller default="true">
+		<si:interval-trigger interval="10000"/>
+	</si:poller>
+
+</beans>

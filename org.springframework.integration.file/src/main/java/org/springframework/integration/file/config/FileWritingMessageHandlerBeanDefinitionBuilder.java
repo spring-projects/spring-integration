@@ -51,6 +51,7 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		if (StringUtils.hasText(outputChannelBeanName)) {
 			builder.addPropertyReference("outputChannel", outputChannelBeanName);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delete-source-files");
 		String fileNameGenerator = element.getAttribute("filename-generator");
 		if (StringUtils.hasText(fileNameGenerator)) {
