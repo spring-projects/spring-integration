@@ -77,13 +77,22 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 
 
 	public FileWritingMessageHandler(Resource destinationDirectory) {
+		Assert.notNull(destinationDirectory, "Destination directory must not be null.");
+		File dir = null;
 		try {
-			this.destinationDirectory = destinationDirectory.getFile();
+			dir = destinationDirectory.getFile();
 		}
-		catch (IOException e) {
-			throw new IllegalArgumentException(
+		catch (IOException ioe) {
+			try {
+				// fallback to the URI
+				dir = new File(destinationDirectory.getURI());
+			}
+			catch (Exception e) {
+				throw new IllegalArgumentException(
 					"Unexpected IOException when looking for destination directory: " + destinationDirectory, e);
+			}
 		}
+		this.destinationDirectory = dir;
 	}
 
 

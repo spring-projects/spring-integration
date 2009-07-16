@@ -106,13 +106,19 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 	 * Specify the input directory.
 	 */
 	public void setInputDirectory(Resource inputDirectory) {
-		Assert.notNull(inputDirectory, "inputDirectory cannot be null");
+		Assert.notNull(inputDirectory, "inputDirectory must not be null");
 		try {
 			this.inputDirectory = inputDirectory.getFile();
 		}
-		catch (IOException e) {
-			throw new IllegalArgumentException(
+		catch (IOException ioe) {
+			try {
+				// fallback to the URI
+				this.inputDirectory = new File(inputDirectory.getURI());
+			}
+			catch (Exception e) {
+				throw new IllegalArgumentException(
 					"Unexpected IOException when looking for source directory: " + inputDirectory, e);
+			}
 		}
 	}
 
