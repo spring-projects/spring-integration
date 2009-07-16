@@ -18,13 +18,19 @@
 		</poller>
 	</inbound-channel-adapter>
 
-	<router ref="parityResolver" method="getParity" input-channel="numbers"/>
+	<filter input-channel="numbers" output-channel="positives"
+			ref="positiveChecker" method="isPositive"
+			discard-channel="nullChannel"/>
+
+	<router ref="parityResolver" method="getParity" input-channel="positives"/>
 
 	<service-activator ref="oddLogger" input-channel="odd"/>
 
 	<service-activator ref="evenLogger" input-channel="even"/>
 
 	<beans:bean id="counter" class="org.springframework.integration.samples.oddeven.Counter"/>
+
+	<beans:bean id="positiveChecker" class="org.springframework.integration.samples.oddeven.PositiveChecker"/>
 
 	<beans:bean id="parityResolver" class="org.springframework.integration.samples.oddeven.ParityResolver"/>
 

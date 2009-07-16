@@ -16,24 +16,15 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
- * A simple POJO providing a method that returns incrementing integer values.
- * This is referenced in the sample's configuration by an inbound Channel
- * Adapter acting as a Polling Consumer.
- * <p/>
- * Every 5th number will be returned as a negative value.
+ * A POJO Message Filter.
  * 
  * @author Mark Fisher
  */
-public class Counter {
+public class PositiveChecker {
 
-	private final AtomicInteger count = new AtomicInteger();
-
-	public int next() {
-		int nextNumber = count.incrementAndGet();
-		return (nextNumber % 5 == 0) ? -nextNumber : nextNumber;
+	public boolean isPositive(int i) {
+		return i > 0;
 	}
 
 }
