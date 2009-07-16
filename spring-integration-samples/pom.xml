@@ -9,7 +9,7 @@
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
 	<properties>
-		<release.version>1.0.3.BUILD-SNAPSHOT</release.version>
+		<release.version>1.0.3.RELEASE</release.version>
 	</properties>
 	<modules>
 		<module>cafe</module>
@@ -26,16 +26,9 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.stream</artifactId>
-			<version>${release.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration</artifactId>
 			<version>${release.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.adapter</artifactId>
@@ -83,6 +76,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
+			<artifactId>org.springframework.integration.stream</artifactId>
+			<version>${release.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration.ws</artifactId>
 			<version>${release.version}</version>
 		</dependency>
@@ -91,7 +89,11 @@
 			<artifactId>org.springframework.integration.xml</artifactId>
 			<version>${release.version}</version>
 		</dependency>
-		<!--  -->
+		<dependency>
+			<groupId>org.apache.log4j</groupId>
+			<artifactId>com.springsource.org.apache.log4j</artifactId>
+			<version>1.2.15</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
