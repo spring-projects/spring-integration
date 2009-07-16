@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:httpinvoker="http://www.springframework.org/schema/integration/httpinvoker"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration/httpinvoker
+			http://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker-1.0.xsd">
+
+	<httpinvoker:outbound-gateway url="testUrl" request-channel="testChannel" auto-startup="false"/>
+
+</beans>

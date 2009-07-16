@@ -11,6 +11,7 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.context/2.5.6.A/org.springframework.context-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.context/2.5.6.A/org.springframework.context-sources-2.5.6.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.core/2.5.6.A/org.springframework.core-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.core/2.5.6.A/org.springframework.core-sources-2.5.6.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.jms/2.5.6.A/org.springframework.jms-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.jms/2.5.6.A/org.springframework.jms-sources-2.5.6.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/2.5.6.A/org.springframework.test-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.test/2.5.6.A/org.springframework.test-sources-2.5.6.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.transaction/2.5.6.A/org.springframework.transaction-2.5.6.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.transaction/2.5.6.A/org.springframework.transaction-sources-2.5.6.A.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.adapter"/>

@@ -10,7 +10,8 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
-	<xsd:import namespace="http://www.springframework.org/schema/integration"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -79,7 +80,6 @@
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
 					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
-					<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -214,7 +214,6 @@
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
 					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
-					<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -314,6 +313,7 @@
 			<xsd:attribute name="delivery-mode" type="xsd:string"/>
 			<xsd:attribute name="time-to-live" type="xsd:string"/>
 			<xsd:attribute name="priority" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 			<xsd:attribute name="order" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -468,6 +468,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
@@ -489,7 +490,7 @@
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
-		</xsd:attribute>		
+		</xsd:attribute>
 	</xsd:complexType>
 
 </xsd:schema>

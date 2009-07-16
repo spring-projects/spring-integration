@@ -10,7 +10,8 @@
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
-	<xsd:import namespace="http://www.springframework.org/schema/integration"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -170,7 +171,7 @@
 			</xsd:attribute>
 			<xsd:attribute name="message-senders" type="xsd:string"/>
 			<xsd:attribute name="order" type="xsd:string"/>
-			<xsd:attribute name="auto-startup" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -221,4 +222,5 @@
 			<xsd:attribute name="extract-payload" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>
+
 </xsd:schema>

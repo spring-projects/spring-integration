@@ -3,13 +3,14 @@
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
-		xmlns:si-core="http://www.springframework.org/schema/integration"
+		xmlns:integration="http://www.springframework.org/schema/integration"
 		targetNamespace="http://www.springframework.org/schema/integration/xml"
 		elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
-	<xsd:import namespace="http://www.springframework.org/schema/integration" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
 
 	<xsd:annotation>
 		<xsd:documentation>
@@ -157,7 +158,7 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="xpath-expression" minOccurs="0" maxOccurs="1"/>
-				<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 			<xsd:attribute name="input-channel" type="xsd:string">
@@ -292,11 +293,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines an validating router.
+	Defines a validating router.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 			<xsd:attribute name="input-channel" type="xsd:string">
@@ -321,19 +322,19 @@
 			<xsd:attribute name="invalid-channel" type="xsd:string" use="required" />
 			<xsd:attribute name="schema-location" use="required" />
 			<xsd:attribute name="schema-type" default="xml-schema">
-						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="xml-schema"/>
-								<xsd:enumeration value="relax-ng"/>
-							</xsd:restriction>
-						</xsd:simpleType>
-					</xsd:attribute>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="xml-schema"/>
+						<xsd:enumeration value="relax-ng"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="inputOutputEndpoint">
 		<xsd:sequence>
-			<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string" use="optional"/>
 		<xsd:attribute name="input-channel" type="xsd:string">

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 package org.springframework.integration.ws.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class WsNamespaceHandler extends NamespaceHandlerSupport {
+public class WsNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		this.registerBeanDefinitionParser("outbound-gateway", new WebServiceOutboundGatewayParser());

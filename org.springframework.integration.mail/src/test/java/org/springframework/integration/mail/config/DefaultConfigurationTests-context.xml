@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration/mail
+			http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">
+
+	<mail:outbound-channel-adapter id="adapter" mail-sender="mailSender" auto-startup="false"/>
+
+	<bean id="mailSender" class="org.springframework.integration.mail.StubJavaMailSender">
+		<constructor-arg>
+			<bean class="javax.mail.internet.MimeMessage">
+				<constructor-arg type="javax.mail.Session"><null/></constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

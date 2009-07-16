@@ -61,6 +61,10 @@ public abstract class AbstractRemotingGatewayParser extends AbstractSimpleBeanDe
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("replyChannel", replyChannel);
 		}
+		String autoStartup = element.getAttribute("auto-startup");
+		if (StringUtils.hasText(autoStartup)) {
+			builder.addPropertyValue("autoStartup", autoStartup);
+		}
 		this.doPostProcess(builder, element);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.springframework.integration.security.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
  * Namespace handler for the security namespace.
  * 
  * @author Jonas Partner
  */
-public class IntegrationSecurityNamespaceHandler extends NamespaceHandlerSupport {
+public class IntegrationSecurityNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("secured-channels", new SecuredChannelsParser());

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.http.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
  * Namespace handler for Spring Integration's <em>http</em> namespace.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Mark Fisher
  * @since 1.0.2
  */
-public class HttpNamespaceHandler extends NamespaceHandlerSupport {
+public class HttpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new HttpInboundEndpointParser(false));

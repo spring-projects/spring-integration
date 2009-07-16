@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 
 /**
  * Namespace handler for Spring Integration's 'file' namespace.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-public class FileNamespaceHandler extends NamespaceHandlerSupport {
+public class FileNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new FileInboundChannelAdapterParser());
