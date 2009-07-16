@@ -17,6 +17,8 @@
 package org.springframework.integration.samples.helloworld;
 
 /**
+ * Simple POJO to be referenced from a Service Activator.
+ * 
  * @author Mark Fisher
  */
 public class HelloService {

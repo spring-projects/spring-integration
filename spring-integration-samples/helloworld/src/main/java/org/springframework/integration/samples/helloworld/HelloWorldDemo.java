@@ -48,12 +48,14 @@ public class HelloWorldDemo {
 		demo.performDemo(applicationContext);
 		applicationContext.stop();
 	}
-	
-	public void performDemo(ApplicationContext applicationContext){
+
+
+	public void performDemo(ApplicationContext applicationContext) {
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
 		MessageChannel inputChannel = channelResolver.resolveChannelName("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) channelResolver.resolveChannelName("outputChannel");
 		inputChannel.send(new StringMessage("World"));
 		System.out.println("==> HelloWorldDemo: " + outputChannel.receive(0).getPayload());
 	}
+
 }
