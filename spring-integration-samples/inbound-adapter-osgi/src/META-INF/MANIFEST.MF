@@ -1,10 +1,15 @@
 Manifest-Version: 1.0
 Bundle-Version: 1.0.3
-Bundle-Name: Input_adapter_osgi
+Bundle-Name: Inbound_adapter_osgi
 Bundle-ManifestVersion: 2
-Bundle-SymbolicName: input_adapter_osgi
+Bundle-SymbolicName: inbound_adapter_osgi
+Bundle-Activator: org.springframework.integration.samples.inbound.InboundDemoBundleActivator
+Import-Package: org.eclipse.osgi.framework.console;version="1.0.0",
+ org.osgi.framework;version="1.4.0",
+ org.osgi.service.packageadmin;version="1.2.0",
+ org.eclipse.osgi.util
 Import-Library: org.aspectj;version="[1.6.2, 2.0.0)",
  org.springframework.spring;version="[2.5.6.A, 3.1.0)"
-Import-Bundle: org.springframework.integration;version="[1.0.3, 1.0.4)",
- org.springframework.integration.file;version="[1.0.3, 1.0.4)"
+Import-Bundle: org.springframework.integration;version="[1.0.3,1.0.4)",
+ org.springframework.integration.file;version="[1.0.3,1.0.4)"
 
