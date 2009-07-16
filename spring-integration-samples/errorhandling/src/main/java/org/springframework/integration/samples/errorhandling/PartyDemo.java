@@ -33,7 +33,7 @@ public class PartyDemo {
 
 	public static void main(String[] args) {
 		new ClassPathXmlApplicationContext("errorHandlingDemo.xml", PartyDemo.class);
-		System.out.println("hit any key to stop");
+		System.out.println("### Hit ENTER to stop ###");
 		try {
 			System.in.read();
 		}
