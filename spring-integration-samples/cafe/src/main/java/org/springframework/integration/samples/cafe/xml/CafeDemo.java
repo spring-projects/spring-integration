@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.samples.cafe.xml;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.integration.samples.cafe.Cafe;
 import org.springframework.integration.samples.cafe.DrinkType;
 import org.springframework.integration.samples.cafe.Order;
@@ -29,8 +28,9 @@ import org.springframework.integration.samples.cafe.Order;
  * order is placed, the Cafe will send that order to the "orders" channel.
  * The relevant components are defined within the configuration file
  * ("cafeDemo.xml").
- * If deployed in SpringSource dmServer the ApplicationContext configuration is in 
- * META-INF/spring directory
+ * <p/>
+ * If deploying in SpringSource dmServer, the relevant ApplicationContext
+ * configuration is in the META-INF/spring directory instead.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -40,17 +40,12 @@ public class CafeDemo {
 
 	public static void main(String[] args) {
 		CafeDemo demo = new CafeDemo();
-		AbstractApplicationContext applicationContext = null;
-		if(args.length > 0) {
-			applicationContext = new FileSystemXmlApplicationContext(args);
-		}
-		else {
-			applicationContext = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
-		}
-		demo.performDemo(applicationContext, 100);
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+		demo.performDemo(context, 100);
 	}
 
-	public void performDemo(ApplicationContext applicationContext, int iterations){
+
+	public void performDemo(ApplicationContext applicationContext, int iterations) {
 		Cafe cafe = (Cafe) applicationContext.getBean("cafe");
 		for (int i = 1; i <= iterations; i++) {
 			Order order = new Order(i);
@@ -59,4 +54,5 @@ public class CafeDemo {
 			cafe.placeOrder(order);
 		}
 	}
+
 }

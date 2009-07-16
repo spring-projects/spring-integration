@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.osgi.cafe;
 
 import java.util.concurrent.ExecutorService;
@@ -28,30 +29,27 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.samples.cafe.xml.CafeDemo;
 
 /**
- * Simple BundleActivator which will register ServiceListener which will listen for 
- * ApplicationContext published event. Once event is received, CafeDemo will be executed.
+ * An OSGi BundleActivator which will register a ServiceListener to listen for 
+ * an ApplicationContext published event. Once the event is received, the
+ * CafeDemo will be executed.
  * 
  * @author Oleg Zhurakousky
+ * @since 1.0.3
  */
 public class CafeBundleActivator implements BundleActivator, ServiceListener{
+
 	private BundleContext context;
-	/**
-	 * 
-	 */
+
 	public void start(BundleContext context) throws Exception {
 		this.context = context;		
 		context.addServiceListener(this);
 	}
-	/**
-	 * 
-	 */
+
 	public void stop(BundleContext context) throws Exception {}
-	/**
-	 * 
-	 */
+
 	public void serviceChanged(ServiceEvent serviceEvent) {
 		ServiceReference sr = serviceEvent.getServiceReference();
-		if (context.getBundle().getSymbolicName().equals(sr.getProperty(Constants.BUNDLE_SYMBOLICNAME))){
+		if (context.getBundle().getSymbolicName().equals(sr.getProperty(Constants.BUNDLE_SYMBOLICNAME))) {
 			final ApplicationContext applicationContext = (ApplicationContext) context.getService(sr);
 			ExecutorService executor = Executors.newCachedThreadPool();
 			executor.execute(new Runnable() {			
@@ -61,4 +59,5 @@ public class CafeBundleActivator implements BundleActivator, ServiceListener{
 			});			
 		}	
 	}
+
 }
