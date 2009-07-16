@@ -21,11 +21,11 @@
 
 	<integration:service-activator input-channel="bytes"
 	                               output-channel="filesOut"
-                                   ref="exclaimer" method="exclaim"/>
+                                   ref="handler"/>
 
 	<file:outbound-channel-adapter id="filesOut" directory="${java.io.tmpdir}/spring-integration-samples/output"/>
 
-	<bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
+	<bean id="handler" class="org.springframework.integration.samples.filecopy.Handler"/>
 
 	<integration:poller id="poller" default="true">
 		<integration:interval-trigger interval="5000"/>

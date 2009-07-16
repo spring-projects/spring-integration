@@ -31,6 +31,7 @@ public class FileCopyDemoCommon {
 		File outDir = new File(baseDir, "output");
 		System.out.println("Input directory is: " + inDir.getAbsolutePath());
 		System.out.println("Output directory is: " + outDir.getAbsolutePath());
+		System.out.println("===================================================");
 	}
 
 }

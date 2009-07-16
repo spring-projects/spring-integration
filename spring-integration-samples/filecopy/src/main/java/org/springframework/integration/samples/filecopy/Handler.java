@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,19 @@ import java.io.File;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class Exclaimer {
+public class Handler {
 
-	public String exclaim(String input) {
+	public String handleString(String input) {
 		System.out.println("Copying text: " + input);
 		return input.toUpperCase();
 	}
 	
-	public File exclaim(File input) {
+	public File handleFile(File input) {
 		System.out.println("Copying file: " + input.getAbsolutePath());
 		return input;
 	}
 	
-	public byte[] exclaim(byte[] input) {
+	public byte[] handleBytes(byte[] input) {
 		System.out.println("Copying " + input.length + " bytes ...");
 		return new String(input).toUpperCase().getBytes();
 	}

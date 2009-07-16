@@ -20,7 +20,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Demonstrating the file copy scenario using binary file source and target.
- * See the 'fileCopyDemo-binary.xml' configuration file for details.
+ * See the 'fileCopyDemo-binary.xml' configuration file for details. Notice
+ * that the transformer is configured to delete the source File after it
+ * extracts the content as a byte array.
  * 
  * @author Marius Bogoevici
  */
