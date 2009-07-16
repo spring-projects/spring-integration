@@ -89,7 +89,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 			}
 			catch (Exception e) {
 				throw new IllegalArgumentException(
-					"Unexpected IOException when looking for destination directory: " + destinationDirectory, e);
+					"Unexpected IOException when looking for destination directory: " + destinationDirectory, ioe);
 			}
 		}
 		this.destinationDirectory = dir;

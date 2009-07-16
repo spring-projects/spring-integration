@@ -117,7 +117,7 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 			}
 			catch (Exception e) {
 				throw new IllegalArgumentException(
-					"Unexpected IOException when looking for source directory: " + inputDirectory, e);
+					"Unexpected IOException when looking for source directory: " + inputDirectory, ioe);
 			}
 		}
 	}
