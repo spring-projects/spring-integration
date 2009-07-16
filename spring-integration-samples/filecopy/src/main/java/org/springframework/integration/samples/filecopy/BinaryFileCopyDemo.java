@@ -27,7 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class BinaryFileCopyDemo {
 
 	public static void main(String[] args) {
-		FileCopyDemoCommon.setupDirectories();
+		FileCopyDemoCommon.displayDirectories();
 		new ClassPathXmlApplicationContext("fileCopyDemo-binary.xml", BinaryFileCopyDemo.class);
 	}
 

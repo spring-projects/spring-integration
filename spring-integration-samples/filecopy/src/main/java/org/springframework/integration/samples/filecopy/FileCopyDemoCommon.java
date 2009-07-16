@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,25 +19,18 @@ package org.springframework.integration.samples.filecopy;
 import java.io.File;
 
 /**
- * Common functionality for the file demo.
+ * Displays the names of the input and output directories.
  * 
  * @author Marius Bogoevici
  */
 public class FileCopyDemoCommon {
 
-	public static void setupDirectories() {
-		String tmpDirPath = System.getProperty("java.io.tmpdir");
-		File parentDir = new File(tmpDirPath + File.separator + "spring-integration-samples");
-		File inDir = new File(parentDir, "input");
-		File outDir = new File(parentDir, "output");
-		if ((inDir.exists() || inDir.mkdirs()) && (outDir.exists() || outDir.mkdirs())) {
-			System.out.println("input directory is: " + inDir.getAbsolutePath());
-			System.out.println("output directory is: " + outDir.getAbsolutePath());
-		}
-		else {
-			System.err.println("failed to create directories within tmp dir: " + tmpDirPath);
-			System.exit(0);
-		}
+	public static void displayDirectories() {
+		File baseDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "spring-integration-samples");
+		File inDir = new File(baseDir, "input");
+		File outDir = new File(baseDir, "output");
+		System.out.println("Input directory is: " + inDir.getAbsolutePath());
+		System.out.println("Output directory is: " + outDir.getAbsolutePath());
 	}
-	
+
 }

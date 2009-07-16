@@ -27,7 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class FileBasedFileCopyDemo {
 
 	public static void main(String[] args) {
-		FileCopyDemoCommon.setupDirectories();
+		FileCopyDemoCommon.displayDirectories();
 		new ClassPathXmlApplicationContext("fileCopyDemo-file.xml", FileBasedFileCopyDemo.class);
 	}
 
