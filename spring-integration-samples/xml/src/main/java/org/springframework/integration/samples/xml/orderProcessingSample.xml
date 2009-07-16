@@ -69,7 +69,4 @@
 	<si:outbound-channel-adapter ref="externalResupply" method="orderResupply" channel="resupplyOrderChannel" />
 	<bean id="externalResupply" class="org.springframework.integration.samples.xml.ExternalResupply" />
 
-
-
 </beans>
-

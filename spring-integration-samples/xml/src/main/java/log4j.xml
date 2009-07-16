@@ -19,18 +19,14 @@
 		<level value="warn" />
 	</logger>
 
-	<logger name="org.springframework.integration.jms">
+	<logger name="org.springframework.integration.xml">
 		<level value="warn" />
 	</logger>
 
-	<logger name="org.apache.activemq">
-		<level value="warn" />
-	</logger>
-	
 	<!-- Root Logger -->
 	<root>
 		<priority value="warn" />
 		<appender-ref ref="console" />
 	</root>
-	
+
 </log4j:configuration>

@@ -19,6 +19,10 @@
 		<level value="warn" />
 	</logger>
 
+	<logger name="org.springframework.integration.file">
+		<level value="warn" />
+	</logger>
+
 	<!-- Root Logger -->
 	<root>
 		<priority value="warn" />
