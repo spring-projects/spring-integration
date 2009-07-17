@@ -9,8 +9,7 @@
 		http://www.springframework.org/schema/integration/file http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
 
 	<osgi:reference id="filesIn"
-			interface="org.springframework.integration.channel.SubscribableChannel"
-			cardinality="0..1"/>
+			interface="org.springframework.integration.channel.SubscribableChannel"/>
 
 	<file:outbound-gateway id="filesOut"
 			request-channel="filesIn"
