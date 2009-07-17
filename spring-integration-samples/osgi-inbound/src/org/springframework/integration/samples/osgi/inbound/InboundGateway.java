@@ -26,6 +26,6 @@ import org.springframework.integration.file.FileHeaders;
  */
 public interface InboundGateway {
 
-	public File sendMessage(String message, @Header(FileHeaders.FILENAME)String filename);
+	public File sendMessage(String message, @Header(FileHeaders.FILENAME) String filename);
 
 }
