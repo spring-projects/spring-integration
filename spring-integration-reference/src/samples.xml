@@ -7,7 +7,7 @@
 	<note>
 		Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are distributed as independent
 		Maven-based projects (<ulink url="http://maven.apache.org/">http://maven.apache.org/</ulink>) to minimize the setup time.
-		Since each project is also an Eclipse-based project, they can be imported as is using "Import existing project wizard". 
+		Since each project is also an Eclipse-based project, they can be imported as is using the Eclipse Import wizard. 
 		If you prefer another IDE, configuration should be very trivial, since a special Maven profile was setup to download all
 		of the required dependencies for all samples. Detailed instructions on how to build and run the samples are provided in
 		the <code>README.txt</code> file located in the <emphasis>samples</emphasis> directory of the main distribution.
@@ -237,7 +237,7 @@
   </section>
 
   <section id="samples-xml-messaging">
-    <title>The xml messaging sample</title>
+    <title>The XML Messaging Sample</title>
     <para>
     	The xml messaging sample in the <package>org.springframework.integration.samples.xml</package> illustrates how to use 
     	some of the provided components which deal with xml payloads.  The sample uses the idea of processing an order for books
@@ -281,5 +281,159 @@
 ]]></programlisting>    	 
     </para>
   </section> 
-  
+ 
+  <section id="samples-osgi">
+	<title>The OSGi Samples</title>
+	<para>
+		This release of Spring Integration includes several samples that are OSGi enabled as well as samples that were
+		specifically designed to show some of the other benefits of OSGi and Spring Integration when used together.
+		First lets look at the two familiar examples that are also configured to be valid OSGi bundles. These are
+		<emphasis>Hello World</emphasis> and <emphasis>Cafe</emphasis>. All you need to do to see these samples work in
+		an OSGi environment is deploy the generated JAR into such an environment.
+	</para>
+	<para>
+		Use Maven to generate the JAR by executing the 'mvn install' command on either of these projects. This will
+		generate the JAR file in the target directory. Now you can simply drop that JAR file into the deployment
+		directory of your OSGi platform. For example, if you are using
+		<ulink url="http://www.springsource.com/products/dmserver">SpringSource dm Server</ulink>,
+		drop the files into the 'pickup' directory within the dm Server home directory.
+	</para>
+	<note>
+		Prior to deploying and testing Spring Integration samples in the dm Server or any other OSGi server platform,
+		you must have the Spring Integration and Spring bundles installed on that platform. For example, to install
+		Spring Integration into SpringSource dm Server, copy all JAR files that are located in the 'dist' directory of
+		your Spring Integration distribution into the 'repository/bundles/usr' directory of your dm Server instance
+		(see the
+		<ulink url="http://static.springsource.com/projects/dm-server/1.0.x/user-guide/htmlsingle/user-guide.html">dm Server User Guide</ulink>
+		for more detail on how to install bundles).
+	</note>
+	<para>
+		The Spring Integration samples require a few other bundles to be installed. For the 1.0.3 release, the full
+		list including transitive dependencies is:
+		<itemizedlist>
+			<listitem>org.apache.commons.codec-1.3.0.jar</listitem>
+			<listitem>org.apache.commons.collections-3.2.0.jar</listitem>
+			<listitem>org.apache.commons.httpclient-3.1.0.jar</listitem>
+			<listitem>org.apache.ws.commons.schema-1.3.2.jar</listitem>
+			<listitem>org.springframework.oxm-1.5.5.A.jar</listitem>
+			<listitem>org.springframework.security-2.0.4.A.jar</listitem>
+			<listitem>org.springframework.ws-1.5.5.A.jar</listitem>
+			<listitem>org.springframework.xml-1.5.5.A.jar</listitem>
+		</itemizedlist>
+		These are all located within the 'lib' directory of the Spring Integration distribution. So, you can simply
+		copy those JARs into the dm Server 'repository/bundles/usr' directory as well.
+		<note>
+			The Spring Framework bundles (aop, beans, context, etc.) are also included in the 'lib' directory of the
+			Spring Integration distribution, but they do not need to be installed since they are already part of the
+			dm Server infrastructure. Also, note that the versions listed above are those included with the Spring
+			Integration 1.0.3 release. Newer versions of individual JARs may be used as long as they are within the
+			range specified in the MANIFEST.MF files of those bundles that depend upon them.
+		</note>
+		<tip>
+			The bundles listed above are appropriate for a SpringSource dm Server 1.0.x deployment environment
+			with a Spring Framework 2.5.x foundation. That is the version against which Spring Integration 1.0.3
+			has been developed and tested. However, as of the time of the Spring Integration 1.0.3 release, the
+			Spring Framework 3.0 release candidates are about to be available, and the dm Server 2.0.x milestones
+			are available. If you want to try running these samples in that environment, then you will need to
+			replace the Spring Security and Spring Web Services bundles with versions that support Spring 3.0.
+			The OXM functionality is moving into the Spring Framework itself for the 3.0 release. Otherwise,
+			Spring Integration 1.0.3 has been superficially tested against the Spring 3.0 snapshots available
+			at the time of its release. In fact, some internal changes were made in the 1.0.3 release
+			specifically to support Spring 3.0 (whereas 1.0.2 does not). Spring Integration 2.0 will be built
+			upon a Spring 3.0 foundation.
+		</tip>
+	</para>
+	<para>
+		To demonstrate some of the benefits of running Spring Integration projects in an OSGi environment (e.g.
+		modularity, OSGi service dynamics, etc.), we have included a couple new samples that are dedicated to
+		highlighting those benefits. In the 'samples' directory, you will find the following two projects:
+		<itemizedlist>
+			<listitem>osgi-inbound (producer bundle)</listitem>
+			<listitem>osgi-outbound (consumer bundle)</listitem>
+		</itemizedlist>
+		Unlike the other samples in the distribution, these are not Maven enabled. Instead, we have simply configured
+		them as valid dm Server Bundle projects. That means you can import these projects directly into an STS
+		workspace using the "Existing Projects into Workspace" option from the Eclipse Import wizard. Then, you can
+		take advantage of the STS dm Server tools to deploy them into a SpringSource dm Server instance. The
+		pre-built bundle (JAR file) is also included for both 'osgi-inbound' and 'osgi-outbound'.
+	</para>
+	<para>
+		The structure of these projects is very simple, yet the concepts they showcase are quite powerful. The
+		'osgi-inbound' module enables sending a Message to a Publish-Subscribe Channel using a Spring Integration
+		Gateway proxy. The interesting part, however, is that the Publish-Subscribe Channel is exported as an OSGi
+		service via the &lt;osgi:service/&gt; element. As a result, any other bundles can be developed, deployed, and
+		maintained independently yet still subscribe to that channel.
+	</para>
+	<para>
+		The 'osgi-outbound' module is an example of such a subscribing consumer bundle. It uses the corresponding
+		&lt;osgi:reference/&gt; element to locate the channel exported by the 'osgi-inbound' bundle. It also contains
+		configuration for a &lt;file:outbound-gateway/&gt; which is a subscriber to that channel and will write the
+		Message content to a file once it arrives. It then sends a response Message with the name of the file and its
+		location.
+	</para>
+	<para>
+		To make it easy to run, we've exposed a command-line interface where you can type in the command, the message,
+		and the file name to execute the demo. This is exposed through the OSGi console. Likewise, the response that
+		provides the name and location of the resulting file will also be visible within the OSGi console.
+	</para>
+	<para>
+		To run these samples, make sure your OSGi environment is properly configured to host Spring Integration bundles
+		(as described in the note above). Deploy the producer bundle (osgi-inbound) first, and then deploy the consumer
+		bundle (osgi-outbound). After you have deployed these bundles, open the OSGi console and type the following
+		command:
+		<programlisting><![CDATA[ osgi> help ]]></programlisting>
+		You will see the following amidst the output:
+		<programlisting><![CDATA[ ---Spring Integration CLI-based OSGi Demo---
+         siSend <message> <filename> - send text to be written to a file]]></programlisting>
+		As you can see, that describes the command that you will be able to use to send messages. If you are interested
+		in how it is implemented or want to customize message sending logic or even create a new command look at
+		<classname>InboundDemoBundleActivator.java</classname> in the consumer bundle.
+		<tip>
+			By default, when using dm Server, you can open the OSGi console by connecting to port 2401 via telnet:
+			<programlisting> telnet localhost 2401</programlisting>
+		</tip>
+	</para>
+	<para>
+		Now send a message by typing: <programlisting><![CDATA[ osgi> siSend "Hello World" hello.txt]]></programlisting>
+		You will see something similar to the following in the OSGi console:
+		<programlisting><![CDATA[ Sending message: 'Hello World'
+ Message sent and its contents were written to:   
+ /usr/local/dm-server/work/tmp/spring-integration-samples/output/hello.txt]]></programlisting>
+		<note>
+			It is not necessary to wrap the message in quotes if it does not contain spaces.
+			Go ahead and open up the file and verify that the message content was written to it.
+		</note>
+	</para>
+	<para>
+		Let's assume you wanted to change the directory to which the files are written or make any other change to the
+		consumer bundle (osgi-outboud). You only need to update the consumer bundle and not the producer bundle. So, go
+		ahead and change the directory in the 'osgi-outbound.xml' file located within 'src/META-INF/spring' and refresh
+		the consumer bundle.
+		<tip>
+			If using STS to deploy to dm Server, the refresh will happen automatically. If replacing bundles manually,
+			you can issue the command 'refresh n' in the OSGi console (where n would be the number of the bundle as
+			displayed at any point after issuing the 'ss' command to see the short status output).
+		</tip>
+		You will see that the change takes affect immediately. Not only that, you could even start developing and
+		deploying new bundles that subscribe to the messages produced by the producer bundle the same way as the existing
+		consumer bundle (osgi-outbound) does. With a publish-subscribe-channel any newly deployed bundles would start
+		receiving each Message as well.
+		<note>
+			If you also want to modify and refresh the producer bundle, be sure to refresh the consumer bundle
+			afterwards as well. This is necessary because the consumer's subscription must be explicitly re-enabled
+			after the producer's channel disappears. You could alternatively deploy a relatively static bundle that
+			defines channels so that producers and consumers can be completely dynamic without affecting each other
+			at all. In Spring Integration 2.0, we plan to support automatic re-subscription and more through the use
+			of a <emphasis>Control Bus</emphasis>.
+		</note>
+	</para>
+	<para>
+		That pretty much wraps up this very simple example. Hopefully it has successfully demonstrated the benefits of
+		modularity and OSGi service dynamics while working with Spring Integration. Feel free to experiment by following
+		some of the suggestions mentioned above. For deeper coverage of the applicability of OSGi when used with Spring
+		Integration, read <ulink url="http://blog.springsource.com/2009/02/27/spring-integration-on-dm-server/">this blog</ulink>
+		by Spring Integration team member Iwein Fuld.
+	</para>
+  </section>
+
 </appendix>
