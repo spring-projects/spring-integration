@@ -58,9 +58,8 @@ public class InboundDemoBundleActivator implements BundleActivator, CommandProvi
 	public void stop(BundleContext arg0) throws Exception {}
 
 	public String getHelp() {
-		return "\n### Spring Integration CLI-based Demo\n" +
-				"siSend - will send a message to a receiver which will write the message to a file\n\t" +
-				"siSend <message> <file name> Example: siSend hello foo.txt\n";
+		return "\n---Spring Integration CLI-based OSGi Demo---\n\t" +
+				"siSend <message> <filename> - send text to be written to a file\n";
 	}
 
 	public void serviceChanged(ServiceEvent serviceEvent) {
