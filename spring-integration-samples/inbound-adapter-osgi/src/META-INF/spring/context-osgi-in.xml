@@ -11,11 +11,11 @@
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	xmlns:file="http://www.springframework.org/schema/integration/file">
 
-
 	<integration:gateway id="inboundGateway" service-interface="org.springframework.integration.samples.inbound.InboundGateway"
 	                     default-request-channel="inChannel"/>
 	
 	<integration:publish-subscribe-channel id="inChannel"/>
 	 
-    <osgi:service id="inboundService" ref="inChannel" interface="org.springframework.integration.channel.SubscribableChannel"/>
-</beans>
+    <osgi:service  id="inboundService" ref="inChannel" interface="org.springframework.integration.channel.SubscribableChannel" />
+ 
+</beans>   

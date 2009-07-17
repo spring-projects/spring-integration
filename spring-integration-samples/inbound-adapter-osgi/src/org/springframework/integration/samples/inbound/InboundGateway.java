@@ -15,15 +15,15 @@
  */
 package org.springframework.integration.samples.inbound;
 
+import java.io.File;
+
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.file.FileHeaders;
+
 /**
- * Simple BundleActivator which will register ServiceListener which will listen for 
- * ApplicationContext published event. Once event is received, HelloWorldDemo will be executed.
- * 
  * @author Oleg Zhurakousky
  */
 public interface InboundGateway {
 
-	public void sendMessage(String message, @Header(FileHeaders.FILENAME)String fileName);
+	public File sendMessage(String message, @Header(FileHeaders.FILENAME)String fileName);
 }

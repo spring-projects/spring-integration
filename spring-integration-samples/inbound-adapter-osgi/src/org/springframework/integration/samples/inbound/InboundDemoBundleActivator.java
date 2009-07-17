@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.samples.inbound;
 
+import java.io.File;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -77,8 +78,8 @@ public class InboundDemoBundleActivator implements BundleActivator, CommandProvi
 		Assert.notNull(message, "You must provide message as first argument");
 		Assert.notNull(fileName, "You must proivi a file name as second argument");
 		ci.println("Sending message: '" + message + "'");
-		gateway.sendMessage(message, fileName);
-		ci.println("Message sent!");
+		File file = gateway.sendMessage(message, fileName);
+		ci.println("Message sent and its contents are written to: " + file.getAbsolutePath());
 	}
 
 }

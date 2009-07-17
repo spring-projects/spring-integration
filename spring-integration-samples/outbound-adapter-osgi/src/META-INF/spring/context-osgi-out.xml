@@ -12,10 +12,8 @@
 	xmlns:file="http://www.springframework.org/schema/integration/file">
 
 	
-	<osgi:reference id="filesInService" interface="org.springframework.integration.channel.SubscribableChannel"/>
-
-	<integration:bridge input-channel="filesInService" output-channel="filesOut"/>
+	<osgi:reference  id="filesInService" interface="org.springframework.integration.channel.SubscribableChannel" cardinality="0..1"/>
 	
-	<file:outbound-channel-adapter id="filesOut" directory="${java.io.tmpdir}/spring-integration-samples/output" delete-source-files="true" />
+	<file:outbound-gateway request-channel="filesInService" id="filesOut" directory="${java.io.tmpdir}/spring-integration-samples/output" delete-source-files="true" />
 
 </beans>

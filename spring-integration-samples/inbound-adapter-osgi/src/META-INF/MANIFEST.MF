@@ -11,5 +11,4 @@ Import-Package: org.eclipse.osgi.framework.console;version="1.0.0",
 Import-Library: org.aspectj;version="[1.6.2, 2.0.0)",
  org.springframework.spring;version="[2.5.6.A, 3.1.0)"
 Import-Bundle: org.springframework.integration;version="[1.0.3,1.0.4)",
- org.springframework.integration.file;version="[1.0.3,1.0.4)"
-
+ org.springframework.integration.file;version="[1.0.3,1.0.4)"    
