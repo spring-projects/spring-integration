@@ -26,15 +26,25 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
 /**
- * A broadcasting dispatcher implementation. It makes a best effort to
- * send the message to each of its handlers. If it fails to send to any
- * one handler, it will log a warn-level message but continue to send
- * to the other handlers.
+ * A broadcasting dispatcher implementation. If the 'ignoreFailures' property
+ * is set to <code>false</code> (the default), it will fail fast such that any
+ * Exception thrown by a MessageHandler may prevent subsequent handlers from
+ * receiving the Message. However, when a TaskExecutor is provided, the Messages
+ * may be dispatched in separate Threads so that other handlers are invoked even
+ * when the 'ignoreFailures' flag is <code>false</code>.
+ * <p>
+ * If the 'ignoreFailures' flag is set to <code>true</code> on the other hand,
+ * it will make a best effort to send the message to each of its handlers. In
+ * other words, when 'ignoreFailures' is <code>true</code>, if it fails to send
+ * to any one handler, it will simply log a warn-level message but continue to
+ * send the Message to any other handlers.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
  */
 public class BroadcastingDispatcher extends AbstractDispatcher {
+
+	private volatile boolean ignoreFailures;
 
 	private volatile boolean applySequence;
 
@@ -51,6 +61,22 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 
 	/**
+	 * Specify whether failures for one or more of the handlers should be
+	 * ignored. By default this is <code>false</code> meaning that an 
+	 * Exception will be thrown when a handler fails. To override this and
+	 * suppress Exceptions, set the value to <code>true</code>.
+	 * <p>
+	 * Keep in mind that when using a TaskExecutor, even without ignoring the
+	 * failures, other handlers may be invoked after one throws an Exception. 
+	 * Since the TaskExecutor is using a different thread, this flag will only
+	 * affect whether an error Message is sent to the error channel or not in
+	 * the case that a TaskExecutor has been configured.
+	 */
+	public void setIgnoreFailures(boolean ignoreFailures) {
+		this.ignoreFailures = ignoreFailures;
+	}
+
+	/**
 	 * Specify whether to apply sequence numbers to the messages
 	 * prior to sending to the handlers. By default, sequence
 	 * numbers will <em>not</em> be applied
@@ -59,8 +85,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		this.applySequence = applySequence;
 	}
 
-
 	public boolean dispatch(Message<?> message) {
+		boolean dispatched = false;
 		int sequenceNumber = 1;
 		List<MessageHandler> handlers = this.getHandlers();
 		int sequenceSize = handlers.size();
@@ -75,15 +101,33 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			if (this.taskExecutor != null) {
 				this.taskExecutor.execute(new Runnable() {
 					public void run() {
-						handler.handleMessage(messageToSend);
+						invokeHandler(handler, messageToSend);
 					}
 				});
+				dispatched = true;
 			}
 			else {
-				handler.handleMessage(messageToSend);
+				boolean success = this.invokeHandler(handler, messageToSend);
+				dispatched = (success || dispatched);
 			}
 		}
-		return true;
+		return dispatched;
+	}
+
+	private boolean invokeHandler(MessageHandler handler, Message<?> message) {
+		try {
+			handler.handleMessage(message);
+			return true;
+		}
+		catch (RuntimeException e) {
+			if (!this.ignoreFailures) {
+				throw e;
+			}
+			else if (this.logger.isWarnEnabled()) {
+				logger.warn("Suppressing Exception since 'ignoreFailures' is set to TRUE.", e);
+			}
+			return false;
+		}
 	}
 
 }

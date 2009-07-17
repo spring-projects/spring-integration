@@ -48,7 +48,20 @@ public class PublishSubscribeChannelParserTests {
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		assertNull(dispatcherAccessor.getPropertyValue("taskExecutor"));
+		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
+	}
+
+	@Test
+	public void ignoreFailures() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"publishSubscribeChannelParserTests.xml", this.getClass());
+		PublishSubscribeChannel channel = (PublishSubscribeChannel)
+				context.getBean("channelWithIgnoreFailures");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
+				accessor.getPropertyValue("dispatcher");
+		assertTrue((Boolean) new DirectFieldAccessor(dispatcher).getPropertyValue("ignoreFailures"));
 	}
 
 	@Test
@@ -73,6 +86,25 @@ public class PublishSubscribeChannelParserTests {
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
+		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
+		assertNotNull(executor);
+		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
+		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
+		assertEquals(context.getBean("pool"), innerExecutor);
+	}
+
+	@Test
+	public void ignoreFailuresWithTaskExecutor() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"publishSubscribeChannelParserTests.xml", this.getClass());
+		PublishSubscribeChannel channel = (PublishSubscribeChannel)
+				context.getBean("channelWithIgnoreFailuresAndTaskExecutor");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
+				accessor.getPropertyValue("dispatcher");
+		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
+		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
 		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
 		assertNotNull(executor);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());

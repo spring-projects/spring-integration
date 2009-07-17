@@ -225,7 +225,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="apply-sequence" type="xsd:string" />
+					<xsd:attribute name="ignore-failures" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify whether Exceptions thrown by any subscribed handler should be ignored (only logged).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="apply-sequence" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify whether the sequence size, sequence number, and correlation id headers should be set on
+	Messages that are sent through this channel.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

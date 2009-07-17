@@ -36,6 +36,8 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 
 	private volatile ErrorHandler errorHandler;
 
+	private volatile boolean ignoreFailures;
+
 	private volatile boolean applySequence;
 
 
@@ -62,6 +64,25 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 		this.errorHandler = errorHandler;
 	}
 
+	/**
+	 * Specify whether failures for one or more of the handlers should be
+	 * ignored. By default this is <code>false</code> meaning that an Exception
+	 * will be thrown whenever a handler fails. To override this and suppress
+	 * Exceptions, set the value to <code>true</code>.
+	 */
+	public void setIgnoreFailures(boolean ignoreFailures) {
+		this.ignoreFailures = ignoreFailures;
+		this.getDispatcher().setIgnoreFailures(ignoreFailures);
+	}
+
+	/**
+	 * Specify whether to apply the sequence number and size headers to the
+	 * messages prior to invoking the subscribed handlers. By default, this
+	 * value is <code>false</code> meaning that sequence headers will
+	 * <em>not</em> be applied. If planning to use an Aggregator downstream
+	 * with the default correlation and completion strategies, you should set
+	 * this flag to <code>true</code>.
+	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
 		this.getDispatcher().setApplySequence(applySequence);
@@ -76,6 +97,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 			}
 			this.dispatcher = new BroadcastingDispatcher(this.taskExecutor);
+			this.dispatcher.setIgnoreFailures(this.ignoreFailures);
 			this.dispatcher.setApplySequence(this.applySequence);
 		}
 	}
