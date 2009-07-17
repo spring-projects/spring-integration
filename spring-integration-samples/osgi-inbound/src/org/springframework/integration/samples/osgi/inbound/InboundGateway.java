@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.samples.inbound;
+package org.springframework.integration.samples.osgi.inbound;
 
 import java.io.File;
 
