@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.osgi.inbound;
 
 import java.io.File;
@@ -27,59 +28,57 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.Assert;
+
 /**
- * Simple BundleActivator which will register ServiceListener which will listen for 
- * ApplicationContext published event. Once event is received, HelloWorldDemo will be executed.
+ * Simple BundleActivator which will register a ServiceListener and serve as a
+ * CommandProvider for interpreting the 'siSend' command. It invokes a Spring
+ * Integration Gateway proxy when the command is invoked.
  * 
  * @author Oleg Zhurakousky
+ * @since 1.0.3
  */
 public class InboundDemoBundleActivator implements BundleActivator, CommandProvider, ServiceListener {
+
 	private BundleContext context;
+
 	private InboundGateway gateway;
-	
-	
+
+
+	@SuppressWarnings("unchecked")
 	public void start(BundleContext context) throws Exception {
 		this.context = context;
 		this.context.addServiceListener(this);
 		Dictionary props = new Hashtable();
 		context.registerService(CommandProvider.class.getName(), this, props);
 	}
-	/**
-	 * 
-	 */
+
 	public void stop(BundleContext arg0) throws Exception {}
-	/**
-	 * 
-	 */
+
 	public String getHelp() {
 		return "\n### Spring Integration CLI-based Demo\n" +
-				"siSend - will send a message to a reciever which will write the message to a file\n\t" +
+				"siSend - will send a message to a receiver which will write the message to a file\n\t" +
 				"siSend <message> <file name> Example: siSend hello foo.txt\n";
 	}
-	/**
-	 * 
-	 */
+
 	public void serviceChanged(ServiceEvent serviceEvent) {
 		ServiceReference sr = serviceEvent.getServiceReference();
-		if (context.getBundle().getSymbolicName().equals(sr.getProperty(Constants.BUNDLE_SYMBOLICNAME))){
+		if (context.getBundle().getSymbolicName().equals(sr.getProperty(Constants.BUNDLE_SYMBOLICNAME))) {
 			ApplicationContext applicationContext = (ApplicationContext) context.getService(sr);
 			gateway = (InboundGateway) applicationContext.getBean("inboundGateway");
-		}	
+		}
 	}
-	/**
-	 * 
-	 * @param ci
-	 */
+
 	public void _siSend(CommandInterpreter ci){	
 		String message = ci.nextArgument();
-		String fileName = ci.nextArgument();
-		Assert.notNull(message, "You must provide message as first argument");
-		Assert.notNull(fileName, "You must proivi a file name as second argument");
+		String filename = ci.nextArgument();
+		Assert.notNull(message, "You must provide message as the first argument.");
+		Assert.notNull(filename, "You must provide a filename as the second argument.");
 		ci.println("Sending message: '" + message + "'");
-		File file = gateway.sendMessage(message, fileName);
-		ci.println("Message sent and its contents are written to: " + file.getAbsolutePath());
+		File file = gateway.sendMessage(message, filename);
+		ci.println("Message sent and its contents were written to: " + file.getAbsolutePath());
 	}
 
 }

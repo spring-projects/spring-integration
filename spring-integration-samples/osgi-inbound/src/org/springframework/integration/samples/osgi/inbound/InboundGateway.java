@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.samples.osgi.inbound;
 
 import java.io.File;
@@ -25,5 +26,6 @@ import org.springframework.integration.file.FileHeaders;
  */
 public interface InboundGateway {
 
-	public File sendMessage(String message, @Header(FileHeaders.FILENAME)String fileName);
+	public File sendMessage(String message, @Header(FileHeaders.FILENAME)String filename);
+
 }
