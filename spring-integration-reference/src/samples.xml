@@ -411,7 +411,7 @@
 		the consumer bundle.
 		<tip>
 			If using STS to deploy to dm Server, the refresh will happen automatically. If replacing bundles manually,
-			you can issue the command 'refresh n' in the OSGi console (where n would be the number of the bundle as
+			you can issue the command 'refresh n' in the OSGi console (where n would be the ID of the bundle as
 			displayed at any point after issuing the 'ss' command to see the short status output).
 		</tip>
 		You will see that the change takes affect immediately. Not only that, you could even start developing and
