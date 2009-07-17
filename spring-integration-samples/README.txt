@@ -55,4 +55,21 @@ Open any project and you will see the 'lib' directory with all of the JARs
 required to run the demos. Now you can configure your IDE to point to those
 directories.
 
+===============================================================================
+OSGi Samples
+------------
+
+The Hello World and Cafe samples listed above are both OSGi-enabled. Instead
+of running those as standalone applications via their main() methods, you can
+deploy them to an OSGi runtime and rely on the included BundleActivators.
+
+This release also includes two new samples that are dedicated to showcasing
+capabilities of the Spring Integration and OSGi combination. They form a
+producer/consumer pair: osgi-inbound and osgi-outbound. Unlike the others,
+they are not Maven-enabled, but instead they are ready to run directly within
+SpringSource dm Server, and with the SpringSource Tool Suite support, this
+requires only an import and adding to the Server instance. A comprehensive
+overview of those OSGi samples is included in the "Samples" Appendix of the
+Spring Integration Reference Manual.
+
 Happy integration :-)
