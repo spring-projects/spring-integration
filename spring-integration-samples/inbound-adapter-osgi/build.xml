@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="org.springframework.osgi.console.extension" default="jar">
+
+	<target name="jar">
+		<jar manifest="src/META-INF/MANIFEST.MF" destfile="osgi-inbound-1.0.3.jar"
+		       basedir="bin"
+		  />
+		
+	</target>
+
+</project>
