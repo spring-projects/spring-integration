@@ -28,6 +28,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.core.Ordered;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
@@ -65,7 +66,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class DelayHandler implements MessageHandler, BeanFactoryAware, DisposableBean {
+public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -82,6 +83,8 @@ public class DelayHandler implements MessageHandler, BeanFactoryAware, Disposabl
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile boolean waitForTasksToCompleteOnShutdown;
+
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 
 	/**
@@ -146,6 +149,14 @@ public class DelayHandler implements MessageHandler, BeanFactoryAware, Disposabl
 	 */
 	public void setWaitForTasksToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
 		this.waitForTasksToCompleteOnShutdown = waitForJobsToCompleteOnShutdown;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
