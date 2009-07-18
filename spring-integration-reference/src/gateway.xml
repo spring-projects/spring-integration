@@ -55,6 +55,16 @@
 
  }]]></programlisting>
     </para>
+    <para>
+      It is also possible to pass values to be interpreted as Message headers on the Message
+      that is created and sent to the request channel by using the @Header annotation:
+	  <programlisting language="java"><![CDATA[ public interface FileWriter {
+
+     @Gateway(requestChannel="filesOut")
+     void write(byte[] content, @Header(FileHeaders.FILENAME) String filename);
+
+ }]]></programlisting>
+    </para>
   </section>
 
 </chapter>
