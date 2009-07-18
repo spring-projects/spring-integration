@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<channel id="inputA"/>
+
+	<channel id="outputA">
+		<queue />
+	</channel>
+
+	<delayer id="delayerWithDefaultScheduler"
+			 input-channel="inputA"
+			 output-channel="outputA"
+			 default-delay="1000"
+			 delay-header-name="foo"
+			 order="99"
+			 send-timeout="1000"
+			 wait-for-tasks-to-complete-on-shutdown="true"/>
+
+	<channel id="inputB"/>
+	<channel id="outputB"/>
+	<channel id="outputB1">
+		<queue />
+	</channel>
+ 
+	<delayer id="delayerWithCustomScheduler"
+			 input-channel="inputB"
+			 output-channel="outputB"
+			 default-delay="1000"
+			 send-timeout="20000"
+			 scheduler="multiThreadScheduler"/> 
+
+	<beans:bean id="multiThreadScheduler" class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean">
+		<beans:property name="poolSize" value="5"/>
+	</beans:bean>
+	
+	<service-activator input-channel="outputB" output-channel="outputB1" method="processMessage" ref="sampleHandler"/>
+	
+	<beans:bean id="sampleHandler" class="org.springframework.integration.config.xml.DelayerUsageTests$SampleService"/>
+ 
+</beans:beans>
