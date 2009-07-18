@@ -40,18 +40,9 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_NAME + ".FileReadingMessageSource");
-		String comparator = element.getAttribute("comparator");
-		if (StringUtils.hasText(comparator)) {
-			builder.addConstructorArgReference(comparator);
-		}
-		String directory = element.getAttribute("directory");
-		if (StringUtils.hasText(directory)) {
-			if (directory.indexOf(':') == -1) {
-				directory = "file:" + directory;
-			}
-			builder.addPropertyValue("inputDirectory", directory);
-		}
+				PACKAGE_NAME + ".config.FileReadingMessageSourceFactoryBean");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "comparator");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "directory");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-create-directory");
 		String filterBeanName = this.registerFileListFilter(element, parserContext);
 		builder.addPropertyReference("filter", filterBeanName);
