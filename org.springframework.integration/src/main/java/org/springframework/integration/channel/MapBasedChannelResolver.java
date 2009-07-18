@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  */
 public class MapBasedChannelResolver implements ChannelResolver {
 
-	private volatile Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
+	private volatile Map<String, ? extends MessageChannel> channelMap = new HashMap<String, MessageChannel>();
 
 	/**
 	 * Empty constructor for use when providing the channel map via
@@ -43,7 +43,7 @@ public class MapBasedChannelResolver implements ChannelResolver {
 	 * Create a {@link ChannelResolver} that uses the provided Map.
 	 * Each String key will resolve to the associated channel value.
 	 */
-	public MapBasedChannelResolver(Map<String, MessageChannel> channelMap) {
+	public MapBasedChannelResolver(Map<String, ? extends MessageChannel> channelMap) {
 		this.setChannelMap(channelMap);
 	}
 
@@ -51,7 +51,7 @@ public class MapBasedChannelResolver implements ChannelResolver {
 	 * Provide a map of channels to be used by this resolver.
 	 * Each String key will resolve to the associated channel value.
 	 */
-	public void setChannelMap(Map<String, MessageChannel> channelMap) {
+	public void setChannelMap(Map<String, ? extends MessageChannel> channelMap) {
 		Assert.notNull(channelMap, "channelMap must not be null");
 		this.channelMap = channelMap;
 	}

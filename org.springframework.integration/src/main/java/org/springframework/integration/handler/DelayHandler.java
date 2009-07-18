@@ -33,8 +33,12 @@ import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -164,6 +168,17 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	}
 
 	public final void handleMessage(final Message<?> message) {
+		long delay = this.determineDelayForMessage(message);
+		if (delay > 0) {
+			this.releaseMessageAfterDelay(message, delay);
+		}
+		else {
+			// no delay, release directly
+			this.releaseMessage(message);
+		}
+	}
+
+	private long determineDelayForMessage(Message<?> message) {
 		long delay = this.defaultDelay;
 		if (this.delayHeaderName != null) {
 			Object headerValue = message.getHeaders().get(this.delayHeaderName);
@@ -182,17 +197,31 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 				}
 			}
 		}
-		if (delay > 0) {
-			this.scheduler.schedule(new Runnable() {
-				public void run() {
+		return delay;
+	}
+
+	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
+		this.scheduler.schedule(new Runnable() {
+			public void run() {
+				try {
 					releaseMessage(message);
 				}
-			}, delay, TimeUnit.MILLISECONDS);
-		}
-		else {
-			// no delay, release directly
-			this.releaseMessage(message);
-		}
+				catch (Exception e) {
+					Exception exception = new MessageDeliveryException(message, "Failed to deliver Message after delay.", e);
+					MessageChannel errorChannel = resolveErrorChannelIfPossible(message);
+					if (errorChannel != null) {
+						ErrorMessage errorMessage = new ErrorMessage(exception);
+						boolean sent = channelTemplate.send(errorMessage, errorChannel);
+						if (!sent && logger.isWarnEnabled()) {
+							logger.warn("Failed to send MessageDeliveryException to error channel.", exception);
+						}
+					}
+					else if (logger.isWarnEnabled()) {
+						logger.warn("No error channel available. MessageDeliveryException will be ignored.", exception);
+					}
+				}
+			}
+		}, delay, TimeUnit.MILLISECONDS);
 	}
 
 	private void releaseMessage(Message<?> message) {
@@ -203,27 +232,49 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	private MessageChannel resolveReplyChannel(Message<?> message) {
 		MessageChannel replyChannel = this.outputChannel;
 		if (replyChannel == null) {
-			Object replyChannelHeader= message.getHeaders().getReplyChannel();
-			if (replyChannelHeader != null) {
-				if (replyChannelHeader instanceof MessageChannel) {
-					replyChannel = (MessageChannel) replyChannelHeader;
-				}
-				else if (replyChannelHeader instanceof String) {
-					Assert.state(this.channelResolver != null,
-							"ChannelResolver is required for resolving a reply channel by name");
-					replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
-				}
-				else {
-					throw new ChannelResolutionException("expected a MessageChannel or String for 'replyChannel', but type is ["
-							+ replyChannelHeader.getClass() + "]");
-				}
-			}
+			replyChannel = this.resolveChannelFromHeader(message, MessageHeaders.REPLY_CHANNEL);
 		}
 		if (replyChannel == null) {
 			throw new ChannelResolutionException(
 					"unable to resolve reply channel for message: " + message);
 		}
 		return replyChannel;
+	}
+
+	private MessageChannel resolveErrorChannelIfPossible(Message<?> message) {
+		MessageChannel errorChannel = null;
+		try {
+			errorChannel = this.resolveChannelFromHeader(message, MessageHeaders.ERROR_CHANNEL);
+		}
+		catch (Exception e) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Failed to resolve error channel from header.", e);
+			}
+		}
+		if (errorChannel == null && this.channelResolver != null) {
+			errorChannel = this.channelResolver.resolveChannelName(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		}
+		return errorChannel;
+	}
+
+	private MessageChannel resolveChannelFromHeader(Message<?> message, String headerName) {
+		MessageChannel channel = null;
+		Object channelHeader = message.getHeaders().get(headerName);
+		if (channelHeader != null) {
+			if (channelHeader instanceof MessageChannel) {
+				channel = (MessageChannel) channelHeader;
+			}
+			else if (channelHeader instanceof String) {
+				Assert.state(this.channelResolver != null,
+						"ChannelResolver is required for resolving '" + headerName + "' by name.");
+				channel = this.channelResolver.resolveChannelName((String) channelHeader);
+			}
+			else {
+				throw new ChannelResolutionException("expected a MessageChannel or String for '" +
+						headerName + "', but type is [" + channelHeader.getClass() + "]");
+			}
+		}
+		return channel;
 	}
 
 	public void destroy() {

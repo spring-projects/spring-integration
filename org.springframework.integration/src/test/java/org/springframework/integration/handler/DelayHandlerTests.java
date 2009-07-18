@@ -28,9 +28,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 
@@ -249,6 +252,111 @@ public class DelayHandlerTests {
 		}).start();
 		latch.await(50, TimeUnit.MILLISECONDS);
 		assertEquals(1, latch.getCount());
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void handlerThrowsExceptionWithNoDelay() {
+		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setOutputChannel(output);
+		input.subscribe(delayHandler);
+		output.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) {
+				throw new UnsupportedOperationException("intentional test failure");
+			}
+		});
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		input.send(message);
+	}
+
+	@Test
+	public void errorChannelHeaderAndHandlerThrowsExceptionWithDelay() {
+		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setDelayHeaderName("delay");
+		delayHandler.setOutputChannel(output);
+		DirectChannel errorChannel = new DirectChannel();
+		ResultHandler resultHandler = new ResultHandler();
+		errorChannel.subscribe(resultHandler);
+		input.subscribe(delayHandler);
+		output.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) {
+				throw new UnsupportedOperationException("intentional test failure");
+			}
+		});
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setHeader("delay", "10")
+				.setErrorChannel(errorChannel).build();
+		input.send(message);
+		this.waitForLatch(1000);
+		Message<?> errorMessage = resultHandler.lastMessage;
+		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
+		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
+		assertSame(message, exceptionPayload.getFailedMessage());
+		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+	}
+
+	@Test
+	public void errorChannelNameHeaderAndHandlerThrowsExceptionWithDelay() {
+		String errorChannelName = "customErrorChannel";
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton(errorChannelName, DirectChannel.class);
+		context.refresh();
+		DirectChannel customErrorChannel = (DirectChannel) context.getBean(errorChannelName);
+		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setBeanFactory(context);
+		delayHandler.setDelayHeaderName("delay");
+		delayHandler.setOutputChannel(output);
+		ResultHandler resultHandler = new ResultHandler();
+		customErrorChannel.subscribe(resultHandler);
+		input.subscribe(delayHandler);
+		output.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) {
+				throw new UnsupportedOperationException("intentional test failure");
+			}
+		});
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setHeader("delay", "10")
+				.setErrorChannelName(errorChannelName).build();
+		input.send(message);
+		this.waitForLatch(1000);
+		Message<?> errorMessage = resultHandler.lastMessage;
+		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
+		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
+		assertSame(message, exceptionPayload.getFailedMessage());
+		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
+	}
+
+	@Test
+	public void defaultErrorChannelAndHandlerThrowsExceptionWithDelay() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton(
+				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, DirectChannel.class);
+		context.refresh();
+		DirectChannel defaultErrorChannel = (DirectChannel) context.getBean(
+				IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		DelayHandler delayHandler = new DelayHandler(0);
+		delayHandler.setBeanFactory(context);
+		delayHandler.setDelayHeaderName("delay");
+		delayHandler.setOutputChannel(output);
+		ResultHandler resultHandler = new ResultHandler();
+		defaultErrorChannel.subscribe(resultHandler);
+		input.subscribe(delayHandler);
+		output.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) {
+				throw new UnsupportedOperationException("intentional test failure");
+			}
+		});
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setHeader("delay", "10").build();
+		input.send(message);
+		this.waitForLatch(1000);
+		Message<?> errorMessage = resultHandler.lastMessage;
+		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
+		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
+		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
+		assertSame(message, exceptionPayload.getFailedMessage());
+		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
 
 
