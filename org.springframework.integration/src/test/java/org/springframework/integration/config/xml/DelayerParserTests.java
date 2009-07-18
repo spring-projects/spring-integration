@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.Ordered;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.DelayHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,8 +43,8 @@ public class DelayerParserTests {
 
 
 	@Test
-	public void checkConfiguration() {
-		Object endpoint = context.getBean("delayer");
+	public void defaultScheduler() {
+		Object endpoint = context.getBean("delayerWithDefaultScheduler");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(DelayHandler.class, handler.getClass());
@@ -56,6 +57,21 @@ public class DelayerParserTests {
 		assertEquals(new Long(987), new DirectFieldAccessor(
 				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("waitForTasksToCompleteOnShutdown"));
+	}
+
+
+	@Test
+	public void customScheduler() {
+		Object endpoint = context.getBean("delayerWithCustomScheduler");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(DelayHandler.class, handler.getClass());
+		DelayHandler delayHandler = (DelayHandler) handler;
+		assertEquals(Ordered.LOWEST_PRECEDENCE, delayHandler.getOrder());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
+		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
+		assertEquals(new Long(0), accessor.getPropertyValue("defaultDelay"));
+		assertEquals(context.getBean("testScheduler"), accessor.getPropertyValue("scheduler"));
 	}
 
 }

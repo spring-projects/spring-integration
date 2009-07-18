@@ -39,7 +39,7 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 			parserContext.getReaderContext().error("The 'default-delay' attribute is required.", element);
 			return null;
 		}
-		builder.getBeanDefinition().getConstructorArgumentValues().addIndexedArgumentValue(0, defaultDelay);
+		builder.addConstructorArgValue(defaultDelay);
 		String scheduler = element.getAttribute("scheduler");
 		if (StringUtils.hasText(scheduler)) {
 			builder.addConstructorArgReference(scheduler);

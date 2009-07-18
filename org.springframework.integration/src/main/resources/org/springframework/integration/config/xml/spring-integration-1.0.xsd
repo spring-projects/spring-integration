@@ -597,6 +597,21 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="scheduler" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Provide a reference to the ScheduledExecutorService instance to which this endpoint should
+	delegate when scheduling the sending of delayed Messages. If not provided, the default
+	will use a thread pool of size 1.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="java.util.concurrent.ScheduledExecutorService" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="send-timeout" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>

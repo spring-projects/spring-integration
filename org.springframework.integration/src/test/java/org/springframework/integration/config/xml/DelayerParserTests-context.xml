@@ -13,7 +13,7 @@
 		<queue />
 	</channel>
 
-	<delayer id="delayer"
+	<delayer id="delayerWithDefaultScheduler"
 			 input-channel="input"
 			 output-channel="output"
 			 default-delay="1234"
@@ -21,5 +21,15 @@
 			 order="99"
 			 send-timeout="987"
 			 wait-for-tasks-to-complete-on-shutdown="true"/>
+
+	<delayer id="delayerWithCustomScheduler"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0"
+			 scheduler="testScheduler"/>
+
+	<beans:bean id="testScheduler" class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean">
+		<beans:property name="poolSize" value="7"/>
+	</beans:bean>
 
 </beans:beans>
