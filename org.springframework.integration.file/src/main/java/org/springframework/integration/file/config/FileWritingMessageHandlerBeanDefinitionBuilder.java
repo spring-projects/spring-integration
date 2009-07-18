@@ -42,12 +42,9 @@ abstract class FileWritingMessageHandlerBeanDefinitionBuilder {
 		if (!StringUtils.hasText(directory)) {
 			parserContext.getReaderContext().error("directory is required", element);
 		}
-		if (directory.indexOf(':') == -1) {
-			directory = "file:" + directory;
-		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition("org.springframework.integration.file.FileWritingMessageHandler");
-		builder.addConstructorArgValue(directory);
+				.genericBeanDefinition("org.springframework.integration.file.config.FileWritingMessageHandlerFactoryBean");
+		builder.addPropertyValue("directory", directory);
 		if (StringUtils.hasText(outputChannelBeanName)) {
 			builder.addPropertyReference("outputChannel", outputChannelBeanName);
 		}
