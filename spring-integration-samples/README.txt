@@ -63,6 +63,14 @@ The Hello World and Cafe samples listed above are both OSGi-enabled. Instead
 of running those as standalone applications via their main() methods, you can
 deploy them to an OSGi runtime and rely on the included BundleActivators.
 
+Before running those or any other OSGi-based applications that rely on Spring
+Integration, you will need to deploy the necessary Spring Integration bundles
+into the OSGi deployment environment (you can just copy all of the JARs within
+the 'dist' directory of the distribution). You may also need some of the other
+dependencies that are located within the 'lib' directory of the distribution.
+For the detailed instructions, refer to the "Samples" Appendix of the Spring
+Integration Reference Manual.
+
 This release also includes two new samples that are dedicated to showcasing
 capabilities of the Spring Integration and OSGi combination. They form a
 producer/consumer pair: osgi-inbound and osgi-outbound. Unlike the others,
