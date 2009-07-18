@@ -16,10 +16,15 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.util.ErrorHandler;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.util.Assert;
 
 /**
  * An implementation of {@link MessageChannel} that delegates to an instance of
@@ -36,26 +41,41 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class ExecutorChannel extends AbstractSubscribableChannel {
+public class ExecutorChannel extends AbstractSubscribableChannel implements BeanFactoryAware {
 
-	private final UnicastingDispatcher dispatcher;
+	private volatile UnicastingDispatcher dispatcher;
+
+	private volatile TaskExecutor taskExecutor;
+
+	private volatile boolean failover = true;
+
+	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
 
 	/**
 	 * Create an ExecutorChannel that delegates to the provided
 	 * {@link TaskExecutor} when dispatching Messages.
+	 * <p>
+	 * The TaskExecutor must not be null.
 	 */
 	public ExecutorChannel(TaskExecutor taskExecutor) {
-		this.dispatcher = new UnicastingDispatcher(taskExecutor);
+		this(taskExecutor, null);
 	}
 
 	/**
-	 * Create an ExecutorChannel with a {@link LoadBalancingStrategy}. The
-	 * strategy <emphasis>must not</emphasis> be null.
+	 * Create an ExecutorChannel with a {@link LoadBalancingStrategy} that
+	 * delegates to the provided {@link TaskExecutor} when dispatching Messages.
+	 * <p>
+	 * The TaskExecutor must not be null.
 	 */
 	public ExecutorChannel(TaskExecutor taskExecutor, LoadBalancingStrategy loadBalancingStrategy) {
-		this(taskExecutor);
-		this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
+		Assert.notNull(taskExecutor, "taskExecutor must not be null");
+		this.taskExecutor = taskExecutor;
+		this.dispatcher = new UnicastingDispatcher(taskExecutor);
+		if (loadBalancingStrategy != null) {
+			this.loadBalancingStrategy = loadBalancingStrategy;
+			this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
+		}
 	}
 
 
@@ -64,12 +84,25 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	 * By default, it will. Set this value to 'false' to disable it.
 	 */
 	public void setFailover(boolean failover) {
+		this.failover = failover;
 		this.dispatcher.setFailover(failover);
 	}
 
 	@Override
 	protected UnicastingDispatcher getDispatcher() {
 		return this.dispatcher;
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+			ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
+			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
+		}
+		this.dispatcher = new UnicastingDispatcher(this.taskExecutor);
+		this.dispatcher.setFailover(this.failover);
+		if (this.loadBalancingStrategy != null) {
+			this.dispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);
+		}
 	}
 
 }

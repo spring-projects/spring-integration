@@ -36,6 +36,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.ExecutorChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -71,7 +72,10 @@ public class DispatchingChannelParserTests {
 	public void taskExecutorOnly() {
 		MessageChannel channel = channels.get("taskExecutorOnly");
 		assertEquals(ExecutorChannel.class, channel.getClass());
-		assertSame(context.getBean("taskExecutor"), getDispatcherProperty("taskExecutor", channel));
+		Object executor = getDispatcherProperty("taskExecutor", channel);
+		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		assertSame(context.getBean("taskExecutor"),
+				new DirectFieldAccessor(executor).getPropertyValue("taskExecutor"));
 		assertTrue((Boolean) getDispatcherProperty("failover", channel));
 		assertEquals(RoundRobinLoadBalancingStrategy.class,
 				getDispatcherProperty("loadBalancingStrategy", channel).getClass());
@@ -109,7 +113,10 @@ public class DispatchingChannelParserTests {
 		assertEquals(ExecutorChannel.class, channel.getClass());
 		assertTrue((Boolean) getDispatcherProperty("failover", channel));
 		assertNull(getDispatcherProperty("loadBalancingStrategy", channel));
-		assertSame(context.getBean("taskExecutor"), getDispatcherProperty("taskExecutor", channel));
+		Object executor = getDispatcherProperty("taskExecutor", channel);
+		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		assertSame(context.getBean("taskExecutor"),
+				new DirectFieldAccessor(executor).getPropertyValue("taskExecutor"));
 	}
 
 	@Test
@@ -119,7 +126,10 @@ public class DispatchingChannelParserTests {
 		assertTrue((Boolean) getDispatcherProperty("failover", channel));
 		assertEquals(RoundRobinLoadBalancingStrategy.class,
 				getDispatcherProperty("loadBalancingStrategy", channel).getClass());
-		assertSame(context.getBean("taskExecutor"), getDispatcherProperty("taskExecutor", channel));
+		Object executor = getDispatcherProperty("taskExecutor", channel);
+		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		assertSame(context.getBean("taskExecutor"),
+				new DirectFieldAccessor(executor).getPropertyValue("taskExecutor"));
 	}
 
 
