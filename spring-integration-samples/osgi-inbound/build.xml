@@ -2,9 +2,7 @@
 <project name="osgi-inbound" default="jar">
 
 	<target name="jar">
-		<jar manifest="src/META-INF/MANIFEST.MF"
-			 destfile="osgi-inbound-1.0.3.jar"
-		     basedir="bin"/>
+		<jar manifest="src/META-INF/MANIFEST.MF" destfile="osgi-inbound-1.0.3.jar" basedir="bin"/>
 	</target>
 
 </project>
