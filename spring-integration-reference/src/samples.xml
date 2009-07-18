@@ -354,8 +354,12 @@
 		Unlike the other samples in the distribution, these are not Maven enabled. Instead, we have simply configured
 		them as valid dm Server Bundle projects. That means you can import these projects directly into an STS
 		workspace using the "Existing Projects into Workspace" option from the Eclipse Import wizard. Then, you can
-		take advantage of the STS dm Server tools to deploy them into a SpringSource dm Server instance. The
-		pre-built bundle (JAR file) is also included for both 'osgi-inbound' and 'osgi-outbound'.
+		take advantage of the STS dm Server tools to deploy them into a SpringSource dm Server instance.
+		<note>
+			A simple Ant 'build.xml' file has been included within each of these projects as well. The build
+			files contain a single 'jar' target. Therefore, after these projects have been built within
+			Eclipse/STS, you can generate the bundle (JAR) directly and deploy it manually.
+		</note>
 	</para>
 	<para>
 		The structure of these projects is very simple, yet the concepts they showcase are quite powerful. The
