@@ -12,7 +12,8 @@ There you will find links to the forum, issue tracker, and several other resourc
 To build and run the sample applications that are included with this distribution,
 view the README.txt file in the 'samples' directory.
 
-To checkout the project from the SVN head and build from source, do the following:
+To checkout the project from the SVN head and build from source, do the following
+(NOTE: this requires Ant 1.7.1):
 
     svn co https://src.springsource.org/svn/spring-integration/trunk .
     cd build-spring-integration
