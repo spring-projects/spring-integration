@@ -77,8 +77,9 @@ capabilities of the Spring Integration and OSGi combination. They form a
 producer/consumer pair: osgi-inbound and osgi-outbound. Unlike the others,
 they are not Maven-enabled, but instead they are ready to run directly within
 SpringSource dm Server, and with the SpringSource Tool Suite support, this
-requires only an import and adding to the Server instance. A comprehensive
-overview of those OSGi samples is included in the "Samples" Appendix of the
-Spring Integration Reference Manual.
+requires only an import, adding "OSGi Bundle Project Nature" via the 'Spring
+Tools' context menu, and deploying to a dm server instance as the project's
+targeted runtime. A comprehensive overview of those OSGi samples is included
+in the "Samples" Appendix of the Spring Integration Reference Manual.
 
 Happy integration :-)
