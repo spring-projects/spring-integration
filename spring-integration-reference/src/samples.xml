@@ -393,7 +393,11 @@
 		in how it is implemented or want to customize message sending logic or even create a new command look at
 		<classname>InboundDemoBundleActivator.java</classname> in the consumer bundle.
 		<tip>
-			By default, when using dm Server, you can open the OSGi console by connecting to port 2401 via telnet:
+			When using the SpringSource Tool Suite, you can open the OSGi console by first opening the dm Server
+			view and then choosing the 'Server Console' tab at the bottom (to open the dm Server view, navigate to
+			the dm Server instance listed in the 'Servers' view and either double-click or hit F3).  Alternatively,
+			you can open the OSGi console by connecting to port 2401 via telnet (as long as that is enabled, and
+			for dm Server, it is enabled by default):
 			<programlisting> telnet localhost 2401</programlisting>
 		</tip>
 	</para>
