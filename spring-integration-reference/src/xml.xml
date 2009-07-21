@@ -194,7 +194,8 @@
 			therefore be configured in conjunction with an appropriate endpoint (see the namespace support below
 			for a simpler configuration alternative).
 			<programlisting language="xml"><![CDATA[<bean id="splittingEndpoint"
-      class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg ref="orderChannel" />
     <constructor-arg>
         <bean class="org.springframework.integration.xml.splitter.XPathMessageSplitter">
             <constructor-arg value="/order/items" />
@@ -202,7 +203,6 @@
             <property name="outputChannel" ref="orderItemsChannel" />
         </bean>
     </constructor-arg>
-    <constructor-arg ref="orderChannel" />
 </bean>]]></programlisting>	     
 				
 		</para>
@@ -228,13 +228,13 @@
 			the provided <classname>MapBasedChannelResolver</classname> can be used.
 			<programlisting language="xml"><![CDATA[<!-- Expects a channel for each value of order type to exist  -->
 <bean id="singleChannelRoutingEndpoint"
-      class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg ref="orderChannel" />
     <constructor-arg>
         <bean class="org.springframework.integration.xml.router.XPathSingleChannelRouter">
             <constructor-arg value="/order/@type" />
         </bean>
     </constructor-arg>
-	<constructor-arg ref="orderChannel" />
 </bean>
 	
 	
@@ -242,7 +242,8 @@
      based on the XPath evaluation result Since the router is multi channel it may deliver
      message to one or both of the configured channels -->
 <bean id="multiChannelRoutingEndpoint"
-      class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+      class="org.springframework.integration.endpoint.EventDrivenConsumer">
+    <constructor-arg ref="orderChannel" />
     <constructor-arg>
         <bean class="org.springframework.integration.xml.router.XPathMultiChannelRouter">
             <constructor-arg value="/order/recipient" />
@@ -260,7 +261,6 @@
             </property>
         </bean>
     </constructor-arg>
-    <constructor-arg ref="orderChannel" />
 </bean>]]></programlisting>	
 		</para>
 	</section>
