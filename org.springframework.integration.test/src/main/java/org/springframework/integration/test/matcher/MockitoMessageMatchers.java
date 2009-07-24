@@ -29,8 +29,9 @@ import org.springframework.integration.core.Message;
  * <h2>Mockito matcher factory for {@link Message} matcher creation.</h2>
  * <p>
  * This class contains expressive factory methods for the most common Mockito
- * matchers needed when matching {@link Message}s. Any Hamcrest matcher can be
- * used in Mockito through {@link Mockito#argThat(Matcher)}.
+ * matchers needed when matching {@link Message}s. If you need a different
+ * matching strategy, any Hamcrest matcher can be used in Mockito through
+ * {@link Mockito#argThat(Matcher)}.
  * 
  * <h3>Example usage:</h3>
  * <p>
@@ -48,6 +49,7 @@ import org.springframework.integration.core.Message;
  * <p>
  * With {@link Mockito#when(Object)}:
  * </p>
+ * 
  * <pre>
  * ...
  * when(channel.send(messageWithPayload(SOME_PAYLOAD))).thenReturn(true);
@@ -74,7 +76,7 @@ public class MockitoMessageMatchers {
 		return argThat(hasHeader(key, value));
 	}
 
-	public static Message<?> messageWithHeaderEntry(String key) {
+	public static Message<?> messageWithHeaderKey(String key) {
 		return argThat(HeaderMatcher.hasHeaderKey(key));
 	}
 
