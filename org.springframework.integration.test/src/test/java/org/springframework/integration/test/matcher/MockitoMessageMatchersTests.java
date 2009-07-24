@@ -1,0 +1,94 @@
+/*
+ * Copyright 2002-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.integration.test.matcher;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.integration.test.matcher.MockitoMessageMatchers.messageWithHeaderEntry;
+import static org.springframework.integration.test.matcher.MockitoMessageMatchers.messageWithPayload;
+
+import java.util.Date;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.exceptions.verification.junit.ArgumentsAreDifferent;
+import org.mockito.runners.MockitoJUnit44Runner;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandler;
+
+/**
+ * @author Alex Peters
+ * @author Iwein Fuld
+ * 
+ */
+@RunWith(MockitoJUnit44Runner.class)
+public class MockitoMessageMatchersTests {
+
+	static final Date SOME_PAYLOAD = new Date();
+
+	static final String UNKNOWN_KEY = "unknownKey";
+
+	static final String SOME_HEADER_VALUE = "bar";
+
+	static final String SOME_HEADER_KEY = "test.foo";
+
+	@Mock
+	MessageHandler handler;
+
+	@Mock
+	MessageChannel channel;
+
+	Message<Date> message;
+
+	@Before
+	public void setUp() {
+		message = MessageBuilder.withPayload(SOME_PAYLOAD).setHeader(SOME_HEADER_KEY,
+				SOME_HEADER_VALUE).build();
+	}
+
+	@Test
+	public void anyMatcher_withVerifyArgumentMatcherAndEqualPayload_matching() throws Exception {
+		handler.handleMessage(message);
+		verify(handler).handleMessage(messageWithPayload(SOME_PAYLOAD));
+		verify(handler).handleMessage(messageWithPayload(is(Date.class)));
+	}
+
+	@Test(expected = ArgumentsAreDifferent.class)
+	public void anyMatcher_withVerifyAndDifferentPayload_notMatching() throws Exception {
+		handler.handleMessage(message);
+		verify(handler).handleMessage(messageWithPayload(nullValue()));
+	}
+
+	@Test
+	public void anyMatcher_withWhenArgumentMatcherAndEqualPayload_matching() throws Exception {
+		when(channel.send(messageWithPayload(SOME_PAYLOAD))).thenReturn(true);
+		assertThat(channel.send(message), is(true));
+	}
+
+	@Test
+	public void anyMatcher_withWhenAndDifferentPayload_notMatching() throws Exception {
+		when(channel.send(messageWithHeaderEntry(SOME_HEADER_KEY, is(Short.class)))).thenReturn(true);
+		assertThat(channel.send(message), is(false));
+	}
+
+}
