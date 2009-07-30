@@ -100,9 +100,8 @@
         elapses, whichever occurs first. Likewise, a receive call will return immediately if a message is available
         on the queue, but if the queue is empty, then a receive call may block until either a message is available
         or the timeout elapses. In either case, it is possible to force an immediate return regardless of the
-        queue's state by passing a timeout value of 0. The no-argument send and receive methods block indefinitely.
-        Note however, that calling the no-arg versions of <methodname>send()</methodname> and
-        <methodname>receive()</methodname> will block indefinitely.
+        queue's state by passing a timeout value of 0. Note however, that calls to the no-arg versions of
+        <methodname>send()</methodname> and <methodname>receive()</methodname> will block indefinitely.
       </para>
     </section>
     <section id="channel-implementations-prioritychannel">
