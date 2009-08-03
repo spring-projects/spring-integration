@@ -3,8 +3,8 @@ Bundle-Name: Spring Integration Test Support
 Bundle-Vendor: SpringSource
 Bundle-ManifestVersion: 2
 Import-Template: 
- org.springframework.*;version="[2.5.6.A, 3.1.0)",
- org.springframework.integration.*;version="[1.0.3, 1.0.4)",
+ org.springframework.*;version="[3.0.0, 4.0.0)",
+ org.springframework.integration.*;version="[2.0.0, 2.0.1)",
  org.junit.*;version="[4.6.0, 4.7.0)",
- org.mockito.*;version="[1.6.0,1.7.0]",
+ org.mockito.*;version="[1.6.0, 1.7.0]",
  org.hamcrest.*;version="[1.1.0, 1.1.0]"
