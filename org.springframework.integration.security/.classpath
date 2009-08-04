@@ -16,7 +16,7 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.expression/3.0.0.CI-348/org.springframework.expression-3.0.0.CI-348.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.expression/3.0.0.CI-348/org.springframework.expression-sources-3.0.0.CI-348.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/3.0.0.CI-348/org.springframework.test-3.0.0.CI-348.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.test/3.0.0.CI-348/org.springframework.test-sources-3.0.0.CI-348.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.transaction/3.0.0.CI-348/org.springframework.transaction-3.0.0.CI-348.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.transaction/3.0.0.CI-348/org.springframework.transaction-sources-3.0.0.CI-348.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework.security/org.springframework.security/2.0.5.RELEASE/org.springframework.security-2.0.5.RELEASE.jar" sourcepath="/IVY_CACHE/org.springframework.security/org.springframework.security/2.0.5.RELEASE/org.springframework.security-sources-2.0.5.RELEASE.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework.security/org.springframework.security.core/2.0.5.RELEASE/org.springframework.security.core-2.0.5.RELEASE.jar" sourcepath="/IVY_CACHE/org.springframework.security/org.springframework.security.core/2.0.5.RELEASE/org.springframework.security.core-sources-2.0.5.RELEASE.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
