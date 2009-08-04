@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,13 @@ import static org.junit.Assert.assertThat;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Marius Bogoevici
@@ -40,7 +41,7 @@ public class ResequencerTests {
 
 	private Resequencer resequencer;
 	
-	private TaskScheduler taskScheduler;
+	private ThreadPoolTaskScheduler taskScheduler;
 
 	
 	@Before
@@ -48,7 +49,7 @@ public class ResequencerTests {
 		this.resequencer = new Resequencer();
 		this.taskScheduler = TestUtils.createTaskScheduler(10);
 		this.resequencer.setTaskScheduler(taskScheduler);
-		taskScheduler.start();
+		this.taskScheduler.afterPropertiesSet();
 		this.resequencer.start();
 	}
 	
@@ -250,6 +251,7 @@ public class ResequencerTests {
 	@After
 	public void stopTaskScheduler() {
 		this.resequencer.stop();
-		this.taskScheduler.stop();
+		this.taskScheduler.destroy();
 	}
+
 }

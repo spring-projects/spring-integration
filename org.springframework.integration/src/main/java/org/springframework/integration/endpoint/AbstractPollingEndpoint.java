@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.scheduling.Trigger;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -223,8 +223,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		private boolean innerPoll() {
 			TransactionTemplate txTemplate = getTransactionTemplate();
 			if (txTemplate != null) {
-				return (Boolean) txTemplate.execute(new TransactionCallback() {
-					public Object doInTransaction(TransactionStatus status) {
+				return txTemplate.execute(new TransactionCallback<Boolean>() {
+					public Boolean doInTransaction(TransactionStatus status) {
 						return doPoll();
 					}
 				});

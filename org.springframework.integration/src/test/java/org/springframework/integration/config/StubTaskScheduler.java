@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
 
 package org.springframework.integration.config;
 
+import java.util.Date;
 import java.util.concurrent.ScheduledFuture;
 
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.scheduling.Trigger;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.Trigger;
 
 /**
  * @author Mark Fisher
@@ -30,21 +31,24 @@ public class StubTaskScheduler implements TaskScheduler {
 		return null;
 	}
 
-	public void execute(Runnable task) {
+	public ScheduledFuture<?> schedule(Runnable task, Date startTime) {
+		return null;
 	}
 
-	public boolean prefersShortLivedTasks() {
-		return true;
+	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long period) {
+		return null;
 	}
 
-	public boolean isRunning() {
-		return false;
+	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Date startTime, long period) {
+		return null;
 	}
 
-	public void start() {
+	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long delay) {
+		return null;
 	}
 
-	public void stop() {
+	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Date startTime, long delay) {
+		return null;
 	}
 
 }

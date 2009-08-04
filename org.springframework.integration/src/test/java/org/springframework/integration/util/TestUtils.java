@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,15 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -70,16 +71,19 @@ public abstract class TestUtils {
 
 	public static TestApplicationContext createTestApplicationContext() {
 		TestApplicationContext context = new TestApplicationContext();
-		registerBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, createTaskScheduler(10), context);
+		ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(context));
+		ThreadPoolTaskScheduler scheduler = createTaskScheduler(10);
+		scheduler.setErrorHandler(errorHandler);
+		registerBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler, context);
 		return context;
 	}
 
-	public static TaskScheduler createTaskScheduler(int poolSize) {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(poolSize);
-		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
-		executor.afterPropertiesSet();
-		return new SimpleTaskScheduler(executor);
+	public static ThreadPoolTaskScheduler createTaskScheduler(int poolSize) {
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setPoolSize(poolSize);
+		scheduler.setRejectedExecutionHandler(new CallerRunsPolicy());
+		scheduler.afterPropertiesSet();
+		return scheduler;
 	}
 
 	private static void registerBean(String beanName, Object bean, BeanFactory beanFactory) {

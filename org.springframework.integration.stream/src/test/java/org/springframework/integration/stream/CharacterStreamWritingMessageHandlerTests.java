@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.Trigger;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.TriggerContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -51,7 +51,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	private TestTrigger trigger = new TestTrigger();
 
-	private SimpleTaskScheduler scheduler;
+	private ThreadPoolTaskScheduler scheduler;
 
 
 	@Before
@@ -61,9 +61,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 		this.channel = new QueueChannel(10);
 		trigger.reset();
 		this.endpoint = new PollingConsumer(channel, handler);
-		scheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
+		scheduler = new ThreadPoolTaskScheduler();
 		this.endpoint.setTaskScheduler(scheduler);
-		scheduler.start();
+		scheduler.afterPropertiesSet();
 		trigger.reset();
 		endpoint.setTrigger(trigger);
 	}
@@ -201,8 +201,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 		private volatile CountDownLatch latch = new CountDownLatch(1);
 
-
-		public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
+		public Date nextExecutionTime(TriggerContext triggerContext) {
 			if (!hasRun.getAndSet(true)) {
 				return new Date();
 			}

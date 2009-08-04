@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertFalse;
@@ -21,9 +22,9 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -37,6 +38,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnit44Runner;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -52,22 +54,31 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
  */
 @RunWith(MockitoJUnit44Runner.class)
 public class MixedDispatcherConfigurationScenarioTests {
+
 	private static final int TOTAL_EXECUTIONS = 40;
+
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
+
 	private  CountDownLatch allDone;
 	private   CountDownLatch start;
 	private   AtomicBoolean failed;
+
 	@Mock
 	private  List<Exception> exceptionRegistry;
+
 	private ApplicationContext ac;
+
 	@Mock
 	private MessageHandler handlerA;
+
 	@Mock
 	private MessageHandler handlerB;
+
 	@Mock
 	private MessageHandler handlerC;
+
 	@Mock
-	private Message message;
+	private Message<?> message;
 
 	@Before
 	public void initialize() throws Exception {
@@ -145,7 +156,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerA);
 		dispatcher.addHandler(handlerB);
 
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {			
 				RuntimeException e = new RuntimeException();
 				allDone.countDown();
@@ -155,7 +166,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 			}
 		}).when(handlerA).handleMessage(message);
 		
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {			
 				allDone.countDown();
 				return null;
@@ -273,7 +284,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		final CountDownLatch allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		final Message<?> message = this.message;
 		final AtomicBoolean failed = new AtomicBoolean(false);
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {		
 				failed.set(true);
 				RuntimeException e = new RuntimeException();
@@ -282,13 +293,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 				throw e;
 			}
 		}).when(handlerA).handleMessage(message);
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {
 				allDone.countDown();
 				return null;
 			}
 		}).when(handlerB).handleMessage(message);
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {
 				allDone.countDown();
 				return null;
@@ -403,7 +414,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);	
 		dispatcher.addHandler(handlerC);	
 		
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {			
 				RuntimeException e = new RuntimeException();		
 				failed.set(true);
@@ -411,13 +422,13 @@ public class MixedDispatcherConfigurationScenarioTests {
 				throw e;
 			}
 		}).when(handlerA).handleMessage(message);
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {		
 				allDone.countDown();
 				return null;
 			}
 		}).when(handlerB).handleMessage(message);
-		doAnswer(new Answer() {
+		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {		
 				allDone.countDown();
 				return null;
@@ -439,7 +450,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();	
 		allDone.await();
-		// Mockiti threads migt still be lingering, so wait till they are all finished to avoid 
+		// Mockito threads might still be lingering, so wait till they are all finished to avoid 
 		// Mockito concurrency
 		this.waitTillAllFinished((SimpleAsyncTaskExecutor) ac.getBean("taskExecutor"));
 	
@@ -447,6 +458,7 @@ public class MixedDispatcherConfigurationScenarioTests {
 		verify(handlerB, times(TOTAL_EXECUTIONS)).handleMessage(message);
 		verify(handlerC, never()).handleMessage(message);
 	}
+
 	/**
 	 * 
 	 * @param taskExecutor
@@ -454,7 +466,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 	private void waitTillAllFinished(SimpleAsyncTaskExecutor taskExecutor){
 		for (int i = 0; i < 1000; i++) {
 			if (taskExecutor.getThreadGroup().activeCount() == 0){
-				//System.out.println("breaking");
 				break;
 			}
 			try {
@@ -462,4 +473,5 @@ public class MixedDispatcherConfigurationScenarioTests {
 			} catch (InterruptedException e) {/*ignore*/}
 		}
 	}
+
 }

@@ -22,11 +22,14 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -58,9 +61,12 @@ public class DefaultConfigurationTests {
 
 	@Test
 	public void verifyTaskScheduler() {
-		Object taskScheduler = context.getBean("taskScheduler");
-		assertNotNull(taskScheduler);
-		assertEquals(SimpleTaskScheduler.class, taskScheduler.getClass());
+		Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
+		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
+		Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
+		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
+		Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
+		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
 	}
 
 }

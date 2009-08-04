@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.scheduling;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.Assert;
 
 /**
@@ -78,14 +80,14 @@ public class IntervalTrigger implements Trigger {
 	/**
 	 * Returns the next time a task should run.
 	 */
-	public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
-		if (lastScheduledRunTime == null) {
+	public Date nextExecutionTime(TriggerContext triggerContext) {
+		if (triggerContext.lastScheduledExecutionTime() == null) {
 			return new Date(System.currentTimeMillis() + this.initialDelay);
 		}
 		else if (this.fixedRate) {
-			return new Date(lastScheduledRunTime.getTime() + this.interval);
+			return new Date(triggerContext.lastScheduledExecutionTime().getTime() + this.interval);
 		}
-		return new Date(lastCompleteTime.getTime() + this.interval);
+		return new Date(triggerContext.lastCompletionTime().getTime() + this.interval);
 	}
 
 }

@@ -16,16 +16,11 @@
 
 package org.springframework.integration.context;
 
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -68,19 +63,6 @@ public abstract class IntegrationContextUtils {
 		Assert.state(type.isAssignableFrom(bean.getClass()), "incorrect type for bean '" + beanName
 				+ "' expected [" + type + "], but actual type is [" + bean.getClass() + "].");
 		return (T) bean;
-	}
-
-	public static ThreadPoolTaskExecutor createThreadPoolTaskExecutor(int coreSize, int maxSize, int queueCapacity, String threadPrefix) {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(coreSize);
-		executor.setMaxPoolSize(maxSize);
-		executor.setQueueCapacity(queueCapacity);
-		if (StringUtils.hasText(threadPrefix)) {
-			executor.setThreadFactory(new CustomizableThreadFactory(threadPrefix));
-		}
-		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
-		executor.afterPropertiesSet();
-		return executor;
 	}
 
 }

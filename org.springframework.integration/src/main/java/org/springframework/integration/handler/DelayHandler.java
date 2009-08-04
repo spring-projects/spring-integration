@@ -40,7 +40,6 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**

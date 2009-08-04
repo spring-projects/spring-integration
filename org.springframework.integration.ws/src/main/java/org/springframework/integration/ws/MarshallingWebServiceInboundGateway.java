@@ -23,7 +23,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
-import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.server.endpoint.AbstractMarshallingPayloadEndpoint;

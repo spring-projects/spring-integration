@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import java.util.GregorianCalendar;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * @author Dave Syer
@@ -54,7 +57,9 @@ public class CronTriggerTests {
 	@Test
 	public void testMatchAll() throws Exception {
 		CronTrigger trigger = new CronTrigger("* * * * * *");
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -79,7 +84,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.SECOND, 10);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.SECOND, 1);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -88,7 +95,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.SECOND, 11);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.SECOND, 59);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -107,7 +116,9 @@ public class CronTriggerTests {
 		Date date = calendar.getTime();
 		calendar.add(Calendar.MINUTE, 1);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -117,9 +128,13 @@ public class CronTriggerTests {
 		Date date = calendar.getTime();
 		calendar.add(Calendar.MINUTE, 1);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext1 = new SimpleTriggerContext();
+		triggerContext1.update(null, null, date);
+		assertEquals(calendar.getTime(), date = trigger.nextExecutionTime(triggerContext1));
 		calendar.add(Calendar.MINUTE, 1);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext2 = new SimpleTriggerContext();
+		triggerContext2.update(null, null, date);
+		assertEquals(calendar.getTime(), date=trigger.nextExecutionTime(triggerContext2));
 	}
 
 	@Test
@@ -129,7 +144,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.SECOND, 0);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.MINUTE, 59);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -143,9 +160,13 @@ public class CronTriggerTests {
 		Date date = calendar.getTime();
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.HOUR_OF_DAY, 12);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext1 = new SimpleTriggerContext();
+		triggerContext1.update(null, null, date);
+		assertEquals(calendar.getTime(), date = trigger.nextExecutionTime(triggerContext1));
 		calendar.set(Calendar.HOUR_OF_DAY, 13);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext2 = new SimpleTriggerContext();
+		triggerContext2.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext2));
 	}
 
 	@Test
@@ -157,10 +178,14 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext1 = new SimpleTriggerContext();
+		triggerContext1.update(null, null, date);
+		assertEquals(calendar.getTime(), date = trigger.nextExecutionTime(triggerContext1));
 		assertEquals(2, calendar.get(Calendar.DAY_OF_MONTH));
 		calendar.add(Calendar.DAY_OF_MONTH, 1);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext2 = new SimpleTriggerContext();
+		triggerContext2.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext2));
 		assertEquals(3, calendar.get(Calendar.DAY_OF_MONTH));
 	}
 
@@ -173,7 +198,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -186,7 +213,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -200,9 +229,13 @@ public class CronTriggerTests {
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.DAY_OF_MONTH, 1);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext1 = new SimpleTriggerContext();
+		triggerContext1.update(null, null, date);
+		assertEquals(calendar.getTime(), date = trigger.nextExecutionTime(triggerContext1));
 		calendar.set(Calendar.DAY_OF_MONTH, 2);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext2 = new SimpleTriggerContext();
+		triggerContext2.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext2));
 	}
 
 	@Test
@@ -215,10 +248,14 @@ public class CronTriggerTests {
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.DAY_OF_MONTH, 31);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext1 = new SimpleTriggerContext();
+		triggerContext1.update(null, null, date);
+		assertEquals(calendar.getTime(), date = trigger.nextExecutionTime(triggerContext1));
 		calendar.set(Calendar.MONTH, 10); // November
 		calendar.set(Calendar.DAY_OF_MONTH, 1);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext2 = new SimpleTriggerContext();
+		triggerContext2.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext2));
 	}
 
 	@Test
@@ -232,9 +269,13 @@ public class CronTriggerTests {
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
 		calendar.set(Calendar.MONTH, 10);
-		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext1 = new SimpleTriggerContext();
+		triggerContext1.update(null, null, date);
+		assertEquals(calendar.getTime(), date = trigger.nextExecutionTime(triggerContext1));
 		calendar.set(Calendar.MONTH, 11);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext2 = new SimpleTriggerContext();
+		triggerContext2.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext2));
 	}
 
 	@Test
@@ -247,7 +288,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -261,7 +304,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 	@Test
@@ -273,7 +318,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 		assertEquals(Calendar.TUESDAY, calendar.get(Calendar.DAY_OF_WEEK));
 	}
 
@@ -286,7 +333,9 @@ public class CronTriggerTests {
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 		assertEquals(Calendar.TUESDAY, calendar.get(Calendar.DAY_OF_WEEK));
 	}
 
@@ -368,7 +417,9 @@ public class CronTriggerTests {
 	private void assertMatchesNextSecond(CronTrigger trigger, Calendar calendar) {
 		Date date = calendar.getTime();
 		roundup(calendar);
-		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		SimpleTriggerContext triggerContext = new SimpleTriggerContext();
+		triggerContext.update(null, null, date);
+		assertEquals(calendar.getTime(), trigger.nextExecutionTime(triggerContext));
 	}
 
 }

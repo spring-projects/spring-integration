@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.util;
 
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -49,7 +50,7 @@ public class ErrorHandlingTaskExecutor implements TaskExecutor {
 					task.run();
 				}
 				catch (Throwable t) {
-					errorHandler.handle(t);
+					errorHandler.handleError(t);
 				}
 			}
 		});

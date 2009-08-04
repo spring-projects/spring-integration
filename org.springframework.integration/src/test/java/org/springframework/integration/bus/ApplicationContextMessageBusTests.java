@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -191,9 +188,6 @@ public class ApplicationContextMessageBusTests {
 		channelAdapter.setTrigger(new IntervalTrigger(1000));
 		channelAdapter.setOutputChannel(outputChannel);
 		context.registerEndpoint("testChannel", channelAdapter);
-		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
-		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler(channelResolver);
-		errorHandler.setDefaultErrorChannel(errorChannel);
 		context.refresh();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);

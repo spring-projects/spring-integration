@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,10 +28,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -38,8 +39,7 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -49,7 +49,7 @@ public class AggregatorEndpointTests {
 
 	private TaskExecutor taskExecutor;
 
-	private TaskScheduler taskScheduler;
+	private ThreadPoolTaskScheduler taskScheduler;
 
 	private AbstractMessageAggregator aggregator;
 
@@ -57,10 +57,10 @@ public class AggregatorEndpointTests {
 	@Before
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
-		this.taskScheduler = new SimpleTaskScheduler(taskExecutor);
+		this.taskScheduler = new ThreadPoolTaskScheduler();
+		this.taskScheduler.afterPropertiesSet();
 		this.aggregator = new TestAggregator();
 		this.aggregator.setTaskScheduler(this.taskScheduler);
-		this.taskScheduler.start();
 		this.aggregator.start();
 	}
 
@@ -342,7 +342,7 @@ public class AggregatorEndpointTests {
 	
 	@After
 	public void stopTaskScheduler() {
-		this.taskScheduler.stop();
+		this.taskScheduler.destroy();
 		this.aggregator.stop();
 	}
 

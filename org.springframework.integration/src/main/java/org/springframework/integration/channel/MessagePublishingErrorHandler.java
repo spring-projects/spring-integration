@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.util.ErrorHandler;
+import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -71,7 +71,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 		}
 	}
 
-	public final void handle(Throwable t) {
+	public final void handleError(Throwable t) {
 		Message<?> failedMessage = (t instanceof MessagingException) ?
 				((MessagingException) t).getFailedMessage() : null;
 		MessageChannel errorChannel = this.resolveErrorChannel(failedMessage);

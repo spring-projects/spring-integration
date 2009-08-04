@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.Trigger;
-import org.springframework.integration.util.ErrorHandler;
+import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.TriggerContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.ErrorHandler;
 
 /**
  * @author Iwein Fuld
@@ -65,25 +65,26 @@ public class PollingConsumerEndpointTests {
 
 	private PollableChannel channelMock = createMock(PollableChannel.class);
 
-	private SimpleTaskScheduler taskScheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
+	private ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
 
 	@Before
-	public void init() throws InterruptedException {
+	public void init() throws Exception {
 		consumer.counter.set(0);
 		trigger.reset();
 		endpoint = new PollingConsumer(channelMock, consumer);
-		endpoint.setTaskScheduler(taskScheduler);
+		taskScheduler.setPoolSize(5);
 		taskScheduler.setErrorHandler(errorHandler);
-		taskScheduler.start();
+		endpoint.setTaskScheduler(taskScheduler);
 		endpoint.setTrigger(trigger);
 		endpoint.setReceiveTimeout(-1);
+		taskScheduler.afterPropertiesSet();
 		reset(channelMock);
 	}
 
 	@After
-	public void stop() {
-		taskScheduler.stop();
+	public void stop() throws Exception {
+		taskScheduler.destroy();
 	}
 
 
@@ -123,6 +124,15 @@ public class PollingConsumerEndpointTests {
 		endpoint.stop();
 		assertEquals(5, consumer.counter.get());
 		verify(channelMock);
+	}
+
+	@Test
+	public void heavierLoadTest() throws Exception {
+		for (int i = 0; i < 1000; i++) {
+			this.init();
+			this.multipleMessages();
+			this.stop();
+		}
 	}
 
 	@Test(expected = MessageRejectedException.class)
@@ -198,7 +208,7 @@ public class PollingConsumerEndpointTests {
 		private volatile CountDownLatch latch = new CountDownLatch(1);
 
 
-		public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
+		public Date nextExecutionTime(TriggerContext triggerContext) {
 			if (!this.hasRun.getAndSet(true)) {
 				return new Date();
 			}
@@ -229,7 +239,7 @@ public class PollingConsumerEndpointTests {
 
 		private volatile Throwable lastError;
 
-		public void handle(Throwable t) {
+		public void handleError(Throwable t) {
 			this.lastError = t;
 		}
 

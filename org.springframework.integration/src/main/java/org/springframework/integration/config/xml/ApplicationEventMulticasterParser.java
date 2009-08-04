@@ -23,12 +23,11 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.SpringVersion;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -57,8 +56,15 @@ public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinit
 			builder.addPropertyReference("taskExecutor", taskExecutorRef);
 		}
 		else {
-			TaskExecutor taskExecutor = IntegrationContextUtils.createThreadPoolTaskExecutor(1, 10, 0, "event-multicaster-");
-			builder.addPropertyValue("taskExecutor", taskExecutor);
+			BeanDefinitionBuilder executorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor");
+			executorBuilder.addPropertyValue("corePoolSize", 1);
+			executorBuilder.addPropertyValue("maxPoolSize", 10);
+			executorBuilder.addPropertyValue("queueCapacity", 0);
+			executorBuilder.addPropertyValue("threadNamePrefix", "event-multicaster-");
+			String executorBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					executorBuilder.getBeanDefinition(), parserContext.getRegistry());
+			builder.addPropertyReference("taskExecutor", executorBeanName);
 		}
 		String springVersion = SpringVersion.getVersion();
 		if (springVersion != null && springVersion.startsWith("2")) {

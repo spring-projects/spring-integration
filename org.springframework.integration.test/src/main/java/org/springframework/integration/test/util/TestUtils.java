@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,8 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -75,11 +74,11 @@ public abstract class TestUtils {
 	}
 
 	public static TaskScheduler createTaskScheduler(int poolSize) {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(poolSize);
-		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
-		executor.afterPropertiesSet();
-		return new SimpleTaskScheduler(executor);
+		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+		scheduler.setPoolSize(poolSize);
+		scheduler.setRejectedExecutionHandler(new CallerRunsPolicy());
+		scheduler.afterPropertiesSet();
+		return scheduler;
 	}
 
 	private static void registerBean(String beanName, Object bean, BeanFactory beanFactory) {

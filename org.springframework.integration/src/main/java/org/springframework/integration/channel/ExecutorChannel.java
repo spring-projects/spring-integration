@@ -22,8 +22,8 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**

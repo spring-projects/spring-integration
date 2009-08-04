@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -27,7 +29,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
@@ -111,12 +112,13 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 		if (!registry.isBeanNameInUse(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
 			if (logger.isInfoEnabled()) {
 				logger.info("No bean named '" + IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME +
-						"' has been explicitly defined. Therefore, a default SimpleTaskScheduler will be created.");
+						"' has been explicitly defined. Therefore, a default ThreadPoolTaskScheduler will be created.");
 			}
-			TaskExecutor taskExecutor = IntegrationContextUtils.createThreadPoolTaskExecutor(2, 100, 0, "task-scheduler-");
 			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.SimpleTaskScheduler");
-			schedulerBuilder.addConstructorArgValue(taskExecutor);
+					"org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler");
+			schedulerBuilder.addPropertyValue("poolSize", 10);
+			schedulerBuilder.addPropertyValue("threadNamePrefix", "task-scheduler-");
+			schedulerBuilder.addPropertyValue("rejectedExecutionHandler", new CallerRunsPolicy());
 			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MessagePublishingErrorHandler");
 			errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);

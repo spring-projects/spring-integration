@@ -23,7 +23,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,8 +40,7 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -218,8 +216,8 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 				return;
 			}
 			Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
-			this.reaperFutureTask = this.taskScheduler.schedule(new PrunerTask(),
-					new IntervalTrigger(this.reaperInterval, TimeUnit.MILLISECONDS));
+			this.reaperFutureTask = this.taskScheduler.scheduleWithFixedDelay(
+					new PrunerTask(), this.reaperInterval);
 		}
 	}
 

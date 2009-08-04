@@ -30,7 +30,7 @@ import org.springframework.core.SpringVersion;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
