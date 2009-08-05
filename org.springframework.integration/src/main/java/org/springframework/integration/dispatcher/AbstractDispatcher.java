@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,16 +53,26 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
-	private final ReadWriteLock handlersLock = new ReentrantReadWriteLock();
+	private final ReentrantReadWriteLock handlersLock = new ReentrantReadWriteLock();
+
+	private final ReadLock readLock = handlersLock.readLock();
+
+	private final WriteLock writeLock = handlersLock.writeLock();
+
 
 	/**
 	 * Returns a copied, unmodifiable List of this dispatcher's handlers. This
 	 * is provided for access by subclasses.
 	 */
 	protected List<MessageHandler> getHandlers() {
-		handlersLock.readLock().lock();
-		ArrayList<MessageHandler> newList = new ArrayList<MessageHandler>(this.handlers);
-		handlersLock.readLock().unlock();
+		ArrayList<MessageHandler> newList = null;
+		readLock.lock();
+		try {
+			newList = new ArrayList<MessageHandler>(this.handlers);
+		}
+		finally {
+			readLock.unlock();
+		}
 		return Collections.unmodifiableList(newList);
 	}
 
@@ -70,10 +82,13 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#add(Object)}
 	 */
 	public boolean addHandler(MessageHandler handler) {
-		handlersLock.writeLock().lock();
-		boolean added = this.handlers.add(handler);
-		handlersLock.writeLock().unlock();
-		return added;
+		writeLock.lock();
+		try {
+			return this.handlers.add(handler);
+		}
+		finally {
+			writeLock.unlock();
+		}
 	}
 
 	/**
@@ -82,19 +97,25 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#remove(Object)}
 	 */
 	public boolean removeHandler(MessageHandler handler) {
-		handlersLock.writeLock().lock();
-		boolean removed = this.handlers.remove(handler);
-		handlersLock.writeLock().unlock();
-		return removed;
+		writeLock.lock();
+		try {
+			return this.handlers.remove(handler);
+		}
+		finally {
+			writeLock.unlock();
+		}
 	}
 
 	public String toString() {
-		handlersLock.readLock().lock();
-		String handlerList = StringUtils
-				.collectionToCommaDelimitedString(this.handlers);
-		handlersLock.readLock().unlock();
-		return this.getClass().getSimpleName() + " with handlers: "
-				+ handlerList;
+		String handlerList = null;
+		readLock.lock();
+		try {
+			handlerList = StringUtils.collectionToCommaDelimitedString(this.handlers);
+		}
+		finally {
+			readLock.unlock();
+		}
+		return this.getClass().getSimpleName() + " with handlers: " + handlerList;
 	}
 
 }
