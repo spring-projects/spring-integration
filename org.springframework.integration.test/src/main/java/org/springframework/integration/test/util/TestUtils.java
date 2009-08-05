@@ -30,9 +30,9 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
 /**
@@ -132,7 +132,7 @@ public abstract class TestUtils {
 			if (endpoint instanceof AbstractPollingEndpoint) {
 				DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 				if (accessor.getPropertyValue("trigger") == null) {
-					((AbstractPollingEndpoint) endpoint).setTrigger(new IntervalTrigger(10));
+					((AbstractPollingEndpoint) endpoint).setTrigger(new PeriodicTrigger(10));
 				}
 			}
 			registerBean(endpointName, endpoint, this);

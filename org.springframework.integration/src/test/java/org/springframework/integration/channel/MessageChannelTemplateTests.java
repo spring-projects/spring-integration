@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.util.TestUtils;
 import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
@@ -62,7 +62,7 @@ public class MessageChannelTemplateTests {
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(requestChannel, handler);
-		endpoint.setTrigger(new IntervalTrigger(10));
+		endpoint.setTrigger(new PeriodicTrigger(10));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 	}

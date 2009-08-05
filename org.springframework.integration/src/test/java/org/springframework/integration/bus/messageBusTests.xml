@@ -17,7 +17,7 @@
 		<constructor-arg ref="sourceChannel"/>
 		<constructor-arg ref="serviceActivator"/>
 		<property name="trigger">
-			<bean class="org.springframework.integration.scheduling.IntervalTrigger">
+			<bean class="org.springframework.scheduling.support.PeriodicTrigger">
 				<constructor-arg value="100"/>
 			</bean>
 		</property>

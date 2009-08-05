@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Jonas Partner
@@ -24,7 +24,7 @@ import org.springframework.integration.scheduling.IntervalTrigger;
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	public PollingEndpointStub() {
-		this.setTrigger(new IntervalTrigger(500));
+		this.setTrigger(new PeriodicTrigger(500));
 	}
 
 	@Override

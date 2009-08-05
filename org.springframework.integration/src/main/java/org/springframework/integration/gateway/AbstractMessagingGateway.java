@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
 /**
@@ -203,7 +203,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 			else if (this.replyChannel instanceof PollableChannel) {
 				PollingConsumer endpoint = new PollingConsumer(
 						(PollableChannel) this.replyChannel, handler);
-				endpoint.setTrigger(new IntervalTrigger(10));
+				endpoint.setTrigger(new PeriodicTrigger(10));
 				endpoint.setBeanFactory(this.getBeanFactory());
 				endpoint.afterPropertiesSet();
 				correlator = endpoint;

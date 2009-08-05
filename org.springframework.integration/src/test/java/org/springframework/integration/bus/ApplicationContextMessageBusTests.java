@@ -42,9 +42,9 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.util.TestUtils;
 import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
@@ -185,7 +185,7 @@ public class ApplicationContextMessageBusTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		SourcePollingChannelAdapter channelAdapter = new SourcePollingChannelAdapter();
 		channelAdapter.setSource(new FailingSource(latch));
-		channelAdapter.setTrigger(new IntervalTrigger(1000));
+		channelAdapter.setTrigger(new PeriodicTrigger(1000));
 		channelAdapter.setOutputChannel(outputChannel);
 		context.registerEndpoint("testChannel", channelAdapter);
 		context.refresh();

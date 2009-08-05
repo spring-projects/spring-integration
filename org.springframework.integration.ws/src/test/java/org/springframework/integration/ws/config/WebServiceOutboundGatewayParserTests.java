@@ -27,11 +27,11 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -199,12 +199,12 @@ public class WebServiceOutboundGatewayParserTests {
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithPoller");
 		assertEquals(PollingConsumer.class, endpoint.getClass());
 		Object obj = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
-		assertEquals(IntervalTrigger.class, obj.getClass());
-		IntervalTrigger trigger = (IntervalTrigger) obj;
+		assertEquals(PeriodicTrigger.class, obj.getClass());
+		PeriodicTrigger trigger = (PeriodicTrigger) obj;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		accessor = new DirectFieldAccessor(trigger);
-		assertEquals("IntervalTrigger had wrong interval",
-				5000, ((Long)accessor.getPropertyValue("interval")).longValue());
+		assertEquals("PeriodicTrigger had wrong period",
+				5000, ((Long)accessor.getPropertyValue("period")).longValue());
 	}
 
 	@Test

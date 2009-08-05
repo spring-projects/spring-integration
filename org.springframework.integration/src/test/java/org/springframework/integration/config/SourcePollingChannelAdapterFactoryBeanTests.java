@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,10 +33,10 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.util.TestUtils;
 import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -62,7 +62,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 				return invocation.proceed();
 			}
 		});
-		pollerMetadata.setTrigger(new IntervalTrigger(5000));
+		pollerMetadata.setTrigger(new PeriodicTrigger(5000));
 		pollerMetadata.setMaxMessagesPerPoll(1);
 		pollerMetadata.setAdviceChain(adviceChain);
 		factoryBean.setPollerMetadata(pollerMetadata);
