@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,12 +32,14 @@ import org.springframework.util.StringUtils;
 /**
  * Base class for {@link MessageDispatcher} implementations.
  * <p>
- * The subclasses implement the actual dispatching strategy, but this base
- * class manages the registration of {@link MessageHandler}s. Although the
- * implemented dispatching strategies may invoke handles in different ways
- * (e.g. round-robin vs. failover), this class does maintain the order of the
- * underlying collection. See the {@link OrderedAwareLinkedHashSet} for more
- * detail.
+ * The subclasses implement the actual dispatching strategy, but this base class
+ * manages the registration of {@link MessageHandler}s. Although the implemented
+ * dispatching strategies may invoke handles in different ways (e.g. round-robin
+ * vs. failover), this class does maintain the order of the underlying
+ * collection. See the {@link OrderedAwareLinkedHashSet} for more detail.
+ * 
+ * Modification of the internal handler list is guarded by a
+ * {@link ReadWriteLock}.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -47,27 +51,50 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
+	private final ReadWriteLock handlersLock = new ReentrantReadWriteLock();
 
 	/**
-	 * Returns a copied, unmodifiable List of this dispatcher's handlers.
-	 * This is provided for access by subclasses.
+	 * Returns a copied, unmodifiable List of this dispatcher's handlers. This
+	 * is provided for access by subclasses.
 	 */
-	@SuppressWarnings("unchecked")
 	protected List<MessageHandler> getHandlers() {
-		return Collections.unmodifiableList(new ArrayList(this.handlers));
+		handlersLock.readLock().lock();
+		ArrayList<MessageHandler> newList = new ArrayList<MessageHandler>(this.handlers);
+		handlersLock.readLock().unlock();
+		return Collections.unmodifiableList(newList);
 	}
 
+	/**
+	 * Add the handler to the internal Set.
+	 * 
+	 * @return the result of {@link Set#add(Object)}
+	 */
 	public boolean addHandler(MessageHandler handler) {
-		return this.handlers.add(handler);
+		handlersLock.writeLock().lock();
+		boolean added = this.handlers.add(handler);
+		handlersLock.writeLock().unlock();
+		return added;
 	}
 
+	/**
+	 * Remove the handler from the internal handler Set.
+	 * 
+	 * @return the result of {@link Set#remove(Object)}
+	 */
 	public boolean removeHandler(MessageHandler handler) {
-		return this.handlers.remove(handler);
+		handlersLock.writeLock().lock();
+		boolean removed = this.handlers.remove(handler);
+		handlersLock.writeLock().unlock();
+		return removed;
 	}
 
 	public String toString() {
-		String handlerList = StringUtils.collectionToCommaDelimitedString(this.handlers);
-		return this.getClass().getSimpleName() + " with handlers: " + handlerList;
+		handlersLock.readLock().lock();
+		String handlerList = StringUtils
+				.collectionToCommaDelimitedString(this.handlers);
+		handlersLock.readLock().unlock();
+		return this.getClass().getSimpleName() + " with handlers: "
+				+ handlerList;
 	}
 
 }
