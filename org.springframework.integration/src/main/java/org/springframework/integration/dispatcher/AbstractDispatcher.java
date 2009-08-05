@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -25,17 +25,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
  * <p>
- * The subclasses implement the actual dispatching strategy, but this base
- * class manages the registration of {@link MessageHandler}s. Although the
- * implemented dispatching strategies may invoke handles in different ways
- * (e.g. round-robin vs. failover), this class does maintain the order of the
- * underlying collection. See the {@link OrderedAwareLinkedHashSet} for more
- * detail.
+ * The subclasses implement the actual dispatching strategy, but this base class
+ * manages the registration of {@link MessageHandler}s. Although the implemented
+ * dispatching strategies may invoke handles in different ways (e.g. round-robin
+ * vs. failover), this class does maintain the order of the underlying
+ * collection. See the {@link OrderedAwareLinkedHashSet} for more detail.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -49,25 +47,34 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 
 	/**
-	 * Returns a copied, unmodifiable List of this dispatcher's handlers.
-	 * This is provided for access by subclasses.
+	 * Returns a copied, unmodifiable List of this dispatcher's handlers. This
+	 * is provided for access by subclasses.
 	 */
-	@SuppressWarnings("unchecked")
 	protected List<MessageHandler> getHandlers() {
-		return Collections.unmodifiableList(new ArrayList(this.handlers));
+		return Collections.<MessageHandler>unmodifiableList(Arrays.<MessageHandler>asList(
+				this.handlers.toArray(new MessageHandler[this.handlers.size()])));
 	}
 
+	/**
+	 * Add the handler to the internal Set.
+	 * 
+	 * @return the result of {@link Set#add(Object)}
+	 */
 	public boolean addHandler(MessageHandler handler) {
 		return this.handlers.add(handler);
 	}
 
+	/**
+	 * Remove the handler from the internal handler Set.
+	 * 
+	 * @return the result of {@link Set#remove(Object)}
+	 */
 	public boolean removeHandler(MessageHandler handler) {
 		return this.handlers.remove(handler);
 	}
 
 	public String toString() {
-		String handlerList = StringUtils.collectionToCommaDelimitedString(this.handlers);
-		return this.getClass().getSimpleName() + " with handlers: " + handlerList;
+		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}
 
 }
