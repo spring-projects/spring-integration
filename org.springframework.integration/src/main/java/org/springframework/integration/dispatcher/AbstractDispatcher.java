@@ -16,20 +16,15 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -39,9 +34,6 @@ import org.springframework.util.StringUtils;
  * dispatching strategies may invoke handles in different ways (e.g. round-robin
  * vs. failover), this class does maintain the order of the underlying
  * collection. See the {@link OrderedAwareLinkedHashSet} for more detail.
- * 
- * Modification of the internal handler list is guarded by a
- * {@link ReadWriteLock}.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -53,27 +45,14 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private final Set<MessageHandler> handlers = new OrderedAwareLinkedHashSet<MessageHandler>();
 
-	private final ReentrantReadWriteLock handlersLock = new ReentrantReadWriteLock();
-
-	private final ReadLock readLock = handlersLock.readLock();
-
-	private final WriteLock writeLock = handlersLock.writeLock();
-
 
 	/**
 	 * Returns a copied, unmodifiable List of this dispatcher's handlers. This
 	 * is provided for access by subclasses.
 	 */
 	protected List<MessageHandler> getHandlers() {
-		ArrayList<MessageHandler> newList = null;
-		readLock.lock();
-		try {
-			newList = new ArrayList<MessageHandler>(this.handlers);
-		}
-		finally {
-			readLock.unlock();
-		}
-		return Collections.unmodifiableList(newList);
+		return Collections.<MessageHandler>unmodifiableList(Arrays.<MessageHandler>asList(
+				this.handlers.toArray(new MessageHandler[this.handlers.size()])));
 	}
 
 	/**
@@ -82,13 +61,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#add(Object)}
 	 */
 	public boolean addHandler(MessageHandler handler) {
-		writeLock.lock();
-		try {
-			return this.handlers.add(handler);
-		}
-		finally {
-			writeLock.unlock();
-		}
+		return this.handlers.add(handler);
 	}
 
 	/**
@@ -97,25 +70,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * @return the result of {@link Set#remove(Object)}
 	 */
 	public boolean removeHandler(MessageHandler handler) {
-		writeLock.lock();
-		try {
-			return this.handlers.remove(handler);
-		}
-		finally {
-			writeLock.unlock();
-		}
+		return this.handlers.remove(handler);
 	}
 
 	public String toString() {
-		String handlerList = null;
-		readLock.lock();
-		try {
-			handlerList = StringUtils.collectionToCommaDelimitedString(this.handlers);
-		}
-		finally {
-			readLock.unlock();
-		}
-		return this.getClass().getSimpleName() + " with handlers: " + handlerList;
+		return this.getClass().getSimpleName() + " with handlers: " + this.handlers.toString();
 	}
 
 }
