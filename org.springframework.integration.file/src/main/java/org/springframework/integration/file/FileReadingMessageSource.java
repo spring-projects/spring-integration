@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
  * file as soon as it is ready for reading. A pattern-matching filter that
  * accepts only files that are ready (e.g. based on a known suffix), composed
  * with the default {@link AcceptOnceFileListFilter} would allow for this. See
- * {@link CompositeFileFilter} for a way to do this.
+ * {@link org.springframework.integration.file.CompositeFileListFilter} for a way to do this.
  * <p/>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
