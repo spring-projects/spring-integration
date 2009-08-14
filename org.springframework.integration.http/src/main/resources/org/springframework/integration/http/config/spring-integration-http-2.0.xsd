@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/http"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		targetNamespace="http://www.springframework.org/schema/integration/http"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's HTTP adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an inbound HTTP-based Channel Adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="name" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="send-timeout" type="xsd:string"/>
+			<xsd:attribute name="supported-methods" type="xsd:string"/>
+			<xsd:attribute name="view" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.servlet.View"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.http.InboundRequestMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-key" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an inbound HTTP-based Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="name" type="xsd:string"/>
+					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
+					<xsd:attribute name="supported-methods" type="xsd:string"/>
+					<xsd:attribute name="view" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.web.servlet.View"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.InboundRequestMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-key" type="xsd:string"/>
+					<xsd:attribute name="reply-key" type="xsd:string"/>
+					<xsd:attribute name="reply-timeout" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an outbound HTTP-based Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="default-url" type="xsd:string"/>
+					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
+					<xsd:attribute name="charset" type="xsd:string"/>
+					<xsd:attribute name="request-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.OutboundRequestMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="request-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.HttpRequestExecutor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="order" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this gateway is connected as a
+	subscriber to a SubscribableChannel.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="auto-startup" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="gatewayType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines common configuration for gateway adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="request-channel" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="reply-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="request-timeout" type="xsd:string"/>
+	</xsd:complexType>
+
+</xsd:schema>
