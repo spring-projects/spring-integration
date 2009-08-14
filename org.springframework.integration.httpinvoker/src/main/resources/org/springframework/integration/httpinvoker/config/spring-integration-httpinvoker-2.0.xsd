@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/httpinvoker"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
+		targetNamespace="http://www.springframework.org/schema/integration/httpinvoker"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's HttpInvoker adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an HttpInvoker-based inbound Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="expect-reply" type="xsd:string" default="true"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an HttpInvoker-based outbound Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="url" type="xsd:string" use="required"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="gatewayType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines common configuration for gateway adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="name" type="xsd:string"/>
+		<xsd:attribute name="request-channel" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="reply-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="request-timeout" type="xsd:string"/>
+		<xsd:attribute name="reply-timeout" type="xsd:string"/>
+		<xsd:attribute name="auto-startup" type="xsd:string"/>
+	</xsd:complexType>
+
+</xsd:schema>

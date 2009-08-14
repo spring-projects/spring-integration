@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/mail"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
+		targetNamespace="http://www.springframework.org/schema/integration/mail"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's Mail Channel Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an outbound mail-sending Channel Adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="mail-sender" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.mail.MailSender"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="host" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:string"/>
+			<xsd:attribute name="username" type="xsd:string"/>
+			<xsd:attribute name="password" type="xsd:string"/>
+			<xsd:attribute name="java-mail-properties" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Properties"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an inbound Channel Adapter that polls a mailbox for mail messages.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
+			<xsd:attribute name="java-mail-properties" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Properties"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="imap-idle-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an IMAP IDLE channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
+			<xsd:attribute name="java-mail-properties" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.util.Properties"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="task-executor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="should-delete-messages" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Specify whether mail messages should be deleted after retrieval. The default is TRUE.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="mail-to-string-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Transformer that converts a javax.mail.Message payload to a String.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="charset" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="header-enricher">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Transformer for adding statically configured Mail Headers.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="subject" type="xsd:string"/>
+					<xsd:attribute name="to" type="xsd:string"/>
+					<xsd:attribute name="cc" type="xsd:string"/>
+					<xsd:attribute name="bcc" type="xsd:string"/>
+					<xsd:attribute name="from" type="xsd:string"/>
+					<xsd:attribute name="reply-to" type="xsd:string"/>
+					<xsd:attribute name="overwrite" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>		
+	</xsd:complexType>
+
+</xsd:schema>
