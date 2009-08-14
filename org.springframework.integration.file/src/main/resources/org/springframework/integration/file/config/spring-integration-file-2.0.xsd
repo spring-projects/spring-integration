@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/file"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
+		targetNamespace="http://www.springframework.org/schema/integration/file"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration File Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures an inbound Channel Adapter that polls a directory and sends
+	Messages whose payloads are instances of java.io.File.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="comparator" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Specify a Comparator to be used when ordering Files. If none is provided, the
+	order will be determined by the java.io.File implementation of Comparable.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.file.FileListFilter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filename-pattern" type="xsd:string"/>
+			<xsd:attribute name="prevent-duplicates" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A boolean flag indicating whether duplicates should be prevented. If a 'filter' reference is
+	provided, duplicate prevention will not be enabled by default (the assumption is that the
+	provided filter is sufficient), but setting this to true will enable it. If a 'filename-pattern'
+	is provided, duplicate prevention will be enabled by default (preceding the pattern matching),
+	but setting this to false will disable it. If neither 'filter' or 'filename-pattern' is provided,
+	duplicate prevention is enabled by default, but setting this to false will disable it. For more
+	detail on the actual duplicate prevention, see the javadoc for AcceptOnceFileListFilter.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify whether to automatically create the source directory if it does not yet exist when this
+	adapter is being initialized. The default value is 'true'. If set to 'false' and the directory
+	does not exist upon initialization, an Exception will be thrown.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Configures an outbound Channel Adapter that writes Message payloads to a File.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="outboundFileBaseType">
+					<xsd:attribute name="channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Configures an outbound Gateway that writes request Message payloads to a File and
+	then generates a reply Message containing the newly written File as its payload.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="outboundFileBaseType">
+					<xsd:attribute name="request-channel" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="reply-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="outboundFileBaseType">
+		<xsd:sequence>
+			<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="directory" type="xsd:string" use="required"/>
+		<xsd:attribute name="filename-generator" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.file.FileNameGenerator"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="delete-source-files" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify whether to delete source files after writing to the destination directory.
+	This will take effect if the Message payload is the actual source File instance
+	or if the original File instance (or its path) is available in the header value
+	associated with the FileHeaders.ORIGINAL_FILE constant. The default value is false.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="order" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specifies the order for invocation when this endpoint is connected as a
+	subscriber to a SubscribableChannel.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify whether to automatically create the destination directory if it does not yet exist
+	when this adapter is being initialized. The default value is 'true'. If set to 'false' and
+	the directory does not exist upon initialization, an Exception will be thrown.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:element name="file-to-string-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Creates a Transformer that converts a File payload to a String.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="charset" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="file-to-bytes-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Creates a Transformer that converts a File payload to an array of bytes.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType"/>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="output-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="delete-files" type="xsd:string"/>
+	</xsd:complexType>
+
+</xsd:schema>
