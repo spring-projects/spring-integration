@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/ws"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
+		targetNamespace="http://www.springframework.org/schema/integration/ws"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's Web Service adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Web Service based outbound Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:all>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:all>
+			<xsd:attribute name="id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	A unique identifier for this Gateway.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The channel where Messages should be sent to invoke the Web Service.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The channel where Messages created from the Web Service responses will be sent.
+	This is optional. However, if non-empty responses are expected and this is not set,
+	then the request Messages must contain a REPLY_CHANNEL header.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="uri" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The Destination URI for this Web Service Gateway. If the URI should be determined at runtime
+	(e.g. registry lookup), then configure a 'destination-provider' reference instead.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+            <xsd:attribute name="destination-provider" type="xsd:string">
+            	<xsd:annotation>
+            		<xsd:documentation>
+	Reference to a DestinationProvider implementation. Either provide this or a 'uri', never both.
+	See org.springframework.ws.client.support.destination.DestinationProvider for more detail.
+            		</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.client.support.destination.DestinationProvider"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>    
+            </xsd:attribute>
+            <xsd:attribute name="marshaller" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring OXM Mashaller. If the Marshaller instance also implements
+	the Unmarshaller interface, then the 'unmarshaller' attribute is not required.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.oxm.Marshaller"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="unmarshaller" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring OXM Unmarshaller.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.oxm.Unmarshaller"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="ignore-empty-responses" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Indicates whether empty String response payloads should be ignored. The default is TRUE.
+	Set this to FALSE if you want to send empty String responses in reply Messages.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="source-extractor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring Web Services SourceExtractor.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.client.core.SourceExtractor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-callback" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Reference to a Spring Web Services WebServiceMessageCallback. This enables changing
+	the Web Service request message after the payload has been written to it but prior
+	to invocation of the actual Web Service. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.client.core.WebServiceMessageCallback"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.WebServiceMessageFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="fault-message-resolver" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.client.core.FaultMessageResolver"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-sender" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.transport.WebServiceMessageSender"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="message-senders" type="xsd:string"/>
+			<xsd:attribute name="order" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Web Service based inbound Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="marshaller" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.oxm.Marshaller"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="unmarshaller" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.oxm.Unmarshaller"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="extract-payload" type="xsd:boolean"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>
