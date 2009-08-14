@@ -39,9 +39,8 @@ import org.springframework.util.StringUtils;
  * <p>If the Message is an instance of {@link MailMessage}, it will be passed
  * as-is. If the Message payload is a byte array, it will be passed as an
  * attachment, and in that case, the {@link MailHeaders#ATTACHMENT_FILENAME}
- * header is required. For any other payload type, a {@link SimpleMailMessage}
- * will be created with the payload's <code>toString()</code> value as the Mail
- * text.
+ * header is required. Otherwise, a String type is expected, and its content
+ * will be used as the text within a {@link SimpleMailMessage}.
  * 
  * @see MailHeaders
  * 
