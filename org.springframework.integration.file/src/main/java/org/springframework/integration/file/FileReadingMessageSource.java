@@ -49,7 +49,8 @@ import org.springframework.util.Assert;
  * file as soon as it is ready for reading. A pattern-matching filter that
  * accepts only files that are ready (e.g. based on a known suffix), composed
  * with the default {@link AcceptOnceFileListFilter} would allow for this. See
- * {@link org.springframework.integration.file.CompositeFileListFilter} for a way to do this.
+ * {@link org.springframework.integration.file.CompositeFileListFilter} for a
+ * way to do this.
  * <p/>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in
  * a {@link PriorityBlockingQueue}. This does not provide the same guarantees as
@@ -62,11 +63,13 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-public class FileReadingMessageSource implements MessageSource<File>, InitializingBean {
+public class FileReadingMessageSource implements MessageSource<File>,
+		InitializingBean {
 
 	private static final int INTERNAL_QUEUE_CAPACITY = 5;
 
-	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
+	private static final Log logger = LogFactory
+			.getLog(FileReadingMessageSource.class);
 
 	private volatile File inputDirectory;
 
@@ -74,15 +77,14 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 
 	/**
 	 * {@link PriorityBlockingQueue#iterator()} throws
-	 * {@link java.util.ConcurrentModificationException} in Java 5.
-	 * There is no locking around the queue, so there is also no iteration.
+	 * {@link java.util.ConcurrentModificationException} in Java 5. There is no
+	 * locking around the queue, so there is also no iteration.
 	 */
 	private final Queue<File> toBeReceived;
 
 	private volatile FileListFilter filter = new AcceptOnceFileListFilter();
 
 	private boolean scanEachPoll = false;
-
 
 	/**
 	 * Creates a FileReadingMessageSource with a naturally ordered queue.
@@ -99,7 +101,8 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 	 * access.
 	 */
 	public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
-		toBeReceived = new PriorityBlockingQueue<File>(INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
+		toBeReceived = new PriorityBlockingQueue<File>(INTERNAL_QUEUE_CAPACITY,
+				receptionOrderComparator);
 	}
 
 	/**
@@ -109,15 +112,14 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 		Assert.notNull(inputDirectory, "inputDirectory must not be null");
 		try {
 			this.inputDirectory = inputDirectory.getFile();
-		}
-		catch (IOException ioe) {
+		} catch (IOException ioe) {
 			try {
 				// fallback to the URI
 				this.inputDirectory = new File(inputDirectory.getURI());
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				throw new IllegalArgumentException(
-					"Unexpected IOException when looking for source directory: " + inputDirectory, ioe);
+						"Unexpected IOException when looking for source directory: "
+								+ inputDirectory, ioe);
 			}
 		}
 	}
@@ -152,7 +154,12 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 	 * refreshed with the latest content of the input directory on each poll.
 	 * <p/>
 	 * By default this implementation will empty its queue before looking at the
-	 * directory again. In cases where order
+	 * directory again. In cases where order is relevant it is important to
+	 * consider the effects of setting this flag. The internal
+	 * {@link PriorityBlockingQueue} that this class is keeping will more likely
+	 * be out of sync with the filesystem if this flag is set to
+	 * <code>false</code>, but it will change more often (causing reordering) if
+	 * it is set to <code>true</code>.
 	 */
 	public void setScanEachPoll(boolean scanEachPoll) {
 		this.scanEachPoll = scanEachPoll;
@@ -162,12 +169,12 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 		if (!this.inputDirectory.exists() && this.autoCreateDirectory) {
 			this.inputDirectory.mkdirs();
 		}
-		Assert.isTrue(this.inputDirectory.exists(),
-				"Source directory [" + inputDirectory + "] does not exist.");
-		Assert.isTrue(this.inputDirectory.isDirectory(),
-				"Source path [" + this.inputDirectory + "] does not point to a directory.");
-		Assert.isTrue(this.inputDirectory.canRead(),
-				"Source directory [" + this.inputDirectory + "] is not readable.");
+		Assert.isTrue(this.inputDirectory.exists(), "Source directory ["
+				+ inputDirectory + "] does not exist.");
+		Assert.isTrue(this.inputDirectory.isDirectory(), "Source path ["
+				+ this.inputDirectory + "] does not point to a directory.");
+		Assert.isTrue(this.inputDirectory.canRead(), "Source directory ["
+				+ this.inputDirectory + "] is not readable.");
 	}
 
 	public Message<File> receive() throws MessagingException {
@@ -190,8 +197,10 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
 	private void scanInputDirectory() {
 		File[] fileArray = inputDirectory.listFiles();
 		if (fileArray == null) {
-			throw new MessagingException("Either the path [" + this.inputDirectory 
-					+ "] does not denote a directory, or an I/O error has occured.");
+			throw new MessagingException(
+					"Either the path ["
+							+ this.inputDirectory
+							+ "] does not denote a directory, or an I/O error has occured.");
 		}
 		List<File> filteredFiles = this.filter.filterFiles(fileArray);
 		Set<File> freshFiles = new HashSet<File>(filteredFiles);
