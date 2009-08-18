@@ -18,29 +18,29 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;outbound-channel-adapter/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
-	@Override
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
-		String consumerRef = element.getAttribute("ref");
-		if (!StringUtils.hasText(consumerRef)) {
-			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
-		}
-		if (element.hasAttribute("method")) {
+		String consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
+		if (element.hasAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE)) {
 			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					this.parseConsumer(element, parserContext), parserContext.getRegistry());
 		}
+		Assert.notNull(consumerRef, "Can not determine consumer for outbound-channel-adapter");
 		return consumerRef;
 	}
 
@@ -48,11 +48,20 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageHandler");
-		invokerBuilder.addConstructorArgReference(element.getAttribute("ref"));
-		invokerBuilder.addConstructorArgValue(element.getAttribute("method"));
-		String order = element.getAttribute("order");
+		BeanDefinition innerHandlerDefinition = 
+					IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		if (innerHandlerDefinition == null){
+			Assert.hasText(element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE), 
+							"You must provide 'ref' attribute or register inner bean for " +
+							"Outbound Channel consumer.");
+			invokerBuilder.addConstructorArgReference(element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE));
+		} else {
+			invokerBuilder.addConstructorArgValue(innerHandlerDefinition);
+		}
+		invokerBuilder.addConstructorArgValue(element.getAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE));
+		String order = element.getAttribute(IntegrationNamespaceUtils.ORDER);
 		if (StringUtils.hasText(order)) {
-			invokerBuilder.addPropertyValue("order", order);
+			invokerBuilder.addPropertyValue(IntegrationNamespaceUtils.ORDER, order);
 		}
 		return invokerBuilder.getBeanDefinition();
 	}

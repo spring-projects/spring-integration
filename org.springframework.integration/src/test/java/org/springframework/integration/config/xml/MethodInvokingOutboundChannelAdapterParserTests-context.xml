@@ -4,13 +4,24 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
 
 	<channel id="channel"/>
+	
+	<channel id="channelB">
+		<queue capacity="2"/>
+	</channel>
 
 	<outbound-channel-adapter id="adapter" channel="channel" ref="bean" method="out" order="99" auto-startup="false"/>
 
 	<beans:bean id="bean"
 		class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
 
+	<outbound-channel-adapter id="adapterB" channel="channelB" method="out" order="99" auto-startup="false">
+		<beans:bean class="org.springframework.integration.config.xml.MethodInvokingOutboundChannelAdapterParserTests$TestBean"/>
+		<poller task-executor="executor" max-messages-per-poll="5"> 
+            <interval-trigger interval="20" /> 
+        </poller> 
+	</outbound-channel-adapter>
+	<thread-pool-task-executor id="executor" core-size="5" /> 
 </beans:beans>

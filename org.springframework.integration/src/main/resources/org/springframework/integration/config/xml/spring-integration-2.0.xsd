@@ -409,7 +409,7 @@
 	<xsd:complexType name="methodInvokingChannelAdapterType">
 		<xsd:complexContent>
 			<xsd:extension base="channelAdapterType">
-				<xsd:attribute name="ref" type="xsd:string" use="required">
+				<xsd:attribute name="ref" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
@@ -424,10 +424,11 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="channelAdapterType">
-		<xsd:sequence>
+		<xsd:all>
 			<xsd:element name="poller" type="innerPollerType"
 				minOccurs="0" maxOccurs="1" />
-		</xsd:sequence>
+			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />   
+		</xsd:all>
 		<xsd:attribute name="id" type="xsd:ID" />
 		<xsd:attribute name="channel" type="xsd:string">
 			<xsd:annotation>

@@ -50,6 +50,17 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 		assertEquals(99, handlerAccessor.getPropertyValue("order"));
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
 	}
+	
+	@Test
+	public void checkConfigWithInnerBeanAndPoller() {
+		Object adapter = context.getBean("adapterB");
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Object handler = adapterAccessor.getPropertyValue("handler");
+		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(99, handlerAccessor.getPropertyValue("order"));
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+	}
 
 
 	static class TestBean {
