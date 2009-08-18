@@ -61,7 +61,7 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinition innerHandlerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
+		BeanDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		BeanDefinitionBuilder builder;
 		

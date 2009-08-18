@@ -45,7 +45,7 @@ public class FilterParser extends AbstractConsumerEndpointParser {
 	}
 
 	private String parseSelector(Element element, ParserContext parserContext) {
-		BeanDefinition innerHandlerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
+		BeanDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String ref = null;
 		if (innerHandlerDefinition == null){
 			ref = element.getAttribute("ref");

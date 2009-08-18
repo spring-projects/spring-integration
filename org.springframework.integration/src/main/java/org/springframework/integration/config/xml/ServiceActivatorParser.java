@@ -33,7 +33,7 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinition innerHandlerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
+		BeanDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ServiceActivatingHandler");

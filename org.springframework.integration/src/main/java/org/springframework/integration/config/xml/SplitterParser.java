@@ -33,7 +33,7 @@ public class SplitterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinition innerDefinition = this.parseInnerHandlerDefinition(element, parserContext);
+		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
 		if (innerDefinition != null){

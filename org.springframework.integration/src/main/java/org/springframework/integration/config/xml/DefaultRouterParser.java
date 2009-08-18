@@ -34,7 +34,7 @@ public class DefaultRouterParser extends AbstractRouterParser {
 
 	@Override
 	protected void parseRouter(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
-		BeanDefinition innerDefinition 	= this.parseInnerHandlerDefinition(element, parserContext);
+		BeanDefinition innerDefinition 	= IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (innerDefinition != null){
 			builder.addPropertyValue("targetObject", innerDefinition);
 		} else {
