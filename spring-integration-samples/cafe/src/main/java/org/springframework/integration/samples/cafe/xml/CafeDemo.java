@@ -42,6 +42,7 @@ public class CafeDemo {
 		CafeDemo demo = new CafeDemo();
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
 		demo.performDemo(context, 100);
+		context.close();
 	}
 
 
