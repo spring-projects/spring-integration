@@ -44,7 +44,7 @@
   <section id="channel-adapter-namespace-outbound">
     <title>The &lt;outbound-channel-adapter/&gt; element</title>
     <para>
-      An "outbound-channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any
+      An "outbound-channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any POJO consumer
       method that should be invoked with the payload of Messages sent to that channel.
       <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel1" ref="target1" method="method1"/>]]></programlisting>
       If the channel being adapted is a <interfacename>PollableChannel</interfacename>, provide a poller sub-element:
@@ -52,8 +52,26 @@
     ]]><emphasis><![CDATA[<poller>
         <interval-trigger interval="3000"/>
     </poller>]]></emphasis><![CDATA[
-</outbound-channel-adapter>]]></programlisting>
+</outbound-channel-adapter>
+<beans:bean id="target1" class="org.bar.Foo"/>
+]]></programlisting>
     </para>
+    <para>
+      Using a "ref" attribute is generally recommended if the POJO consumer implementation can be reused
+      in other <code>&lt;outbound-channel-adapter&gt;</code> definitions. However if the consumer implementation
+      should be scoped to a single definition of the <code>&lt;outbound-channel-adapter&gt;</code>, you can define it as inner bean:
+        <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel2" method="method2">
+        <beans:bean class="org.bar.Foo"/>
+    ]]><![CDATA[
+</outbound-channel-adapter>
+]]></programlisting>
+    </para>
+    <note>
+    <para>
+    Using both the "ref" attribute and an inner handler definition in the same <code>&lt;outbound-channel-adapter&gt;</code>
+    configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+    </para>
+    </note>
     <para>
       Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
       instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
