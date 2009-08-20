@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
   <properties>
     <org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
-    <junit.version>4.6</spring.version>
+    <junit.version>4.6</junit.version>
     <spring.version>3.0.0.M4</spring.version>
   </properties>
   <profiles>
