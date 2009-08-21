@@ -29,24 +29,23 @@ import org.springframework.util.Assert;
  */
 public class CorrelationStrategyAdapter implements CorrelationStrategy {
 
-    private final MessageMappingMethodInvoker invoker;
+	private final MessageMappingMethodInvoker invoker;
 
 
-    public CorrelationStrategyAdapter(Object object, String methodName) {
-        this.invoker = new MessageMappingMethodInvoker(object, methodName, true);
-    }
+	public CorrelationStrategyAdapter(Object object, String methodName) {
+		this.invoker = new MessageMappingMethodInvoker(object, methodName, true);
+	}
 
-    public CorrelationStrategyAdapter(Object object, Method method) {
-        Assert.notNull(object, "'object' must not be null");
-        Assert.notNull(method, "'method' must not be null");
-        Assert.isTrue(method.getParameterTypes().length == 1, "Method must accept exactly one parameter");
-        Assert.isTrue(!Void.TYPE.equals(method.getReturnType()), "Method return type must not be void");
-        this.invoker = new MessageMappingMethodInvoker(object, method);
-    }
+	public CorrelationStrategyAdapter(Object object, Method method) {
+		Assert.notNull(object, "'object' must not be null");
+		Assert.notNull(method, "'method' must not be null");
+		Assert.isTrue(method.getParameterTypes().length == 1, "Method must accept exactly one parameter");
+		Assert.isTrue(!Void.TYPE.equals(method.getReturnType()), "Method return type must not be void");
+		this.invoker = new MessageMappingMethodInvoker(object, method);
+	}
 
+	public Object getCorrelationKey(Message<?> message) {
+		return invoker.processMessage(message);
+	}
 
-    public Object getCorrelationKey(Message<?> message) {
-        return invoker.invokeMethod(message);
-    }
-    
 }

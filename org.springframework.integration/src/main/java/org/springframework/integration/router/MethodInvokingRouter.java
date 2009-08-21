@@ -54,7 +54,7 @@ public class MethodInvokingRouter extends AbstractChannelNameResolvingMessageRou
 
 	@Override
 	protected List<Object> getChannelIndicatorList(Message<?> message) {
-		Object result = this.invoker.invokeMethod(message);
+		Object result = this.invoker.processMessage(message);
 		List<Object> asList = new ArrayList<Object>();
 		asList.add(result);
 		return asList;

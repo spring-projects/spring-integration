@@ -54,7 +54,7 @@ public class MethodInvokingMessageHandler extends MessageMappingMethodInvoker im
 	}
 
 	public void handleMessage(Message<?> message) {
-		Object result = this.invokeMethod(message);
+		Object result = this.processMessage(message);
 		if (result != null) {
 			throw new MessagingException(message, "the MethodInvokingMessageHandler method must "
 					+ "have a void return, but '" + this + "' received a value: [" + result + "]");			

@@ -51,7 +51,7 @@ public class MethodInvokingSplitter extends AbstractMessageSplitter {
 
 	@Override
 	protected Object splitMessage(Message<?> message) {
-		return this.invoker.invokeMethod(message);
+		return this.invoker.processMessage(message);
 	}
 
 }

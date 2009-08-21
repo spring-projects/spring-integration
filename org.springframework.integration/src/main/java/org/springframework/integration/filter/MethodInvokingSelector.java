@@ -47,7 +47,7 @@ public class MethodInvokingSelector implements MessageSelector {
 
 
 	public boolean accept(Message<?> message) {
-		Object result = this.invoker.invokeMethod(message);
+		Object result = this.invoker.processMessage(message);
 		Assert.notNull(result, "result must not be null");
 		Assert.isAssignable(Boolean.class, result.getClass(), "a boolean result is required");
 		return (Boolean) result;

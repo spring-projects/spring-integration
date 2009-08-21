@@ -42,7 +42,7 @@ public class MessageMappingMethodInvokerTests {
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptPayloadAndReturnObject");
-		Object result = invoker.invokeMethod(new StringMessage("testing"));
+		Object result = invoker.processMessage(new StringMessage("testing"));
 		assertEquals("testing-1", result);
 	}
 
@@ -50,7 +50,7 @@ public class MessageMappingMethodInvokerTests {
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptPayloadAndReturnMessage");
-		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
+		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
 		assertEquals("testing-2", result.getPayload());
 	}
 
@@ -58,7 +58,7 @@ public class MessageMappingMethodInvokerTests {
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptMessageAndReturnObject");
-		Object result = invoker.invokeMethod(new StringMessage("testing"));
+		Object result = invoker.processMessage(new StringMessage("testing"));
 		assertEquals("testing-3", result);
 	}
 
@@ -66,7 +66,7 @@ public class MessageMappingMethodInvokerTests {
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptMessageAndReturnMessage");
-		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
+		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
 		assertEquals("testing-4", result.getPayload());
 	}
 
@@ -74,7 +74,7 @@ public class MessageMappingMethodInvokerTests {
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptMessageSubclassAndReturnMessage");
-		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
+		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
 		assertEquals("testing-5", result.getPayload());
 	}
 
@@ -82,7 +82,7 @@ public class MessageMappingMethodInvokerTests {
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptMessageSubclassAndReturnMessageSubclass");
-		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
+		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
 		assertEquals("testing-6", result.getPayload());
 	}
 
@@ -92,23 +92,23 @@ public class MessageMappingMethodInvokerTests {
 				new TestBean(), "acceptPayloadAndHeaderAndReturnObject");
 		Message<?> request = MessageBuilder.withPayload("testing")
 				.setHeader("number", new Integer(123)).build();
-		Object result = invoker.invokeMethod(request);
+		Object result = invoker.processMessage(request);
 		assertEquals("testing-123", result);
 	}
 
     @Test
     public void testVoidMethodsIncludedbyDefault() {
         MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "testVoidReturningMethods");
-        assertNull(invoker.invokeMethod(MessageBuilder.withPayload("Something").build()));
-        assertEquals(12, invoker.invokeMethod(MessageBuilder.withPayload(12).build()));
+        assertNull(invoker.processMessage(MessageBuilder.withPayload("Something").build()));
+        assertEquals(12, invoker.processMessage(MessageBuilder.withPayload(12).build()));
     }
 
     @Test
     public void testVoidMethodsExcludedByFlag() {
         MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "testVoidReturningMethods", true);
-        assertEquals(12, invoker.invokeMethod(MessageBuilder.withPayload(12).build()));
+        assertEquals(12, invoker.processMessage(MessageBuilder.withPayload(12).build()));
         try {
-            assertNull(invoker.invokeMethod(MessageBuilder.withPayload("Something").build()));
+            assertNull(invoker.processMessage(MessageBuilder.withPayload("Something").build()));
             fail();
         } catch(IllegalArgumentException ex){
 
@@ -120,7 +120,7 @@ public class MessageMappingMethodInvokerTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageOnly", Message.class);
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.invokeMethod(new StringMessage("foo"));
+		Object result = invoker.processMessage(new StringMessage("foo"));
 		assertEquals("foo", result);
 	}
 
@@ -129,7 +129,7 @@ public class MessageMappingMethodInvokerTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.invokeMethod(new GenericMessage<Integer>(new Integer(123)));
+		Object result = invoker.processMessage(new GenericMessage<Integer>(new Integer(123)));
 		assertEquals(new Integer(123), result);
 	}
 
@@ -138,7 +138,7 @@ public class MessageMappingMethodInvokerTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.invokeMethod(new StringMessage("456"));
+		Object result = invoker.processMessage(new StringMessage("456"));
 		assertEquals(new Integer(456), result);
 	}
 
@@ -147,7 +147,7 @@ public class MessageMappingMethodInvokerTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.invokeMethod(new StringMessage("foo"));
+		Object result = invoker.processMessage(new StringMessage("foo"));
 		assertEquals(new Integer(123), result);
 	}
 
@@ -158,7 +158,7 @@ public class MessageMappingMethodInvokerTests {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 42).build();
-		Object result = invoker.invokeMethod(message);
+		Object result = invoker.processMessage(message);
 		assertEquals("foo-42", result);
 	}
 
@@ -170,7 +170,7 @@ public class MessageMappingMethodInvokerTests {
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar")
 				.setHeader("number", 42).build();
-		Object result = invoker.invokeMethod(message);
+		Object result = invoker.processMessage(message);
 		assertEquals("bar-42", result);
 	}
 

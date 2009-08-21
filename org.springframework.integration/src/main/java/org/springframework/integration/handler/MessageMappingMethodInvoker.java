@@ -50,7 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @see MethodParameterMessageMapper
  */
-public class MessageMappingMethodInvoker {
+public class MessageMappingMethodInvoker implements MessageProcessor {
 
 	protected static final Log logger = LogFactory.getLog(MessageMappingMethodInvoker.class);
 
@@ -90,9 +90,8 @@ public class MessageMappingMethodInvoker {
 		this.object = object;
 		this.methodResolver = this.createResolverForMethodName(methodName, requiresReturnValue);
 	}
-   
 
-	public Object invokeMethod(Message<?> message) {
+	public Object processMessage(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		if (message.getPayload() == null) {
 			if (logger.isDebugEnabled()) {
@@ -104,7 +103,7 @@ public class MessageMappingMethodInvoker {
 		Object[] args = null;
 		try {
 			args = this.createArgumentArrayFromMessage(method, message);
-			return this.doInvokeMethod(method, args, message);
+			return this.invokeMethod(method, args, message);
 		}
 		catch (InvocationTargetException e) {
 			if (e.getCause() != null && e.getCause() instanceof RuntimeException) {
@@ -122,7 +121,7 @@ public class MessageMappingMethodInvoker {
 		}
 	}
 
-	private Object doInvokeMethod(Method method, Object[] args, Message<?> message) throws Exception {
+	private Object invokeMethod(Method method, Object[] args, Message<?> message) throws Exception {
 		Object result = null;
 		MethodInvoker invoker = null;
 		try {
