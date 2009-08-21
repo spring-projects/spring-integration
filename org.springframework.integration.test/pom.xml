@@ -12,6 +12,23 @@
     <relativePath>../spring-integration-parent</relativePath>
   </parent>
   <dependencies>
+	<dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-all</artifactId>
+       <version>1.6</version>
+       <scope>test</scope>
+	</dependency>
+	<dependency>
+       <groupId>org.mockito</groupId>
+       <artifactId>mockito-all</artifactId>
+       <version>1.6</version>
+       <scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.hamcrest</groupId>
+		<artifactId>hamcrest-all</artifactId>
+		<version>1.1</version>
+	</dependency>
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
@@ -37,27 +54,4 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
-  <build>
-    <testResources>
-      <testResource>
-        <directory>src/test/java</directory>
-        <includes>
-          <include>**/*.xml</include>
-        </includes>
-      </testResource>
-      <testResource>
-        <directory>src/main/java</directory>
-        <includes>
-          <include>**/*.xsd</include>
-        </includes>
-      </testResource>
-
-      <testResource>
-        <directory>../org.springframework.integration/src/main/java</directory>
-        <includes>
-          <include>**/*.xsd</include>
-        </includes>
-      </testResource>
-    </testResources>
-  </build>
 </project>

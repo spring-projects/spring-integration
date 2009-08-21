@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.springframework.integration</groupId>
+	<artifactId>spring-integration</artifactId>
+	<name>Spring Integration</name>
+	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<modules>
+		<module>spring-integration-parent</module>
+		<module>org.springframework.integration</module>
+		<module>org.springframework.integration.adapter</module>
+		<module>org.springframework.integration.event</module>
+		<module>org.springframework.integration.file</module>
+		<module>org.springframework.integration.http</module>
+		<module>org.springframework.integration.httpinvoker</module>
+		<module>org.springframework.integration.jms</module>
+		<module>org.springframework.integration.mail</module>
+		<module>org.springframework.integration.rmi</module>
+		<module>org.springframework.integration.security</module>
+		<module>org.springframework.integration.stream</module>
+		<module>org.springframework.integration.ws</module>
+		<module>org.springframework.integration.xml</module>
+		<module>org.springframework.integration.test</module>
+	</modules>
+</project>

@@ -55,27 +55,4 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
-  <build>
-    <testResources>
-      <testResource>
-        <directory>src/test/java</directory>
-        <includes>
-          <include>**/*.xml</include>
-        </includes>
-      </testResource>
-      <testResource>
-        <directory>src/main/java</directory>
-        <includes>
-          <include>**/*.xsd</include>
-        </includes>
-      </testResource>
-
-      <testResource>
-        <directory>../org.springframework.integration/src/main/java</directory>
-        <includes>
-          <include>**/*.xsd</include>
-        </includes>
-      </testResource>
-    </testResources>
-  </build>
 </project>
