@@ -27,7 +27,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="jmsInboundAdapterType">
+				<xsd:extension base="jmsMessageDrivenInboundAdapterType">
 					<xsd:attribute name="destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -148,7 +148,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="jmsInboundAdapterType">
+				<xsd:extension base="jmsMessageDrivenInboundAdapterType">
 					<xsd:attribute name="request-destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -388,14 +388,14 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="jmsInboundAdapterType">
+	<xsd:complexType name="jmsMessageDrivenInboundAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Common configuration for inbound JMS-based adapters.
+	Common configuration for message-driven inbound JMS-based adapters.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="jmsAdapterType">
+			<xsd:extension base="jmsInboundAdapterType">
 				<xsd:attribute name="container" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -405,6 +405,18 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="jmsInboundAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Common configuration for inbound JMS-based adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="jmsAdapterType">
 				<xsd:attribute name="acknowledge" default="auto">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
