@@ -5,11 +5,11 @@
 	xmlns:ws="http://www.springframework.org/schema/integration/ws"
 	xmlns:util='http://www.springframework.org/schema/util'
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/ws
-			http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd
+			http://www.springframework.org/schema/integration/ws/spring-integration-ws.xsd
 			http://www.springframework.org/schema/util 
 			http://www.springframework.org/schema/util/spring-util.xsd">
 

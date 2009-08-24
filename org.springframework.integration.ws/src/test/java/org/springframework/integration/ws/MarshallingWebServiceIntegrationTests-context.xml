@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:ws="http://www.springframework.org/schema/integration/ws"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-		http://www.springframework.org/schema/integration/ws http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ws
+			http://www.springframework.org/schema/integration/spring-integration-ws.xsd">
 
 	<si:annotation-config />
 
-	<bean
-		class="org.springframework.integration.ws.MarshallingWebServiceInboundGateway"
+	<bean class="org.springframework.integration.ws.MarshallingWebServiceInboundGateway"
 		p:requestChannel-ref="requests" p:marshaller-ref="marshaller"
 		p:unmarshaller-ref="marshaller" />
+
 	<bean id="marshaller"
 		class="org.springframework.integration.ws.MarshallingWebServiceIntegrationTests$StubMarshaller" />
 
