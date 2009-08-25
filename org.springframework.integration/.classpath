@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.aspectj/com.springsource.org.aspectj.weaver/1.6.5.RELEASE/com.springsource.org.aspectj.weaver-1.6.5.RELEASE.jar" sourcepath="/IVY_CACHE/org.aspectj/com.springsource.org.aspectj.weaver/1.6.5.RELEASE/com.springsource.org.aspectj.weaver-1.6.5.RELEASE.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/net.sourceforge.cglib/com.springsource.net.sf.cglib/2.1.3/com.springsource.net.sf.cglib-2.1.3.jar" sourcepath="/IVY_CACHE/net.sourceforge.cglib/com.springsource.net.sf.cglib/2.1.3/com.springsource.net.sf.cglib-sources-2.1.3.jar"/>

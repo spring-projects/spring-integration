@@ -3,6 +3,7 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="IVY_CACHE/javax.activation/com.springsource.javax.activation/1.1.1/com.springsource.javax.activation-1.1.1.jar" sourcepath="/IVY_CACHE/javax.activation/com.springsource.javax.activation/1.1.1/com.springsource.javax.activation-sources-1.1.1.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/javax.mail/com.springsource.javax.mail/1.4.1/com.springsource.javax.mail-1.4.1.jar" sourcepath="/IVY_CACHE/javax.mail/com.springsource.javax.mail/1.4.1/com.springsource.javax.mail-sources-1.4.1.jar"/>
