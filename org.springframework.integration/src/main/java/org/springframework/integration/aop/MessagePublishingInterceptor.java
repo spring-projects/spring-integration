@@ -28,7 +28,8 @@ import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.SpelExpressionParserFactory;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParserConfiguration;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
@@ -53,7 +54,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private final ExpressionSource expressionSource;
 
-	private final ExpressionParser parser = SpelExpressionParserFactory.getParser();
+	private final ExpressionParser parser = new SpelExpressionParser(
+			SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
+			SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
 
 	private final InboundMessageMapper<Object> messageMapper = new SimpleMessageMapper();
 
@@ -75,7 +78,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
-		StandardEvaluationContext context = new StandardEvaluationContext();
+		final StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
@@ -84,10 +87,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 			int index = 0;
 			Map<String, Object> argumentMap = new HashMap<String, Object>();
 			for (String argumentName : argumentNames) {
-				if (invocation.getArguments().length <= ++index) {
+				if (invocation.getArguments().length <= index) {
 					break;
 				}
-				argumentMap.put(argumentName, invocation.getArguments()[index]);
+				argumentMap.put(argumentName, invocation.getArguments()[index++]);
 			}
 			context.setVariable(this.expressionSource.getArgumentMapName(method), argumentMap);
 		}
