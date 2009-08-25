@@ -35,9 +35,16 @@ interface ExpressionSource {
 
 
 	/**
-	 * Returns the expression string to be evaluated.
+	 * Returns the expression string to be evaluated for creating the Message
+	 * payload.
 	 */
-	String getExpressionString(Method method);
+	String getPayloadExpression(Method method);
+
+	/**
+	 * Returns the array of expression strings to be evaluated for any headers
+	 * that should be set on the published Message.
+	 */
+	String[] getHeaderExpressions(Method method);
 
 	/**
 	 * Returns the variable names to be associated with the intercepted method

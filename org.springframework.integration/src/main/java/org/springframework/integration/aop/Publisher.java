@@ -34,9 +34,16 @@ import java.lang.annotation.Target;
 public @interface Publisher {
 
 	/**
-	 * String representation of a Spel Expression. Required.
+	 * String representation of a Spel Expression to evaluate when creating the
+	 * Message payload. Required.
 	 */
 	String value();
+
+	/**
+	 * String representations of Spel Expressions to evaluate for adding any
+	 * headers to the Message. Optional.
+	 */
+	String[] headers() default "";
 
 	/**
 	 * Name of the Message Channel to which Messages will be published. 

@@ -26,8 +26,10 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParserConfiguration;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -35,9 +37,9 @@ import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.gateway.SimpleMessageMapper;
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link MethodInterceptor} that publishes Messages to a channel. The
@@ -57,8 +59,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	private final ExpressionParser parser = new SpelExpressionParser(
 			SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
 			SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
-
-	private final InboundMessageMapper<Object> messageMapper = new SimpleMessageMapper();
 
 	private volatile ChannelResolver channelResolver;
 
@@ -109,12 +109,19 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	private void publishMessage(Method method, EvaluationContext context) throws Exception {
-		String expressionString = this.expressionSource.getExpressionString(method);
-		if (expressionString != null) {
-			Expression expression = this.parser.parseExpression(expressionString);
+		String payloadExpressionString = this.expressionSource.getPayloadExpression(method);
+		if (payloadExpressionString != null) {
+			Expression expression = this.parser.parseExpression(payloadExpressionString);
 			Object result = expression.getValue(context);
 			if (result != null) {
-				Message<?> message = this.messageMapper.toMessage(result);
+				MessageBuilder<?> builder = (result instanceof Message<?>)
+						? MessageBuilder.fromMessage((Message<?>) result)
+						: MessageBuilder.withPayload(result);
+				Map<String, Object> headers = this.evaluateHeaders(method, context);
+				if (headers != null) {
+					builder.copyHeaders(headers);
+				}
+				Message<?> message = builder.build();
 				String channelName = this.expressionSource.getChannelName(method);
 				MessageChannel channel = null;
 				if (channelName != null) {
@@ -129,6 +136,26 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				}
 			}
 		}
+	}
+
+	private Map<String, Object> evaluateHeaders(Method method, EvaluationContext context)
+			throws ParseException, EvaluationException {
+
+		String[] headerExpressionStrings = this.expressionSource.getHeaderExpressions(method);
+		if (headerExpressionStrings != null) {
+			Map<String, Object> headers = new HashMap<String, Object>();
+			context.setRootObject(headers);
+			for (String headerExpression : headerExpressionStrings) {
+				if (StringUtils.hasText(headerExpression)) {
+					Expression expression = this.parser.parseExpression(headerExpression);
+					expression.getValue(context);
+				}
+			}
+			if (headers.size() > 0) {
+				return headers;
+			}
+		}
+		return null;
 	}
 
 }

@@ -58,8 +58,12 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 		this.channelAttributeName = channelAttributeName;
 	}
 
-	public String getExpressionString(Method method) {
+	public String getPayloadExpression(Method method) {
 		return this.getAnnotationValue(method, null, String.class);
+	}
+
+	public String[] getHeaderExpressions(Method method) {
+		return this.getAnnotationValue(method, "headers", String[].class);
 	}
 
 	public String[] getArgumentNames(Method method) {

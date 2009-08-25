@@ -17,6 +17,7 @@
 package org.springframework.integration.aop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Method;
 
@@ -33,11 +34,15 @@ public class MethodAnnotationExpressionSourceTests {
 	@Test
 	public void defaultBindings() {
 		Method method = getMethod("methodWithExpressionAnnotationOnly", String.class, int.class);
-		String expressionString = source.getExpressionString(method);
+		String expressionString = source.getPayloadExpression(method);
 		assertEquals("testExpression1", expressionString);
 		assertEquals(2, source.getArgumentNames(method).length);
 		assertEquals("arg1", source.getArgumentNames(method)[0]);
 		assertEquals("arg2", source.getArgumentNames(method)[1]);
+		String[] headerStrings = source.getHeaderExpressions(method);
+		assertNotNull(headerStrings);
+		assertEquals(1, headerStrings.length);
+		assertEquals("", headerStrings[0]);
 		assertEquals(ExpressionSource.DEFAULT_ARGUMENT_MAP_NAME, source.getArgumentMapName(method));
 		assertEquals(ExpressionSource.DEFAULT_EXCEPTION_NAME, source.getExceptionName(method));
 		assertEquals(ExpressionSource.DEFAULT_RETURN_VALUE_NAME, source.getReturnValueName(method));
@@ -46,7 +51,7 @@ public class MethodAnnotationExpressionSourceTests {
 	@Test
 	public void annotationBindings() {
 		Method method = getMethod("methodWithExpressionBinding", String.class, int.class);
-		String expressionString = source.getExpressionString(method);
+		String expressionString = source.getPayloadExpression(method);
 		assertEquals("testExpression2", expressionString);
 		assertEquals(2, source.getArgumentNames(method).length);
 		assertEquals("s", source.getArgumentNames(method)[0]);
@@ -78,7 +83,7 @@ public class MethodAnnotationExpressionSourceTests {
 	public void methodWithExpressionAnnotationOnly(String arg1, int arg2) {
 	}
 
-	@Publisher(value="#return", channel="foo")
+	@Publisher(value="#return", channel="foo", headers="bar=123")
 	public void methodWithChannelAndReturnAsPayload() {
 	}
 

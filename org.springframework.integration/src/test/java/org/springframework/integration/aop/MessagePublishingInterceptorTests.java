@@ -88,22 +88,25 @@ public class MessagePublishingInterceptorTests {
 			return new String[] { "a1", "a2" };
 		}
 
-		public String getChannelName(Method method) {
-			return "c";
+		public String getReturnValueName(Method method) {
+			return "r";
 		}
 
 		public String getExceptionName(Method method) {
 			return "x";
 		}
 
-		public String getExpressionString(Method method) {
+		public String getPayloadExpression(Method method) {
 			return "#r";
 		}
 
-		public String getReturnValueName(Method method) {
-			return "r";
+		public String[] getHeaderExpressions(Method method) {
+			return null;
 		}
-	
+
+		public String getChannelName(Method method) {
+			return "c";
+		}
 	}
 
 }
