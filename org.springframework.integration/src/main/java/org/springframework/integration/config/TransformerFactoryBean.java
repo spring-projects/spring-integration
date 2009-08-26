@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
@@ -43,6 +45,13 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 		else {
 			transformer = new MethodInvokingTransformer(targetObject);
 		}
+		return new MessageTransformingHandler(transformer);
+	}
+
+	@Override
+	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
+		MessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
+		Transformer transformer = new MethodInvokingTransformer(processor);
 		return new MessageTransformingHandler(transformer);
 	}
 

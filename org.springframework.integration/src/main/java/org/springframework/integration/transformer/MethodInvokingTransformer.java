@@ -25,6 +25,7 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -33,6 +34,11 @@ public class MethodInvokingTransformer implements Transformer {
 
 	private final MessageProcessor messageProcessor;
 
+
+	public MethodInvokingTransformer(MessageProcessor messageProcessor) {
+		Assert.notNull(messageProcessor, "messageProcessor must not be null");
+		this.messageProcessor = messageProcessor;
+	}
 
 	public MethodInvokingTransformer(Object object, Method method) {
 		this.messageProcessor = new MessageMappingMethodInvoker(object, method);
@@ -53,7 +59,7 @@ public class MethodInvokingTransformer implements Transformer {
 		if (result == null) {
 			return null;
 		}
-		if (result instanceof Message) {
+		if (result instanceof Message<?>) {
 			return (Message<?>) result;
 		}
 		if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
@@ -65,7 +71,7 @@ public class MethodInvokingTransformer implements Transformer {
 			}
 			return builder.build();
 		}
-		if (result instanceof Map && !(message.getPayload() instanceof Map)) {
+		if (result instanceof Map<?, ?> && !(message.getPayload() instanceof Map<?, ?>)) {
 			Map<?, ?> attributesToSet = (Map <?, ?>) result;
 			MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
 			for (Object key : attributesToSet.keySet()) {

@@ -38,6 +38,8 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 	protected static final String METHOD_ATTRIBUTE = "method";
 
+	protected static final String EXPRESSION_ATTRIBUTE = "expression";
+
 
 	@Override
 	protected boolean shouldGenerateId() {

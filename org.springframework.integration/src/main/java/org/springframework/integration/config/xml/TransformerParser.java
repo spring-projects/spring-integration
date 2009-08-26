@@ -32,26 +32,43 @@ public class TransformerParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean");
-	
-		if (innerDefinition != null){
-			builder.addPropertyValue("targetObject", innerDefinition);
-		} else {
-			String ref = element.getAttribute(REF_ATTRIBUTE);
-			if (!StringUtils.hasText(ref)) {
-				parserContext.getReaderContext().error("Either \"ref\" attribute or inner bean (<bean/>) definition of concrete implementation of " +
-														"this Transformer is required.", element);
+
+		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
+		boolean hasRef = StringUtils.hasText(ref);
+		boolean hasExpression = StringUtils.hasText(expression);
+
+		if (innerDefinition != null) {
+			if (hasRef || hasExpression) {
+				parserContext.getReaderContext().error(
+						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured.", element);
 				return null;
 			}
+			builder.addPropertyValue("targetObject", innerDefinition);
+		}
+		else if (hasRef) {
 			builder.addPropertyReference("targetObject", ref);
-		}	
-		
+		}
+		else if (hasExpression) {
+			builder.addPropertyValue("expression", expression);
+		}
+		else {
+			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +
+					"or inner bean (<bean/>) definition for this Transformer is required.", element);
+			return null;
+		}
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(method)) {
+			if (hasExpression) {
+				parserContext.getReaderContext().error(
+						"A 'method' attribute is not permitted when configuring an 'expression'.", element);
+			}
 			builder.addPropertyValue("targetMethodName", method);
 		}
 		return builder;
 	}
+
 }

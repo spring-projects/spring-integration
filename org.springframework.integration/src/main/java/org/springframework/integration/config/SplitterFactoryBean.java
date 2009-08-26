@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,17 +31,17 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
 	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
-		if (targetObject == null) {
-			Assert.isTrue(!StringUtils.hasText(targetMethodName),
-					"'method' should only be provided when 'ref' is also provided");
-			return new DefaultMessageSplitter();
-		}
 		if (targetObject instanceof AbstractMessageSplitter) {
 			return (AbstractMessageSplitter) targetObject;
 		}
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingSplitter(targetObject, targetMethodName)
 				: new MethodInvokingSplitter(targetObject);
+	}
+
+	@Override
+	protected MessageHandler createDefaultHandler() {
+		return new DefaultMessageSplitter();
 	}
 
 }

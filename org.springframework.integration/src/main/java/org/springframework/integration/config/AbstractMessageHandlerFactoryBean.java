@@ -25,6 +25,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for FactoryBeans that create MessageHandler instances.
@@ -32,13 +33,15 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Alexander Peters
  */
-public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, BeanFactoryAware {
+public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
 	private volatile MessageHandler handler;
 
 	private volatile Object targetObject;
 
 	private volatile String targetMethodName;
+
+	private volatile String expression;
 
 	private volatile MessageChannel outputChannel;
 
@@ -59,6 +62,10 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 		this.targetMethodName = targetMethodName;
 	}
 
+	public void setExpression(String expression) {
+		this.expression = expression;
+	}
+
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
@@ -71,7 +78,7 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 		this.beanFactory = beanFactory;
 	}
 
-	public Object getObject() throws Exception {
+	public MessageHandler getObject() throws Exception {
 		if (this.handler == null) {
 			this.initializeHandler();
 			Assert.notNull(this.handler, "failed to create MessageHandler");
@@ -88,7 +95,7 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 		return this.handler;
 	}
 
-	public Class<?> getObjectType() {
+	public Class<? extends MessageHandler> getObjectType() {
 		if (this.handler != null) {
 			return this.handler.getClass();
 		}
@@ -104,7 +111,21 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 			if (this.initialized) {
 				return;
 			}
-			this.handler = this.createHandler(this.targetObject, this.targetMethodName);
+			if (this.targetObject == null) {
+				Assert.isTrue(!StringUtils.hasText(this.targetMethodName),
+						"The target method is only allowed when a target object (ref or inner bean) is also provided.");
+			}
+			if (this.targetObject != null) {
+				Assert.state(this.expression == null,
+						"The 'targetObject' and 'expression' properties are mutually exclusive.");
+				this.handler = this.createHandler(this.targetObject, this.targetMethodName);
+			}
+			else if (this.expression != null) {
+				this.handler = this.createExpressionEvaluatingHandler(this.expression);
+			}
+			else {
+				this.handler = this.createDefaultHandler();
+			}
 			this.initialized = true;
 		}
 	}
@@ -113,5 +134,14 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean, 
 	 * Subclasses must implement this method to create the MessageHandler.
 	 */
 	protected abstract MessageHandler createHandler(Object targetObject, String targetMethodName);
+
+	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
+		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
+	}
+
+	protected MessageHandler createDefaultHandler() {
+		throw new IllegalArgumentException(
+			"Exactly one of the 'targetObject' or 'expression' property is required.");
+	}
 
 }

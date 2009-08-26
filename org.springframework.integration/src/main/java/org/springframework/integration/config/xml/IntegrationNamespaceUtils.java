@@ -182,7 +182,6 @@ public abstract class IntegrationNamespaceUtils {
 		targetBuilder.addPropertyReference("pollerMetadata", pollerMetadataRef);
 	}
 
-	@SuppressWarnings("unchecked")
 	public static BeanDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext){
 		// parses out inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
@@ -199,4 +198,5 @@ public abstract class IntegrationNamespaceUtils {
 		       " are not allowed together.");
 		return innerDefinition;
 	}
+
 }
