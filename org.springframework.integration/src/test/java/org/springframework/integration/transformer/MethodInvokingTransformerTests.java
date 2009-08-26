@@ -28,6 +28,8 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -42,7 +44,8 @@ public class MethodInvokingTransformerTests {
 	public void simplePayloadConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<?> message = new StringMessage("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals("FOO!", result.getPayload());
@@ -51,7 +54,8 @@ public class MethodInvokingTransformerTests {
 	@Test
 	public void simplePayloadConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "exclaim");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<?> message = new StringMessage("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals("FOO!", result.getPayload());
@@ -61,7 +65,8 @@ public class MethodInvokingTransformerTests {
 	public void typeConversionConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<?> message = new GenericMessage<Integer>(123);
 		Message<?> result = transformer.transform(message);
 		assertEquals("123!", result.getPayload());
@@ -70,7 +75,8 @@ public class MethodInvokingTransformerTests {
 	@Test
 	public void typeConversionConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "exclaim");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<?> message = new GenericMessage<Integer>(123);
 		Message<?> result = transformer.transform(message);
 		assertEquals("123!", result.getPayload());
@@ -80,7 +86,8 @@ public class MethodInvokingTransformerTests {
 	public void typeConversionFailureConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<?> message = new GenericMessage<Date>(new Date());
 		transformer.transform(message);
 	}
@@ -88,7 +95,8 @@ public class MethodInvokingTransformerTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void typeConversionFailureConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "exclaim");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<?> message = new GenericMessage<Date>(new Date());
 		transformer.transform(message);
 	}
@@ -97,7 +105,8 @@ public class MethodInvokingTransformerTests {
 	public void headerAnnotationConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("headerTest", String.class, Integer.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
@@ -107,7 +116,8 @@ public class MethodInvokingTransformerTests {
 	@Test
 	public void headerAnnotationConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "headerTest");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "headerTest");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
@@ -118,7 +128,8 @@ public class MethodInvokingTransformerTests {
 	public void headerValueNotProvided() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("headerTest", String.class, Integer.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("wrong", 123).build();
 		transformer.transform(message);
@@ -128,7 +139,8 @@ public class MethodInvokingTransformerTests {
 	public void optionalHeaderAnnotation() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 99).build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foo99", result.getPayload());
@@ -138,7 +150,8 @@ public class MethodInvokingTransformerTests {
 	public void optionalHeaderValueNotProvided() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foonull", result.getPayload());
@@ -148,7 +161,8 @@ public class MethodInvokingTransformerTests {
 	public void headerEnricherConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("propertyEnricherTest", String.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
@@ -162,7 +176,8 @@ public class MethodInvokingTransformerTests {
 	@Test
 	public void headerEnricherConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "propertyEnricherTest");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "propertyEnricherTest");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
@@ -177,7 +192,8 @@ public class MethodInvokingTransformerTests {
 	public void messageReturnValueConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("messageReturnValueTest", Message.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("test", result.getPayload());
@@ -186,7 +202,8 @@ public class MethodInvokingTransformerTests {
 	@Test
 	public void messageReturnValueConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "messageReturnValueTest");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "messageReturnValueTest");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("test", result.getPayload());
@@ -197,7 +214,8 @@ public class MethodInvokingTransformerTests {
 	public void propertiesPayloadConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("propertyPayloadTest", Properties.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, testMethod);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
@@ -217,7 +235,8 @@ public class MethodInvokingTransformerTests {
 	@SuppressWarnings("unchecked")
 	public void propertiesPayloadConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "propertyPayloadTest");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "propertyPayloadTest");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
@@ -236,13 +255,15 @@ public class MethodInvokingTransformerTests {
 	@Test
 	public void nullReturningMethod() {
 		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "nullReturnValueTest");
+		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(testBean, "nullReturnValueTest");
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(messageProcessor);
 		StringMessage message = new StringMessage("test");
 		Message<?> result = transformer.transform(message);
 		assertNull(result);
 	}
 
 
+	@SuppressWarnings("unused")
 	private static class TestBean {
 
 		@Transformer

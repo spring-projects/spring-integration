@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.handler.MessageMappingMethodInvoker;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
@@ -40,10 +41,13 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 			transformer = (Transformer) targetObject;
 		}
 		else if (StringUtils.hasText(targetMethodName)) {
-			transformer = new MethodInvokingTransformer(targetObject, targetMethodName);
+			MessageProcessor messageProcessor = new MessageMappingMethodInvoker(targetObject, targetMethodName);
+			transformer = new MethodInvokingTransformer(messageProcessor);
 		}
 		else {
-			transformer = new MethodInvokingTransformer(targetObject);
+			MessageProcessor messageProcessor = new MessageMappingMethodInvoker(
+					targetObject, org.springframework.integration.annotation.Transformer.class);
+			transformer = new MethodInvokingTransformer(messageProcessor);
 		}
 		return new MessageTransformingHandler(transformer);
 	}

@@ -16,12 +16,10 @@
 
 package org.springframework.integration.transformer;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -38,19 +36,6 @@ public class MethodInvokingTransformer implements Transformer {
 	public MethodInvokingTransformer(MessageProcessor messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
-	}
-
-	public MethodInvokingTransformer(Object object, Method method) {
-		this.messageProcessor = new MessageMappingMethodInvoker(object, method);
-	}
-
-	public MethodInvokingTransformer(Object object, String methodName) {
-		this.messageProcessor = new MessageMappingMethodInvoker(object, methodName);
-	}
-
-	public MethodInvokingTransformer(Object object) {
-		this.messageProcessor = new MessageMappingMethodInvoker(object,
-				org.springframework.integration.annotation.Transformer.class);
 	}
 
 
