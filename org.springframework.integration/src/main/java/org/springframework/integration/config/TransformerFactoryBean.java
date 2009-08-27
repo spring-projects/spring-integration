@@ -21,7 +21,7 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.transformer.MessageTransformingHandler;
-import org.springframework.integration.transformer.MethodInvokingTransformer;
+import org.springframework.integration.transformer.MessageProcessingTransformer;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -42,12 +42,12 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 		}
 		else if (StringUtils.hasText(targetMethodName)) {
 			MessageProcessor messageProcessor = new MessageMappingMethodInvoker(targetObject, targetMethodName);
-			transformer = new MethodInvokingTransformer(messageProcessor);
+			transformer = new MessageProcessingTransformer(messageProcessor);
 		}
 		else {
 			MessageProcessor messageProcessor = new MessageMappingMethodInvoker(
 					targetObject, org.springframework.integration.annotation.Transformer.class);
-			transformer = new MethodInvokingTransformer(messageProcessor);
+			transformer = new MessageProcessingTransformer(messageProcessor);
 		}
 		return new MessageTransformingHandler(transformer);
 	}
@@ -55,7 +55,7 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 	@Override
 	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
 		MessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		Transformer transformer = new MethodInvokingTransformer(processor);
+		Transformer transformer = new MessageProcessingTransformer(processor);
 		return new MessageTransformingHandler(transformer);
 	}
 

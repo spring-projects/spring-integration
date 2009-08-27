@@ -28,12 +28,12 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class MethodInvokingTransformer implements Transformer {
+public class MessageProcessingTransformer implements Transformer {
 
 	private final MessageProcessor messageProcessor;
 
 
-	public MethodInvokingTransformer(MessageProcessor messageProcessor) {
+	public MessageProcessingTransformer(MessageProcessor messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
