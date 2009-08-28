@@ -36,16 +36,20 @@ import org.springframework.integration.message.MessageHandlingException;
  */
 public class ExpressionEvaluatingMessageProcessor implements MessageProcessor {
 
-	private final ExpressionParser parser = new SpelExpressionParser(
+	/*private final ExpressionParser parser = new SpelExpressionParser(
 			SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
 			SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
+	*/
 
 	private final Expression expression;
 
 
 	public ExpressionEvaluatingMessageProcessor(String expression) {
 		try {
-			this.expression = this.parser.parseExpression(expression);
+			ExpressionParser parser = new SpelExpressionParser(
+					SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
+					SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
+			this.expression = parser.parseExpression(expression);
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.splitter;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.MessageMappingMethodInvoker;
 
 /**
@@ -31,27 +30,18 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSplitter extends AbstractMessageSplitter {
-
-	private final MessageMappingMethodInvoker invoker;
-
+public class MethodInvokingSplitter extends AbstractMessageProcessingSplitter {
 
 	public MethodInvokingSplitter(Object object, Method method) {
-		this.invoker = new MessageMappingMethodInvoker(object, method);
+		super(new MessageMappingMethodInvoker(object, method));
 	}
 
 	public MethodInvokingSplitter(Object object, String methodName) {
-		this.invoker = new MessageMappingMethodInvoker(object, methodName);
+		super(new MessageMappingMethodInvoker(object, methodName));
 	}
 
 	public MethodInvokingSplitter(Object object) {
-		this.invoker = new MessageMappingMethodInvoker(object, Splitter.class);
-	}
-
-
-	@Override
-	protected Object splitMessage(Message<?> message) {
-		return this.invoker.processMessage(message);
+		super(new MessageMappingMethodInvoker(object, Splitter.class));
 	}
 
 }

@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
+import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.util.StringUtils;
 
@@ -37,6 +38,11 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		return (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingSplitter(targetObject, targetMethodName)
 				: new MethodInvokingSplitter(targetObject);
+	}
+
+	@Override
+	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
+		return new ExpressionEvaluatingSplitter(expression);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,41 @@ public class SplitterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
-		if (innerDefinition != null){
-			builder.addPropertyValue("targetObject", innerDefinition);
-		} else if (element.hasAttribute(REF_ATTRIBUTE)) {
-			String ref = element.getAttribute(REF_ATTRIBUTE);
-			builder.addPropertyReference("targetObject", ref);
-			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-				String method = element.getAttribute(METHOD_ATTRIBUTE);
-				builder.addPropertyValue("targetMethodName", method);
+
+		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
+		boolean hasRef = StringUtils.hasText(ref);
+		boolean hasExpression = StringUtils.hasText(expression);
+
+		if (innerDefinition != null) {
+			if (hasRef || hasExpression) {
+				parserContext.getReaderContext().error(
+						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured.", element);
+				return null;
 			}
+			builder.addPropertyValue("targetObject", innerDefinition);
+		}
+		else if (hasRef) {
+			builder.addPropertyReference("targetObject", ref);
+		}
+		else if (hasExpression) {
+			builder.addPropertyValue("expression", expression);
+		}
+		else {
+			// will create a DefaultSplitter
+			return builder;
+		}
+
+		String method = element.getAttribute(METHOD_ATTRIBUTE);
+		if (StringUtils.hasText(method)) {
+			if (hasExpression) {
+				parserContext.getReaderContext().error(
+						"A 'method' attribute is not permitted when configuring an 'expression'.", element);
+			}
+			builder.addPropertyValue("targetMethodName", method);
 		}
 		return builder;
 	}

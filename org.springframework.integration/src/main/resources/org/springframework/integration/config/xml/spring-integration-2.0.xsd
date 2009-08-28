@@ -959,19 +959,12 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="transformer">
+	<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Transformer.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="innerEndpointDefinitionAware">
-					<xsd:attribute name="expression" type="xsd:string"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="object-to-string-transformer">
@@ -1205,7 +1198,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="splitter" type="innerEndpointDefinitionAware">
+	<xsd:element name="splitter" type="expressionOrInnerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Splitter.
@@ -1438,6 +1431,14 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
+		<xsd:complexContent>
+			<xsd:extension base="innerEndpointDefinitionAware">
+				<xsd:attribute name="expression" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 	<xsd:complexType name="innerEndpointDefinitionAware">
