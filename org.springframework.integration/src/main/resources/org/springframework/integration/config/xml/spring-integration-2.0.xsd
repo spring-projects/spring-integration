@@ -1136,9 +1136,8 @@
 			<xsd:complexContent>
 				<xsd:extension base="channelResolvingRouterType">
 					<xsd:all>   
-					  <xsd:element name="poller" type="innerPollerType"
-							minOccurs="0" maxOccurs="1" />          
-	                    <xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />                
+						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+	                	<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />                
 	                </xsd:all>
 					<xsd:attribute name="ref" type="xsd:string">
 						<xsd:annotation>
@@ -1150,6 +1149,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="method" type="xsd:string" />
+					<xsd:attribute name="expression" type="xsd:string"/>
 					<xsd:attribute name="channel-resolver" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[

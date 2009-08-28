@@ -21,6 +21,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
+import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -84,6 +85,11 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 			router.setResolutionRequired(this.resolutionRequired);
 		}
 		return router;
+	}
+
+	@Override
+	MessageHandler createExpressionEvaluatingHandler(String expression) {
+		return new ExpressionEvaluatingRouter(expression);
 	}
 
 	private AbstractMessageRouter createRouter(Object targetObject, String targetMethodName) {

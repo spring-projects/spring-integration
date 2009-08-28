@@ -9,12 +9,14 @@
 
 	<channel id="input"/>
 
-	<channel id="output">
+	<channel id="even">
 		<queue/>
 	</channel>
 
-	<splitter input-channel="input" expression="payload.numbers.?[#this&lt;5]" output-channel="output"/>
+	<channel id="odd">
+		<queue/>
+	</channel>
 
-	<beans:bean id="testBean" class="org.springframework.integration.splitter.SpelSplitterIntegrationTests$TestBean"/>
+	<router input-channel="input" expression="payload.number % 2 == 0 ? 'even' : 'odd'"/>
 
 </beans:beans>

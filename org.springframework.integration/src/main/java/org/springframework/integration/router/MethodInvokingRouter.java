@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,9 @@
 package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.MessageMappingMethodInvoker;
 
 /**
@@ -34,30 +31,18 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingRouter extends AbstractChannelNameResolvingMessageRouter {
-
-	private final MessageMappingMethodInvoker invoker;
-
-	
+public class MethodInvokingRouter extends AbstractMessageProcessingRouter {
 
 	public MethodInvokingRouter(Object object, Method method) {
-		this.invoker = new MessageMappingMethodInvoker(object, method);
+		super(new MessageMappingMethodInvoker(object, method));
 	}
 
 	public MethodInvokingRouter(Object object, String methodName) {
-		this.invoker = new MessageMappingMethodInvoker(object, methodName);
+		super(new MessageMappingMethodInvoker(object, methodName));
 	}
 
 	public MethodInvokingRouter(Object object) {
-		this.invoker = new MessageMappingMethodInvoker(object, Router.class);
-	}
-
-	@Override
-	protected List<Object> getChannelIndicatorList(Message<?> message) {
-		Object result = this.invoker.processMessage(message);
-		List<Object> asList = new ArrayList<Object>();
-		asList.add(result);
-		return asList;
+		super(new MessageMappingMethodInvoker(object, Router.class));
 	}
 
 }
