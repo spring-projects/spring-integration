@@ -65,7 +65,7 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
+	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.createRouter(targetObject, targetMethodName);
 		if (this.defaultOutputChannel != null) {

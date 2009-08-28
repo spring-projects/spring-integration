@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
-	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
+	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		Transformer transformer = null;
 		if (targetObject instanceof Transformer) {
@@ -53,7 +53,7 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(String expression) {
 		MessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		Transformer transformer = new MessageProcessingTransformer(processor);
 		return new MessageTransformingHandler(transformer);

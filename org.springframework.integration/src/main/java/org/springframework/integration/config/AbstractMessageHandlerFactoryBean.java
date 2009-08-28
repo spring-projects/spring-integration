@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Alexander Peters
  */
-public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageHandler>, BeanFactoryAware {
+abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
 	private volatile MessageHandler handler;
 
@@ -118,7 +118,7 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<M
 			if (this.targetObject != null) {
 				Assert.state(this.expression == null,
 						"The 'targetObject' and 'expression' properties are mutually exclusive.");
-				this.handler = this.createHandler(this.targetObject, this.targetMethodName);
+				this.handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
 			}
 			else if (this.expression != null) {
 				this.handler = this.createExpressionEvaluatingHandler(this.expression);
@@ -133,13 +133,13 @@ public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<M
 	/**
 	 * Subclasses must implement this method to create the MessageHandler.
 	 */
-	protected abstract MessageHandler createHandler(Object targetObject, String targetMethodName);
+	abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
 
-	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(String expression) {
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
 	}
 
-	protected MessageHandler createDefaultHandler() {
+	MessageHandler createDefaultHandler() {
 		throw new IllegalArgumentException(
 			"Exactly one of the 'targetObject' or 'expression' property is required.");
 	}

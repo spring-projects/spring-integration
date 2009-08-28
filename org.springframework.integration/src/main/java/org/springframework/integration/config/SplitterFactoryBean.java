@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
-	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
+	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		if (targetObject instanceof AbstractMessageSplitter) {
 			return (AbstractMessageSplitter) targetObject;
 		}
@@ -41,12 +41,12 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	protected MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(String expression) {
 		return new ExpressionEvaluatingSplitter(expression);
 	}
 
 	@Override
-	protected MessageHandler createDefaultHandler() {
+	MessageHandler createDefaultHandler() {
 		return new DefaultMessageSplitter();
 	}
 
