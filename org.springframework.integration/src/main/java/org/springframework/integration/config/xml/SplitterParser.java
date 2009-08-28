@@ -16,60 +16,21 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
-
 /**
  * Parser for the &lt;splitter/&gt; element.
  * 
  * @author Mark Fisher
- * @author Oleg Zhurakousky
  */
-public class SplitterParser extends AbstractConsumerEndpointParser {
+public class SplitterParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
+	String getFactoryBeanClassName() {
+		return IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean";
+	}
 
-		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-		boolean hasRef = StringUtils.hasText(ref);
-		boolean hasExpression = StringUtils.hasText(expression);
-
-		if (innerDefinition != null) {
-			if (hasRef || hasExpression) {
-				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured.", element);
-				return null;
-			}
-			builder.addPropertyValue("targetObject", innerDefinition);
-		}
-		else if (hasRef) {
-			builder.addPropertyReference("targetObject", ref);
-		}
-		else if (hasExpression) {
-			builder.addPropertyValue("expression", expression);
-		}
-		else {
-			// will create a DefaultSplitter
-			return builder;
-		}
-
-		String method = element.getAttribute(METHOD_ATTRIBUTE);
-		if (StringUtils.hasText(method)) {
-			if (hasExpression) {
-				parserContext.getReaderContext().error(
-						"A 'method' attribute is not permitted when configuring an 'expression'.", element);
-			}
-			builder.addPropertyValue("targetMethodName", method);
-		}
-		return builder;
+	@Override
+	boolean hasDefaultOption() {
+		return true;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,59 +16,21 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-
 /**
  * Parser for the &lt;transformer/&gt; element.
  * 
  * @author Mark Fisher
- * @author Oleg Zhurakousky
  */
-public class TransformerParser extends AbstractConsumerEndpointParser {
+public class TransformerParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean");
+	String getFactoryBeanClassName() {
+		return IntegrationNamespaceUtils.BASE_PACKAGE + ".config.TransformerFactoryBean";
+	}
 
-		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
-		boolean hasRef = StringUtils.hasText(ref);
-		boolean hasExpression = StringUtils.hasText(expression);
-
-		if (innerDefinition != null) {
-			if (hasRef || hasExpression) {
-				parserContext.getReaderContext().error(
-						"Neither 'ref' nor 'expression' are permitted when an inner bean (<bean/>) is configured.", element);
-				return null;
-			}
-			builder.addPropertyValue("targetObject", innerDefinition);
-		}
-		else if (hasRef) {
-			builder.addPropertyReference("targetObject", ref);
-		}
-		else if (hasExpression) {
-			builder.addPropertyValue("expression", expression);
-		}
-		else {
-			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +
-					"or inner bean (<bean/>) definition for this Transformer is required.", element);
-			return null;
-		}
-		String method = element.getAttribute(METHOD_ATTRIBUTE);
-		if (StringUtils.hasText(method)) {
-			if (hasExpression) {
-				parserContext.getReaderContext().error(
-						"A 'method' attribute is not permitted when configuring an 'expression'.", element);
-			}
-			builder.addPropertyValue("targetMethodName", method);
-		}
-		return builder;
+	@Override
+	boolean hasDefaultOption() {
+		return false;
 	}
 
 }

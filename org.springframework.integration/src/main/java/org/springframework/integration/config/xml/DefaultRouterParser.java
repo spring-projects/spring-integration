@@ -18,7 +18,6 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -28,27 +27,21 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;router/&gt; element.
  * 
  * @author Mark Fisher
- * @author Oleg Zhurakousky
  */
-public class DefaultRouterParser extends AbstractRouterParser {
+public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
-	protected void parseRouter(Element element, BeanDefinitionBuilder builder, ParserContext parserContext) {
-		BeanDefinition innerDefinition 	= IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		if (innerDefinition != null){
-			builder.addPropertyValue("targetObject", innerDefinition);
-		} else {
-			String ref = element.getAttribute(REF_ATTRIBUTE);
-			if (!StringUtils.hasText(ref)) {
-				parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required.", element);
-			}
-			builder.addPropertyReference("targetObject", ref);
-		}
-		
-		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			builder.addPropertyValue("targetMethodName", method);
-		}
+	String getFactoryBeanClassName() {
+		return IntegrationNamespaceUtils.BASE_PACKAGE + ".config.RouterFactoryBean";
+	}
+
+	@Override
+	boolean hasDefaultOption() {
+		return false;
+	}
+
+	@Override
+	protected void postProcess(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		String resolverBeanName = element.getAttribute("channel-resolver");
 		if (!StringUtils.hasText(resolverBeanName)) {
 			BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
@@ -57,6 +50,10 @@ public class DefaultRouterParser extends AbstractRouterParser {
 					resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
 		builder.addPropertyReference("channelResolver", resolverBeanName);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
 	}
 
 }
