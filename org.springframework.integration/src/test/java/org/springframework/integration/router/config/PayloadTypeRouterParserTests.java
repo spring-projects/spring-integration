@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -40,26 +41,26 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class PayloadTypeRouterParserTests {
+
 	@Autowired
 	private ConfigurableApplicationContext context;
+
 	@Autowired
 	private TestService testService;
 	
 	@Test
 	public void testPayloadTypeRouter() {
 		context.start();
-		MessageBuilder channel1MessageBuilder = MessageBuilder.withPayload("Hello");
-		Message message1 = channel1MessageBuilder.build();
-		MessageBuilder channel2MessageBuilder = MessageBuilder.withPayload(25);
-		Message message2 = channel2MessageBuilder.build();
+		Message<?> message1 = MessageBuilder.withPayload("Hello").build();
+		Message<?> message2 = MessageBuilder.withPayload(25).build();
 		testService.foo(message1);
 		testService.foo(message2);
 		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
 		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
-		assertTrue(chanel1.receive().getPayload() instanceof String);
-		assertTrue(chanel2.receive().getPayload() instanceof Integer);	
+		assertTrue(chanel1.receive(0).getPayload() instanceof String);
+		assertTrue(chanel2.receive(0).getPayload() instanceof Integer);	
 	}
-	
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testFakeTypes(){
 		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigFakeType.getBytes());
@@ -68,7 +69,7 @@ public class PayloadTypeRouterParserTests {
 		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
 		reader.loadBeanDefinitions(new InputStreamResource(stream));
 	}
-	
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testNoMappingElement(){
 		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigNoMaping.getBytes());
@@ -104,8 +105,9 @@ public class PayloadTypeRouterParserTests {
 		"   <payload-type-router input-channel=\"routingChannel\"/>" +
 	    "</beans:beans>";
 
-	
+
 	public static interface TestService{
-		public void foo(Message message);
+		public void foo(Message<?> message);
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -42,7 +43,12 @@ public class PayloadTypeRouter extends AbstractSingleChannelRouter {
 
 	@Override
 	protected MessageChannel determineTargetChannel(Message<?> message) {
-		return this.payloadTypeChannelMap.get(message.getPayload().getClass());
+		Class<?> closestMatch = ClassUtils.findClosestMatch(
+				message.getPayload().getClass(), this.payloadTypeChannelMap.keySet(), true);
+		if (closestMatch != null) {
+			return this.payloadTypeChannelMap.get(closestMatch);
+		}
+		return null;
 	}
 
 }

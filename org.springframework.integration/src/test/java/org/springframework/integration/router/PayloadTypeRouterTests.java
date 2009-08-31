@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package org.springframework.integration.router;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,6 +30,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -36,7 +39,7 @@ import org.springframework.integration.message.StringMessage;
 public class PayloadTypeRouterTests {
 
 	@Test
-	public void resolveByPayloadType() {
+	public void resolveExactMatch() {
 		QueueChannel stringChannel = new QueueChannel();
 		QueueChannel integerChannel = new QueueChannel();
 		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
@@ -50,6 +53,136 @@ public class PayloadTypeRouterTests {
 		MessageChannel result2 = router.determineTargetChannel(message2);
 		assertEquals(stringChannel, result1);
 		assertEquals(integerChannel, result2);
+	}
+
+	@Test
+	public void resolveSubclass() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel numberChannel = new QueueChannel();
+		numberChannel.setBeanName("numberChannel");
+		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		payloadTypeChannelMap.put(Number.class, numberChannel);
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<Integer> message = new GenericMessage<Integer>(99);
+		router.handleMessage(message);
+		Message<?> result = numberChannel.receive(0);
+		assertNotNull(result);
+		assertEquals(99, result.getPayload());
+		assertNull(defaultChannel.receive(0));
+	}
+
+	@Test
+	public void exactMatchFavoredOverSuperClass() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel numberChannel = new QueueChannel();
+		numberChannel.setBeanName("numberChannel");
+		QueueChannel integerChannel = new QueueChannel();
+		integerChannel.setBeanName("integerChannel");
+		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		payloadTypeChannelMap.put(Number.class, numberChannel);
+		payloadTypeChannelMap.put(Integer.class, integerChannel);
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<Integer> message = new GenericMessage<Integer>(99);
+		router.handleMessage(message);
+		Message<?> result = integerChannel.receive(0);
+		assertNotNull(result);
+		assertEquals(99, result.getPayload());
+		assertNull(numberChannel.receive(0));
+		assertNull(defaultChannel.receive(0));
+	}
+
+	@Test
+	public void interfaceMatch() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel comparableChannel = new QueueChannel();
+		comparableChannel.setBeanName("comparableChannel");
+		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		payloadTypeChannelMap.put(Comparable.class, comparableChannel);
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<Integer> message = new GenericMessage<Integer>(99);
+		router.handleMessage(message);
+		Message<?> result = comparableChannel.receive(0);
+		assertNotNull(result);
+		assertEquals(99, result.getPayload());
+		assertNull(defaultChannel.receive(0));
+	}
+
+	@Test
+	public void directInterfaceFavoredOverSuperClass() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel numberChannel = new QueueChannel();
+		numberChannel.setBeanName("numberChannel");
+		QueueChannel comparableChannel = new QueueChannel();
+		comparableChannel.setBeanName("comparableChannel");
+		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		payloadTypeChannelMap.put(Number.class, numberChannel);
+		payloadTypeChannelMap.put(Comparable.class, comparableChannel);
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<Integer> message = new GenericMessage<Integer>(99);
+		router.handleMessage(message);
+		Message<?> result = comparableChannel.receive(0);
+		assertNotNull(result);
+		assertEquals(99, result.getPayload());
+		assertNull(numberChannel.receive(0));
+		assertNull(defaultChannel.receive(0));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void ambiguityFailure() throws Throwable {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel serializableChannel = new QueueChannel();
+		serializableChannel.setBeanName("serializableChannel");
+		QueueChannel comparableChannel = new QueueChannel();
+		comparableChannel.setBeanName("comparableChannel");
+		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		payloadTypeChannelMap.put(Serializable.class, serializableChannel);
+		payloadTypeChannelMap.put(Comparable.class, comparableChannel);
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<String> message = new GenericMessage<String>("test");
+		try {
+			router.handleMessage(message);
+		}
+		catch (MessageHandlingException e) {
+			throw e.getCause();
+		}
+	}
+
+	@Test
+	public void superClassFavoredOverIndirectInterface() {
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		QueueChannel numberChannel = new QueueChannel();
+		numberChannel.setBeanName("numberChannel");
+		QueueChannel serializableChannel = new QueueChannel();
+		serializableChannel.setBeanName("serializableChannel");
+		Map<Class<?>, MessageChannel> payloadTypeChannelMap = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		payloadTypeChannelMap.put(Number.class, numberChannel);
+		payloadTypeChannelMap.put(Serializable.class, serializableChannel);
+		PayloadTypeRouter router = new PayloadTypeRouter();
+		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		Message<Integer> message = new GenericMessage<Integer>(99);
+		router.handleMessage(message);
+		Message<?> result = numberChannel.receive(0);
+		assertNotNull(result);
+		assertEquals(99, result.getPayload());
+		assertNull(serializableChannel.receive(0));
+		assertNull(defaultChannel.receive(0));
 	}
 
 	@Test

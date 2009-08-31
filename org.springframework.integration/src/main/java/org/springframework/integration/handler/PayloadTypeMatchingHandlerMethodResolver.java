@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * An implementation of {@link HandlerMethodResolver} that matches the payload
@@ -95,7 +95,7 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 				if (parameterType instanceof ParameterizedType) {
 					ParameterizedType parameterizedType = (ParameterizedType) parameterType;
 					Type rawType = extractRawTypeIfGeneric(parameterizedType.getRawType());
-					if (rawType instanceof Class) {
+					if (rawType instanceof Class<?>) {
 						Class<?> rawTypeClass = (Class<?>) rawType;
 						if (Message.class.isAssignableFrom(rawTypeClass)) {
 							expectedType = this.determineExpectedTypeFromParameterizedMessageType(parameterizedType);
@@ -105,7 +105,7 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 						}
 					}
 				}
-				else if (parameterType instanceof Class) {
+				else if (parameterType instanceof Class<?>) {
 					expectedType = (Class<?>) parameterType;
 				}
 				Assert.notNull(expectedType, "Failed to determine expected type for parameter ["
@@ -124,17 +124,13 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 
 	private Method findClosestMatch(Class<?> payloadType) {
 		Set<Class<?>> expectedTypes = this.methodMap.keySet();
-		int minTypeDiffWeight = Integer.MAX_VALUE;
+		Class<?> match = ClassUtils.findClosestMatch(payloadType, expectedTypes, true);
 		Method matchingMethod = null;
-		for (Class<?> expectedType : expectedTypes) {
-			int typeDiffWeight = getTypeDifferenceWeight(expectedType, payloadType);
-			if (typeDiffWeight < minTypeDiffWeight) {
-				minTypeDiffWeight = typeDiffWeight;
-				matchingMethod = this.methodMap.get(expectedType);
+		if (match != null) {
+			matchingMethod = this.methodMap.get(match);
+			if (matchingMethod != null) {
+				this.methodMap.put(payloadType, matchingMethod);
 			}
-		}
-		if (matchingMethod != null) {
-			this.methodMap.put(payloadType, matchingMethod);
 		}
 		return matchingMethod;
 	}
@@ -146,41 +142,16 @@ public class PayloadTypeMatchingHandlerMethodResolver implements HandlerMethodRe
 			WildcardType wildcardType = (WildcardType) actualType;
 			if (wildcardType.getUpperBounds().length == 1) {
 				Type upperBound = wildcardType.getUpperBounds()[0];
-				if (upperBound instanceof Class) {
+				if (upperBound instanceof Class<?>) {
 					expectedType = (Class<?>) upperBound;
 				}
 			}
 		}
-		else if (actualType instanceof Class) {
+		else if (actualType instanceof Class<?>) {
 			expectedType = (Class<?>) actualType;
 		}
 		
 		return expectedType;
-	}
-
-	private int getTypeDifferenceWeight(Class<?> expectedType, Class<?> payloadType) {
-		int result = 0;
-		if (!ClassUtils.isAssignable(expectedType, payloadType)) {
-			return Integer.MAX_VALUE;
-		}
-		Class<?> superClass = payloadType.getSuperclass();
-		while (superClass != null) {
-			if (expectedType.equals(superClass)) {
-				result = result + 2;
-				superClass = null;
-			}
-			else if (ClassUtils.isAssignable(expectedType, superClass)) {
-				result = result + 2;
-				superClass = superClass.getSuperclass();
-			}
-			else {
-				superClass = null;
-			}
-		}
-		if (expectedType.isInterface()) {
-			result = result + 1;
-		}
-		return result;
 	}
 
 }
