@@ -30,7 +30,7 @@
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
 		<dependency org="org.springframework" name="org.springframework.oxm" rev="${spring.version}" conf="compile->runtime"/>
-		<dependency org="org.springframework.ws" name="org.springframework.xml" rev="1.5.7.A" conf="compile->runtime">
+		<dependency org="org.springframework.ws" name="org.springframework.xml" rev="1.5.8.A" conf="compile->runtime">
 			<exclude org="org.springframework"/>
 		</dependency>
 	</dependencies>
