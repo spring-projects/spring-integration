@@ -1033,15 +1033,23 @@
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Filter.
+	Defines a Filter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="innerEndpointDefinitionAware">
-					<xsd:attribute name="discard-channel" type="xsd:string" />
-					<xsd:attribute name="throw-exception-on-rejection"
-						type="xsd:string" default="false" />
+				<xsd:extension base="expressionOrInnerEndpointDefinitionAware">
+					<xsd:attribute name="discard-channel" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+											type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>				
+					</xsd:attribute>
+					<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

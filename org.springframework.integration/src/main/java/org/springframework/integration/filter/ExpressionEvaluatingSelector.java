@@ -16,29 +16,20 @@
 
 package org.springframework.integration.filter;
 
-import java.lang.reflect.Method;
-
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.selector.MessageSelector;
-import org.springframework.util.Assert;
 
 /**
- * A method-invoking implementation of {@link MessageSelector}.
+ * A {@link MessageSelector} implementation that evaluates a SpEL expression.
+ * The evaluation result of the expression must be a boolean value.
  * 
  * @author Mark Fisher
+ * @since 2.0
  */
-public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
+public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
 
-	public MethodInvokingSelector(Object object, Method method) {
-		super(new MessageMappingMethodInvoker(object, method));
-		Class<?> returnType = method.getReturnType();
-		Assert.isTrue(boolean.class.isAssignableFrom(returnType)
-				|| Boolean.class.isAssignableFrom(returnType),
-				"MethodInvokingSelector method must return a boolean result.");
-	}
-
-	public MethodInvokingSelector(Object object, String methodName) {
-		super(new MessageMappingMethodInvoker(object, methodName));
+	public ExpressionEvaluatingSelector(String expression) {
+		super(new ExpressionEvaluatingMessageProcessor(expression));
 	}
 
 }
