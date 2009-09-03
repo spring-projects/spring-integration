@@ -133,7 +133,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			parserContext.getReaderContext().error("the 'expression' attribute is required for a <cron-trigger/>", element);
 		}
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".scheduling.CronTrigger");
+				"org.springframework.scheduling.support.CronTrigger");
 		builder.addConstructorArgValue(cronExpression);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
