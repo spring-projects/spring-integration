@@ -810,7 +810,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines a MessageSelector chain.
+	Defines a MessageSelector chain.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">

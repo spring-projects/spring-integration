@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
  * Parser for a top-level &lt;selector/&gt; element.
  * 
  * @author Mark Fisher
- * @since 2.0
+ * @since 1.0.4
  */
 public class SelectorParser extends AbstractSingleBeanDefinitionParser {
 
