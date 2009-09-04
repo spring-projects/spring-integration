@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 
 	private volatile boolean extractPayload = true;
 
+	private volatile String messageSelector;
+
 
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -52,6 +54,13 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 
 
 	/**
+	 * Specify a JMS Message Selector expression to use when receiving Messages.
+	 */
+	public void setMessageSelector(String messageSelector) {
+		this.messageSelector = messageSelector;
+	}
+
+	/**
 	 * Specify whether the payload should be extracted from each received JMS
 	 * Message to be used as the Spring Integration Message payload.
 	 * 
@@ -65,7 +74,7 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
-		Object receivedObject = this.getJmsTemplate().receiveAndConvert();
+		Object receivedObject = this.getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
 		if (receivedObject == null) {
 			return null;
 		}

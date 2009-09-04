@@ -46,7 +46,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE,
 		"destination-resolver", "transaction-manager", "pub-sub-domain",
 		"concurrent-consumers", "max-concurrent-consumers",
-		"max-messages-per-task", "idle-task-execution-limit"
+		"max-messages-per-task", "idle-task-execution-limit", "selector"
 	};
 
 
@@ -123,6 +123,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-task");

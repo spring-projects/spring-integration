@@ -69,16 +69,16 @@ public class StubSession implements Session {
 	}
 
 	public MessageConsumer createConsumer(Destination destination) throws JMSException {
-		return new StubConsumer(this.messageText);
+		return new StubConsumer(this.messageText, null);
 	}
 
 	public MessageConsumer createConsumer(Destination destination, String messageSelector) throws JMSException {
-		return new StubConsumer(this.messageText);
+		return new StubConsumer(this.messageText, messageSelector);
 	}
 
 	public MessageConsumer createConsumer(Destination destination, String messageSelector, boolean NoLocal)
 			throws JMSException {
-		return new StubConsumer(this.messageText);
+		return new StubConsumer(this.messageText, messageSelector);
 	}
 
 	public TopicSubscriber createDurableSubscriber(Topic topic, String name) throws JMSException {

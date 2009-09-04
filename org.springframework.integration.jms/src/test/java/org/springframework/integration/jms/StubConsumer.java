@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,12 @@ public class StubConsumer implements MessageConsumer {
 
 	private String messageText;
 
+	private String messageSelector;
 
-	public StubConsumer(String messageText) {
+
+	public StubConsumer(String messageText, String messageSelector) {
 		this.messageText = messageText;
+		this.messageSelector = messageSelector;
 	}
 
 
@@ -42,12 +45,16 @@ public class StubConsumer implements MessageConsumer {
 	}
 
 	public String getMessageSelector() throws JMSException {
-		return null;
+		return this.messageSelector;
 	}
 
 	public Message receive() throws JMSException {
 		StubTextMessage message = new StubTextMessage();
-		message.setText(this.messageText);
+		String text = this.messageText;
+		if (this.messageSelector != null) {
+			text += " [with selector: " + this.messageSelector + "]";
+		}
+		message.setText(text);
 		return message;
 	}
 

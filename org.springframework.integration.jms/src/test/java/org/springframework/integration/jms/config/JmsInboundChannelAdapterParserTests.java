@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,6 +126,16 @@ public class JmsInboundChannelAdapterParserTests {
 		assertEquals("polling-test", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("testProperty"));
 		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
+	}
+
+	@Test
+	public void adapterWithMessageSelector() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithMessageSelector.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output1");
+		Message<?> message = output.receive(timeoutOnReceive);
+		assertNotNull("message should not be null", message);
+		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
 	}
 
 }
