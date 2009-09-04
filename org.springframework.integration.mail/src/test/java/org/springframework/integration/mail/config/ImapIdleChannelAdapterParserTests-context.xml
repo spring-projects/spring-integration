@@ -18,7 +18,8 @@
 	<mail:imap-idle-channel-adapter id="simpleAdapter"
 			store-uri="imap:foo"
 			channel="channel"
-			auto-startup="false"/>
+			auto-startup="false"
+			should-delete-messages="true"/>
 
 	<mail:imap-idle-channel-adapter id="customAdapter"
 			store-uri="imap:foo"
