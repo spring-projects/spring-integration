@@ -809,11 +809,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines a MessageSelector chain.
+	Defines a MessageSelector chain.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">
-				<xsd:element ref="selector" />
+				<xsd:element name="selector" type="selectorType" />
 				<xsd:element ref="selector-chain" />
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:ID" />
@@ -837,19 +837,24 @@
 
 	<xsd:element name="selector">
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Provides a MessageSelector reference. If a method
-					attribute is set the
-					referred bean doesn't need to implement the
-					MessageSelector
-					interface.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="ref" type="xsd:string" use="required" />
-			<xsd:attribute name="method" type="xsd:string" use="optional" />
+			<xsd:complexContent>
+				<xsd:extension base="selectorType">
+					<xsd:attribute name="id" type="xsd:string" use="required" />
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="selectorType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Provides a MessageSelector reference. If a method attribute is set the
+	referred bean doesn't need to implement the MessageSelector interface.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="ref" type="xsd:string" use="required" />
+		<xsd:attribute name="method" type="xsd:string" use="optional" />
+	</xsd:complexType>
 
 	<xsd:element name="header-enricher">
 		<xsd:annotation>

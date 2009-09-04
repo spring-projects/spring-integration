@@ -50,6 +50,7 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("delayer", new DelayerParser());
 		registerBeanDefinitionParser("bridge", new BridgeParser());
 		registerBeanDefinitionParser("chain", new ChainParser());
+		registerBeanDefinitionParser("selector", new SelectorParser());
 		registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
 		registerBeanDefinitionParser("poller", new PollerParser());
 		registerBeanDefinitionParser("annotation-config", new AnnotationConfigParser());
