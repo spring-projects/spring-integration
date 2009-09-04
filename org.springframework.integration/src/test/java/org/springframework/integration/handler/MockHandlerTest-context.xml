@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/integration
+            http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<si:service-activator input-channel="input" ref="mock" method="test" />
+
+	<bean id="mock" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.springframework.integration.handler.MockHandlerTest$TestInterface" />
+	</bean>
+
+</beans>
