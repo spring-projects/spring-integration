@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -80,11 +81,11 @@ public class MailSendingMessageHandler implements MessageHandler {
 
 	@SuppressWarnings("unchecked")
 	private MailMessage convertMessageToMailMessage(Message<?> message) {
-		if (message.getPayload() instanceof MailMessage) {
-			return (MailMessage) message.getPayload();
-		}
 		MailMessage mailMessage = null;
-		if (message.getPayload() instanceof byte[]) {
+		if (message.getPayload() instanceof MailMessage) {
+			mailMessage = (MailMessage) message.getPayload();
+		}
+		else if (message.getPayload() instanceof byte[]) {
 			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
 		}
 		else if (message.getPayload() instanceof String) {
@@ -114,7 +115,8 @@ public class MailSendingMessageHandler implements MessageHandler {
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, multipartMode);
 			helper.addAttachment(attachmentFileName, new ByteArrayResource(message.getPayload()));
 			return new MimeMailMessage(helper);
-		} catch (MessagingException e) {
+		}
+		catch (MessagingException e) {
 			throw new MessageMappingException(message, "failed to create MimeMessage", e);
 		}		
 	}
@@ -125,8 +127,11 @@ public class MailSendingMessageHandler implements MessageHandler {
 			mailMessage.setSubject(subject);
 		}
 		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
-		Assert.state(to != null, "no value available for the 'MailHeaders.TO' header");
 		mailMessage.setTo(to);
+		if (mailMessage instanceof SimpleMailMessage) {
+			Assert.state(!ObjectUtils.isEmpty(((SimpleMailMessage) mailMessage).getTo()),
+					"No recipient has been provided on the MailMessage or the 'MailHeaders.TO' header.");
+		}
 		String[] cc = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.CC);
 		if (cc != null) {
 			mailMessage.setCc(cc);
