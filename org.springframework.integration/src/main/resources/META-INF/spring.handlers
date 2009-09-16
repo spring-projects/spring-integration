@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/integration-osgi=org.springframework.integration.osgi.config.xml.IntegrationOSGiNamespaceHandler
+http\://www.springframework.org/schema/integration=org.springframework.integration.config.xml.IntegrationNamespaceHandler
