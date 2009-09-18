@@ -31,8 +31,8 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.integration.util.TestUtils;
-import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**

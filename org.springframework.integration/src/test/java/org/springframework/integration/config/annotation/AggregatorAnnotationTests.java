@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import static org.springframework.integration.util.TestUtils.getPropertyValue;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.lang.reflect.Method;
 

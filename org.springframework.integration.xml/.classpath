@@ -1,25 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
-	<classpathentry kind="src" path="src/main/resources"/>
-	<classpathentry kind="src" path="src/test/resources"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="var" path="IVY_CACHE/com.sun.xml/com.springsource.com.sun.xml.bind/2.1.7/com.springsource.com.sun.xml.bind-2.1.7.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/javax.activation/com.springsource.javax.activation/1.1.1/com.springsource.javax.activation-1.1.1.jar" sourcepath="/IVY_CACHE/javax.activation/com.springsource.javax.activation/1.1.1/com.springsource.javax.activation-sources-1.1.1.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/javax.xml.bind/com.springsource.javax.xml.bind/2.1.7/com.springsource.javax.xml.bind-2.1.7.jar" sourcepath="IVY_CACHE/javax.xml.bind/com.springsource.javax.xml.bind/2.1.7/com.springsource.javax.xml.bind-sources-2.1.7.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/javax.xml.stream/com.springsource.javax.xml.stream/1.0.1/com.springsource.javax.xml.stream-1.0.1.jar" sourcepath="IVY_CACHE/javax.xml.stream/com.springsource.javax.xml.stream/1.0.1/com.springsource.javax.xml.stream-sources-1.0.1.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.apache.commons/com.springsource.org.apache.commons.logging/1.1.1/com.springsource.org.apache.commons.logging-1.1.1.jar" sourcepath="/IVY_CACHE/org.apache.commons/com.springsource.org.apache.commons.logging/1.1.1/com.springsource.org.apache.commons.logging-sources-1.1.1.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.junit/com.springsource.org.junit/4.6.0/com.springsource.org.junit-4.6.0.jar" sourcepath="/IVY_CACHE/org.junit/com.springsource.org.junit/4.6.0/com.springsource.org.junit-sources-4.6.0.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.asm/3.0.0.M4/org.springframework.asm-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.asm/3.0.0.M4/org.springframework.asm-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.beans/3.0.0.M4/org.springframework.beans-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.beans/3.0.0.M4/org.springframework.beans-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.context/3.0.0.M4/org.springframework.context-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.context/3.0.0.M4/org.springframework.context-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.core/3.0.0.M4/org.springframework.core-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.core/3.0.0.M4/org.springframework.core-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.expression/3.0.0.M4/org.springframework.expression-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.expression/3.0.0.M4/org.springframework.expression-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.oxm/3.0.0.M4/org.springframework.oxm-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.oxm/3.0.0.M4/org.springframework.oxm-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.8.A/org.springframework.xml-1.5.8.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.8.A/org.springframework.xml-sources-1.5.8.A.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/3.0.0.M4/org.springframework.test-3.0.0.M4.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.test/3.0.0.M4/org.springframework.test-sources-3.0.0.M4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.custommonkey.xmlunit/com.springsource.org.custommonkey.xmlunit/1.2.0/com.springsource.org.custommonkey.xmlunit-1.2.0.jar" sourcepath="/IVY_CACHE/org.custommonkey.xmlunit/com.springsource.org.custommonkey.xmlunit/1.2.0/com.springsource.org.custommonkey.xmlunit-sources-1.2.0.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
-	<classpathentry kind="output" path="target/classes"/>
-</classpath>
+<classpath />
+

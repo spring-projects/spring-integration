@@ -38,7 +38,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.util.MethodInvoker;
-import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Marius Bogoevici

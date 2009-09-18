@@ -41,8 +41,8 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.util.TestUtils;
-import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher

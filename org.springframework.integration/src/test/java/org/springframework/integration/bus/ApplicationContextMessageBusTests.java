@@ -16,16 +16,8 @@
 
 package org.springframework.integration.bus;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
+import static org.junit.Assert.*;
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -37,14 +29,13 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
-import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.util.TestUtils;
-import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.integration.message.*;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.scheduling.support.PeriodicTrigger;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mark Fisher
@@ -192,7 +183,7 @@ public class ApplicationContextMessageBusTests {
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);
 		context.stop();
-		assertNull(outputChannel.receive(0));
+		assertNull(outputChannel.receive(100));
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
 		Throwable exception = ((ErrorMessage) message).getPayload();

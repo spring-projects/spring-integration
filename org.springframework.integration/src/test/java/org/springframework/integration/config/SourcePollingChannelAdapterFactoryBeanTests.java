@@ -34,8 +34,8 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.integration.util.TestUtils;
-import org.springframework.integration.util.TestUtils.TestApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.ClassUtils;
 

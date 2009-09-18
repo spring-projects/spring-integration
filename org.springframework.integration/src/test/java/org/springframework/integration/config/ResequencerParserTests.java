@@ -19,7 +19,7 @@ package org.springframework.integration.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.springframework.integration.util.TestUtils.getPropertyValue;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.util.ArrayList;
 import java.util.List;

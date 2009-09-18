@@ -29,6 +29,7 @@
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="1.6.0" conf="test->runtime"/>
 		<dependency org="org.aspectj" name="com.springsource.org.aspectj.weaver" rev="1.6.5.RELEASE" conf="test->runtime"/>
+        <dependency org="org.springframework.integration" name="org.springframework.integration.test" rev="latest.integration" conf="test->runtime"/>        
 	</dependencies>
 
 </ivy-module>

@@ -16,27 +16,19 @@
 
 package org.springframework.integration.gateway;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
+import org.easymock.IAnswer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-
-import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Iwein Fuld
