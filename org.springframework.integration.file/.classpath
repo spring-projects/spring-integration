@@ -19,6 +19,7 @@
     <classpathentry kind="var" path="SANDBOX_IVY_CACHE/org.mockito/com.springsource.org.mockito/1.6.0/com.springsource.org.mockito-1.6.0.jar" sourcepath="/SANDBOX_IVY_CACHE/org.mockito/com.springsource.org.mockito/1.6.0/com.springsource.org.mockito-sources-1.6.0.jar" />
     <classpathentry kind="var" path="SANDBOX_IVY_CACHE/org.objenesis/com.springsource.org.objenesis/1.0.0/com.springsource.org.objenesis-1.0.0.jar" sourcepath="/SANDBOX_IVY_CACHE/org.objenesis/com.springsource.org.objenesis/1.0.0/com.springsource.org.objenesis-sources-1.0.0.jar" />
     <classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration" />
+    <classpathentry kind="src" path="/org.springframework.integration.test" combineaccessrules="false" />
     <classpathentry kind="output" path="target/classes" />
 </classpath>
 
