@@ -43,7 +43,7 @@ public class LockFileFileLocker implements FileLocker {
      * Makes a best effort attempt at locking the file atomically. The chances of success are wholly dependant on the
      * underlying operating system.
      *
-     * The locking mechanism will create a prelock file, remove write permissions from that file and move it to a lock
+     * The locking mechanism will create a prelock file and move it to a lock
      * file location.
      */
     public boolean lock(File fileToLock) {
@@ -58,8 +58,8 @@ public class LockFileFileLocker implements FileLocker {
             logger.warn("Failed to lock file", e);
             return false;
         }
-        preLockFile.setWritable(false);
-        if (preLockFile.renameTo(lockFile)) {
+        //there is still a small chance that the next line will be done concurrently and the file will be picked up twice
+        if (!lockFile.exists()&&preLockFile.renameTo(lockFile)) {
             return true;
         }
         preLockFile.delete();
@@ -73,7 +73,6 @@ public class LockFileFileLocker implements FileLocker {
      */
     public void unlock(File fileToUnlock) {
         File lockFile = new File(workdir, fileToUnlock.getName() + LOCK_SUFFIX);
-        lockFile.setWritable(true);
         lockFile.delete();
     }
 }
