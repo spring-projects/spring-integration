@@ -26,7 +26,6 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsEqual;
-import org.junit.internal.matchers.TypeSafeMatcher;
 
 /**
  * Matchers that examine the contents of a {@link Map}.

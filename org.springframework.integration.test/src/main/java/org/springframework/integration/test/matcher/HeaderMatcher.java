@@ -15,15 +15,14 @@
  */
 package org.springframework.integration.test.matcher;
 
-import java.util.Map;
-
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Assert;
-import org.junit.internal.matchers.TypeSafeMatcher;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
+
+import java.util.Map;
 
 /**
  * <h2>Are the {@link MessageHeaders} of a {@link Message} containing any entry

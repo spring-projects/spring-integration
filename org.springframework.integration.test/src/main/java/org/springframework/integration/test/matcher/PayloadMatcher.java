@@ -20,7 +20,6 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
-import org.junit.internal.matchers.TypeSafeMatcher;
 import org.springframework.integration.core.Message;
 
 /**
