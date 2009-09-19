@@ -19,6 +19,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.BeforeClass;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,13 +31,21 @@ import java.util.List;
  */
 public class LockFileFileListFilterTests {
 
-    private File workdir = new File(new File(System.getProperty("java.io.tmpdir")), this.getClass().getSimpleName());;
+    private static File workdir = new File(new File(System.getProperty("java.io.tmpdir")), LockFileFileListFilterTests.class.getSimpleName());
+
+    @BeforeClass
+    public static void setupWorkDir() {
+        workdir.mkdir();
+    }
+
     private FileLocker locker = new LockFileFileLocker(workdir);
 
     @Before
-    public void setupWorkDir() {
-        workdir.mkdir();
-        cleanDirectory(workdir);
+    public void cleanDirectory() {
+        File[] files = workdir.listFiles();
+        for (File file : files) {
+            file.delete();
+        }
     }
 
     @Test
@@ -58,13 +67,6 @@ public class LockFileFileListFilterTests {
         assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
         locker.lock(testFile);
         assertThat(filter2.filterFiles(workdir.listFiles()), is((List)new ArrayList<File>()));
-    }
-
-    private void cleanDirectory(File workdir) {
-        File[] files = workdir.listFiles();
-        for (File file : files) {
-            file.delete();
-        }
     }
 
 }

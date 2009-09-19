@@ -15,22 +15,17 @@
  */
 package org.springframework.integration.file.locking;
 
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.test.matcher.PayloadMatcher;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
-import org.junit.runner.RunWith;
-import org.junit.Test;
-import org.junit.BeforeClass;
-import org.junit.Before;
-import org.junit.Assert;
-import org.junit.matchers.JUnitMatchers;
-import static org.junit.Assert.assertThat;
-import org.hamcrest.CoreMatchers;
-import static org.hamcrest.CoreMatchers.nullValue;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.io.File;
 import java.io.IOException;
