@@ -16,6 +16,7 @@
 package org.springframework.integration.file.locking;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * A FileLocker is a strategy that can ensure that files are only processed a single time.

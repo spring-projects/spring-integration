@@ -8,14 +8,11 @@
     <!-- under test -->
     <bean id="fileSource1" class="org.springframework.integration.file.FileReadingMessageSource"
           p:inputDirectory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
-          p:locker-ref="locker"/>
+          p:locker-ref="filter"/>
     <bean id="fileSource2" class="org.springframework.integration.file.FileReadingMessageSource"
           p:inputDirectory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
-          p:locker-ref="locker" p:filter-ref="filter"/>
+          p:locker-ref="filter" p:filter-ref="filter"/>
 
-    <bean id="locker" class="org.springframework.integration.file.locking.LockFileFileLocker">
-        <constructor-arg value="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"/>
-    </bean>
     
     <bean id="filter" class="org.springframework.integration.file.locking.LockFileFileListFilter">
         <constructor-arg value="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"/>

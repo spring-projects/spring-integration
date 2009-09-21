@@ -28,6 +28,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.file.locking.FileLocker;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Comparator;
 
 /**
@@ -113,7 +114,7 @@ public class FileReadingMessageSourceTests {
     }
 
     @Test
-    public void lockIsAquired() {
+    public void lockIsAquired() throws IOException {
         when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
         Message<File> received = source.receive();
         assertNotNull(received);
@@ -122,7 +123,7 @@ public class FileReadingMessageSourceTests {
     }
 
     @Test
-    public void lockedFilesAreIgnored() {
+    public void lockedFilesAreIgnored() throws IOException {
         when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
         when(locker.lock(fileMock)).thenReturn(false);
         Message<File> received = source.receive();
