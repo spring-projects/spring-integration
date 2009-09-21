@@ -116,7 +116,7 @@ public class NewAggregatorEndpointTests {
         assertEquals("Task should have completed within timeout", 0, latch.getCount());
         Message<?> reply = replyChannel.receive(100);
         assertNull("No message should have been sent normally", reply);
-        Message<?> discardedMessage = discardChannel.receive(100);
+        Message<?> discardedMessage = discardChannel.receive(1000);
         assertNotNull("A message should have been discarded", discardedMessage);
         assertEquals(message, discardedMessage);
     }
@@ -243,7 +243,7 @@ public class NewAggregatorEndpointTests {
         Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
         Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
         Message<?> message3 = createMessage(7, "ABC", 3, 3, replyChannel, null);
-        Message<?> message4 = createMessage(33, "ABC", 3, 3, replyChannel, null);
+        Message<?> message4 = createMessage(7, "ABC", 3, 3, replyChannel, null);
         CountDownLatch latch = new CountDownLatch(4);
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
