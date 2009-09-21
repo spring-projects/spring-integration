@@ -6,8 +6,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<annotation-config />
-
 	<channel id="input">
 		<queue capacity="5" />
 	</channel>

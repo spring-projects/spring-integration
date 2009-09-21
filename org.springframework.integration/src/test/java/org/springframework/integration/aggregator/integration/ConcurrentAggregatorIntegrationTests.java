@@ -19,11 +19,6 @@ package org.springframework.integration.aggregator.integration;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +31,10 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Iwein Fuld
@@ -87,7 +86,6 @@ public class ConcurrentAggregatorIntegrationTests {
 		headers.put(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
 		headers.put(MessageHeaders.CORRELATION_ID, correllationId);
-		headers.put(MessageHeaders.ID, 1);
 		return headers;
 	}
 
