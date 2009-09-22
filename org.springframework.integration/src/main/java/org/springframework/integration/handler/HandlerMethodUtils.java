@@ -26,6 +26,7 @@ import java.util.Map;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Utility methods for common behavior related to Message-handling methods.
@@ -42,7 +43,7 @@ abstract class HandlerMethodUtils {
 	 * object. Others must be annotated for accepting Message header values.
 	 */
 	public static boolean isValidHandlerMethod(Method method) {
-		if (method.getDeclaringClass().equals(Object.class)) {
+		if (isMethodDefinedOnObjectClass(method)) {
 			return false;
 		}
 		if (!Modifier.isPublic(method.getModifiers())) {
@@ -94,6 +95,22 @@ abstract class HandlerMethodUtils {
 			}
 		}
 		return false;
+	}
+
+	private static boolean isMethodDefinedOnObjectClass(Method method) {
+		if (method == null) {
+			return false;
+		}
+		if (method.getDeclaringClass().equals(Object.class)) {
+			return true;
+		}
+		if (ReflectionUtils.isEqualsMethod(method) ||
+				ReflectionUtils.isHashCodeMethod(method) ||
+				ReflectionUtils.isToStringMethod(method) ||
+				AopUtils.isFinalizeMethod(method)) {
+			return true;
+		}
+		return (method.getName().equals("clone") && method.getParameterTypes().length == 0);
 	}
 
 }
