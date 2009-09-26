@@ -112,7 +112,7 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
             if (tracker.aquireLockFor(correlationKey)) {
                 store(message, correlationKey);
                 List<Message<?>> all = store.getAll(correlationKey);
-                complete(correlationKey, all, this.resolveReplyChannel(message));
+                complete(correlationKey, all, this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
             } else {
                 discardChannel.send(message);
             }
@@ -149,31 +149,6 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
         if (!keysInBuffer.contains(correlationKey)) {
             keysInBuffer.add(new DelayedKey(correlationKey, timeout));
         }
-    }
-
-    //TODO copied from AbstractReplyProducingMessageHandler
-    private MessageChannel resolveReplyChannel(Message<?> requestMessage) {
-        MessageChannel replyChannel = outputChannel;
-        if (replyChannel == null) {
-            Object replyChannelHeader = requestMessage.getHeaders().getReplyChannel();
-            if (replyChannelHeader != null) {
-                if (replyChannelHeader instanceof MessageChannel) {
-                    replyChannel = (MessageChannel) replyChannelHeader;
-                } else if (replyChannelHeader instanceof String) {
-                    Assert.state(this.channelResolver != null,
-                            "ChannelResolver is required for resolving a reply channel by name");
-                    replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
-                } else {
-                    throw new ChannelResolutionException("expected a MessageChannel or String for 'replyChannel', but type is ["
-                            + replyChannelHeader.getClass() + "]");
-                }
-            }
-        }
-        if (replyChannel == null) {
-            throw new ChannelResolutionException(
-                    "unable to resolve reply channel for message: " + requestMessage);
-        }
-        return replyChannel;
     }
 
     public boolean isRunning() {
@@ -226,7 +201,7 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
         List<Message<?>> all = store.getAll(key);
         if (all.size() > 0) {
             //last chance for normal completion
-            MessageChannel outputChannel = resolveReplyChannel(all.get(0));
+            MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel, this.channelResolver);
             boolean fullyCompleted = complete(key, all, outputChannel);
             if (!fullyCompleted) {
                 if (sendPartialResultOnTimeout) {

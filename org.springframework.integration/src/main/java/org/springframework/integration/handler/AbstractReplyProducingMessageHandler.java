@@ -99,7 +99,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			return;
 		}
-		MessageChannel replyChannel = this.resolveReplyChannel(message);
+		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
 		MessageHeaders requestHeaders = message.getHeaders();
 		for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
 			builder.copyHeadersIfAbsent(requestHeaders);
@@ -117,32 +117,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
 		return this.channelTemplate.send(replyMessage, replyChannel);
-	}
-
-	private MessageChannel resolveReplyChannel(Message<?> requestMessage) {
-		MessageChannel replyChannel = this.getOutputChannel();
-		if (replyChannel == null) {
-			Object replyChannelHeader= requestMessage.getHeaders().getReplyChannel();
-			if (replyChannelHeader != null) {
-				if (replyChannelHeader instanceof MessageChannel) {
-					replyChannel = (MessageChannel) replyChannelHeader;
-				}
-				else if (replyChannelHeader instanceof String) {
-					Assert.state(this.channelResolver != null,
-							"ChannelResolver is required for resolving a reply channel by name");
-					replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
-				}
-				else {
-					throw new ChannelResolutionException("expected a MessageChannel or String for 'replyChannel', but type is ["
-							+ replyChannelHeader.getClass() + "]");
-				}
-			}
-		}
-		if (replyChannel == null) {
-			throw new ChannelResolutionException(
-					"unable to resolve reply channel for message: " + requestMessage);
-		}
-		return replyChannel;
 	}
 
 }
