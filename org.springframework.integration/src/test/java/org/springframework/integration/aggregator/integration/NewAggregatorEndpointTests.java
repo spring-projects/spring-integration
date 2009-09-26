@@ -36,6 +36,7 @@ import org.springframework.integration.aggregator.MessagesProcessor;
 import org.springframework.integration.aggregator.BufferedMessagesCallback;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.test.annotation.Repeat;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -236,7 +237,7 @@ public class NewAggregatorEndpointTests {
         this.aggregator.handleMessage(message);
     }
 
-    @Test
+    @Test 
     public void testAdditionalMessageAfterCompletion() throws InterruptedException {
         this.aggregator.start();
         QueueChannel replyChannel = new QueueChannel();
@@ -250,7 +251,9 @@ public class NewAggregatorEndpointTests {
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
         latch.await(1000, TimeUnit.MILLISECONDS);
-        Message<?> reply = replyChannel.receive(500);
+        //small wait to make sure the fourth message is received
+        Thread.sleep(10);
+        Message<?> reply = replyChannel.receive(0);
         assertNotNull("A message should be aggregated", reply);
         assertThat(((Integer) reply.getPayload()), is(105));
     }

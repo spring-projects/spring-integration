@@ -16,7 +16,6 @@
 package org.springframework.integration.aggregator;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.aggregator.*;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.NullChannel;
@@ -32,6 +31,7 @@ import org.springframework.util.Assert;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * MessageHandler that holds a buffer of messages in a MessageStore
@@ -42,8 +42,7 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
 
     private MessageStore store = new SimpleMessageStore(100);
     private final CorrelationStrategy correlationStrategy;
-    //TODO decide if we still support tracking capacity, and if this needs to be moved into the Store instead
-    private final Queue trackedCorrellationIds = new LinkedBlockingQueue();
+    private final IdTracker tracker = new IdTracker();
     private final CompletionStrategy completionStrategy;
     private MessagesProcessor outputProcessor;
     private MessageChannel outputChannel;
@@ -59,8 +58,8 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
 
     public BufferingMessageHandler(MessageStore store,
                                    CorrelationStrategy correlationStrategy,
-                                   CompletionStrategy completionStrategy, MessagesProcessor processor
-    ) {
+                                   CompletionStrategy completionStrategy,
+                                   MessagesProcessor processor) {
         Assert.notNull(store);
         Assert.notNull(correlationStrategy);
         Assert.notNull(completionStrategy);
@@ -109,12 +108,16 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
-        if (!trackedCorrellationIds.contains(correlationKey)) {
-            store(message, correlationKey);
-            List<Message<?>> all = store.getAll(correlationKey);
-            complete(correlationKey, all, this.resolveReplyChannel(message));
-        } else {
-            discardChannel.send(message);
+        try {
+            if (tracker.aquireLockFor(correlationKey)) {
+                store(message, correlationKey);
+                List<Message<?>> all = store.getAll(correlationKey);
+                complete(correlationKey, all, this.resolveReplyChannel(message));
+            } else {
+                discardChannel.send(message);
+            }
+        } finally {
+            tracker.unlock(correlationKey);
         }
     }
 
@@ -127,13 +130,6 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
         return processed;
     }
 
-    private void pushCorrellationId(Queue trackedCorrellationIds, Object correlationKey) {
-        while (!trackedCorrellationIds.offer(correlationKey)) {
-            //make room in the queue
-            trackedCorrellationIds.poll();
-        }
-    }
-
     private BufferedMessagesCallback deleteOrTrackCallback() {
         return new BufferedMessagesCallback() {
             public void onProcessingOf(Message<?>... processedMessage) {
@@ -141,8 +137,9 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
                     store.delete(message.getHeaders().getId());
                 }
             }
+
             public void onCompletionOf(Object correlationKey) {
-                pushCorrellationId(trackedCorrellationIds, correlationKey);
+                tracker.pushCorrellationId(correlationKey);
             }
         };
     }
@@ -224,33 +221,34 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
 
         }
     }
-        protected final void forceComplete(Object key) {
-            List<Message<?>> all = store.getAll(key);
-            if (all.size() > 0) {
-                //last chance for normal completion
-                MessageChannel outputChannel = resolveReplyChannel(all.get(0));
-                boolean fullyCompleted = complete(key, all, outputChannel);
-                if (!fullyCompleted) {
-                    if (sendPartialResultOnTimeout) {
-                        if (logger.isInfoEnabled()) {
-                            logger.info("Processing partially complete messages for key [" + key + "] to: " + outputChannel);
-                        }
-                        outputProcessor.processAndSend(key, all, outputChannel, deleteOrTrackCallback());
-                    } else {
-                        if (logger.isInfoEnabled()) {
-                            logger.info("Discarding partially complete messages for key [" + key + "] to: " + discardChannel);
-                        }
-                        for (Message<?> message : all) {
-                            discardChannel.send(message);
-                            store.delete(message.getHeaders().getId());
-                        }
+
+    protected final void forceComplete(Object key) {
+        List<Message<?>> all = store.getAll(key);
+        if (all.size() > 0) {
+            //last chance for normal completion
+            MessageChannel outputChannel = resolveReplyChannel(all.get(0));
+            boolean fullyCompleted = complete(key, all, outputChannel);
+            if (!fullyCompleted) {
+                if (sendPartialResultOnTimeout) {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Processing partially complete messages for key [" + key + "] to: " + outputChannel);
+                    }
+                    outputProcessor.processAndSend(key, all, outputChannel, deleteOrTrackCallback());
+                } else {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Discarding partially complete messages for key [" + key + "] to: " + discardChannel);
+                    }
+                    for (Message<?> message : all) {
+                        discardChannel.send(message);
+                        store.delete(message.getHeaders().getId());
                     }
                 }
             }
         }
+    }
 
 
-    private class DelayedKey implements Delayed {
+    private final class DelayedKey implements Delayed {
         private Object key;
         private Long releaseTime;
         private TimeUnit unit = TimeUnit.MILLISECONDS;
@@ -271,6 +269,40 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
 
         public Object getKey() {
             return key;
+        }
+    }
+
+    private final class IdTracker {
+        private ConcurrentMap<Object, ReentrantLock> trackerLocks = new ConcurrentHashMap<Object, ReentrantLock>();
+        private final Queue<Object> trackedCorrellationIds = new LinkedBlockingQueue<Object>();
+
+        private void pushCorrellationId(Object correlationKey) {
+            while (!trackedCorrellationIds.offer(correlationKey)) {
+                //make room in the queue
+                trackedCorrellationIds.poll();
+            }
+            trackerLocks.remove(correlationKey);
+        }
+
+        private boolean aquireLockFor(Object correlationKey) {
+            ReentrantLock lock = trackerLocks.get(correlationKey);
+            if (lock == null) {
+                if (trackedCorrellationIds.contains(correlationKey)) {
+                    return false;
+                }
+                lock = new ReentrantLock();
+                ReentrantLock original = trackerLocks.putIfAbsent(correlationKey, lock);
+                lock = original == null ? lock : original;
+            }
+            lock.lock();
+            return true;
+        }
+
+        private void unlock(Object correlationKey) {
+            ReentrantLock lock = trackerLocks.get(correlationKey);
+            if (lock != null && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
     }
 }
