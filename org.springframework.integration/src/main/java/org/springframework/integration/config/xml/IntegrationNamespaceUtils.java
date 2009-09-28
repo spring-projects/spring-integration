@@ -37,6 +37,7 @@ import org.springframework.util.xml.DomUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Alex Peters
+ * @author Oleg Zhurakousky
  */
 public abstract class IntegrationNamespaceUtils {
 
@@ -189,7 +190,9 @@ public abstract class IntegrationNamespaceUtils {
 		if (childElements != null && childElements.size() == 1){
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
-			innerDefinition = delegate.parseBeanDefinitionElement(beanElement).getBeanDefinition();
+			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
+			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
+			innerDefinition = bdHolder.getBeanDefinition();
 		}
 		
 		String ref = element.getAttribute(REF_ATTRIBUTE);

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:si="http://www.springframework.org/schema/integration">
+	
+	<si:channel id="input"/>
+	
+	<si:service-activator id="sa" input-channel="input" method="printWithPrefix">
+		<bean class="org.springframework.integration.config.xml.PNamespaceTest$TestBean" 
+																p:fname="paris" p:lname="hilton"/>
+	</si:service-activator>
+	
+	<si:splitter id="sp" input-channel="input" method="printWithPrefix">
+		<bean class="org.springframework.integration.config.xml.PNamespaceTest$TestBean" 
+																p:fname="paris" p:lname="hilton"/>
+	</si:splitter>
+	
+	<si:transformer id="tr" input-channel="input" method="printWithPrefix">
+		<bean class="org.springframework.integration.config.xml.PNamespaceTest$TestBean" 
+																p:fname="paris" p:lname="hilton"/>
+	</si:transformer>
+	
+	<si:router id="rt" input-channel="input" method="printWithPrefix">
+		<bean class="org.springframework.integration.config.xml.PNamespaceTest$TestBean" 
+																p:fname="paris" p:lname="hilton"/>
+	</si:router>
+</beans>
