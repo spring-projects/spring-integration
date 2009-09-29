@@ -16,11 +16,18 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.gateway.GatewayMethodDefinition;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;gateway/&gt; element.
@@ -33,6 +40,24 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		"default-request-channel", "default-reply-channel", "message-mapper"
 	};
 
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		super.doParse(element, builder);
+		List<Element> elements = DomUtils.getChildElementsByTagName(element, "method");
+		ManagedMap<String, GatewayMethodDefinition> methodToChannelMap = null;
+		if (elements != null && elements.size() > 0){
+			methodToChannelMap = new ManagedMap<String, GatewayMethodDefinition>();
+		}
+		for (Element methodElement : elements) {
+			String methodName = methodElement.getAttribute("name");
+			GatewayMethodDefinition gatewayDefinition = new GatewayMethodDefinition();
+			gatewayDefinition.setRequestChannelName(methodElement.getAttribute("request-channel"));
+			gatewayDefinition.setReplyChannelName(methodElement.getAttribute("reply-channel"));
+			gatewayDefinition.setRequestTimeout(methodElement.getAttribute("request-timeout"));
+			gatewayDefinition.setReplyTimeout(methodElement.getAttribute("reply-timeout"));	
+			methodToChannelMap.put(methodName, gatewayDefinition);
+		}
+		builder.addPropertyValue("methodToChannelMap", methodToChannelMap);
+	}
 
 	@Override
 	protected String getBeanClassName(Element element) {

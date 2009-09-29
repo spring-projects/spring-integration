@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"
+	xmlns:si="http://www.springframework.org/schema/integration">
+
+	<si:gateway id="myGateway" service-interface="org.springframework.integration.gateway.MultiMethodGatewayConfig$TestGateway"
+			default-request-channel="inputC">
+		<si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
+    	<si:method name="echoUpperCase" request-channel="inputB"/>
+    	<si:method name="echoViaDefault"/>
+	</si:gateway>
+				
+	<si:channel id="inputA"/>
+	<si:service-activator input-channel="inputA" method="echo">
+		<bean class="org.springframework.integration.gateway.MultiMethodGatewayConfig$TestBeanA"/>
+	</si:service-activator>
+	<!-- 	-->
+	<si:channel id="inputB"/>
+	<si:service-activator input-channel="inputB" method="echo">
+		<bean class="org.springframework.integration.gateway.MultiMethodGatewayConfig$TestBeanB"/>
+	</si:service-activator>
+	
+	<si:channel id="inputC"/>
+	<si:service-activator input-channel="inputC" method="echo">
+		<bean class="org.springframework.integration.gateway.MultiMethodGatewayConfig$TestBeanC"/>
+	</si:service-activator>
+
+</beans>

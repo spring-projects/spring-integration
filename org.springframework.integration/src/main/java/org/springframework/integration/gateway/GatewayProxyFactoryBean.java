@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * with messaging components without application code being aware of them.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean, MethodInterceptor, BeanClassLoaderAware {
 
@@ -70,7 +71,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-
+	private Map<String, GatewayMethodDefinition> methodToChannelMap;
 
 	public void setServiceInterface(Class<?> serviceInterface) {
 		if (serviceInterface != null && !serviceInterface.isInterface()) {
@@ -236,17 +237,28 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		if (gatewayAnnotation != null) {
 			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			String requestChannelName = gatewayAnnotation.requestChannel();
-			if (StringUtils.hasText(requestChannelName)) {
-				requestChannel = this.getChannelResolver().resolveChannelName(requestChannelName);
-				Assert.notNull(requestChannel, "failed to resolve request channel '" + requestChannelName + "'");
-			}
+			requestChannel = this.resolveChannel(requestChannel, requestChannelName);
 			String replyChannelName = gatewayAnnotation.replyChannel();
-			if (StringUtils.hasText(replyChannelName)) {
-				replyChannel = this.getChannelResolver().resolveChannelName(replyChannelName);
-				Assert.notNull(replyChannel, "failed to resolve reply channel '" + replyChannelName + "'");
-			}
+			replyChannel = this.resolveChannel(replyChannel, replyChannelName);
 			requestTimeout = gatewayAnnotation.requestTimeout();
 			replyTimeout = gatewayAnnotation.replyTimeout();
+		} else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {
+			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
+			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());
+			if (gatewayDefinition != null){
+				String requestChannelName = gatewayDefinition.getRequestChannelName();
+				requestChannel = this.resolveChannel(requestChannel, requestChannelName);
+				String replyChannelName = gatewayDefinition.getReplyChannelName();
+				replyChannel = this.resolveChannel(replyChannel, replyChannelName);
+				String reqTimeout = gatewayDefinition.getRequestTimeout();
+				if (StringUtils.hasText(reqTimeout)){
+					requestTimeout = typeConverter.convertIfNecessary(reqTimeout, Long.class);
+				}
+				String repTimeout = gatewayDefinition.getReplyTimeout();
+				if (StringUtils.hasText(repTimeout)){
+					replyTimeout = typeConverter.convertIfNecessary(repTimeout, Long.class);
+				}
+			}
 		}
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
@@ -256,6 +268,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			gateway.setBeanFactory(this.getBeanFactory());
 		}
 		return gateway;
+	}
+	
+	private MessageChannel resolveChannel(MessageChannel channel, String channelName) {
+		if (StringUtils.hasText(channelName)) {
+			channel = this.getChannelResolver().resolveChannelName(channelName);
+			Assert.notNull(channel, "failed to resolve channel '" + channelName + "'");
+		}
+		return channel;
 	}
 
 	// Lifecycle implementation
@@ -276,6 +296,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 				((Lifecycle) gateway).stop();
 			}
 		}
+	}
+	
+	public Map<String, GatewayMethodDefinition> getMethodToChannelMap() {
+		return methodToChannelMap;
+	}
+
+	public void setMethodToChannelMap(Map<String, GatewayMethodDefinition> methodToChannelMap) {
+		this.methodToChannelMap = methodToChannelMap;
 	}
 
 }

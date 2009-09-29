@@ -304,6 +304,17 @@
 	Defines a Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="name" type="xsd:string" />
+						<xsd:attribute name="request-channel" type="xsd:string" />
+						<xsd:attribute name="reply-channel" type="xsd:string" />
+						<xsd:attribute name="request-timeout" type="xsd:string" />
+						<xsd:attribute name="reply-timeout" type="xsd:string" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="required" />
 			<xsd:attribute name="service-interface" type="xsd:string" use="required">
 				<xsd:annotation>
