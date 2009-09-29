@@ -25,7 +25,6 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -108,7 +107,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		}
 	}
 
-	private void publishMessage(Method method, EvaluationContext context) throws Exception {
+	private void publishMessage(Method method, StandardEvaluationContext context) throws Exception {
 		String payloadExpressionString = this.expressionSource.getPayloadExpression(method);
 		if (!StringUtils.hasText(payloadExpressionString)) {
 			payloadExpressionString = "#" + this.expressionSource.getReturnValueName(method);
@@ -139,16 +138,13 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		}
 	}
 
-	private Map<String, Object> evaluateHeaders(Method method, EvaluationContext context)
+	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context)
 			throws ParseException, EvaluationException {
 
 		String[] headerExpressionStrings = this.expressionSource.getHeaderExpressions(method);
 		if (headerExpressionStrings != null) {
 			Map<String, Object> headers = new HashMap<String, Object>();
-			
-			// TODO: avoid this downcast
-			((StandardEvaluationContext) context).setRootObject(headers);
-			
+			context.setRootObject(headers);
 			for (String headerExpression : headerExpressionStrings) {
 				if (StringUtils.hasText(headerExpression)) {
 					Expression expression = this.parser.parseExpression(headerExpression);
