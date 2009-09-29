@@ -65,6 +65,17 @@
 
  }]]></programlisting>
     </para>
+    
+    <para>
+    If you prefer XML way of configuring Gateway methods, you can provide <emphasis>method</emphasis> sub-elements 
+    to the gateway configuration (see below) 
+     <programlisting language="xml"><![CDATA[<si:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
+			default-request-channel="inputC">
+	<si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
+    	<si:method name="echoUpperCase" request-channel="inputB"/>
+    	<si:method name="echoViaDefault"/>
+</si:gateway>]]></programlisting> 
+    </para>
   </section>
 
 </chapter>
