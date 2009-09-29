@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,7 +35,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MethodParameterMessageMapper;
-import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.util.Assert;
@@ -54,16 +55,16 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 
 	protected static final Log logger = LogFactory.getLog(MessageMappingMethodInvoker.class);
 
-	private final Set<Method> methodsExpectingMessage = new HashSet<Method>();
-
 	private volatile Object object;
 
 	private final HandlerMethodResolver methodResolver;
 
-	private final Map<Method, OutboundMessageMapper<Object[]>> messageMappers =
-			new HashMap<Method, OutboundMessageMapper<Object[]>>();
+	private final ConcurrentMap<Method, MethodArgumentMessageMapper> messageMappers =
+			new ConcurrentHashMap<Method, MethodArgumentMessageMapper>();
 
 	private final Map<Method, MethodInvoker> invokers = new HashMap<Method, MethodInvoker>();
+
+	private final Set<Method> methodsExpectingMessage = new HashSet<Method>();
 
 
 	public MessageMappingMethodInvoker(Object object, Method method) {
@@ -102,7 +103,12 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 		Method method = this.methodResolver.resolveHandlerMethod(message);
 		Object[] args = null;
 		try {
-			args = this.createArgumentArrayFromMessage(method, message);
+			if (this.methodsExpectingMessage.contains(method)) {
+				args = new Object[] { message };
+			}
+			else {
+				args = this.resolveMessageMapper(method).fromMessage(message);
+			}
 			return this.invokeMethod(method, args, message);
 		}
 		catch (InvocationTargetException e) {
@@ -168,45 +174,6 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 		return result;
 	}
 
-	private Object[] createArgumentArrayFromMessage(Method method, Message<?> message) throws Exception {
-		Object args[] = null;
-		Object mappingResult = this.methodsExpectingMessage.contains(method)
-				? message : this.resolveParameters(method, message);
-		if (mappingResult != null && mappingResult.getClass().isArray()
-				&& (Object.class.isAssignableFrom(mappingResult.getClass().getComponentType()))) {
-			args = (Object[]) mappingResult;
-		}
-		else {
-			args = new Object[] { mappingResult }; 
-		}
-		if (args.length > 1 && message != null && message.getPayload() instanceof Map) {
-			int mapArgCount = 0;
-			boolean resolvedMapArg = false;
-			for (int i = 0; i < args.length; i++) {
-				Object arg = args[i];
-				if (arg instanceof Map && Map.class.isAssignableFrom(method.getParameterTypes()[i])) {
-					mapArgCount++;
-					if (arg.equals(message.getPayload())) {
-						// resolved if there is exactly one match
-						resolvedMapArg = !resolvedMapArg;
-					}
-				}
-			}
-			Assert.isTrue(resolvedMapArg || mapArgCount <= 1,
-					"Unable to resolve argument for Map-typed payload on method [" + method + "].");
-		}
-		return args;
-	}
-
-	private Object[] resolveParameters(Method method, Message<?> message) throws Exception {
-		OutboundMessageMapper<Object[]> mapper = this.messageMappers.get(method);
-		if (mapper == null) {
-			mapper = new MethodParameterMessageMapper(method);
-			this.messageMappers.put(method, mapper);
-		}
-		return mapper.fromMessage(message);
-	}
-
 	private HandlerMethodResolver createResolverForMethodName(String methodName, boolean requiresReturnValue) {
 		List<Method> methodsWithName = new ArrayList<Method>();
 		Method[] defaultCandidateMethods = HandlerMethodUtils.getCandidateHandlerMethods(this.object);
@@ -247,6 +214,19 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 			return new StaticHandlerMethodResolver(candidateMethods[0]);
 		}
 		return new PayloadTypeMatchingHandlerMethodResolver(candidateMethods);
+	}
+
+	private MethodArgumentMessageMapper resolveMessageMapper(Method method) {
+		MethodArgumentMessageMapper mapper = this.messageMappers.get(method);
+		if (mapper == null) {
+			mapper = new MethodArgumentMessageMapper(method);
+			MethodArgumentMessageMapper existingMapper = this.messageMappers.putIfAbsent(method, mapper);
+			if (existingMapper != null) {
+				// throw away the one just created, since one was created in the meantime
+				mapper = existingMapper;
+			}
+		}
+		return mapper;
 	}
 
 }
