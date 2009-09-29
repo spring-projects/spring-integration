@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
