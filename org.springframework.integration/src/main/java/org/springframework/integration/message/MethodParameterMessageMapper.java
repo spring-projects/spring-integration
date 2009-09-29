@@ -16,11 +16,11 @@
 
 package org.springframework.integration.message;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -34,9 +34,7 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -277,16 +275,7 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 
 		private MethodParameterMetadata(Method method, int index) {
 			this.parameter = new MethodParameter(method, index);
-			Object annotationArray = null;
-			try {
-				// using reflection since Spring 3.0 returns Annotation[] yet Spring 2.5 returns Object[]
-				annotationArray = ReflectionUtils.invokeMethod(
-						this.parameter.getClass().getMethod("getParameterAnnotations", new Class[0]), this.parameter);
-			}
-			catch (Exception e) {
-				throw new IllegalStateException("failed to introspect method parameter annotations", e);
-			}
-			List<?> annotations = CollectionUtils.arrayToList(annotationArray);
+			Annotation[] annotations = this.parameter.getParameterAnnotations();
 			for (Object o : annotations) {
 				if (o instanceof Header) {
 					this._headerAnnotation = (Header) o;
