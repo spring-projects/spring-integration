@@ -19,8 +19,8 @@ package org.springframework.integration.message;
 import java.lang.reflect.Method;
 
 import org.junit.Test;
-
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.MethodArgumentMessageMapper;
 
 /**
  * @author Mark Fisher
@@ -30,19 +30,19 @@ public class MethodParameterMessageMapperInitializationTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void messageAndPayload() throws Exception {
 		Method method = TestService.class.getMethod("messageAndPayload", Message.class, String.class);
-		new MethodParameterMessageMapper(method);
+		new MethodArgumentMessageMapper(method);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void twoMessages() throws Exception {
 		Method method = TestService.class.getMethod("twoMessages", Message.class, Message.class);
-		new MethodParameterMessageMapper(method);
+		new MethodArgumentMessageMapper(method);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void twoPayloads() throws Exception {
 		Method method = TestService.class.getMethod("twoPayloads", String.class, String.class);
-		new MethodParameterMessageMapper(method);
+		new MethodArgumentMessageMapper(method);
 	}
 
 

@@ -36,7 +36,7 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.message.MethodParameterMessageMapper;
+import org.springframework.integration.handler.MethodArgumentMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -225,7 +225,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
-				new MethodParameterMessageMapper(method), new SimpleMessageMapper());
+				new MethodArgumentMessageMapper(method), new SimpleMessageMapper());
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}

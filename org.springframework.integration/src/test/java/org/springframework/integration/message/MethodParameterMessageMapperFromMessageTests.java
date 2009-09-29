@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.MethodArgumentMessageMapper;
 
 /**
  * @author Mark Fisher
@@ -38,7 +39,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithOptionalHeader() throws Exception {
 		Method method = TestService.class.getMethod("optionalHeader", Integer.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Object[] args = mapper.fromMessage(new StringMessage("foo"));
 		assertEquals(1, args.length);
 		assertNull(args[0]);
@@ -47,14 +48,14 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test(expected = MessageHandlingException.class)
 	public void fromMessageWithRequiredHeaderNotProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		mapper.fromMessage(new StringMessage("foo"));
 	}
 
 	@Test
 	public void fromMessageWithRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = mapper.fromMessage(message);
@@ -65,7 +66,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test(expected = MessageHandlingException.class)
 	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyOptionalHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar").build();
 		mapper.fromMessage(message);
@@ -74,7 +75,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = mapper.fromMessage(message);
@@ -86,7 +87,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithOptionalAndRequiredHeaderAndBothHeadersProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123))
 				.setHeader("prop", "bar")
@@ -100,7 +101,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithPropertiesMethodAndHeadersAnnotation() throws Exception {
 		Method method = TestService.class.getMethod("propertiesHeaders", Properties.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = mapper.fromMessage(message);
@@ -113,7 +114,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithPropertiesAndObjectMethod() throws Exception {
 		Method method = TestService.class.getMethod("propertiesHeadersAndPayload", Properties.class, Object.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 		.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = mapper.fromMessage(message);
@@ -128,7 +129,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithMapAndObjectMethod() throws Exception {
 		Method method = TestService.class.getMethod("mapHeadersAndPayload", Map.class, Object.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 		.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = mapper.fromMessage(message);
@@ -143,7 +144,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	public void fromMessageWithPropertiesMethodAndPropertiesPayload() throws Exception {
 		Method method = TestService.class.getMethod("propertiesPayload", Properties.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
 		payload.setProperty("prop2", "bar");
@@ -160,7 +161,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@SuppressWarnings("unchecked")
 	public void fromMessageWithMapMethodAndHeadersAnnotation() throws Exception {
 		Method method = TestService.class.getMethod("mapHeaders", Map.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
@@ -174,7 +175,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@SuppressWarnings("unchecked")
 	public void fromMessageWithMapMethodAndMapPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapPayload", Map.class);
-		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		MethodArgumentMessageMapper mapper = new MethodArgumentMessageMapper(method);
 		Map<String, Integer> payload = new HashMap<String, Integer>();
 		payload.put("attrib1", new Integer(88));
 		payload.put("attrib2", new Integer(99));
@@ -189,6 +190,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	}
 
 
+	@SuppressWarnings("unused")
 	private static class TestService {
 
 		public String messageOnly(Message<?> message) {

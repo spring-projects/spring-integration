@@ -34,7 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MethodParameterMessageMapper;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.util.Assert;
