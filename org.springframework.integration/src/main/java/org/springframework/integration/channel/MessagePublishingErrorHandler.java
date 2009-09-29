@@ -18,7 +18,6 @@ package org.springframework.integration.channel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -26,8 +25,8 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 /**
  * {@link ErrorHandler} implementation that sends an {@link ErrorMessage} to a

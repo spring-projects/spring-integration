@@ -42,7 +42,7 @@ import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.ErrorHandler;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Iwein Fuld

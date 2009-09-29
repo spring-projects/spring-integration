@@ -30,7 +30,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
-import org.springframework.scheduling.support.ErrorHandler;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher

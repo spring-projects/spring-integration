@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.scheduling.support.ErrorHandler;
+import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher

@@ -144,7 +144,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		String[] headerExpressionStrings = this.expressionSource.getHeaderExpressions(method);
 		if (headerExpressionStrings != null) {
 			Map<String, Object> headers = new HashMap<String, Object>();
-			context.setRootObject(headers);
+			
+			// TODO: avoid this downcast
+			((StandardEvaluationContext) context).setRootObject(headers);
+			
 			for (String headerExpression : headerExpressionStrings) {
 				if (StringUtils.hasText(headerExpression)) {
 					Expression expression = this.parser.parseExpression(headerExpression);

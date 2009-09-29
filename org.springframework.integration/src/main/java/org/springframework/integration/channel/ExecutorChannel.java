@@ -23,8 +23,8 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
-import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 /**
  * An implementation of {@link MessageChannel} that delegates to an instance of

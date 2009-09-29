@@ -17,8 +17,8 @@
 package org.springframework.integration.util;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 /**
  * A {@link TaskExecutor} implementation that wraps an existing TaskExecutor

@@ -17,8 +17,10 @@
 package org.springframework.integration.test.util;
 
 import static org.hamcrest.CoreMatchers.is;
-import org.hamcrest.Matcher;
 import static org.junit.Assert.assertThat;
+
+import org.hamcrest.Matcher;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.BeanFactory;
@@ -39,9 +41,9 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.ErrorHandler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
