@@ -97,7 +97,7 @@ import org.springframework.util.StringUtils;
  * @author Iwein Fuld
  * @since 2.0
  */
-public class MethodArgumentMessageMapper implements InboundMessageMapper<Object[]>, OutboundMessageMapper<Object[]> {
+public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]>, OutboundMessageMapper<Object[]> {
 
 	private final Method method;
 
@@ -108,7 +108,7 @@ public class MethodArgumentMessageMapper implements InboundMessageMapper<Object[
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
 
-	public MethodArgumentMessageMapper(Method method) {
+	public ArgumentArrayMessageMapper(Method method) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.parameterMetadata = this.initializeParameterMetadata();
@@ -199,16 +199,6 @@ public class MethodArgumentMessageMapper implements InboundMessageMapper<Object[
 				args[i] = message;
 			}
 		}
-		
-		/*if (mappingResult != null && mappingResult.getClass().isArray()
-				&& (Object.class.isAssignableFrom(mappingResult.getClass().getComponentType()))) {
-			args = (Object[]) mappingResult;
-		}
-		else {
-			args = new Object[] { mappingResult };
-		}
-		*/
-
 		if (args.length > 1 && message != null && message.getPayload() instanceof Map) {
 			int mapArgCount = 0;
 			boolean resolvedMapArg = false;

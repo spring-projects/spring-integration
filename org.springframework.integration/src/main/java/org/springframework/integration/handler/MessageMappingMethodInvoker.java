@@ -58,8 +58,8 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 
 	private final HandlerMethodResolver methodResolver;
 
-	private final ConcurrentMap<Method, MethodArgumentMessageMapper> messageMappers =
-			new ConcurrentHashMap<Method, MethodArgumentMessageMapper>();
+	private final ConcurrentMap<Method, ArgumentArrayMessageMapper> messageMappers =
+			new ConcurrentHashMap<Method, ArgumentArrayMessageMapper>();
 
 	private final Map<Method, MethodInvoker> invokers = new HashMap<Method, MethodInvoker>();
 
@@ -215,11 +215,11 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 		return new PayloadTypeMatchingHandlerMethodResolver(candidateMethods);
 	}
 
-	private MethodArgumentMessageMapper resolveMessageMapper(Method method) {
-		MethodArgumentMessageMapper mapper = this.messageMappers.get(method);
+	private ArgumentArrayMessageMapper resolveMessageMapper(Method method) {
+		ArgumentArrayMessageMapper mapper = this.messageMappers.get(method);
 		if (mapper == null) {
-			mapper = new MethodArgumentMessageMapper(method);
-			MethodArgumentMessageMapper existingMapper = this.messageMappers.putIfAbsent(method, mapper);
+			mapper = new ArgumentArrayMessageMapper(method);
+			ArgumentArrayMessageMapper existingMapper = this.messageMappers.putIfAbsent(method, mapper);
 			if (existingMapper != null) {
 				// throw away the one just created, since one was created in the meantime
 				mapper = existingMapper;

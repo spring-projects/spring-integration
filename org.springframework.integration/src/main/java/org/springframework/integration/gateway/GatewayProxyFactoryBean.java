@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.handler.MethodArgumentMessageMapper;
+import org.springframework.integration.handler.ArgumentArrayMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -225,7 +225,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
-				new MethodArgumentMessageMapper(method), new SimpleMessageMapper());
+				new ArgumentArrayMessageMapper(method), new SimpleMessageMapper());
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}

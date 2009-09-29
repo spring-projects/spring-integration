@@ -20,29 +20,29 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.handler.MethodArgumentMessageMapper;
+import org.springframework.integration.handler.ArgumentArrayMessageMapper;
 
 /**
  * @author Mark Fisher
  */
-public class MethodParameterMessageMapperInitializationTests {
+public class ArgumentArrayMessageMapperInitializationTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void messageAndPayload() throws Exception {
 		Method method = TestService.class.getMethod("messageAndPayload", Message.class, String.class);
-		new MethodArgumentMessageMapper(method);
+		new ArgumentArrayMessageMapper(method);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void twoMessages() throws Exception {
 		Method method = TestService.class.getMethod("twoMessages", Message.class, Message.class);
-		new MethodArgumentMessageMapper(method);
+		new ArgumentArrayMessageMapper(method);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void twoPayloads() throws Exception {
 		Method method = TestService.class.getMethod("twoPayloads", String.class, String.class);
-		new MethodArgumentMessageMapper(method);
+		new ArgumentArrayMessageMapper(method);
 	}
 
 
