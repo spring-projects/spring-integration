@@ -35,9 +35,10 @@ public @interface Publisher {
 
 	/**
 	 * String representation of a Spel Expression to evaluate when creating the
-	 * Message payload. Required.
+	 * Message payload. The default will be empty, thereby causing the return
+	 * value to be used as the payload.
 	 */
-	String value();
+	String value() default "";
 
 	/**
 	 * String representations of Spel Expressions to evaluate for adding any

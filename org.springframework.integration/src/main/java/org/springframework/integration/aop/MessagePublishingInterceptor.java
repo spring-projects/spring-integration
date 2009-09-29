@@ -110,30 +110,31 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private void publishMessage(Method method, EvaluationContext context) throws Exception {
 		String payloadExpressionString = this.expressionSource.getPayloadExpression(method);
-		if (payloadExpressionString != null) {
-			Expression expression = this.parser.parseExpression(payloadExpressionString);
-			Object result = expression.getValue(context);
-			if (result != null) {
-				MessageBuilder<?> builder = (result instanceof Message<?>)
-						? MessageBuilder.fromMessage((Message<?>) result)
-						: MessageBuilder.withPayload(result);
-				Map<String, Object> headers = this.evaluateHeaders(method, context);
-				if (headers != null) {
-					builder.copyHeaders(headers);
-				}
-				Message<?> message = builder.build();
-				String channelName = this.expressionSource.getChannelName(method);
-				MessageChannel channel = null;
-				if (channelName != null) {
-					Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
-					channel = this.channelResolver.resolveChannelName(channelName);
-				}
-				if (channel != null) {
-					this.channelTemplate.send(message, channel);
-				}
-				else {
-					this.channelTemplate.send(message);
-				}
+		if (!StringUtils.hasText(payloadExpressionString)) {
+			payloadExpressionString = "#" + this.expressionSource.getReturnValueName(method);
+		}
+		Expression expression = this.parser.parseExpression(payloadExpressionString);
+		Object result = expression.getValue(context);
+		if (result != null) {
+			MessageBuilder<?> builder = (result instanceof Message<?>)
+					? MessageBuilder.fromMessage((Message<?>) result)
+					: MessageBuilder.withPayload(result);
+			Map<String, Object> headers = this.evaluateHeaders(method, context);
+			if (headers != null) {
+				builder.copyHeaders(headers);
+			}
+			Message<?> message = builder.build();
+			String channelName = this.expressionSource.getChannelName(method);
+			MessageChannel channel = null;
+			if (channelName != null) {
+				Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
+				channel = this.channelResolver.resolveChannelName(channelName);
+			}
+			if (channel != null) {
+				this.channelTemplate.send(message, channel);
+			}
+			else {
+				this.channelTemplate.send(message);
 			}
 		}
 	}
