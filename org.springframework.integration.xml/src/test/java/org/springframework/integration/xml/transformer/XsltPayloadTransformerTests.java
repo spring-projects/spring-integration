@@ -26,13 +26,16 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.assertThat;
 import org.w3c.dom.Document;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
+import static org.hamcrest.CoreMatchers.is;
 
 /**
  * @author Jonas Partner
@@ -112,6 +115,13 @@ public class XsltPayloadTransformerTests {
 	public void testUnsupportedPayloadType() throws Exception {
 		transformer.transformPayload(new Long(12));
 	}
+
+    @Test
+    public void testXsltWithImports() throws Exception {
+        Resource resource = new ClassPathResource("transform-with-import.xsl", this.getClass());
+        transformer = new XsltPayloadTransformer(resource);
+        assertThat(transformer.transformString(docAsString), is(outputAsString));
+    }
 
 
 	private Resource getXslResource() throws Exception {
