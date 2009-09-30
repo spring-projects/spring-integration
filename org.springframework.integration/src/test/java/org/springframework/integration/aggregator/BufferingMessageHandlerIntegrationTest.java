@@ -55,8 +55,8 @@ public class BufferingMessageHandlerIntegrationTest {
 	@Test
 	public void completesWithoutReleasingIncompleteCorrellations() throws Exception {
 		Message<?> message1 = correlatedMessage(1, 2, 1);
-		Message<?> message2 = correlatedMessage(2, 2, 2);
-		Message<?> message1a = correlatedMessage(1, 2, 1);
+		Message<?> message2 = correlatedMessage(2, 2, 1);
+		Message<?> message1a = correlatedMessage(1, 2, 2);
 		Message<?> message2a = correlatedMessage(2, 2, 2);
 		defaultHandler.handleMessage(message1);
 		defaultHandler.handleMessage(message2);

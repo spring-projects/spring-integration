@@ -110,15 +110,29 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
         try {
             if (tracker.aquireLockFor(correlationKey)) {
-                store(message, correlationKey);
-                List<Message<?>> all = store.getAll(correlationKey);
-                complete(correlationKey, all, this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
+                List<Message<?>> group = store.getAll(correlationKey);
+                if (noSupersedingMessage(message, group)) {
+                    store(message, correlationKey);
+                    group.add(message);
+                    complete(correlationKey, group, this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
+                } else {
+                    discardChannel.send(message);
+                }
             } else {
                 discardChannel.send(message);
             }
         } finally {
             tracker.unlock(correlationKey);
         }
+    }
+
+    private boolean noSupersedingMessage(Message<?> message, List<Message<?>> group) {
+        for (Message<?> member : group) {
+            if (member.getHeaders().getSequenceNumber() == message.getHeaders().getSequenceNumber()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean complete(Object correlationKey, List<Message<?>> correlatedMessages, MessageChannel messageChannel) {

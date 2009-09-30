@@ -60,22 +60,21 @@ public class BufferingMessageHandlerTest {
     @Test
     public void bufferCompletesNormally() throws Exception {
         String correlationKey = "key";
-        Message<?> message1 = testMessage(1);
-        Message<?> message2 = testMessage(2);
+        Message<?> message1 = testMessage(1, 1);
+        Message<?> message2 = testMessage(2, 2);
         List<Message<?>> storedMessages = new ArrayList<Message<?>>();
+        when(store.getAll(correlationKey)).thenReturn(storedMessages);
 
         when(correlationStrategy.getCorrelationKey(isA(Message.class)))
                 .thenReturn(correlationKey);
         when(completionStrategy.isComplete(storedMessages)).thenReturn(false);
 
-        storedMessages.add(message1);
-        when(store.getAll(correlationKey)).thenReturn(storedMessages);
         buffer.handleMessageInternal(message1);
+        storedMessages.add(message1);
 
-        storedMessages.add(message2);
-        when(store.getAll(correlationKey)).thenReturn(storedMessages);
         when(completionStrategy.isComplete(storedMessages)).thenReturn(true);
         buffer.handleMessageInternal(message2);
+        storedMessages.add(message2);
 
         verify(store).put(message1);
         verify(store).put(message2);
@@ -87,8 +86,8 @@ public class BufferingMessageHandlerTest {
                 processAndSend(eq(correlationKey), eq(storedMessages), eq(outputChannel), isA(BufferedMessagesCallback.class));
     }
 
-    private Message<?> testMessage(int id) {
+    private Message<?> testMessage(int id, int sequenceNumber) {
         return MessageBuilder.withPayload("test").setHeader(MessageHeaders.ID,
-                id).build();
+                id).setSequenceNumber(sequenceNumber).build();
     }
 }

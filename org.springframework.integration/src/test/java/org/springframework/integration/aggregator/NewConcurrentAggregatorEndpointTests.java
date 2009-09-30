@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.aggregator.integration;
+package org.springframework.integration.aggregator;
 
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * @author Marius Bogoevici
  * @author Iwein Fuld
  */
-public class NewAggregatorEndpointTests {
+public class NewConcurrentAggregatorEndpointTests {
 
     private TaskExecutor taskExecutor;
 
@@ -173,22 +173,6 @@ public class NewAggregatorEndpointTests {
     }
 
     @Test
-    public void testDiscardChannelForTrackedCorrelationId() {
-        this.aggregator.start();
-        QueueChannel replyChannel = new QueueChannel();
-        QueueChannel discardChannel = new QueueChannel();
-        this.aggregator.setDiscardChannel(discardChannel);
-        this.aggregator.handleMessage(createMessage(1, "tracked", 1, 1, replyChannel, null));
-        Message<?> received1 = replyChannel.receive(100);
-        assertEquals(1, received1.getPayload());
-        assertNotNull("Expected aggregated message, but got null", received1);
-        this.aggregator.handleMessage(createMessage(2, "tracked", 1, 1, replyChannel, null));
-        Message<?> received2 = discardChannel.receive(1000);
-        assertNotNull("Expected discarded message, but got null", received2);
-        assertEquals(2, received2.getPayload());
-    }
-
-    @Test
     @Ignore
     //dropped backwards compatibility for setting capacity limit (it's always Integer.MAX_VALUE)
     public void testTrackedCorrelationIdsCapacityAtLimit() {
@@ -237,7 +221,7 @@ public class NewAggregatorEndpointTests {
         this.aggregator.handleMessage(message);
     }
 
-    @Test 
+    @Test
     public void testAdditionalMessageAfterCompletion() throws InterruptedException {
         this.aggregator.start();
         QueueChannel replyChannel = new QueueChannel();
@@ -251,8 +235,6 @@ public class NewAggregatorEndpointTests {
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
         latch.await(1000, TimeUnit.MILLISECONDS);
-        //small wait to make sure the fourth message is received
-        Thread.sleep(10);
         Message<?> reply = replyChannel.receive(0);
         assertNotNull("A message should be aggregated", reply);
         assertThat(((Integer) reply.getPayload()), is(105));
