@@ -23,9 +23,8 @@ import org.springframework.integration.core.Message;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
- * 
  * @author Iwein Fuld
- *
+ * @author Mark Fisher
  */
 @SuppressWarnings("unchecked")
 public class DefaultInboundRequestMapperTests {
@@ -59,4 +58,16 @@ public class DefaultInboundRequestMapperTests {
 		Message<String> message = (Message<String>) mapper.toMessage(request);
 		assertThat(message.getPayload(), is(COMPLEX_STRING));
 	}
+
+	@Test
+	public void newlineTest() throws Exception {
+		String content = "foo\nbar\n";
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setContentType("text");
+		byte[] bytes = content.getBytes();
+		request.setContent(bytes);
+		Message<String> message = (Message<String>) mapper.toMessage(request);
+		assertThat(message.getPayload(), is(content));
+	}
+
 }

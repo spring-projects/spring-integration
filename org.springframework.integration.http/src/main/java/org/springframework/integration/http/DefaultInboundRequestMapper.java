@@ -212,10 +212,13 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	private Object createPayloadFromTextContent(HttpServletRequest request) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		BufferedReader reader = request.getReader();
-		String line = reader.readLine();
-		while (line != null) {
-			sb.append(line);
-			line = reader.readLine();
+		int contentLength = request.getContentLength();
+		int bufferLength = (contentLength > -1) ? contentLength : 1024;
+		char[] buffer = new char[bufferLength];
+		int charsRead = 0;
+		while ((charsRead = reader.read(buffer, 0, bufferLength)) != -1) {
+			sb.append(buffer, 0, charsRead);
+			buffer = new char[bufferLength];
 		}
 		return sb.toString();
 	}
