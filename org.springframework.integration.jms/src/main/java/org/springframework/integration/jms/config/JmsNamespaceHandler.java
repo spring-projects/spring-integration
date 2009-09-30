@@ -34,7 +34,7 @@ public class JmsNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("outbound-gateway", new JmsOutboundGatewayParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new JmsOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("header-enricher",
-				new SimpleHeaderEnricherParser(JmsHeaders.PREFIX, new String[] { "reply-to" }));
+				new SimpleHeaderEnricherParser(JmsHeaders.PREFIX, new String[] { "replyTo" }));
 	}
 
 }
