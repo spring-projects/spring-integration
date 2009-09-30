@@ -216,7 +216,7 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 		int bufferLength = (contentLength > -1) ? contentLength : 1024;
 		char[] buffer = new char[bufferLength];
 		int charsRead = 0;
-		while ((charsRead = reader.read(buffer, 0, bufferLength)) != -1) {
+		while (reader.ready() && (charsRead = reader.read(buffer, 0, bufferLength)) != -1) {
 			sb.append(buffer, 0, charsRead);
 			buffer = new char[bufferLength];
 		}

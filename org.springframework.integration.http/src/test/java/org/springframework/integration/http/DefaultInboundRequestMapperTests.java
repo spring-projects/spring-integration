@@ -70,4 +70,15 @@ public class DefaultInboundRequestMapperTests {
 		assertThat(message.getPayload(), is(content));
 	}
 
+	@Test
+	public void emptyStringTest() throws Exception {
+		String content = "";
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setContentType("text");
+		byte[] bytes = content.getBytes();
+		request.setContent(bytes);
+		Message<String> message = (Message<String>) mapper.toMessage(request);
+		assertThat(message.getPayload(), is(content));
+	}
+
 }
