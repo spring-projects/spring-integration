@@ -81,7 +81,7 @@ public class PNamespaceTest {
 		DirectFieldAccessor saAccessor = new DirectFieldAccessor(serviceActivator);
 		Object handler =  saAccessor.getPropertyValue("handler");
 		DirectFieldAccessor hAccessor = new DirectFieldAccessor(handler);
-		Object invoker =  hAccessor.getPropertyValue("invoker");
+		Object invoker =  hAccessor.getPropertyValue("processor");
 		DirectFieldAccessor iAccessor = new DirectFieldAccessor(invoker);
 		return  (TestBean) iAccessor.getPropertyValue("object");
 	}

@@ -115,15 +115,15 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		this.payloadParameterMetadata = getPayloadParameterFrom(this.parameterMetadata);
 	}
 
-	public Message<?> toMessage(Object[] parameters) {
-		Assert.isTrue(!ObjectUtils.isEmpty(parameters), "parameter array is required");
-		Assert.isTrue(parameters.length == this.parameterMetadata.length, "wrong number of parameters: expected "
-				+ this.parameterMetadata.length + ", received " + parameters.length);
+	public Message<?> toMessage(Object[] arguments) {
+		Assert.isTrue(!ObjectUtils.isEmpty(arguments), "argument array is required");
+		Assert.isTrue(arguments.length == this.parameterMetadata.length, "wrong number of arguments: expected "
+				+ this.parameterMetadata.length + ", received " + arguments.length);
 		Message<?> message = null;
 		Object payload = null;
 		Map<String, Object> headers = new HashMap<String, Object>();
-		for (int i = 0; i < parameters.length; i++) {
-			Object value = parameters[i];
+		for (int i = 0; i < arguments.length; i++) {
+			Object value = arguments[i];
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
 			Header headerAnnotation = metadata.getHeaderAnnotation();
 			if (metadata == payloadParameterMetadata) {

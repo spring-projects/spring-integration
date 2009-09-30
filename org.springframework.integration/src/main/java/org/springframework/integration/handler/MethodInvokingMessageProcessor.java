@@ -48,11 +48,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
- * @see MethodParameterMessageMapper
+ * @see ArgumentArrayMessageMapper
  */
-public class MessageMappingMethodInvoker implements MessageProcessor {
+public class MethodInvokingMessageProcessor implements MessageProcessor {
 
-	protected static final Log logger = LogFactory.getLog(MessageMappingMethodInvoker.class);
+	protected static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessor.class);
 
 	private volatile Object object;
 
@@ -66,25 +66,25 @@ public class MessageMappingMethodInvoker implements MessageProcessor {
 	private final Set<Method> methodsExpectingMessage = new HashSet<Method>();
 
 
-	public MessageMappingMethodInvoker(Object object, Method method) {
+	public MethodInvokingMessageProcessor(Object object, Method method) {
 		Assert.notNull(object, "object must not be null");
 		Assert.notNull(method, "method must not be null");
 		this.object = object;
 		this.methodResolver = new StaticHandlerMethodResolver(method);
 	}
 
-	public MessageMappingMethodInvoker(Object object, Class<? extends Annotation> annotationType) {
+	public MethodInvokingMessageProcessor(Object object, Class<? extends Annotation> annotationType) {
 		Assert.notNull(object, "object must not be null");
 		Assert.notNull(annotationType, "annotation type must not be null");
 		this.object = object;
 		this.methodResolver = this.createResolverForAnnotation(annotationType);
 	}
 
-    public MessageMappingMethodInvoker(Object object, String methodName) {
+    public MethodInvokingMessageProcessor(Object object, String methodName) {
         this(object, methodName, false);
     }
 
-	public MessageMappingMethodInvoker(Object object, String methodName, boolean requiresReturnValue) {
+	public MethodInvokingMessageProcessor(Object object, String methodName, boolean requiresReturnValue) {
 		Assert.notNull(object, "object must not be null");
 		Assert.notNull(methodName, "methodName must not be null");
 		this.object = object;

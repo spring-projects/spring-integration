@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,26 +27,26 @@ import org.springframework.integration.message.MessageHandlingException;
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
 
-	private final MessageMappingMethodInvoker invoker;
+	private final MethodInvokingMessageProcessor processor;
 
 
 	public ServiceActivatingHandler(final Object object) {
-		this.invoker = new MessageMappingMethodInvoker(object, ServiceActivator.class);
+		this.processor = new MethodInvokingMessageProcessor(object, ServiceActivator.class);
 	}
 
 	public ServiceActivatingHandler(Object object, Method method) {
-		this.invoker = new MessageMappingMethodInvoker(object, method);
+		this.processor = new MethodInvokingMessageProcessor(object, method);
 	}
 
 	public ServiceActivatingHandler(Object object, String methodName) {
-		this.invoker = new MessageMappingMethodInvoker(object, methodName);
+		this.processor = new MethodInvokingMessageProcessor(object, methodName);
 	}
 
 
 	@Override
 	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		try {
-			Object result = this.invoker.processMessage(message);
+			Object result = this.processor.processMessage(message);
 			if (result != null) {
 				replyHolder.set(result);
 			}
@@ -60,7 +60,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	}
 
 	public String toString() {
-		return "ServiceActivator for [" + this.invoker + "]";
+		return "ServiceActivator for [" + this.processor + "]";
 	}
 
 }

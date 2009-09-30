@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 
 /**
  * A Message Router that invokes the specified method on the given object. The
@@ -34,15 +34,15 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
 public class MethodInvokingRouter extends AbstractMessageProcessingRouter {
 
 	public MethodInvokingRouter(Object object, Method method) {
-		super(new MessageMappingMethodInvoker(object, method));
+		super(new MethodInvokingMessageProcessor(object, method));
 	}
 
 	public MethodInvokingRouter(Object object, String methodName) {
-		super(new MessageMappingMethodInvoker(object, methodName));
+		super(new MethodInvokingMessageProcessor(object, methodName));
 	}
 
 	public MethodInvokingRouter(Object object) {
-		super(new MessageMappingMethodInvoker(object, Router.class));
+		super(new MethodInvokingMessageProcessor(object, Router.class));
 	}
 
 }

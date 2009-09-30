@@ -18,7 +18,7 @@ package org.springframework.integration.filter;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 
 	public MethodInvokingSelector(Object object, Method method) {
-		super(new MessageMappingMethodInvoker(object, method));
+		super(new MethodInvokingMessageProcessor(object, method));
 		Class<?> returnType = method.getReturnType();
 		Assert.isTrue(boolean.class.isAssignableFrom(returnType)
 				|| Boolean.class.isAssignableFrom(returnType),
@@ -38,7 +38,7 @@ public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 	}
 
 	public MethodInvokingSelector(Object object, String methodName) {
-		super(new MessageMappingMethodInvoker(object, methodName));
+		super(new MethodInvokingMessageProcessor(object, methodName));
 	}
 
 }

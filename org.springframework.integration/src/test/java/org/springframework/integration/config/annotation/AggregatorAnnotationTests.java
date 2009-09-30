@@ -113,7 +113,7 @@ public class AggregatorAnnotationTests {
         Assert.assertTrue(correlationStrategy instanceof CorrelationStrategyAdapter);
         CorrelationStrategyAdapter completionStrategyAdapter = (CorrelationStrategyAdapter) correlationStrategy;
         DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(
-                new DirectFieldAccessor(completionStrategyAdapter).getPropertyValue("invoker"));
+                new DirectFieldAccessor(completionStrategyAdapter).getPropertyValue("processor"));
         Object targetObject = invokerAccessor.getPropertyValue("object");
         assertSame(context.getBean(endpointName), targetObject);
         HandlerMethodResolver completionCheckerMethodResolver = (HandlerMethodResolver) invokerAccessor.getPropertyValue("methodResolver");

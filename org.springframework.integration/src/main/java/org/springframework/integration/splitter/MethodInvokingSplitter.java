@@ -19,7 +19,7 @@ package org.springframework.integration.splitter;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 
 /**
  * A Message Splitter implementation that invokes the specified method
@@ -33,15 +33,15 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
 public class MethodInvokingSplitter extends AbstractMessageProcessingSplitter {
 
 	public MethodInvokingSplitter(Object object, Method method) {
-		super(new MessageMappingMethodInvoker(object, method));
+		super(new MethodInvokingMessageProcessor(object, method));
 	}
 
 	public MethodInvokingSplitter(Object object, String methodName) {
-		super(new MessageMappingMethodInvoker(object, methodName));
+		super(new MethodInvokingMessageProcessor(object, methodName));
 	}
 
 	public MethodInvokingSplitter(Object object) {
-		super(new MessageMappingMethodInvoker(object, Splitter.class));
+		super(new MethodInvokingMessageProcessor(object, Splitter.class));
 	}
 
 }

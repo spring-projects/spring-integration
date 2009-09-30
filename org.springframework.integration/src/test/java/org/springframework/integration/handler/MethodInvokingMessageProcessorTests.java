@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,79 +36,79 @@ import org.springframework.integration.message.StringMessage;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessageMappingMethodInvokerTests {
+public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptPayloadAndReturnObject");
-		Object result = invoker.processMessage(new StringMessage("testing"));
+		Object result = processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-1", result);
 	}
 
 	@Test
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptPayloadAndReturnMessage");
-		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-2", result.getPayload());
 	}
 
 	@Test
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptMessageAndReturnObject");
-		Object result = invoker.processMessage(new StringMessage("testing"));
+		Object result = processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-3", result);
 	}
 
 	@Test
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptMessageAndReturnMessage");
-		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-4", result.getPayload());
 	}
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptMessageSubclassAndReturnMessage");
-		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-5", result.getPayload());
 	}
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptMessageSubclassAndReturnMessageSubclass");
-		Message<?> result = (Message<?>) invoker.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-6", result.getPayload());
 	}
 
 	@Test
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptPayloadAndHeaderAndReturnObject");
 		Message<?> request = MessageBuilder.withPayload("testing")
 				.setHeader("number", new Integer(123)).build();
-		Object result = invoker.processMessage(request);
+		Object result = processor.processMessage(request);
 		assertEquals("testing-123", result);
 	}
 
     @Test
     public void testVoidMethodsIncludedbyDefault() {
-        MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "testVoidReturningMethods");
-        assertNull(invoker.processMessage(MessageBuilder.withPayload("Something").build()));
-        assertEquals(12, invoker.processMessage(MessageBuilder.withPayload(12).build()));
+        MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods");
+        assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
+        assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
     }
 
     @Test
     public void testVoidMethodsExcludedByFlag() {
-        MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "testVoidReturningMethods", true);
-        assertEquals(12, invoker.processMessage(MessageBuilder.withPayload(12).build()));
+        MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods", true);
+        assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
         try {
-            assertNull(invoker.processMessage(MessageBuilder.withPayload("Something").build()));
+            assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
             fail();
         } catch(IllegalArgumentException ex){
 
@@ -119,8 +119,8 @@ public class MessageMappingMethodInvokerTests {
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageOnly", Message.class);
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.processMessage(new StringMessage("foo"));
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		Object result = processor.processMessage(new StringMessage("foo"));
 		assertEquals("foo", result);
 	}
 
@@ -128,8 +128,8 @@ public class MessageMappingMethodInvokerTests {
 	public void payloadWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.processMessage(new GenericMessage<Integer>(new Integer(123)));
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		Object result = processor.processMessage(new GenericMessage<Integer>(new Integer(123)));
 		assertEquals(new Integer(123), result);
 	}
 
@@ -137,8 +137,8 @@ public class MessageMappingMethodInvokerTests {
 	public void convertedPayloadWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.processMessage(new StringMessage("456"));
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		Object result = processor.processMessage(new StringMessage("456"));
 		assertEquals(new Integer(456), result);
 	}
 
@@ -146,8 +146,8 @@ public class MessageMappingMethodInvokerTests {
 	public void conversionFailureWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Object result = invoker.processMessage(new StringMessage("foo"));
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		Object result = processor.processMessage(new StringMessage("foo"));
 		assertEquals(new Integer(123), result);
 	}
 
@@ -155,10 +155,10 @@ public class MessageMappingMethodInvokerTests {
 	public void messageAndHeaderWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 42).build();
-		Object result = invoker.processMessage(message);
+		Object result = processor.processMessage(message);
 		assertEquals("foo-42", result);
 	}
 
@@ -166,15 +166,16 @@ public class MessageMappingMethodInvokerTests {
 	public void multipleHeadersWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("twoHeaders", String.class, Integer.class);
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar")
 				.setHeader("number", 42).build();
-		Object result = invoker.processMessage(message);
+		Object result = processor.processMessage(message);
 		assertEquals("bar-42", result);
 	}
 
 
+	@SuppressWarnings("unused")
 	private static class TestBean {
 
 		public String acceptPayloadAndReturnObject(String s) {
@@ -215,6 +216,8 @@ public class MessageMappingMethodInvokerTests {
 
 	}
 
+
+	@SuppressWarnings("unused")
 	private static class AnnotatedTestService {
 
 		public String messageOnly(Message<?> message) {

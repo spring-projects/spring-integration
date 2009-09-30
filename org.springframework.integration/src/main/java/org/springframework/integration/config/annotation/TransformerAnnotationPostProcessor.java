@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.transformer.MessageProcessingTransformer;
@@ -41,7 +41,7 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, Transformer annotation) {
-		MessageProcessor messageProcessor = new MessageMappingMethodInvoker(bean, method);
+		MessageProcessor messageProcessor = new MethodInvokingMessageProcessor(bean, method);
 		MessageProcessingTransformer transformer = new MessageProcessingTransformer(messageProcessor);
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		String outputChannelName = annotation.outputChannel();

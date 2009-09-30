@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingMessageHandler extends MessageMappingMethodInvoker implements MessageHandler, Ordered {
+public class MethodInvokingMessageHandler extends MethodInvokingMessageProcessor implements MessageHandler, Ordered {
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 

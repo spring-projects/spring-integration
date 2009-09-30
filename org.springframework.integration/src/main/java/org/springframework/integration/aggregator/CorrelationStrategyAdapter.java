@@ -19,7 +19,7 @@ package org.springframework.integration.aggregator;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.handler.MessageMappingMethodInvoker;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -29,11 +29,11 @@ import org.springframework.util.Assert;
  */
 public class CorrelationStrategyAdapter implements CorrelationStrategy {
 
-	private final MessageMappingMethodInvoker invoker;
+	private final MethodInvokingMessageProcessor processor;
 
 
 	public CorrelationStrategyAdapter(Object object, String methodName) {
-		this.invoker = new MessageMappingMethodInvoker(object, methodName, true);
+		this.processor = new MethodInvokingMessageProcessor(object, methodName, true);
 	}
 
 	public CorrelationStrategyAdapter(Object object, Method method) {
@@ -41,11 +41,11 @@ public class CorrelationStrategyAdapter implements CorrelationStrategy {
 		Assert.notNull(method, "'method' must not be null");
 		Assert.isTrue(method.getParameterTypes().length == 1, "Method must accept exactly one parameter");
 		Assert.isTrue(!Void.TYPE.equals(method.getReturnType()), "Method return type must not be void");
-		this.invoker = new MessageMappingMethodInvoker(object, method);
+		this.processor = new MethodInvokingMessageProcessor(object, method);
 	}
 
 	public Object getCorrelationKey(Message<?> message) {
-		return invoker.processMessage(message);
+		return processor.processMessage(message);
 	}
 
 }
