@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
+
+	<jms:channel id="queueReferenceChannel" queue="testQueue"/>
+
+	<jms:channel id="queueNameChannel" queue-name="test.queue"/>
+
+	<jms:channel id="queueNameWithResolverChannel" queue-name="foo"
+			     destination-resolver="destinationResolver" connection-factory="connFact"/>
+
+	<jms:publish-subscribe-channel id="topicReferenceChannel" topic="testTopic"/>
+
+	<jms:publish-subscribe-channel id="topicNameChannel" topic-name="test.topic"/>
+
+	<jms:publish-subscribe-channel id="topicNameWithResolverChannel" topic-name="foo"
+			     destination-resolver="destinationResolver" connection-factory="connFact"/>
+
+	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<property name="physicalName" value="test.queue"/>
+	</bean>
+
+	<bean id="testTopic" class="org.apache.activemq.command.ActiveMQTopic">
+		<property name="physicalName" value="test.topic"/>
+	</bean>
+
+	<bean id="destinationResolver"
+		  class="org.springframework.integration.jms.config.JmsChannelParserTests$TestDestinationResolver"/>
+
+	<bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="vm://localhost?broker.persistent=false"/>
+	</bean>
+
+	<alias name="connectionFactory" alias="connFact"/>
+
+</beans>

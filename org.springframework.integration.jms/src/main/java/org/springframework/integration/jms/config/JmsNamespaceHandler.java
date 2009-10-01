@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
+import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
 import org.springframework.integration.config.xml.SimpleHeaderEnricherParser;
 import org.springframework.integration.jms.JmsHeaders;
@@ -33,6 +34,9 @@ public class JmsNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new JmsInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-gateway", new JmsOutboundGatewayParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new JmsOutboundChannelAdapterParser());
+		BeanDefinitionParser channelParser = new JmsChannelParser();
+		this.registerBeanDefinitionParser("channel", channelParser);
+		this.registerBeanDefinitionParser("publish-subscribe-channel", channelParser);
 		this.registerBeanDefinitionParser("header-enricher",
 				new SimpleHeaderEnricherParser(JmsHeaders.PREFIX, new String[] { "replyTo" }));
 	}

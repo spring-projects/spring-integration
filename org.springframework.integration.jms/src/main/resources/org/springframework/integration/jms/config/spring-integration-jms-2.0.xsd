@@ -19,6 +19,90 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
+	<xsd:element name="channel">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Message Channel that is backed by a JMS Queue.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="queue" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Reference to a JMS Queue. Either this attribute or the 'queue-name'
+	must be provided, but only one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="queue-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Name of a JMS Queue to be resolved by this channel's DestinationResolver.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="publish-subscribe-channel">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Message Channel that is backed by a JMS Topic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="topic" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Reference to a JMS Topic. Either this attribute or the 'topic-name'
+	must be provided, but only one.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="topic-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Name of a JMS Topic to be resolved by this channel's DestinationResolver.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="channelType">
+		<xsd:attribute name="id" type="xsd:ID" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+	ID for this channel. Required.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="connection-factory" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to a JMS ConnectionFactory. If none is provided, the default
+	bean name for the reference will be "connectionFactory".
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="destination-resolver" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to a DestinationResolver. If none is provided, the default will
+	be a DynamicDestinationResolver.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
 	<xsd:element name="message-driven-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
