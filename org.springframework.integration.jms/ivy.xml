@@ -21,6 +21,8 @@
 
 	<dependencies>
 		<dependency org="javax.jms" name="com.springsource.javax.jms" rev="1.1.0" conf="provided->runtime"/>
+		<dependency org="org.apache.activemq" name="com.springsource.org.apache.activemq" rev="5.2.0" conf="test->runtime"/>
+		<dependency org="org.apache.geronimo.specs" name="com.springsource.javax.management.j2ee" rev="1.0.1" conf="test->runtime"/>
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="${junit.version}" conf="test->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.jms" rev="${spring.version}" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
