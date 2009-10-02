@@ -12,7 +12,7 @@
   <packaging>pom</packaging>
   <properties>
     <org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
-    <junit.version>4.6</junit.version>
+    <junit.version>4.7</junit.version>
     <spring.version>3.0.0.RC1</spring.version>
 	<maven.test.failure.ignore>true</maven.test.failure.ignore>
   </properties>
@@ -66,7 +66,30 @@
       </build>
     </profile>
   </profiles>
+  <distributionManagement>
+    <site>
+      <id>staging</id>
+      <url>file:///${user.dir}/target/staging</url>
+    </site>
+    <repository>
+      <id>spring-milestone</id>
+      <name>Spring Milestone Repository</name>
+      <url>s3://maven.springframework.org/milestone</url>
+    </repository>
+    <snapshotRepository>
+      <id>spring-snapshot</id>
+      <name>Spring Snapshot Repository</name>
+      <url>s3://maven.springframework.org/snapshot</url>
+    </snapshotRepository>
+  </distributionManagement>
   <build>
+    <extensions>
+      <extension>
+        <groupId>org.springframework.build.aws</groupId>
+        <artifactId>org.springframework.build.aws.maven</artifactId>
+        <version>2.0.0.RELEASE</version>
+      </extension>
+    </extensions>
 	<resources>
 		<resource>
 			<directory>${project.basedir}/src/main/java
