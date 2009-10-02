@@ -18,9 +18,22 @@ package org.springframework.integration.http;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
+
 import org.springframework.integration.core.Message;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.support.DefaultMultipartHttpServletRequest;
 
 /**
  * @author Iwein Fuld
@@ -79,6 +92,23 @@ public class DefaultInboundRequestMapperTests {
 		request.setContent(bytes);
 		Message<String> message = (Message<String>) mapper.toMessage(request);
 		assertThat(message.getPayload(), is(content));
+	}
+
+	@Test
+	public void multipartUpload() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		MultiValueMap<String, MultipartFile> files = new LinkedMultiValueMap<String, MultipartFile>();
+		MultipartFile file = new StubMultipartFile("file", "testFile.txt", "foo");
+		files.add("file", file);
+		Map<String, String[]> params = new HashMap<String, String[]>();
+		MultipartHttpServletRequest multipartRequest = new DefaultMultipartHttpServletRequest(request, files, params);
+		mapper.setCopyUploadedFiles(true);
+		Message<?> result = mapper.toMessage(multipartRequest);
+		File tmpFile = (File) ((Map) result.getPayload()).get("file");
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		FileCopyUtils.copy(new FileInputStream(tmpFile), baos);
+		assertThat(baos.toString(), is("foo"));
+		tmpFile.deleteOnExit();
 	}
 
 }

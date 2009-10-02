@@ -17,6 +17,7 @@
 package org.springframework.integration.http;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -76,7 +77,9 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 
 	private volatile MultipartResolver multipartResolver;
 
-	private String multipartCharset = null;
+	private volatile String multipartCharset = null;
+
+	private volatile boolean copyUploadedFiles; 
 
 
 	/**
@@ -96,6 +99,17 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 		this.multipartCharset = multipartCharset;
 	}
 
+	/**
+	 * Specify whether uploaded multipart files should be copied to a temporary
+	 * file on the server. If this is set to 'true', the payload map will
+	 * contain a File instance as the value for each multipart file entry.
+	 * Otherwise the uploaded file's content will be converted to either a
+	 * String or byte array based on the content-type (String for "text/*" and
+	 * byte array otherwise). The default value is false.
+	 */
+	public void setCopyUploadedFiles(boolean copyUploadedFiles) {
+		this.copyUploadedFiles = copyUploadedFiles;
+	}
 
 	public Message<?> toMessage(HttpServletRequest request) throws Exception {
 		try {
@@ -185,8 +199,20 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 		Map<String, MultipartFile> fileMap = (Map<String, MultipartFile>) multipartRequest.getFileMap();
 		for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
 			MultipartFile multipartFile = entry.getValue();
+			if (multipartFile.isEmpty()) {
+				continue;
+			}
 			try {
-				if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
+				if (this.copyUploadedFiles) {
+					File tmpFile = File.createTempFile("si_", null);
+					multipartFile.transferTo(tmpFile);
+					payloadMap.put(entry.getKey(), tmpFile);
+					if (logger.isDebugEnabled()) {
+						logger.debug("copied uploaded file [" + multipartFile.getOriginalFilename() +
+								"] to temporary file [" + tmpFile.getAbsolutePath() + "]");
+					}
+				}
+				else if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
 					String multipartFileAsString = this.multipartCharset != null ?
 							new String(multipartFile.getBytes(), this.multipartCharset) :
 							new String(multipartFile.getBytes());
