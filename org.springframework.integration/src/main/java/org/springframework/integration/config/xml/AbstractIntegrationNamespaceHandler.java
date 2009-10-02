@@ -19,6 +19,8 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -28,6 +30,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Base class for NamespaceHandlers that registers a BeanFactoryPostProcessor
@@ -57,7 +60,16 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 	}
 
 	private void registerDefaultConfiguringBeanFactoryPostProcessorIfNecessary(ParserContext parserContext) {
-		if (!parserContext.getRegistry().isBeanNameInUse(DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME)) {
+		boolean alreadyRegistered = false;
+		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
+			alreadyRegistered = ObjectUtils.containsElement(
+					BeanFactoryUtils.beanNamesIncludingAncestors((ListableBeanFactory) parserContext.getRegistry()),
+					DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
+		}
+		else {
+			alreadyRegistered = parserContext.getRegistry().isBeanNameInUse(DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
+		}
+		if (!alreadyRegistered) {
 			BeanDefinitionBuilder postProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".config.xml." + DEFAULT_CONFIGURING_POSTPROCESSOR_SIMPLE_CLASS_NAME);
 			BeanDefinitionHolder postProcessorHolder = new BeanDefinitionHolder(
