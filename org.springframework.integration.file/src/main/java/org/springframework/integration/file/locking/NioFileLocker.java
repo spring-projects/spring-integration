@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file.locking;
 
-import org.springframework.integration.file.FileListFilter;
 import org.springframework.integration.file.AbstractFileListFilter;
 import org.springframework.integration.core.MessagingException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileLock;
-import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,8 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @since 2.0
  */
 public class NioFileLocker extends AbstractFileListFilter implements FileLocker {
+
     private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<File, FileLock>();
 
     public boolean lock(File fileToLock) {
@@ -42,7 +43,8 @@ public class NioFileLocker extends AbstractFileListFilter implements FileLocker 
             FileLock newLock = null;
             try {
                 newLock = FileChannelCache.tryLockFor(fileToLock);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new MessagingException("Failed to lock file: " + fileToLock, e);
             }
             if (newLock != null) {
@@ -60,7 +62,8 @@ public class NioFileLocker extends AbstractFileListFilter implements FileLocker 
                 fileLock.release();
             }
             FileChannelCache.closeChannelFor(fileToUnlock);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new MessagingException("Failed to unlock file: " + fileToUnlock, e);
         }
     }
@@ -68,4 +71,5 @@ public class NioFileLocker extends AbstractFileListFilter implements FileLocker 
     protected boolean accept(File file) {
         return this.lock(file);
     }
+
 }
