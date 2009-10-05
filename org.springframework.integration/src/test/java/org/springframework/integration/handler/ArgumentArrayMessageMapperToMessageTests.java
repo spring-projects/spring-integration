@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
+import org.springframework.integration.annotation.MessageMapping;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.ArgumentArrayMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
