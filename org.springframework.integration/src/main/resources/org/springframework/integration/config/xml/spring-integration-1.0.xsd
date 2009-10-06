@@ -686,7 +686,7 @@
 						<xsd:element ref="router" />
 						<xsd:element ref="delayer" />
 						<xsd:element ref="chain" />
-						<xsd:element ref="poller" />
+						<xsd:element name="poller" type="innerPollerType" />
 					</xsd:choice>
 				</xsd:extension>
 			</xsd:complexContent>

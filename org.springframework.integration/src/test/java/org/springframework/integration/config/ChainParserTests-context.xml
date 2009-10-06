@@ -6,7 +6,11 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="pollableInput">
+	<channel id="pollableInput1">
+		<queue />
+	</channel>
+
+	<channel id="pollableInput2">
 		<queue />
 	</channel>
 
@@ -32,13 +36,22 @@
 		<service-activator ref="testHandler" />
 	</chain>
 
-	<chain input-channel="pollableInput" output-channel="output">
+	<chain input-channel="pollableInput1" output-channel="output">
 		<poller>
 			<interval-trigger interval="10000" />
 		</poller>
 		<filter ref="typeSelector" />
 		<service-activator ref="testHandler" />
 	</chain>
+
+	<chain input-channel="pollableInput2" output-channel="output">
+		<poller ref="topLevelPoller"/>
+		<service-activator ref="testHandler" />
+	</chain>
+
+	<poller id="topLevelPoller">
+		<interval-trigger interval="5000" />
+	</poller>
 
 	<chain input-channel="beanInput" output-channel="output">
 		<beans:bean
