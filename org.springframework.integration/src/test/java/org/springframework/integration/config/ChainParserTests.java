@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package org.springframework.integration.config;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -52,8 +50,12 @@ public class ChainParserTests  {
 	private MessageChannel filterInput;
 
 	@Autowired
-	@Qualifier("pollableInput")
-	private MessageChannel pollableInput;
+	@Qualifier("pollableInput1")
+	private MessageChannel pollableInput1;
+
+	@Autowired
+	@Qualifier("pollableInput2")
+	private MessageChannel pollableInput2;
 
 	@Autowired
 	@Qualifier("headerEnricherInput")
@@ -107,14 +109,23 @@ public class ChainParserTests  {
 	}
 
 	@Test
-	public void chainWithPollableInput() {	
+	public void chainWithPollableInput() {
 		Message<?> message = MessageBuilder.withPayload("test").build();
-		this.pollableInput.send(message);
+		this.pollableInput1.send(message);
 		Message<?> reply = this.output.receive(3000);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
 	}
-	
+
+	@Test
+	public void chainWithPollerReference() {
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		this.pollableInput2.send(message);
+		Message<?> reply = this.output.receive(3000);
+		assertNotNull(reply);
+		assertEquals("foo", reply.getPayload());
+	}
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void chainHandlerBean() throws Exception {
