@@ -220,7 +220,7 @@ public class FooService {
       parameter. Instead, the method parameter type can match the message's payload type.
       <programlisting language="java">public class FooService {
 
-    @Handler
+    @ServiceActivator
     public void bar(<emphasis>Foo foo</emphasis>) {
         ...
     }
