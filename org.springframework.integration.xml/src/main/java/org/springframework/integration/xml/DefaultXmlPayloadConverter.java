@@ -33,67 +33,72 @@ import org.xml.sax.InputSource;
 /**
  * Default implementation of {@link XmlPayloadConverter}.
  * Supports {@link Document} and {@link String}.
- * 
+ *
  * @author Jonas Partner
  */
 public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 
-	private DocumentBuilderFactory documentBuilderFactory;
+    private DocumentBuilderFactory documentBuilderFactory;
 
 
-	public DefaultXmlPayloadConverter() {
-		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
-		this.documentBuilderFactory.setNamespaceAware(true);
-	}
+    public DefaultXmlPayloadConverter() {
+        this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        this.documentBuilderFactory.setNamespaceAware(true);
+    }
 
-	public DefaultXmlPayloadConverter(DocumentBuilderFactory documentBuilderFactory) {
-		this.documentBuilderFactory = documentBuilderFactory;
-	}
+    public DefaultXmlPayloadConverter(DocumentBuilderFactory documentBuilderFactory) {
+        this.documentBuilderFactory = documentBuilderFactory;
+    }
 
 
-	public Document convertToDocument(Object object) {
-		if (object instanceof Document) {
-			return (Document) object;
-		}
-		if (object instanceof String) {
-			try {
-				return getDocumentBuilder().parse(new InputSource(new StringReader((String) object)));
-			}
-			catch (Exception e) {
-				throw new MessagingException("failed to parse String payload '" + object + "'", e);
-			}
-		}
-		throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
-	}
+    public Document convertToDocument(Object object) {
+        if (object instanceof Document) {
+            return (Document) object;
+        }
+        if (object instanceof String) {
+            try {
+                return getDocumentBuilder().parse(new InputSource(new StringReader((String) object)));
+            }
+            catch (Exception e) {
+                throw new MessagingException("failed to parse String payload '" + object + "'", e);
+            }
+        }
+        throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+    }
 
-	public Node convertToNode(Object object) {
-		if (object instanceof Node){
-			return (Node) object;
-		}
-		return convertToDocument(object);
-	}
-	
-	public Source convertToSource(Object object){
-		Source source;
-		if(object instanceof Source){
-			source = (Source)object;
-		} else if (object instanceof Document){
-			source = new DOMSource((Document)object);
-		} else if (object instanceof String){
-			source = new StringSource((String)object);
-		} else {
-			throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
-		}
-		return source;
-	}
+    public Node convertToNode(Object object) {
+        Node n = null;
+        if (object instanceof Node) {
+            n = (Node) object;
+        } else if (object instanceof DOMSource) {
+            n = ((DOMSource) object).getNode();
+        } else {
+            n = convertToDocument(object);
+        }
+        return n;
+    }
 
-	protected synchronized DocumentBuilder getDocumentBuilder() {
-		try {
-			return this.documentBuilderFactory.newDocumentBuilder();
-		}
-		catch (ParserConfigurationException e) {
-			throw new MessagingException("failed to create a new DocumentBuilder", e);
-		}
-	}
+    public Source convertToSource(Object object) {
+        Source source;
+        if (object instanceof Source) {
+            source = (Source) object;
+        } else if (object instanceof Document) {
+            source = new DOMSource((Document) object);
+        } else if (object instanceof String) {
+            source = new StringSource((String) object);
+        } else {
+            throw new MessagingException("unsupported payload type [" + object.getClass().getName() + "]");
+        }
+        return source;
+    }
+
+    protected synchronized DocumentBuilder getDocumentBuilder() {
+        try {
+            return this.documentBuilderFactory.newDocumentBuilder();
+        }
+        catch (ParserConfigurationException e) {
+            throw new MessagingException("failed to create a new DocumentBuilder", e);
+        }
+    }
 
 }
