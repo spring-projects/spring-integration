@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +34,7 @@ import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MessagePublishingInterceptorTests {
@@ -60,6 +63,32 @@ public class MessagePublishingInterceptorTests {
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
 	}
+	@Test
+	public void demoMethodNameMappingExpressionSource() {
+		Map<String, String> expressionMap = new HashMap<String, String>();
+		expressionMap.put("test", "#return");
+		MethodNameMappingExpressionSource source = new MethodNameMappingExpressionSource(expressionMap);
+		Map<String, String> channelMap = new HashMap<String, String>();
+		channelMap.put("test", "c");
+		source.setChannelMap(channelMap);
+		
+		Map<String, String[]> headerExpressionMap = new HashMap<String, String[]>();
+		headerExpressionMap.put("test", new String[]{"bar=#return","name='oleg'"});
+		source.setHeaderExpressionMap(headerExpressionMap);
+		
+		
+		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(source);
+		interceptor.setChannelResolver(channelResolver);
+		ProxyFactory pf = new ProxyFactory(new TestBeanImpl());
+		pf.addAdvice(interceptor);
+		TestBean proxy = (TestBean) pf.getProxy();
+		proxy.test();
+		Message<?> message = testChannel.receive(0);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
+		assertEquals("foo", message.getHeaders().get("bar"));
+		assertEquals("oleg", message.getHeaders().get("name"));
+	}
 
 
 	static interface TestBean {
@@ -77,7 +106,6 @@ public class MessagePublishingInterceptorTests {
 
 	}
 
-
 	private static class TestExpressionSource implements ExpressionSource {
 
 		public String getArgumentMapName(Method method) {
@@ -85,7 +113,7 @@ public class MessagePublishingInterceptorTests {
 		}
 
 		public String[] getArgumentNames(Method method) {
-			return new String[] { "a1", "a2" };
+			return new String[] { "a1", "a2"};
 		}
 
 		public String getReturnValueName(Method method) {

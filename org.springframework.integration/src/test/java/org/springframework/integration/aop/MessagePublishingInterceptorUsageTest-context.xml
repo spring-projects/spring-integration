@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd"
+	xmlns:si="http://www.springframework.org/schema/integration">
+
+	<bean id="testBean"
+		class="org.springframework.integration.aop.MessagePublishingInterceptorUsageTest$TestBean" />
+
+	<si:channel id="testChannel">
+		<si:queue />
+	</si:channel>
+
+	<aop:config>
+		<aop:advisor advice-ref="interceptor" pointcut="bean(testBean)" />
+	</aop:config>
+
+	<bean id="interceptor"
+		class="org.springframework.integration.aop.MessagePublishingInterceptor">
+		<constructor-arg>
+			<bean
+				class="org.springframework.integration.aop.MethodNameMappingExpressionSource">
+				<constructor-arg>
+					<map>
+						<entry key="setName" value="#return" />
+					</map>
+				</constructor-arg>
+				<property name="headerExpressionMap">
+					<map>
+						<entry key="setName" value="foo='bar'" />
+					</map>
+				</property>
+				<property name="channelMap">
+					<map>
+						<entry key="setName" value="channel" />
+					</map>
+				</property>
+			</bean>
+		</constructor-arg>
+		<property name="channelResolver">
+			<bean
+				class="org.springframework.integration.channel.MapBasedChannelResolver">
+				<property name="channelMap">
+					<map>
+						<entry key="channel" value-ref="testChannel" />
+					</map>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+</beans>
