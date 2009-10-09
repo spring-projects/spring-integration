@@ -23,7 +23,7 @@
 	                               output-channel="filesOut"
                                    ref="handler"/>
 
-	<file:outbound-channel-adapter id="filesOut" directory="${java.io.tmpdir}/spring-integration-samples/output"/>
+	<file:outbound-channel-adapter id="filesOut" directory="file:${java.io.tmpdir}/spring-integration-samples/output"/>
 
 	<bean id="handler" class="org.springframework.integration.samples.filecopy.Handler"/>
 
