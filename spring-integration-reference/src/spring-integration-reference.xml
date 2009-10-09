@@ -62,6 +62,7 @@
   <xi:include href="./chain.xml"/>
   <xi:include href="./bridge.xml"/>
   <xi:include href="./gateway.xml"/>
+  <xi:include href="./message-publishing.xml"/>
   <xi:include href="./file.xml"/> 
   <xi:include href="./jms.xml"/>
   <xi:include href="./ws.xml"/>

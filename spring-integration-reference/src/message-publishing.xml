@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="message-publishing">
+  <title>Message Publishing</title>
+	<para>
+    Message Publishing feature will allow you to send a message as a result of method invocation. For example; Imagine you 
+    have a component and every time the state of this components changes you would like to get notified. The easiest 
+    way to send notification would be to send a message to a dedicated channel, but how would you connect the method invocation that 
+    changes the state of the object to a message sending process and what should be the structure of the 
+    message? Message Publishing feature will allow you to do just that. 
+    </para>
+  <section id="message-publishing-config">
+    <title>Message Publishing Configuration</title>
+    <para>
+    Spring Integration provides two approaches - XML and Annotation.
+    </para>
+	 	<section id="publisher-annotation">
+		    <title>Annotation-based approach via @Publisher annotation</title>
+		    <para>
+		   	Annotation bassed approach allows you to annotate any method with <interfacename>@Publisher</interfacename>  annotation and 
+		   	provide configuration attributes which will dictate the structure of a <emphasis>Message</emphasis>. Invocation of such 
+		   	method will be proxied through <classname>PublisherAnnotationAdvisor</classname> which will 
+		   	construct a <emphasis>Message</emphasis> and send it to a <emphasis>channel</emphasis>.	   
+		    </para>
+		    <para>
+		    Internally <classname>PublisherAnnotationAdvisor</classname> uses Spring 3.0 Expression Language support giving you 
+		    the flexibility and control over the structure of a <emphasis>Message</emphasis> it will build. 
+		    </para>
+		     <para>
+		   <classname>PublisherAnnotationAdvisor</classname> defines and binds the following variables:
+		   <itemizedlist>
+		        <listitem>
+		          <para><emphasis>#return</emphasis> - will bind to a return value allowing you to reference it or its 
+		          attributes (e.g., <emphasis>#return.foo</emphasis> where 'foo' is an attribute of the object bound to 
+		          <emphasis>#return</emphasis>)</para>
+		        </listitem>
+		        <listitem>
+		          <para><emphasis>#exception</emphasis> - will bind to an exception if one is thrown.</para>
+		        </listitem>
+		        <listitem>
+		          <para><emphasis>#[parameName]</emphasis> - will be dynamically constructed pointing to the method parameter 
+		          names (e.g., <emphasis>#fname</emphasis> as in the above method)</para>
+		        </listitem>	       
+	      </itemizedlist>
+		    </para>
+	 		<para>
+<programlisting language="java">@Publisher(value="#return", channel="testChannel", headers="bar='123',fname=#fname")
+public String setName(String fname, String lname){
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>
+	 		<para>
+	 		In the above example the Message will be constructed and its structure will be as follows:
+	 		<itemizedlist>
+		        <listitem>
+		          <para>Message payload - will be of type String and contain the value returned by the method.</para>
+		        </listitem>
+		        <listitem>
+		          <para>Message headers will be 'bar' with value of "123" and 'fname' with value of 'fname' parameter of the method.</para>
+		        </listitem>      
+	      </itemizedlist>
+	 		</para>
+	 		<para>
+	 		As with any other annotation you will need to register <classname>PublisherAnnotationBeanPostProcessor</classname>
+		<programlisting language="xml">&lt;bean class="org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor"/&gt;</programlisting>
+	 		</para>
+	  	</section>
+	  	<section id="aop-based-interceptor">
+		    <title>XML-based approach via MessagePublishingInterceptor</title>
+		    <para>
+		    XML-based approach allows you to configure Message Publishing via AOP-based configuration and although 
+		    configuration itself is a bit more extensive it has certain benefits over annotation based approach since it
+		    allows you to use pointcut expressions, thus possibly intercepting multiple methods at once.
+		    </para>
+		    <para>
+			To configure Message Publishing via XML you need to provide two things:
+			<itemizedlist>
+		        <listitem>
+		          <para>Register <classname>MessagePublishingInterceptor</classname></para>
+		        </listitem>
+		        <listitem>
+		          <para>Provide AOP configuration to apply <classname>MessagePublishingInterceptor</classname></para>
+		        </listitem>      
+	      </itemizedlist>
+		    </para>
+		    <para>
+<programlisting language="xml">&lt;bean id="testBean"
+		class="org.springframework.integration.aop.MessagePublishingInterceptorUsageTest$TestBean" /&gt;
+
+	&lt;si:channel id="testChannel"&gt;
+		&lt;si:queue /&gt;
+	&lt;/si:channel&gt;
+
+	&lt;aop:config&gt;
+		&lt;aop:advisor advice-ref="publishingInterceptor" pointcut="bean(testBean)" /&gt;
+	&lt;/aop:config&gt;
+
+	&lt;bean id="publishingInterceptor"
+		class="org.springframework.integration.aop.MessagePublishingInterceptor"&gt;
+		&lt;constructor-arg&gt;
+			&lt;bean
+				class="org.springframework.integration.aop.MethodNameMappingExpressionSource"&gt;
+				&lt;constructor-arg&gt;
+					&lt;map&gt;
+						&lt;entry key="*" value="#return" /&gt;
+					&lt;/map&gt;
+				&lt;/constructor-arg&gt;
+				&lt;property name="headerExpressionMap"&gt;
+					&lt;map&gt;
+						&lt;entry key="*" value="foo='bar'" /&gt;
+					&lt;/map&gt;
+				&lt;/property&gt;
+				&lt;property name="channelMap"&gt;
+					&lt;map&gt;
+						&lt;entry key="setName" value="channel" /&gt;
+					&lt;/map&gt;
+				&lt;/property&gt;
+			&lt;/bean&gt;
+		&lt;/constructor-arg&gt;
+		&lt;property name="channelResolver"&gt;
+			&lt;bean
+				class="org.springframework.integration.channel.MapBasedChannelResolver"&gt;
+				&lt;property name="channelMap"&gt;
+					&lt;map&gt;
+						&lt;entry key="channel" value-ref="testChannel" /&gt;
+					&lt;/map&gt;
+				&lt;/property&gt;
+			&lt;/bean&gt;
+		&lt;/property&gt;
+	&lt;/bean&gt;</programlisting>		    
+		    </para>
+		    <para>
+		    As you can see <classname>MessagePublishingInterceptor</classname> defines and binds the same variables as 
+		    <classname>PublisherAnnotationAdvisor</classname> to utilize the power of Spring 3.0 Expression Langage.
+		    </para>
+		    <para>
+		    In this example after execution of any public method of a <code>testBean</code> a <emphasis>Message</emphasis> 
+		    will be constructed with the following structure:
+		<itemizedlist>
+		        <listitem>
+		          <para>Message payload - will be of type and value returned by an executed method.</para>
+		        </listitem>
+		        <listitem>
+		          <para>Message headers will be 'foo' with value of "bar".</para>
+		        </listitem>      
+	      </itemizedlist>
+	      </para>
+	      <para>
+In future versions namespace support will be available to simplify XML-based configuration.
+		    </para>
+		</section>
+  </section>
+</chapter>
