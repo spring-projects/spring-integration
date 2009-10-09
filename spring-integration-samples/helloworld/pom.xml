@@ -30,14 +30,20 @@
 			</plugin>
 		</plugins>
 		<resources>
-		<resource>
-			<filtering>false</filtering>
-			<directory>${basedir}/src/main/resources</directory>
-			<includes>
-				<include>META-INF/spring/*.xml</include>
-			</includes>
-		</resource>
-	</resources>
+			<resource>
+				<directory>${basedir}/src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<filtering>false</filtering>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>META-INF/spring/*.xml</include>
+				</includes>
+			</resource>
+		</resources>
 	</build>
 	
 	
