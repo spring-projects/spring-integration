@@ -29,8 +29,8 @@ public class FileCopyDemoCommon {
 		File baseDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "spring-integration-samples");
 		File inDir = new File(baseDir, "input");
 		File outDir = new File(baseDir, "output");
-		System.out.println("Input directory is: " + inDir.getAbsolutePath());
-		System.out.println("Output directory is: " + outDir.getAbsolutePath());
+		System.out.println("Default input directory is: " + inDir.getAbsolutePath());
+		System.out.println("Default output directory is: " + outDir.getAbsolutePath());
 		System.out.println("===================================================");
 	}
 
