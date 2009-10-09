@@ -250,6 +250,38 @@ public class FooService {
     }
 
 }</programlisting>
+<para>
+A more powerful and flexible way mapping Message parts to method arguments is to use <interfacename>@MessageMapping</interfacename> 
+annotation which allows you to define expression via Spring 3.0 Expression Language support to help parse 
+message parts and map them to method arguments.
+</para>
+<para>For example:</para>
+<para>
+<programlisting language="java">public void fromMessageToMethod(@MessageMapping(expression="headers.day")String argA,
+		@MessageMapping(expression="#this")Message message,
+		@MessageMapping(expression="payload")Employee payloadArg,
+		@MessageMapping(expression="payload.fname")String value,
+		@MessageMapping(expression="headers")Map headers){} </programlisting>
+
+As you can see, the above method takes 5 arguments where:
+		<itemizedlist>
+		        <listitem>
+		          <para>First - will be mapped to the value of 'day' header</para>
+		        </listitem>
+		        <listitem>
+		          <para>Second - will be mapped to the Message itself</para>
+		        </listitem> 
+		        <listitem>
+		          <para>Third - will be mapped to the Payload</para>
+		        </listitem> 
+		        <listitem>
+		          <para>Fourth - will be mapped to the 'fname' attribute of a Payload object</para>
+		        </listitem>  
+		        <listitem>
+		          <para>Fifth - will be mapped to MessageHeaders</para>
+		        </listitem>     
+	      </itemizedlist>
+</para>
       <tip>
         A Map-typed argument does not strictly require the use of the @Headers annotation. In other words
         the following is also valid: <programlisting language="java">public void bar(String payload, Map&lt;String, Object&gt; headerMap)</programlisting>
