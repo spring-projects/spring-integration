@@ -5,11 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration-samples</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
 	<properties>
-		<release.version>1.0.3.RELEASE</release.version>
+		<release.version>1.0.4.RELEASE</release.version>
 	</properties>
 	<modules>
 		<module>cafe</module>

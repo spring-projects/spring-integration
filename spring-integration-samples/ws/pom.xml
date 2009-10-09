@@ -3,12 +3,12 @@
 	<parent>
 		<artifactId>spring-integration-samples</artifactId>
 		<groupId>org.springframework.integration</groupId>
-		<version>1.0.3</version>
+		<version>1.0.4</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ws</groupId>
 	<artifactId>ws</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<dependencies>
 		<dependency>
 			<groupId>javax.xml.soap</groupId>

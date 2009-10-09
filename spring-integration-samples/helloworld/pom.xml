@@ -3,12 +3,12 @@
 	<parent>
 		<artifactId>spring-integration-samples</artifactId>
 		<groupId>org.springframework.integration</groupId>
-		<version>1.0.3</version>
+		<version>1.0.4</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>helloworld</groupId>
 	<artifactId>helloworld</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.osgi</groupId>
@@ -30,14 +30,20 @@
 			</plugin>
 		</plugins>
 		<resources>
-		<resource>
-			<filtering>false</filtering>
-			<directory>${basedir}/src/main/resources</directory>
-			<includes>
-				<include>META-INF/spring/*.xml</include>
-			</includes>
-		</resource>
-	</resources>
+			<resource>
+				<directory>${basedir}/src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<filtering>false</filtering>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>META-INF/spring/*.xml</include>
+				</includes>
+			</resource>
+		</resources>
 	</build>
 	
 	
