@@ -6,9 +6,9 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd"
 	xmlns:si="http://www.springframework.org/schema/integration">
-	
+
 	<bean id="testBean"
-		class="org.springframework.integration.aop.MessagePublishingAnnotationUsageTest$TestBean" />
+		class="org.springframework.integration.aop.MessagePublishingAnnotationUsageTests$TestBean" />
 
 	<si:channel id="testChannel">
 		<si:queue />

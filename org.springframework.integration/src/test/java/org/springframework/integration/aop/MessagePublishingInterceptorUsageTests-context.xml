@@ -8,7 +8,7 @@
 	xmlns:si="http://www.springframework.org/schema/integration">
 
 	<bean id="testBean"
-		class="org.springframework.integration.aop.MessagePublishingInterceptorUsageTest$TestBean" />
+		class="org.springframework.integration.aop.MessagePublishingInterceptorUsageTests$TestBean" />
 
 	<si:channel id="testChannel">
 		<si:queue />

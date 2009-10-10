@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aop;
 
 import junit.framework.Assert;
@@ -28,29 +29,34 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
- *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MessagePublishingInterceptorUsageTest {
+public class MessagePublishingAnnotationUsageTests {
+
 	@Autowired
 	private TestBean testBean;
+
 	@Autowired
 	private QueueChannel channel;
+
 	@Test
-	public void demoMessagePublishingInterceptor(){
+	public void demoMessagePublishingInterceptor() {
 		String name = testBean.setName("John", "Doe");
 		Assert.assertNotNull(name);
-		Message<?> message = channel.receive();
+		Message<?> message = channel.receive(1000);
 		Assert.assertNotNull(message);
 		Assert.assertEquals("John Doe", message.getPayload());
-		Assert.assertEquals("bar", message.getHeaders().get("foo"));
+		Assert.assertEquals("123", message.getHeaders().get("bar"));
 	}
 	
 	
-	public static class TestBean{
+	public static class TestBean {
+
+		@Publisher(value="#return", channel="testChannel", headers="bar='123'")
 		public String setName(String fname, String lname){
 			return fname + " " + lname;
 		}
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,96 +13,101 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aop;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.framework.ProxyConfig;
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.Ordered;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.util.ClassUtils;
 
 /**
- * Will post process beans that contain @{@link Publisher} annotation.
+ * Post-processes beans that contain the method-level @{@link Publisher} annotation.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
- *
  */
-public class PublisherAnnotationBeanPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
+public class PublisherAnnotationBeanPostProcessor extends ProxyConfig
+		implements BeanPostProcessor, BeanClassLoaderAware, BeanFactoryAware, InitializingBean, Ordered {
 
-	private BeanFactory beanFactory;
-	private MessageChannel defaultChannel;
-	private PublisherAnnotationAdvisor advisor;
+	private volatile MessageChannel defaultChannel;
+
+	private volatile PublisherAnnotationAdvisor advisor;
+
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
+
+	private volatile BeanFactory beanFactory;
+
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
+
 	/**
-	 * 
+	 * Set the default channel where Messages should be sent if the annotation
+	 * itself does not provide a channel.
 	 */
-	public PublisherAnnotationBeanPostProcessor(){}
-	/**
-	 * 
-	 * @param defaultChannel
-	 */
-	public PublisherAnnotationBeanPostProcessor(MessageChannel defaultChannel){
+	public void setDefaultChannel(MessageChannel defaultChannel){
 		this.defaultChannel = defaultChannel;
 	}
-	/**
-	 * 
-	 */
-	public Object postProcessAfterInitialization(Object bean, String beanName)
-			throws BeansException {
-		if (this.containsPublisherAnnotations(bean)){
-			ProxyFactory pf = new ProxyFactory(bean);
-			pf.addAdvisor(advisor);
-			bean = pf.getProxy();
-		}
-		return bean;
-	}
-	/**
-	 * 
-	 */
-	public Object postProcessBeforeInitialization(Object bean, String beanName)
-			throws BeansException {
-		return bean;
-	}
-	/**
-	 * 
-	 * @return
-	 */
-	public BeanFactory getBeanFactory() {
-		return beanFactory;
-	}
-	/**
-	 * 
-	 */
+
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.beanFactory = beanFactory;
 	}
-	/**
-	 * 
-	 */
+
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
+	}
+
 	public void afterPropertiesSet(){
 		advisor = new PublisherAnnotationAdvisor();
 		advisor.setBeanFactory(beanFactory);
 		advisor.setDefaultChannel(defaultChannel);
 	}
-	/**
-	 * 
-	 * @param bean
-	 * @return
-	 */
-	private boolean containsPublisherAnnotations(Object bean){
-		Method[] methods = bean.getClass().getMethods();
-		for (Method method : methods) {
-			Annotation publisher = AnnotationUtils.findAnnotation(method, Publisher.class);
-			if (publisher != null){
-				return true;
+
+	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		return bean;
+	}
+
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {	
+		Class<?> targetClass = AopUtils.getTargetClass(bean);
+		if (targetClass == null) {
+			return bean;
+		}
+
+		if (AopUtils.canApply(this.advisor, targetClass)) {
+			if (bean instanceof Advised) {
+				((Advised) bean).addAdvisor(this.advisor);
+				return bean;
+			}
+			else {
+				ProxyFactory proxyFactory = new ProxyFactory(bean);
+				// Copy our properties (proxyTargetClass etc) inherited from ProxyConfig.
+				proxyFactory.copyFrom(this);
+				proxyFactory.addAdvisor(this.advisor);
+				return proxyFactory.getProxy(this.beanClassLoader);
 			}
 		}
-		return false;
+		else {
+			// cannot apply advisor
+			return bean;
+		}
 	}
+
 }
