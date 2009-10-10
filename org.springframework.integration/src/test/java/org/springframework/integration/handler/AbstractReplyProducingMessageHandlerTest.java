@@ -33,26 +33,26 @@ import org.springframework.integration.message.MessageBuilder;
 @RunWith(org.mockito.runners.MockitoJUnitRunner.class)
 public class AbstractReplyProducingMessageHandlerTest {
 
-    private AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
-        @Override
-        protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
-            replyMessageHolder.add(requestMessage);
-        }
-    };
-    private Message<?> message = MessageBuilder.withPayload("test").build();
-    @Mock
-    private MessageChannel channel=null;
+	private AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+		@Override
+		protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
+			replyMessageHolder.add(requestMessage);
+		}
+	};
+	private Message<?> message = MessageBuilder.withPayload("test").build();
+	@Mock
+	private MessageChannel channel = null;
 
-    @Test
-    public void errorMessageShouldContainChannelName() {
-        handler.setOutputChannel(channel);
-        when(channel.send(message)).thenReturn(false);
-        when(channel.toString()).thenReturn("testChannel");
-        try {
-            handler.handleMessage(message);
-            fail("Expected a MessagingException");
-        } catch (MessagingException e) {
-            assertThat(e.getMessage(), JUnitMatchers.containsString("'testChannel'"));
-        }
-    }
+	@Test
+	public void errorMessageShouldContainChannelName() {
+		handler.setOutputChannel(channel);
+		when(channel.send(message)).thenReturn(false);
+		when(channel.toString()).thenReturn("testChannel");
+		try {
+			handler.handleMessage(message);
+			fail("Expected a MessagingException");
+		} catch (MessagingException e) {
+			assertThat(e.getMessage(), JUnitMatchers.containsString("'testChannel'"));
+		}
+	}
 }
