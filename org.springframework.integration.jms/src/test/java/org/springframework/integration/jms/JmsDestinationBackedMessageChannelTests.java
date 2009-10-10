@@ -16,26 +16,23 @@
 
 package org.springframework.integration.jms;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.jms.Destination;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
+
+import javax.jms.Destination;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mark Fisher
@@ -60,14 +57,14 @@ public class JmsDestinationBackedMessageChannelTests {
 	@Test
 	public void queueReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
-		final List<Message<?>> receivedList1 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
@@ -93,14 +90,14 @@ public class JmsDestinationBackedMessageChannelTests {
 	@Test
 	public void topicReference() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
-		final List<Message<?>> receivedList1 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
@@ -126,14 +123,14 @@ public class JmsDestinationBackedMessageChannelTests {
 	@Test
 	public void queueName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(2);
-		final List<Message<?>> receivedList1 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
@@ -159,14 +156,14 @@ public class JmsDestinationBackedMessageChannelTests {
 	@Test
 	public void topicName() throws Exception {
 		final CountDownLatch latch = new CountDownLatch(4);
-		final List<Message<?>> receivedList1 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList1 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler1 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList1.add(message);
 				latch.countDown();
 			}
 		};
-		final List<Message<?>> receivedList2 = new ArrayList<Message<?>>();
+		final List<Message<?>> receivedList2 = Collections.synchronizedList( new ArrayList<Message<?>>());
 		MessageHandler handler2 = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
 				receivedList2.add(message);
