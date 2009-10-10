@@ -26,6 +26,7 @@ import java.util.Properties;
 
 import org.junit.Assert;
 import org.junit.Test; 
+
 import org.springframework.integration.annotation.Header; 
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.MessageMapping;
@@ -173,7 +174,6 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		assertEquals(new Integer(123), result.get("attrib1"));
 		assertEquals(new Integer(456), result.get("attrib2"));
 	}
-	
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -192,6 +192,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		assertEquals(new Integer(88), result.get("attrib1"));
 		assertEquals(new Integer(99), result.get("attrib2"));
 	}
+
 	@Test
 	public void fromMessageToMessageMappingAnnotation() throws Exception {
 		Message<?> message = this.getMessage();
@@ -202,13 +203,16 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(parameters.length == 1);
 		Assert.assertTrue(parameters[0].equals("monday"));
 	}
-	@Test(expected=IllegalArgumentException.class)
-	public void fromMessageUnsupportedAnnotation() throws Exception {
-		Message<?> message = this.getMessage();
-		
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(TestService.class.getMethod("fromMessageUnsupportedAnnotation", String.class));
-		mapper.fromMessage(message);
+
+	@Test
+	public void fromMessageIrrelevantAnnotation() throws Exception {
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(TestService.class.getMethod("fromMessageIrrelevantAnnotation", String.class));
+		Object args[] = mapper.fromMessage(message);
+		assertEquals(1, args.length);
+		assertEquals("foo", args[0]);
 	}
+
 	@Test
 	public void fromMessageToMessageMappingAnnotationMultiArguments() throws Exception {
 		Message<?> message = this.getMessage();
@@ -231,6 +235,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(parameters[4].equals("oleg"));
 		Assert.assertTrue(parameters[5] instanceof Map);
 	}	    
+
 	@Test
 	public void fromMessageToPayload() throws Exception {
 		Method method = TestService.class.getMethod("payloadOnly", Map.class);
@@ -240,6 +245,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(args[0] instanceof Map);
 		Assert.assertTrue(((Map)args[0]).get("number").equals("jkl"));
 	}
+
 	@Test
 	public void fromMessageToPayloadArg() throws Exception {
 		Method method = TestService.class.getMethod("payloadOnlyPayloadArg", String.class);
@@ -249,6 +255,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(args[0] instanceof String);
 		Assert.assertTrue(args[0].equals("oleg"));
 	}
+
 	@Test
 	public void fromMessageToPayloadArgs() throws Exception {
 		Method method = TestService.class.getMethod("payloadOnlyPayloadArgs", String.class, String.class);
@@ -260,6 +267,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(args[1] instanceof String);
 		Assert.assertTrue(args[1].equals("zhurakousky"));
 	}
+
 	@Test
 	public void fromMessageToPayloadArgsHeaderArgs() throws Exception {
 		Method method = TestService.class.getMethod("payloadOnlyPayloadArgsHeaderArg", String.class, String.class);
@@ -271,6 +279,23 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(args[1] instanceof String);
 		Assert.assertTrue(args[1].equals("monday"));
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void fromMessageInvalidMethodWithMultipleMappingAnnotations() throws Exception {
+		Method method = MultipleMappingAnnotationTestBean.class.getMethod("test", String.class);
+		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		Message<?> message = MessageBuilder.withPayload("payload").setHeader("foo", "bar").build();
+		mapper.fromMessage(message);
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class MultipleMappingAnnotationTestBean {
+		public void test(@MessageMapping("payload") @Header("foo")  String s) {
+		}
+	}
+
+
 	@SuppressWarnings("unused")
 	private static class TestService {
 
@@ -333,37 +358,52 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		public Integer integerMethod(Integer i) {
 			return i;
 		}
-		public void fromMessageToArgWithConversion(@MessageMapping(expression="headers.number")String sArg){} //
-		public void fromMessageToArgWithConversion(@MessageMapping(expression="headers.number")Integer iArg){} //
-		public void fromMessageToArgWithConversion(@Header("numberA")Integer valueA, @Header("numberB")Integer valueB){} //
-		public void fromMessageToMessageMappingAnnotation(@MessageMapping(expression="headers.day")String value){} //
-		public void fromMessageToMessageMappingAnnotationMultiArguments(@MessageMapping(expression="headers.day")String argA,
-																		@MessageMapping(expression="headers.month")String argB,
-																		@MessageMapping(expression="#this")Message message,
-																		@MessageMapping(expression="payload")Employee payloadArg,
-																		@MessageMapping(expression="payload.fname")String value,
-																		@MessageMapping(expression="headers")Map headers){} //
-		public void fromMessageUnsupportedAnnotation(@BogusAnnotation() String value){} //
+
+		public void fromMessageToArgWithConversion(@MessageMapping("headers.number") String sArg) {} //
+
+		public void fromMessageToArgWithConversion(@MessageMapping("headers.number") Integer iArg) {} //
+
+		public void fromMessageToArgWithConversion(@Header("numberA")Integer valueA, @Header("numberB") Integer valueB) {} //
+
+		public void fromMessageToMessageMappingAnnotation(@MessageMapping("headers.day") String value) {} //
+
+		public void fromMessageToMessageMappingAnnotationMultiArguments(@MessageMapping("headers.day") String argA,
+																		@MessageMapping("headers.month") String argB,
+																		@MessageMapping("#this") Message message,
+																		@MessageMapping("payload") Employee payloadArg,
+																		@MessageMapping("payload.fname") String value,
+																		@MessageMapping("headers") Map headers){} //
+
+		public void fromMessageIrrelevantAnnotation(@BogusAnnotation() String value){} //
 	}
-	private Message<?> getMessage(){
+
+	private Message<?> getMessage() {
 		MessageBuilder<Employee> builder = MessageBuilder.withPayload(employee);
 		builder.setHeader("day", "monday");
 		builder.setHeader("month", "September");
 		Message<Employee> message = builder.build();
 		return message;
 	}
-	public static class Employee{
+
+
+	public static class Employee {
+
 		private String fname;
+
 		private String lname;
-		public Employee(String fname, String lname){
+
+		public Employee(String fname, String lname) {
 			this.fname = fname;
 			this.lname = lname;
 		}
+
 		public String getFname() {
 			return fname;
 		}
+
 		public String getLname() {
 			return lname;
 		}
 	}
+
 }

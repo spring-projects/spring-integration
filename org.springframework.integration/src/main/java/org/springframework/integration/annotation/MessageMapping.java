@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
@@ -22,11 +23,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation allows you to specify EL expression indicating that a method 
- * parameter's value should be mapped to the result of expression processing. 
+ * This annotation allows you to specify a SpEL expression indicating that a method 
+ * parameter's value should be mapped from the result of expression processing. 
  * The annotated parameter must be of the required type.
- * Example: void foo(@MessageMapping(expression="headers.day")String arg) - will map the value of 
- * the 'day' header to the 'arg'
+ * Example: void foo(@MessageMapping("headers.day") String arg) - will map the value of 
+ * the 'day' header to 'arg'.
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -35,5 +36,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface MessageMapping {
-	String expression();
+
+	String value();
+
 }
