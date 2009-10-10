@@ -251,17 +251,17 @@ public class FooService {
 
 }</programlisting>
 <para>
-A more powerful and flexible way mapping Message parts to method arguments is to use <interfacename>@MessageMapping</interfacename> 
+A more powerful and flexible way to map Messages to method arguments is to use <interfacename>@MessageMapping</interfacename> 
 annotation which allows you to define expression via Spring 3.0 Expression Language support to help parse 
-message parts and map them to method arguments.
+the message payload and/or header and map the parsed values to method arguments.
 </para>
 <para>For example:</para>
 <para>
-<programlisting language="java">public void fromMessageToMethod(@MessageMapping(expression="headers.day")String argA,
-		@MessageMapping(expression="#this")Message message,
-		@MessageMapping(expression="payload")Employee payloadArg,
-		@MessageMapping(expression="payload.fname")String value,
-		@MessageMapping(expression="headers")Map headers){} </programlisting>
+<programlisting language="java">public void fromMessageToMethod(@MessageMapping("headers.day") String argA,
+		@MessageMapping("#this") Message message,
+		@MessageMapping("payload") Employee payloadArg,
+		@MessageMapping("payload.fname") String value,
+		@MessageMapping("headers") Map headers) { ... } </programlisting>
 
 As you can see, the above method takes 5 arguments where:
 		<itemizedlist>
@@ -275,7 +275,7 @@ As you can see, the above method takes 5 arguments where:
 		          <para>Third - will be mapped to the Payload</para>
 		        </listitem> 
 		        <listitem>
-		          <para>Fourth - will be mapped to the 'fname' attribute of a Payload object</para>
+		          <para>Fourth - will be mapped to the 'fname' property of a Payload object</para>
 		        </listitem>  
 		        <listitem>
 		          <para>Fifth - will be mapped to MessageHeaders</para>
