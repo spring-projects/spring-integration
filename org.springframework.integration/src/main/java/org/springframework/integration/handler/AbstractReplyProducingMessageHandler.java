@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
@@ -32,91 +31,103 @@ import org.springframework.util.Assert;
 
 /**
  * Base class for MessageHandlers that are capable of producing replies.
- * 
+ *
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler implements BeanFactoryAware {
 
-	public static final long DEFAULT_SEND_TIMEOUT = 1000;
+    public static final long DEFAULT_SEND_TIMEOUT = 1000;
 
 
-	private MessageChannel outputChannel;
+    private MessageChannel outputChannel;
 
-	private volatile ChannelResolver channelResolver;
+    private volatile ChannelResolver channelResolver;
 
-	private volatile boolean requiresReply = false;
+    private volatile boolean requiresReply = false;
 
-	private final MessageChannelTemplate channelTemplate;
-
-
-	public AbstractReplyProducingMessageHandler() {
-		this.channelTemplate = new MessageChannelTemplate();
-		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
-	}
+    private final MessageChannelTemplate channelTemplate;
 
 
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
+    public AbstractReplyProducingMessageHandler() {
+        this.channelTemplate = new MessageChannelTemplate();
+        this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+    }
 
-	protected MessageChannel getOutputChannel() {
-		return this.outputChannel;
-	}
 
-	/**
-	 * Set the timeout for sending reply Messages.
-	 */
-	public void setSendTimeout(long sendTimeout) {
-		this.channelTemplate.setSendTimeout(sendTimeout);
-	}
+    public void setOutputChannel(MessageChannel outputChannel) {
+        this.outputChannel = outputChannel;
+    }
 
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		Assert.notNull(channelResolver, "channelResolver must not be null");
-		this.channelResolver = channelResolver;
-	}
+    protected MessageChannel getOutputChannel() {
+        return this.outputChannel;
+    }
 
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
-	}
+    /**
+     * Set the timeout for sending reply Messages.
+     */
+    public void setSendTimeout(long sendTimeout) {
+        this.channelTemplate.setSendTimeout(sendTimeout);
+    }
 
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
-		}
-	}
+    /**
+     * Set the ChannelResolver to be used when there is no default output channel.
+     */
+    public void setChannelResolver(ChannelResolver channelResolver) {
+        Assert.notNull(channelResolver, "'channelResolver' must not be null");
+        this.channelResolver = channelResolver;
+    }
 
-	@Override
-	protected final void handleMessageInternal(Message<?> message) {
-		ReplyMessageHolder replyMessageHolder = new ReplyMessageHolder();
-		this.handleRequestMessage(message, replyMessageHolder);
-		if (replyMessageHolder.isEmpty()) {
-			if (this.requiresReply) {
-				throw new MessageHandlingException(message, "handler '" + this
-						+ "' requires a reply, but no reply was received");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
-			}
-			return;
-		}
-		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
-		MessageHeaders requestHeaders = message.getHeaders();
-		for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
-			builder.copyHeadersIfAbsent(requestHeaders);
-			Message<?> replyMessage = builder.build();
-			if (!this.sendReplyMessage(replyMessage, replyChannel)) {
-				throw new MessageDeliveryException(replyMessage, "failed to send reply Message");
-			}
-		}
-	}
+    /**
+     * Flag wether reply is required. If true an incoming message MUST result in a reply message being sent.
+     * If false an incoming message MAY result in a reply message being sent
+     */
+    public void setRequiresReply(boolean requiresReply) {
+        this.requiresReply = requiresReply;
+    }
 
-	protected abstract void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (this.channelResolver == null) {
+            this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+        }
+    }
 
-	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
-		}
-		return this.channelTemplate.send(replyMessage, replyChannel);
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected final void handleMessageInternal(Message<?> message) {
+        ReplyMessageHolder replyMessageHolder = new ReplyMessageHolder();
+        this.handleRequestMessage(message, replyMessageHolder);
+        if (replyMessageHolder.isEmpty()) {
+            if (this.requiresReply) {
+                throw new MessageHandlingException(message, "handler '" + this
+                        + "' requires a reply, but no reply was received");
+            }
+            if (logger.isDebugEnabled()) {
+                logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
+            }
+            return;
+        }
+        MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
+        MessageHeaders requestHeaders = message.getHeaders();
+        for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
+            builder.copyHeadersIfAbsent(requestHeaders);
+            Message<?> replyMessage = builder.build();
+            if (!this.sendReplyMessage(replyMessage, replyChannel)) {
+                throw new MessageDeliveryException(replyMessage,
+                        "failed to send reply Message to channel '" + replyChannel + "'");
+            }
+        }
+    }
+
+    protected abstract void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
+
+    protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
+        }
+        return this.channelTemplate.send(replyMessage, replyChannel);
+    }
 
 }
