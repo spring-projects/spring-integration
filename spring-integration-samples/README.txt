@@ -16,15 +16,15 @@ You should see output similar to the following:
 [INFO] Reactor Summary:
 [INFO] ------------------------------------------------------------------------
 [INFO] Spring Integration Samples ............................ SUCCESS [2.910s]
-[INFO] Unnamed - cafe:cafe:jar:1.0.3 ......................... SUCCESS [2.750s]
-[INFO] Unnamed - errorhandling:errorhandling:jar:1.0.3 ....... SUCCESS [1.427s]
-[INFO] Unnamed - filecopy:filecopy:jar:1.0.3 ................. SUCCESS [1.257s]
-[INFO] Unnamed - helloworld:helloworld:jar:1.0.3 ............. SUCCESS [0.943s]
-[INFO] Unnamed - jms:jms:jar:1.0.3 ........................... SUCCESS [0.801s]
-[INFO] Unnamed - oddeven:oddeven:jar:1.0.3 ................... SUCCESS [1.009s]
-[INFO] Unnamed - quote:quote:jar:1.0.3 ....................... SUCCESS [0.697s]
-[INFO] Unnamed - ws:ws:jar:1.0.3 ............................. SUCCESS [0.714s]
-[INFO] Unnamed - xml:xml:jar:1.0.3 ........................... SUCCESS [0.690s]
+[INFO] Unnamed - cafe:cafe:jar:2.0.0 ......................... SUCCESS [2.750s]
+[INFO] Unnamed - errorhandling:errorhandling:jar:2.0.0 ....... SUCCESS [1.427s]
+[INFO] Unnamed - filecopy:filecopy:jar:2.0.0 ................. SUCCESS [1.257s]
+[INFO] Unnamed - helloworld:helloworld:jar:2.0.0 ............. SUCCESS [0.943s]
+[INFO] Unnamed - jms:jms:jar:2.0.0 ........................... SUCCESS [0.801s]
+[INFO] Unnamed - oddeven:oddeven:jar:2.0.0 ................... SUCCESS [1.009s]
+[INFO] Unnamed - quote:quote:jar:2.0.0 ....................... SUCCESS [0.697s]
+[INFO] Unnamed - ws:ws:jar:2.0.0 ............................. SUCCESS [0.714s]
+[INFO] Unnamed - xml:xml:jar:2.0.0 ........................... SUCCESS [0.690s]
 [INFO] ------------------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESSFUL

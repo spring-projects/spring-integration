@@ -3,6 +3,6 @@ Bundle-Version: 2.0.0
 Bundle-Name: org.springframework.integration.samples.osgi.outbound
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.springframework.integration.samples.osgi.outbound
-Import-Bundle: org.springframework.integration;version="[2.0.0,2.1.0)",
- org.springframework.integration.file;version="[2.0.0,2.1.0)"
-Import-Library: org.springframework.spring;version="[3.0.0,3.1.0]"
+Import-Bundle: org.springframework.integration;version="[2.0.0, 2.1.0)",
+ org.springframework.integration.file;version="[2.0.0, 2.1.0)"
+Import-Library: org.springframework.spring;version="[3.0.0, 3.1.0)"

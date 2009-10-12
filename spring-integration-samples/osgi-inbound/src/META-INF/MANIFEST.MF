@@ -9,5 +9,5 @@ Import-Package: org.eclipse.osgi.framework.console;version="1.0.0",
  org.osgi.service.packageadmin;version="1.2.0",
  org.eclipse.osgi.util
 Import-Library: org.springframework.spring;version="[3.0.0, 3.1.0)"
-Import-Bundle: org.springframework.integration;version="[2.0.0,2.1.0)",
- org.springframework.integration.file;version="[2.0.0,2.1.0)"
+Import-Bundle: org.springframework.integration;version="[2.0.0, 2.1.0)",
+ org.springframework.integration.file;version="[2.0.0, 2.1.0)"
