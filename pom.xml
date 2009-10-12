@@ -20,6 +20,7 @@
 		<module>org.springframework.integration.rmi</module>
 		<module>org.springframework.integration.security</module>
 		<module>org.springframework.integration.stream</module>
+		<module>org.springframework.integration.udp</module>
 		<module>org.springframework.integration.ws</module>
 		<module>org.springframework.integration.xml</module>
 		<module>org.springframework.integration.test</module>

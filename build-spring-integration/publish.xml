@@ -17,6 +17,7 @@
 	 	<pathelement location="${basedir}/../org.springframework.integration.mail"/>
 		<pathelement location="${basedir}/../org.springframework.integration.rmi"/>
 		<pathelement location="${basedir}/../org.springframework.integration.stream"/>
+		<pathelement location="${basedir}/../org.springframework.integration.udp"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
   </path>
 
