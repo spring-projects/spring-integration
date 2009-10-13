@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,13 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
@@ -36,8 +39,8 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SourcePollingChannelAdapterFactoryBean
-		implements FactoryBean, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, Lifecycle {
+public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware,
+		BeanClassLoaderAware, InitializingBean, Lifecycle, ApplicationListener<ContextRefreshedEvent> {
 
 	private volatile MessageSource<?> source;
 
@@ -94,6 +97,12 @@ public class SourcePollingChannelAdapterFactoryBean
 		this.initializeAdapter();
 	}
 
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		if (this.adapter != null) {
+			this.adapter.onApplicationEvent(event);
+		}
+	}
+
 	public Object getObject() throws Exception {
 		if (this.adapter == null) {
 			this.initializeAdapter();
@@ -130,7 +139,9 @@ public class SourcePollingChannelAdapterFactoryBean
 			spca.setTransactionManager(this.pollerMetadata.getTransactionManager());
 			spca.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());
 			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
-			spca.setAutoStartup(this.autoStartup);
+			if (!this.autoStartup) {
+				spca.setStartupMode(StartupMode.MANUAL);
+			}
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
 			spca.setBeanClassLoader(this.beanClassLoader);

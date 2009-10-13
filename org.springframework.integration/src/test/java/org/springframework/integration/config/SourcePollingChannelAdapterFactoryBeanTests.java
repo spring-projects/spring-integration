@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -68,6 +69,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		factoryBean.setPollerMetadata(pollerMetadata);
 		factoryBean.setAutoStartup(true);
 		factoryBean.afterPropertiesSet();
+		context.registerEndpoint("testPollingEndpoint", (AbstractEndpoint) factoryBean.getObject());
 		context.refresh();
 		Message<?> message = outputChannel.receive(30000);
 		assertEquals("test", message.getPayload());

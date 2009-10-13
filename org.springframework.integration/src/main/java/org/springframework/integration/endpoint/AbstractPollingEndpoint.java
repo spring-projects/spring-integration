@@ -74,6 +74,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private final Object initializationMonitor = new Object();
 
 
+	public AbstractPollingEndpoint() {
+		this.setStartupMode(StartupMode.ON_CONTEXT_REFRESH);
+	}
+
+
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
 	}

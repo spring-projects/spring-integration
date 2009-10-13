@@ -22,9 +22,9 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -32,6 +32,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
@@ -40,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware,
-		InitializingBean, Lifecycle, ApplicationListener {
+		InitializingBean, Lifecycle, ApplicationListener<ContextRefreshedEvent> {
 
 	private volatile MessageHandler handler;
 
@@ -152,12 +153,12 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				throw new IllegalArgumentException(
 						"unsupported channel type: [" + channel.getClass() + "]");
 			}
-			this.endpoint.setAutoStartup(this.autoStartup);
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
-			if (this.endpoint instanceof InitializingBean) {
-				((InitializingBean) this.endpoint).afterPropertiesSet();
+			if (!this.autoStartup) {
+				this.endpoint.setStartupMode(StartupMode.MANUAL);
 			}
+			this.endpoint.afterPropertiesSet();
 			this.initialized = true;
 		}
 	}
@@ -186,10 +187,8 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 	 * ApplicationListener implementation
 	 */
 
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (this.endpoint instanceof ApplicationListener) {
-			((ApplicationListener) this.endpoint).onApplicationEvent(event);
-		}
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		this.endpoint.onApplicationEvent(event);
 	}
 
 }

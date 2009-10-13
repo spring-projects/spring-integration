@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.file.AcceptOnceFileListFilter;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.FileListFilter;
@@ -73,8 +74,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void autoStartupDisabled() {
 		assertFalse(this.endpoint.isRunning());
-		Boolean autoStartupValue = (Boolean) new DirectFieldAccessor(endpoint).getPropertyValue("autoStartup");
-		assertFalse(autoStartupValue);
+		assertEquals(StartupMode.MANUAL, new DirectFieldAccessor(endpoint).getPropertyValue("startupMode"));
 	}
 
 	@Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -58,6 +61,8 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, ApplicationListener {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile ConfigurableListableBeanFactory beanFactory;
 
@@ -168,7 +173,15 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		for (ApplicationListener listener : listeners) {
-			listener.onApplicationEvent(event);
+			try  {
+				listener.onApplicationEvent(event);
+			}
+			catch (ClassCastException e) {
+				if (logger.isWarnEnabled() && event != null) {
+					logger.warn("ApplicationEvent of type [" + event.getClass() +
+							"] not accepted by ApplicationListener [" + listener + "]");
+				}
+			}
 		}
 	}
 

@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.http.DefaultOutboundRequestMapper;
 import org.springframework.integration.http.HttpOutboundEndpoint;
 import org.springframework.integration.http.HttpRequestExecutor;
@@ -92,7 +93,7 @@ public class HttpOutboundGatewayParserTests {
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(77, accessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, endpointAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, endpointAccessor.getPropertyValue("startupMode"));
 		Object replyChannel = accessor.getPropertyValue("outputChannel");
 		assertNotNull(replyChannel);
 		assertEquals(this.applicationContext.getBean("replies"), replyChannel);

@@ -182,6 +182,7 @@ public class MessageChannelTemplateTests {
 	@Test
 	public void sendAndReceive() {
 		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.setReceiveTimeout(3000);
 		Message<?> reply = template.sendAndReceive(new StringMessage("test"), this.requestChannel);
 		assertEquals("TEST", reply.getPayload());
 	}
@@ -189,6 +190,7 @@ public class MessageChannelTemplateTests {
 	@Test
 	public void sendAndReceiveWithDefaultChannel() {
 		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.setReceiveTimeout(3000);
 		template.setDefaultChannel(this.requestChannel);
 		Message<?> reply = template.sendAndReceive(new StringMessage("test"));
 		assertEquals("TEST", reply.getPayload());
@@ -198,6 +200,7 @@ public class MessageChannelTemplateTests {
 	public void sendAndReceiveWithExplicitChannelTakesPrecedenceOverDefault() {
 		QueueChannel defaultChannel = new QueueChannel();
 		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		template.setReceiveTimeout(3000);
 		Message<?> message = new StringMessage("test");
 		Message<?> reply = template.sendAndReceive(message, this.requestChannel);
 		assertEquals("TEST", reply.getPayload());

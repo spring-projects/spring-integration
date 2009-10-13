@@ -29,6 +29,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.integration.mail.MailReceivingMessageSource;
 import org.springframework.integration.mail.Pop3MailReceiver;
@@ -52,7 +53,7 @@ public class PollingMailSourceParserTests {
 		Object adapter = context.getBean("imapAdapter");
 		assertEquals(SourcePollingChannelAdapter.class, adapter.getClass());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, adapterAccessor.getPropertyValue("startupMode"));
 		Object channel = context.getBean("channel");
 		assertEquals(channel, adapterAccessor.getPropertyValue("outputChannel"));
 		Object source = adapterAccessor.getPropertyValue("source");
@@ -71,7 +72,7 @@ public class PollingMailSourceParserTests {
 		Object adapter = context.getBean("pop3Adapter");
 		assertEquals(SourcePollingChannelAdapter.class, adapter.getClass());
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, adapterAccessor.getPropertyValue("startupMode"));
 		Object channel = context.getBean("channel");
 		assertEquals(channel, adapterAccessor.getPropertyValue("outputChannel"));
 		Object source = adapterAccessor.getPropertyValue("source");

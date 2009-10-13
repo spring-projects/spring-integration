@@ -28,6 +28,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -104,7 +105,7 @@ public class FileOutboundChannelAdapterParserTests {
 	@Test
 	public void adapterWithAutoStartupFalse() {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, adapterAccessor.getPropertyValue("startupMode"));
 	}
 
 }

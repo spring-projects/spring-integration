@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 
 	private final ChannelPublishingJmsMessageListener listener;
 
+	private volatile boolean autoStartup = true;
+
 
 	public JmsMessageDrivenEndpoint(AbstractMessageListenerContainer listenerContainer, ChannelPublishingJmsMessageListener listener) {
 		Assert.notNull(listenerContainer, "listener container must not be null");
@@ -43,8 +45,18 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 	}
 
 
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
+		if (this.autoStartup) {
+			this.setStartupMode(StartupMode.ON_CONTEXT_REFRESH);
+		}
+		else {
+			this.setStartupMode(StartupMode.MANUAL);
+		}
 		this.listener.afterPropertiesSet();
 		if (!this.listenerContainer.isActive()) {
 			this.listenerContainer.afterPropertiesSet();

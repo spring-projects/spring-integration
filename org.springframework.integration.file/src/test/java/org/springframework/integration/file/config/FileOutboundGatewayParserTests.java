@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -45,7 +46,7 @@ public class FileOutboundGatewayParserTests {
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		FileWritingMessageHandler handler = (FileWritingMessageHandler)
 					gatewayAccessor.getPropertyValue("handler");
-		assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, gatewayAccessor.getPropertyValue("startupMode"));
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(777, handlerAccessor.getPropertyValue("order"));
 	}

@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -48,7 +49,7 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(99, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, adapterAccessor.getPropertyValue("startupMode"));
 	}
 	
 	@Test
@@ -59,7 +60,7 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(99, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(StartupMode.MANUAL, adapterAccessor.getPropertyValue("startupMode"));
 	}
 
 
