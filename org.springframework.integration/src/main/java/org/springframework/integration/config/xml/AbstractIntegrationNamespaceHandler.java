@@ -63,7 +63,8 @@ public abstract class AbstractIntegrationNamespaceHandler implements NamespaceHa
 		boolean alreadyRegistered = false;
 		if (parserContext.getRegistry() instanceof ListableBeanFactory) {
 			alreadyRegistered = ObjectUtils.containsElement(
-					BeanFactoryUtils.beanNamesIncludingAncestors((ListableBeanFactory) parserContext.getRegistry()),
+					BeanFactoryUtils.beanNamesForTypeIncludingAncestors((ListableBeanFactory) parserContext.getRegistry(),
+							DefaultConfiguringBeanFactoryPostProcessor.class, false, false),
 					DEFAULT_CONFIGURING_POSTPROCESSOR_BEAN_NAME);
 		}
 		else {
