@@ -303,6 +303,20 @@ public class CronTriggerTests {
 	}
 
 	@Test
+	public void testSpecificHourSecond() throws Exception {
+		CronTrigger trigger = new CronTrigger("55 * 2 * * *");
+		calendar.set(Calendar.HOUR_OF_DAY, 1);
+		calendar.set(Calendar.SECOND, 54);
+		Date date = calendar.getTime();
+		calendar.add(Calendar.HOUR_OF_DAY, 1);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 55);
+		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
+		calendar.add(Calendar.MINUTE, 1);
+		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
+	}
+
+	@Test
 	public void testSpecificMinuteHour() throws Exception {
 		CronTrigger trigger = new CronTrigger("* 5 10 * * *");
 		calendar.set(Calendar.MINUTE, 4);
@@ -313,6 +327,36 @@ public class CronTriggerTests {
 		calendar.set(Calendar.SECOND, 0);
 		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
 		// next trigger is in one second because second is wildcard
+		calendar.add(Calendar.SECOND, 1);
+		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testSpecificDayOfMonthSecond() throws Exception {
+		CronTrigger trigger = new CronTrigger("55 * * 3 * *");
+		calendar.set(Calendar.DAY_OF_MONTH, 2);
+		calendar.set(Calendar.SECOND, 54);
+		Date date = calendar.getTime();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 55);
+		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
+		calendar.add(Calendar.MINUTE, 1);
+		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testSpecificDate() throws Exception {
+		CronTrigger trigger = new CronTrigger("* * * 3 10 *");
+		calendar.set(Calendar.DAY_OF_MONTH, 2);
+		calendar.set(Calendar.MONTH, 10);
+		Date date = calendar.getTime();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
 		calendar.add(Calendar.SECOND, 1);
 		assertEquals(calendar.getTime(), date = trigger.getNextRunTime(null, date));
 	}

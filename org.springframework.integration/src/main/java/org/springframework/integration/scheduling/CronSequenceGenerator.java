@@ -85,6 +85,25 @@ class CronSequenceGenerator {
 	 */
 	public Date next(Date date) {
 
+		/*
+		The plan:
+
+		1 Round up to the next whole second
+
+		2 If seconds match move on, otherwise find the next match:
+		2.1 If next match is in the next minute then roll forwards
+
+		3 If minute matches move on, otherwise find the next match
+		3.1 If next match is in the next hour then roll forwards
+		3.2 Reset the seconds and go to 2
+
+		4 If hour matches move on, otherwise find the next match
+		4.1 If next match is in the next day then roll forwards,
+		4.2 Reset the minutes and seconds and go to 2
+
+		...
+		*/
+
 		Calendar calendar = new GregorianCalendar();
 		calendar.setTime(date);
 
@@ -92,10 +111,16 @@ class CronSequenceGenerator {
 		calendar.add(Calendar.SECOND, 1);
 		calendar.set(Calendar.MILLISECOND, 0);
 
+		doNext(calendar);
+		return calendar.getTime();
+	}
+
+	private void doNext(Calendar calendar) {
 		List<Integer> resets = new ArrayList<Integer>();
 
 		int second = calendar.get(Calendar.SECOND);
-		int updateSecond = findNext(seconds, second, 60, calendar, Calendar.SECOND, Collections.<Integer> emptyList());
+		List<Integer> emptyList = Collections.<Integer> emptyList();
+		int updateSecond = findNext(seconds, second, 60, calendar, Calendar.SECOND, emptyList);
 		if (second == updateSecond) {
 			resets.add(Calendar.SECOND);
 		}
@@ -105,11 +130,17 @@ class CronSequenceGenerator {
 		if (minute == updateMinute) {
 			resets.add(Calendar.MINUTE);
 		}
+		else {
+			doNext(calendar);
+		}
 
 		int hour = calendar.get(Calendar.HOUR_OF_DAY);
 		int updateHour = findNext(hours, hour, 24, calendar, Calendar.HOUR_OF_DAY, resets);
 		if (hour == updateHour) {
 			resets.add(Calendar.HOUR_OF_DAY);
+		}
+		else {
+			doNext(calendar);
 		}
 
 		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
@@ -118,12 +149,15 @@ class CronSequenceGenerator {
 		if (dayOfMonth == updateDayOfMonth) {
 			resets.add(Calendar.DAY_OF_MONTH);
 		}
+		else {
+			doNext(calendar);
+		}
 
 		int month = calendar.get(Calendar.MONTH);
-		month = findNext(months, month, 12, calendar, Calendar.MONTH, resets);
-
-		return calendar.getTime();
-
+		int updateMonth = findNext(this.months, month, 12, calendar, Calendar.MONTH, resets);
+		if (month != updateMonth) {
+			doNext(calendar);
+		}
 	}
 
 	/**
