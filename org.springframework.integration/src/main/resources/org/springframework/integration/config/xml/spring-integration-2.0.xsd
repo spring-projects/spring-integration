@@ -1476,5 +1476,34 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:element name="publisher">
+		<xsd:annotation>
+					<xsd:documentation>
+						Defines a MessagePublishingInterceptor which allows you to generate messages as a by-product of 
+						method invocations on Spring configured components.
+					</xsd:documentation>
+		</xsd:annotation> 
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="pattern" type="xsd:string" />
+						<xsd:attribute name="payload" type="xsd:string" />
+						<xsd:attribute name="headers" type="xsd:string" />
+						<xsd:attribute name="channel" type="xsd:string" />
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:ID" use="required" />
+			<xsd:attribute name="default-channel" type="xsd:string" default="nullChannel">
+				<xsd:annotation> 
+					<xsd:documentation><![CDATA[
+						Specifies default-channel to publish messages
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 </xsd:schema>
