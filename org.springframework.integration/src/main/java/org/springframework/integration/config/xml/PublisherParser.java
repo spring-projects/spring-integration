@@ -27,10 +27,8 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aop.MethodNameMappingExpressionSource;
-import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MapBasedChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -51,7 +49,6 @@ public class PublisherParser extends AbstractBeanDefinitionParser {
 		BeanDefinitionBuilder spelSourceBilder = BeanDefinitionBuilder.genericBeanDefinition(MethodNameMappingExpressionSource.class.getName());
 		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"));
 		spelSourceBilder.addConstructorArgValue(mappings.get("payload"));
-		MethodNameMappingExpressionSource m = null;
 		if (mappings.get("headers") != null){
 			spelSourceBilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}

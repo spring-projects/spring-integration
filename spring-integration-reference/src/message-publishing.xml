@@ -66,17 +66,20 @@ public String setName(String fname, String lname){
 	 		</para>
 	  	</section>
 	  	<section id="aop-based-interceptor">
-		    <title>XML-based approach via MessagePublishingInterceptor</title>
+		    <title>XML-based approach via &lt;publisher&gt; element</title>
 		    <para>
-		    XML-based approach allows you to configure Message Publishing via AOP-based configuration and although 
-		    configuration itself is a bit more extensive it has certain benefits over annotation based approach since it
-		    allows you to use pointcut expressions, thus possibly intercepting multiple methods at once.
+		    XML-based approach allows you to configure Message Publishing via AOP-based configuration and 
+		    simple namespace-based configuration of <classname>MessagePublishingInterceptor</classname>.
+		    It certainly has certain benefits over annotation based approach since it
+		    allows you to use AOP pointcut expressions, thus possibly intercepting multiple methods at once or 
+		    intercepting and publishing methods to which you don't have a source code.
 		    </para>
 		    <para>
-			To configure Message Publishing via XML you need to provide two things:
+			To configure Message Publishing via XML all you need is the following two things:
 			<itemizedlist>
 		        <listitem>
-		          <para>Register <classname>MessagePublishingInterceptor</classname></para>
+		          <para>Provide configuration for <classname>MessagePublishingInterceptor</classname> 
+		          via <code>&lt;publisher&gt;</code> XML element</para>
 		        </listitem>
 		        <listitem>
 		          <para>Provide AOP configuration to apply <classname>MessagePublishingInterceptor</classname></para>
@@ -84,70 +87,65 @@ public String setName(String fname, String lname){
 	      </itemizedlist>
 		    </para>
 		    <para>
-<programlisting language="xml">&lt;bean id="testBean"
-		class="org.springframework.integration.aop.MessagePublishingInterceptorUsageTest$TestBean" /&gt;
-
-	&lt;si:channel id="testChannel"&gt;
-		&lt;si:queue /&gt;
-	&lt;/si:channel&gt;
-
-	&lt;aop:config&gt;
-		&lt;aop:advisor advice-ref="publishingInterceptor" pointcut="bean(testBean)" /&gt;
-	&lt;/aop:config&gt;
-
-	&lt;bean id="publishingInterceptor"
-		class="org.springframework.integration.aop.MessagePublishingInterceptor"&gt;
-		&lt;constructor-arg&gt;
-			&lt;bean
-				class="org.springframework.integration.aop.MethodNameMappingExpressionSource"&gt;
-				&lt;constructor-arg&gt;
-					&lt;map&gt;
-						&lt;entry key="*" value="#return" /&gt;
-					&lt;/map&gt;
-				&lt;/constructor-arg&gt;
-				&lt;property name="headerExpressionMap"&gt;
-					&lt;map&gt;
-						&lt;entry key="*" value="foo='bar'" /&gt;
-					&lt;/map&gt;
-				&lt;/property&gt;
-				&lt;property name="channelMap"&gt;
-					&lt;map&gt;
-						&lt;entry key="setName" value="channel" /&gt;
-					&lt;/map&gt;
-				&lt;/property&gt;
-			&lt;/bean&gt;
-		&lt;/constructor-arg&gt;
-		&lt;property name="channelResolver"&gt;
-			&lt;bean
-				class="org.springframework.integration.channel.MapBasedChannelResolver"&gt;
-				&lt;property name="channelMap"&gt;
-					&lt;map&gt;
-						&lt;entry key="channel" value-ref="testChannel" /&gt;
-					&lt;/map&gt;
-				&lt;/property&gt;
-			&lt;/bean&gt;
-		&lt;/property&gt;
-	&lt;/bean&gt;</programlisting>		    
+<programlisting language="xml">
+&lt;beans:bean id="testBean" class="org.foo.bar.TestBean" /&gt;
+&lt;aop:config&gt;
+	&lt;aop:advisor advice-ref="interceptor" pointcut="bean(testBean)" /&gt;
+&lt;/aop:config&gt;
+	
+&lt;publisher id="interceptor" default-channel="defaultChannel"&gt;
+	&lt;method pattern="echo" payload="'Echoing: ' + #return" headers="foo='bar'" channel="echoChannel"/&gt;
+	&lt;method pattern="echoDef*" payload="#return"/&gt;
+	&lt;method pattern="foo*"/&gt;
+&lt;/publisher&gt;
+	</programlisting>		    
 		    </para>
 		    <para>
-		    As you can see <classname>MessagePublishingInterceptor</classname> defines and binds the same variables as 
+		    As you can see <code>&lt;publisher&gt;</code> uses the same variables as 
 		    <classname>PublisherAnnotationAdvisor</classname> to utilize the power of Spring 3.0 Expression Langage.
 		    </para>
 		    <para>
-		    In this example after execution of any public method of a <code>testBean</code> a <emphasis>Message</emphasis> 
-		    will be constructed with the following structure:
+		    In the above example the execution of <code>echo</code> method of a <code>testBean</code> will 
+		    rander the <emphasis>Message</emphasis> with the following structure:
 		<itemizedlist>
 		        <listitem>
-		          <para>Message payload - will be of type and value returned by an executed method.</para>
+		          <para>Message payload - will be of type String and value of "Echoing: [value]" where <code>value</code> is the value 
+		          returned by an executed method.</para>
 		        </listitem>
 		        <listitem>
 		          <para>Message headers will be 'foo' with value of "bar".</para>
+		        </listitem>  
+		        <listitem>
+		          <para>Message will be sent to <code>echoChannel</code>.</para>
 		        </listitem>      
 	      </itemizedlist>
 	      </para>
 	      <para>
-In future versions namespace support will be available to simplify XML-based configuration.
-		    </para>
+	      In the second method mapping the execution of any method that begins with <code>echoDef</code> of <code>testBean</code> will result in the 
+	      Message with the following structure.
+	      <itemizedlist>
+		        <listitem>
+		          <para>Message payload - will be the value 
+		          returned by an executed method.</para>
+		        </listitem>  
+		        <listitem>
+		          <para>Since <code>channel</code> attriute is not provided, the Message will be sent to the
+		          <code>defaultChannel</code> defined by the <emphasis>publisher</emphasis>.</para>
+		        </listitem>      
+	      </itemizedlist>
+	      </para>
+	      <para>
+	      The third mapping is almost identical to the previous (with the exceptipon of method pattern), 
+	      since the return value will be mapped to the Message paylad by default if nothing else is specifued.
+	      </para>
+	     <para>
+	     For a simple maping rules you can rely on <emphasis>publisher</emphasis> defaults. For example:
+	     <programlisting language="xml">
+&lt;publisher id="anotherInterceptor"/&gt;
+	</programlisting>
+		This will map the return value of every method that matches the pointcut expression to a payload and will be sent to a <emphasis>default-channel</emphasis>. 
+		If the <emphasis>defaultChannel</emphasis>is not specified (as above) the messages will be sent to <emphasis>nullChannel</emphasis>
+	     </para>
 		</section>
   </section>
 </chapter>
