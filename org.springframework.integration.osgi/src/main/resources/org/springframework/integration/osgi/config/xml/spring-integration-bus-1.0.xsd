@@ -1,0 +1,26 @@
+<xsd:schema xmlns="http://www.springframework.org/schema/integration-bus"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	targetNamespace="http://www.springframework.org/schema/integration-bus"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+
+	<xsd:element name="osgi">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Auto-exports SI artifacts as OSGi services
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="group-name" type="xsd:string" default="DEFAULT_CONTROL_GROUP">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identified group-name of a Message Broker this configuration will be connected to.
+				</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

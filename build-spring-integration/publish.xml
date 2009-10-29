@@ -19,6 +19,7 @@
 		<pathelement location="${basedir}/../org.springframework.integration.stream"/>
 		<pathelement location="${basedir}/../org.springframework.integration.udp"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
+  	    <pathelement location="${basedir}/../org.springframework.integration.osgi"/>
   </path>
 
   <path id="modules-with-only-pom-artifacts">
