@@ -37,13 +37,15 @@ public class MethodNameMappingExpressionSource implements ExpressionSource {
 
 	private volatile Map<String, String> channelMap = Collections.emptyMap();
 
-	private volatile Map<String, String[]> argNameMap;
+	private volatile Map<String, String[]> argumentVariableNameMap;
 
-	private volatile String argumentMapName = ExpressionSource.DEFAULT_ARGUMENT_MAP_NAME;
+	private volatile String methodNameVariableName = ExpressionSource.DEFAULT_METHOD_NAME_VARIABLE_NAME;
 
-	private volatile String returnValueName = ExpressionSource.DEFAULT_RETURN_VALUE_NAME;
+	private volatile String argumentMapVariableName = ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME;
 
-	private volatile String exceptionName = ExpressionSource.DEFAULT_EXCEPTION_NAME;
+	private volatile String returnValueVariableName = ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME;
+
+	private volatile String exceptionVariableName = ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME;
 
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
@@ -53,32 +55,41 @@ public class MethodNameMappingExpressionSource implements ExpressionSource {
 		this.payloadExpressionMap = payloadExpressionMap;
 	}
 
-	public void setArgumentMapName(String argumentMapName) {
-		this.argumentMapName = argumentMapName;
+
+	public void setMethodNameVariableName(String methodNameVariableName) {
+		this.methodNameVariableName = methodNameVariableName;
 	}
 
-	public String getArgumentMapName(Method method) {
-		return this.argumentMapName;
+	public String getMethodNameVariableName(Method method) {
+		return this.methodNameVariableName;
 	}
 
-	public void setExceptionName(String exceptionName) {
-		this.exceptionName = exceptionName;
+	public void setArgumentMapVariableName(String argumentMapVariableName) {
+		this.argumentMapVariableName = argumentMapVariableName;
 	}
 
-	public String getExceptionName(Method method) {
-		return this.exceptionName;
+	public String getArgumentMapVariableName(Method method) {
+		return this.argumentMapVariableName;
 	}
 
-	public void setReturnValueName(String returnValueName) {
-		this.returnValueName = returnValueName;
+	public void setExceptionVariableName(String exceptionVariableName) {
+		this.exceptionVariableName = exceptionVariableName;
 	}
 
-	public String getReturnValueName(Method method) {
-		return this.returnValueName;
+	public String getExceptionVariableName(Method method) {
+		return this.exceptionVariableName;
 	}
 
-	public void setArgNameMap(Map<String, String[]> argNameMap) {
-		this.argNameMap = argNameMap;
+	public void setReturnValueVariableName(String returnValueVariableName) {
+		this.returnValueVariableName = returnValueVariableName;
+	}
+
+	public String getReturnValueVariableName(Method method) {
+		return this.returnValueVariableName;
+	}
+
+	public void setArgumentVariableNameMap(Map<String, String[]> argumentVariableNameMap) {
+		this.argumentVariableNameMap = argumentVariableNameMap;
 	}
 
 	public void setHeaderExpressionMap(Map<String, String[]> headerExpressionMap) {
@@ -89,9 +100,9 @@ public class MethodNameMappingExpressionSource implements ExpressionSource {
 		this.channelMap = channelMap;
 	}
 
-	public String[] getArgumentNames(Method method) {
-		if (this.argNameMap != null) {
-			for (Map.Entry<String, String[]> entry : this.argNameMap.entrySet()) {
+	public String[] getArgumentVariableNames(Method method) {
+		if (this.argumentVariableNameMap != null) {
+			for (Map.Entry<String, String[]> entry : this.argumentVariableNameMap.entrySet()) {
 				if (PatternMatchUtils.simpleMatch(entry.getKey(), method.getName())) {
 					return entry.getValue();
 				}

@@ -33,29 +33,35 @@ import java.lang.annotation.Target;
 public @interface ExpressionBinding {
 
 	/**
+	 * Name of the variable in the context that refers to the method name.
+	 * <p>The default is "method".
+	 */
+	String methodNameVariableName() default ExpressionSource.DEFAULT_METHOD_NAME_VARIABLE_NAME;
+
+	/**
 	 * Names of the arguments as a comma-separated list. If not provided, the
 	 * names will be discovered automatically if enabled by the compiler settings.
 	 * These names will be used as the keys in the argument Map.
 	 */
-	String argNames() default "";
+	String argumentVariableNames() default "";
 
 	/**
 	 * Name of the variable in the context that refers to the Map of arguments.
 	 * <p>The default is "args". 
 	 */
-	String argumentMapName() default ExpressionSource.DEFAULT_ARGUMENT_MAP_NAME;
+	String argumentMapVariableName() default ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME;
 
 	/**
 	 * Name of the variable in the context that refers to the return value, if any.
 	 * <p>The default is "return".
 	 */
-	String returnValueName() default ExpressionSource.DEFAULT_RETURN_VALUE_NAME;
+	String returnValueVariableName() default ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME;
 
 	/**
 	 * Name of the variable in the context that refers to any exception thrown
 	 * by the method invocation that is being intercepted.
 	 * <p>The default is "exception".
 	 */
-	String exceptionName() default ExpressionSource.DEFAULT_EXCEPTION_NAME;
+	String exceptionVariableName() default ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME;
 
 }

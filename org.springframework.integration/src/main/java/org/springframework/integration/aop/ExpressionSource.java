@@ -27,11 +27,13 @@ import java.lang.reflect.Method;
  */
 interface ExpressionSource {
 
-	static final String DEFAULT_ARGUMENT_MAP_NAME = "args";
+	static final String DEFAULT_METHOD_NAME_VARIABLE_NAME = "method";
 
-	static final String DEFAULT_RETURN_VALUE_NAME = "return";
+	static final String DEFAULT_ARGUMENT_MAP_VARIABLE_NAME = "args";
 
-	static final String DEFAULT_EXCEPTION_NAME = "exception";
+	static final String DEFAULT_RETURN_VALUE_VARIABLE_NAME = "return";
+
+	static final String DEFAULT_EXCEPTION_VARIABLE_NAME = "exception";
 
 
 	/**
@@ -47,29 +49,35 @@ interface ExpressionSource {
 	String[] getHeaderExpressions(Method method);
 
 	/**
+	 * Returns the variable name to be associated with the intercepted
+	 * method's name.
+	 */
+	String getMethodNameVariableName(Method method);
+
+	/**
 	 * Returns the variable names to be associated with the intercepted method
 	 * invocation's argument array.
 	 */
-	String[] getArgumentNames(Method method);
+	String[] getArgumentVariableNames(Method method);
 
 	/**
 	 * Returns the variable name to use in the evaluation context for the Map
 	 * of arguments. The keys in this map will be determined by the result of
 	 * the {@link #getArgumentNames(Method)} method.
 	 */
-	String getArgumentMapName(Method method);
+	String getArgumentMapVariableName(Method method);
 
 	/**
 	 * Returns the variable name to use in the evaluation context for any
 	 * return value resulting from the method invocation.
 	 */
-	String getReturnValueName(Method method);
+	String getReturnValueVariableName(Method method);
 
 	/**
 	 * Returns the variable name to use in the evaluation context for any
 	 * exception thrown from the method invocation.
 	 */
-	String getExceptionName(Method method);
+	String getExceptionVariableName(Method method);
 
 	/**
 	 * Returns the channel name to which Messages should be published

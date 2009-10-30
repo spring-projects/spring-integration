@@ -108,19 +108,23 @@ public class MessagePublishingInterceptorTests {
 
 	private static class TestExpressionSource implements ExpressionSource {
 
-		public String getArgumentMapName(Method method) {
+		public String getMethodNameVariableName(Method method) {
 			return "m";
 		}
 
-		public String[] getArgumentNames(Method method) {
+		public String getArgumentMapVariableName(Method method) {
+			return "map";
+		}
+
+		public String[] getArgumentVariableNames(Method method) {
 			return new String[] { "a1", "a2"};
 		}
 
-		public String getReturnValueName(Method method) {
+		public String getReturnValueVariableName(Method method) {
 			return "r";
 		}
 
-		public String getExceptionName(Method method) {
+		public String getExceptionVariableName(Method method) {
 			return "x";
 		}
 

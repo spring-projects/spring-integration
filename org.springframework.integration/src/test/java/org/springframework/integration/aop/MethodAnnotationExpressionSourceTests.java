@@ -36,16 +36,16 @@ public class MethodAnnotationExpressionSourceTests {
 		Method method = getMethod("methodWithExpressionAnnotationOnly", String.class, int.class);
 		String expressionString = source.getPayloadExpression(method);
 		assertEquals("testExpression1", expressionString);
-		assertEquals(2, source.getArgumentNames(method).length);
-		assertEquals("arg1", source.getArgumentNames(method)[0]);
-		assertEquals("arg2", source.getArgumentNames(method)[1]);
+		assertEquals(2, source.getArgumentVariableNames(method).length);
+		assertEquals("arg1", source.getArgumentVariableNames(method)[0]);
+		assertEquals("arg2", source.getArgumentVariableNames(method)[1]);
 		String[] headerStrings = source.getHeaderExpressions(method);
 		assertNotNull(headerStrings);
 		assertEquals(1, headerStrings.length);
 		assertEquals("", headerStrings[0]);
-		assertEquals(ExpressionSource.DEFAULT_ARGUMENT_MAP_NAME, source.getArgumentMapName(method));
-		assertEquals(ExpressionSource.DEFAULT_EXCEPTION_NAME, source.getExceptionName(method));
-		assertEquals(ExpressionSource.DEFAULT_RETURN_VALUE_NAME, source.getReturnValueName(method));
+		assertEquals(ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME, source.getArgumentMapVariableName(method));
+		assertEquals(ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME, source.getExceptionVariableName(method));
+		assertEquals(ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME, source.getReturnValueVariableName(method));
 	}
 
 	@Test
@@ -53,12 +53,12 @@ public class MethodAnnotationExpressionSourceTests {
 		Method method = getMethod("methodWithExpressionBinding", String.class, int.class);
 		String expressionString = source.getPayloadExpression(method);
 		assertEquals("testExpression2", expressionString);
-		assertEquals(2, source.getArgumentNames(method).length);
-		assertEquals("s", source.getArgumentNames(method)[0]);
-		assertEquals("i", source.getArgumentNames(method)[1]);
-		assertEquals("argz", source.getArgumentMapName(method));
-		assertEquals("x", source.getExceptionName(method));
-		assertEquals("result", source.getReturnValueName(method));
+		assertEquals(2, source.getArgumentVariableNames(method).length);
+		assertEquals("s", source.getArgumentVariableNames(method)[0]);
+		assertEquals("i", source.getArgumentVariableNames(method)[1]);
+		assertEquals("argz", source.getArgumentMapVariableName(method));
+		assertEquals("x", source.getExceptionVariableName(method));
+		assertEquals("result", source.getReturnValueVariableName(method));
 	}
 
 	@Test
@@ -88,7 +88,8 @@ public class MethodAnnotationExpressionSourceTests {
 	}
 
 	@Publisher("testExpression2")
-	@ExpressionBinding(argNames="s, i", argumentMapName="argz", exceptionName="x", returnValueName="result")
+	@ExpressionBinding(argumentVariableNames="s, i", argumentMapVariableName="argz",
+			exceptionVariableName="x", returnValueVariableName="result")
 	public void methodWithExpressionBinding(String arg1, int arg2) {
 	}
 

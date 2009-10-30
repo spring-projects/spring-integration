@@ -81,7 +81,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		context.addPropertyAccessor(new MapAccessor());
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
-		String[] argumentNames = this.expressionSource.getArgumentNames(method);
+		String[] argumentNames = this.expressionSource.getArgumentVariableNames(method);
+		context.setVariable(this.expressionSource.getMethodNameVariableName(method), method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
 			int index = 0;
 			Map<String, Object> argumentMap = new HashMap<String, Object>();
@@ -91,15 +92,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				}
 				argumentMap.put(argumentName, invocation.getArguments()[index++]);
 			}
-			context.setVariable(this.expressionSource.getArgumentMapName(method), argumentMap);
+			context.setVariable(this.expressionSource.getArgumentMapVariableName(method), argumentMap);
 		}
 		try {
 			Object returnValue = invocation.proceed();
-			context.setVariable(this.expressionSource.getReturnValueName(method), returnValue);
+			context.setVariable(this.expressionSource.getReturnValueVariableName(method), returnValue);
 			return returnValue;
 		}
 		catch (Throwable t) {
-			context.setVariable(this.expressionSource.getExceptionName(method), t);
+			context.setVariable(this.expressionSource.getExceptionVariableName(method), t);
 			throw t;
 		}
 		finally {
@@ -110,7 +111,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	private void publishMessage(Method method, StandardEvaluationContext context) throws Exception {
 		String payloadExpressionString = this.expressionSource.getPayloadExpression(method);
 		if (!StringUtils.hasText(payloadExpressionString)) {
-			payloadExpressionString = "#" + this.expressionSource.getReturnValueName(method);
+			payloadExpressionString = "#" + this.expressionSource.getReturnValueVariableName(method);
 		}
 		Expression expression = this.parser.parseExpression(payloadExpressionString);
 		Object result = expression.getValue(context);

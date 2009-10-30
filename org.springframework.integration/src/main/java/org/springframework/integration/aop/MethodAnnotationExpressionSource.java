@@ -66,39 +66,47 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 		return this.getAnnotationValue(method, "headers", String[].class);
 	}
 
-	public String[] getArgumentNames(Method method) {
+	public String getMethodNameVariableName(Method method) {
 		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
 		if (annotation != null) {
-			String name = annotation.argNames();
-			if (StringUtils.hasText(name)) {
-				return StringUtils.tokenizeToStringArray(name, ",");
+			return annotation.methodNameVariableName();
+		}
+		return ExpressionSource.DEFAULT_METHOD_NAME_VARIABLE_NAME;
+	}
+
+	public String[] getArgumentVariableNames(Method method) {
+		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
+		if (annotation != null) {
+			String argNameList = annotation.argumentVariableNames();
+			if (StringUtils.hasText(argNameList)) {
+				return StringUtils.tokenizeToStringArray(argNameList, ",");
 			}
 		}
 		return this.parameterNameDiscoverer.getParameterNames(method);
 	}
 
-	public String getArgumentMapName(Method method) {
+	public String getArgumentMapVariableName(Method method) {
 		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
 		if (annotation != null) {
-			return annotation.argumentMapName();
+			return annotation.argumentMapVariableName();
 		}
-		return ExpressionSource.DEFAULT_ARGUMENT_MAP_NAME;
+		return ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME;
 	}
 
-	public String getReturnValueName(Method method) {
+	public String getReturnValueVariableName(Method method) {
 		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
 		if (annotation != null) {
-			return annotation.returnValueName();
+			return annotation.returnValueVariableName();
 		}
-		return ExpressionSource.DEFAULT_RETURN_VALUE_NAME;
+		return ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME;
 	}
 
-	public String getExceptionName(Method method) {
+	public String getExceptionVariableName(Method method) {
 		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
 		if (annotation != null) {
-			return annotation.exceptionName();
+			return annotation.exceptionVariableName();
 		}
-		return ExpressionSource.DEFAULT_EXCEPTION_NAME;		
+		return ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME;		
 	}
 
 	public String getChannelName(Method method) {
