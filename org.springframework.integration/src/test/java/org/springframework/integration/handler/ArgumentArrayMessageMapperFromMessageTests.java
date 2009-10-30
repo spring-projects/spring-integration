@@ -288,6 +288,16 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		mapper.fromMessage(message);
 	}
 
+	@Test
+	public void headersWithExpressions() throws Exception {
+		Method method = TestService.class.getMethod("headersWithExpressions", String.class, String.class);
+		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		Employee employee = new Employee("John", "Doe");
+		Message<?> message = MessageBuilder.withPayload("payload").setHeader("emp", employee).build();
+		Object[] args = mapper.fromMessage(message);
+		assertEquals("John", args[0]);
+		assertEquals("Doe", args[1]);
+	}
 
 	@SuppressWarnings("unused")
 	private static class MultipleMappingAnnotationTestBean {
@@ -299,7 +309,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 	@SuppressWarnings("unused")
 	private static class TestService {
 
-		public void payloadOnly(Map employee){}
+		public void payloadOnly(Map<?,?> employee){}
 		public void payloadOnlyPayloadArg(String fname){}
 		public void payloadOnlyPayloadArgs(String fname, String lname){}
 		public void payloadOnlyPayloadArgsHeaderArg(String fname, String day){}
@@ -322,6 +332,10 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 
 		public Integer requiredHeader(@Header(value="num", required=true) Integer num) {
 			return num;
+		}
+
+		public String headersWithExpressions(@Header("emp.fname") String firstName, @Header("emp.lname") String lastName) {
+			return lastName + ", " + firstName;
 		}
 
 		public String optionalAndRequiredHeader(@Header(required=false) String prop, @Header(value="num", required=true) Integer num) {
@@ -369,10 +383,10 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 
 		public void fromMessageToMessageMappingAnnotationMultiArguments(@MessageMapping("headers.day") String argA,
 																		@MessageMapping("headers.month") String argB,
-																		@MessageMapping("#this") Message message,
+																		@MessageMapping("#this") Message<?> message,
 																		@MessageMapping("payload") Employee payloadArg,
 																		@MessageMapping("payload.fname") String value,
-																		@MessageMapping("headers") Map headers){} //
+																		@MessageMapping("headers") Map<?,?> headers){} //
 
 		public void fromMessageIrrelevantAnnotation(@BogusAnnotation() String value){} //
 	}
