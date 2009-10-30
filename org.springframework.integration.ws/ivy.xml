@@ -30,7 +30,7 @@
 		</dependency>
 		<!-- test dependencies -->
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="${junit.version}" conf="test->runtime"/>	
-		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="1.6.0" conf="test->runtime"/>
+		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="${mockito.version}" conf="test->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>				
 	</dependencies>
 

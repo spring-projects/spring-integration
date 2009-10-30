@@ -26,7 +26,7 @@
 		<dependency org="org.springframework" name="org.springframework.context" rev="${spring.version}" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
-		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="1.6.0" conf="test->runtime"/>
+		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="${mockito.version}" conf="test->runtime"/>
         <dependency org="org.springframework.integration" name="org.springframework.integration.test" rev="latest.integration" conf="test->runtime"/>                
 	</dependencies>
 
