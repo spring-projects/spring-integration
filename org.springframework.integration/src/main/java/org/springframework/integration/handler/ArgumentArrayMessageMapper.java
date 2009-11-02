@@ -40,7 +40,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.annotation.MessageMapping;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
@@ -168,8 +168,14 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				if (mappingAnnotation.annotationType().isAssignableFrom(Header.class)) {
 					value = this.mapHeaderThruAnnotation(mappingAnnotation, message, methodParameter, null)[1];
 				}
-				else if (mappingAnnotation.annotationType().isAssignableFrom(MessageMapping.class)) {
-					expressions = new String[] { (String) AnnotationUtils.getValue(mappingAnnotation) };
+				else if (mappingAnnotation.annotationType().isAssignableFrom(Payload.class)) {
+					String payloadExpression = ((Payload) mappingAnnotation).value();
+					if (payloadExpression.length() == 0) {
+						expressions = new String[] { "payload" };
+					}
+					else {
+						expressions = new String[] { "payload." + payloadExpression };
+					}
 					value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), true, expressions);
 				}
 				else if (mappingAnnotation.annotationType().isAssignableFrom(Headers.class)) {
@@ -186,7 +192,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	public Message<?> toMessage(Object[] arguments) {
-		Assert.notNull(arguments, "Can not map 'null' arguments to Message");
+		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length > this.parameterList.size()) {
 			throw new IllegalArgumentException("Too many parameters provided for: " + method);
 		}
@@ -206,10 +212,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		Annotation match = null;
 		for (Annotation annotation : annotations) {
 			Class<? extends Annotation> type = annotation.annotationType();
-			if (type.equals(MessageMapping.class) || type.equals(Header.class) || type.equals(Headers.class)) {
+			if (type.equals(Payload.class) || type.equals(Header.class) || type.equals(Headers.class)) {
 				if (match != null) {
 					throw new IllegalArgumentException("at most one parameter annotation can be provided for message mapping, " +
-							"but found two [" + match.annotationType().getName() + "] and [" + annotation.annotationType().getName() + "]");
+							"but found two: [" + match.annotationType().getName() + "] and [" + annotation.annotationType().getName() + "]");
 				}
 				match = annotation;
 			}
@@ -250,9 +256,9 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				Object[] header = this.mapHeaderThruAnnotation(annotation, message, methodParam, argumentValue);
 				messageArgumentsMap.put((String) header[0], header[1]);
 			}
-			else if (annotation.annotationType().equals(MessageMapping.class)) {
+			else if (annotation.annotationType().equals(Payload.class)) {
 				// need to clarify what to do here
-				throw new IllegalArgumentException("@MessageMapping is not allowed when mapping from method to Message");
+				throw new IllegalArgumentException("@Payload is not allowed when mapping from method to Message");
 			}
 		}
 		Assert.isTrue(payloadExist, "Payload can not be determined from method: " + method);

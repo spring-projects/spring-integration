@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Header; 
 import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.annotation.MessageMapping;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -289,19 +289,19 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 	}
 
 	@Test
-	public void headersWithExpressions() throws Exception {
+	public void fromMessageToHeadersWithExpressions() throws Exception {
 		Method method = TestService.class.getMethod("headersWithExpressions", String.class, String.class);
 		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
 		Employee employee = new Employee("John", "Doe");
 		Message<?> message = MessageBuilder.withPayload("payload").setHeader("emp", employee).build();
 		Object[] args = mapper.fromMessage(message);
 		assertEquals("John", args[0]);
-		assertEquals("Doe", args[1]);
+		assertEquals("DOE", args[1]);
 	}
 
 	@SuppressWarnings("unused")
 	private static class MultipleMappingAnnotationTestBean {
-		public void test(@MessageMapping("payload") @Header("foo")  String s) {
+		public void test(@Payload("payload") @Header("foo")  String s) {
 		}
 	}
 
@@ -334,7 +334,8 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 			return num;
 		}
 
-		public String headersWithExpressions(@Header("emp.fname") String firstName, @Header("emp.lname") String lastName) {
+		public String headersWithExpressions(@Header("emp.fname") String firstName,
+				@Header("emp.lname.toUpperCase()") String lastName) {
 			return lastName + ", " + firstName;
 		}
 
@@ -373,20 +374,20 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 			return i;
 		}
 
-		public void fromMessageToArgWithConversion(@MessageMapping("headers.number") String sArg) {} //
+		public void fromMessageToArgWithConversion(@Header("number") String sArg) {} //
 
-		public void fromMessageToArgWithConversion(@MessageMapping("headers.number") Integer iArg) {} //
+		public void fromMessageToArgWithConversion(@Header("number") Integer iArg) {} //
 
 		public void fromMessageToArgWithConversion(@Header("numberA")Integer valueA, @Header("numberB") Integer valueB) {} //
 
-		public void fromMessageToMessageMappingAnnotation(@MessageMapping("headers.day") String value) {} //
+		public void fromMessageToMessageMappingAnnotation(@Header("day") String value) {} //
 
-		public void fromMessageToMessageMappingAnnotationMultiArguments(@MessageMapping("headers.day") String argA,
-																		@MessageMapping("headers.month") String argB,
-																		@MessageMapping("#this") Message<?> message,
-																		@MessageMapping("payload") Employee payloadArg,
-																		@MessageMapping("payload.fname") String value,
-																		@MessageMapping("headers") Map<?,?> headers){} //
+		public void fromMessageToMessageMappingAnnotationMultiArguments(@Header("day") String argA,
+																		@Header("month") String argB,
+																		Message<?> message,
+																		@Payload Employee payloadArg,
+																		@Payload("fname") String value,
+																		@Headers Map<?,?> headers){} //
 
 		public void fromMessageIrrelevantAnnotation(@BogusAnnotation() String value){} //
 	}
