@@ -39,6 +39,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class JmsDestinationBackedMessageChannelTests {
 
+	private static final int TIMEOUT = 10000;
+
+
 	private ActiveMQConnectionFactory connectionFactory;
 
 	private Destination topic;
@@ -78,7 +81,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
-		latch.await(5000, TimeUnit.MILLISECONDS);
+		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(1, receivedList1.size());
 		assertNotNull(receivedList1.get(0));
 		assertEquals("foo", receivedList1.get(0).getPayload());
@@ -111,7 +114,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
-		latch.await(5000, TimeUnit.MILLISECONDS);
+		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(2, receivedList1.size());
 		assertEquals("foo", receivedList1.get(0).getPayload());
 		assertEquals("bar", receivedList1.get(1).getPayload());
@@ -144,7 +147,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
-		latch.await(5000, TimeUnit.MILLISECONDS);
+		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(1, receivedList1.size());
 		assertNotNull(receivedList1.get(0));
 		assertEquals("foo", receivedList1.get(0).getPayload());
@@ -177,7 +180,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
-		latch.await(5000, TimeUnit.MILLISECONDS);
+		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(2, receivedList1.size());
 		assertEquals("foo", receivedList1.get(0).getPayload());
 		assertEquals("bar", receivedList1.get(1).getPayload());
