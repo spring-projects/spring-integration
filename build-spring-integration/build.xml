@@ -10,6 +10,7 @@
 		<pathelement location="${basedir}/../org.springframework.integration.file"/>
 		<pathelement location="${basedir}/../org.springframework.integration.http"/>
 		<pathelement location="${basedir}/../org.springframework.integration.httpinvoker"/>
+		<pathelement location="${basedir}/../org.springframework.integration.jdbc"/>
 		<pathelement location="${basedir}/../org.springframework.integration.jms"/>
 	 	<pathelement location="${basedir}/../org.springframework.integration.mail"/>
 		<pathelement location="${basedir}/../org.springframework.integration.rmi"/>

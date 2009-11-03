@@ -25,6 +25,7 @@
       <module>../org.springframework.integration.file</module>
       <module>../org.springframework.integration.http</module>
       <module>../org.springframework.integration.httpinvoker</module>
+      <module>../org.springframework.integration.jdbc</module>
       <module>../org.springframework.integration.jms</module>
       <module>../org.springframework.integration.mail</module>
       <module>../org.springframework.integration.rmi</module>
