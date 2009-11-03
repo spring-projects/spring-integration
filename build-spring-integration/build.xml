@@ -16,6 +16,7 @@
 		<pathelement location="${basedir}/../org.springframework.integration.stream"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
 		<pathelement location="${basedir}/../org.springframework.integration.udp"/>
+		<pathelement location="${basedir}/../org.springframework.integration.osgi"/>
 		<pathelement location="${basedir}/../org.springframework.integration.test"/>
 	</path>
 
