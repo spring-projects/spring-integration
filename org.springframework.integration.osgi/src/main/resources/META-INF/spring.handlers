@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/integration-bus=org.springframework.integration.osgi.config.xml.IntegrationOSGiNamespaceHandler
+http\://www.springframework.org/schema/integration/integration-control-bus=org.springframework.integration.osgi.config.xml.IntegrationOSGiControlBusNamespaceHandler

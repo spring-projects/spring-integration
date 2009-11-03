@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si-control="http://www.springframework.org/schema/integration/integration-control-bus"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	                   http://www.springframework.org/schema/integration/integration-control-bus http://www.springframework.org/schema/integration/integration-control-bus/spring-integration-bus-1.0.xsd
+                       http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+	
+	<si-control:bus-config group-name="DEFAULT_CONTROL_GROUP"/>
+	
+	<!-- SERVICE REGISTRATION CONFIG-->
+	<si:publish-subscribe-channel id="serviceRegistrationControlChannel" task-executor="executor"/>
+	<si:service-activator input-channel="serviceRegistrationControlChannel">
+		<bean class="org.springframework.integration.controlbus.ControlBusMessageHandler"/>
+	</si:service-activator>
+	 <!-- END SERVICE REGISTRATION CONFIG-->
+
+	<!-- SERVICE BINDING CONFIG-->
+	<si:publish-subscribe-channel id="serviceBindingControlChannel" task-executor="executor"/>
+	<si:service-activator input-channel="serviceBindingControlChannel">
+		<bean class="org.springframework.integration.controlbus.ControlBusMessageHandler"/>
+	</si:service-activator> 
+	<!-- END SERVICE BINDING CONFIG-->
+	
+	<!-- CONTROL BUS channel, exposed as an OSGi service --> 
+	<si:publish-subscribe-channel id="controlMessagesDistributionChannel"/>
+	<!-- END CONTROL BUS channel, exposed as an OSGi service --> 
+	
+	<si:header-value-router input-channel="controlMessagesDistributionChannel" header-name="INTEGRATION_EVENT_TYPE">
+		<si:mapping value="REGISTRATION" channel="serviceRegistrationControlChannel"/>
+		<si:mapping value="UNREGISTRATION" channel="serviceRegistrationControlChannel"/>
+		<si:mapping value="BINDING" channel="serviceBindingControlChannel"/>
+		<si:mapping value="UNBINDING" channel="serviceBindingControlChannel"/>
+	</si:header-value-router>
+	
+	<si:thread-pool-task-executor id="executor" core-size="10"/>
+</beans>
