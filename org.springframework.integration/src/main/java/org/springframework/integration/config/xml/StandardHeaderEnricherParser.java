@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.ManagedMap;
-import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.core.MessagePriority;
 
 /**
  * Parser for the &lt;header-enricher&gt; element within the core integration
@@ -35,43 +28,14 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class StandardHeaderEnricherParser extends SimpleHeaderEnricherParser {
-
-	private static final String[] REFERENCE_ATTRIBUTES = new String[] {
-		"reply-channel", "error-channel"
-	};
-
+public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 
 	public StandardHeaderEnricherParser() {
-		super(MessageHeaders.PREFIX, REFERENCE_ATTRIBUTES);
-	}
-
-
-	@Override
-	@SuppressWarnings("unchecked")
-	protected void postProcessHeaders(Element element, ManagedMap headers, ParserContext parserContext) {
-		NodeList childNodes = element.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); i++) {
-			Node node = childNodes.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE && node.getLocalName().equals("header")) {
-				Element headerElement = (Element) node;
-				String name = headerElement.getAttribute("name");
-				String value = headerElement.getAttribute("value");
-				String ref = headerElement.getAttribute("ref");
-				boolean isValue = StringUtils.hasText(value);
-				boolean isRef = StringUtils.hasText(ref);
-				if (!(isValue ^ isRef)) {
-					parserContext.getReaderContext().error(
-							"Exactly one of the 'value' or 'ref' attributes is required.", element);
-				}
-				if (isValue) {
-					headers.put(name, value);
-				}
-				else {
-					headers.put(name, new RuntimeBeanReference(ref));
-				}
-			}
-		}
+		this.addElementToHeaderMapping("reply-channel", MessageHeaders.REPLY_CHANNEL);
+		this.addElementToHeaderMapping("error-channel", MessageHeaders.ERROR_CHANNEL);
+		this.addElementToHeaderMapping("correlation-id", MessageHeaders.CORRELATION_ID);
+		this.addElementToHeaderMapping("expiration-date", MessageHeaders.EXPIRATION_DATE, Long.class);
+		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, MessagePriority.class);
 	}
 
 }

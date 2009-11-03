@@ -11,7 +11,9 @@
 
 	<bridge id="endpoint5" input-channel="cannel" order="5"/>
 
-	<header-enricher id="endpoint11" input-channel="channel" correlation-id="x" order="11"/>
+	<header-enricher id="endpoint11" input-channel="channel" order="11">
+		<header name="foo" value="bar"/>
+	</header-enricher>
 
 	<splitter id="endpoint1" ref="bean" method="handle" input-channel="channel" order="1"/> 
 

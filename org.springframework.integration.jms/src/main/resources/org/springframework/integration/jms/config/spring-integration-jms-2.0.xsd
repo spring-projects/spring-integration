@@ -537,13 +537,43 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:attribute name="correlation-id" type="xsd:string"/>
-					<xsd:attribute name="reply-to" type="xsd:string"/>
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:element name="reply-to" type="refOnlyHeaderType">
+							<xsd:annotation>
+								<xsd:documentation>
+	The ReplyTo Destination for the JMS Message.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="correlation-id" type="refOrValueHeaderType">
+							<xsd:annotation>
+								<xsd:documentation>
+	The Correlation ID for the JMS Message.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:choice>
+					<!-- 
 					<xsd:attribute name="overwrite" type="xsd:string"/>
+					-->
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="refOrValueHeaderType">
+		<xsd:complexContent>
+			<xsd:extension base="refOnlyHeaderType">
+				<xsd:attribute name="value" type="xsd:string" />
+				<!-- xsd:attribute name="expression" type="xsd:string" / -->
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="refOnlyHeaderType">
+		<xsd:attribute name="ref" type="xsd:string" />
+		<!-- TODO add 'overwrite' -->
+	</xsd:complexType>
 
 	<xsd:complexType name="jmsAdapterType">
 		<xsd:annotation>

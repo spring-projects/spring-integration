@@ -60,4 +60,14 @@ public class JmsHeaderEnricherTests {
 		assertEquals(testDestination, jmsMessage.getJMSReplyTo());
 	}
 
+	@Test
+	public void verifyCorrelationId() throws Exception {
+		input.send(new StringMessage("test"));
+		Message<?> result = output.receive(0);
+		assertEquals("ABC", result.getHeaders().get(JmsHeaders.CORRELATION_ID));
+		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
+		javax.jms.Message jmsMessage = converter.toMessage(result, new StubSession("foo"));
+		assertEquals("ABC", jmsMessage.getJMSCorrelationID());
+	}
+
 }

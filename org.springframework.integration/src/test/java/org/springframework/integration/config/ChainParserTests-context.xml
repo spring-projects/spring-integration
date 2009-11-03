@@ -28,8 +28,9 @@
 	</chain>
 
 	<chain input-channel="headerEnricherInput">
-		<header-enricher reply-channel="replyOutput"
-			correlation-id="ABC">
+		<header-enricher>
+			<reply-channel ref="replyOutput"/>
+			<correlation-id value="ABC"/>
 			<header name="testValue" value="XYZ" />
 			<header name="testRef" ref="testHeaderValue" />
 		</header-enricher>

@@ -16,6 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -23,8 +27,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Base class parser for elements that create Message Endpoints.
@@ -97,9 +101,13 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}
 		builder.addPropertyValue("inputChannelName", inputChannelName);
-		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
+		List<Element> pollerElementList = DomUtils.getChildElementsByTagName(element, "poller");
+		if (!CollectionUtils.isEmpty(pollerElementList)) {
+			if (pollerElementList.size() != 1) {
+				parserContext.getReaderContext().error(
+						"at most one poller element may be configured for an endpoint", element);
+			}
+			IntegrationNamespaceUtils.configurePollerMetadata(pollerElementList.get(0), builder, parserContext);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();

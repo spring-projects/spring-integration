@@ -18,8 +18,6 @@ package org.springframework.integration.jms.config;
 
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
-import org.springframework.integration.config.xml.SimpleHeaderEnricherParser;
-import org.springframework.integration.jms.JmsHeaders;
 
 /**
  * Namespace handler for Spring Integration's <em>jms</em> namespace.
@@ -37,8 +35,7 @@ public class JmsNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		BeanDefinitionParser channelParser = new JmsChannelParser();
 		this.registerBeanDefinitionParser("channel", channelParser);
 		this.registerBeanDefinitionParser("publish-subscribe-channel", channelParser);
-		this.registerBeanDefinitionParser("header-enricher",
-				new SimpleHeaderEnricherParser(JmsHeaders.PREFIX, new String[] { "replyTo" }));
+		this.registerBeanDefinitionParser("header-enricher", new JmsHeaderEnricherParser());
 	}
 
 }

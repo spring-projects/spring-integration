@@ -878,25 +878,87 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
-					<xsd:sequence>
-						<xsd:element name="header" type="headerElementType"
-							minOccurs="0" maxOccurs="unbounded" />
-					</xsd:sequence>
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:element name="reply-channel" type="referenceHeaderType"/>
+						<xsd:element name="error-channel" type="referenceHeaderType"/>
+						<xsd:element name="correlation-id" type="referenceOrValueHeaderType"/>
+						<xsd:element name="expiration-date" type="referenceOrValueHeaderType"/>
+						<xsd:element name="priority">
+							<xsd:complexType>
+								<xsd:attribute name="value">
+									<xsd:simpleType>
+										<xsd:union memberTypes="priorityEnumeration xsd:string"/>
+									</xsd:simpleType>
+								</xsd:attribute>
+							</xsd:complexType>
+						</xsd:element>
+						<xsd:element name="header" type="userDefinedHeaderType">
+							<xsd:annotation>
+								<xsd:documentation>
+	Element that accepts any user-defined header name/value pair.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					</xsd:choice>
 					<xsd:attributeGroup ref="headerEnricherAttributes" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="headerElementType">
+	<xsd:simpleType name="priorityEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="HIGHEST"/>
+			<xsd:enumeration value="HIGH"/>
+			<xsd:enumeration value="NORMAL"/>
+			<xsd:enumeration value="LOW"/>
+			<xsd:enumeration value="LOWEST"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="userDefinedHeaderType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Message Header value or ref.
+	Defines a Message Header with a literal value or object reference.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="name" type="xsd:string" use="required" />
-		<xsd:attribute name="ref" type="xsd:string" />
-		<xsd:attribute name="value" type="xsd:string" />
+		<xsd:complexContent>
+			<xsd:extension base="referenceOrValueHeaderType">
+				<xsd:attribute name="name" use="required" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Name of the header to be added.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="referenceOrValueHeaderType">
+		<xsd:complexContent>
+			<xsd:extension base="referenceHeaderType">
+				<xsd:attribute name="value" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Literal value to be associated with the given header name.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<!-- TODO: xsd:attribute name="expression" type="xsd:string" / -->
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="referenceHeaderType">
+		<xsd:attribute name="ref" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to be associated with the given header name.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:attributeGroup name="headerEnricherAttributes">
@@ -906,29 +968,6 @@
 				MessageHeaders.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="reply-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type
-							type="org.springframework.integration.core.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="error-channel" type="xsd:string">
-			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type
-							type="org.springframework.integration.core.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="correlation-id" type="xsd:string" />
-		<xsd:attribute name="expiration-date" type="xsd:string" />
-		<xsd:attribute name="priority" type="xsd:string" />
 		<xsd:attribute name="overwrite" type="xsd:string" />
 	</xsd:attributeGroup>
 

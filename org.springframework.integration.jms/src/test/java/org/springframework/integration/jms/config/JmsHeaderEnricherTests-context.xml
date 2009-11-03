@@ -10,8 +10,10 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
-	<jms:header-enricher input-channel="input" output-channel="output"
-			reply-to="testDestination"/>
+	<jms:header-enricher input-channel="input" output-channel="output">
+		<jms:reply-to ref="testDestination"/>
+		<jms:correlation-id value="ABC"/>
+	</jms:header-enricher>
 
 	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
 

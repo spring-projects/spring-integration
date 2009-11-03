@@ -194,17 +194,25 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:attribute name="subject" type="xsd:string"/>
-					<xsd:attribute name="to" type="xsd:string"/>
-					<xsd:attribute name="cc" type="xsd:string"/>
-					<xsd:attribute name="bcc" type="xsd:string"/>
-					<xsd:attribute name="from" type="xsd:string"/>
-					<xsd:attribute name="reply-to" type="xsd:string"/>
-					<xsd:attribute name="overwrite" type="xsd:string"/>
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:element name="subject" type="headerType"/>
+						<xsd:element name="to" type="headerType"/>
+						<xsd:element name="cc" type="headerType"/>
+						<xsd:element name="bcc" type="headerType"/>
+						<xsd:element name="from" type="headerType"/>
+						<xsd:element name="reply-to" type="headerType"/>
+					</xsd:choice>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="headerType">
+		<xsd:attribute name="value" type="xsd:string" />
+		<xsd:attribute name="ref" type="xsd:string" />
+		<!-- TODO add 'overwrite' and the expression below -->
+		<!-- xsd:attribute name="expression" type="xsd:string" / -->
+	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string"/>
