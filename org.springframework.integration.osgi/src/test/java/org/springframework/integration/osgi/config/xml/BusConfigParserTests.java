@@ -15,21 +15,17 @@
  */
 package org.springframework.integration.osgi.config.xml;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.controlbus.ControlBus;
 import org.springframework.integration.osgi.AbstractSIConfigBundleTestDeployer;
 import org.springframework.integration.osgi.stubs.SIBundleContextStub;
-import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.intergration.osgi.IntegrationOSGiConstants;
 
 
 /**
@@ -44,10 +40,12 @@ public class BusConfigParserTests extends AbstractSIConfigBundleTestDeployer {
 		ApplicationContext ac = this.deploySIConfig(bundleContext, 
 				                                    "org/springframework/integration/osgi/config/xml/", 
 				                                    "BusConfigParserTests-default.xml");
-		ControlBus controlBus = (ControlBus) ac.getBean("controlBus-DEFAULT_CONTROL_GROUP");
+		ControlBus controlBus = (ControlBus) ac.getBean(IntegrationOSGiConstants.DEFAULT_BUS_GROUP_NAME);
 		assertNotNull(controlBus);
+		assertTrue(controlBus.getBusName().equals(IntegrationOSGiConstants.DEFAULT_BUS_GROUP_NAME));
 		ServiceReference[] sr = bundleContext.getServiceReferences(ControlBus.class.getName(), 
-				                                                  "(&(org.springframework.osgi.bean.name=controlBus-DEFAULT_CONTROL_GROUP))");
+				           "(&(" + IntegrationOSGiConstants.OSGI_BEAN_NAME + "=" + 
+				           IntegrationOSGiConstants.DEFAULT_BUS_GROUP_NAME + "))");
 		assertNotNull(sr);
 		assertTrue(sr.length == 1);
 		controlBus = (ControlBus) bundleContext.getService(sr[0]);
@@ -59,7 +57,7 @@ public class BusConfigParserTests extends AbstractSIConfigBundleTestDeployer {
 		ApplicationContext ac = this.deploySIConfig(bundleContext, 
 				                                    "org/springframework/integration/osgi/config/xml/", 
 				                                    "BusConfigParserTests-overrideGroupName.xml");
-		ControlBus controlBus = (ControlBus) ac.getBean("controlBus-FOO");
+		ControlBus controlBus = (ControlBus) ac.getBean("FOO");
 		assertNotNull(controlBus);
 		ServiceReference sr = bundleContext.getServiceReference(ControlBus.class.getName());
 		assertNotNull(sr);

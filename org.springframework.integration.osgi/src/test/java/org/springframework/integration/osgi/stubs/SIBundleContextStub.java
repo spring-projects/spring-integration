@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mockito.Mockito;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
@@ -46,9 +47,12 @@ public class SIBundleContextStub extends MockBundleContext {
 	private static  SIBundleContextStub bundleContext = new SIBundleContextStub();
 	
 	private Map<ServiceReference, Object> services = new HashMap<ServiceReference, Object>();
+	
+
 	private Set<ServiceReference> serviceReferences = new HashSet<ServiceReference>();
 	private Map<MapBasedDictionary, ServiceListener> serviceListenerMap = 
 							new HashMap<MapBasedDictionary, ServiceListener>();
+	
 	
 	/**
 	 * 
@@ -97,7 +101,7 @@ public class SIBundleContextStub extends MockBundleContext {
 //			});
 //			t.start();
 		}
-		log.debug("Service: " + ref + " is registered");
+		log.info("Registered SERVICE: " + ref);
 		return reg;
 	}
 	/**
@@ -128,7 +132,6 @@ public class SIBundleContextStub extends MockBundleContext {
 	/**
 	 * 
 	 */
-	@SuppressWarnings("unchecked")
 	public void addServiceListener(ServiceListener listener) {
 		MapBasedDictionary properties = new MapBasedDictionary();
 		serviceListenerMap.put(properties, listener);
@@ -147,9 +150,9 @@ public class SIBundleContextStub extends MockBundleContext {
 			for (Dictionary filter : serviceListenerMap.keySet()) {
 				MapBasedDictionary listenerFilter = new MapBasedDictionary(filter);
 				
-				log.debug("Trying to match filter properties: " + listenerFilter);
+				log.trace("Trying to match filter properties: " + listenerFilter);
 				MapBasedDictionary inFilter = new MapBasedDictionary(properties);
-				log.debug("Current filter entry: " + inFilter);
+				log.trace("Current filter entry: " + inFilter);
 				boolean objecClassMatch = true;
 				if (listenerFilter.containsKey("objectClass")){
 					objecClassMatch = this.matchObjectClass(listenerFilter, inFilter);
@@ -172,9 +175,10 @@ public class SIBundleContextStub extends MockBundleContext {
 		
 		return Arrays.binarySearch(interfaces, interfaze) >=0;
 	}
-	
-	public void removeService(ServiceReference sr){
-		services.remove(sr);
-		serviceReferences.remove(sr);
+	public Map<MapBasedDictionary, ServiceListener> getServiceListenerMap() {
+		return serviceListenerMap;
+	}
+	public Map<ServiceReference, Object> getServices() {
+		return services;
 	}
 }

@@ -23,16 +23,18 @@ import org.springframework.integration.message.MessageHandler;
 /**
  * Implementation of the {@link ControlBus} interface. 
  * Control Bus itself wrapper over {@link SubscribableChannel}, 
- * which represents the entry point to Control BUs infrastructure.
+ * which represents the entry point to Control Bus infrastructure.
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class OSGiIntegrationControlBus implements ControlBus {
 	private SubscribableChannel channel;
+	private String busName;
 	
-	public OSGiIntegrationControlBus(SubscribableChannel channel){
+	public OSGiIntegrationControlBus(SubscribableChannel channel, String busName){
 		this.channel = channel;
+		this.busName = busName;
 	}
 
 	public boolean subscribe(MessageHandler handler) {
@@ -58,5 +60,8 @@ public class OSGiIntegrationControlBus implements ControlBus {
 		return channel.send(message, timeout);
 	}
 
-
+	//
+	public String getBusName() {
+		return busName;
+	}
 }

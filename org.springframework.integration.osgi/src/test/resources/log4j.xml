@@ -9,13 +9,16 @@
 			<param name="ConversionPattern" value="%-5p: %c - %m%n" />
 		</layout>
 	</appender>
-
 	
 	<logger name="org.springframework.osgi">
-		<level value="trace" />
+		<level value="info" />
 	</logger>
 
 	<logger name="org.springframework.integration">
+		<level value="info" />
+	</logger>
+	
+	<logger name="org.springframework.integration.osgi">
 		<level value="debug" />
 	</logger>
  

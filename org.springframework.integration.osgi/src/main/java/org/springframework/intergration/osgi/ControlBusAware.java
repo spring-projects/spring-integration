@@ -13,22 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.osgi.config.xml;
-
-import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+package org.springframework.intergration.osgi;
 
 /**
+ * TODO - insert COMMENT
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class IntegrationOSGiControlBusNamespaceHandler extends AbstractIntegrationNamespaceHandler {
-
-	/**
-	 * Will register the required parsers
-	 */
-	public void init() {
-		registerBeanDefinitionParser("bus-config", new BusConfigParser());
-		registerBeanDefinitionParser("bus", new BusParser());
-	}
+public interface ControlBusAware {
 
 }

@@ -16,11 +16,16 @@
 package org.springframework.integration.osgi.config.xml;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.integration.controlbus.ControlBus;
+import org.springframework.intergration.osgi.IntegrationOSGiConstants;
 import org.springframework.osgi.service.exporter.support.AutoExport;
 import org.springframework.osgi.service.exporter.support.OsgiServiceFactoryBean;
+import org.springframework.osgi.service.importer.support.Cardinality;
+import org.springframework.osgi.service.importer.support.OsgiServiceProxyFactoryBean;
+import org.springframework.osgi.util.OsgiBundleUtils;
+import org.springframework.osgi.util.OsgiServiceUtils;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -39,17 +44,36 @@ public class AbstractOSGiServiceManagingParserUtil {
 	 * @param registry
 	 */
 	@SuppressWarnings("unchecked")
-	public static void registerServiceExporterFor(String beanName, BeanDefinitionRegistry registry, Class... publishedIntefaces){
+	public static BeanDefinitionBuilder defineServiceExporterFor(String beanName, BeanDefinitionRegistry registry, Class... publishedIntefaces){
 		BeanDefinitionBuilder serviceBuilder = BeanDefinitionBuilder.genericBeanDefinition(OsgiServiceFactoryBean.class);
 		serviceBuilder.addPropertyValue("targetBeanName", beanName);
-		serviceBuilder.addPropertyValue("interfaces", new Class[]{ControlBus.class});
 		if (publishedIntefaces != null && publishedIntefaces.length > 0){
 			serviceBuilder.addPropertyValue("interfaces", publishedIntefaces);
 		} else {
 			serviceBuilder.addPropertyValue("autoExport", AutoExport.INTERFACES);
 		}
 		serviceBuilder.addPropertyValue("registerService", true);
-		BeanDefinitionReaderUtils.registerWithGeneratedName(serviceBuilder.getBeanDefinition(), registry);
+		return serviceBuilder;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static BeanDefinitionBuilder defineServiceImporterFor(String beanName, String filter, 
+			                                                     BeanDefinitionRegistry registry, Class... publishedIntefaces){
+		BeanDefinitionBuilder serviceBuilder = BeanDefinitionBuilder.genericBeanDefinition(OsgiServiceProxyFactoryBean.class);
+		serviceBuilder.addPropertyValue("cardinality", Cardinality.C_0__1);
+		if (StringUtils.hasText(filter)){
+			serviceBuilder.addPropertyValue("filter", filter);
+		}
+		if (publishedIntefaces != null && publishedIntefaces.length > 0){
+			serviceBuilder.addPropertyValue("interfaces", publishedIntefaces);
+		} else {
+			serviceBuilder.addPropertyValue("autoExport", AutoExport.INTERFACES);
+		}
+		serviceBuilder.addPropertyValue("serviceBeanName", beanName);
+	
+		//TODO: pf.setTimeout(timeoutInMillis)
+		
+		return serviceBuilder;
 	}
 
 }

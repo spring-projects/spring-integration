@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.osgi.config.xml;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
@@ -25,10 +23,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.controlbus.ControlBus;
 import org.springframework.intergration.osgi.OSGiIntegrationControlBus;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -56,53 +52,22 @@ public class BusConfigParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		String busGroupName = element.getAttribute("group-name");
 		Assert.isTrue(StringUtils.hasText(busGroupName), "bus-config 'group-name' attribute must be provided");
-		beanName = "controlBus-" + busGroupName;
+		beanName = busGroupName;
 		if (parserContext.getRegistry().containsBeanDefinition(beanName)){
 			throw new BeanDefinitionStoreException("You atempted to register a second instance of the Control Bus with the same 'group-name' " +
 					"in the single Application Context which is not allowed.");
 		}
 		
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.rootBeanDefinition(OSGiIntegrationControlBus.class);
-		
-		//String busChannelName = "controlMessagesDistributionChannel";
-			//this.registerPubSubChannelDefinition(element.getAttribute("task-executor"), element, parserContext);
 		rootBuilder.addConstructorArgReference("controlMessagesDistributionChannel");
+		rootBuilder.addConstructorArgValue(beanName);
 		
-		AbstractOSGiServiceManagingParserUtil.registerServiceExporterFor(beanName, parserContext.getRegistry());
+		BeanDefinitionBuilder osgiServiceDefinition = 
+			AbstractOSGiServiceManagingParserUtil.defineServiceExporterFor(beanName, parserContext.getRegistry(), ControlBus.class);
+		BeanDefinitionReaderUtils.registerWithGeneratedName(osgiServiceDefinition.getBeanDefinition(), parserContext.getRegistry());
+		
+		// NOTE add listeners
+		log.trace("Control Bus " + beanName + " was parsed successfully");
 		return rootBuilder.getBeanDefinition();
 	}
-	/**
-	 * 
-	 * @param taskExecutorName
-	 * @param element
-	 * @param parserContext
-	 * @return
-	 */
-	private String registerPubSubChannelDefinition(String taskExecutorName, Element element, ParserContext parserContext){
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PublishSubscribeChannel.class.getName());
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-failures");
-		if (!StringUtils.hasText(taskExecutorName)) {
-			taskExecutorName = this.createTaskExecutorDefinition(element, parserContext);
-		}
-		builder.addConstructorArgReference(taskExecutorName);
-		
-		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-		return beanName;
-	}
-	/**
-	 * 
-	 * @param element
-	 * @param parserContext
-	 * @return
-	 */
-	private String createTaskExecutorDefinition(Element element, ParserContext parserContext){
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ThreadPoolTaskExecutor.class.getName());
-		builder.addPropertyValue("corePoolSize", 5);
-		builder.addPropertyValue("maxPoolSize", 10);
-		builder.addPropertyValue("rejectedExecutionHandler", new ThreadPoolExecutor.DiscardPolicy());
-		String beanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-		return beanName;
-	}
-	
 }

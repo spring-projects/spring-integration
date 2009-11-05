@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.osgi.config.xml;
+package org.springframework.intergration.osgi;
 
-import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 
 /**
+ * TODO - insert COMMENT
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class IntegrationOSGiControlBusNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public class ControlBusAwarePostProcessor implements BeanPostProcessor {
 
-	/**
-	 * Will register the required parsers
-	 */
-	public void init() {
-		registerBeanDefinitionParser("bus-config", new BusConfigParser());
-		registerBeanDefinitionParser("bus", new BusParser());
+	
+	public Object postProcessAfterInitialization(Object bean, String beanName)
+			throws BeansException {
+		return bean;
+	}
+
+	
+	public Object postProcessBeforeInitialization(Object bean, String beanName)
+			throws BeansException {
+		return bean;
 	}
 
 }
