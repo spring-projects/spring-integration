@@ -26,5 +26,5 @@ import org.springframework.integration.channel.SubscribableChannel;
  * @since 2.0
  */
 public interface ControlBus extends SubscribableChannel {
-	public String getBusName();
+	public boolean isBusAvailable();
 }
