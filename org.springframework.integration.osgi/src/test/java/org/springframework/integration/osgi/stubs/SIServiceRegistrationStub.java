@@ -38,15 +38,15 @@ public class SIServiceRegistrationStub extends MockServiceRegistration {
 	public void setBundleContext(SIBundleContextStub context){
 		this.context = context;
 	}
-//	public void unregister() {
-//		ServiceReference ref = this.getReference();
-//		DirectFieldAccessor refAccessor = new DirectFieldAccessor(ref);
-//		Dictionary properties = (Dictionary) refAccessor.getPropertyValue("properties");
-//		
-//		context.removeService(this.getReference());
-//		Set<ServiceListener> listeners = context.getFilteredListeners(properties);
-//		for (ServiceListener serviceListener : listeners) {
-//			serviceListener.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, ref));
-//		}
-//	}
+	public void unregister() {
+		ServiceReference ref = this.getReference();
+		DirectFieldAccessor refAccessor = new DirectFieldAccessor(ref);
+		Dictionary properties = (Dictionary) refAccessor.getPropertyValue("properties");
+		
+		context.remove(this.getReference()); 
+		Set<ServiceListener> listeners = context.getFilteredListeners(properties);
+		for (ServiceListener serviceListener : listeners) {
+			serviceListener.serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, ref));
+		}
+	}
 }

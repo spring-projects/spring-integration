@@ -181,4 +181,9 @@ public class SIBundleContextStub extends MockBundleContext {
 	public Map<ServiceReference, Object> getServices() {
 		return services;
 	}
+	
+	public void remove(ServiceReference sr){
+		services.remove(sr);
+		serviceReferences.remove(sr);
+	}
 }

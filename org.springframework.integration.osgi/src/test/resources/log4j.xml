@@ -19,7 +19,7 @@
 	</logger>
 	
 	<logger name="org.springframework.integration.osgi">
-		<level value="debug" />
+		<level value="trace" />
 	</logger>
  
 	<!-- Root Logger -->

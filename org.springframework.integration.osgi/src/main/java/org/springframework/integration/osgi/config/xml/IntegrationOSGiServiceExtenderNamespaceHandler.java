@@ -21,13 +21,13 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class IntegrationOSGiControlBusNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public class IntegrationOSGiServiceExtenderNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	/**
 	 * Will register the required parsers
 	 */
 	public void init() {
-		registerBeanDefinitionParser("bus-config", new BusConfigParser());
+		registerBeanDefinitionParser("config", new ConfigParser());
 	}
 
 }

@@ -29,7 +29,7 @@ import org.springframework.integration.osgi.AbstractSIConfigBundleTestDeployer;
 import org.springframework.integration.osgi.stubs.SIBundleContextStub;
 
 /**
- * THis test bootstraps two instances of the Control Bus, then shuts down one demonstrating and testing 
+ * This test bootstraps two instances of the Control Bus, then shuts down one demonstrating and testing 
  * transparent fail-over to another instance of the Control Bus
  * 
  * @author Oleg Zhurakousky
@@ -38,8 +38,9 @@ import org.springframework.integration.osgi.stubs.SIBundleContextStub;
 public class BusUsageFailoverTests extends AbstractSIConfigBundleTestDeployer {	
 	static MessageHandler handler = Mockito.mock(MessageHandler.class);
 	
+	
 	@Test
-	public void testDefaultControlBusConfig() throws Exception {
+	public void testControlBusFailover() throws Exception {
 		BundleContext bundleContext = SIBundleContextStub.getInstance();
 
 		ConfigurableApplicationContext primaryAc = this.deploySIConfig(bundleContext, 

@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.controlbus.ControlBus;
-import org.springframework.intergration.osgi.OSGiIntegrationControlBus;
+import org.springframework.integration.osgi.OSGiIntegrationControlBus;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -44,7 +44,7 @@ public class BusConfigParser extends AbstractBeanDefinitionParser {
 	 */
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
-		return beanName;
+		return  beanName;
 	}
 	/**
 	 * 
@@ -59,7 +59,7 @@ public class BusConfigParser extends AbstractBeanDefinitionParser {
 		}
 		
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.rootBeanDefinition(OSGiIntegrationControlBus.class);
-		rootBuilder.addConstructorArgReference("controlMessagesDistributionChannel");
+		rootBuilder.addConstructorArgReference(ControlBusOSGiUtils.DEFAULT_CONTROL_DIST_CHANNEL);
 		rootBuilder.addConstructorArgValue(beanName);
 		
 		BeanDefinitionBuilder osgiServiceDefinition = 

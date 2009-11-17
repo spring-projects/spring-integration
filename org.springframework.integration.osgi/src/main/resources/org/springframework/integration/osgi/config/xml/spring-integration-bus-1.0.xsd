@@ -30,32 +30,4 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>	
-	<xsd:element name="bus">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Configures all required interactions with the named Control Bus configuration 
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:choice>
-				<xsd:element name="manage-subscriber" minOccurs="0" maxOccurs="unbounded">
-					<xsd:complexType>
-						<xsd:attribute name="ref" type="xsd:string" />
-					</xsd:complexType>
-				</xsd:element>
-				<xsd:element name="manage-producer" minOccurs="0" maxOccurs="unbounded">
-					<xsd:complexType>
-						<xsd:attribute name="ref" type="xsd:string" />
-					</xsd:complexType>
-				</xsd:element>
-			</xsd:choice>
-			<xsd:attribute name="group-name" type="xsd:string" default="DEFAULT_CONTROL_GROUP">
-				<xsd:annotation>
-					<xsd:documentation>
-						Identifies group-name of a Control Bus this configuration defines
-				</xsd:documentation>
-				</xsd:annotation> 
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>	
 </xsd:schema>

@@ -24,8 +24,8 @@ import org.osgi.framework.ServiceReference;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.controlbus.ControlBus;
 import org.springframework.integration.osgi.AbstractSIConfigBundleTestDeployer;
+import org.springframework.integration.osgi.IntegrationOSGiConstants;
 import org.springframework.integration.osgi.stubs.SIBundleContextStub;
-import org.springframework.intergration.osgi.IntegrationOSGiConstants;
 
 
 /**
@@ -40,12 +40,11 @@ public class BusConfigParserTests extends AbstractSIConfigBundleTestDeployer {
 		ApplicationContext ac = this.deploySIConfig(bundleContext, 
 				                                    "org/springframework/integration/osgi/config/xml/", 
 				                                    "BusConfigParserTests-default.xml");
-		ControlBus controlBus = (ControlBus) ac.getBean(IntegrationOSGiConstants.DEFAULT_BUS_GROUP_NAME);
+		ControlBus controlBus = (ControlBus) ac.getBean(ControlBusOSGiUtils.DEFAULT_BUS_GROUP_NAME);
 		assertNotNull(controlBus);
-		assertTrue(controlBus.getBusName().equals(IntegrationOSGiConstants.DEFAULT_BUS_GROUP_NAME));
 		ServiceReference[] sr = bundleContext.getServiceReferences(ControlBus.class.getName(), 
 				           "(&(" + IntegrationOSGiConstants.OSGI_BEAN_NAME + "=" + 
-				           IntegrationOSGiConstants.DEFAULT_BUS_GROUP_NAME + "))");
+				           ControlBusOSGiUtils.DEFAULT_BUS_GROUP_NAME + "))");
 		assertNotNull(sr);
 		assertTrue(sr.length == 1);
 		controlBus = (ControlBus) bundleContext.getService(sr[0]);

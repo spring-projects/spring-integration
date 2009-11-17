@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.controlbus.ControlBus;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.osgi.service.exporter.OsgiServiceRegistrationListener;
 
 /**
  * Service Registration listener which publishes registration life-cycle Messages 
@@ -29,32 +30,37 @@ import org.springframework.integration.message.StringMessage;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class IntegrationServiceRegistrationListener {
+public class IntegrationServiceRegistrationListener implements OsgiServiceRegistrationListener {
 	private static final Log log = LogFactory.getLog(IntegrationServiceRegistrationListener.class);
-	private ControlBus controlBus;
+	private ControlBusListeningDecorator controlBusDecorator;
 	
+	public IntegrationServiceRegistrationListener(ControlBusListeningDecorator controlBusDecorator){
+		this.controlBusDecorator = controlBusDecorator;
+	}
+	/**
+	 * Will send a notification message to the named {@link ControlBus} notifying that service
+	 * for an SI component was registered and is ready to be used. 
+	 */
 	@SuppressWarnings("unchecked")
-	public void register(Object service, Map properties){
-		if (controlBus != null){
-			log.info("Dispatching REGISTRATION Message for: " + service + "- " + properties + " to: " + controlBus.getName());
+	public void registered(Object service, Map properties){
+		if (controlBusDecorator.isBusAvailable()){
+			log.info("Dispatching REGISTRATION Message for: " + service + "- " + properties + " to: " + 
+					controlBusDecorator.getName());
 			//TODO: change to structural message 
-			controlBus.send(new StringMessage("Dispatching REGISTRATION Message for: " + service + "- " + properties));
+			controlBusDecorator.send(new StringMessage("Dispatching REGISTRATION Message for: " + service + "- " + properties));
 		}
 	}
+	/**
+	 * Will send a notification message to the named {@link ControlBus} notifying that service
+	 * for an SI component was un-registered and can no longet be used.
+	 */
 	@SuppressWarnings("unchecked")
-	public void unRegister(Object service, Map properties){
-		if (controlBus != null){
-			log.info("Dispatching UN-REGISTRATION Message for: " + service + "- " + properties + " to: " + controlBus.getName());
+	public void unregistered(Object service, Map properties){
+		if (controlBusDecorator.isBusAvailable()){
+			log.info("Dispatching UN-REGISTRATION Message for: " + service + "- " + properties + " to: " + 
+					controlBusDecorator.getName());
 			//TODO: change to structural message 
-			controlBus.send(new StringMessage("Dispatching UN-REGISTRATION Message for: " + service + "- " + properties));
+			controlBusDecorator.send(new StringMessage("Dispatching UN-REGISTRATION Message for: " + service + "- " + properties));
 		}
-	}
-	//
-	public ControlBus getControlBus() {
-		return controlBus;
-	}
-	//
-	public void setControlBus(ControlBus controlBus) {
-		this.controlBus = controlBus;
 	}
 }
