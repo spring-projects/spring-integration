@@ -12,5 +12,12 @@
 	<si-service:config>
 		<si-service:import name="channelA" si-type="publish-subscribe-channel" control-bus="DEFAULT_CONTROL_GROUP"/> 
 	</si-service:config>
+	
+	<si:service-activator id="sampleActivator" input-channel="channelA" auto-startup="false">
+		<bean class="org.springframework.integration.osgi.config.xml.ConfigParserImporterTests$TestBean"/>
+	</si:service-activator>
+	
+	<si:gateway id="sampleGateway" service-interface="java.io.Serializable"  default-request-channel="channelA"/>
+
 	 
 </beans>

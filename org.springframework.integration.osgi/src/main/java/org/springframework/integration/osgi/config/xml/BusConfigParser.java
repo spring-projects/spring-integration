@@ -59,11 +59,11 @@ public class BusConfigParser extends AbstractBeanDefinitionParser {
 		}
 		
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.rootBeanDefinition(OSGiIntegrationControlBus.class);
-		rootBuilder.addConstructorArgReference(ControlBusOSGiUtils.DEFAULT_CONTROL_DIST_CHANNEL);
+		rootBuilder.addConstructorArgReference(ControlBusOSGiConfigUtils.DEFAULT_CONTROL_DIST_CHANNEL);
 		rootBuilder.addConstructorArgValue(beanName);
 		
 		BeanDefinitionBuilder osgiServiceDefinition = 
-			AbstractOSGiServiceManagingParserUtil.defineServiceExporterFor(beanName, parserContext.getRegistry(), ControlBus.class);
+			ControlBusOSGiConfigUtils.defineServiceExporterFor(beanName, parserContext.getRegistry(), ControlBus.class);
 		BeanDefinitionReaderUtils.registerWithGeneratedName(osgiServiceDefinition.getBeanDefinition(), parserContext.getRegistry());
 		
 		// NOTE add listeners

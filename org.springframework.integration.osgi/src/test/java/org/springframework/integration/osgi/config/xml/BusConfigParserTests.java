@@ -40,11 +40,11 @@ public class BusConfigParserTests extends AbstractSIConfigBundleTestDeployer {
 		ApplicationContext ac = this.deploySIConfig(bundleContext, 
 				                                    "org/springframework/integration/osgi/config/xml/", 
 				                                    "BusConfigParserTests-default.xml");
-		ControlBus controlBus = (ControlBus) ac.getBean(ControlBusOSGiUtils.DEFAULT_BUS_GROUP_NAME);
+		ControlBus controlBus = (ControlBus) ac.getBean(ControlBusOSGiConfigUtils.DEFAULT_BUS_GROUP_NAME);
 		assertNotNull(controlBus);
 		ServiceReference[] sr = bundleContext.getServiceReferences(ControlBus.class.getName(), 
 				           "(&(" + IntegrationOSGiConstants.OSGI_BEAN_NAME + "=" + 
-				           ControlBusOSGiUtils.DEFAULT_BUS_GROUP_NAME + "))");
+				           ControlBusOSGiConfigUtils.DEFAULT_BUS_GROUP_NAME + "))");
 		assertNotNull(sr);
 		assertTrue(sr.length == 1);
 		controlBus = (ControlBus) bundleContext.getService(sr[0]);

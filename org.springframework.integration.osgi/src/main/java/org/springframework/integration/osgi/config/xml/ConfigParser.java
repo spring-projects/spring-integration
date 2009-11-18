@@ -16,15 +16,10 @@
 package org.springframework.integration.osgi.config.xml;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanReference;
-import org.springframework.beans.factory.config.RuntimeBeanNameReference;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -32,14 +27,11 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.osgi.extender.ControlBusBindingMessageDistributionListener;
 import org.springframework.integration.osgi.extender.ControlBusRegistrationMessageDistributionListener;
-import org.springframework.osgi.service.exporter.OsgiServiceRegistrationListener;
-import org.springframework.osgi.service.exporter.support.OsgiServiceFactoryBean;
+import org.springframework.integration.osgi.extender.LifecycleServiceManagingListener;
 import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * Parser to process 'config' element of SI Service Extender 
@@ -91,16 +83,30 @@ public class ConfigParser implements BeanDefinitionParser {
 		Assert.hasText(serviceName, "you must enter a valid value in the " + NAME + " attribute");
 		Class[] interfaces = this.discoverInterfaces(serviceName, element);
 		BeanDefinitionBuilder importerBuilder = 
-			AbstractOSGiServiceManagingParserUtil.defineServiceImporterFor(serviceName, null, registry, interfaces);
-		//
+			ControlBusOSGiConfigUtils.defineServiceImporterFor(serviceName, null, registry, interfaces);
+		// define binding listeners
+		ManagedList<BeanDefinition> listenerDefinitions = new ManagedList<BeanDefinition>();
 		if (element.hasAttribute(CONTROL_BUS)){
 			String busBeanName = element.getAttribute(CONTROL_BUS);
-			BeanDefinition listenerDefinition = 
-				AbstractOSGiServiceManagingParserUtil.defineBindingListenerForBus(registry, importerBuilder, busBeanName);
-			importerBuilder.addPropertyValue("listeners", listenerDefinition);
+			BeanDefinition busBindingListener = 
+				ControlBusOSGiConfigUtils.defineBindingMessageDistributor(registry, importerBuilder, busBeanName);
+			listenerDefinitions.add(busBindingListener);
 		}	
+		List<String> dependentSources = ControlBusOSGiConfigUtils.discoverDependentElements(element, serviceName);
+		// add binding listener that will execute start/stop on dependent lifecycle beans
+		if (dependentSources.size() > 0){
+			log.debug("Candidate beans dependent on '" + serviceName + 
+					"' and to be managed by IntegrationServiceBindingListener: "  + dependentSources);
+			BeanDefinitionBuilder lifecycleBindingManagerBuilder = 
+					BeanDefinitionBuilder.genericBeanDefinition(LifecycleServiceManagingListener.class);
+			lifecycleBindingManagerBuilder.addPropertyValue("dependentSources", dependentSources);
+			listenerDefinitions.add(lifecycleBindingManagerBuilder.getBeanDefinition());
+		}
 		
-		//
+		if (listenerDefinitions.size() > 0){
+			importerBuilder.addPropertyValue("listeners", listenerDefinitions);
+		}
+		
 		registry.registerBeanDefinition(serviceName, importerBuilder.getBeanDefinition());
 	}
 	/**
@@ -131,24 +137,28 @@ public class ConfigParser implements BeanDefinitionParser {
 	 */
 	private void generateServiceExorterDefinition(String beanName, Element element, BeanDefinitionRegistry registry){
 		BeanDefinitionBuilder exportedElementBuilder = 
-			AbstractOSGiServiceManagingParserUtil.defineServiceExporterFor(beanName, registry);
-		BeanDefinition controlBusMessageDistributorDefinition = 
-					this.defineControlBusMessageDistributor(element, exportedElementBuilder, registry, beanName);
+			ControlBusOSGiConfigUtils.defineServiceExporterFor(beanName, registry);
 		ManagedList<BeanDefinition> listenerDefinitions = new ManagedList<BeanDefinition>();
-		listenerDefinitions.add(controlBusMessageDistributorDefinition);
+		if (element.hasAttribute(CONTROL_BUS)){
+			BeanDefinition controlBusMessageDistributorDefinition = 
+				this.defineControlBusMessageDistributor(element, exportedElementBuilder, registry, beanName);
+			listenerDefinitions.add(controlBusMessageDistributorDefinition);
+		}
 		// NOTE: add more listeners here if needed
-		exportedElementBuilder.addPropertyValue("listeners", listenerDefinitions);
+		if (listenerDefinitions.size() > 0){
+			exportedElementBuilder.addPropertyValue("listeners", listenerDefinitions);
+		}	
 		registry.registerBeanDefinition(beanName+EXPORTER_SUFFIX, exportedElementBuilder.getBeanDefinition());
 	}
 	/**
-	 * If element specifies 'control-bus' attribute, this method will register {@link ControlBusRegistrationMessageDistributionListener}
+	 * If element specifies 'control-bus' attribute, this method will register 
+	 * {@link ControlBusRegistrationMessageDistributionListener}
 	 * which will send registration messages to the ControlBus
 	 */
 	private BeanDefinition defineControlBusMessageDistributor(Element originalElement, 
 												 BeanDefinitionBuilder exportedElementBuilder,
 												 BeanDefinitionRegistry registry,
 												 String componentName) {
-		//String beanName = null;
 		AbstractBeanDefinition listenerDefinition = null;
 		if (originalElement.hasAttribute(CONTROL_BUS)){
 			String controlBusAttributeValue = originalElement.getAttribute(CONTROL_BUS);
@@ -156,7 +166,7 @@ public class ConfigParser implements BeanDefinitionParser {
 			log.trace("Adding registration listener for exported OSGi service for:" + componentName);
 			
 			 listenerDefinition = 
-				AbstractOSGiServiceManagingParserUtil.defineRegistrationListenerForBus(registry, exportedElementBuilder, controlBusAttributeValue);
+				 ControlBusOSGiConfigUtils.defineRegistrationMessageDistributor(registry, exportedElementBuilder, controlBusAttributeValue);
 			BeanDefinitionReaderUtils.registerWithGeneratedName(listenerDefinition, registry);
 		}
 		return listenerDefinition;  
@@ -177,8 +187,6 @@ public class ConfigParser implements BeanDefinitionParser {
 		if (element.hasAttribute(TYPE)){
 			return SiTypeToJavaTypeMaper.mapSiType(element.getAttribute(TYPE));
 		}
-//		Element documentElement = element.getOwnerDocument().getDocumentElement();
-//		NodeList children = documentElement.getChildNodes();
 		return null;
 	}
 }

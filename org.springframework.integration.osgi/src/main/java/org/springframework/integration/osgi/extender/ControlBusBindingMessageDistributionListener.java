@@ -25,7 +25,8 @@ import org.springframework.integration.osgi.IntegrationOSGiConstants;
 import org.springframework.osgi.service.importer.OsgiServiceLifecycleListener;
 
 /**
- * TODO - insert COMMENT
+ * Will send control messages to the ControlBus when OSGi references are bound to the backing services.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */

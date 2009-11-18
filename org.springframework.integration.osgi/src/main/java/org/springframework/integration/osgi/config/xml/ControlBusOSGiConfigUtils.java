@@ -15,10 +15,18 @@
  */
 package org.springframework.integration.osgi.config.xml;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.integration.controlbus.ControlBus;
+import org.springframework.integration.osgi.IntegrationOSGiConstants;
 import org.springframework.integration.osgi.extender.ControlBusBindingMessageDistributionListener;
+import org.springframework.integration.osgi.extender.ControlBusListeningDecorator;
 import org.springframework.integration.osgi.extender.ControlBusRegistrationMessageDistributionListener;
 import org.springframework.osgi.service.exporter.support.AutoExport;
 import org.springframework.osgi.service.exporter.support.OsgiServiceFactoryBean;
@@ -26,17 +34,42 @@ import org.springframework.osgi.service.importer.support.Cardinality;
 import org.springframework.osgi.service.importer.support.OsgiServiceProxyFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
- * Utility class which wraps Spring-DM factory bean creation for exporting and importing SI components as
- * OSGi services.
+ * Helper class used by varilus bean parsers to create OSGi Factory bean definitions
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class AbstractOSGiServiceManagingParserUtil {
-
+class ControlBusOSGiConfigUtils {
+	public final static String DEFAULT_BUS_GROUP_NAME = "DEFAULT_CONTROL_GROUP";
+	public final static String DEFAULT_CONTROL_DIST_CHANNEL = "DEFAULT_CONTROL_DIST_CHANNEL";
+	/**
+	 * Will define a service importer (equivalent to <osgi:reference>) for the ControlBus service.
+	 * It will also register binding listener for this 'controlbus' reference which could be used 
+	 * to react to the life-cycle events of this 'controlbus' reference.
+	 * For example: Individual service reference listeners coiuld use it to determine when the bus went away and
+	 * no control events need to be dispatched to the bus.
+	 */
+	public static BeanDefinition registerImporterForControlBus(BeanDefinitionRegistry registry, String busGroupName){
+		String filter = "(&(" + IntegrationOSGiConstants.OSGI_BEAN_NAME + "=" + busGroupName + "))";
+		BeanDefinitionBuilder controlBusImporterBuilder = 
+			defineServiceImporterFor(busGroupName, filter, registry, ControlBus.class);
+		
+		BeanDefinitionBuilder busListenerBuilder = 
+								BeanDefinitionBuilder.genericBeanDefinition(ControlBusListeningDecorator.class);
+		AbstractBeanDefinition busListenerDefinition = busListenerBuilder.getBeanDefinition();
+		//String listenerName = IntegrationOSGiConstants.BUS_LISTENER_PREFIX + busGroupName;
+		String listenerName = busGroupName;
+		registry.registerBeanDefinition(listenerName, busListenerDefinition);
+		controlBusImporterBuilder.addPropertyReference("listeners", listenerName);
+		BeanDefinition controlBusImporterDefinition = controlBusImporterBuilder.getBeanDefinition();
+		BeanDefinitionReaderUtils.registerWithGeneratedName(controlBusImporterBuilder.getBeanDefinition(), registry);
+		return controlBusImporterDefinition;
+	}
 	/**
 	 * Will define OSGi Service exporter BeanDefinitionBuilder for a bean identified by the 'beanName' 
 	 * parameter as an OSGi Service. If 'publishInterfaces' parameter is not provided this exporter will 
@@ -86,10 +119,7 @@ public class AbstractOSGiServiceManagingParserUtil {
 		serviceBuilder.addPropertyValue("serviceBeanName", beanName);
 	
 		//TODO: pf.setTimeout(timeoutInMillis)
-		
-//		OsgiServiceProxyFactoryBean b = null;
-//		b.setListeners(listeners)
-		
+
 		return serviceBuilder;
 	}
 	/**
@@ -101,7 +131,7 @@ public class AbstractOSGiServiceManagingParserUtil {
 	 * @param busBeanName
 	 * @return
 	 */
-	public static AbstractBeanDefinition defineRegistrationListenerForBus(BeanDefinitionRegistry registry,
+	public static AbstractBeanDefinition defineRegistrationMessageDistributor(BeanDefinitionRegistry registry,
 											         BeanDefinitionBuilder exporterBuilder, 
 											         String busBeanName){
 		// create listener builder
@@ -111,15 +141,21 @@ public class AbstractOSGiServiceManagingParserUtil {
 		// if reference to the bus doesn't exist yet, create one
 		// corresponding bean is not the actual bus but a ControlBusListentingDecorator
 		if (!registry.containsBeanDefinition(busGroupName)){
-			ControlBusOSGiUtils.registerImporterForControlBus(registry, busGroupName);
+			ControlBusOSGiConfigUtils.registerImporterForControlBus(registry, busGroupName);
 		}	
 		listenerBuilder.addConstructorArgReference(busGroupName);
 		AbstractBeanDefinition listenerDefinition = listenerBuilder.getBeanDefinition();
 		//exporterBuilder.addPropertyValue("listeners", listenerDefinition);
 		return listenerDefinition;
 	}
-
-	public static AbstractBeanDefinition defineBindingListenerForBus(BeanDefinitionRegistry registry,
+	/**
+	 * 
+	 * @param registry
+	 * @param exporterBuilder
+	 * @param busBeanName
+	 * @return
+	 */
+	public static AbstractBeanDefinition defineBindingMessageDistributor(BeanDefinitionRegistry registry,
 	         BeanDefinitionBuilder exporterBuilder, 
 	         String busBeanName){
 		// create listener builder
@@ -129,12 +165,50 @@ public class AbstractOSGiServiceManagingParserUtil {
 		// if reference to the bus doesn't exist yet, create one
 		// corresponding bean is not the actual bus but a ControlBusListentingDecorator
 		if (!registry.containsBeanDefinition(busGroupName)){
-			ControlBusOSGiUtils.registerImporterForControlBus(registry, busGroupName);
+			ControlBusOSGiConfigUtils.registerImporterForControlBus(registry, busGroupName);
 		}	
 		listenerBuilder.addConstructorArgReference(busGroupName);
 		AbstractBeanDefinition listenerDefinition = listenerBuilder.getBeanDefinition();
-		//exporterBuilder.addPropertyValue("listeners", listenerDefinition);
 		return listenerDefinition;
 	}
 	
+	public static List<String> discoverDependentElements(Element element, String attributeValue){
+		List<String> dependentSources = new ArrayList<String>();
+		Element documentElement = element.getOwnerDocument().getDocumentElement();
+		NodeList nodes = documentElement.getChildNodes();
+		for (int i = 0; i < nodes.getLength(); i++) {
+			Node node = nodes.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE){
+				Element elementNode = (Element) node;
+				String elementName = isDependent(elementNode, attributeValue);
+				if (StringUtils.hasText(elementName)){
+					dependentSources.add(elementName);
+				}
+			}	
+		}
+		return dependentSources;
+	}
+	//
+	private static String isDependent(Element element, String attributeValue){
+		String[] monitoredAttributes = new String[]{"input-channel",
+												 "output-channel",
+												 "default-request-channel",
+												 "default-reply-channel",
+												 "channel"};
+		for (String monitoredAttribute : monitoredAttributes) {
+			if (element.hasAttribute(monitoredAttribute) &&
+				element.getAttribute(monitoredAttribute).equals(attributeValue)	){
+				if (!element.hasAttribute("name") && !element.hasAttribute("id")){
+					// need to generate id for elements that do not have one
+					// so they can be included in the listener dependentSource list
+					element.setAttribute("id", element.getTagName() + "-" + attributeValue + "-" + element.hashCode());
+					element.setIdAttribute("id", true);
+				}
+				String elementName = StringUtils.hasText(element.getAttribute("id")) ? 
+									element.getAttribute("id") : element.getAttribute("name");
+				return elementName;
+			}
+		}
+		return null;
+	}
 }

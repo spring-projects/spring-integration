@@ -16,12 +16,14 @@
 package org.springframework.integration.osgi.config.xml;
 
 import static org.junit.Assert.assertNotNull;
+import junit.framework.Assert;
 
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.controlbus.ControlBus;
 import org.springframework.integration.core.Message;
@@ -48,6 +50,7 @@ public class ConfigParserImporterTests extends AbstractSIConfigBundleTestDeploye
 		SubscribableChannel channel = ac.getBean("channelA", SubscribableChannel.class);
 		assertNotNull(channel);
 	}
+	
 	@Test(expected=ServiceUnavailableException.class)
 	public void testBasicSIServiceConfigNoBackingServiceError() throws Exception {
 		BundleContext bundleContext = SIBundleContextStub.getNewInstance();
@@ -82,6 +85,39 @@ public class ConfigParserImporterTests extends AbstractSIConfigBundleTestDeploye
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(message);
 	}
 	@Test
+	public void testBasicSIServiceConfigWithBackingServiceLate() throws Exception {
+		BundleContext bundleContext = SIBundleContextStub.getNewInstance();
+		ApplicationContext ac = this.deploySIConfig(bundleContext, 
+				                                    "org/springframework/integration/osgi/config/xml/", 
+				                                    "ConfigParserImporterTests-default.xml");
+		SubscribableChannel channel = ac.getBean("channelA", SubscribableChannel.class);
+		assertNotNull(channel);
+		Lifecycle sampleActivator = (Lifecycle) ac.getBean("sampleActivator");
+		Assert.assertTrue(!sampleActivator.isRunning());
+		try {
+			channel.send(new StringMessage("hello"));
+			Assert.fail("Should have failed with ServiceUnavailableException");
+		} catch (ServiceUnavailableException e) {}
+			
+		
+		ConfigurableApplicationContext exporterAC = this.deploySIConfig(bundleContext, 
+                "org/springframework/integration/osgi/config/xml/", 
+                "ConfigParserImporterTests-exporter.xml");
+		Assert.assertTrue(sampleActivator.isRunning());
+		try {
+			channel.send(new StringMessage("hello"));
+		} catch (Exception e) {
+			Assert.fail("Should not have failed");
+		}
+		exporterAC.close();
+		Assert.assertTrue(!sampleActivator.isRunning());
+		exporterAC = this.deploySIConfig(bundleContext, 
+                "org/springframework/integration/osgi/config/xml/", 
+                "ConfigParserImporterTests-exporter.xml");
+		Assert.assertTrue(sampleActivator.isRunning());
+	}
+	
+	@Test
 	public void testControlBusAttributeWithBusPresent() throws Exception {
 		BundleContext bundleContext = SIBundleContextStub.getNewInstance();
 		ConfigurableApplicationContext busAC = this.deploySIConfig(bundleContext, 
@@ -100,7 +136,11 @@ public class ConfigParserImporterTests extends AbstractSIConfigBundleTestDeploye
 		MessageHandler handler = Mockito.mock(MessageHandler.class);
 		bus.subscribe(handler);
 		exporterAC.close();
-		// should be 3 notification messages sent to the bus
+		// should be 1 notification message sent to the bus
 		Mockito.verify(handler, Mockito.times(1)).handleMessage((Message<?>) Mockito.any());
+	}
+	
+	public static class TestBean{
+		public void foo(Message<?> message){}
 	}
 }

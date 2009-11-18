@@ -25,8 +25,7 @@ import org.springframework.integration.osgi.IntegrationOSGiConstants;
 import org.springframework.osgi.service.exporter.OsgiServiceRegistrationListener;
 
 /**
- * Service Registration listener which publishes registration life-cycle Messages 
- * to the {@link ControlBus}
+ * Will send control messages to the ControlBus when OSGi services are registered.
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
