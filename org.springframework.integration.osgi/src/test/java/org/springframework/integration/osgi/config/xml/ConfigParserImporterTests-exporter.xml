@@ -10,7 +10,9 @@
                        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
 
 	<si-service:config>
-		<si-service:import name="channelA" si-type="publish-subscribe-channel" control-bus="DEFAULT_CONTROL_GROUP"/> 
+		<si-service:export si-type="publish-subscribe-channel"/>
 	</si-service:config>
+	
+	<si:publish-subscribe-channel id="channelA"/>
 	 
 </beans>

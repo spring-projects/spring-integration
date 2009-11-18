@@ -18,7 +18,8 @@ package org.springframework.integration.osgi.config.xml;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.integration.osgi.extender.IntegrationServiceRegistrationListener;
+import org.springframework.integration.osgi.extender.ControlBusBindingMessageDistributionListener;
+import org.springframework.integration.osgi.extender.ControlBusRegistrationMessageDistributionListener;
 import org.springframework.osgi.service.exporter.support.AutoExport;
 import org.springframework.osgi.service.exporter.support.OsgiServiceFactoryBean;
 import org.springframework.osgi.service.importer.support.Cardinality;
@@ -81,9 +82,13 @@ public class AbstractOSGiServiceManagingParserUtil {
 		if (publishedIntefaces != null && publishedIntefaces.length > 0){
 			serviceBuilder.addPropertyValue("interfaces", publishedIntefaces);
 		} 
+		// will make sure it uses exporter's bean name when building a relationship with importer
 		serviceBuilder.addPropertyValue("serviceBeanName", beanName);
 	
 		//TODO: pf.setTimeout(timeoutInMillis)
+		
+//		OsgiServiceProxyFactoryBean b = null;
+//		b.setListeners(listeners)
 		
 		return serviceBuilder;
 	}
@@ -99,15 +104,37 @@ public class AbstractOSGiServiceManagingParserUtil {
 	public static AbstractBeanDefinition defineRegistrationListenerForBus(BeanDefinitionRegistry registry,
 											         BeanDefinitionBuilder exporterBuilder, 
 											         String busBeanName){
+		// create listener builder
 		BeanDefinitionBuilder listenerBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition(IntegrationServiceRegistrationListener.class);
+			BeanDefinitionBuilder.genericBeanDefinition(ControlBusRegistrationMessageDistributionListener.class);
 		String busGroupName = busBeanName;
+		// if reference to the bus doesn't exist yet, create one
+		// corresponding bean is not the actual bus but a ControlBusListentingDecorator
 		if (!registry.containsBeanDefinition(busGroupName)){
 			ControlBusOSGiUtils.registerImporterForControlBus(registry, busGroupName);
 		}	
 		listenerBuilder.addConstructorArgReference(busGroupName);
 		AbstractBeanDefinition listenerDefinition = listenerBuilder.getBeanDefinition();
-		exporterBuilder.addPropertyValue("listeners", listenerDefinition);
+		//exporterBuilder.addPropertyValue("listeners", listenerDefinition);
 		return listenerDefinition;
 	}
+
+	public static AbstractBeanDefinition defineBindingListenerForBus(BeanDefinitionRegistry registry,
+	         BeanDefinitionBuilder exporterBuilder, 
+	         String busBeanName){
+		// create listener builder
+		BeanDefinitionBuilder listenerBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition(ControlBusBindingMessageDistributionListener.class);
+		String busGroupName = busBeanName;
+		// if reference to the bus doesn't exist yet, create one
+		// corresponding bean is not the actual bus but a ControlBusListentingDecorator
+		if (!registry.containsBeanDefinition(busGroupName)){
+			ControlBusOSGiUtils.registerImporterForControlBus(registry, busGroupName);
+		}	
+		listenerBuilder.addConstructorArgReference(busGroupName);
+		AbstractBeanDefinition listenerDefinition = listenerBuilder.getBeanDefinition();
+		//exporterBuilder.addPropertyValue("listeners", listenerDefinition);
+		return listenerDefinition;
+	}
+	
 }

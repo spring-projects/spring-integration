@@ -23,4 +23,9 @@ package org.springframework.integration.osgi;
  */
 public interface IntegrationOSGiConstants {
 	public final String OSGI_BEAN_NAME = "org.springframework.osgi.bean.name";
+	public final String INTEGRATION_EVENT_TYPE = "INTEGRATION_EVENT_TYPE";
+	public final String REGISTRATION = "REGISTRATION";
+	public final String UNREGISTRATION = "UNREGISTRATION";
+	public final String BINDING = "BINDING";
+	public final String UNBINDING= "UNBINDING";
 }

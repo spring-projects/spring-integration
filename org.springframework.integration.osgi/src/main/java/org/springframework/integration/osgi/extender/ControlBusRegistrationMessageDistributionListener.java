@@ -20,7 +20,8 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.controlbus.ControlBus;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.osgi.IntegrationOSGiConstants;
 import org.springframework.osgi.service.exporter.OsgiServiceRegistrationListener;
 
 /**
@@ -30,12 +31,12 @@ import org.springframework.osgi.service.exporter.OsgiServiceRegistrationListener
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class IntegrationServiceRegistrationListener implements OsgiServiceRegistrationListener {
-	private static final Log log = LogFactory.getLog(IntegrationServiceRegistrationListener.class);
-	private ControlBusListeningDecorator controlBusDecorator;
+public class ControlBusRegistrationMessageDistributionListener implements OsgiServiceRegistrationListener {
+	private static final Log log = LogFactory.getLog(ControlBusRegistrationMessageDistributionListener.class);
+	private ControlBus controlBus;
 	
-	public IntegrationServiceRegistrationListener(ControlBusListeningDecorator controlBusDecorator){
-		this.controlBusDecorator = controlBusDecorator;
+	public ControlBusRegistrationMessageDistributionListener(ControlBus controlBus){
+		this.controlBus = controlBus;
 	}
 	/**
 	 * Will send a notification message to the named {@link ControlBus} notifying that service
@@ -43,11 +44,13 @@ public class IntegrationServiceRegistrationListener implements OsgiServiceRegist
 	 */
 	@SuppressWarnings("unchecked")
 	public void registered(Object service, Map properties){
-		if (controlBusDecorator.isBusAvailable()){
+		if (controlBus.isBusAvailable()){
 			log.info("Dispatching REGISTRATION Message for: " + service + "- " + properties + " to: " + 
-					controlBusDecorator.getName());
-			//TODO: change to structural message 
-			controlBusDecorator.send(new StringMessage("Dispatching REGISTRATION Message for: " + service + "- " + properties));
+					controlBus.getName());
+			MessageBuilder builder = MessageBuilder.withPayload(service);
+			builder.copyHeaders(properties);
+			builder.setHeader(IntegrationOSGiConstants.INTEGRATION_EVENT_TYPE, IntegrationOSGiConstants.REGISTRATION);
+			controlBus.send(builder.build());
 		}
 	}
 	/**
@@ -56,11 +59,13 @@ public class IntegrationServiceRegistrationListener implements OsgiServiceRegist
 	 */
 	@SuppressWarnings("unchecked")
 	public void unregistered(Object service, Map properties){
-		if (controlBusDecorator.isBusAvailable()){
+		if (controlBus.isBusAvailable()){
 			log.info("Dispatching UN-REGISTRATION Message for: " + service + "- " + properties + " to: " + 
-					controlBusDecorator.getName());
-			//TODO: change to structural message 
-			controlBusDecorator.send(new StringMessage("Dispatching UN-REGISTRATION Message for: " + service + "- " + properties));
+					controlBus.getName());
+			MessageBuilder builder = MessageBuilder.withPayload(service);
+			builder.copyHeaders(properties);
+			builder.setHeader(IntegrationOSGiConstants.INTEGRATION_EVENT_TYPE, IntegrationOSGiConstants.UNREGISTRATION);
+			controlBus.send(builder.build());
 		}
 	}
 }

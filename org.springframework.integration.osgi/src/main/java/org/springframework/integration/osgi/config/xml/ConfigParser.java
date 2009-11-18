@@ -16,17 +16,26 @@
 package org.springframework.integration.osgi.config.xml;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
+import org.springframework.beans.factory.config.RuntimeBeanNameReference;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.osgi.extender.IntegrationServiceRegistrationListener;
+import org.springframework.integration.osgi.extender.ControlBusBindingMessageDistributionListener;
+import org.springframework.integration.osgi.extender.ControlBusRegistrationMessageDistributionListener;
+import org.springframework.osgi.service.exporter.OsgiServiceRegistrationListener;
+import org.springframework.osgi.service.exporter.support.OsgiServiceFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -83,6 +92,15 @@ public class ConfigParser implements BeanDefinitionParser {
 		Class[] interfaces = this.discoverInterfaces(serviceName, element);
 		BeanDefinitionBuilder importerBuilder = 
 			AbstractOSGiServiceManagingParserUtil.defineServiceImporterFor(serviceName, null, registry, interfaces);
+		//
+		if (element.hasAttribute(CONTROL_BUS)){
+			String busBeanName = element.getAttribute(CONTROL_BUS);
+			BeanDefinition listenerDefinition = 
+				AbstractOSGiServiceManagingParserUtil.defineBindingListenerForBus(registry, importerBuilder, busBeanName);
+			importerBuilder.addPropertyValue("listeners", listenerDefinition);
+		}	
+		
+		//
 		registry.registerBeanDefinition(serviceName, importerBuilder.getBeanDefinition());
 	}
 	/**
@@ -114,26 +132,34 @@ public class ConfigParser implements BeanDefinitionParser {
 	private void generateServiceExorterDefinition(String beanName, Element element, BeanDefinitionRegistry registry){
 		BeanDefinitionBuilder exportedElementBuilder = 
 			AbstractOSGiServiceManagingParserUtil.defineServiceExporterFor(beanName, registry);
-		this.connectWithControlBusIfRequired(element, exportedElementBuilder, registry, beanName);
+		BeanDefinition controlBusMessageDistributorDefinition = 
+					this.defineControlBusMessageDistributor(element, exportedElementBuilder, registry, beanName);
+		ManagedList<BeanDefinition> listenerDefinitions = new ManagedList<BeanDefinition>();
+		listenerDefinitions.add(controlBusMessageDistributorDefinition);
+		// NOTE: add more listeners here if needed
+		exportedElementBuilder.addPropertyValue("listeners", listenerDefinitions);
 		registry.registerBeanDefinition(beanName+EXPORTER_SUFFIX, exportedElementBuilder.getBeanDefinition());
 	}
 	/**
-	 * If element specifies 'control-bus' attribute, this method will register {@link IntegrationServiceRegistrationListener}
+	 * If element specifies 'control-bus' attribute, this method will register {@link ControlBusRegistrationMessageDistributionListener}
 	 * which will send registration messages to the ControlBus
 	 */
-	private void connectWithControlBusIfRequired(Element originalElement, 
+	private BeanDefinition defineControlBusMessageDistributor(Element originalElement, 
 												 BeanDefinitionBuilder exportedElementBuilder,
 												 BeanDefinitionRegistry registry,
 												 String componentName) {
+		//String beanName = null;
+		AbstractBeanDefinition listenerDefinition = null;
 		if (originalElement.hasAttribute(CONTROL_BUS)){
 			String controlBusAttributeValue = originalElement.getAttribute(CONTROL_BUS);
 			Assert.hasText(controlBusAttributeValue, "You must provide control bus name when defining 'control-bus' attribute");
 			log.trace("Adding registration listener for exported OSGi service for:" + componentName);
 			
-			AbstractBeanDefinition listenerDefinition = 
+			 listenerDefinition = 
 				AbstractOSGiServiceManagingParserUtil.defineRegistrationListenerForBus(registry, exportedElementBuilder, controlBusAttributeValue);
 			BeanDefinitionReaderUtils.registerWithGeneratedName(listenerDefinition, registry);
 		}
+		return listenerDefinition;  
 	}
 	/**
 	 */	

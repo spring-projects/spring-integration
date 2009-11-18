@@ -18,8 +18,7 @@ package org.springframework.integration.osgi.config.xml;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.osgi.util.internal.ClassUtils;
+import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -32,7 +31,7 @@ class SiTypeToJavaTypeMaper {
 	private static Map<String, Class[]>  siTypeMappings = new HashMap<String, Class[]>();
 	
 	static {
-		siTypeMappings.put(PUB_SUB_CHANNEL, ClassUtils.getClassHierarchy(PublishSubscribeChannel.class, ClassUtils.INCLUDE_INTERFACES));
+		siTypeMappings.put(PUB_SUB_CHANNEL, new Class[]{SubscribableChannel.class});
 	}
 	
 	public static Class[] mapSiType(String siType){

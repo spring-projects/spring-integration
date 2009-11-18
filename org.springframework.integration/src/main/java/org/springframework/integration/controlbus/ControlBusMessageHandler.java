@@ -17,7 +17,6 @@ package org.springframework.integration.controlbus;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.core.CommandMessage;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
@@ -36,10 +35,7 @@ public class ControlBusMessageHandler implements MessageHandler {
 	public void handleMessage(Message<?> message)
 			throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
-		if (message instanceof CommandMessage<?>){
-			log.debug("Handling CommandMessage: " + message);
-			((CommandMessage<?>)message).execute();
-		}
+		log.debug("Handling control message: " + message);
 	}
 
 }

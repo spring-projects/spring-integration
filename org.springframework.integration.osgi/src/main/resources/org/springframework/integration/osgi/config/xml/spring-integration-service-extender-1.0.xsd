@@ -75,14 +75,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:enumeration>
-					<xsd:enumeration value="channel">
-						<xsd:annotation>
-							<xsd:documentation>
-								Will export all components of type
-								&lt;channel&gt; as SI Services
-							s</xsd:documentation>
-						</xsd:annotation>
-					</xsd:enumeration>
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
@@ -97,7 +89,7 @@
 					'control-bus'.
 					(OPTIONAL if no
 					control is necessary)
-								</xsd:documentation>
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>

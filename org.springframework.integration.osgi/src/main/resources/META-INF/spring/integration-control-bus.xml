@@ -24,10 +24,10 @@
 	<!-- END SERVICE BINDING CONFIG-->
 	
 	<!-- CONTROL BUS channel, exposed as an OSGi service --> 
-	<si:publish-subscribe-channel id="controlMessagesDistributionChannel"/>
+	<si:publish-subscribe-channel id="DEFAULT_CONTROL_DIST_CHANNEL"/>
 	<!-- END CONTROL BUS channel, exposed as an OSGi service --> 
 	
-	<si:header-value-router input-channel="controlMessagesDistributionChannel" header-name="INTEGRATION_EVENT_TYPE">
+	<si:header-value-router input-channel="DEFAULT_CONTROL_DIST_CHANNEL" header-name="INTEGRATION_EVENT_TYPE">
 		<si:mapping value="REGISTRATION" channel="serviceRegistrationControlChannel"/>
 		<si:mapping value="UNREGISTRATION" channel="serviceRegistrationControlChannel"/>
 		<si:mapping value="BINDING" channel="serviceBindingControlChannel"/>
