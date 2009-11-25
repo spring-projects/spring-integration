@@ -29,6 +29,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
@@ -113,6 +114,39 @@ public class HeaderEnricherTests {
 		Message<?> result = gateway.sendAndReceiveMessage("test");
 		assertNotNull(result);
 		assertEquals(MessagePriority.HIGH, result.getHeaders().getPriority());
+	}
+
+	@Test
+	public void expressionUsingPayload() {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		gateway.setRequestChannel(context.getBean("payloadExpressionInput", MessageChannel.class));
+		Message<?> result = gateway.sendAndReceiveMessage(new TestBean("foo"));
+		assertNotNull(result);
+		assertEquals("foobar", result.getHeaders().get("testHeader"));
+	}
+
+	@Test
+	public void expressionUsingHeader() {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		gateway.setRequestChannel(context.getBean("headerExpressionInput", MessageChannel.class));
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
+		Message<?> result = gateway.sendAndReceiveMessage(message);
+		assertNotNull(result);
+		assertEquals("foobar", result.getHeaders().get("testHeader2"));
+	}
+
+
+	public static class TestBean {
+
+		private final String name;
+
+		TestBean(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return this.name;
+		}
 	}
 
 }

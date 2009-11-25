@@ -901,7 +901,7 @@
 						</xsd:element>
 						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
-					<xsd:attributeGroup ref="headerEnricherAttributes" />
+					<xsd:attribute name="overwrite" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -946,7 +946,14 @@
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<!-- TODO: xsd:attribute name="expression" type="xsd:string" / -->
+				<xsd:attribute name="expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Expression to be evaulated at runtime to determine the header value.
+	The EvaluationContext will include variables for 'payload' and 'headers'.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -960,16 +967,6 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-
-	<xsd:attributeGroup name="headerEnricherAttributes">
-		<xsd:annotation>
-			<xsd:documentation>
-				Provides the names of the standard configurable
-				MessageHeaders.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:attribute name="overwrite" type="xsd:string" />
-	</xsd:attributeGroup>
 
 	<xsd:element name="thread-pool-task-executor">
 		<xsd:complexType>

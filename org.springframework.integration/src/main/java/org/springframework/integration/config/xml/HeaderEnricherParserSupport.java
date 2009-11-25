@@ -28,6 +28,7 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.transformer.HeaderEnricher.ExpressionHolder;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -105,16 +106,21 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				if (headerName != null) {
 					String value = headerElement.getAttribute("value");
 					String ref = headerElement.getAttribute("ref");
+					String expression = headerElement.getAttribute("expression");
 					boolean isValue = StringUtils.hasText(value);
 					boolean isRef = StringUtils.hasText(ref);
-					if (!(isValue ^ isRef)) {
+					boolean isExpression = StringUtils.hasText(expression);
+					if (!(isValue ^ (isRef ^ isExpression))) {
 						parserContext.getReaderContext().error(
-								"Exactly one of the 'value' or 'ref' attributes is required.", element);
+								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
 					}
 					if (isValue) {
 						Object headerValue = (headerType != null) ?
 							new TypedStringValue(value, headerType) : value;
 						headers.put(headerName, headerValue);
+					}
+					else if (isExpression) {
+						headers.put(headerName, new ExpressionHolder(expression, headerType));
 					}
 					else {
 						headers.put(headerName, new RuntimeBeanReference(ref));

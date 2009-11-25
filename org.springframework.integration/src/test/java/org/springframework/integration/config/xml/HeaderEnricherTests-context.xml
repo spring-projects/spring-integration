@@ -62,4 +62,12 @@
 		<priority value="HIGH"/>
 	</header-enricher>
 
+	<header-enricher input-channel="payloadExpressionInput">
+		<header name="testHeader" expression="payload.name + 'bar'"/>
+	</header-enricher>
+
+	<header-enricher input-channel="headerExpressionInput">
+		<header name="testHeader2" expression="headers.testHeader1 + 'bar'"/>
+	</header-enricher>
+
 </beans:beans>
