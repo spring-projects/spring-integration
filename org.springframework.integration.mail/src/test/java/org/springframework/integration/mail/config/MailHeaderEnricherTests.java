@@ -40,12 +40,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MailHeaderEnricherTests {
 
-	@Autowired @Qualifier("input")
-	private MessageChannel channel;
+	@Autowired @Qualifier("literalValuesInput")
+	private MessageChannel literalValuesInput;
+
+	@Autowired @Qualifier("expressionsInput")
+	private MessageChannel expressionsInput;
 
 	@Test
-	public void test() {
-		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+	public void literalValues() {
+		MessageChannelTemplate template = new MessageChannelTemplate(literalValuesInput);
 		Message<?> result = template.sendAndReceive(new StringMessage("test"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("test.to", headers.get(MailHeaders.TO));
@@ -54,6 +57,19 @@ public class MailHeaderEnricherTests {
 		assertEquals("test.from", headers.get(MailHeaders.FROM));
 		assertEquals("test.reply-to", headers.get(MailHeaders.REPLY_TO));
 		assertEquals("test.subject", headers.get(MailHeaders.SUBJECT));
+	}
+
+	@Test
+	public void expressions() {
+		MessageChannelTemplate template = new MessageChannelTemplate(expressionsInput);
+		Message<?> result = template.sendAndReceive(new StringMessage("foo"));
+		Map<String, Object> headers = result.getHeaders();
+		assertEquals("foo.to", headers.get(MailHeaders.TO));
+		assertEquals("foo.cc", headers.get(MailHeaders.CC));
+		assertEquals("foo.bcc", headers.get(MailHeaders.BCC));
+		assertEquals("foo.from", headers.get(MailHeaders.FROM));
+		assertEquals("foo.reply-to", headers.get(MailHeaders.REPLY_TO));
+		assertEquals("foo.subject", headers.get(MailHeaders.SUBJECT));
 	}
 
 }

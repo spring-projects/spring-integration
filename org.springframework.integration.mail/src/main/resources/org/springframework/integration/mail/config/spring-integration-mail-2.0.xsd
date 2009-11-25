@@ -210,8 +210,8 @@
 	<xsd:complexType name="headerType">
 		<xsd:attribute name="value" type="xsd:string" />
 		<xsd:attribute name="ref" type="xsd:string" />
-		<!-- TODO add 'overwrite' and the expression below -->
-		<!-- xsd:attribute name="expression" type="xsd:string" / -->
+		<!-- TODO add 'overwrite' -->
+		<xsd:attribute name="expression" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">

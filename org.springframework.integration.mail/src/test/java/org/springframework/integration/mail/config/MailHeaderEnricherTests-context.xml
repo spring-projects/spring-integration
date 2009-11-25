@@ -7,13 +7,22 @@
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
 
-	<header-enricher input-channel="input">
+	<header-enricher input-channel="literalValuesInput">
 		<to value="test.to"/>
 		<cc value="test.cc"/>
 		<bcc value="test.bcc"/>
 		<from value="test.from"/>
 		<reply-to value="test.reply-to"/>
 		<subject value="test.subject"/>
+	</header-enricher>
+
+	<header-enricher input-channel="expressionsInput">
+		<to expression="payload + '.to'"/>
+		<cc expression="payload + '.cc'"/>
+		<bcc expression="payload + '.bcc'"/>
+		<from expression="payload + '.from'"/>
+		<reply-to expression="payload + '.reply-to'"/>
+		<subject expression="payload + '.subject'"/>
 	</header-enricher>
 
 </beans:beans>
