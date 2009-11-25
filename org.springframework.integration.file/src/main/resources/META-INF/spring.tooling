@@ -1,0 +1,4 @@
+# Tooling related information for the integration file namespace
+http\://www.springframework.org/schema/integration/file@name=integration file Namespace
+http\://www.springframework.org/schema/integration/file@prefix=int-file
+http\://www.springframework.org/schema/integration/file@icon=org/springframework/integration/file/config/spring-integration-file.gif

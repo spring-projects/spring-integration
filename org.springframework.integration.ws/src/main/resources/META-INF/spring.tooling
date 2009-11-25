@@ -1,0 +1,4 @@
+# Tooling related information for the integration ws namespace
+http\://www.springframework.org/schema/integration/ws@name=integration ws Namespace
+http\://www.springframework.org/schema/integration/ws@prefix=int-ws
+http\://www.springframework.org/schema/integration/ws@icon=org/springframework/integration/ws/config/spring-integration-ws.gif

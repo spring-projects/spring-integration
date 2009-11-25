@@ -1,0 +1,4 @@
+# Tooling related information for the integration http namespace
+http\://www.springframework.org/schema/integration/http@name=integration http Namespace
+http\://www.springframework.org/schema/integration/http@prefix=int-http
+http\://www.springframework.org/schema/integration/http@icon=org/springframework/integration/http/config/spring-integration-http.gif

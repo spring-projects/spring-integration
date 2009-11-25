@@ -1,0 +1,4 @@
+# Tooling related information for the integration jms namespace
+http\://www.springframework.org/schema/integration/jms@name=integration jms Namespace
+http\://www.springframework.org/schema/integration/jms@prefix=int-jms
+http\://www.springframework.org/schema/integration/jms@icon=org/springframework/integration/jms/config/spring-integration-jms.gif
