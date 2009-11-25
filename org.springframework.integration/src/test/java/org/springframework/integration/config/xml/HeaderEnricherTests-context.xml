@@ -38,6 +38,10 @@
 		<correlation-id value="ABC"/> 
 	</header-enricher>
 
+	<header-enricher input-channel="correlationIdValueWithTypeInput">
+		<correlation-id value="123" type="java.lang.Long"/> 
+	</header-enricher>
+
 	<header-enricher input-channel="correlationIdRefInput">
 		<correlation-id ref="testCorrelationId"/> 
 	</header-enricher>
@@ -68,6 +72,14 @@
 
 	<header-enricher input-channel="headerExpressionInput">
 		<header name="testHeader2" expression="headers.testHeader1 + 'bar'"/>
+	</header-enricher>
+
+	<header-enricher input-channel="expressionWithDateTypeInput">
+		<header name="currentDate" expression="new java.util.Date()" type="java.util.Date"/>
+	</header-enricher>
+
+	<header-enricher input-channel="expressionWithLongTypeInput">
+		<header name="number" expression="12345" type="java.lang.Long"/>
 	</header-enricher>
 
 </beans:beans>

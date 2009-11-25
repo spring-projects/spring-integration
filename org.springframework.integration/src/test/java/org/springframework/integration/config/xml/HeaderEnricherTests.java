@@ -18,6 +18,9 @@ package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,6 +84,17 @@ public class HeaderEnricherTests {
 	}
 
 	@Test
+	public void correlationIdValueWithType() {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		gateway.setRequestChannel(context.getBean("correlationIdValueWithTypeInput", MessageChannel.class));
+		Message<?> result = gateway.sendAndReceiveMessage("test");
+		assertNotNull(result);
+		Object correlationId = result.getHeaders().getCorrelationId();
+		assertEquals(Long.class, correlationId.getClass());
+		assertEquals(new Long(123), correlationId);
+	}
+
+	@Test
 	public void correlationIdRef() {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
 		gateway.setRequestChannel(context.getBean("correlationIdRefInput", MessageChannel.class));
@@ -133,6 +147,28 @@ public class HeaderEnricherTests {
 		Message<?> result = gateway.sendAndReceiveMessage(message);
 		assertNotNull(result);
 		assertEquals("foobar", result.getHeaders().get("testHeader2"));
+	}
+
+	@Test
+	public void expressionWithDateType() {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		gateway.setRequestChannel(context.getBean("expressionWithDateTypeInput", MessageChannel.class));
+		Message<?> result = gateway.sendAndReceiveMessage("test");
+		assertNotNull(result);
+		Object headerValue = result.getHeaders().get("currentDate");
+		assertEquals(Date.class, headerValue.getClass());
+		Date date = (Date) headerValue;
+		assertTrue(new Date().getTime() - date.getTime() < 1000);
+	}
+
+	@Test
+	public void expressionWithLongType() {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		gateway.setRequestChannel(context.getBean("expressionWithLongTypeInput", MessageChannel.class));
+		Message<?> result = gateway.sendAndReceiveMessage("test");
+		assertNotNull(result);
+		assertEquals(Long.class, result.getHeaders().get("number").getClass());
+		assertEquals(new Long(12345), result.getHeaders().get("number"));
 	}
 
 

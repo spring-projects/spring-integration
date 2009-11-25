@@ -85,23 +85,26 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				Class<?> headerType = null;
 				if ("header".equals(elementName)) {
 					headerName = headerElement.getAttribute("name");
-					String headerTypeName = headerElement.getAttribute("type");
-					if (StringUtils.hasText(headerTypeName)) {
-						ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
-						if (classLoader != null) {
-							try {
-								headerType = ClassUtils.forName(headerTypeName, classLoader);
-							}
-							catch (Exception e) {
-								parserContext.getReaderContext().error("unable to resolve type [" +
-										headerTypeName + "] for header '" + headerName + "'", element, e);
-							}
-						}
-					}
 				}
 				else {
 					headerName = elementToNameMap.get(elementName);
 					headerType = elementToTypeMap.get(elementName);
+				}
+				if (headerType == null) {
+					String headerTypeName = headerElement.getAttribute("type");
+					if (StringUtils.hasText(headerTypeName)) {
+						ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
+						if (classLoader == null) {
+							classLoader = getClass().getClassLoader();
+						}
+						try {
+							headerType = ClassUtils.forName(headerTypeName, classLoader);
+						}
+						catch (Exception e) {
+							parserContext.getReaderContext().error("unable to resolve type [" +
+									headerTypeName + "] for header '" + headerName + "'", element, e);
+						}
+					}
 				}
 				if (headerName != null) {
 					String value = headerElement.getAttribute("value");

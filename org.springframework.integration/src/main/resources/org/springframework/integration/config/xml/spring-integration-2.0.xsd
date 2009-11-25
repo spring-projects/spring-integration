@@ -937,6 +937,14 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="referenceOrValueHeaderType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Provides a header value for the given header name. Requires
+	exactly one of the 'ref', 'value', or 'expression' attributes.
+	The 'type' attribute allows for the specification of the expected
+	type when using a 'value' or 'expression', but it is optional.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="referenceHeaderType">
 				<xsd:attribute name="value" type="xsd:string">
@@ -952,6 +960,13 @@
 	Expression to be evaulated at runtime to determine the header value.
 	The EvaluationContext will include variables for 'payload' and 'headers'.
 						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="type" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation source="java:java.lang.Class"><![CDATA[
+	The fully qualified class name of the header value's expected type.
+						]]></xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 			</xsd:extension>
