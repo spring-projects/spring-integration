@@ -89,6 +89,11 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				else {
 					headerName = elementToNameMap.get(elementName);
 					headerType = elementToTypeMap.get(elementName);
+					if (headerType != null && StringUtils.hasText(headerElement.getAttribute("type"))) {
+						parserContext.getReaderContext().error("The " + elementName 
+								+ " header does not accept a 'type' attribute. The required type is ["
+								+ headerType.getName() + "]", element);
+					}
 				}
 				if (headerType == null) {
 					String headerTypeName = headerElement.getAttribute("type");
