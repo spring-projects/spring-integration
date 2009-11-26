@@ -227,7 +227,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void handleMessage(Message<?> message) {
 				Method method = ReflectionUtils.findMethod(
 						GatewayProxyFactoryBeanTests.class, "throwTestException");
-				ReflectionUtils.invokeMethod(method, null);
+				ReflectionUtils.invokeMethod(method, this);
 			}
 		});
 		consumer.start();
