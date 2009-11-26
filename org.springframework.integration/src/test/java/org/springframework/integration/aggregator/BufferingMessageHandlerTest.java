@@ -19,10 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.*;
-import org.mockito.runners.MockitoJUnit44Runner;
-import org.springframework.integration.aggregator.CompletionStrategy;
-import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -32,10 +29,12 @@ import org.springframework.integration.store.MessageStore;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Mockito.*;
+
 /**
  * @author Iwein Fuld
  */
-@RunWith(MockitoJUnit44Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class BufferingMessageHandlerTest {
 
     private BufferingMessageHandler buffer;

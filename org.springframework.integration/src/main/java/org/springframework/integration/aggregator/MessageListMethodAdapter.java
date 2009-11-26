@@ -16,101 +16,102 @@
 
 package org.springframework.integration.aggregator;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Base class for implementing adapters for methods which take as an argument a
  * list of {@link Message Message} instances or payloads.
- * 
+ *
  * @author Marius Bogoevici
  */
 public class MessageListMethodAdapter {
 
-	private final DefaultMethodInvoker invoker;
+    private final DefaultMethodInvoker invoker;
 
-	protected final Method method;
-
-
-	public MessageListMethodAdapter(Object object, String methodName) {
-		Assert.notNull(object, "'object' must not be null");
-		Assert.notNull(methodName, "'methodName' must not be null");
-		this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[] { List.class });
-		Assert.notNull(this.method, "Method '" + methodName +
-				"(List<?> args)' not found on '" + object.getClass().getName() + "'.");
-		this.invoker = new DefaultMethodInvoker(object, this.method);
-	}
-
-	public MessageListMethodAdapter(Object object, Method method) {
-		Assert.notNull(object, "'object' must not be null");
-		Assert.notNull(method, "'method' must not be null");
-		Assert.isTrue(method.getParameterTypes().length == 1
-				&& method.getParameterTypes()[0].equals(List.class),
-				"Method must accept exactly one parameter, and it must be a List.");
-		this.method = method;
-		this.invoker = new DefaultMethodInvoker(object, this.method);
-	}
+    protected final Method method;
 
 
-	protected Method getMethod() {
-		return method;
-	}
+    public MessageListMethodAdapter(Object object, String methodName) {
+        Assert.notNull(object, "'object' must not be null");
+        Assert.notNull(methodName, "'methodName' must not be null");
+        this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[]{List.class});
+        Assert.notNull(this.method, "Method '" + methodName +
+                "(List<?> args)' not found on '" + object.getClass().getName() + "'.");
+        this.invoker = new DefaultMethodInvoker(object, this.method);
+    }
 
-	private static boolean isActualTypeParameterizedMessage(Method method) {
-		return (getCollectionActualType(method) instanceof ParameterizedType)
-				&& Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
-	}
+    public MessageListMethodAdapter(Object object, Method method) {
+        Assert.notNull(object, "'object' must not be null");
+        Assert.notNull(method, "'method' must not be null");
+        Assert.isTrue(method.getParameterTypes().length == 1
+                && method.getParameterTypes()[0].equals(List.class),
+                "Method " + method + " does not accept exactly one parameter, of type List.");
+        this.method = method;
+        this.invoker = new DefaultMethodInvoker(object, this.method);
+    }
 
-	protected final Object executeMethod(List<Message<?>> messages) {
-		try {
-			if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
-					&& (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
-				return this.invoker.invokeMethod(messages);
-			}
-			return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
-		}
-		catch (InvocationTargetException e) {
-			throw new MessagingException(
-					"Method '" + this.method + "' threw an Exception.", e.getTargetException());
-		}
-		catch (Exception e) {
-			throw new MessagingException("Failed to invoke method '" + this.method + "'.");
-		}
-	}
 
-	private List<?> extractPayloadsFromMessages(List<Message<?>> messages) {
-		List<Object> payloadList = new ArrayList<Object>();
-		for (Message<?> message : messages) {
-			payloadList.add(message.getPayload());
-		}
-		return payloadList;
-	}
+    protected Method getMethod() {
+        return method;
+    }
 
-	private static boolean isActualTypeRawMessage(Method method) {
-		return getCollectionActualType(method).equals(Message.class);
-	}
+    private static boolean isActualTypeParameterizedMessage(Method method) {
+        return (getCollectionActualType(method) instanceof ParameterizedType)
+                && Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
+    }
 
-	private static Type getCollectionActualType(Method method) {
-		return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments()[0];
-	}
+    protected final Object executeMethod(Collection<Message<?>> messages) {
+        try {
+            if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
+                    && (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
+                return this.invoker.invokeMethod(messages);
+            }
+            return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
+        }
+        catch (InvocationTargetException e) {
+            throw new MessagingException(
+                    "Method '" + this.method + "' threw an Exception.", e.getTargetException());
+        }
+        catch (Exception e) {
+            throw new MessagingException("Failed to invoke method '" + this.method + "'.");
+        }
+    }
 
-	private static boolean isHavingActualTypeArguments(Method method) {
-		return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments().length == 1;
-	}
+    private List<?> extractPayloadsFromMessages(Collection<Message<?>> messages) {
+        List<Object> payloadList = new ArrayList<Object>();
+        for (Message<?> message : messages) {
+            payloadList.add(message.getPayload());
+        }
+        return payloadList;
+    }
 
-	private static boolean isMethodParameterParameterized(Method method) {
-		return method.getGenericParameterTypes().length == 1
-				&& method.getGenericParameterTypes()[0] instanceof ParameterizedType;
-	}
+    private static boolean isActualTypeRawMessage(Method method) {
+        return getCollectionActualType(method).equals(Message.class);
+    }
+
+    private static Type getCollectionActualType(Method method) {
+        return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments()[0];
+    }
+
+    private static boolean isHavingActualTypeArguments(Method method) {
+        return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments().length == 1;
+    }
+
+    private static boolean isMethodParameterParameterized(Method method) {
+        return method.getGenericParameterTypes().length == 1
+                && method.getGenericParameterTypes()[0] instanceof ParameterizedType;
+    }
 
 }

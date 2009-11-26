@@ -16,7 +16,6 @@
 package org.springframework.integration.aggregator;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.Message;
@@ -34,7 +33,9 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * MessageHandler that holds a buffer of messages in a MessageStore
+ * MessageHandler that holds a buffer of messages in a MessageStore. This class takes care of 
+ * correlated groups of messages that can be completed in batches. It is useful for aggregating,
+ * resequencing, or custom buffering concerns. 
  *
  * @author Iwein Fuld
  */
@@ -49,7 +50,7 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
     private volatile MessageChannel discardChannel = new NullChannel();
     private TaskScheduler taskScheduler;
     private Object lifecycleMonitor = new Object();
-    private ScheduledFuture reaperFutureTask;
+    private ScheduledFuture<?> reaperFutureTask;
     private volatile long reaperInterval = 1000l;
     private final BlockingQueue<DelayedKey> keysInBuffer = new DelayQueue<DelayedKey>();
     private volatile long timeout = 60000l;
