@@ -37,8 +37,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnit44Runner;
 import org.mockito.stubbing.Answer;
 
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -92,7 +90,7 @@ public class SimpleWebServiceInboundGatewayTests {
 		when(requestChannel.send(isA(Message.class))).thenAnswer(
 				withReplyTo(replyChannel));
 		when(request.getPayloadSource()).thenReturn(payloadSource);
-		gateway.onApplicationEvent(new ContextRefreshedEvent(new StaticApplicationContext()));
+		gateway.start();
 		gateway.invoke(context);
 		verify(requestChannel).send(messageWithPayload(payloadSource));
 		assertTrue(output.toString().endsWith(input));

@@ -30,10 +30,11 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.core.convert.converter.ConverterRegistry;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -108,17 +109,18 @@ import org.springframework.util.StringUtils;
  */
 public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]>, OutboundMessageMapper<Object[]> {
 
-	private static GenericConversionService conversionService;
+	private static ConversionService conversionService;
 
 	static { // see INT-829
-		conversionService = new DefaultConversionService();
-		conversionService.removeConvertible(Object.class, Map.class);
-		conversionService.removeConvertible(Map.class, Object.class);
-		conversionService.removeConvertible(Object.class, String.class);
-		conversionService.addConverter(new Converter<Number, String>() {
+		conversionService = ConversionServiceFactory.createDefaultConversionService();
+		ConverterRegistry registry = (ConverterRegistry) conversionService;
+		registry.removeConvertible(Object.class, Map.class);
+		registry.removeConvertible(Map.class, Object.class);
+		registry.removeConvertible(Object.class, String.class);
+		registry.addConverter(new Converter<Number, String>() {
 			public String convert(Number source) {return null;}
 		});
-		conversionService.addConverter(new Converter<Date, String>() {
+		registry.addConverter(new Converter<Date, String>() {
 			public String convert(Date source) {return null;}
 		});
 	}

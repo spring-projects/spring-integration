@@ -39,7 +39,6 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
-		this.setStartupMode(StartupMode.ON_CONTEXT_REFRESH);
 		this.inputChannel = inputChannel;
 		this.handler = handler;
 	}

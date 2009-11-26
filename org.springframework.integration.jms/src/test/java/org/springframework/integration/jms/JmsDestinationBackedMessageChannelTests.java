@@ -20,9 +20,14 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
@@ -77,6 +82,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		JmsDestinationBackedMessageChannel channel =
 				new JmsDestinationBackedMessageChannel(this.connectionFactory, this.queue);
 		channel.afterPropertiesSet();
+		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
@@ -88,6 +94,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		assertEquals(1, receivedList2.size());
 		assertNotNull(receivedList2.get(0));
 		assertEquals("bar", receivedList2.get(0).getPayload());
+		channel.stop();
 	}
 
 	@Test
@@ -110,6 +117,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		JmsDestinationBackedMessageChannel channel =
 				new JmsDestinationBackedMessageChannel(this.connectionFactory, this.topic);
 		channel.afterPropertiesSet();
+		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
@@ -121,6 +129,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		assertEquals(2, receivedList2.size());
 		assertEquals("foo", receivedList2.get(0).getPayload());
 		assertEquals("bar", receivedList2.get(1).getPayload());
+		channel.stop();
 	}
 
 	@Test
@@ -143,6 +152,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		JmsDestinationBackedMessageChannel channel =
 				new JmsDestinationBackedMessageChannel(this.connectionFactory, "dynamicQueue", false);
 		channel.afterPropertiesSet();
+		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
@@ -154,6 +164,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		assertEquals(1, receivedList2.size());
 		assertNotNull(receivedList2.get(0));
 		assertEquals("bar", receivedList2.get(0).getPayload());
+		channel.stop();
 	}
 
 	@Test
@@ -176,6 +187,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		JmsDestinationBackedMessageChannel channel =
 				new JmsDestinationBackedMessageChannel(this.connectionFactory, "dynamicTopic", true);
 		channel.afterPropertiesSet();
+		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
@@ -187,6 +199,23 @@ public class JmsDestinationBackedMessageChannelTests {
 		assertEquals(2, receivedList2.size());
 		assertEquals("foo", receivedList2.get(0).getPayload());
 		assertEquals("bar", receivedList2.get(1).getPayload());
+		channel.stop();
+	}
+
+	@Test
+	public void contextManagesLifecycle() {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsDestinationBackedMessageChannel.class);
+		builder.addConstructorArgValue(this.connectionFactory);
+		builder.addConstructorArgValue("dynamicQueue");
+		builder.addConstructorArgValue(false);
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerBeanDefinition("channel", builder.getBeanDefinition());
+		JmsDestinationBackedMessageChannel channel = context.getBean("channel", JmsDestinationBackedMessageChannel.class);
+		assertFalse(channel.isRunning());
+		context.refresh();
+		assertTrue(channel.isRunning());
+		context.stop();
+		assertFalse(channel.isRunning());
 	}
 
 }

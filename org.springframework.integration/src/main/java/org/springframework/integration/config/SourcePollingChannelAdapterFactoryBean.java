@@ -23,13 +23,10 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.Lifecycle;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.endpoint.AbstractEndpoint.StartupMode;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
@@ -40,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware,
-		BeanClassLoaderAware, InitializingBean, Lifecycle, ApplicationListener<ContextRefreshedEvent> {
+		BeanClassLoaderAware, InitializingBean, SmartLifecycle {
 
 	private volatile MessageSource<?> source;
 
@@ -97,12 +94,6 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 		this.initializeAdapter();
 	}
 
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		if (this.adapter != null) {
-			this.adapter.onApplicationEvent(event);
-		}
-	}
-
 	public Object getObject() throws Exception {
 		if (this.adapter == null) {
 			this.initializeAdapter();
@@ -139,9 +130,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 			spca.setTransactionManager(this.pollerMetadata.getTransactionManager());
 			spca.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());
 			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
-			if (!this.autoStartup) {
-				spca.setStartupMode(StartupMode.MANUAL);
-			}
+			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
 			spca.setBeanClassLoader(this.beanClassLoader);
@@ -152,14 +141,19 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 	}
 
 	/*
-	 * Lifecycle implementation (delegates to the created adapter).
+	 * SmartLifecycle implementation (delegates to the created adapter)
 	 */
 
+	public boolean isAutoStartup() {
+		return (this.adapter != null) ? this.adapter.isAutoStartup() : true;
+	}
+
+	public int getPhase() {
+		return (this.adapter != null) ? this.adapter.getPhase() : 0;
+	}
+
 	public boolean isRunning() {
-		if (this.adapter == null) {
-			return false;
-		}
-		return this.adapter.isRunning();
+		return (this.adapter != null) ? this.adapter.isRunning() : false;
 	}
 
 	public void start() {
@@ -171,6 +165,12 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 	public void stop() {
 		if (this.adapter != null) {
 			this.adapter.stop();
+		}
+	}
+
+	public void stop(Runnable callback) {
+		if (this.adapter != null) {
+			this.adapter.stop(callback);
 		}
 	}
 

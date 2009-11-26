@@ -51,7 +51,6 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
-		super.onApplicationEvent(event);
 		if (CollectionUtils.isEmpty(this.eventTypes)) {
 			this.sendEventAsMessage(event);
 			return;

@@ -20,10 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.Lifecycle;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -39,25 +36,23 @@ import org.springframework.scheduling.TaskScheduler;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint extends IntegrationObjectSupport
-		implements ApplicationListener, Lifecycle, InitializingBean {
+public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle, InitializingBean {
 
-	public static enum StartupMode {
-		MANUAL,
-		ON_INITIALIZATION,
-		ON_CONTEXT_REFRESH;
-	}
+	private volatile boolean autoStartup = true;
 
-
-	private volatile StartupMode startupMode = StartupMode.MANUAL;
+	private volatile int phase = 0;
 
 	private volatile boolean running;
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 
-	public void setStartupMode(StartupMode startupMode) {
-		this.startupMode = (startupMode != null ? startupMode : StartupMode.MANUAL);
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
+
+	public void setPhase(int phase) {
+		this.phase = phase;
 	}
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
@@ -67,23 +62,21 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 	public final void afterPropertiesSet() {
 		try {
 			this.onInit();
-			if (this.startupMode == StartupMode.ON_INITIALIZATION) {
-				this.start();
-			}
 		}
 		catch (Exception e) {
 			throw new BeanInitializationException("failed to initialize", e);
 		}
 	}
 
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ContextRefreshedEvent
-				&& this.startupMode == StartupMode.ON_CONTEXT_REFRESH) {
-			this.start();
-		}
+	// SmartLifecycle implementation
+
+	public final boolean isAutoStartup() {
+		return this.autoStartup;
 	}
 
-	// Lifecycle implementation
+	public final int getPhase() {
+		return this.phase;
+	}
 
 	public final boolean isRunning() {
 		this.lifecycleLock.lock();
@@ -121,6 +114,17 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport
 					logger.info("stopped " + this);
 				}
 			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
 		}
 		finally {
 			this.lifecycleLock.unlock();

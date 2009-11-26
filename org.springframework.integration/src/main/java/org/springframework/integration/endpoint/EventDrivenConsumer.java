@@ -36,9 +36,9 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
-		this.setStartupMode(StartupMode.ON_INITIALIZATION);
 		this.inputChannel = inputChannel;
 		this.handler = handler;
+		this.setPhase(Integer.MIN_VALUE);
 	}
 
 

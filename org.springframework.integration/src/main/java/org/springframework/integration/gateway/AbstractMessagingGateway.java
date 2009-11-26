@@ -51,8 +51,6 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 	private volatile boolean shouldThrowErrors = true;
 
-	private volatile boolean autoStartup = true;
-
 	private volatile boolean initialized;
 
 	private volatile AbstractEndpoint replyMessageCorrelator;
@@ -109,23 +107,8 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 		this.shouldThrowErrors = shouldThrowErrors;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
 	@Override
 	protected void onInit() throws Exception {
-		if (this.autoStartup) {
-			if (this.requestChannel instanceof PollableChannel) {
-				this.setStartupMode(StartupMode.ON_CONTEXT_REFRESH);
-			}
-			else {
-				this.setStartupMode(StartupMode.ON_INITIALIZATION);
-			}
-		}
-		else {
-			this.setStartupMode(StartupMode.MANUAL);
-		}
 		this.initialized = true;
 	}
 

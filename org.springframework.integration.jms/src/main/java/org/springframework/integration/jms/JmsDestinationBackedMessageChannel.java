@@ -23,6 +23,7 @@ import javax.jms.Topic;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -52,8 +53,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class JmsDestinationBackedMessageChannel implements
-		SubscribableChannel, MessageListener, BeanNameAware, InitializingBean {
+public class JmsDestinationBackedMessageChannel implements SubscribableChannel, MessageListener,
+		BeanNameAware, SmartLifecycle, InitializingBean {
 
 	private final JmsTemplate jmsTemplate = new JmsTemplate();
 
@@ -156,6 +157,32 @@ public class JmsDestinationBackedMessageChannel implements
 		catch (Exception e) {
 			throw new MessagingException("failed to handle incoming JMS Message", e);
 		}
+	}
+
+	// SmartLifecycle implementation (delegates to the MessageListener container)
+
+	public int getPhase() {
+		return this.container.getPhase();
+	}
+
+	public boolean isAutoStartup() {
+		return this.container.isAutoStartup();
+	}
+
+	public boolean isRunning() {
+		return this.container.isRunning();
+	}
+
+	public void start() {
+		this.container.start();
+	}
+
+	public void stop() {
+		this.container.stop();
+	}
+
+	public void stop(Runnable callback) {
+		this.container.stop(callback);
 	}
 
 }

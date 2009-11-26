@@ -41,8 +41,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private final IdleTask idleTask = new IdleTask();
 
-	private volatile boolean autoStartup = true;
-
 	private volatile boolean shouldReconnectAutomatically = true;
 
 	private volatile TaskExecutor taskExecutor;
@@ -65,10 +63,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
-	}
-
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
@@ -76,16 +70,6 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 	protected void handleMailMessagingException(MessagingException e) {
 		if (logger.isWarnEnabled()) {
 			logger.warn("error occurred in idle task", e);
-		}
-	}
-
-	@Override
-	protected void onInit() {
-		if (this.autoStartup) {
-			this.setStartupMode(StartupMode.ON_CONTEXT_REFRESH);
-		}
-		else {
-			this.setStartupMode(StartupMode.MANUAL);
 		}
 	}
 

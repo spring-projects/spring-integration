@@ -75,7 +75,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 
 	public AbstractPollingEndpoint() {
-		this.setStartupMode(StartupMode.ON_CONTEXT_REFRESH);
+		this.setPhase(Integer.MAX_VALUE);
 	}
 
 

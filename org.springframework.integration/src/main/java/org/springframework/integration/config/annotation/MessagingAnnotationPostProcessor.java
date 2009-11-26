@@ -40,6 +40,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Router;
@@ -60,7 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, ApplicationListener {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, Lifecycle, ApplicationListener {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -70,7 +72,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
-	private Set<ApplicationListener> listeners = new HashSet<ApplicationListener>();
+	private final Set<ApplicationListener> listeners = new HashSet<ApplicationListener>();
+
+	private final Set<Lifecycle> lifecycles = new HashSet<Lifecycle>();
+
+	private volatile boolean running = true;
 
 
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -122,6 +128,12 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								}
 								catch (Exception e) {
 									throw new BeanInitializationException("failed to initialize annotated component", e);
+								}
+							}
+							if (result instanceof Lifecycle) {
+								lifecycles.add((Lifecycle) result);
+								if (result instanceof SmartLifecycle && ((SmartLifecycle) result).isAutoStartup()) {
+									((SmartLifecycle) result).start();
 								}
 							}
 							if (result instanceof ApplicationListener) {
@@ -183,6 +195,31 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				}
 			}
 		}
+	}
+
+
+	// Lifecycle implementation
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		for (Lifecycle lifecycle : this.lifecycles) {
+			if (!lifecycle.isRunning()) {
+				lifecycle.start();
+			}
+		}
+		this.running = true;
+	}
+
+	public void stop() {
+		for (Lifecycle lifecycle : this.lifecycles) {
+			if (lifecycle.isRunning()) {
+				lifecycle.stop();
+			}
+		}
+		this.running = false;
 	}
 
 }
