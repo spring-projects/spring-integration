@@ -5,7 +5,7 @@ import org.springframework.integration.core.MessageChannel;
 
 import java.util.Collection;
 
-public class PassThroughMessagesProcessor implements MessagesProcessor {
+public class PassThroughMessageGroupProcessor implements MessageGroupProcessor {
 
     public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing, MessageChannel outputChannel, BufferedMessagesCallback processedCallback) {
         for (Message<?> message : messagesUpForProcessing) {

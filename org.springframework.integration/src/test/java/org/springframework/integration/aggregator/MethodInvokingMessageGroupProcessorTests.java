@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MethodInvokingMessagesProcessorTests {
+public class MethodInvokingMessageGroupProcessorTests {
 
     @Mock
     private BufferedMessagesCallback processedCallback;
@@ -61,7 +61,7 @@ public class MethodInvokingMessagesProcessorTests {
 
     @Test
     public void shouldFindAnnotatedAggregatorMethod() throws Exception {
-        MessagesProcessor processor = new MethodInvokingMessagesProcessor(
+        MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(
                 new AnnotatedAggregatorMethod());
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor
                 .forClass(Message.class);
@@ -86,7 +86,7 @@ public class MethodInvokingMessagesProcessorTests {
 
     @Test
     public void shouldFindSimpleAggregatorMethod() throws Exception {
-        MessagesProcessor processor = new MethodInvokingMessagesProcessor(
+        MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(
                 new SimpleAggregator());
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor
                 .forClass(Message.class);
@@ -119,7 +119,7 @@ public class MethodInvokingMessagesProcessorTests {
 
     @Test
     public void shouldFindFittingMethodAmongMultipleUnanotated() {
-        MessagesProcessor processor = new MethodInvokingMessagesProcessor(
+        MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(
                 new UnnanotatedAggregator()
         );
 
@@ -150,7 +150,7 @@ public class MethodInvokingMessagesProcessorTests {
 
     @Test
     public void shouldFindFittingMethodAmongMultipleWithAnnotatedParameters() {
-        MessagesProcessor processor = new MethodInvokingMessagesProcessor(
+        MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(
                 new AnnotatedParametersAggregator()
         );
 

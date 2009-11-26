@@ -31,12 +31,11 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.aggregator.BufferingMessageHandler;
-import org.springframework.integration.aggregator.MessagesProcessor;
+import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.BufferedMessagesCallback;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.test.annotation.Repeat;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -53,7 +52,7 @@ public class NewConcurrentAggregatorEndpointTests {
 
     private ThreadPoolTaskScheduler taskScheduler;
 
-    private BufferingMessageHandler aggregator;
+    private CorrelatingMessageHandler aggregator;
 
     @Before
     public void configureAggregator() {
@@ -61,7 +60,7 @@ public class NewConcurrentAggregatorEndpointTests {
         this.taskScheduler = new ThreadPoolTaskScheduler();
         taskScheduler.afterPropertiesSet();
         this.taskScheduler.afterPropertiesSet();
-        this.aggregator = new BufferingMessageHandler(new SimpleMessageStore(50), new MultiplyingProcessor());
+        this.aggregator = new CorrelatingMessageHandler(new SimpleMessageStore(50), new MultiplyingProcessor());
         this.aggregator.setTaskScheduler(this.taskScheduler);
     }
 
@@ -243,7 +242,7 @@ public class NewConcurrentAggregatorEndpointTests {
     @Test
     public void testNullReturningAggregator() throws InterruptedException {
         this.aggregator.start();
-        this.aggregator = new BufferingMessageHandler(new SimpleMessageStore(50), new NullReturningMessageProcessor());
+        this.aggregator = new CorrelatingMessageHandler(new SimpleMessageStore(50), new NullReturningMessageProcessor());
         this.aggregator.setTaskScheduler(this.taskScheduler);
         QueueChannel replyChannel = new QueueChannel();
         Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
@@ -320,7 +319,7 @@ public class NewConcurrentAggregatorEndpointTests {
         if (this.aggregator != null) this.aggregator.stop();
     }
 
-    private class MultiplyingProcessor implements MessagesProcessor {
+    private class MultiplyingProcessor implements MessageGroupProcessor {
         public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing,
                                    MessageChannel outputChannel, BufferedMessagesCallback processedCallback
         ) {
@@ -337,7 +336,7 @@ public class NewConcurrentAggregatorEndpointTests {
         }
     }
 
-    private class NullReturningMessageProcessor implements MessagesProcessor {
+    private class NullReturningMessageProcessor implements MessageGroupProcessor {
         public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing, MessageChannel outputChannel, BufferedMessagesCallback processedCallback) {
             //noop
         }

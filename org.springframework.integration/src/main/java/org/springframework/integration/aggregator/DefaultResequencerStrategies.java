@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Iwein Fuld
  */
-public class DefaultResequencerStrategies implements CorrelationStrategy, CompletionStrategy, MessagesProcessor {
+public class DefaultResequencerStrategies implements CorrelationStrategy, CompletionStrategy, MessageGroupProcessor {
     private final ConcurrentMap<Object, AtomicInteger> nextMessagesToPass = new ConcurrentHashMap<Object, AtomicInteger>();
     private volatile DefaultResequencerStrategies.SequenceNumberComparator sequenceSizeComparator = new SequenceNumberComparator();
     private volatile boolean releasePartialSequences;

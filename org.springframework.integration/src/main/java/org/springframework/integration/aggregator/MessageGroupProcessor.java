@@ -9,7 +9,7 @@ import java.util.Collection;
 /**
  * @author Iwein Fuld
  */
-public interface MessagesProcessor {
+public interface MessageGroupProcessor {
 
     void processAndSend(Object correlationKey,
                         Collection<Message<?>> messagesUpForProcessing,

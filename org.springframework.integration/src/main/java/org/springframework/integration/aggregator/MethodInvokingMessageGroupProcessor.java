@@ -11,14 +11,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class MethodInvokingMessagesProcessor implements MessagesProcessor {
+public class MethodInvokingMessageGroupProcessor implements MessageGroupProcessor {
 
     private final Object target;
     private final Method method;
 
     private final MessageListMethodAdapter adapter;
 
-    public MethodInvokingMessagesProcessor(Object target) {
+    public MethodInvokingMessageGroupProcessor(Object target) {
         this.target = target;
         this.method = selectMethodFrom(target);
         this.adapter = new MessageListMethodAdapter(target, method);

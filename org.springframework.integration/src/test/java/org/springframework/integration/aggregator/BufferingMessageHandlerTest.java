@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class BufferingMessageHandlerTest {
 
-    private BufferingMessageHandler buffer;
+    private CorrelatingMessageHandler buffer;
     @Mock
     private MessageStore store;
     @Mock
@@ -45,13 +45,13 @@ public class BufferingMessageHandlerTest {
     @Mock
     private CompletionStrategy completionStrategy;
     @Mock
-    private MessagesProcessor processor;
+    private MessageGroupProcessor processor;
     @Mock
     private MessageChannel outputChannel;
 
     @Before
     public void initializeSubject() {
-        buffer = new BufferingMessageHandler(store, correlationStrategy,
+        buffer = new CorrelatingMessageHandler(store, correlationStrategy,
                 completionStrategy, processor);
         buffer.setOutputChannel(outputChannel);
     }

@@ -39,13 +39,13 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Iwein Fuld
  */
-public class BufferingMessageHandler extends AbstractMessageHandler implements Lifecycle {
+public class CorrelatingMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
     private MessageStore store = new SimpleMessageStore(100);
     private final CorrelationStrategy correlationStrategy;
     private final IdTracker tracker = new IdTracker();
     private final CompletionStrategy completionStrategy;
-    private MessagesProcessor outputProcessor;
+    private MessageGroupProcessor outputProcessor;
     private MessageChannel outputChannel;
     private volatile MessageChannel discardChannel = new NullChannel();
     private TaskScheduler taskScheduler;
@@ -57,10 +57,10 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
     private volatile boolean sendPartialResultOnTimeout;
     private ChannelResolver channelResolver;
 
-    public BufferingMessageHandler(MessageStore store,
+    public CorrelatingMessageHandler(MessageStore store,
                                    CorrelationStrategy correlationStrategy,
                                    CompletionStrategy completionStrategy,
-                                   MessagesProcessor processor) {
+                                   MessageGroupProcessor processor) {
         Assert.notNull(store);
         Assert.notNull(correlationStrategy);
         Assert.notNull(completionStrategy);
@@ -71,8 +71,8 @@ public class BufferingMessageHandler extends AbstractMessageHandler implements L
         this.outputProcessor = processor;
     }
 
-    public BufferingMessageHandler(MessageStore store,
-                                   MessagesProcessor processor) {
+    public CorrelatingMessageHandler(MessageStore store,
+                                   MessageGroupProcessor processor) {
         this(store, new HeaderAttributeCorrelationStrategy(
                 MessageHeaders.CORRELATION_ID),
                 new SequenceSizeCompletionStrategy(), processor);

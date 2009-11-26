@@ -15,11 +15,11 @@ public class BufferingMessageHandlerIntegrationTest {
 	private CorrelationStrategy correlationStrategy;
 	private MessageStore store = new SimpleMessageStore(100);
 	private MessageChannel outputChannel = mock(MessageChannel.class);
-	private MessagesProcessor processor = new PassThroughMessagesProcessor();
-//	private BufferingMessageHandler customizedHandler = new BufferingMessageHandler(
+	private MessageGroupProcessor processor = new PassThroughMessageGroupProcessor();
+//	private CorrelatingMessageHandler customizedHandler = new CorrelatingMessageHandler(
 //			store, correlationStrategy, completionStrategy, processor,
 //			outputChannel);
-	private BufferingMessageHandler defaultHandler = new BufferingMessageHandler(
+	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(
 			store, processor);
 
     @Before public void setupHandler(){

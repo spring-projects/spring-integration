@@ -22,7 +22,7 @@ import static org.hamcrest.CoreMatchers.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
-import org.junit.matchers.JUnitMatchers;
+
 import static org.junit.matchers.JUnitMatchers.*;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -33,7 +33,6 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-import java.util.Arrays;
 import static java.util.Arrays.*;
 
 /**
@@ -43,7 +42,7 @@ import static java.util.Arrays.*;
  */
 public class NewResequencerTests {
 
-    private BufferingMessageHandler resequencer;
+    private CorrelatingMessageHandler resequencer;
 
     private ThreadPoolTaskScheduler taskScheduler;
 
@@ -53,7 +52,7 @@ public class NewResequencerTests {
     public void configureResequencer() {
         this.resequencerStrategies = new DefaultResequencerStrategies();
         MessageStore store = new SimpleMessageStore(30);
-        this.resequencer = new BufferingMessageHandler(store, resequencerStrategies, resequencerStrategies, resequencerStrategies);
+        this.resequencer = new CorrelatingMessageHandler(store, resequencerStrategies, resequencerStrategies, resequencerStrategies);
         this.taskScheduler = TestUtils.createTaskScheduler(10);
         this.resequencer.setTaskScheduler(taskScheduler);
         this.taskScheduler.afterPropertiesSet();

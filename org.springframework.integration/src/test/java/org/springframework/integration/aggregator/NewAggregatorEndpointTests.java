@@ -16,36 +16,25 @@
 
 package org.springframework.integration.aggregator;
 
-import org.junit.After;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.Ignore;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.aggregator.BufferingMessageHandler;
-import org.springframework.integration.aggregator.MessagesProcessor;
+import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.MessageGroupProcessor;
 import org.springframework.integration.aggregator.BufferedMessagesCallback;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.config.StubTaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.Trigger;
-import org.springframework.test.annotation.Repeat;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ScheduledFuture;
 
 /**
  * @author Mark Fisher
@@ -54,11 +43,11 @@ import java.util.concurrent.ScheduledFuture;
  */
 public class NewAggregatorEndpointTests {
 
-    private BufferingMessageHandler aggregator;
+    private CorrelatingMessageHandler aggregator;
 
     @Before
     public void configureAggregator() {
-        this.aggregator = new BufferingMessageHandler(new SimpleMessageStore(50), new MultiplyingProcessor());
+        this.aggregator = new CorrelatingMessageHandler(new SimpleMessageStore(50), new MultiplyingProcessor());
     }
 
     @Test
@@ -236,7 +225,7 @@ public class NewAggregatorEndpointTests {
 
     @Test
     public void testNullReturningAggregator() throws InterruptedException {
-        this.aggregator = new BufferingMessageHandler(new SimpleMessageStore(50), new NullReturningMessageProcessor());
+        this.aggregator = new CorrelatingMessageHandler(new SimpleMessageStore(50), new NullReturningMessageProcessor());
         QueueChannel replyChannel = new QueueChannel();
         Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
         Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
@@ -262,7 +251,7 @@ public class NewAggregatorEndpointTests {
         return builder.build();
     }
 
-    private class MultiplyingProcessor implements MessagesProcessor {
+    private class MultiplyingProcessor implements MessageGroupProcessor {
         public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing,
                                    MessageChannel outputChannel, BufferedMessagesCallback processedCallback
         ) {
@@ -279,7 +268,7 @@ public class NewAggregatorEndpointTests {
         }
     }
 
-    private class NullReturningMessageProcessor implements MessagesProcessor {
+    private class NullReturningMessageProcessor implements MessageGroupProcessor {
         public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing, MessageChannel outputChannel, BufferedMessagesCallback processedCallback) {
             //noop
         }
