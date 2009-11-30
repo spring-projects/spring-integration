@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.transformer.MessageProcessingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
+import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,8 +39,7 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, Transformer annotation) {
-		MessageProcessor messageProcessor = new MethodInvokingMessageProcessor(bean, method);
-		MessageProcessingTransformer transformer = new MessageProcessingTransformer(messageProcessor);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
 		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {

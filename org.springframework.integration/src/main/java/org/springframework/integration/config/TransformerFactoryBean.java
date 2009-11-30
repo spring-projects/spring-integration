@@ -16,12 +16,10 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
-import org.springframework.integration.transformer.MessageProcessingTransformer;
+import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -41,21 +39,17 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 			transformer = (Transformer) targetObject;
 		}
 		else if (StringUtils.hasText(targetMethodName)) {
-			MessageProcessor messageProcessor = new MethodInvokingMessageProcessor(targetObject, targetMethodName);
-			transformer = new MessageProcessingTransformer(messageProcessor);
+			transformer = new MethodInvokingTransformer(targetObject, targetMethodName);
 		}
 		else {
-			MessageProcessor messageProcessor = new MethodInvokingMessageProcessor(
-					targetObject, org.springframework.integration.annotation.Transformer.class);
-			transformer = new MessageProcessingTransformer(messageProcessor);
+			transformer = new MethodInvokingTransformer(targetObject);
 		}
 		return new MessageTransformingHandler(transformer);
 	}
 
 	@Override
 	MessageHandler createExpressionEvaluatingHandler(String expression) {
-		MessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
-		Transformer transformer = new MessageProcessingTransformer(processor);
+		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
 		return new MessageTransformingHandler(transformer);
 	}
 

@@ -26,20 +26,22 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
+ * Base class for Message Transformers that delegate to a {@link MessageProcessor}.
+ * 
  * @author Mark Fisher
  */
-public class MessageProcessingTransformer implements Transformer {
+public abstract class AbstractMessageProcessingTransformer implements Transformer {
 
 	private final MessageProcessor messageProcessor;
 
 
-	public MessageProcessingTransformer(MessageProcessor messageProcessor) {
+	protected AbstractMessageProcessingTransformer(MessageProcessor messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
 
 
-	public Message<?> transform(Message<?> message) {
+	public final Message<?> transform(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
 		if (result == null) {
 			return null;
