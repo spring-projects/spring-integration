@@ -118,10 +118,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		registry.removeConvertible(Map.class, Object.class);
 		registry.removeConvertible(Object.class, String.class);
 		registry.addConverter(new Converter<Number, String>() {
-			public String convert(Number source) {return null;}
+			public String convert(Number source) {return source.toString();}
 		});
 		registry.addConverter(new Converter<Date, String>() {
-			public String convert(Date source) {return null;}
+			public String convert(Date source) {return source.toString();}
 		});
 	}
 
