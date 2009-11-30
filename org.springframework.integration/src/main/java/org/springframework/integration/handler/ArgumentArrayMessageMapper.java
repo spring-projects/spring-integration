@@ -39,6 +39,7 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
@@ -118,12 +119,13 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		registry.removeConvertible(Map.class, Object.class);
 		registry.removeConvertible(Object.class, String.class);
 		registry.addConverter(new Converter<Number, String>() {
-			public String convert(Number source) {return source.toString();}
+			public String convert(Number source) { return source.toString(); }
 		});
 		registry.addConverter(new Converter<Date, String>() {
-			public String convert(Date source) {return source.toString();}
+			public String convert(Date source) { return source.toString(); }
 		});
 	}
+
 
 	private final ExpressionParser expressionParser = new SpelExpressionParser();
 
@@ -133,21 +135,32 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 
 	public ArgumentArrayMessageMapper(Method method) {
-		Assert.notNull(method, "Can not create an instance of " + this.getClass().getName() +  " with 'null' value");
+		Assert.notNull(method, "method must not be null");
 		this.method = method;
-		parameterList = this.getMethodParameterList(method);
+		this.parameterList = this.getMethodParameterList(method);
 	}
+
 
 	public Object[] fromMessage(Message<?> message) {
-		Assert.notNull(message, "Can not map Message with 'null' value");
+		Assert.notNull(message, "cannot map a null Message");
 		this.validateMessageMapppings(message);
-		Map<String, Object> messageArgumentsMap = this.mapMessageToArguments(parameterList, message);
-		return messageArgumentsMap.values().toArray();
+		return this.mapMessageToArguments(message);
 	}
 
-	private Map<String, Object> mapMessageToArguments(List<MethodParameter> parameterList, Message<?> message) {
-		Map<String, Object> messageArgumentsMap = new java.util.LinkedHashMap<String, Object>();
-		for (MethodParameter methodParameter : parameterList) {
+	public Message<?> toMessage(Object[] arguments) {
+		Assert.notNull(arguments, "cannot map null arguments to Message");
+		if (arguments.length != this.parameterList.size()) {
+			String prefix = (arguments.length < this.parameterList.size()) ? "Not enough" : "Too many";
+			throw new IllegalArgumentException(prefix + " parameters provided for method [" + method +
+					"], expected " + this.parameterList.size() + " but received " + arguments.length + ".");
+		}
+		Map<String, Object> messageArgumentsMap = this.mapArgumentsToMessage(arguments, null);
+		return this.buildMessageFromArgumentMap(messageArgumentsMap);
+	}
+
+	private Object[] mapMessageToArguments(Message<?> message) {
+		final Map<String, Object> messageArgumentsMap = new LinkedHashMap<String, Object>();
+		for (MethodParameter methodParameter : this.parameterList) {
 			String parameterName = methodParameter.getParameterName();
 			String[] expressions = null;
 			Annotation mappingAnnotation = null;
@@ -170,6 +183,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				if (mappingAnnotation.annotationType().isAssignableFrom(Header.class)) {
 					value = this.mapHeaderThruAnnotation(mappingAnnotation, message, methodParameter, null)[1];
 				}
+				else if (mappingAnnotation.annotationType().isAssignableFrom(Headers.class)) {
+					expressions = new String[]{"headers"};
+					value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), false, expressions);
+				}
 				else if (mappingAnnotation.annotationType().isAssignableFrom(Payload.class)) {
 					String payloadExpression = ((Payload) mappingAnnotation).value();
 					if (payloadExpression.length() == 0) {
@@ -180,31 +197,13 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 					}
 					value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), true, expressions);
 				}
-				else if (mappingAnnotation.annotationType().isAssignableFrom(Headers.class)) {
-					expressions = new String[]{"headers"};
-					value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), false, expressions);
-				}
 				else {
-					throw new IllegalArgumentException("unknown or unsupported annotation: " + mappingAnnotation);
+					throw new IllegalArgumentException("unsupported mapping annotation: " + mappingAnnotation);
 				}
 			}
-			messageArgumentsMap.put(methodParameter.getParameterIndex()+":"+parameterName, value);		
+			messageArgumentsMap.put(methodParameter.getParameterIndex() + ":" + parameterName, value);		
 		}
-		return messageArgumentsMap;
-	}
-
-	public Message<?> toMessage(Object[] arguments) {
-		Assert.notNull(arguments, "cannot map null arguments to Message");
-		if (arguments.length > this.parameterList.size()) {
-			throw new IllegalArgumentException("Too many parameters provided for: " + method);
-		}
-		else if (arguments.length < this.parameterList.size()) {
-			throw new IllegalArgumentException("Not enough parameters provided for: " + method);
-		}
-		else {
-			Map<String, Object> messageArgumentsMap = this.mapArgumentsToMessage(arguments, null);
-			return this.buildMessageFromArgumentMap(messageArgumentsMap);
-		}
+		return messageArgumentsMap.values().toArray();
 	}
 
 	private Annotation findMappingAnnotation(Annotation[] annotations) {
@@ -216,7 +215,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 			Class<? extends Annotation> type = annotation.annotationType();
 			if (type.equals(Payload.class) || type.equals(Header.class) || type.equals(Headers.class)) {
 				if (match != null) {
-					throw new IllegalArgumentException("at most one parameter annotation can be provided for message mapping, " +
+					throw new IllegalArgumentException("At most one parameter annotation can be provided for message mapping, " +
 							"but found two: [" + match.annotationType().getName() + "] and [" + annotation.annotationType().getName() + "]");
 				}
 				match = annotation;
@@ -227,43 +226,44 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> mapArgumentsToMessage(Object[] arguments, Message<?> message) {
-		boolean payloadExist = false;
+		boolean mappedMessageOrPayload = false;
 		Map<String, Object> messageArgumentsMap = new LinkedHashMap<String, Object>();
 		for (int i = 0; i < this.parameterList.size(); i++) {
 			Object argumentValue = arguments[i];		
 			MethodParameter methodParam = (MethodParameter) this.parameterList.get(i); 
-			Annotation annotation = methodParam.getParameterAnnotations().length == 0 
-							? null : (methodParam.getParameterAnnotations()[0]);
-			
-			if (annotation == null && !payloadExist) {
+			Annotation annotation = this.findMappingAnnotation(methodParam.getParameterAnnotations());
+			if (annotation != null) {
+				if (annotation.annotationType().equals(Payload.class)) {
+					messageArgumentsMap.put("payload", argumentValue);
+					mappedMessageOrPayload = true;
+				}
+				else if (annotation.annotationType().equals(Header.class)) {
+					Object[] header = this.mapHeaderThruAnnotation(annotation, message, methodParam, argumentValue);
+					messageArgumentsMap.put((String) header[0], header[1]);
+				}
+				else if (annotation.annotationType().equals(Headers.class)) {
+					if (argumentValue != null) {
+						messageArgumentsMap.putAll(((Map) argumentValue));
+						for (Object key : ((Map) argumentValue).keySet()) {	
+							Assert.isInstanceOf(String.class, key, "Invalid header name [" + key +
+									"], name type must be String.");
+							Object value = ((Map) argumentValue).get(key);
+							messageArgumentsMap.put((String) key, value);
+						}
+					}
+				}
+			}
+			else if (!mappedMessageOrPayload) {
 				if (argumentValue instanceof Message<?>) {
 					messageArgumentsMap.put("message", argumentValue);
 				}
 				else {
 					messageArgumentsMap.put("payload", argumentValue);				
 				}	
-				payloadExist = true;
-			}
-			else if (annotation.annotationType().equals(Headers.class)) {
-				if (argumentValue != null) {
-					messageArgumentsMap.putAll(((Map)argumentValue));
-					for (Object key : ((Map)argumentValue).keySet()) {	
-						Assert.isInstanceOf(String.class, key, "Header names must be of type String: " + key);
-						Object value = ((Map)argumentValue).get(key);
-						messageArgumentsMap.put((String) key, value);
-					}
-				}
-			}
-			else if (annotation.annotationType().equals(Header.class)) {			
-				Object[] header = this.mapHeaderThruAnnotation(annotation, message, methodParam, argumentValue);
-				messageArgumentsMap.put((String) header[0], header[1]);
-			}
-			else if (annotation.annotationType().equals(Payload.class)) {
-				// need to clarify what to do here
-				throw new IllegalArgumentException("@Payload is not allowed when mapping from method to Message");
+				mappedMessageOrPayload = true;
 			}
 		}
-		Assert.isTrue(payloadExist, "Payload can not be determined from method: " + method);
+		Assert.isTrue(mappedMessageOrPayload, "Payload can not be determined from method: " + method);
 		return messageArgumentsMap;
 	}
 
@@ -297,8 +297,8 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	private Object[] mapHeaderThruAnnotation(Annotation header, Message<?> message, MethodParameter methodParameter, Object headerValue) {
 		String valueAttribute = (String) AnnotationUtils.getValue(header);
 		String headerName = StringUtils.hasText(valueAttribute) ? valueAttribute : methodParameter.getParameterName();
-		Assert.notNull(headerName, "Can not determine header name. Possible reasons: -debug is " +
-				"disabled or header name is not explicitly provided via @Header annotation");
+		Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is " +
+				"disabled or header name is not explicitly provided via @Header annotation.");
 		if (message != null) {
 			headerValue = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), false, "headers." + headerName);
 		}
@@ -322,17 +322,19 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		targetType = new TypeDescriptor(targetType).getObjectType(); //converts primitives to Object wrappers
 		for (String expression : expressions) {
 			StandardEvaluationContext context = new StandardEvaluationContext(message);
+			context.setTypeConverter(new StandardTypeConverter(conversionService));
 			try { 
 				Expression exp = expressionParser.parseExpression(expression); 
 				context.addPropertyAccessor(new MapAccessor());	
 				value = exp.getValue(context);
-				if (value != null && this.isConvertable(value, targetType)) {
-					value = expression.equals("headers") ? conversionService.convert(value, targetType) : value;// to accomodate Map->Properties conversion
+				if (value != null && this.canConvertToType(value, targetType)) {
+					// to accommodate Map->Properties conversion
+					value = expression.equals("headers") ? conversionService.convert(value, targetType) : value;
 					break;
 				}
 				else {
 					value = null;
-				} 
+				}
 			}
 			catch (Throwable e) {
 				if (rethrowException) {
@@ -356,27 +358,30 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean isConvertable(Object value, Class targetType){
+	private boolean canConvertToType(Object value, Class targetType) {
 		return conversionService.canConvert(value.getClass(), targetType) ||
-			   (value instanceof String && ((String)value).indexOf("=") > 1); // to address payload String "foo=bar" 
+			   (value instanceof String && ((String)value).indexOf("=") > 0); // to address payload String "foo=bar" 
 																			  // mapping to Properties/Map
 	}
 
 	@SuppressWarnings("unchecked")
-	public void validateMessageMapppings(Message<?> message) { // validate against maps with no annotations
-		int counterOfUnnamedMapAttributes = 0;
+	public void validateMessageMapppings(Message<?> message) {
+		// Validate against a Map with no annotations
 		if (message.getPayload() instanceof Map) {
+			boolean foundOneMatch = false;
 			for (MethodParameter parameter : this.parameterList) {
-				if ( parameter.getParameterAnnotations().length == 0 &&
-					 (parameter.getParameterType().isAssignableFrom(Properties.class) || parameter.getParameterType().isAssignableFrom(Map.class)) &&
-					!(parameter.getParameterName().equals("payload") || parameter.getParameterName().equals("headers"))	) {
-						counterOfUnnamedMapAttributes++;
+				String name = parameter.getParameterName();
+				Class<?> type = parameter.getParameterType();
+				if (parameter.getParameterAnnotations().length == 0 &&
+						!(name.equals("payload") || name.equals("headers")) &&
+						(type.isAssignableFrom(Properties.class) || type.isAssignableFrom(Map.class))) {
+					if (foundOneMatch) {
+						throw new IllegalArgumentException("Ambiguous parameters. " +
+								"Cannot determine parameter mappings between Method: [" + method + "] and Message: " + message +
+								". Try annotating individual parameters with @Payload, @Header, or @Headers");
+					}
+					foundOneMatch = true;
 				}
-			}
-			if (counterOfUnnamedMapAttributes > 1) {
-				throw new IllegalArgumentException("Ambiguous parameters. Can not determine parameter mappings between Method: " + method + 
-						" and Message: " + message + 
-						". Try annotating individual parameters with @Headers, @Header or @MessageMapping");
 			}
 		}
 	}
