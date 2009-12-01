@@ -16,10 +16,12 @@
 
 package org.springframework.integration.xml.transformer;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Document;
 
@@ -34,7 +36,7 @@ import org.springframework.xml.transform.StringSource;
 /**
  * An implementation of {@link PayloadTransformer} that delegates to an OXM
  * {@link Unmarshaller}. Expects the payload to be of type {@link Document},
- * {@link String}, {@link Source} or to have an instance of
+ * {@link String}, {@link File}, {@link Source} or to have an instance of
  * {@link SourceFactory} that can convert to a {@link Source}. If
  * alwaysUseSourceFactory is set to true, then the {@link SourceFactory}
  * will be used to create the {@link Source} regardless of payload type.
@@ -80,6 +82,9 @@ public class XmlPayloadUnmarshallingTransformer extends AbstractPayloadTransform
 		}
 		else if (payload instanceof String) {
 			source = new StringSource((String) payload);
+		}
+		else if (payload instanceof File) {
+			source = new StreamSource((File) payload);
 		}
 		else if (payload instanceof Document) {
 			source = new DOMSource((Document) payload);
