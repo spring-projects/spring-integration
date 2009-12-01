@@ -230,15 +230,22 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		Map<String, Object> messageArgumentsMap = new LinkedHashMap<String, Object>();
 		for (int i = 0; i < this.parameterList.size(); i++) {
 			Object argumentValue = arguments[i];		
-			MethodParameter methodParam = (MethodParameter) this.parameterList.get(i); 
-			Annotation annotation = this.findMappingAnnotation(methodParam.getParameterAnnotations());
+			MethodParameter methodParameter = (MethodParameter) this.parameterList.get(i);
+			Annotation annotation = this.findMappingAnnotation(methodParameter.getParameterAnnotations());
 			if (annotation != null) {
 				if (annotation.annotationType().equals(Payload.class)) {
+					if (((Payload) annotation).value().length() != 0) {
+						throw new IllegalStateException(
+								"The Payload annotation does not support an expression when mapping to a Message.");
+					}
 					messageArgumentsMap.put("payload", argumentValue);
+					if (mappedMessageOrPayload) {
+						this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
+					}
 					mappedMessageOrPayload = true;
 				}
 				else if (annotation.annotationType().equals(Header.class)) {
-					Object[] header = this.mapHeaderThruAnnotation(annotation, message, methodParam, argumentValue);
+					Object[] header = this.mapHeaderThruAnnotation(annotation, message, methodParameter, argumentValue);
 					messageArgumentsMap.put((String) header[0], header[1]);
 				}
 				else if (annotation.annotationType().equals(Headers.class)) {
@@ -262,9 +269,18 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				}	
 				mappedMessageOrPayload = true;
 			}
+			else {
+				this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
+			}
 		}
-		Assert.isTrue(mappedMessageOrPayload, "Payload can not be determined from method: " + method);
+		Assert.isTrue(mappedMessageOrPayload, "unable to determine a Message or payload parameter on method [" + method + "]");
 		return messageArgumentsMap;
+	}
+
+	private void throwExceptionForMultipleMessageOrPayloadParameters(MethodParameter methodParameter) {
+		throw new IllegalStateException(
+				"At most one parameter may be mapped to the payload or Message, " +
+				"found more than one on method [" + methodParameter.getMethod() + "]");
 	}
 
 	private Message<?> buildMessageFromArgumentMap(Map<String, Object> messageArgumentsMap) {
