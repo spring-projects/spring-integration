@@ -25,8 +25,7 @@ import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -189,12 +188,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 				return;
 			}
 			AbstractEndpoint correlator = null;
-			MessageHandler handler = new AbstractReplyProducingMessageHandler() {
-				@Override
-				protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-					replyHolder.set(message);
-				}
-			};
+			MessageHandler handler = new BridgeHandler();
 			if (this.replyChannel instanceof SubscribableChannel) {
 				correlator = new EventDrivenConsumer(
 						(SubscribableChannel) this.replyChannel, handler);
