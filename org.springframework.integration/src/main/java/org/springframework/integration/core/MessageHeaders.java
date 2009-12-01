@@ -42,7 +42,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
-	public static final String PREFIX = "springintegration_";
+	public static final String PREFIX = "$";
 
 	public static final String ID = PREFIX + "id";
 
