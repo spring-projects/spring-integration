@@ -92,6 +92,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
+	protected boolean shouldSplitReplies() {
+		return false;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -111,7 +115,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
 		MessageHeaders requestHeaders = message.getHeaders();
-		if (result instanceof Iterable) {
+		if (this.shouldSplitReplies() && result instanceof Iterable) {
 			this.sendReplyMessages((Iterable) result, requestHeaders, replyChannel);
 		}
 		else {

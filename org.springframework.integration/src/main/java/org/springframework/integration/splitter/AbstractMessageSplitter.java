@@ -34,6 +34,11 @@ import org.springframework.integration.message.MessageBuilder;
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
 	@Override
+	protected boolean shouldSplitReplies() {
+		return true;
+	}
+
+	@Override
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		if (result == null) {
