@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
+
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelResolver;
@@ -27,15 +40,10 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * MessageHandler that holds a buffer of messages in a MessageStore. This class takes care of 
  * correlated groups of messages that can be completed in batches. It is useful for aggregating,
- * resequencing, or custom buffering concerns. 
+ * resequencing, or custom implementations requiring correlation. 
  *
  * @author Iwein Fuld
  */
@@ -111,7 +119,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
         try {
             if (tracker.aquireLockFor(correlationKey)) {
-                List<Message<?>> group = store.getAll(correlationKey);
+                List<Message<?>> group = store.list(correlationKey);
                 if (noSupersedingMessage(message, group)) {
                     store(message, correlationKey);
                     group.add(message);
@@ -213,7 +221,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     }
 
     protected final void forceComplete(Object key) {
-        List<Message<?>> all = store.getAll(key);
+        List<Message<?>> all = store.list(key);
         if (all.size() > 0) {
             //last chance for normal completion
             MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel, this.channelResolver);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -31,6 +30,7 @@ import org.springframework.util.Assert;
  *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @since 2.0
  */
 public class SimpleMessageStore implements MessageStore {
 
@@ -43,7 +43,7 @@ public class SimpleMessageStore implements MessageStore {
 
 
 	@SuppressWarnings("unchecked")
-	public <T> Message<T> put( Message<T> message) {
+	public <T> Message<T> put(Message<T> message) {
 		return (Message<T>) this.map.put(message.getHeaders().getId(), message);
 	}
 
@@ -64,7 +64,7 @@ public class SimpleMessageStore implements MessageStore {
 	}
 
 
-	public List<Message<?>> getAll(Object correlationKey) {
+	public List<Message<?>> list(Object correlationKey) {
         Assert.notNull(correlationKey, "'correlationKey' must not be null");
 		List<Message<?>> matched = new ArrayList<Message<?>>();
 		Collection<Message<?>> values = map.values();
@@ -74,13 +74,6 @@ public class SimpleMessageStore implements MessageStore {
 			}
 		}
 		return matched;
-	}
-
-
-	public <T> Message<T> post(T payload) {
-		Message<T> message = MessageBuilder.withPayload(payload).build();
-		this.put(message);
-		return message;
 	}
 
 }
