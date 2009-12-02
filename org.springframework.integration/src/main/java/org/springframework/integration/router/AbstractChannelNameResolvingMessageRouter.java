@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public abstract class AbstractChannelNameResolvingMessageRouter extends
-		AbstractMessageRouter implements BeanFactoryAware, InitializingBean {
+public abstract class AbstractChannelNameResolvingMessageRouter extends AbstractMessageRouter
+		implements BeanFactoryAware, InitializingBean {
 
 	private volatile ChannelResolver channelResolver;
 
@@ -51,6 +51,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends
 	private volatile BeanFactory beanFactory;
 
 	private volatile boolean ignoreChannelNameResolutionFailures;
+
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
@@ -68,8 +69,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends
 		this.beanFactory = beanFactory;
 	}
 
-	public void setIgnoreChannelNameResolutionFailures(
-			boolean ignoreChannelNameResolutionFailures) {
+	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
 
@@ -77,25 +77,24 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends
 		if (this.channelResolver == null) {
 			Assert.notNull(beanFactory,
 					"either a ChannelResolver or BeanFactory is required");
-			this.channelResolver = new BeanFactoryChannelResolver(
-					this.beanFactory);
+			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
 		}
 	}
 
-	protected MessageChannel resolveChannelForName(String channelName,
-			Message<?> message) {
+	protected MessageChannel resolveChannelForName(String channelName, Message<?> message) {
 		Assert.state(this.channelResolver != null,
 				"unable to resolve channel names, no ChannelResolver available");
-		
+
 		MessageChannel channel = null;
 		try {
 			channel = this.channelResolver.resolveChannelName(channelName);
-		} catch (ChannelResolutionException e) {
+		}
+		catch (ChannelResolutionException e) {
 			if (!ignoreChannelNameResolutionFailures)
 				throw new MessagingException(message,
 						"failed to resolve channel name '" + channelName + "'", e);
 		}
-		if(channel == null && !ignoreChannelNameResolutionFailures){
+		if (channel == null && !ignoreChannelNameResolutionFailures) {
 			throw new MessagingException(message,
 					"failed to resolve channel name '" + channelName + "'");
 		}
@@ -103,54 +102,54 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends
 	}
 
 	@Override
-	protected Collection<MessageChannel> determineTargetChannels(
-			Message<?> message) {
+	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		this.afterPropertiesSet();
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
 		Collection<Object> channelsReturned = this.getChannelIndicatorList(message);
 		addToCollection(channels, channelsReturned, message);
-		if (channels == null) {
-			return null;
-		}
-	
 		return channels;
 	}
-	
-	
-	protected void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message){
-		if(channelIndicators == null){
+
+
+	protected void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
+		if (channelIndicators == null) {
 			return;
 		}
 		for (Object channelIndicator : channelIndicators) {
 			if (channelIndicator == null) {
 				continue;
-			} else if (channelIndicator instanceof String) {
-				addChannelFromString(channels, (String)channelIndicator, message);
-			} else if (channelIndicator instanceof MessageChannel){
-				channels.add((MessageChannel)channelIndicator);
-			} else if (channelIndicator instanceof Collection){
-				addToCollection(channels, (Collection<?>)channelIndicator, message);
-			} else if (channelIndicator instanceof MessageChannel[]) {
+			}
+			else if (channelIndicator instanceof MessageChannel) {
+				channels.add((MessageChannel) channelIndicator);
+			}
+			else if (channelIndicator instanceof MessageChannel[]) {
 				channels.addAll(Arrays.asList((MessageChannel[]) channelIndicator));
-			} else if (channelIndicator instanceof String[]) {
+			}
+			else if (channelIndicator instanceof String) {
+				addChannelFromString(channels, (String) channelIndicator, message);
+			}
+			else if (channelIndicator instanceof String[]) {
 				for (String indicatorName : (String[]) channelIndicator) {
 					addChannelFromString(channels, indicatorName, message);
 				}
-			}else {
+			}
+			else if (channelIndicator instanceof Collection) {
+				addToCollection(channels, (Collection<?>) channelIndicator, message);
+			}
+			else {
 				throw new MessagingException("unsupported return type for router [" + channelIndicator.getClass() + "]");
 			}
 		}
-	} 
-	
-	
-	protected void addChannelFromString(Collection<MessageChannel> channels, String channelName, Message<?> message){
+	}
+
+	protected void addChannelFromString(Collection<MessageChannel> channels, String channelName, Message<?> message) {
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;
 		}
 		if (this.suffix != null) {
 			channelName = channelName + suffix;
 		}
-		MessageChannel channel = resolveChannelForName(channelName,message);
+		MessageChannel channel = resolveChannelForName(channelName, message);
 		if (channel != null) {
 			channels.add(channel);
 		}
