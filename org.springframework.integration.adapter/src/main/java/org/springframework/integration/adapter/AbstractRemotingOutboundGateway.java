@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.io.Serializable;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
@@ -52,7 +51,7 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 
 
 	@Override
-	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	public final Object handleRequestMessage(Message<?> message) {
 		if (!(message.getPayload() instanceof Serializable)) {
 			throw new MessageHandlingException(message,
 					this.getClass().getName() + " expects a Serializable payload type " +
@@ -60,10 +59,7 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 		}
 		Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
-			Message<?> reply = this.handlerProxy.handle(requestMessage);
-			if (reply != null) {
-				replyHolder.set(reply);
-			}
+			return this.handlerProxy.handle(requestMessage);
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "unable to handle message remotely", e);

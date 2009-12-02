@@ -16,8 +16,16 @@
 
 package org.springframework.integration.bus;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -28,14 +36,14 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
-import org.springframework.integration.message.*;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.scheduling.support.PeriodicTrigger;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Mark Fisher
@@ -53,8 +61,8 @@ public class ApplicationContextMessageBusTests {
 				.setReplyChannelName("targetChannel").build();
 		sourceChannel.send(message);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-				replyHolder.set(message);
+			public Object handleRequestMessage(Message<?> message) {
+				return message;
 			}
 		};
 		handler.setBeanFactory(context);
@@ -99,14 +107,14 @@ public class ApplicationContextMessageBusTests {
 		QueueChannel outputChannel2 = new QueueChannel();
 		AbstractReplyProducingMessageHandler handler1 = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-				replyHolder.set(message);
+			public Object handleRequestMessage(Message<?> message) {
+				return message;
 			}
 		};
 		AbstractReplyProducingMessageHandler handler2 = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-				replyHolder.set(message);
+			public Object handleRequestMessage(Message<?> message) {
+				return message;
 			}
 		};
 		context.registerChannel("input", inputChannel);
@@ -135,16 +143,16 @@ public class ApplicationContextMessageBusTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		AbstractReplyProducingMessageHandler handler1 = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-				replyHolder.set(message);
+			public Object handleRequestMessage(Message<?> message) {
 				latch.countDown();
+				return message;
 			}
 		};
 		AbstractReplyProducingMessageHandler handler2 = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-				replyHolder.set(message);
+			public Object handleRequestMessage(Message<?> message) {
 				latch.countDown();
+				return message;
 			}
 		};
 		context.registerChannel("input", inputChannel);
@@ -198,8 +206,9 @@ public class ApplicationContextMessageBusTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+			public Object handleRequestMessage(Message<?> message) {
 				latch.countDown();
+				return null;
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(errorChannel, handler);

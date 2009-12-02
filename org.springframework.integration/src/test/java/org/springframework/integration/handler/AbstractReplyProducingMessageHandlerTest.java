@@ -35,8 +35,8 @@ public class AbstractReplyProducingMessageHandlerTest {
 
 	private AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 		@Override
-		protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
-			replyMessageHolder.add(requestMessage);
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			return requestMessage;
 		}
 	};
 	private Message<?> message = MessageBuilder.withPayload("test").build();

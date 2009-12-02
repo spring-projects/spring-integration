@@ -36,11 +36,11 @@ import org.springframework.util.Assert;
 public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
 	@Override
-	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
+	protected Object handleRequestMessage(Message<?> requestMessage) {
 		if (requestMessage.getHeaders().getReplyChannel() == null) {
 			this.verifyOutputChannel();
 		}
-		replyMessageHolder.set(requestMessage);
+		return requestMessage;
 	}
 
 	private void verifyOutputChannel() {

@@ -31,7 +31,6 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -149,8 +148,8 @@ public class ChainParserTests  {
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override
-		protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
-			replyMessageHolder.add(successMessage);
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			return successMessage;
 		}
 		
 	}

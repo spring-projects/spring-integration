@@ -29,7 +29,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -150,7 +149,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	}
 
 	@Override
-	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
+	protected Object handleRequestMessage(Message<?> requestMessage) {
 		Assert.notNull(requestMessage, "message must not be null");
 		Object payload = requestMessage.getPayload();
 		Assert.notNull(payload, "message payload must not be null");
@@ -180,14 +179,11 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		}
 		if (resultFile != null) {
 			if (originalFileFromHeader == null && payload instanceof File) {
-				replyMessageHolder.set(MessageBuilder.withPayload(resultFile)
-						.setHeader(FileHeaders.ORIGINAL_FILE, (File) payload)
-						.build());
-			}
-			else {
-				replyMessageHolder.set(resultFile);
+				return MessageBuilder.withPayload(resultFile)
+						.setHeader(FileHeaders.ORIGINAL_FILE, (File) payload);
 			}
 		}
+		return resultFile;
 	}
 
 	/**

@@ -18,7 +18,6 @@ package org.springframework.integration.transformer;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.util.Assert;
 
 /**
@@ -44,12 +43,9 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 
 	@Override
-	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected Object handleRequestMessage(Message<?> message) {
 		try {
-			Message<?> result = transformer.transform(message);
-			if (result != null) {
-				replyHolder.set(result);
-			}
+			return transformer.transform(message);
 		}
 		catch (Exception e) {
 			if (e instanceof MessageTransformationException) {

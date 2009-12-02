@@ -19,7 +19,6 @@ package org.springframework.integration.filter;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.selector.MessageSelector;
@@ -83,22 +82,21 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected Object handleRequestMessage(Message<?> message) {
 		if (this.selector.accept(message)) {
-			replyHolder.set(message);
+			return message;
 		}
-		else {
-			if (this.discardChannel != null) {
-				boolean discarded = this.sendReplyMessage(message, this.discardChannel);
-				if (!discarded) {
-					throw new MessageDeliveryException(message,
-							"failed to send rejected Message to the discard channel");
-				}
-			}
-			if (this.throwExceptionOnRejection) {
-				throw new MessageRejectedException(message);
+		if (this.discardChannel != null) {
+			boolean discarded = this.sendReplyMessage(message, this.discardChannel);
+			if (!discarded) {
+				throw new MessageDeliveryException(message,
+						"failed to send rejected Message to the discard channel");
 			}
 		}
+		if (this.throwExceptionOnRejection) {
+			throw new MessageRejectedException(message);
+		}
+		return null;
 	}
 
 }

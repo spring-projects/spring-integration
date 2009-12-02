@@ -25,7 +25,6 @@ import java.net.URL;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -85,12 +84,12 @@ public class HttpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {
+	protected Object handleRequestMessage(Message<?> requestMessage) {
 		try {
 			HttpRequest request = this.requestMapper.fromMessage(requestMessage);
 			HttpResponse response = this.requestExecutor.executeRequest(request);
 			Object reply = this.createReplyFromResponse(response);
-			replyMessageHolder.set(reply);
+			return reply;
 		}
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "failed to execute HTTP request", e);

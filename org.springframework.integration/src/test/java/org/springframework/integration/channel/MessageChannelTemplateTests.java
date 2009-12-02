@@ -34,7 +34,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.test.util.TestUtils;
@@ -57,8 +56,8 @@ public class MessageChannelTemplateTests {
 		context.registerChannel("requestChannel", requestChannel);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-				replyHolder.set(message.getPayload().toString().toUpperCase());
+			public Object handleRequestMessage(Message<?> message) {
+				return message.getPayload().toString().toUpperCase();
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(requestChannel, handler);

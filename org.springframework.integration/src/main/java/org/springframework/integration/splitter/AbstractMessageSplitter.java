@@ -16,13 +16,15 @@
 
 package org.springframework.integration.splitter;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * Base class for Message-splitting handlers.
@@ -32,19 +34,20 @@ import org.springframework.integration.handler.ReplyMessageHolder;
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
 	@Override
-	protected final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		if (result == null) {
-			return;
+			return null;
 		}
 		Object correlationId = (message.getHeaders().getCorrelationId() != null) ? 
-                message.getHeaders().getCorrelationId(): message.getHeaders().getId();
+				message.getHeaders().getCorrelationId() : message.getHeaders().getId();
+		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				this.addReply(replyHolder, item, correlationId, ++sequenceNumber, sequenceSize);
+				messageBuilders.add(this.createBuilder(item, correlationId, ++sequenceNumber, sequenceSize));
 			}
 		}
 		else if (result.getClass().isArray()) {
@@ -52,19 +55,24 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.length;
 			for (Object item : items) {
-				this.addReply(replyHolder, item, correlationId, ++sequenceNumber, sequenceSize);
+				messageBuilders.add(this.createBuilder(item, correlationId, ++sequenceNumber, sequenceSize));
 			}
 		}
 		else {
-			this.addReply(replyHolder, result, correlationId, 1, 1);
+			messageBuilders.add(this.createBuilder(result, correlationId, 1, 1));
 		}
+		return messageBuilders;
 	}
 
-	private void addReply(ReplyMessageHolder replyHolder, Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
-		replyHolder.add(item).setCorrelationId(correlationId)
+	@SuppressWarnings("unchecked")
+	private MessageBuilder createBuilder(Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
+		MessageBuilder builder = (item instanceof Message) ?
+				MessageBuilder.fromMessage((Message) item) : MessageBuilder.withPayload(item);
+		builder.setCorrelationId(correlationId)
 				.setSequenceNumber(sequenceNumber)
 				.setSequenceSize(sequenceSize)
 				.setHeader(MessageHeaders.ID, UUID.randomUUID());
+		return builder;
 	}
 
 	/**

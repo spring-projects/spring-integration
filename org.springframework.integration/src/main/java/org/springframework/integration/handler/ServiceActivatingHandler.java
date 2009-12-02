@@ -44,12 +44,9 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 
 	@Override
-	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected Object handleRequestMessage(Message<?> message) {
 		try {
-			Object result = this.processor.processMessage(message);
-			if (result != null) {
-				replyHolder.set(result);
-			}
+			return this.processor.processMessage(message);
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {

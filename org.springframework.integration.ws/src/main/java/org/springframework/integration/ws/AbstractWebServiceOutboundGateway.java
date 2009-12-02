@@ -21,7 +21,6 @@ import java.io.IOException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.ws.WebServiceMessage;
@@ -95,15 +94,16 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	@Override
-	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	public final Object handleRequestMessage(Message<?> message) {
 		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
 		if (responsePayload != null) {
 			boolean shouldIgnore = (this.ignoreEmptyResponses
 					&& responsePayload instanceof String && !StringUtils.hasText((String) responsePayload));
 			if (!shouldIgnore) {
-				replyHolder.set(responsePayload);
+				return responsePayload;
 			}
 		}
+		return null;
 	}
 
 	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback);

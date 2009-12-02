@@ -32,7 +32,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.test.util.TestUtils;
@@ -89,7 +88,7 @@ public class DirectChannelSubscriptionTests {
 	public void exceptionThrownFromRegisteredEndpoint() {
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 			@Override
-			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+			public Object handleRequestMessage(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
 			}
 		};
@@ -124,7 +123,7 @@ public class DirectChannelSubscriptionTests {
 	}
 
 
-	private static class TestBean {
+	static class TestBean {
 
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload() + "!");

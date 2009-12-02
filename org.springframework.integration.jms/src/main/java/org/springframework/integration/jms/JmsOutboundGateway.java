@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageTimeoutException;
@@ -285,7 +284,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	@Override
-	protected void handleRequestMessage(final Message<?> message, final ReplyMessageHolder replyMessageHolder) {
+	protected Object handleRequestMessage(final Message<?> message) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
@@ -296,8 +295,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 				throw new MessageTimeoutException(message,
 						"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
 			}
-			Object result = this.messageConverter.fromMessage(jmsReply);
-			replyMessageHolder.set(result);
+			return this.messageConverter.fromMessage(jmsReply);
 		}
 		catch (JMSException e) {
 			throw new MessageHandlingException(requestMessage, e);

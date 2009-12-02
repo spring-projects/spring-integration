@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,10 +96,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * {@inheritDoc}
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	protected final void handleMessageInternal(Message<?> message) {
-		ReplyMessageHolder replyMessageHolder = new ReplyMessageHolder();
-		this.handleRequestMessage(message, replyMessageHolder);
-		if (replyMessageHolder.isEmpty()) {
+		Object result = this.handleRequestMessage(message);
+		if (result == null) {
 			if (this.requiresReply) {
 				throw new MessageHandlingException(message, "handler '" + this
 						+ "' requires a reply, but no reply was received");
@@ -111,9 +111,11 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
 		MessageHeaders requestHeaders = message.getHeaders();
-		for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
-			builder.copyHeadersIfAbsent(requestHeaders);
-			Message<?> replyMessage = builder.build();
+		if (result instanceof Iterable) {
+			this.sendReplyMessages((Iterable) result, requestHeaders, replyChannel);
+		}
+		else {
+			Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
 			if (!this.sendReplyMessage(replyMessage, replyChannel)) {
 				throw new MessageDeliveryException(replyMessage,
 						"failed to send reply Message to channel '" + replyChannel + "'");
@@ -121,7 +123,24 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
-	protected abstract void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
+	private void sendReplyMessages(Iterable<?> replies, MessageHeaders requestHeaders, MessageChannel replyChannel) {
+		for (Object reply : replies) {
+			Message<?> replyMessage = this.createReplyMessage(reply, requestHeaders);
+			if (!this.sendReplyMessage(replyMessage, replyChannel)) {
+				throw new MessageDeliveryException(replyMessage,
+						"failed to send reply Message to channel '" + replyChannel + "'");
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
+		MessageBuilder<?> builder = (reply instanceof MessageBuilder) ? (MessageBuilder) reply
+				: (reply instanceof Message) ? MessageBuilder.fromMessage((Message) reply)
+						: MessageBuilder.withPayload(reply);
+		builder.copyHeadersIfAbsent(requestHeaders);
+		return builder.build();
+	}
 
 	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
 		if (logger.isDebugEnabled()) {
@@ -129,5 +148,13 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 		return this.channelTemplate.send(replyMessage, replyChannel);
 	}
+
+	/**
+	 * Subclasses must implement this method to handle the request Message. The return
+	 * value may be a Message, a MessageBuilder, or any plain Object. The base class
+	 * will handle the final creation of a reply Message from any of those starting
+	 * points. If the return value is null, the Message flow will end here.
+	 */
+	protected abstract Object handleRequestMessage(Message<?> requestMessage);
 
 }
