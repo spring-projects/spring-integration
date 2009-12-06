@@ -71,12 +71,17 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
+
 	private Map<String, GatewayMethodDefinition> methodToChannelMap;
 
+
+	/**
+	 * Set the interface class that the generated proxy should implement.
+	 * If none is provided explicitly, the default is MessageHandler.
+	 */
 	public void setServiceInterface(Class<?> serviceInterface) {
-		if (serviceInterface != null && !serviceInterface.isInterface()) {
-			throw new IllegalArgumentException("'serviceInterface' must be an interface");
-		}
+		Assert.notNull(serviceInterface, "'serviceInterface' must not be null");
+		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
 		this.serviceInterface = serviceInterface;
 	}
 
@@ -137,9 +142,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			if (this.initialized) {
 				return;
 			}
-			if (this.serviceInterface == null) {
-				throw new IllegalArgumentException("'serviceInterface' must not be null");
-			}
+			Assert.notNull(this.serviceInterface, "'serviceInterface' must not be null");
 			Method[] methods = this.serviceInterface.getDeclaredMethods();
 			for (Method method : methods) {
 				MessagingGateway gateway = this.createGatewayForMethod(method);
