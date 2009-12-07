@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,21 @@ import org.springframework.integration.message.MessageBuilder;
 
 /**
  * A base class for {@link Transformer} implementations that modify
- * the payload of a {@link Message}.
+ * the payload of a {@link Message}. If the return value is itself
+ * a Message, it will be used as the result. Otherwise, the return
+ * value will be used as the payload of the result Message.
  * 
  * @author Mark Fisher
  */
 public abstract class AbstractPayloadTransformer<T, U> implements Transformer {
 
+	@SuppressWarnings("unchecked")
 	public final Message<?> transform(Message<?> message) {
 		try {
-			@SuppressWarnings("unchecked")
 	        U result = this.transformPayload((T) message.getPayload());
-	        return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
+			return (result instanceof Message)
+					? MessageBuilder.fromMessage((Message<?>) result).build()
+					: MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
         }
 		catch (MessageTransformationException e) {
 			throw e;
