@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +27,9 @@ import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Test;
+
+import org.springframework.integration.core.Message;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;
@@ -39,39 +43,59 @@ public class XmlPayloadMarshallingTransformerTests {
 	@Test
 	public void testStringToStringResult() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(
-				marshaller);
+		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
 		transformer.setResultFactory(new StringResultFactory());
-		Object result = transformer.transformPayload("world");
-		assertEquals(StringResult.class, result.getClass());
-		assertEquals("hello world", result.toString());
+		Message<?> resultMessage = transformer.transform(new StringMessage("world"));
+		Object resultPayload = resultMessage.getPayload();
+		assertEquals(StringResult.class, resultPayload.getClass());
+		assertEquals("hello world", resultPayload.toString());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
 
 	@Test
 	public void testDefaultResultFactory() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(
-				marshaller);
-		Object result = transformer.transformPayload("world");
-		assertEquals(DOMResult.class, result.getClass());
+		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		Message<?> resultMessage = transformer.transform(new StringMessage("world"));
+		Object resultPayload = resultMessage.getPayload();
+		assertEquals(DOMResult.class, resultPayload.getClass());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
 
+	@Test
+	public void testMarshallingEntireMessage() throws Exception {
+		TestMarshaller marshaller = new TestMarshaller();
+		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		transformer.setExtractPayload(false);
+		Message<?> message = new StringMessage("test");
+		transformer.transform(message);
+		assertEquals(0, marshaller.payloads.size());
+		assertEquals(1, marshaller.messages.size());
+		assertSame(message, marshaller.messages.get(0));
+	}
+
+
 	private static class TestMarshaller implements Marshaller {
 
-		private List<Object> payloads = new ArrayList<Object>();
+		private final List<Message<?>> messages = new ArrayList<Message<?>>();
+
+		private final List<Object> payloads = new ArrayList<Object>();
 
 		@SuppressWarnings("unchecked")
 		public boolean supports(Class clazz) {
 			return true;
 		}
 
-		public void marshal(Object originalPayload, Result result)
-				throws XmlMappingException, IOException {
-			payloads.add(originalPayload);
+		@SuppressWarnings("unchecked")
+		public void marshal(Object source, Result result) throws XmlMappingException, IOException {
+			if (source instanceof Message) {
+				this.messages.add((Message<?>) source);
+			}
+			else {
+				this.payloads.add(source);
+			}
 			if (result instanceof StringResult) {
-				((StringResult) result).getWriter().write("hello world");
+				((StringResult) result).getWriter().write("hello " + source);
 			}
 		}
 

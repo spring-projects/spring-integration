@@ -17,32 +17,20 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
 
 /**
- * A base class for {@link Transformer} implementations that modify
- * the payload of a {@link Message}. If the return value is itself
- * a Message, it will be used as the result. Otherwise, the return
- * value will be used as the payload of the result Message.
+ * A base class for {@link Transformer} implementations that modify the payload
+ * of a {@link Message}. If the return value is itself a Message, it will be
+ * used as the result. Otherwise, the return value will be used as the payload
+ * of the result Message.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractPayloadTransformer<T, U> implements Transformer {
+public abstract class AbstractPayloadTransformer<T, U> extends AbstractTransformer {
 
 	@SuppressWarnings("unchecked")
-	public final Message<?> transform(Message<?> message) {
-		try {
-	        U result = this.transformPayload((T) message.getPayload());
-			return (result instanceof Message)
-					? MessageBuilder.fromMessage((Message<?>) result).build()
-					: MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
-        }
-		catch (MessageTransformationException e) {
-			throw e;
-		}
-		catch (Exception e) {
-        	throw new MessageTransformationException(message, "failed to transform message payload", e);
-        }
+	public final U doTransform(Message<?> message) throws Exception {
+		return this.transformPayload((T) message.getPayload());
 	}
 
 	protected abstract U transformPayload(T payload) throws Exception;

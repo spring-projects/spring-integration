@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,21 @@ import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of {@link PayloadTransformer} that delegates to an OXM
- * {@link Marshaller}.
+ * An implementation of {@link AbstractTransformer} that delegates to an OXM {@link Marshaller}.
  * 
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class XmlPayloadMarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
+public class XmlPayloadMarshallingTransformer extends AbstractTransformer {
 
 	private final Marshaller marshaller;
 
@@ -43,12 +43,15 @@ public class XmlPayloadMarshallingTransformer extends AbstractPayloadTransformer
 
 	private final ResultTransformer resultTransformer;
 
+	private volatile boolean extractPayload = true;
+
+
 	public XmlPayloadMarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer)
 			throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
 		this.resultTransformer = resultTransformer;
-		resultFactory = new DomResultFactory();
+		this.resultFactory = new DomResultFactory();
 	}
 
 	public XmlPayloadMarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
@@ -61,25 +64,36 @@ public class XmlPayloadMarshallingTransformer extends AbstractPayloadTransformer
 		this.resultFactory = resultFactory;
 	}
 
+	/**
+	 * Specify whether the source Message's payload should be extracted prior
+	 * to marshalling. This value is set to "true" by default. To send the
+	 * Message itself as input to the Marshaller instead, set this to "false".
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
 	@Override
-	public Object transformPayload(Object payload) {
+	public Object doTransform(Message<?> message) {
+		Object source = (this.extractPayload) ? message.getPayload() : message;
 		Object transformedPayload = null;
-		Result result = this.resultFactory.createResult(payload);
+		Result result = this.resultFactory.createResult(source);
 		if (result == null) {
 			throw new MessagingException(
 					"Unable to marshal payload, ResultFactory returned null.");
 		}
 		try {
-			this.marshaller.marshal(payload, result);
+			this.marshaller.marshal(source, result);
 			transformedPayload = result;
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new MessagingException("Failed to marshal payload", e);
 		}
 		if (transformedPayload == null) {
 			throw new MessagingException("Failed to transform payload");
 		}
-		if (resultTransformer != null) {
-			transformedPayload = resultTransformer.transformResult(result);
+		if (this.resultTransformer != null) {
+			transformedPayload = this.resultTransformer.transformResult(result);
 		}
 		return transformedPayload;
 	}
