@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ import org.springframework.xml.transform.StringSource;
  * {@link SourceFactory} that can convert to a {@link Source}. If
  * alwaysUseSourceFactory is set to true, then the {@link SourceFactory}
  * will be used to create the {@link Source} regardless of payload type.
+ * <p>
+ * The Unmarshaller may return a Message, but if the return value is not
+ * already a Message instance, a new Message will be created with that
+ * return value as its payload.
  * 
  * @author Jonas Partner
  */
