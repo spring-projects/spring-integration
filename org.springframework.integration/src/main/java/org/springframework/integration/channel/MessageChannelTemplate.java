@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.selector.MessageSelector;
@@ -171,8 +172,8 @@ public class MessageChannelTemplate implements InitializingBean {
 	public boolean send(final Message<?> message, final MessageChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
-			return (Boolean) txTemplate.execute(new TransactionCallback() {
-				public Object doInTransaction(TransactionStatus status) {
+			return txTemplate.execute(new TransactionCallback<Boolean>() {
+				public Boolean doInTransaction(TransactionStatus status) {
 					return doSend(message, channel);
 				}
 			});
@@ -190,8 +191,8 @@ public class MessageChannelTemplate implements InitializingBean {
 	public Message<?> receive(final PollableChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
-			return (Message<?>) txTemplate.execute(new TransactionCallback() {
-				public Object doInTransaction(TransactionStatus status) {
+			return txTemplate.execute(new TransactionCallback<Message<?>>() {
+				public Message<?> doInTransaction(TransactionStatus status) {
 					return doReceive(channel);
 				}
 			});
@@ -206,8 +207,8 @@ public class MessageChannelTemplate implements InitializingBean {
 	public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
-			return (Message<?>) txTemplate.execute(new TransactionCallback() {
-				public Object doInTransaction(TransactionStatus status) {
+			return txTemplate.execute(new TransactionCallback<Message<?>>() {
+				public Message<?> doInTransaction(TransactionStatus status) {
 					return doSendAndReceive(request, channel);
 				}
 			});
@@ -240,6 +241,8 @@ public class MessageChannelTemplate implements InitializingBean {
 	}
 
 	private Message<?> doSendAndReceive(Message<?> request, MessageChannel channel) {
+		Object originalReplyChannelHeader = request.getHeaders().getReplyChannel();
+		Object originalErrorChannelHeader = request.getHeaders().getErrorChannel();
 		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout);
 		request = MessageBuilder.fromMessage(request)
 				.setReplyChannel(replyChannel)
@@ -248,7 +251,14 @@ public class MessageChannelTemplate implements InitializingBean {
 		if (!this.doSend(request, channel)) {
 			throw new MessageDeliveryException(request, "failed to send message to channel");
 		}
-		return this.doReceive(replyChannel);
+		Message<?> reply = this.doReceive(replyChannel);
+		if (reply != null) {
+			reply = MessageBuilder.fromMessage(reply)
+					.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
+					.setHeader(MessageHeaders.ERROR_CHANNEL, originalErrorChannelHeader)
+					.build();
+		}
+		return reply;
 	}
 
 	private MessageChannel getRequiredDefaultChannel() {
