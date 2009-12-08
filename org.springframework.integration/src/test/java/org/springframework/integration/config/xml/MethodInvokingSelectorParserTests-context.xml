@@ -12,6 +12,6 @@
 	</selector-chain>
 
 	<beans:bean id="someBean"
-		class="org.springframework.integration.config.xml.MethodInvokingSelectorParserTests$SomeClass" />
+		class="org.springframework.integration.config.xml.MethodInvokingSelectorParserTests$TestFilter" />
 
 </beans:beans>
