@@ -31,6 +31,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
@@ -280,7 +281,7 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		Assert.assertTrue(args[1].equals("monday"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessagingException.class)
 	public void fromMessageInvalidMethodWithMultipleMappingAnnotations() throws Exception {
 		Method method = MultipleMappingAnnotationTestBean.class.getMethod("test", String.class);
 		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
