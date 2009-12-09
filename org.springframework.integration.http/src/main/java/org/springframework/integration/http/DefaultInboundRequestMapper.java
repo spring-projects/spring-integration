@@ -16,7 +16,6 @@
 
 package org.springframework.integration.http;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -36,6 +35,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -68,6 +68,7 @@ import org.springframework.web.multipart.MultipartResolver;
  * </ul>
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.2
  */
 public class DefaultInboundRequestMapper implements InboundRequestMapper {
@@ -210,17 +211,8 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	}
 
 	private Object createPayloadFromTextContent(HttpServletRequest request) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		BufferedReader reader = request.getReader();
-		int contentLength = request.getContentLength();
-		int bufferLength = (contentLength > -1) ? contentLength : 1024;
-		char[] buffer = new char[bufferLength];
-		int charsRead = 0;
-		while (reader.ready() && (charsRead = reader.read(buffer, 0, bufferLength)) != -1) {
-			sb.append(buffer, 0, charsRead);
-			buffer = new char[bufferLength];
-		}
-		return sb.toString();
+		String charset = request.getCharacterEncoding() != null ? request.getCharacterEncoding() : "utf-8";
+		return new String(FileCopyUtils.copyToByteArray(request.getInputStream()), charset);
 	}
 
 	private Object createPayloadFromSerializedObject(HttpServletRequest request) {
