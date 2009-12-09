@@ -222,7 +222,7 @@
     </poller>]]></emphasis><![CDATA[
 </service-activator>
 
-]]><emphasis><![CDATA[<thread-pool-task-executor id="pool" core-size="5"/>]]></emphasis></programlisting>
+]]><emphasis><![CDATA[<task:executor id="pool" pool-size="5"/>]]></emphasis></programlisting>
     </para>
     <para>
       Also, notice that the worker thread name is displayed with each invocation. You will see that the hot drinks are

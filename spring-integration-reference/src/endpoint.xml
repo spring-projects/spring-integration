@@ -226,10 +226,10 @@ consumer.setTransactionManager(txManager);</programlisting>
     </para>
     <para>
       The polling threads may be executed by any instance of Spring's <interfacename>TaskExecutor</interfacename>
-      abstraction. This enables concurrency for an endpoint or group of endpoints. As a convenience, there is also
-      namespace support for creating a simple thread pool executor. The &lt;thread-pool-task-executor/&gt; element
-      defines attributes for common concurrency settings such as core-size, max-size, and queue-capacity. Configuring
-      a thread-pooling executor can make a substantial difference in how the endpoint performs under load. These
+      abstraction. This enables concurrency for an endpoint or group of endpoints. As of Spring 3.0, there is a "task"
+      namespace in the core Spring Framework, and its &lt;executor/&gt; element supports the creation of a simple thread
+      pool executor. That element accepts attributes for common concurrency settings such as pool-size and queue-capacity.
+      Configuring a thread-pooling executor can make a substantial difference in how the endpoint performs under load. These
       settings are available per-endpoint since the performance of an endpoint is one of the major factors to consider
       (the other major factor being the expected volume on the channel to which the endpoint subscribes). To enable
       concurrency for a polling endpoint that is configured with the XML namespace support, provide the 'task-executor'
@@ -238,16 +238,15 @@ consumer.setTransactionManager(txManager);</programlisting>
      <interval-trigger interval="5" time-unit="SECONDS"/>
  </poller>
 
- <thread-pool-task-executor id="pool"
-                            core-size="5"
-                            max-size="25"
-                            queue-capacity="20"
-                            keep-alive-seconds="120"/>]]></programlisting>
+ <task:executor id="pool"
+                pool-size="5-25"
+                queue-capacity="20"
+                keep-alive="120"/>]]></programlisting>
       If no 'task-executor' is provided, the consumer's handler will be invoked in the caller's thread. Note that the
       "caller" is usually the default <interfacename>TaskScheduler</interfacename>
       (see <xref linkend="namespace-taskscheduler"/>). Also, keep in mind that the 'task-executor' attribute can
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
-      specifying the bean name. The thread pool element is simply provided for convenience.
+      specifying the bean name. The "executor" element above is simply provided for convenience.
     </para>
      <para>
     	As mentioned in the background section for Polling Consumers above, you can also configure a Polling Consumer
