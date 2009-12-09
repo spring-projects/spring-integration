@@ -55,7 +55,6 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("poller", new PollerParser());
 		registerBeanDefinitionParser("annotation-config", new AnnotationConfigParser());
 		registerBeanDefinitionParser("application-event-multicaster", new ApplicationEventMulticasterParser());
-		registerBeanDefinitionParser("thread-pool-task-executor", new ThreadPoolTaskExecutorParser());
 		registerBeanDefinitionParser("publisher", new PublisherParser());
 	}
 

@@ -2,10 +2,10 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<publish-subscribe-channel id="defaultChannel"/>
 
@@ -21,7 +21,7 @@
 
 	<publish-subscribe-channel id="channelWithErrorHandler" error-handler="testErrorHandler"/>
 
-	<thread-pool-task-executor id="pool" max-size="1"/>
+	<task:executor id="pool" pool-size="1"/>
 
 	<beans:bean id="testErrorHandler" class="org.springframework.integration.config.TestErrorHandler"/>
 

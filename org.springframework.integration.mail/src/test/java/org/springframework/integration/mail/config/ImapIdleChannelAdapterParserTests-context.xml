@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:mail="http://www.springframework.org/schema/integration/mail"
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task.xsd
 			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration
@@ -33,6 +36,6 @@
 		<prop key="foo">bar</prop>
 	</util:properties>
 
-	<integration:thread-pool-task-executor id="executor" max-size="5"/>
+	<task:executor id="executor" pool-size="5"/>
 
 </beans>

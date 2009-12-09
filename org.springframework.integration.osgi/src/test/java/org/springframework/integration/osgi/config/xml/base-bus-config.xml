@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:si-control="http://www.springframework.org/schema/integration/integration-control-bus"
 	xmlns:si="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-	                   http://www.springframework.org/schema/integration/integration-control-bus http://www.springframework.org/schema/integration/integration-control-bus/spring-integration-bus-1.0.xsd
-                       http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+	                    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+	                    http://www.springframework.org/schema/integration/integration-control-bus http://www.springframework.org/schema/integration/integration-control-bus/spring-integration-bus-1.0.xsd
+                        http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
 	
 	<!-- SERVICE REGISTRATION CONFIG-->
 	<si:publish-subscribe-channel id="serviceRegistrationControlChannel" task-executor="executor"/>
@@ -31,6 +33,6 @@
 		<si:mapping value="BINDING" channel="serviceBindingControlChannel"/>
 		<si:mapping value="UNBINDING" channel="serviceBindingControlChannel"/>
 	</si:header-value-router>
-	
-	<si:thread-pool-task-executor id="executor" core-size="10"/>
+
+	<task:executor id="executor" pool-size="10"/>
 </beans>
