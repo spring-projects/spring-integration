@@ -139,8 +139,8 @@ public class ArgumentArrayMessageMapperFromMessageTests {
 		.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = mapper.fromMessage(message);
 		Map result = (Map) args[0];
-		//Map also contains id and timestamp
-		assertEquals(4, result.size());
+		//Map also contains id, timestamp, and history
+		assertEquals(5, result.size());
 		assertEquals("foo", result.get("prop1"));
 		assertEquals("bar", result.get("prop2"));
 		assertEquals("test", args[1]);

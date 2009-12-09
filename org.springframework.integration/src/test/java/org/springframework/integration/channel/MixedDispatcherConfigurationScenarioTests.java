@@ -47,6 +47,7 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -77,8 +78,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 	@Mock
 	private MessageHandler handlerC;
 
-	@Mock
-	private Message<?> message;
+	private Message<?> message = new StringMessage("test");
+
 
 	@Before
 	public void initialize() throws Exception {

@@ -23,6 +23,7 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistory.ComponentType;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.channel.ChannelResolutionException;
@@ -58,6 +59,7 @@ public abstract class AbstractMessageHandler implements MessageHandler, Ordered 
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(this + " received message: " + message);
         }
+        message.getHeaders().getHistory().add(ComponentType.endpoint, this.toString());
         try {
             this.handleMessageInternal(message);
         }

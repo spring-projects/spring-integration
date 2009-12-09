@@ -54,6 +54,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
 
+	public static final String HISTORY = "history";
+
 	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
 
 	public static final String PRIORITY = PREFIX + "priority";
@@ -76,6 +78,9 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		if (this.headers.get(TIMESTAMP) == null) {
 			this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 		}
+		if (this.headers.get(HISTORY) == null) {
+			this.headers.put(HISTORY, new MessageHistory());
+		}
 	}
 
 
@@ -85,6 +90,10 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public Long getTimestamp() {
 		return this.get(TIMESTAMP, Long.class);
+	}
+
+	public MessageHistory getHistory() {
+		return this.get(HISTORY, MessageHistory.class);
 	}
 
 	public Long getExpirationDate() {

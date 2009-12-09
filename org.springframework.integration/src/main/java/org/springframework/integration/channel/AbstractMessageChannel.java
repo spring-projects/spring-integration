@@ -25,6 +25,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistory.ComponentType;
+import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageChannel} implementations providing common
@@ -109,6 +111,8 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * time or the sending thread is interrupted.
 	 */
 	public final boolean send(Message<?> message, long timeout) {
+		Assert.notNull(message, "message must not be null");
+		message.getHeaders().getHistory().add(ComponentType.channel, this.getName());
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;
