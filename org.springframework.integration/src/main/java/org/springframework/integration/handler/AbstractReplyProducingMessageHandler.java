@@ -139,9 +139,16 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	@SuppressWarnings("unchecked")
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
-		MessageBuilder<?> builder = (reply instanceof MessageBuilder) ? (MessageBuilder) reply
-				: (reply instanceof Message) ? MessageBuilder.fromMessage((Message) reply)
-						: MessageBuilder.withPayload(reply);
+		MessageBuilder<?> builder = null;
+		if (reply instanceof MessageBuilder) {
+			builder = (MessageBuilder<?>) reply;
+		}
+		else if (reply instanceof Message) {
+			builder = MessageBuilder.fromMessage((Message) reply);
+		}
+		else {
+			builder = MessageBuilder.withPayload(reply);
+		}
 		builder.copyHeadersIfAbsent(requestHeaders);
 		return builder.build();
 	}

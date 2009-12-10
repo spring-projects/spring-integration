@@ -19,7 +19,9 @@ package org.springframework.integration.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -74,7 +76,7 @@ public class CollectionAndArrayTests {
 		Message<?> reply2 = channel.receive(0);
 		assertNotNull(reply1);
 		assertNull(reply2);
-		assertTrue(Set.class.isAssignableFrom(reply1.getPayload().getClass()));
+		assertThat(reply1.getPayload(), is(Set.class));
 		assertEquals(2, ((Set<?>) reply1.getPayload()).size());
 	}
 
