@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,12 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -51,20 +49,15 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 		}
 		String datatypeAttr = element.getAttribute("datatype");
 		if (StringUtils.hasText(datatypeAttr)) {
-			String[] datatypes = StringUtils.commaDelimitedListToStringArray(datatypeAttr);
-			RootBeanDefinition selectorDef = new RootBeanDefinition();
-			selectorDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".selector.PayloadTypeSelector");
-			selectorDef.getConstructorArgumentValues().addGenericArgumentValue(datatypes);
-			String selectorBeanName = parserContext.getReaderContext().generateBeanName(selectorDef);
-			BeanComponentDefinition selectorComponent = new BeanComponentDefinition(selectorDef, selectorBeanName);
-			parserContext.registerBeanComponent(selectorComponent);
-			RootBeanDefinition interceptorDef = new RootBeanDefinition();
-			interceptorDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.interceptor.MessageSelectingInterceptor");
-			interceptorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(selectorBeanName));
-			String interceptorBeanName = parserContext.getReaderContext().generateBeanName(interceptorDef);
-			BeanComponentDefinition interceptorComponent = new BeanComponentDefinition(interceptorDef, interceptorBeanName);
-			parserContext.registerBeanComponent(interceptorComponent);
-			interceptors.add(new RuntimeBeanReference(interceptorBeanName));
+			// TODO: remove this once the editor fallback is working (3.0 GA)
+			//       it should be replaced with: builder.addPropertyValue("datatypes", datatypeAttr);
+			String[] classnames = StringUtils.commaDelimitedListToStringArray(datatypeAttr);
+			Class<?>[] datatypes = new Class<?>[classnames.length];
+			int i = 0;
+			for (String classname : classnames) {
+				datatypes[i++] = ClassUtils.resolveClassName(classname.trim(), this.getClass().getClassLoader());
+			}
+			builder.addPropertyValue("datatypes", datatypes);
 		}
 		builder.addPropertyValue("interceptors", interceptors);
 		return builder.getBeanDefinition();
