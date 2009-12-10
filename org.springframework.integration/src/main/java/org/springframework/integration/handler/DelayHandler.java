@@ -17,9 +17,6 @@
 package org.springframework.integration.handler;
 
 import java.util.Date;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +25,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
@@ -40,6 +38,9 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -69,7 +70,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, DisposableBean {
+public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, InitializingBean, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -77,15 +78,13 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 
 	private volatile String delayHeaderName;
 
-	private final ScheduledExecutorService scheduler;
+	private final TaskScheduler taskScheduler;
 
 	private volatile MessageChannel outputChannel;
 
 	private volatile ChannelResolver channelResolver;
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
-
-	private volatile boolean waitForTasksToCompleteOnShutdown;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -99,13 +98,13 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	}
 
 	/**
-	 * Create a DelayHandler with the given default delay. The sending of Messages after
-	 * the delay will be handled by the provided {@link ScheduledExecutorService}.
+	 * Create a DelayHandler with the given default delay. The sending of Messages
+	 * after the delay will be handled by the provided {@link TaskScheduler}.
 	 */
-	public DelayHandler(long defaultDelay, ScheduledExecutorService scheduledExecutorService) {
+	public DelayHandler(long defaultDelay, TaskScheduler taskScheduler) {
 		this.defaultDelay = defaultDelay;
-		this.scheduler = (scheduledExecutorService != null)
-				? scheduledExecutorService : Executors.newScheduledThreadPool(1);
+		this.taskScheduler = (taskScheduler != null)
+				? taskScheduler : new ThreadPoolTaskScheduler();
 	}
 
 
@@ -147,11 +146,19 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	 * Set whether to wait for scheduled tasks to complete on shutdown.
 	 * <p>Default is "false". Switch this to "true" if you prefer
 	 * fully completed tasks at the expense of a longer shutdown phase.
-	 * @see java.util.concurrent.ExecutorService#shutdown()
-	 * @see java.util.concurrent.ExecutorService#shutdownNow()
+	 * <p>
+	 * This property will only have an effect for TaskScheduler implementations
+	 * that extend from {@link ExecutorConfigurationSupport}.
+	 * @see ExecutorConfigurationSupport#setWaitForTasksToCompleteOnShutdown(boolean)
 	 */
 	public void setWaitForTasksToCompleteOnShutdown(boolean waitForJobsToCompleteOnShutdown) {
-		this.waitForTasksToCompleteOnShutdown = waitForJobsToCompleteOnShutdown;
+		if (this.taskScheduler instanceof ExecutorConfigurationSupport) {
+			((ExecutorConfigurationSupport) this.taskScheduler).setWaitForTasksToCompleteOnShutdown(waitForJobsToCompleteOnShutdown);
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("The 'waitForJobsToCompleteOnShutdown' property is not supported for TaskScheduler of type [" +
+					this.taskScheduler.getClass() + "]");
+		}
 	}
 
 	public void setOrder(int order) {
@@ -164,6 +171,12 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		if (this.taskScheduler instanceof InitializingBean) {
+			((InitializingBean) this.taskScheduler).afterPropertiesSet();
+		}
 	}
 
 	public final void handleMessage(final Message<?> message) {
@@ -200,7 +213,7 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
-		this.scheduler.schedule(new Runnable() {
+		this.taskScheduler.schedule(new Runnable() {
 			public void run() {
 				try {
 					releaseMessage(message);
@@ -220,7 +233,7 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 					}
 				}
 			}
-		}, delay, TimeUnit.MILLISECONDS);
+		}, new Date(System.currentTimeMillis() + delay));
 	}
 
 	private void releaseMessage(Message<?> message) {
@@ -276,12 +289,9 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 		return channel;
 	}
 
-	public void destroy() {
-		if (this.waitForTasksToCompleteOnShutdown) {
-			this.scheduler.shutdown();
-		}
-		else {
-			this.scheduler.shutdownNow();
+	public void destroy() throws Exception {
+		if (this.taskScheduler instanceof DisposableBean) {
+			((DisposableBean) this.taskScheduler).destroy();
 		}
 	}
 

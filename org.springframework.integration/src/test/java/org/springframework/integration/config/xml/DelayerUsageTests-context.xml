@@ -2,8 +2,11 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
@@ -35,9 +38,7 @@
 			 send-timeout="20000"
 			 scheduler="multiThreadScheduler"/> 
 
-	<beans:bean id="multiThreadScheduler" class="org.springframework.scheduling.concurrent.ScheduledExecutorFactoryBean">
-		<beans:property name="poolSize" value="5"/>
-	</beans:bean>
+	<task:scheduler id="multiThreadScheduler" pool-size="5"/>
 	
 	<service-activator input-channel="outputB" output-channel="outputB1" method="processMessage" ref="sampleHandler"/>
 	
