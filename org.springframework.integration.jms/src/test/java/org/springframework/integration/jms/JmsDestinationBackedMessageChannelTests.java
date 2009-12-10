@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class JmsDestinationBackedMessageChannelTests {
 
-	private static final int TIMEOUT = 10000;
+	private static final int TIMEOUT = 30000;
 
 
 	private ActiveMQConnectionFactory connectionFactory;
