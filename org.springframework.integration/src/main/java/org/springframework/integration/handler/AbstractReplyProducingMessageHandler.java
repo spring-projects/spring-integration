@@ -92,15 +92,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
-	protected boolean shouldSplitReplies() {
-		return false;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	protected final void handleMessageInternal(Message<?> message) {
 		Object result = this.handleRequestMessage(message);
 		if (result == null) {
@@ -115,25 +110,14 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
 		MessageHeaders requestHeaders = message.getHeaders();
-		if (this.shouldSplitReplies() && result instanceof Iterable) {
-			this.sendReplyMessages((Iterable) result, requestHeaders, replyChannel);
-		}
-		else {
-			Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
-			if (!this.sendReplyMessage(replyMessage, replyChannel)) {
-				throw new MessageDeliveryException(replyMessage,
-						"failed to send reply Message to channel '" + replyChannel + "'");
-			}
-		}
+		this.handleResult(result, requestHeaders, replyChannel);
 	}
 
-	private void sendReplyMessages(Iterable<?> replies, MessageHeaders requestHeaders, MessageChannel replyChannel) {
-		for (Object reply : replies) {
-			Message<?> replyMessage = this.createReplyMessage(reply, requestHeaders);
-			if (!this.sendReplyMessage(replyMessage, replyChannel)) {
-				throw new MessageDeliveryException(replyMessage,
-						"failed to send reply Message to channel '" + replyChannel + "'");
-			}
+	protected void handleResult(Object result, MessageHeaders requestHeaders, MessageChannel replyChannel) {
+		Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
+		if (!this.sendReplyMessage(replyMessage, replyChannel)) {
+			throw new MessageDeliveryException(replyMessage,
+					"failed to send reply Message to channel '" + replyChannel + "'");
 		}
 	}
 

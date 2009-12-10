@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
@@ -34,11 +35,7 @@ import org.springframework.integration.message.MessageBuilder;
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
 	@Override
-	protected boolean shouldSplitReplies() {
-		return true;
-	}
-
-	@Override
+	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		if (result == null) {
@@ -78,6 +75,19 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 				.setSequenceSize(sequenceSize)
 				.setHeader(MessageHeaders.ID, UUID.randomUUID());
 		return builder;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void handleResult(Object result, MessageHeaders requestHeaders, MessageChannel replyChannel) {
+		if (result instanceof Iterable) {
+			for (Object o : (Iterable<?>) result) {
+				super.handleResult(o, requestHeaders, replyChannel);
+			}
+		}
+		else {
+			super.handleResult(result, requestHeaders, replyChannel);
+		}
 	}
 
 	/**
