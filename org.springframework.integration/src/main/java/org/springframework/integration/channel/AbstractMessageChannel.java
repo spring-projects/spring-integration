@@ -124,8 +124,8 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 				this.conversionService = this.beanFactory.getBean("conversionService", ConversionService.class);
 			}
 			else if (logger.isWarnEnabled()) {
-				logger.warn("Unable to attempt conversion of Message payload types. " +
-						"Datatype channel has no explicit ConversionService reference, " +
+				logger.warn("Unable to attempt conversion of Message payload types. Datatype channel '" +
+						this.getName() + "' has no explicit ConversionService reference, " +
 						"and there is no 'conversionService' bean within the context.");
 			}
 		}
