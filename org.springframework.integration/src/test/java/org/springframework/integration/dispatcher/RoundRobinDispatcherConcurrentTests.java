@@ -32,7 +32,6 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnit44Runner;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -127,7 +126,7 @@ public class RoundRobinDispatcherConcurrentTests {
 					dispatcher.dispatch(message);
 					fail("this shouldn't happen");
 				}
-				catch (MessageDeliveryException e) {
+				catch (IllegalStateException e) {
 					// expected
 				}
 				allDone.countDown();

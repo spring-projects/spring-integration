@@ -38,8 +38,8 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -206,7 +206,7 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 					releaseMessage(message);
 				}
 				catch (Exception e) {
-					Exception exception = new MessageDeliveryException(message, "Failed to deliver Message after delay.", e);
+					Exception exception = new MessageHandlingException(message, "Failed to deliver Message after delay.", e);
 					MessageChannel errorChannel = resolveErrorChannelIfPossible(message);
 					if (errorChannel != null) {
 						ErrorMessage errorMessage = new ErrorMessage(exception);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.TestHandlers;
@@ -134,7 +133,7 @@ public class FailOverDispatcherTests {
 		assertEquals(6, counter.get());
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test(expected = IllegalStateException.class)
 	public void removeConsumerLastTargetCausesDeliveryException() {
 		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final AtomicInteger counter = new AtomicInteger();

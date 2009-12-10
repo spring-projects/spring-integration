@@ -33,6 +33,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 
 /**
@@ -44,7 +45,7 @@ public class DispatchingChannelErrorHandlingTests {
 	private final CountDownLatch latch = new CountDownLatch(1);
 
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void handlerThrowsExceptionPublishSubscribeWithoutExecutor() {
 		PublishSubscribeChannel channel = new PublishSubscribeChannel();
 		channel.subscribe(new MessageHandler() {

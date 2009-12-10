@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -35,6 +36,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -48,6 +50,13 @@ public class DelayHandlerTests {
 	private final DirectChannel output = new DirectChannel();
 
 	private final CountDownLatch latch = new CountDownLatch(1);
+
+
+	@Before
+	public void setChannelNames() {
+		input.setBeanName("input");
+		output.setBeanName("output");
+	}
 
 
 	@Test
@@ -254,7 +263,7 @@ public class DelayHandlerTests {
 		assertEquals(1, latch.getCount());
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void handlerThrowsExceptionWithNoDelay() {
 		DelayHandler delayHandler = new DelayHandler(0);
 		delayHandler.setOutputChannel(output);
@@ -288,10 +297,13 @@ public class DelayHandlerTests {
 		input.send(message);
 		this.waitForLatch(1000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
-		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
+		assertEquals(MessageHandlingException.class, errorMessage.getPayload().getClass());
+		MessageHandlingException exceptionPayload = (MessageHandlingException) errorMessage.getPayload();
 		assertSame(message, exceptionPayload.getFailedMessage());
+		assertEquals(MessageDeliveryException.class, exceptionPayload.getCause().getClass());
+		MessageDeliveryException nestedException = (MessageDeliveryException) exceptionPayload.getCause();
+		assertEquals(UnsupportedOperationException.class, nestedException.getCause().getClass());
+		assertSame(message, nestedException.getFailedMessage());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
 
@@ -320,10 +332,13 @@ public class DelayHandlerTests {
 		input.send(message);
 		this.waitForLatch(1000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
-		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
+		assertEquals(MessageHandlingException.class, errorMessage.getPayload().getClass());
+		MessageHandlingException exceptionPayload = (MessageHandlingException) errorMessage.getPayload();
 		assertSame(message, exceptionPayload.getFailedMessage());
+		assertEquals(MessageDeliveryException.class, exceptionPayload.getCause().getClass());
+		MessageDeliveryException nestedException = (MessageDeliveryException) exceptionPayload.getCause();
+		assertEquals(UnsupportedOperationException.class, nestedException.getCause().getClass());
+		assertSame(message, nestedException.getFailedMessage());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
 
@@ -352,10 +367,13 @@ public class DelayHandlerTests {
 		input.send(message);
 		this.waitForLatch(1000);
 		Message<?> errorMessage = resultHandler.lastMessage;
-		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
-		MessageDeliveryException exceptionPayload = (MessageDeliveryException) errorMessage.getPayload();
-		assertEquals(UnsupportedOperationException.class, exceptionPayload.getCause().getClass());
+		assertEquals(MessageHandlingException.class, errorMessage.getPayload().getClass());
+		MessageHandlingException exceptionPayload = (MessageHandlingException) errorMessage.getPayload();
 		assertSame(message, exceptionPayload.getFailedMessage());
+		assertEquals(MessageDeliveryException.class, exceptionPayload.getCause().getClass());
+		MessageDeliveryException nestedException = (MessageDeliveryException) exceptionPayload.getCause();
+		assertEquals(UnsupportedOperationException.class, nestedException.getCause().getClass());
+		assertSame(message, nestedException.getFailedMessage());
 		assertNotSame(Thread.currentThread(), resultHandler.lastThread);
 	}
 

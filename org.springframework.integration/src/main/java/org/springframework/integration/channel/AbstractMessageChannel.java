@@ -25,7 +25,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.core.MessageHistory.ComponentType;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
 
 /**
@@ -117,9 +119,18 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		if (message == null) {
 			return false;
 		}
-		boolean sent = this.doSend(message, timeout);
-		this.interceptors.postSend(message, this, sent);
-		return sent;
+		try {
+			boolean sent = this.doSend(message, timeout);
+			this.interceptors.postSend(message, this, sent);
+			return sent;
+		}
+		catch (MessagingException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new MessageDeliveryException(message,
+					"failed to send Message to channel '" + this.getName() + "'", e);
+		}
 	}
 
 	public String toString() {
