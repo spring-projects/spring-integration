@@ -236,9 +236,8 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	}
 
 	private Object createPayloadFromTextContent(HttpServletRequest request) throws IOException {
- 		String charSet = request.getCharacterEncoding() == null ? "utf-8" : request.getCharacterEncoding();
-		String str = new String(FileCopyUtils.copyToByteArray(request.getInputStream()), charSet);
-		return str;
+ 		String charset = request.getCharacterEncoding() != null ? request.getCharacterEncoding() : "utf-8";
+		return new String(FileCopyUtils.copyToByteArray(request.getInputStream()), charset);
 	}
 
 	private Object createPayloadFromSerializedObject(HttpServletRequest request) {
