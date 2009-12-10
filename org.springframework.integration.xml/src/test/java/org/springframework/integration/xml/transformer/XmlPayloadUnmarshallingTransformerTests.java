@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.transformer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 
@@ -24,30 +25,62 @@ import javax.xml.transform.Source;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class XmlPayloadUnmarshallingTransformerTests {
 
 	@Test
 	public void testStringSourceToString() {
-		Unmarshaller unmarshaller = new TestUnmarshaller();
+		Unmarshaller unmarshaller = new TestUnmarshaller(false);
 		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload(new StringSource("world"));
 		assertEquals(String.class, transformed.getClass());
 		assertEquals("hello world", transformed.toString());
 	}
 
+	@Test
+	public void testMessageReturnValue() {
+		Unmarshaller unmarshaller = new TestUnmarshaller(true);
+		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
+		Object transformed = transformer.transformPayload(new StringSource("foo"));
+		assertEquals(StringMessage.class, transformed.getClass());
+		assertEquals("message: foo", ((StringMessage) transformed).getPayload());
+	}
+
+	@Test
+	public void testMessageReturnValueFromTopLevel() {
+		Unmarshaller unmarshaller = new TestUnmarshaller(true);
+		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
+		Message<?> result = transformer.transform(MessageBuilder.withPayload(new StringSource("bar")).build());
+		assertNotNull(result);
+		assertEquals("message: bar", result.getPayload());
+	}
+
 
 	private static class TestUnmarshaller implements Unmarshaller {
+
+		private final boolean returnMessage;
+
+		TestUnmarshaller(boolean returnMessage) {
+			this.returnMessage = returnMessage;
+		}
+
 		public Object unmarshal(Source source) throws XmlMappingException, IOException {
 			if (source instanceof StringSource) {
 				char[] chars = new char[8];
 				((StringSource) source).getReader().read(chars);
+				if (returnMessage) {
+					return new StringMessage("message: " + new String(chars).trim());
+				}
 				return "hello " + new String(chars).trim();
 			}
 			return null;

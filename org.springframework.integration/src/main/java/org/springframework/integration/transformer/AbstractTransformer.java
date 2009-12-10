@@ -20,9 +20,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
- * A base class for {@link Transformer} implementations. If the return value is
- * itself a Message, it will be used as the result. Otherwise, the return value
- * will be used as the payload of the result Message.
+ * A base class for {@link Transformer} implementations.
  * 
  * @author Mark Fisher
  */
@@ -32,8 +30,10 @@ public abstract class AbstractTransformer implements Transformer {
 	public final Message<?> transform(Message<?> message) {
 		try {
 			Object result = this.doTransform(message);
-			return (result instanceof Message)
-					? MessageBuilder.fromMessage((Message<?>) result).build()
+			if (result == null) {
+				return null;
+			}
+			return (result instanceof Message) ? (Message<?>) result
 					: MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
 		}
 		catch (MessageTransformationException e) {
@@ -44,6 +44,12 @@ public abstract class AbstractTransformer implements Transformer {
 		}
 	}
 
+	/**
+	 * Subclasses must implement this method to provide the transformation
+	 * logic. If the return value is itself a Message, it will be used as the
+	 * result. Otherwise, any non-null return value will be used as the payload
+	 * of the result Message.
+	 */
 	protected abstract Object doTransform(Message<?> message) throws Exception;
 
 }
