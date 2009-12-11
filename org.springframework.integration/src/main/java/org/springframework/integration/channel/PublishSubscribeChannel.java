@@ -60,6 +60,18 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 	}
 
 
+	/**
+	 * Provide an {@link ErrorHandler} strategy for handling Exceptions that
+	 * occur downstream from this channel. This will <i>only</i> be applied if
+	 * a TaskExecutor has been configured to dispatch the Messages for this
+	 * channel. Otherwise, Exceptions will be thrown directly within the
+	 * sending Thread. If no ErrorHandler is provided, and this channel does
+	 * delegate its dispatching to a TaskExecutor, the default strategy is
+	 * a {@link MessagePublishingErrorHandler} that sends error messages to
+	 * the failed request Message's error channel header if available or to
+	 * the default 'errorChannel' otherwise.
+	 * @see #PublishSubscribeChannel(TaskExecutor)
+	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
 	}
@@ -88,6 +100,9 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 		this.getDispatcher().setApplySequence(applySequence);
 	}
 
+	/**
+	 * Callback method for the {@link BeanFactoryAware} interface.
+	 */
 	public void setBeanFactory(BeanFactory beanFactory) {
 		if (this.taskExecutor != null) {
 			if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
