@@ -138,4 +138,24 @@ public class JmsInboundChannelAdapterParserTests {
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
 	}
 
+	@Test
+	public void pollingAdapterWithMessageConverter() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithMessageConverter.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output1");
+		Message<?> message = output.receive(timeoutOnReceive);
+		assertNotNull("message should not be null", message);
+		assertEquals("converted-test", message.getPayload());
+	}
+
+	@Test
+	public void messageDrivenAdapterWithMessageConverter() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithMessageConverter.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output2");
+		Message<?> message = output.receive(timeoutOnReceive);
+		assertNotNull("message should not be null", message);
+		assertEquals("converted-test", message.getPayload());
+	}
+
 }

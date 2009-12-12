@@ -131,15 +131,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="message-converter" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="header-mapper" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -254,15 +245,6 @@
 					</xsd:attribute>
 					<xsd:attribute name="default-reply-queue-name" type="xsd:string"/>
 					<xsd:attribute name="default-reply-topic-name" type="xsd:string"/>
-					<xsd:attribute name="message-converter" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="header-mapper" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -369,15 +351,6 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="javax.jms.ConnectionFactory"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="message-converter" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -596,6 +569,15 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.jms.support.destination.DestinationResolver"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
