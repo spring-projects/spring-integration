@@ -16,31 +16,23 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.file.AcceptOnceFileListFilter;
-import org.springframework.integration.file.CompositeFileListFilter;
-import org.springframework.integration.file.FileListFilter;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.PatternMatchingFileListFilter;
+import org.springframework.integration.file.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.File;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -79,7 +71,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) accessor.getPropertyValue("inputDirectory");
+		File actual = (File) accessor.getPropertyValue("directory");
 		assertEquals(expected, actual);
 	}
 

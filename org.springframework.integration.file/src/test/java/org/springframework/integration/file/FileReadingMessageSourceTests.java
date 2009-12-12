@@ -16,14 +16,11 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.*;
-import org.mockito.runners.MockitoJUnit44Runner;
-import org.springframework.core.io.Resource;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.file.locking.FileLocker;
 
@@ -31,21 +28,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
  */
 @SuppressWarnings("unchecked")
-@RunWith(MockitoJUnit44Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class FileReadingMessageSourceTests {
 
     private FileReadingMessageSource source;
 
     @Mock
     private File inputDirectoryMock;
-
-    @Mock
-    private Resource inputDirectoryResourceMock;
 
     @Mock
     private File fileMock;
@@ -57,8 +54,7 @@ public class FileReadingMessageSourceTests {
     private Comparator<File> comparator;
 
     public void prepResource() throws Exception {
-        when(inputDirectoryResourceMock.exists()).thenReturn(true);
-        when(inputDirectoryResourceMock.getFile()).thenReturn(inputDirectoryMock);
+        when(inputDirectoryMock.exists()).thenReturn(true);
         when(inputDirectoryMock.canRead()).thenReturn(true);
         when(locker.lock(isA(File.class))).thenReturn(true);
     }
@@ -67,7 +63,7 @@ public class FileReadingMessageSourceTests {
     public void initialize() throws Exception {
         prepResource();
         this.source = new FileReadingMessageSource(comparator);
-        source.setInputDirectory(inputDirectoryResourceMock);
+        source.setDirectory(inputDirectoryMock);
         source.setLocker(locker);
     }
 
@@ -130,8 +126,6 @@ public class FileReadingMessageSourceTests {
         assertNull(received);
         verify(locker).lock(fileMock);
     }
-
-
 
     @Test
     public void orderedReception() throws Exception {

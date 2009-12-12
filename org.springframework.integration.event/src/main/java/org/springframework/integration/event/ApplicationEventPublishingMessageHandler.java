@@ -24,7 +24,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageHandler} that publishes each {@link Message} it receives as
+ * A {@link org.springframework.integration.message.MessageHandler} that publishes each {@link Message} it receives as
  * a {@link MessagingEvent}. The {@link MessagingEvent} is a subclass of
  * Spring's {@link ApplicationEvent} used by this adapter to simply wrap the
  * {@link Message}.

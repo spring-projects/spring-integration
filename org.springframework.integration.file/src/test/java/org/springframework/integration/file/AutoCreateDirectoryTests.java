@@ -16,15 +16,14 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.core.io.FileSystemResource;
+
+import java.io.File;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
@@ -38,7 +37,6 @@ public class AutoCreateDirectoryTests {
 	private static final String INBOUND_PATH = BASE_PATH + File.separator + "inbound";
 
 	private static final String OUTBOUND_PATH = BASE_PATH + File.separator + "outbound";
-
 
 	@Before
 	@After
@@ -60,7 +58,7 @@ public class AutoCreateDirectoryTests {
 	@Test
 	public void autoCreateForInboundEnabledByDefault() {
 		FileReadingMessageSource source = new FileReadingMessageSource();
-		source.setInputDirectory(new FileSystemResource(INBOUND_PATH));
+		source.setDirectory(new File(INBOUND_PATH));
 		source.afterPropertiesSet();
 		assertTrue(new File(INBOUND_PATH).exists());
 	}
@@ -68,7 +66,7 @@ public class AutoCreateDirectoryTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void autoCreateForInboundDisabled() {
 		FileReadingMessageSource source = new FileReadingMessageSource();
-		source.setInputDirectory(new FileSystemResource(INBOUND_PATH));
+		source.setDirectory(new File(INBOUND_PATH));
 		source.setAutoCreateDirectory(false);
 		source.afterPropertiesSet();
 	}

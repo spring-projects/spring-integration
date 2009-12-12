@@ -16,20 +16,19 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.File;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Iwein Fuld
@@ -51,8 +50,8 @@ public class FileInboundChannelAdapterWithClasspathInPropertiesTests {
 	@Test
 	public void inputDirectory() throws Exception {	
 		File expected = new ClassPathResource("").getFile();
-		File actual = (File) accessor.getPropertyValue("inputDirectory");
-		assertEquals("'inputDirectory' should be set", expected, actual);
+		File actual = (File) accessor.getPropertyValue("directory");
+		assertEquals("'directory' should be set", expected, actual);
 	}
 
 }

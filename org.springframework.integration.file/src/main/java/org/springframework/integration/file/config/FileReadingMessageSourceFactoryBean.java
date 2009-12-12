@@ -16,20 +16,18 @@
 
 package org.springframework.integration.file.config;
 
-import java.io.File;
-import java.util.Comparator;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.FileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.util.Assert;
+
+import java.io.File;
+import java.util.Comparator;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  * @since 1.0.3
  */
 public class FileReadingMessageSourceFactoryBean implements FactoryBean, ResourceLoaderAware {
@@ -38,7 +36,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean, Resourc
 
 	private volatile ResourceLoader resourceLoader;
 
-	private volatile String directory;
+	private volatile File directory;
 
 	private volatile FileListFilter filter;
 
@@ -55,11 +53,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean, Resourc
 		this.resourceLoader = resourceLoader;
 	}
 
-	public void setDirectory(String directory) {
-		Assert.hasText(directory, "directory must not be empty");
-		if (directory.indexOf(':') == -1) {
-			directory = "file:" + directory;
-		}
+	public void setDirectory(File directory) {
 		this.directory = directory;
 	}
 
@@ -101,9 +95,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean, Resourc
 			}
 			this.source = (this.comparator != null) ?
 					new FileReadingMessageSource(this.comparator) : new FileReadingMessageSource();
-			ResourceEditor editor = new ResourceEditor(this.resourceLoader);
-			editor.setAsText(this.directory);
-			this.source.setInputDirectory((Resource) editor.getValue());
+			this.source.setDirectory(this.directory);
 			if (this.filter != null) {
 				this.source.setFilter(this.filter);
 			}

@@ -11,7 +11,7 @@
 			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<inbound-channel-adapter id="inputDirPoller"
-			directory="file:${java.io.tmpdir}"
+			directory="${java.io.tmpdir}"
 			filter="filter"
 			comparator="testComparator"
 			auto-startup="false">

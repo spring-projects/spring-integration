@@ -16,18 +16,9 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.util.Comparator;
-import java.util.concurrent.PriorityBlockingQueue;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -36,6 +27,12 @@ import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.File;
+import java.util.Comparator;
+import java.util.concurrent.PriorityBlockingQueue;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Iwein Fuld
@@ -69,8 +66,8 @@ public class FileInboundChannelAdapterParserTests {
 	@Test
 	public void inputDirectory() {	
 		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) accessor.getPropertyValue("inputDirectory");
-		assertEquals("'inputDirectory' should be set", expected, actual);
+		File actual = (File) accessor.getPropertyValue("directory");
+		assertEquals("'directory' should be set", expected, actual);
 	}
 
 	@Test
