@@ -19,6 +19,7 @@ package org.springframework.integration.file.config;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
 
@@ -40,7 +41,9 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean, Resourc
 
 	private volatile FileListFilter filter;
 
-	private volatile Comparator<File> comparator; 
+	private volatile Comparator<File> comparator;
+
+    private volatile DirectoryScanner scanner;
 
 	private volatile Boolean scanEachPoll;
 
@@ -61,7 +64,11 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean, Resourc
 		this.comparator = comparator;
 	}
 
-	public void setFilter(FileListFilter filter) {
+    public void setScanner(DirectoryScanner scanner) {
+        this.scanner = scanner;
+    }
+
+    public void setFilter(FileListFilter filter) {
 		this.filter = filter;
 	}
 
@@ -105,6 +112,9 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean, Resourc
 			if (this.autoCreateDirectory != null) {
 				this.source.setAutoCreateDirectory(this.autoCreateDirectory);
 			}
+            if (this.scanner != null) {
+                this.source.setScanner(this.scanner);
+            }
 			this.source.afterPropertiesSet();
 		}
 	}

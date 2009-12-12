@@ -67,6 +67,8 @@ public class FileReadingMessageSource implements MessageSource<File>,
 
     private volatile File directory;
 
+    private volatile DirectoryScanner scanner = new ToplevelDirectoryScanner();
+
     private volatile boolean autoCreateDirectory = true;
 
     /**
@@ -107,6 +109,14 @@ public class FileReadingMessageSource implements MessageSource<File>,
     public void setDirectory(File directory) {
         Assert.notNull(directory, "directory must not be null");
         this.directory = directory;
+    }
+
+    /**
+     * Optionally specify a custom scanner, for example the
+     * {@link org.springframework.integration.file.RecursiveLeafOnlyDirectoryScanner}
+     */
+    public void setScanner(DirectoryScanner scanner) {
+        this.scanner = scanner;
     }
 
     /**
@@ -202,7 +212,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
     }
 
     private void scanInputDirectory() {
-        File[] fileArray = directory.listFiles();
+        File[] fileArray = scanner.listFiles(directory);
         if (fileArray == null) {
             throw new MessagingException("The path [" + this.directory
                     + "] does not denote a properly accessible directory.");
@@ -241,7 +251,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
      * Implementation of FileLocker that doesn't provide any protection against
      * duplicate listing.
      */
-    class NoopFileLocker implements FileLocker {
+    private static class NoopFileLocker implements FileLocker {
 
         public boolean lock(File fileToLock) {
             return true;
@@ -249,6 +259,12 @@ public class FileReadingMessageSource implements MessageSource<File>,
 
         public void unlock(File fileToUnlock) {
             // noop
+        }
+    }
+
+    private static class ToplevelDirectoryScanner implements DirectoryScanner {
+        public File[] listFiles(File directory) throws IllegalArgumentException {
+            return directory.listFiles();
         }
     }
 }
