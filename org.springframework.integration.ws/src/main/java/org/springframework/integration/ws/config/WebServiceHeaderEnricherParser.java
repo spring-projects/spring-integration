@@ -16,18 +16,17 @@
 
 package org.springframework.integration.ws.config;
 
-import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
+import org.springframework.integration.ws.WebServiceHeaders;
 
 /**
  * @author Mark Fisher
- * @author Iwein Fuld
+ * @since 2.0
  */
-public class WsNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public class WebServiceHeaderEnricherParser extends HeaderEnricherParserSupport {
 
-	public void init() {
-		this.registerBeanDefinitionParser("outbound-gateway", new WebServiceOutboundGatewayParser());
-		this.registerBeanDefinitionParser("inbound-gateway", new WebServiceInboundGatewayParser());
-		this.registerBeanDefinitionParser("header-enricher", new WebServiceHeaderEnricherParser());
+	public WebServiceHeaderEnricherParser() {
+		this.addElementToHeaderMapping("soap-action", WebServiceHeaders.SOAP_ACTION);
 	}
 
 }
