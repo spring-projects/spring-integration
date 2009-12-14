@@ -48,7 +48,7 @@ public class UnmarshallingTransformerParserTests {
 	@Before
 	public void setUp() {
 		appContext = new ClassPathXmlApplicationContext(
-				"XmlUnmarshallingTransformerParserTests-context.xml", this.getClass());
+				"UnmarshallingTransformerParserTests-context.xml", this.getClass());
 		unmarshaller = (StubUnmarshaller) appContext.getBean("unmarshaller");
 	}
 

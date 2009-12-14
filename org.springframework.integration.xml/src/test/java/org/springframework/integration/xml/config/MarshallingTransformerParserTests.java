@@ -47,7 +47,7 @@ public class MarshallingTransformerParserTests  {
 
 	@Before
 	public void setUp() {
-		this.appContext = new ClassPathXmlApplicationContext("XmlMarshallingTransformerParserTests-context.xml", getClass());
+		this.appContext = new ClassPathXmlApplicationContext("MarshallingTransformerParserTests-context.xml", getClass());
 		this.output = (PollableChannel) appContext.getBean("output");
 	}
 
