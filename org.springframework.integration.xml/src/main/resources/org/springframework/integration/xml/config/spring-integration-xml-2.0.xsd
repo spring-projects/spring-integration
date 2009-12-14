@@ -62,6 +62,14 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="extract-payload" type="xsd:string" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify whether to extract the payload before passing to the Marshaller. By default, this
+	value is "true". To have the full Message passed instead, set this to "false".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

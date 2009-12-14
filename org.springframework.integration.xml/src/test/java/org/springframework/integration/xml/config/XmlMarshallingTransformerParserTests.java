@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class XmlMarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong palyoad", "hello", doc.getDocumentElement().getTextContent());
+		assertEquals("Wrong payload", "hello", doc.getDocumentElement().getTextContent());
 	}
 	
 	@Test
@@ -71,7 +71,7 @@ public class XmlMarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof String);
 		String resultPayload = (String)result.getPayload();
-		assertEquals("Wrong palyoad", "testReturn", resultPayload);
+		assertEquals("Wrong payload", "testReturn", resultPayload);
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class XmlMarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type ", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong palyoad", "hello", doc.getDocumentElement().getTextContent());
+		assertEquals("Wrong payload", "hello", doc.getDocumentElement().getTextContent());
 	}
 
 	@Test
@@ -101,6 +101,18 @@ public class XmlMarshallingTransformerParserTests  {
 		input.send(message);
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof StubStringResult);
+	}
+
+	@Test
+	public void testFullMessage() throws Exception {
+		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerWithFullMessage");
+		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		input.send(message);
+		Message<?> result = output.receive(0);
+		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
+		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
+		String expected = "[Payload=hello][Headers=";		
+		assertEquals("Wrong payload", expected, doc.getDocumentElement().getTextContent().substring(0, expected.length()));
 	}
 
 }

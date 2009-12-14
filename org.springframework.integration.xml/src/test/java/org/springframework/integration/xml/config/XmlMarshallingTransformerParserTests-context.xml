@@ -46,8 +46,14 @@
 		input-channel="marshallingTransformerWithResultTransformer"
 		output-channel="output"
 		marshaller="marshaller"
-		result-transformer="resultTransformer">
-	</si-xml:marshalling-transformer>
+		result-transformer="resultTransformer" />
+
+	<si:channel id="marshallingTransformerWithFullMessage"/>
+	<si-xml:marshalling-transformer
+		input-channel="marshallingTransformerWithFullMessage"
+		output-channel="output"
+		extract-payload="false"
+		marshaller="marshaller" />
 
 	<bean id="marshaller" class="org.springframework.integration.xml.config.StubMarshaller" />
 

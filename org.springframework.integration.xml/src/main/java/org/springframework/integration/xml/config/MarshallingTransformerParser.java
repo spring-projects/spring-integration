@@ -46,6 +46,10 @@ public class MarshallingTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
+		String extractPayload = element.getAttribute("extract-payload");
+		if (StringUtils.hasText(extractPayload)) {
+			builder.addPropertyValue("extractPayload", extractPayload);
+		}
 		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
 	}
 
