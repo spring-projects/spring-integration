@@ -38,7 +38,7 @@ import org.springframework.xml.transform.StringResult;
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlMarshallingTransformerParserTests  {
+public class MarshallingTransformerParserTests  {
 
 	private ApplicationContext appContext;
 

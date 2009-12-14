@@ -38,7 +38,7 @@ import org.springframework.xml.transform.StringSource;
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlUnmarshallingTransformerParserTests {
+public class UnmarshallingTransformerParserTests {
 
 	private ApplicationContext appContext;
 
