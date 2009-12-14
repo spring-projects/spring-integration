@@ -38,12 +38,12 @@ import org.springframework.xml.transform.StringResult;
 /**
  * @author Mark Fisher
  */
-public class XmlPayloadMarshallingTransformerTests {
+public class MarshallingTransformerTests {
 
 	@Test
 	public void testStringToStringResult() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		transformer.setResultFactory(new StringResultFactory());
 		Message<?> resultMessage = transformer.transform(new StringMessage("world"));
 		Object resultPayload = resultMessage.getPayload();
@@ -55,7 +55,7 @@ public class XmlPayloadMarshallingTransformerTests {
 	@Test
 	public void testDefaultResultFactory() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		Message<?> resultMessage = transformer.transform(new StringMessage("world"));
 		Object resultPayload = resultMessage.getPayload();
 		assertEquals(DOMResult.class, resultPayload.getClass());
@@ -65,7 +65,7 @@ public class XmlPayloadMarshallingTransformerTests {
 	@Test
 	public void testMarshallingEntireMessage() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		transformer.setExtractPayload(false);
 		Message<?> message = new StringMessage("test");
 		transformer.transform(message);

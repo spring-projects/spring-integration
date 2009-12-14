@@ -24,8 +24,8 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class IntegrationXmlNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		registerBeanDefinitionParser("marshalling-transformer", new XmlMarshallingTransformerParser());
-		registerBeanDefinitionParser("unmarshalling-transformer", new XmlUnmarshallingTransformerParser());
+		registerBeanDefinitionParser("marshalling-transformer", new MarshallingTransformerParser());
+		registerBeanDefinitionParser("unmarshalling-transformer", new UnmarshallingTransformerParser());
 		registerBeanDefinitionParser("xslt-transformer", new XsltPayloadTransformerParser());
 		registerBeanDefinitionParser("xpath-router", new XPathRouterParser());
 		registerBeanDefinitionParser("xpath-selector", new XPathSelectorParser());

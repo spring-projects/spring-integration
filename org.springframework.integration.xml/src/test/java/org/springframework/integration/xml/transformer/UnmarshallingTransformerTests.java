@@ -36,12 +36,12 @@ import org.springframework.xml.transform.StringSource;
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlPayloadUnmarshallingTransformerTests {
+public class UnmarshallingTransformerTests {
 
 	@Test
 	public void testStringSourceToString() {
 		Unmarshaller unmarshaller = new TestUnmarshaller(false);
-		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
+		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload(new StringSource("world"));
 		assertEquals(String.class, transformed.getClass());
 		assertEquals("hello world", transformed.toString());
@@ -50,7 +50,7 @@ public class XmlPayloadUnmarshallingTransformerTests {
 	@Test
 	public void testMessageReturnValue() {
 		Unmarshaller unmarshaller = new TestUnmarshaller(true);
-		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
+		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload(new StringSource("foo"));
 		assertEquals(StringMessage.class, transformed.getClass());
 		assertEquals("message: foo", ((StringMessage) transformed).getPayload());
@@ -59,7 +59,7 @@ public class XmlPayloadUnmarshallingTransformerTests {
 	@Test
 	public void testMessageReturnValueFromTopLevel() {
 		Unmarshaller unmarshaller = new TestUnmarshaller(true);
-		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
+		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Message<?> result = transformer.transform(MessageBuilder.withPayload(new StringSource("bar")).build());
 		assertNotNull(result);
 		assertEquals("message: bar", result.getPayload());

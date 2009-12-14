@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,31 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlUnmarshallingTransformerParser extends AbstractTransformerParser {
+public class MarshallingTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected String getTransformerClassName() {
-		return "org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer";
+		return "org.springframework.integration.xml.transformer.MarshallingTransformer";
 	}
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String unmarshaller = element.getAttribute("unmarshaller");
-		Assert.hasText(unmarshaller, "the 'unmarshaller' attribute is required");
-		builder.addConstructorArgReference(unmarshaller);
+		String resultTransformer = element.getAttribute("result-transformer");
+		String resultFactory = element.getAttribute("result-factory");
+		String resultType = element.getAttribute("result-type");
+		String marshaller = element.getAttribute("marshaller");
+		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
+		builder.addConstructorArgReference(marshaller);
+		if (StringUtils.hasText(resultTransformer)) {
+			builder.addConstructorArgReference(resultTransformer);
+		}
+		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
 	}
 
 }

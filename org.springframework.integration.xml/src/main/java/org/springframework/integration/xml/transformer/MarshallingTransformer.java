@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class XmlPayloadMarshallingTransformer extends AbstractTransformer {
+public class MarshallingTransformer extends AbstractTransformer {
 
 	private final Marshaller marshaller;
 
@@ -46,7 +46,7 @@ public class XmlPayloadMarshallingTransformer extends AbstractTransformer {
 	private volatile boolean extractPayload = true;
 
 
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer)
+	public MarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer)
 			throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
@@ -54,7 +54,7 @@ public class XmlPayloadMarshallingTransformer extends AbstractTransformer {
 		this.resultFactory = new DomResultFactory();
 	}
 
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
+	public MarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
 		this(marshaller, null);
 	}
 

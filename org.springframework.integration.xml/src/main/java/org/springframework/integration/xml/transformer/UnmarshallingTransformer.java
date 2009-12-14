@@ -47,7 +47,7 @@ import org.springframework.xml.transform.StringSource;
  * 
  * @author Jonas Partner
  */
-public class XmlPayloadUnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
+public class UnmarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 
 	private volatile boolean alwaysUseSourceFactory = false;
 
@@ -56,7 +56,7 @@ public class XmlPayloadUnmarshallingTransformer extends AbstractPayloadTransform
 	private volatile SourceFactory sourceFactory = new DomSourceFactory();
 
 
-	public XmlPayloadUnmarshallingTransformer(Unmarshaller unmarshaller) {
+	public UnmarshallingTransformer(Unmarshaller unmarshaller) {
 		this.unmarshaller = unmarshaller;
 	}
 
