@@ -25,22 +25,22 @@
 		<title>Transforming xml payloads</title>
 	<para>
 			This section will explain the workings of
-			<classname>XmlPayloadUnmarshallingTransformer</classname>,
-			<classname>XmlPayloadMarshallingTransformer</classname>,
+			<classname>UnmarshallingTransformer</classname>,
+			<classname>MarshallingTransformer</classname>,
 			<classname>XsltPayloadTransformer</classname>
 			and how to configure them as
 			<emphasis>beans</emphasis>.  All of the provided xml transformers extend 
-			<classname>AbstractPayloadTransformer</classname> and therefore implement 
-			<interfacename>Transformer</interfacename>.  When configuring xml transformers as beans in 
-			Spring Integration you would normally configure the transformer in conjunction with either 
-			a <classname>MessageTransformingChannelInterceptor</classname> or a 
+			<classname>AbstractTransformer</classname> or <classname>AbstractPayloadTransformer</classname>
+			and therefore implement <interfacename>Transformer</interfacename>.  When configuring xml
+			transformers as beans in Spring Integration you would normally configure the transformer
+			in conjunction with either a <classname>MessageTransformingChannelInterceptor</classname> or a 
 			<classname>MessageTransformingHandler</classname>.  This allows the transformer to be used as either an interceptor,
 			which transforms the message as it is sent or received to the channel, or as an endpoint.  Finally the 
 			namespace support will be discussed which allows for the simple configuration of the transformers as 
 			elements in XML.
 		</para>
 		<para>
-			<classname>XmlPayloadUnmarshallingTransformer</classname> allows an xml <interfacename>Source</interfacename> 
+			<classname>UnmarshallingTransformer</classname> allows an xml <interfacename>Source</interfacename> 
 			to be unmarshalled using implementations of Spring OXM <interfacename>Unmarshaller</interfacename>.  
 			Spring OXM provides several implementations supporting marshalling and unmarshalling using JAXB, 
 			Castor and JiBX amongst others.  Since the unmarshaller requires an instance of 
@@ -50,7 +50,7 @@
 			<interfacename>Source</interfacename> is also supported by injecting an implementation of 
 			<interfacename>SourceFactory</interfacename>.
 			<programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer"
-      class="org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer">
+      class="org.springframework.integration.xml.transformer.UnmarshallingTransformer">
     <constructor-arg>
         <bean class="org.springframework.oxm.jaxb.Jaxb1Marshaller">
 		    <property name="contextPath" value="org.example" />
@@ -59,16 +59,16 @@
 </bean>]]></programlisting>
 		</para>	
 		<para>
-			The <classname>XmlPayloadMarshallingTransformer</classname> allows an object graph to be converted 
+			The <classname>MarshallingTransformer</classname> allows an object graph to be converted 
 			into xml using a Spring OXM <interfacename>Marshaller</interfacename>.  By default the 
-			<classname>XmlPayloadMarshallingTransformer</classname> will return a <classname>DomResult</classname>.  
+			<classname>MarshallingTransformer</classname> will return a <classname>DomResult</classname>.  
 			However the type of result can be controlled by configuring an alternative <interfacename>ResultFactory</interfacename> 
 			such as <classname>StringResultFactory</classname>.  In many cases it will be more convenient to transform 
 			the payload into an alternative xml format.  To achieve this configure a 
 			<interfacename>ResultTransformer</interfacename>.  Two implementations are provided, one which converts to 
 			<classname>String</classname> and another which converts to <interfacename>Document</interfacename>.
 			<programlisting language="xml"><![CDATA[<bean id="marshallingTransformer"
-      class="org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer">
+      class="org.springframework.integration.xml.transformer.MarshallingTransformer">
     <constructor-arg>
         <bean class="org.springframework.oxm.jaxb.Jaxb1Marshaller">
             <property name="contextPath" value="org.example" />
@@ -78,6 +78,15 @@
         <bean class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer" />
     </constructor-arg>
 </bean>]]></programlisting>			
+		</para>
+		<para>
+			By default, the <classname>MarshallingTransformer</classname> will pass the payload Object
+			to the <interfacename>Marshaller</interfacename>, but if its boolean "extractPayload" property
+			is set to "false", the entire <interfacename>Message</interfacename> instance will be passed
+			to the <interfacename>Marshaller</interfacename> instead. That may be useful for certain custom
+			implementations of the <interfacename>Marshaller</interfacename> interface, but typically the
+			payload is the appropriate source Object for marshalling when delegating to any of the various
+			out-of-the-box <interfacename>Marshaller</interfacename> implementations.
 		</para>
 		<para>
 			<classname>XsltPayloadTransformer</classname> transforms xml payloads using xsl.
@@ -119,9 +128,9 @@
            http://www.springframework.org/schema/integration/xml
            http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
 </beans>]]></programlisting>
-		The namespace support for <classname>XmlPayloadUnmarshallingTransformer</classname> is shown below.
-		Since the namespace is now creating an instance of <interfacename>MessageEndpoint</interfacename> rather 
-		than a transformer a poller can also be nested within the element to control the polling of the input channel.  
+		The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
+		Since the namespace is now creating an endpoint instance rather than a transformer,
+		a poller can also be nested within the element to control the polling of the input channel.  
 		<programlisting language="xml"><![CDATA[<si-xml:unmarshalling-transformer id="defaultUnmarshaller"
     input-channel="input"
     output-channel="output"
@@ -377,8 +386,6 @@
     </si:poller>
 </si-xml:xpath-router>]]></programlisting>
 		</para>
-	
-		
 	</section>
 	
 </chapter>
