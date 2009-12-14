@@ -16,23 +16,16 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.file.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
-import org.junit.Test;
-
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.file.AbstractFileListFilter;
-import org.springframework.integration.file.AcceptOnceFileListFilter;
-import org.springframework.integration.file.CompositeFileListFilter;
-import org.springframework.integration.file.FileListFilter;
-import org.springframework.integration.file.PatternMatchingFileListFilter;
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher

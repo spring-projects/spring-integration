@@ -9,4 +9,5 @@ Import-Template:
  org.springframework.context;version="[3.0.0, 4.0.0)",
  org.springframework.core.*;version="[3.0.0, 4.0.0)",
  org.springframework.util;version="[3.0.0, 4.0.0)",
+ org.springframework.util.xml;version="[3.0.0, 4.0.0)",
  org.w3c.dom.*;version="0"

@@ -16,15 +16,14 @@
 
 package org.springframework.integration.file.locking;
 
-import org.springframework.integration.file.AbstractFileListFilter;
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.file.FileReadingMessageSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileLock;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * File locking strategy that uses java.nio. The locks taken by FileChannel are
@@ -41,11 +40,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NioFileLocker extends AbstractFileListFilter implements FileLocker {
+public class NioFileLocker extends BaseLockingFilter {
 
 	private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<File, FileLock>();
 
-	/**
+    /**
 	 * {@inheritDoc}
 	 * 
 	 */
@@ -79,9 +78,4 @@ public class NioFileLocker extends AbstractFileListFilter implements FileLocker 
 					+ fileToUnlock, e);
 		}
 	}
-
-	protected boolean accept(File file) {
-		return this.lock(file);
-	}
-
 }

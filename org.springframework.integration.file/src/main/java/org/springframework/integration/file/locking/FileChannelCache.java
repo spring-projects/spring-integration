@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * Static cache of FileLocks that can be used to ensure that only a single lock is used inside this ClassLoader.
+ *
  * @author Iwein Fuld
  * @since 2.0
  */
@@ -38,7 +40,7 @@ final class FileChannelCache {
      * Try to get a lock for this file while guaranteeing that the same channel will be used for all file locks in this
      * VM. If the lock could not be acquired this method will return <code>null</code>.
      * <p/>
-     * Locks acquired through this method should be passed back to #closeChannelFor to prevent memory leak.
+     * Locks acquired through this method should be passed back to #closeChannelFor to prevent memory leaks.
      * <p/>
      * Thread safe.
      */

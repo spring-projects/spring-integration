@@ -17,11 +17,11 @@
 package org.springframework.integration.file.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.locking.BaseLockingFilter;
 
 import java.io.File;
 import java.util.Comparator;
@@ -31,92 +31,96 @@ import java.util.Comparator;
  * @author Iwein Fuld
  * @since 1.0.3
  */
-public class FileReadingMessageSourceFactoryBean implements FactoryBean, ResourceLoaderAware {
+public class FileReadingMessageSourceFactoryBean implements FactoryBean {
 
-	private volatile FileReadingMessageSource source;
+    private volatile FileReadingMessageSource source;
 
-	private volatile ResourceLoader resourceLoader;
+    private volatile File directory;
 
-	private volatile File directory;
+    private volatile FileListFilter filter;
 
-	private volatile FileListFilter filter;
+    private volatile BaseLockingFilter locker;
 
-	private volatile Comparator<File> comparator;
+    private volatile Comparator<File> comparator;
 
     private volatile DirectoryScanner scanner;
 
-	private volatile Boolean scanEachPoll;
+    private volatile Boolean scanEachPoll;
 
-	private volatile Boolean autoCreateDirectory;
+    private volatile Boolean autoCreateDirectory;
 
-	private final Object initializationMonitor = new Object();
+    private final Object initializationMonitor = new Object();
 
+    public void setDirectory(File directory) {
+        this.directory = directory;
+    }
 
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
-
-	public void setDirectory(File directory) {
-		this.directory = directory;
-	}
-
-	public void setComparator(Comparator<File> comparator) {
-		this.comparator = comparator;
-	}
+    public void setComparator(Comparator<File> comparator) {
+        this.comparator = comparator;
+    }
 
     public void setScanner(DirectoryScanner scanner) {
         this.scanner = scanner;
     }
 
     public void setFilter(FileListFilter filter) {
-		this.filter = filter;
-	}
+        this.filter = filter;
+    }
 
-	public void setScanEachPoll(Boolean scanEachPoll) {
-		this.scanEachPoll = scanEachPoll;
-	}
+    public void setScanEachPoll(Boolean scanEachPoll) {
+        this.scanEachPoll = scanEachPoll;
+    }
 
-	public void setAutoCreateDirectory(Boolean autoCreateDirectory) {
-		this.autoCreateDirectory = autoCreateDirectory;
-	}
+    public void setAutoCreateDirectory(Boolean autoCreateDirectory) {
+        this.autoCreateDirectory = autoCreateDirectory;
+    }
 
-	public Object getObject() throws Exception {
-		if (this.source == null) {
-			initSource();
-		}
-		return this.source;
-	}
+    public void setLocker(BaseLockingFilter locker) {
+        this.locker = locker;
+    }
 
-	public Class<?> getObjectType() {
-		return FileReadingMessageSource.class;
-	}
+    public Object getObject() throws Exception {
+        if (this.source == null) {
+            initSource();
+        }
+        return this.source;
+    }
 
-	public boolean isSingleton() {
-		return true;
-	}
+    public Class<?> getObjectType() {
+        return FileReadingMessageSource.class;
+    }
 
-	private void initSource() {
-		synchronized (this.initializationMonitor) {
-			if (this.source != null) {
-				return;
-			}
-			this.source = (this.comparator != null) ?
-					new FileReadingMessageSource(this.comparator) : new FileReadingMessageSource();
-			this.source.setDirectory(this.directory);
-			if (this.filter != null) {
-				this.source.setFilter(this.filter);
-			}
-			if (this.scanEachPoll != null) {
-				this.source.setScanEachPoll(this.scanEachPoll);
-			}
-			if (this.autoCreateDirectory != null) {
-				this.source.setAutoCreateDirectory(this.autoCreateDirectory);
-			}
+    public boolean isSingleton() {
+        return true;
+    }
+
+    private void initSource() {
+        synchronized (this.initializationMonitor) {
+            if (this.source != null) {
+                return;
+            }
+            this.source = (this.comparator != null) ?
+                    new FileReadingMessageSource(this.comparator) : new FileReadingMessageSource();
+            this.source.setDirectory(this.directory);
+            if (this.filter != null) {
+                if (this.locker == null) {
+                    this.source.setFilter(this.filter);
+                } else {
+                    this.source.setFilter(new CompositeFileListFilter(this.filter, this.locker));
+                    this.source.setLocker(locker);
+                }
+            }
+            if (this.scanEachPoll != null) {
+                this.source.setScanEachPoll(this.scanEachPoll);
+            }
+            if (this.autoCreateDirectory != null) {
+                this.source.setAutoCreateDirectory(this.autoCreateDirectory);
+            }
             if (this.scanner != null) {
                 this.source.setScanner(this.scanner);
             }
-			this.source.afterPropertiesSet();
-		}
-	}
+            this.source.afterPropertiesSet();
+        }
+    }
 
 }

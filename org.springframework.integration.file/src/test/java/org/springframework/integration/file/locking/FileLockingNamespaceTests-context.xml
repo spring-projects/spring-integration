@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:si="http://www.springframework.org/schema/integration"
+       xmlns:file="http://www.springframework.org/schema/integration/file"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/file
+			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+
+    <!-- under test -->
+    <file:inbound-channel-adapter id="customLockingAdapter" directory="#{directory.root}">
+        <file:locker ref="customLocker"/>
+    </file:inbound-channel-adapter>
+
+    <file:inbound-channel-adapter id="nioLockingAdapter" directory="#{directory.root}">
+        <file:nio-locker/>
+    </file:inbound-channel-adapter>
+
+    <bean id="customLocker" class="org.springframework.integration.file.locking.FileLockingNamespaceTests$StubLocker"/>
+
+    <bean id="directory" class="org.junit.rules.TemporaryFolder" init-method="create" destroy-method="delete"/>
+
+    <si:poller default="true">
+        <si:interval-trigger interval="100000000"/>
+    </si:poller>
+
+</beans>

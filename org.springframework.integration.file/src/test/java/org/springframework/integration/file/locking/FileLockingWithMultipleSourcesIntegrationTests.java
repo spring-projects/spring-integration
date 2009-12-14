@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.file.locking;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,11 +22,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.file.FileReadingMessageSource;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 /**
  * @author Iwein Fuld
@@ -50,9 +51,14 @@ public class FileLockingWithMultipleSourcesIntegrationTests {
     @Autowired
     @Qualifier("fileSource1")
     private FileReadingMessageSource fileSource1;
+
     @Autowired
     @Qualifier("fileSource2")
     private FileReadingMessageSource fileSource2;
+
+    @Autowired
+    @Qualifier("fileSource2")
+    private FileReadingMessageSource fileSource3;
 
     @Before
     public void cleanoutWorkDir() {
@@ -62,10 +68,20 @@ public class FileLockingWithMultipleSourcesIntegrationTests {
     }
 
     @Test
-    public void filePickedUpOnlyOnce() throws IOException {
+    public void filePickedUpOnceWithDistinctFilters() throws IOException {
         File testFile = new File(workdir, "test");
         testFile.createNewFile();
         assertThat(fileSource1.receive(), hasPayload(testFile));
         assertThat(fileSource2.receive(), nullValue());
+        FileChannelCache.closeChannelFor(testFile);
+    }
+
+    @Test
+    public void filePickedUpTwiceWithSharedFilter() throws Exception {
+        File testFile = new File(workdir, "test");
+        testFile.createNewFile();
+        assertThat(fileSource1.receive(), hasPayload(testFile));
+        assertThat(fileSource3.receive(), hasPayload(testFile));
+        FileChannelCache.closeChannelFor(testFile);
     }
 }

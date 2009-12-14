@@ -5,13 +5,13 @@
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context-2.5.xsd
+			http://www.springframework.org/schema/context/spring-context.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/file
-			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
+			http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<si:channel id="copyInput" />
 
@@ -32,6 +32,7 @@
 		directory="${java.io.tmpdir}/anyDir" 
 		delete-source-files="true"/>
 
-	<context:property-placeholder />
+	<!--suppress SpringModelInspection -->
+    <context:property-placeholder />
 
 </beans:beans>

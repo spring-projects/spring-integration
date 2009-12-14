@@ -16,29 +16,14 @@
 
 package org.springframework.integration.channel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnit44Runner;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
@@ -50,19 +35,28 @@ import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.*;
+
 /**
  * @author Oleg Zhurakousky
  */
-@RunWith(MockitoJUnit44Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class MixedDispatcherConfigurationScenarioTests {
 
 	private static final int TOTAL_EXECUTIONS = 40;
 
 	private ThreadPoolTaskExecutor scheduler = new ThreadPoolTaskExecutor();
 
-	private  CountDownLatch allDone;
-	private   CountDownLatch start;
-	private   AtomicBoolean failed;
+    private CountDownLatch allDone;
+    private CountDownLatch start;
+    private AtomicBoolean failed;
 
 	@Mock
 	private  List<Exception> exceptionRegistry;
@@ -83,7 +77,8 @@ public class MixedDispatcherConfigurationScenarioTests {
 
 	@Before
 	public void initialize() throws Exception {
-		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",MixedDispatcherConfigurationScenarioTests.class);
+		ac = new ClassPathXmlApplicationContext("MixedDispatcherConfigurationScenarioTests-context.xml",
+                MixedDispatcherConfigurationScenarioTests.class);
 		allDone = new CountDownLatch(TOTAL_EXECUTIONS);
 		start = new CountDownLatch(1);
 		failed = new AtomicBoolean(false);

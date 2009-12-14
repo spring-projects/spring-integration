@@ -8,15 +8,18 @@
     <!-- under test -->
     <bean id="fileSource1" class="org.springframework.integration.file.FileReadingMessageSource"
           p:directory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
-           p:filter-ref="filter"/>
+           p:filter-ref="filter1"/>
+
     <bean id="fileSource2" class="org.springframework.integration.file.FileReadingMessageSource"
           p:directory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
-           p:filter-ref="filter"/>
+           p:filter-ref="filter2"/>
 
-    
-    <bean id="filter" class="org.springframework.integration.file.locking.LockFileFileListFilter">
-        <constructor-arg value="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"/>
-    </bean>
+    <bean id="fileSource3" class="org.springframework.integration.file.FileReadingMessageSource"
+          p:directory="file:${java.io.tmpdir}/FileLockingWithMultipleSourcesIntegrationTests"
+           p:filter-ref="filter1"/>
+
+    <bean id="filter1" class="org.springframework.integration.file.locking.NioFileLocker"/>
+    <bean id="filter2" class="org.springframework.integration.file.locking.NioFileLocker"/>
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
