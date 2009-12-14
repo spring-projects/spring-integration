@@ -371,9 +371,11 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	@SuppressWarnings("unchecked")
 	private boolean canConvertToType(Object value, Class targetType) {
-		return conversionService.canConvert(value.getClass(), targetType) ||
-			   (value instanceof String && ((String)value).indexOf("=") > 0); // to address payload String "foo=bar" 
-																			  // mapping to Properties/Map
+		if (value instanceof String && Map.class.isAssignableFrom(targetType)) {
+			// to address payload String "foo=bar" mapping to Properties/Map
+			return ((String) value).indexOf("=") > 0;
+		}
+		return conversionService.canConvert(value.getClass(), targetType);
 	}
 
 	@SuppressWarnings("unchecked")
