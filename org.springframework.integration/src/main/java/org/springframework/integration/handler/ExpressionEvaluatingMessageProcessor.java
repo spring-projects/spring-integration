@@ -21,8 +21,8 @@ import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParserConfiguration;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
@@ -36,25 +36,20 @@ import org.springframework.integration.message.MessageHandlingException;
  */
 public class ExpressionEvaluatingMessageProcessor implements MessageProcessor {
 
-	/*private final ExpressionParser parser = new SpelExpressionParser(
-			SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
-			SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
-	*/
+	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private final Expression expression;
 
 
 	public ExpressionEvaluatingMessageProcessor(String expression) {
 		try {
-			ExpressionParser parser = new SpelExpressionParser(
-					SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
-					SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
 			this.expression = parser.parseExpression(expression);
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);
 		}
 	}
+
 
 	public Object processMessage(Message<?> message) {
 		StandardEvaluationContext context = new StandardEvaluationContext(message);

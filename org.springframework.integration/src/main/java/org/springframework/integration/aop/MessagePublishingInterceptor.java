@@ -29,8 +29,8 @@ import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
+import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParserConfiguration;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
@@ -55,9 +55,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private final ExpressionSource expressionSource;
 
-	private final ExpressionParser parser = new SpelExpressionParser(
-			SpelExpressionParserConfiguration.CreateObjectIfAttemptToReferenceNull |
-			SpelExpressionParserConfiguration.GrowListsOnIndexBeyondSize);
+	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private volatile ChannelResolver channelResolver;
 

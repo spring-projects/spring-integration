@@ -31,7 +31,6 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.ConversionServiceFactory;
@@ -331,7 +330,6 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	@SuppressWarnings("unchecked") 
 	private Object getValueFromMessageBasedOnEL(Message message, Class targetType, boolean rethrowException, String... expressions) {
 		Object value = null;
-		targetType = new TypeDescriptor(targetType).getObjectType(); //converts primitives to Object wrappers
 		for (String expression : expressions) {
 			StandardEvaluationContext context = new StandardEvaluationContext(message);
 			context.setTypeConverter(new StandardTypeConverter(conversionService));
@@ -339,7 +337,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				Expression exp = expressionParser.parseExpression(expression); 
 				context.addPropertyAccessor(new MapAccessor());	
 				value = exp.getValue(context);
-				if (value != null && this.canConvertToType(value, targetType)) {
+				if (value != null && conversionService.canConvert(value.getClass(), targetType)) {
 					// to accommodate Map->Properties conversion
 					value = expression.equals("headers") ? conversionService.convert(value, targetType) : value;
 					break;
@@ -367,15 +365,6 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 			parameterList.add(methodParameter);
 		}
 		return parameterList;
-	}
-
-	@SuppressWarnings("unchecked")
-	private boolean canConvertToType(Object value, Class targetType) {
-		if (value instanceof String && Map.class.isAssignableFrom(targetType)) {
-			// to address payload String "foo=bar" mapping to Properties/Map
-			return ((String) value).indexOf("=") > 0;
-		}
-		return conversionService.canConvert(value.getClass(), targetType);
 	}
 
 	@SuppressWarnings("unchecked")
