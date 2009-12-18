@@ -13,8 +13,8 @@
   <properties>
     <org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
     <junit.version>4.7</junit.version>
-    <spring.version>3.0.0.RC3</spring.version>
-	<maven.test.failure.ignore>true</maven.test.failure.ignore>
+    <spring.version>3.0.0.RELEASE</spring.version>
+    <maven.test.failure.ignore>true</maven.test.failure.ignore>
   </properties>
   <profiles>
     <profile>
