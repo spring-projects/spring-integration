@@ -17,10 +17,11 @@
       a MailMessage instance, it will be sent directly. Therefore, it is generally recommended to precede this
       consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple
       Message mapping strategies are supported out-of-the-box. For example, if the message payload is a byte array,
-      then that will be mapped to an attachment. If the payload is neither a MailMessage or byte array, then a
-      MailMessage will be created with text content corresponding to the value returned from the Spring Integration
-      Message payload's <methodname>toString()</methodname> method. For simple text-based emails, simply provide a
-      String-based Message payload.
+      then that will be mapped to an attachment. For simple text-based emails, you can provide a String-based
+      Message payload. In that case, a MailMessage will be created with that String as the text content. If you
+      are working with a Message payload type whose toString() method returns appropriate mail text content, then
+      consider adding Spring Integration's <emphasis>ObjectToStringTransformer</emphasis> prior to the outbound 
+      Mail adapter (see the example within <xref linkend="transformer-namespace"/> for more detail).
     </para>
     <para>
       The outbound MailMessage may also be configured with certain values from the
