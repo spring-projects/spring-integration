@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
@@ -30,6 +31,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -105,14 +107,17 @@ public class MethodInvokingMessageProcessorTests {
 
     @Test
     public void testVoidMethodsExcludedByFlag() {
+    	Exception exception = null;
         MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods", true);
         assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
         try {
-            assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
+        	processor.processMessage(MessageBuilder.withPayload("Something").build());
             fail();
-        } catch(IllegalArgumentException ex){
-
         }
+        catch(IllegalArgumentException ex) {
+        	exception = ex;
+        }
+        assertNotNull(exception);
     }
 
 	@Test
@@ -142,13 +147,12 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals(new Integer(456), result);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void conversionFailureWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Object result = processor.processMessage(new StringMessage("foo"));
-		assertEquals(new Integer(123), result);
+		processor.processMessage(new StringMessage("foo"));
 	}
 
 	@Test

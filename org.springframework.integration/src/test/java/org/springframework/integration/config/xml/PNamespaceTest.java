@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,7 +31,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * Validates the "p:namespace" is working for inner "bean" definition within SI components.
  * 
  * @author Oleg Zhurakousky
- * 
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -81,9 +81,9 @@ public class PNamespaceTest {
 		DirectFieldAccessor saAccessor = new DirectFieldAccessor(serviceActivator);
 		Object handler =  saAccessor.getPropertyValue("handler");
 		DirectFieldAccessor hAccessor = new DirectFieldAccessor(handler);
-		Object invoker =  hAccessor.getPropertyValue("processor");
-		DirectFieldAccessor iAccessor = new DirectFieldAccessor(invoker);
-		return  (TestBean) iAccessor.getPropertyValue("object");
+		Object processor =  hAccessor.getPropertyValue("processor");
+		DirectFieldAccessor pAccessor = new DirectFieldAccessor(processor);
+		return  (TestBean) pAccessor.getPropertyValue("targetObject");
 	}
 	
 	public interface InboundGateway{

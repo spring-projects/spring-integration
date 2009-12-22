@@ -433,31 +433,9 @@ public class PayloadAndHeaderMappingTests {
 		//assertFalse(bean.lastHeaders.containsKey("baz"));
 	}
 
-	@Test
-	public void twoMapsNoAnnotationsWithStringPayload() throws Exception {
-		MessageHandler handler = this.getHandler("twoMapsNoAnnotations", Map.class, Map.class);
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", "1");
-		headers.put("bar", "2");
-		Message<?> message = MessageBuilder.withPayload("test").copyHeaders(headers).build();
-		handler.handleMessage(message);
-		assertNull(bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
-	}
-
-	@Test(expected = MessageHandlingException.class)
-	public void twoMapsNoAnnotationsWithMapPayload() throws Exception {
-		MessageHandler handler = this.getHandler("twoMapsNoAnnotations", Map.class, Map.class);
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", "1");
-		headers.put("bar", "2");
-		Map<String, Object> payloadMap = new HashMap<String, Object>();
-		payloadMap.put("baz", "99");
-		Message<?> message = MessageBuilder.withPayload(payloadMap).copyHeaders(headers).build();
-		handler.handleMessage(message);
+	@Test(expected = IllegalArgumentException.class)
+	public void twoMapsNoAnnotations() throws Exception {
+		this.getHandler("twoMapsNoAnnotations", Map.class, Map.class);
 	}
 
 	@Test
@@ -475,7 +453,6 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals("2", bean.lastHeaders.get("bar2"));
 	}
 
-	//@Test(expected = MessageHandlingException.class)
 	@Test
 	public void twoMapsWithAnnotationsWithMapPayload() throws Exception {
 		MessageHandler handler = this.getHandler("twoMapsWithAnnotations", Map.class, Map.class);
@@ -493,39 +470,15 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals(null, bean.lastHeaders.get("baz"));
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void twoMapsNoAnnotationsAndObject() throws Exception {
-		MessageHandler handler = this.getHandler("twoMapsNoAnnotationsAndObject",
-				Map.class, Object.class, Map.class);
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", "1");
-		headers.put("bar", "2");
-		Message<?> message = MessageBuilder.withPayload("test").copyHeaders(headers).build();
-		handler.handleMessage(message);
-		assertEquals("test", bean.lastPayload);
-		assertEquals("1", bean.lastHeaders.get("foo"));
-		assertEquals("2", bean.lastHeaders.get("bar"));
-		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
-	}
-
-	@Test(expected = MessageHandlingException.class)
-	public void twoMapsNoAnnotationsAndObjectWithMapPayload() throws Exception {
-		MessageHandler handler = this.getHandler("twoMapsNoAnnotationsAndObject",
-				Map.class, Object.class, Map.class);
-		Map<String, Integer> payloadMap = new HashMap<String, Integer>();
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", "1");
-		headers.put("bar", "2");
-		Message<?> message = MessageBuilder.withPayload(payloadMap)
-				.copyHeaders(headers).build();
-		handler.handleMessage(message);
+		this.getHandler("twoMapsNoAnnotationsAndObject", Map.class, Object.class, Map.class);
 	}
 
 	@Test
-	public void twoMapsNoAnnotationsAndAnnotatedString() throws Exception {
-		MessageHandler handler = this.getHandler("twoMapsNoAnnotationsAndAnnotatedString",
-				Map.class, Map.class, String.class);
+	public void mapAndAnnotatedStringHeaderWithStringPayload() throws Exception {
+		MessageHandler handler = this.getHandler(
+				"mapAndAnnotatedStringHeaderExpectingMapAsHeaders", Map.class, String.class);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("foo", "1");
 		headers.put("bar", "2");
@@ -536,8 +489,24 @@ public class PayloadAndHeaderMappingTests {
 		assertEquals("1", bean.lastHeaders.get("foo"));
 		assertEquals("2", bean.lastHeaders.get("bar"));
 		assertEquals("1", bean.lastHeaders.get("foo2"));
-		assertEquals("2", bean.lastHeaders.get("bar2"));
-		assertEquals("1", bean.lastHeaders.get("foo3"));
+	}
+
+	@Test
+	public void mapAndAnnotatedStringHeaderWithMapPayload() throws Exception {
+		MessageHandler handler = this.getHandler(
+				"mapAndAnnotatedStringHeaderExpectingMapAsPayload", Map.class, String.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("test", "0");
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "1");
+		headers.put("bar", "2");
+		Message<?> message = MessageBuilder.withPayload(payload)
+				.copyHeaders(headers).build();
+		handler.handleMessage(message);
+		assertNotNull(bean.lastPayload);
+		assertEquals(payload, bean.lastPayload);
+		assertEquals("1", bean.lastHeaders.get("foo"));
+		assertNull(bean.lastHeaders.get("bar"));
 	}
 
 	@Test
@@ -690,7 +659,7 @@ public class PayloadAndHeaderMappingTests {
 	}
 
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "unused"})
 	private static class TestBean {
 
 		private volatile Map lastHeaders;
@@ -704,6 +673,11 @@ public class PayloadAndHeaderMappingTests {
 		}
 
 		public void stringPayloadAndHeaderProperties(String payload, Properties headers) {
+			this.lastHeaders = headers;
+			this.lastPayload = payload;
+		}
+
+		public void stringPayloadAndHeaderMap(String payload, Map headers) {
 			this.lastHeaders = headers;
 			this.lastPayload = payload;
 		}
@@ -789,10 +763,7 @@ public class PayloadAndHeaderMappingTests {
 		}
 
 		public void twoMapsNoAnnotations(Map map1, Map<Object, Object> map2) {
-			this.lastHeaders = new HashMap(map1);
-			for (Map.Entry<Object, Object> entry : map2.entrySet()) {
-				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
-			}
+			// invalid due to ambiguity (no @Payload or @Headers)
 		}
 
 		public void twoMapsWithAnnotations(@Headers Map map1, @Headers Map<Object, Object> map2) {
@@ -811,19 +782,17 @@ public class PayloadAndHeaderMappingTests {
 		}
 
 		public void twoMapsNoAnnotationsAndObject(Map map1, Object o, Map<Object, Object> map2) {
-			this.lastPayload = o;
-			this.lastHeaders = new HashMap(map1);
-			for (Map.Entry<Object, Object> entry : map2.entrySet()) {
-				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
-			}
+			// invalid due to ambiguity of Map parameters (no @Payload or @Headers)
 		}
 
-		public void twoMapsNoAnnotationsAndAnnotatedString(Map map1, Map<Object, Object> map2, @Header("foo") String s) {
-			this.lastHeaders = new HashMap(map1);
-			for (Map.Entry<Object, Object> entry : map2.entrySet()) {
-				this.lastHeaders.put(entry.getKey() + "2", entry.getValue());
-			}
-			this.lastHeaders.put("foo3", s);
+		public void mapAndAnnotatedStringHeaderExpectingMapAsHeaders(Map map, @Header("foo") String s) {
+			this.lastHeaders = new HashMap(map);
+			this.lastHeaders.put("foo2", s);
+		}
+
+		public void mapAndAnnotatedStringHeaderExpectingMapAsPayload(Map map, @Header("foo") String s) {
+			this.lastPayload = map;
+			this.lastHeaders = Collections.singletonMap("foo", s);
 		}
 
 		public void singleStringHeaderOnly(@Header("foo") String s) {

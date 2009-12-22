@@ -20,7 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.lang.reflect.Method;
-import java.util.Date;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -76,20 +75,20 @@ public class MethodInvokingTransformerTests {
 		assertEquals("123!", result.getPayload());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void typeConversionFailureConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<?> message = new GenericMessage<Date>(new Date());
+		Message<?> message = new GenericMessage<TestBean>(new TestBean());
 		transformer.transform(message);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void typeConversionFailureConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
-		Message<?> message = new GenericMessage<Date>(new Date());
+		Message<?> message = new GenericMessage<TestBean>(new TestBean());
 		transformer.transform(message);
 	}
 

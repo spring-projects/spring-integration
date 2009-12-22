@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,13 +34,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
-import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
+import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.handler.HandlerMethodResolver;
-import org.springframework.integration.handler.StaticHandlerMethodResolver;
 
 /**
  * @author Marius Bogoevici
@@ -112,14 +111,14 @@ public class AggregatorAnnotationTests {
         Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
         Assert.assertTrue(correlationStrategy instanceof CorrelationStrategyAdapter);
         CorrelationStrategyAdapter completionStrategyAdapter = (CorrelationStrategyAdapter) correlationStrategy;
-        DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(
+        DirectFieldAccessor processorAccessor = new DirectFieldAccessor(
                 new DirectFieldAccessor(completionStrategyAdapter).getPropertyValue("processor"));
-        Object targetObject = invokerAccessor.getPropertyValue("object");
+        Object targetObject = processorAccessor.getPropertyValue("targetObject");
         assertSame(context.getBean(endpointName), targetObject);
-        HandlerMethodResolver completionCheckerMethodResolver = (HandlerMethodResolver) invokerAccessor.getPropertyValue("methodResolver");
-        assertTrue(completionCheckerMethodResolver instanceof StaticHandlerMethodResolver);
-        DirectFieldAccessor resolverAccessor = new DirectFieldAccessor(completionCheckerMethodResolver);
-        Method completionCheckerMethod = (Method) resolverAccessor.getPropertyValue("method");
+        Map<?, ?> handlerMethods = (Map<?, ?>) processorAccessor.getPropertyValue("handlerMethods");
+        assertEquals(1, handlerMethods.size());
+        DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethods.values().iterator().next());
+        Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("method");
 		assertEquals("correlate", completionCheckerMethod.getName());                
     }
 
