@@ -118,9 +118,9 @@ public class SimpleHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	private void validateResponse(HttpURLConnection connection) throws IOException {
 		if (connection.getResponseCode() >= 300) {
 			throw new IOException(
-					"Did not receive successful HTTP response: status code = "
-							+ connection.getResponseCode() + ", status message = ["
-							+ connection.getResponseMessage() + "]");
+					"Did not receive successful HTTP response from [" + connection.getURL() +
+							"]: status code = " + connection.getResponseCode() +
+							", status message = [" + connection.getResponseMessage() + "]");
 		}
 	}
 
