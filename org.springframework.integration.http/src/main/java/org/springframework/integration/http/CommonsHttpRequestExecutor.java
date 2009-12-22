@@ -231,8 +231,9 @@ public class CommonsHttpRequestExecutor extends AbstractHttpRequestExecutor {
 	private void validateResponse(HttpMethod httpMethod) throws IOException {
 		if (httpMethod.getStatusCode() >= 300) {
 			throw new HttpException(
-					"Did not receive successful HTTP response: status code = " + httpMethod.getStatusCode() +
-					", status message = [" + httpMethod.getStatusText() + "]");
+ 					"Did not receive successful HTTP response from [" + httpMethod.getURI() +
+ 							"]: status code = " + httpMethod.getStatusCode() +
+ 							", status message = [" + httpMethod.getStatusText() + "]");
 		}
 	}
 
