@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,81 +35,98 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class PNamespaceTest {
+
 	@Autowired
 	@Qualifier("sa")
 	EventDrivenConsumer serviceActivator;
+
 	@Autowired
 	@Qualifier("sp")
 	EventDrivenConsumer splitter;	
+
 	@Autowired
 	@Qualifier("rt")
 	EventDrivenConsumer router;
+
 	@Autowired
 	@Qualifier("tr")
 	EventDrivenConsumer transformer;
-	
-	@Test
-	public void testPNamespaceServiceActivator(){	
-		TestBean bean =  prepare(serviceActivator);
 
+
+	@Test
+	public void testPNamespaceServiceActivator() {	
+		TestBean bean =  prepare(serviceActivator);
 		Assert.assertEquals("paris", bean.getFname());
 		Assert.assertEquals("hilton", bean.getLname());
 	}
+
 	@Test
-	public void testPNamespaceSplitter(){		
+	public void testPNamespaceSplitter() {		
 		TestBean bean =  prepare(splitter);
 
 		Assert.assertEquals("paris", bean.getFname());
 		Assert.assertEquals("hilton", bean.getLname());
 	}
+
 	@Test
-	public void testPNamespaceRouter(){		
+	public void testPNamespaceRouter() {
 		TestBean bean =  prepare(router);
 
 		Assert.assertEquals("paris", bean.getFname());
 		Assert.assertEquals("hilton", bean.getLname());
 	}
+
 	@Test
-	public void testPNamespaceTransformer(){		
+	public void testPNamespaceTransformer() {		
 		TestBean bean =  prepare(transformer);
 
 		Assert.assertEquals("paris", bean.getFname());
 		Assert.assertEquals("hilton", bean.getLname());
 	}
-	
-	private TestBean prepare(EventDrivenConsumer edc){
-		DirectFieldAccessor saAccessor = new DirectFieldAccessor(serviceActivator);
-		Object handler =  saAccessor.getPropertyValue("handler");
-		DirectFieldAccessor hAccessor = new DirectFieldAccessor(handler);
-		Object processor =  hAccessor.getPropertyValue("processor");
-		DirectFieldAccessor pAccessor = new DirectFieldAccessor(processor);
-		return  (TestBean) pAccessor.getPropertyValue("targetObject");
+
+
+	private TestBean prepare(EventDrivenConsumer edc) {
+		DirectFieldAccessor serviceActivatorAccessor = new DirectFieldAccessor(serviceActivator);
+		Object handler =  serviceActivatorAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		Object processor =  handlerAccessor.getPropertyValue("processor");
+		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(processor);
+		return  (TestBean) processorAccessor.getPropertyValue("targetObject");
 	}
-	
-	public interface InboundGateway{
+
+
+	public interface InboundGateway {
 		public String echo();
 	}
-	
-	public static class TestBean{
+
+
+	public static class TestBean {
+
 		private String fname;
+
 		private String lname;
+
 		public String getFname() {
 			return fname;
 		}
+
 		public void setFname(String fname) {
 			this.fname = fname;
 		}
+
 		public String getLname() {
 			return lname;
 		}
+
 		public void setLname(String lname) {
 			this.lname = lname;
 		}
 		
-		public String printWithPrefix(String prefix){
+		public String printWithPrefix(String prefix) {
 			return prefix + fname + " " + lname;
 		}
-		public String toString(){
+
+		public String toString() {
 			return fname + lname;
 		}
 	}
