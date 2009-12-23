@@ -100,7 +100,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		HandlerMethod handlerMethod = new HandlerMethod(method);
 		this.targetObject = targetObject;
 		this.handlerMethods = Collections.<Class<?>, HandlerMethod>singletonMap(handlerMethod.getTargetParameterType(), handlerMethod);
-		this.evaluationContext = this.createEvaluationContext(targetObject);
+		this.evaluationContext = this.createEvaluationContext(targetObject, method, annotationType);
 	}
 
 	private MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType, String methodName) {
@@ -111,15 +111,23 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		this.targetObject = targetObject;
 		this.requiresReply = requiresReply;
 		this.handlerMethods = this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
-		this.evaluationContext = this.createEvaluationContext(targetObject);
+		this.evaluationContext = this.createEvaluationContext(targetObject, methodName, annotationType);
 	}
 
 
-	private EvaluationContext createEvaluationContext(Object targetObject) { 
+	private EvaluationContext createEvaluationContext(Object targetObject, Object method, Class<? extends Annotation> annotationType) {
 		StandardEvaluationContext context = new StandardEvaluationContext();
-		// TODO: Add a filtering MethodResolver (may soon be supported by SpEL) to enable:
-		//       1) exclusion of void-returning methods if requiresReply is true
-		//       2) limiting to annotated methods if at least one is present
+		// TODO: StandardEvaluationContext may soon provide a better way to *replace* the MethodResolver
+		context.getMethodResolvers().clear();
+		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
+		if (method instanceof Method) {
+			context.getMethodResolvers().add(new FilteringReflectiveMethodResolver(
+					new FixedHandlerMethodFilter((Method) method), targetType));
+		}
+		else if (method == null || method instanceof String) {
+			context.getMethodResolvers().add(new FilteringReflectiveMethodResolver(
+					new HandlerMethodFilter(annotationType, (String) method, this.requiresReply), targetType));
+		}
 		context.addPropertyAccessor(new MapAccessor());
 		// TODO: Enable configuration of an integration ConversionService bean to be used here,
 		//       but then fallback to this same default if no such bean has been defined.

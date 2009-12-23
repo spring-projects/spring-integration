@@ -28,6 +28,7 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
@@ -114,7 +115,7 @@ public class MethodInvokingMessageProcessorTests {
         	processor.processMessage(MessageBuilder.withPayload("Something").build());
             fail();
         }
-        catch(IllegalArgumentException ex) {
+        catch(MessageHandlingException ex) {
         	exception = ex;
         }
         assertNotNull(exception);
@@ -176,6 +177,26 @@ public class MethodInvokingMessageProcessorTests {
 				.setHeader("number", 42).build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar-42", result);
+	}
+
+	@Test
+	public void filterSelectsAnnotationMethodsOnly() {
+		AmbiguousMethodBean bean = new AmbiguousMethodBean();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, ServiceActivator.class);
+		processor.processMessage(MessageBuilder.withPayload(123).build());
+		assertNotNull(bean.lastArg);
+		assertEquals(String.class, bean.lastArg.getClass());
+		assertEquals("123", bean.lastArg);
+	}
+
+	@Test
+	public void filterSelectsNonVoidReturningMethodsOnly() {
+		AmbiguousMethodBean bean = new AmbiguousMethodBean();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo", true);
+		processor.processMessage(MessageBuilder.withPayload(true).build());
+		assertNotNull(bean.lastArg);
+		assertEquals(String.class, bean.lastArg.getClass());
+		assertEquals("true", bean.lastArg);
 	}
 
 
@@ -259,6 +280,33 @@ public class MethodInvokingMessageProcessorTests {
 
 		public Integer integerMethod(Integer i) {
 			return i;
+		}
+
+	}
+
+
+	/**
+	 * Method names create ambiguities, but the MethodResolver implementation
+	 * should filter out based on the annotation or the 'requiresReply' flag.
+	 */
+	@SuppressWarnings("unused")
+	private static class AmbiguousMethodBean {
+
+		private volatile Object lastArg = null;
+
+		public void foo(boolean b) {
+			this.lastArg = b;
+		}
+
+		@ServiceActivator
+		public String foo(String s) {
+			this.lastArg = s;
+			return s;
+		}
+
+		public String foo(int i) {
+			this.lastArg = i;
+			return Integer.valueOf(i).toString();
 		}
 
 	}
