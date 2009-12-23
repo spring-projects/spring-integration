@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,12 @@ import org.springframework.util.StringUtils;
  */
 public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 
+	private Long sendTimeout;
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 	@Override
 	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
@@ -43,7 +49,11 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 		else {
 			transformer = new MethodInvokingTransformer(targetObject);
 		}
-		return new MessageTransformingHandler(transformer);
+		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(this.sendTimeout.longValue());
+		}
+		return handler;
 	}
 
 }

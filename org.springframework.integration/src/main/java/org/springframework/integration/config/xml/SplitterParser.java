@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ public class SplitterParser extends AbstractConsumerEndpointParser {
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.SplitterFactoryBean");
 		if (innerDefinition != null){
 			builder.addPropertyValue("targetObject", innerDefinition);
-		} else if (element.hasAttribute(REF_ATTRIBUTE)) {
+		}
+		else if (element.hasAttribute(REF_ATTRIBUTE)) {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
 			builder.addPropertyReference("targetObject", ref);
 			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
@@ -46,6 +47,7 @@ public class SplitterParser extends AbstractConsumerEndpointParser {
 				builder.addPropertyValue("targetMethodName", method);
 			}
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
 

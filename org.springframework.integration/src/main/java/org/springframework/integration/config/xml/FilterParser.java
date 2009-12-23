@@ -38,7 +38,8 @@ public class FilterParser extends AbstractConsumerEndpointParser {
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".filter.MessageFilter");
 		
 		builder.addConstructorArgReference((String) this.parseSelector(element, parserContext));
-		
+
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "throw-exception-on-rejection");
 		return builder;

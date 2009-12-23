@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,19 +30,32 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
+	private Long sendTimeout;
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 	@Override
 	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
+		AbstractMessageSplitter splitter = null;
 		if (targetObject == null) {
 			Assert.isTrue(!StringUtils.hasText(targetMethodName),
 					"'method' should only be provided when 'ref' is also provided");
-			return new DefaultMessageSplitter();
+			splitter = new DefaultMessageSplitter();
 		}
-		if (targetObject instanceof AbstractMessageSplitter) {
-			return (AbstractMessageSplitter) targetObject;
+		else if (targetObject instanceof AbstractMessageSplitter) {
+			splitter =  (AbstractMessageSplitter) targetObject;
 		}
-		return (StringUtils.hasText(targetMethodName))
-				? new MethodInvokingSplitter(targetObject, targetMethodName)
-				: new MethodInvokingSplitter(targetObject);
+		else {
+			splitter = (StringUtils.hasText(targetMethodName))
+					? new MethodInvokingSplitter(targetObject, targetMethodName)
+					: new MethodInvokingSplitter(targetObject);
+		}
+		if (this.sendTimeout != null) {
+			splitter.setSendTimeout(this.sendTimeout.longValue());
+		}
+		return splitter;
 	}
 
 }

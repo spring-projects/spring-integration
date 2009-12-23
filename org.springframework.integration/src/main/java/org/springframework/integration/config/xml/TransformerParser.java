@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ public class TransformerParser extends AbstractConsumerEndpointParser {
 	
 		if (innerDefinition != null){
 			builder.addPropertyValue("targetObject", innerDefinition);
-		} else {
+		}
+		else {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
 			if (!StringUtils.hasText(ref)) {
 				parserContext.getReaderContext().error("Either \"ref\" attribute or inner bean (<bean/>) definition of concrete implementation of " +
@@ -52,6 +53,8 @@ public class TransformerParser extends AbstractConsumerEndpointParser {
 		if (StringUtils.hasText(method)) {
 			builder.addPropertyValue("targetMethodName", method);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
+
 }
