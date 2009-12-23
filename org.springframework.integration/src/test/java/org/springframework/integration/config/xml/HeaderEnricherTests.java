@@ -171,6 +171,16 @@ public class HeaderEnricherTests {
 		assertEquals(new Long(12345), result.getHeaders().get("number"));
 	}
 
+	@Test
+	public void refWithMethod() {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		gateway.setRequestChannel(context.getBean("refWithMethod", MessageChannel.class));
+		Message<?> result = gateway.sendAndReceiveMessage("test");
+		assertNotNull(result);
+		assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
+		assertEquals("testBeanForMethodInvoker", result.getHeaders().get("testHeader"));
+	}
+
 
 	public static class TestBean {
 

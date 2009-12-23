@@ -82,4 +82,12 @@
 		<header name="number" expression="12345" type="java.lang.Long"/>
 	</header-enricher>
 
+	<header-enricher input-channel="refWithMethod">
+		<header name="testHeader" ref="testBean" method="getName"/>
+	</header-enricher>
+
+	<beans:bean id="testBean" class="org.springframework.integration.config.xml.HeaderEnricherTests$TestBean">
+		<beans:constructor-arg value="testBeanForMethodInvoker"/>
+	</beans:bean>
+
 </beans:beans>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -28,6 +29,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -69,6 +71,9 @@ public class HeaderEnricher implements Transformer {
 					if (value instanceof ExpressionHolder) {
 						value = ((ExpressionHolder) value).evaluate(message);
 					}
+					else if (value instanceof MethodExpressionHolder) {
+						value = ((MethodExpressionHolder) value).evaluate(message);
+					}
 					headerMap.put(key, value);
 				}
 			}
@@ -80,16 +85,15 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	public static class ExpressionHolder {
+	static class ExpressionHolder {
 
 		private static final ExpressionParser parser = new SpelExpressionParser();
 
-
-		private final String expressionString;
-
 		private final Class<?> expectedType;
 
-		private volatile Expression parsedExpression;
+		private final Expression expression;
+
+		private final EvaluationContext evaluationContext;
 
 
 		/**
@@ -97,22 +101,32 @@ public class HeaderEnricher implements Transformer {
 		 * of the expression evaluation result. The expectedType may be null if unknown.
 		 */
 		public ExpressionHolder(String expressionString, Class<?> expectedType) {
-			this.expressionString = expressionString;
 			this.expectedType = expectedType;
+			this.expression = parser.parseExpression(expressionString);
+			StandardEvaluationContext context = new StandardEvaluationContext();
+			context.addPropertyAccessor(new MapAccessor());
+			this.evaluationContext = context;
 		}
 
 
 		private Object evaluate(Message<?> message) throws ParseException, EvaluationException {
-			if (this.parsedExpression == null) {
-				synchronized (this) {
-					this.parsedExpression = parser.parseExpression(this.expressionString);
-				}
-			}
-			StandardEvaluationContext context = new StandardEvaluationContext(message);
-			context.addPropertyAccessor(new MapAccessor());
 			return (this.expectedType != null)
-					? this.parsedExpression.getValue(context, this.expectedType)
-					: this.parsedExpression.getValue(context);
+					? this.expression.getValue(this.evaluationContext, message, this.expectedType)
+					: this.expression.getValue(this.evaluationContext, message);
+		}
+	}
+
+
+	static class MethodExpressionHolder {
+
+		private final MethodInvokingMessageProcessor processor;
+
+		public MethodExpressionHolder(Object targetObject, String method) {
+			this.processor = new MethodInvokingMessageProcessor(targetObject, method);
+		}
+
+		private Object evaluate(Message<?> message) {
+			return this.processor.processMessage(message);
 		}
 	}
 

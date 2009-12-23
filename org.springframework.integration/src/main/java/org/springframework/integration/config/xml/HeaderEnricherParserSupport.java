@@ -28,7 +28,6 @@ import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.HeaderEnricher.ExpressionHolder;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -115,23 +114,50 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 					String value = headerElement.getAttribute("value");
 					String ref = headerElement.getAttribute("ref");
 					String expression = headerElement.getAttribute("expression");
+					String method = headerElement.getAttribute("method");
 					boolean isValue = StringUtils.hasText(value);
 					boolean isRef = StringUtils.hasText(ref);
 					boolean isExpression = StringUtils.hasText(expression);
+					boolean hasMethod = StringUtils.hasText(method);
 					if (!(isValue ^ (isRef ^ isExpression))) {
 						parserContext.getReaderContext().error(
 								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
 					}
 					if (isValue) {
+						if (hasMethod) {
+							parserContext.getReaderContext().error(
+									"The 'method' attribute cannot be used with the 'value' attribute.", element);
+						}
 						Object headerValue = (headerType != null) ?
 							new TypedStringValue(value, headerType) : value;
 						headers.put(headerName, headerValue);
 					}
 					else if (isExpression) {
-						headers.put(headerName, new ExpressionHolder(expression, headerType));
+						if (hasMethod) {
+							parserContext.getReaderContext().error(
+									"The 'method' attribute cannot be used with the 'expression' attribute.", element);
+						}
+						BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionHolder");
+						expressionBuilder.addConstructorArgValue(expression);
+						expressionBuilder.addConstructorArgValue(headerType);
+						headers.put(headerName, expressionBuilder.getBeanDefinition());
 					}
 					else {
-						headers.put(headerName, new RuntimeBeanReference(ref));
+						if (StringUtils.hasText(headerElement.getAttribute("type"))) {
+							parserContext.getReaderContext().error(
+									"The 'type' attribute cannot be used with the 'ref' attribute.", element);
+						}
+						if (hasMethod) {
+							BeanDefinitionBuilder methodExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodExpressionHolder");
+							methodExpressionBuilder.addConstructorArgReference(ref);
+							methodExpressionBuilder.addConstructorArgValue(method);
+							headers.put(headerName, methodExpressionBuilder.getBeanDefinition());
+						}
+						else {
+							headers.put(headerName, new RuntimeBeanReference(ref));
+						}
 					}
 				}
 			}
