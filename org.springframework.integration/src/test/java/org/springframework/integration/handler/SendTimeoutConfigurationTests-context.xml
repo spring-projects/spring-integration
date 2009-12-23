@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/integration
+            http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<service-activator id="serviceActivator" input-channel="input" ref="mock" method="test" send-timeout="123"/>
+
+	<router id="router" input-channel="routerInput" expression="'someChannel'" timeout="123"/>
+
+	<filter id="filter" input-channel="filterInput" expression="'true'" send-timeout="123"/>
+
+	<transformer id="transformer" input-channel="transformerInput" expression="'foo'" send-timeout="123"/>
+
+	<splitter id="splitter" input-channel="splitterInput" expression="payload.values" send-timeout="123"/>
+
+	<beans:bean id="mock" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.integration.handler.MockHandlerTest$TestInterface"/>
+	</beans:bean>
+
+</beans:beans>

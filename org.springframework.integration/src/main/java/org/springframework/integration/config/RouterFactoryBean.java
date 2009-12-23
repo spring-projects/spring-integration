@@ -69,27 +69,12 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.createRouter(targetObject, targetMethodName);
-		if (this.defaultOutputChannel != null) {
-			router.setDefaultOutputChannel(this.defaultOutputChannel);
-		}
-		if (this.timeout != null) {
-			router.setTimeout(timeout.longValue());
-		}
-		if (this.ignoreChannelNameResolutionFailures != null) {
-			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter, 
-					"The 'ignoreChannelNameResolutionFailures' property can only be set on routers that extend "
-					+ AbstractChannelNameResolvingMessageRouter.class.getName());
-			((AbstractChannelNameResolvingMessageRouter) router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
-		}
-		if (this.resolutionRequired != null) {
-			router.setResolutionRequired(this.resolutionRequired);
-		}
-		return router;
+		return this.configureRouter(router);
 	}
 
 	@Override
 	MessageHandler createExpressionEvaluatingHandler(String expression) {
-		return new ExpressionEvaluatingRouter(expression);
+		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 
 	private AbstractMessageRouter createRouter(Object targetObject, String targetMethodName) {
@@ -104,6 +89,25 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 				: new MethodInvokingRouter(targetObject);
 		if (this.channelResolver != null) {
 			router.setChannelResolver(this.channelResolver);
+		}
+		return router;
+	}
+
+	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
+		if (this.defaultOutputChannel != null) {
+			router.setDefaultOutputChannel(this.defaultOutputChannel);
+		}
+		if (this.timeout != null) {
+			router.setTimeout(timeout.longValue());
+		}
+		if (this.ignoreChannelNameResolutionFailures != null) {
+			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter, 
+					"The 'ignoreChannelNameResolutionFailures' property can only be set on routers that extend "
+					+ AbstractChannelNameResolvingMessageRouter.class.getName());
+			((AbstractChannelNameResolvingMessageRouter) router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
+		}
+		if (this.resolutionRequired != null) {
+			router.setResolutionRequired(this.resolutionRequired);
 		}
 		return router;
 	}

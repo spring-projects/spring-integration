@@ -31,6 +31,12 @@ import org.springframework.util.StringUtils;
  */
 public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 
+	private volatile Long sendTimeout;
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "targetObject must not be null");
@@ -44,13 +50,21 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 		else {
 			transformer = new MethodInvokingTransformer(targetObject);
 		}
-		return new MessageTransformingHandler(transformer);
+		return this.createHandler(transformer);
 	}
 
 	@Override
 	MessageHandler createExpressionEvaluatingHandler(String expression) {
 		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
-		return new MessageTransformingHandler(transformer);
+		return this.createHandler(transformer);
+	}
+
+	private MessageTransformingHandler createHandler(Transformer transformer) {
+		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
+		if (this.sendTimeout != null) {
+			handler.setSendTimeout(this.sendTimeout.longValue());
+		}
+		return handler;
 	}
 
 }

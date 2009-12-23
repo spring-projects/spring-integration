@@ -490,6 +490,14 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
+				<xsd:attribute name="send-timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify the maximum amount of time in milliseconds to wait when sending a reply
+	Message to the output channel. By default the send will block for one second. 
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="method" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1268,7 +1276,14 @@
 	<xsd:complexType name="baseRouterType">
 		<xsd:complexContent>
 			<xsd:extension base="inputEndpointType">
-				<xsd:attribute name="timeout" type="xsd:string" />
+				<xsd:attribute name="timeout" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify the maximum amount of time in milliseconds to wait when sending Messages
+	to the target MessageChannels. By default the send will block indefinitely.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -1322,7 +1337,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="send-timeout" type="xsd:string" />
 					<xsd:attribute name="send-partial-result-on-timeout"
 						type="xsd:string" />
 					<xsd:attribute name="tracked-correlation-id-capacity"
@@ -1364,7 +1378,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="send-timeout" type="xsd:string" />
 					<xsd:attribute name="release-partial-sequences" type="xsd:string" />
 					<xsd:attribute name="send-partial-result-on-timeout"
 						type="xsd:string" />

@@ -30,24 +30,41 @@ import org.springframework.util.StringUtils;
  */
 public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
+	private volatile Long sendTimeout;
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+		AbstractMessageSplitter splitter = null;
 		if (targetObject instanceof AbstractMessageSplitter) {
-			return (AbstractMessageSplitter) targetObject;
+			splitter = (AbstractMessageSplitter) targetObject;
 		}
-		return (StringUtils.hasText(targetMethodName))
-				? new MethodInvokingSplitter(targetObject, targetMethodName)
-				: new MethodInvokingSplitter(targetObject);
+		else {
+			splitter = (StringUtils.hasText(targetMethodName))
+					? new MethodInvokingSplitter(targetObject, targetMethodName)
+					: new MethodInvokingSplitter(targetObject);
+		}
+		return this.configureSplitter(splitter);
 	}
 
 	@Override
 	MessageHandler createExpressionEvaluatingHandler(String expression) {
-		return new ExpressionEvaluatingSplitter(expression);
+		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
 	}
 
 	@Override
 	MessageHandler createDefaultHandler() {
-		return new DefaultMessageSplitter();
+		return this.configureSplitter(new DefaultMessageSplitter());
+	}
+
+	private AbstractMessageSplitter configureSplitter(AbstractMessageSplitter splitter) {
+		if (this.sendTimeout != null) {
+			splitter.setSendTimeout(sendTimeout);
+		}
+		return splitter;
 	}
 
 }

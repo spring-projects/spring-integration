@@ -75,6 +75,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 						"a 'ref' or inner-bean definition is provided.", element);
 			}
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		this.postProcess(builder, element, parserContext);
 		return builder;
 	}

@@ -52,6 +52,7 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
 

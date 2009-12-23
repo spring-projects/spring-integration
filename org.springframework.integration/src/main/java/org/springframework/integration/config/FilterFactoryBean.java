@@ -36,6 +36,8 @@ public class FilterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile Boolean throwExceptionOnRejection;
 
+	private volatile Long sendTimeout;
+
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
@@ -43,6 +45,10 @@ public class FilterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	public void setThrowExceptionOnRejection(Boolean throwExceptionOnRejection) {
 		this.throwExceptionOnRejection = throwExceptionOnRejection;
+	}
+
+	public void setSendTimeout(Long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	@Override
@@ -70,6 +76,9 @@ public class FilterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		}
 		if (this.discardChannel != null) {
 			filter.setDiscardChannel(discardChannel);
+		}
+		if (this.sendTimeout != null) {
+			filter.setSendTimeout(this.sendTimeout.longValue());
 		}
 		return filter;
 	}
