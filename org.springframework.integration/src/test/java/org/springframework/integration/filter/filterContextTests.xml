@@ -20,4 +20,27 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.filter.TestBean"/>
 
+	<channel id="input-embedded-selector"/>
+
+	<channel id="output-embedded-selector">
+		<queue capacity="50"/>
+	</channel>
+
+	<filter input-channel="input-embedded-selector"
+			output-channel="output-embedded-selector">
+		<beans:bean class="org.springframework.integration.filter.FilterContextTests$TestSelector" />
+	</filter>
+
+	<channel id="input-embedded"/>
+
+	<channel id="output-embedded">
+		<queue capacity="50"/>
+	</channel>
+
+	<filter input-channel="input-embedded"
+			method="acceptStringWithMoreThanThreeChars"
+			output-channel="output-embedded">
+		<beans:bean class="org.springframework.integration.filter.TestBean" />
+	</filter>
+
 </beans:beans>

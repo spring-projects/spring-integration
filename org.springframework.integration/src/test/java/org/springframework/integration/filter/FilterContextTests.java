@@ -27,9 +27,11 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher
+ * @author Grzegorz Grzybek
  */
 public class FilterContextTests {
 
@@ -53,6 +55,36 @@ public class FilterContextTests {
 		input.send(new StringMessage("foobar"));
 		Message<?> reply = output.receive(0);
 		assertEquals("foobar", reply.getPayload());
+	}
+
+	@Test
+	public void filterWithEmbeddedSelector() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"filterContextTests.xml", this.getClass());
+		MessageChannel input = (MessageChannel) context.getBean("input-embedded-selector");
+		PollableChannel output = (PollableChannel) context.getBean("output-embedded-selector");
+		input.send(new StringMessage("foo"));
+		Message<?> reply = output.receive(0);
+		assertNull(reply);
+	}
+
+	@Test
+	public void filterWithEmbeddedBean() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"filterContextTests.xml", this.getClass());
+		MessageChannel input = (MessageChannel) context.getBean("input-embedded");
+		PollableChannel output = (PollableChannel) context.getBean("output-embedded");
+		input.send(new StringMessage("foo"));
+		Message<?> reply = output.receive(0);
+		assertNull(reply);
+	}
+
+
+	static class TestSelector implements MessageSelector {
+
+		public boolean accept(Message<?> message) {
+			return false;
+		}
 	}
 
 }

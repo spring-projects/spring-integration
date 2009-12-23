@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -55,6 +56,11 @@ public class FilterParser extends AbstractConsumerEndpointParser {
 														"this MessageFilter is required.", element);
 				return null;
 			}
+		}
+		else {
+			String name = BeanDefinitionReaderUtils.generateBeanName(innerHandlerDefinition, parserContext.getRegistry(), true);
+			BeanDefinitionReaderUtils.registerBeanDefinition(new BeanDefinitionHolder(innerHandlerDefinition, name), parserContext.getRegistry());
+			ref = name;
 		}
 		String method = element.getAttribute("method");
 		if (!StringUtils.hasText(method)) {
