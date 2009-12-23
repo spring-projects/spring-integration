@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<beans:bean id="abstractParent" class="org.springframework.integration.config.xml.NestedChainParserTests$ParentTestBean" abstract="true">
+		<beans:property name="chain">
+			<chain>
+				<service-activator ref="service"/>
+			</chain>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="concreteParent1" parent="abstractParent"/>
+
+	<beans:bean id="concreteParent2" parent="abstractParent"/>
+
+	<beans:bean id="service" class="org.springframework.integration.config.xml.NestedChainParserTests$ChildTestBean"/>
+
+</beans:beans>

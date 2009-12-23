@@ -65,13 +65,14 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 				parserContext.getReaderContext().error("child BeanDefinition must not be null", element);
 			}
 			else {
-				String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
+				String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry(), true);
 				holder = new BeanDefinitionHolder(beanDefinition, beanName);
 			}
 		}
 		if (holder == null) {
 			return null;
 		}
+		holder.getBeanDefinition().setScope(BeanDefinition.SCOPE_PROTOTYPE);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		return holder.getBeanName();
 	}
