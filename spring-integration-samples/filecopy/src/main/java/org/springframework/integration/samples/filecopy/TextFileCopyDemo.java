@@ -16,6 +16,7 @@
 
 package org.springframework.integration.samples.filecopy;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -28,8 +29,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class TextFileCopyDemo {
 
 	public static void main(String[] args) {
-		FileCopyDemoCommon.displayDirectories();
-		new ClassPathXmlApplicationContext("fileCopyDemo-text.xml", TextFileCopyDemo.class);
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-text.xml", TextFileCopyDemo.class);
+		FileCopyDemoCommon.displayDirectories(context);
 	}
 	
 }

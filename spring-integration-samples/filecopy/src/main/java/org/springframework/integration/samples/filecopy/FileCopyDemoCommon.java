@@ -18,19 +18,24 @@ package org.springframework.integration.samples.filecopy;
 
 import java.io.File;
 
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.FileWritingMessageHandler;
+
 /**
  * Displays the names of the input and output directories.
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public class FileCopyDemoCommon {
 
-	public static void displayDirectories() {
-		File baseDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "spring-integration-samples");
-		File inDir = new File(baseDir, "input");
-		File outDir = new File(baseDir, "output");
-		System.out.println("Default input directory is: " + inDir.getAbsolutePath());
-		System.out.println("Default output directory is: " + outDir.getAbsolutePath());
+	public static void displayDirectories(ApplicationContext context) {
+		File inDir = (File) new DirectFieldAccessor(context.getBean(FileReadingMessageSource.class)).getPropertyValue("directory");
+		File outDir = (File) new DirectFieldAccessor(context.getBean(FileWritingMessageHandler.class)).getPropertyValue("destinationDirectory");
+		System.out.println("Input directory is: " + inDir.getAbsolutePath());
+		System.out.println("Output directory is: " + outDir.getAbsolutePath());
 		System.out.println("===================================================");
 	}
 
