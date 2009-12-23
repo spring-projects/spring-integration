@@ -200,6 +200,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Method [" + method + "] is not eligible for Message handling.", e);
 					}
+					return;
 				}
 				Class<?> targetParameterType = handlerMethod.getTargetParameterType();
 				if (matchesAnnotation || annotationType == null) {

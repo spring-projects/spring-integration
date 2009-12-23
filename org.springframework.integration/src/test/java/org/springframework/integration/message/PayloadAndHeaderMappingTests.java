@@ -471,6 +471,23 @@ public class PayloadAndHeaderMappingTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
+	public void twoStringsAmbiguousUsingMethodName() throws Exception {
+		SingleAmbiguousMethodTestBean bean = new SingleAmbiguousMethodTestBean();
+		new ServiceActivatingHandler(bean, "twoStrings");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void twoStringsAmbiguousWithoutMethodName() throws Exception {
+		SingleAmbiguousMethodTestBean bean = new SingleAmbiguousMethodTestBean();
+		new ServiceActivatingHandler(bean);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void twoStringsNoAnnotations() throws Exception {
+		this.getHandler("twoStringsNoAnnotations", String.class, String.class);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
 	public void twoMapsNoAnnotationsAndObject() throws Exception {
 		this.getHandler("twoMapsNoAnnotationsAndObject", Map.class, Object.class, Map.class);
 	}
@@ -659,6 +676,14 @@ public class PayloadAndHeaderMappingTests {
 	}
 
 
+	@SuppressWarnings("unused")
+	private static class SingleAmbiguousMethodTestBean {
+
+		public String concat(String s1, String s2) {
+			return "s1" + "s2";
+		}
+	}
+
 	@SuppressWarnings({"unchecked", "unused"})
 	private static class TestBean {
 
@@ -760,6 +785,10 @@ public class PayloadAndHeaderMappingTests {
 			else {
 				this.lastHeaders = props;
 			}
+		}
+
+		public void twoStringsNoAnnotations(String s1, String s2) {
+			// invalid due to ambiguity (no @Payload or @Headers)
 		}
 
 		public void twoMapsNoAnnotations(Map map1, Map<Object, Object> map2) {
