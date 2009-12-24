@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Version: 2.0.0.BUILD-SNAPSHOT
+Bundle-Version: 2.0.0.M2
 Bundle-Name: org.springframework.integration.samples.osgi.inbound
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.springframework.integration.samples.osgi.inbound
