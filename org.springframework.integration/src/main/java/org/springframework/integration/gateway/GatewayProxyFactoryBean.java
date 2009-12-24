@@ -24,7 +24,6 @@ import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -74,7 +73,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private Map<String, GatewayMethodDefinition> methodToChannelMap;
 
-
+	/**
+	 * Will initialize this Factory with he default instance of the 'gateway' interface
+	 * {@link GenericSendAndRecieveGateway} which will be used by this proxy if
+	 * 'service-interface' attribute is not set.
+	 */
+	public GatewayProxyFactoryBean(){
+		this.serviceInterface = GenericSendAndRecieveGateway.class;
+	}
 	/**
 	 * Set the interface class that the generated proxy should implement.
 	 * If none is provided explicitly, the default is MessageHandler.

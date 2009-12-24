@@ -27,12 +27,14 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.gateway.GatewayInvokingMessageHandler;
 
 /**
  * Parser for the &lt;chain&gt; element.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class ChainParser extends AbstractConsumerEndpointParser {
 
@@ -47,7 +49,14 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
 				String childBeanName = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
-				handlerList.add(new RuntimeBeanReference(childBeanName));
+				// INT-911 will create Gateway invoking MessageHandler, allowing 'gateway' to be included in the chain
+				if ("gateway".equals(child.getLocalName())){
+					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayInvokingMessageHandler.class);
+					gwBuilder.addConstructorArgValue(new RuntimeBeanReference(childBeanName));
+					handlerList.add(gwBuilder.getBeanDefinition());
+				} else {
+					handlerList.add(new RuntimeBeanReference(childBeanName));
+				}		
 			}
 		}
 		builder.addPropertyValue("handlers", handlerList);

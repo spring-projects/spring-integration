@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"
+	xmlns:si="http://www.springframework.org/schema/integration">
+	
+	<si:gateway id="simpleGateway"
+				default-request-channel="inputA" 
+				default-reply-channel="inputB"
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessaheHandlerTests$SimpleGateway"/>
+
+	<si:publish-subscribe-channel id="inputA" />
+	<si:publish-subscribe-channel id="inputB" />
+	<si:publish-subscribe-channel id="inputC" />
+
+	<si:chain input-channel="inputA" output-channel="inputB">
+		<si:header-enricher>
+			<si:header name="foo" value="foo" />
+		</si:header-enricher>
+		<si:service-activator>
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessaheHandlerTests$SimpleService" />
+		</si:service-activator>
+		<si:gateway default-request-channel="inputC"/>  
+	</si:chain>
+	
+	
+	
+	<si:chain input-channel="inputC">
+		<si:header-enricher>
+			<si:header name="name" value="oleg" />
+		</si:header-enricher>
+		<si:service-activator>
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessaheHandlerTests$SimpleService" />
+		</si:service-activator>
+	</si:chain>
+
+</beans>
