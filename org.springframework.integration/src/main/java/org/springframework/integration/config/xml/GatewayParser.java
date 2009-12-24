@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		"default-request-channel", "default-reply-channel", "message-mapper"
 	};
 
+	private static String[] innerAttributes = new String[] {
+		"request-channel", "reply-channel", "request-timeout", "reply-timeout"
+	};
+
+
 	@Override
 	protected String getBeanClassName(Element element) {
 		return IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.GatewayProxyFactoryBean";
@@ -45,11 +50,28 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !ObjectUtils.containsElement(referenceAttributes, attributeName)
+				&& !ObjectUtils.containsElement(innerAttributes, attributeName)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+		if ("chain".equals(element.getParentNode().getLocalName())) {
+			this.postProcessInnerGateway(builder, element);
+		}
+		else {
+			this.postProcessGateway(builder, element);
+		}
+	}
+
+	private void postProcessInnerGateway(BeanDefinitionBuilder builder, Element element) {
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel", "defaultRequestChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "defaultReplyChannel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "defaultRequestTimeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout", "defaultReplyTimeout");
+	}
+
+	private void postProcessGateway(BeanDefinitionBuilder builder, Element element) {
 		for (String attributeName : referenceAttributes) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}

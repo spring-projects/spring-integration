@@ -8,7 +8,7 @@
 	<si:gateway id="simpleGateway"
 				default-request-channel="inputA" 
 				default-reply-channel="inputB"
-				service-interface="org.springframework.integration.gateway.GatewayInvokingMessaheHandlerTests$SimpleGateway"/>
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
 
 	<si:publish-subscribe-channel id="inputA" />
 	<si:publish-subscribe-channel id="inputB" />
@@ -19,9 +19,9 @@
 			<si:header name="foo" value="foo" />
 		</si:header-enricher>
 		<si:service-activator>
-			<bean class="org.springframework.integration.gateway.GatewayInvokingMessaheHandlerTests$SimpleService" />
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
-		<si:gateway default-request-channel="inputC"/>  
+		<si:gateway request-channel="inputC"/>  
 	</si:chain>
 	
 	
@@ -31,7 +31,7 @@
 			<si:header name="name" value="oleg" />
 		</si:header-enricher>
 		<si:service-activator>
-			<bean class="org.springframework.integration.gateway.GatewayInvokingMessaheHandlerTests$SimpleService" />
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
 	</si:chain>
 

@@ -350,6 +350,36 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:complexType name="innerGatewayType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Messaging Gateway to be used within a chain.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="request-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="reply-channel" type="xsd:string">
+			<xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="request-timeout" type="xsd:string" />
+		<xsd:attribute name="reply-timeout" type="xsd:string" />
+	</xsd:complexType>
+
 	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -706,7 +736,7 @@
 						<xsd:element ref="router" />
 						<xsd:element ref="delayer" />
 						<xsd:element ref="chain" />
-						<xsd:element ref="gateway" />
+						<xsd:element name="gateway" type="innerGatewayType" />
 						<xsd:element name="poller" type="innerPollerType" />
 					</xsd:choice>
 				</xsd:extension>
