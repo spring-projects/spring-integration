@@ -5,6 +5,10 @@ For the full detailed changelog, see:
 https://fisheye.springsource.org/changelog/spring-integration
 
 
+Changes in version 2.0.0 Milestone 2 (Dec 24, 2009)
+---------------------------------------------------
+http://jira.springsource.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11306
+
 Changes in version 2.0.0 Milestone 1 (Oct 12, 2009)
 ---------------------------------------------------
 http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11178

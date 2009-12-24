@@ -1,7 +1,7 @@
-SPRING INTEGRATION 2.0.0 Milestone 1 (Oct 12, 2009)
+SPRING INTEGRATION 2.0.0 Milestone 2 (Dec 24, 2009)
 ---------------------------------------------------
 
-To find out what has changed since version 1.0.3, see 'changelog.txt'
+To find out what has changed since version 1.0.3 or 2.0 M2, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release  and also visit the official Spring Integration home at:
