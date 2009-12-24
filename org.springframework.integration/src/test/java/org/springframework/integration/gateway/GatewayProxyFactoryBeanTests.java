@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -34,7 +35,10 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistory.ComponentType;
+import org.springframework.integration.core.MessageHistory.Event;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.ReflectionUtils;
@@ -249,9 +253,36 @@ public class GatewayProxyFactoryBeanTests {
 		}).start();
 	}
 
+	@Test
+	public void testMethodNameInHistory() throws Exception {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		DirectChannel channel = new DirectChannel();
+		channel.setBeanName("testChannel");
+		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new BridgeHandler());
+		consumer.start();
+		proxyFactory.setDefaultRequestChannel(channel);
+		proxyFactory.setServiceInterface(TestEchoService.class);
+		proxyFactory.afterPropertiesSet();
+		TestEchoService proxy = (TestEchoService) proxyFactory.getObject();
+		Message<?> message = proxy.echo("test");
+		Iterator<Event> historyIterator = message.getHeaders().getHistory().iterator();
+		Event event1 = historyIterator.next();
+		Event event2 = historyIterator.next();
+		assertEquals(ComponentType.gateway, event1.getComponentType());
+		assertEquals("echo", event1.getComponentName());
+		assertEquals(ComponentType.channel, event2.getComponentType());
+		assertEquals("testChannel", event2.getComponentName());
+	}
+
 
 	public static void throwTestException() throws TestException {
 		throw new TestException();
+	}
+
+
+	static interface TestEchoService {
+
+		Message<?> echo(String s);
 	}
 
 

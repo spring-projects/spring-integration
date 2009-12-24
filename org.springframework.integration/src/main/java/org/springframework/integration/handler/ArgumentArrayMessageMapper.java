@@ -44,6 +44,7 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.core.MessageHistory.ComponentType;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -154,7 +155,11 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 			throw new IllegalArgumentException(prefix + " parameters provided for method [" + method +
 					"], expected " + this.parameterList.size() + " but received " + arguments.length + ".");
 		}
-		return this.mapArgumentsToMessage(arguments);
+		Message<?> message = this.mapArgumentsToMessage(arguments);
+		if (message != null) {
+			message.getHeaders().getHistory().add(ComponentType.gateway, this.method.getName());
+		}
+		return message;
 	}
 
 	private Object[] mapMessageToArguments(Message<?> message) {

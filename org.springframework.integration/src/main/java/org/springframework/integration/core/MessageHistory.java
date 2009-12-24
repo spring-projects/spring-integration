@@ -45,7 +45,7 @@ public class MessageHistory implements Iterable<MessageHistory.Event>, Serializa
 
 
 	public static enum ComponentType {
-		channel, endpoint;
+		channel, endpoint, gateway;
 	}
 
 
