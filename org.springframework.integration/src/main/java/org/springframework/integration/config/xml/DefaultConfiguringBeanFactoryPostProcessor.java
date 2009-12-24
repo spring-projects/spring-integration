@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
@@ -38,6 +40,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
  * single null channel with the bean name "nullChannel".
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
@@ -64,14 +67,20 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 	 */
 	private void registerNullChannel(BeanDefinitionRegistry registry) {
 		if (registry.isBeanNameInUse(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME)) {
-			throw new IllegalStateException("The bean name '" +
-					IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME + "' is reserved.");
+			BeanDefinition bDef = registry.getBeanDefinition(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+			if (bDef.getBeanClassName().equals(NullChannel.class.getName())){
+				return;
+			} else {
+				throw new IllegalStateException("The bean name '" +
+						IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME + "' is reserved.");
+			}
+		} else {
+			RootBeanDefinition nullChannelDef = new RootBeanDefinition();
+			nullChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.NullChannel");
+			BeanDefinitionHolder nullChannelHolder = new BeanDefinitionHolder(
+					nullChannelDef, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(nullChannelHolder, registry);
 		}
-		RootBeanDefinition nullChannelDef = new RootBeanDefinition();
-		nullChannelDef.setBeanClassName(IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.NullChannel");
-		BeanDefinitionHolder nullChannelHolder = new BeanDefinitionHolder(
-				nullChannelDef, IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-		BeanDefinitionReaderUtils.registerBeanDefinition(nullChannelHolder, registry);
 	}
 
 	/**
