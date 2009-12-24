@@ -14,7 +14,7 @@
 
     <i:channel id="in"/>
 
-    <i:service-activator input-channel="in" output-channel="out" method="move">
+    <i:service-activator input-channel="in" output-channel="out">
         <bean class="org.mockito.Mockito" factory-method="mock">
             <constructor-arg
                     value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests$SingleMethod"/>

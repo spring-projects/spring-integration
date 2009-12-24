@@ -192,7 +192,8 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		final Map<Class<?>, HandlerMethod> candidateMethods = new HashMap<Class<?>, HandlerMethod>();
 		final Map<Class<?>, HandlerMethod> fallbackMethods = new HashMap<Class<?>, HandlerMethod>();
 		final AtomicReference<Class<?>> ambiguousFallbackType = new AtomicReference<Class<?>>();
-		ReflectionUtils.doWithMethods(targetObject.getClass(), new MethodCallback() {
+		Class<?> targetClass = this.getTargetClass(targetObject);
+		ReflectionUtils.doWithMethods(targetClass, new MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				boolean matchesAnnotation = false;
 				if (method.isBridge()) {
@@ -248,6 +249,20 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		Assert.isNull(ambiguousFallbackType.get(),
 				"Found more than one method match for type [" + ambiguousFallbackType + "]");
 		return fallbackMethods;
+	}
+
+	private Class<?> getTargetClass(Object targetObject) {
+		Class<?> targetClass = targetObject.getClass();
+		if (AopUtils.isAopProxy(targetObject)) {
+			targetClass = AopUtils.getTargetClass(targetObject);
+		}
+		else if(AopUtils.isCglibProxyClass(targetClass)) {
+			Class<?> superClass = targetObject.getClass().getSuperclass();
+			if (!Object.class.equals(superClass)) {
+				targetClass = superClass;
+			}
+		}
+		return targetClass;
 	}
 
 	private List<HandlerMethod> findHandlerMethodsForMessage(Message<?> message) {
