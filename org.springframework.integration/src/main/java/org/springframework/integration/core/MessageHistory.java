@@ -78,7 +78,7 @@ public class MessageHistory implements Iterable<MessageHistory.Event>, Serializa
 		}
 
 		public String toString() {
-			return "name=" + this.componentName + ";type=" + this.componentType + ";timestamp=" + this.timestamp;
+			return "[name=" + this.componentName + ";type=" + this.componentType + ";timestamp=" + this.timestamp + "]";
 		}
 	}
 
