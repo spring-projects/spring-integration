@@ -331,5 +331,172 @@ As you can see, the above method takes 5 arguments where:
       </note>
     </para>
   </section>
+  
+  <section id="message-mapping-rules">
+  	<title>Message Mapping rules and conventions</title>
+  	<para>Spring Integration implements a flexible facility to map Messages to Methods and their arguments without 
+  	providing extra configuration by relying on some default rules as well as defining certain conventions.
+	</para>
+	<section id="sample-scenarios">
+			<title>Simple Scenarios</title>
+			
+			<para>
+			<emphasis>Single un-annotated parameter (object or primitive) which is not a Map/Properties with non-void return type;</emphasis>
+			</para>
+			<programlisting language="java">public String foo(Object o);</programlisting>
+			<para>Details:</para>
+			<para>Input parameter is Message Payload. If parameter type is not compatible with Message Payload an 
+			attempt will be made to convert it using Conversion Service provided by Spring 3.0. The return value 
+			will be incorporated as a Payload of the returned Message</para>
+			
+			<para>
+			<emphasis>Single un-annotated parameter (object or primitive) which is not a Map/Properties with Message return type;</emphasis>
+			</para>
+			<programlisting language="java">public Message  foo(Object o);</programlisting>
+			<para>Details:</para>
+			<para>Input parameter is Message Payload. If parameter type is not compatible with Message Payload an attempt 
+			will be made to convert it using Conversion Service provided by Spring 3.0. The return value is a newly constructed 
+			Message that will be sent to the next destination.</para>
+			
+			<para>
+			<emphasis>Single parameter which is a Message or its subclass with arbitrary object/primitive return type;	</emphasis>
+			</para>
+			<programlisting language="java">public int foo(Message  msg);</programlisting>
+			<para>Details:</para>
+			<para>Input parameter is Message itself. The return value will become a payload of the 
+			Message that will be sent to the next destination.</para>
+			
+			<para>
+			<emphasis>Single parameter which is a Message or its subclass with Message or its subclass as a return type;</emphasis>
+			</para>
+			<programlisting language="java">public Message foo(Message msg);</programlisting>
+			<para>Details:</para>
+			<para>Input parameter is Message itself. The return value is a newly constructed Message that will be sent to the next destination.</para>
+			
+			<para>
+			<emphasis>Single parameter which is of type Map or Properties with Message as a return type;</emphasis>
+			</para>
+			<programlisting language="java">public Message foo(Map m);</programlisting>
+			<para>Details:</para>
+			<para>This one is a bit interesting. Although at first it might seem like an easy mapping straight to Message Headers, 
+			the preference is always given to a Message Payload. This means that if Message Payload is of type Map, this input argument will 
+			represent Message Payload. However if Message Payload is not of type Map, then no conversion via Conversion Service will be 
+			attempted and the input argument will be mapped to Message Headers.</para>
+			
+			<para>
+			<emphasis>Two parameters where one of them is arbitrary non-Map/Properties type object/primitive and another is Map/Properties type object (regardless of the return)</emphasis>
+			</para>
+			<programlisting language="java">public Message foo(Map h, &lt;T&gt; t);</programlisting>
+			<para>Details:</para>
+			<para>This combination contains two input parameters where one of them is of type Map. Naturally the non-Map parameters (regardless of the order) will 
+			be mapped to a Message Payload and the Map/Properties (regardless of the order) will be mapped to  Message Headers giving you a nice POJO way 
+			of interacting with Message structure.</para>
+			
+			<para>
+			<emphasis>No parameters (regardless of the return)</emphasis>
+			</para>
+			<programlisting language="java">public String foo();</programlisting>
+			<para>Details:</para>
+			<para>This Message Handler method will be invoked based on the Message sent to the input channel this handler is hooked up to, 
+			however no Message data will be mapped, thus making Message act as event/trigger to invoke such handlerThe output will be 
+			mapped according to the rules above</para>
+			
+			<para>
+			<emphasis>No parameters, void return</emphasis>
+			</para>
+			<programlisting language="java">public void foo();</programlisting>
+			<para>Details:</para>
+			<para>Same as above, but no output </para>
+			
+			<para>
+			<emphasis>Annotation based mappings</emphasis>
+			</para>
+			<para>Annotation based mapping is the safest and least ambiguous approach to map Messages to Methods. There wil be many pointers to annotation 
+			based mapping throughout this manual, however here are couple of examples:
+			</para>
+			
+			<programlisting language="java">public String foo(@Payload String s,  @Header("foo") String b) </programlisting>
+			<para>Very simple and explicite way of mapping Messages to method. As you'll see later on without annotation this signature 
+			would result in the ambiguous condition, however by explicitly mapping first argument to a Message Payload and second argument to 
+			a value of the 'foo' Message Header we have avoided ambiguity.</para>
+			
+			<programlisting language="java">public String foo(@Payload String s,  @RequestParam("foo") String b) </programlisting>
+			<para>Looks almost identical to the previous example, however @RequestMapping or any other non-SI mapping annotation 
+			is irrelevant  and therefore will be ignored leaving the second parameter unmapped. And although the second parameters could 
+			easily be mapped to a Payload, there can only be one Payload, therefore this method becomes ambiguous. </para>
+			
+			<programlisting language="java">public String foo(String s,  @Header("foo") String b) </programlisting>
+			<para>The same as above. The only difference is that the first argument will be mapped to Message Payload implicitly.</para>
+			
+			<programlisting language="java">public String foo(@Headers Map m,  @Header("foo")Map f, @Header("bar") String bar)</programlisting>
+			<para>Yet another signature that would definitely be treated as ambiguous because it has more then 2 arguments, 
+			plus two of them are Maps, however with annotation-based mapping ambiguity is easily avoided. In this example 
+			the first argument is mapped to all the Message Headers, while second and third argument map to the values of Message Headers 'foo' and 'bar'.</para>
+	</section>
+	
+	<section id="complex-scenarios">
+			<title>Complex Scenarios</title>
+			
+			<para><emphasis>Multiple parameters:</emphasis> </para>
+			<para>Multiple parameters could create a lot of ambiguity with regards to determining the appropriate mappings. The general advice is to annotate your method parameters with @Payload and/or @Header/@Headers
+Below are some of the examples of ambiguous conditions which result in exception being raised.
+			</para>
+			<programlisting language="java">public String foo(String s, int i)</programlisting>
+			<para> - the two parameters are equal in weight, therefore no way to determine which one is a payload and what to do with another.</para>
+			
+			<programlisting language="java">public String foo(String s, Map m, String b) </programlisting>
+			<para> - almost the same as above. Although Map could be easily mapped to Message Headers, there is no way to determine what to do with two Strings.</para>
+			
+			<programlisting language="java">public String foo(Map m, Map f)</programlisting>
+			<para> - although one might argue that one Map could be mapped to Message Payload and another one to Message Headers, it would be unreasonable to rely on the order (e.g., first is Payload, second Headers)</para>
+			
+			<para>
+				<tip>Basically any method signature with more then one method argument which is not (Map, &lt;T&gt;) and those parameters are not annotated will result in the ambiguous condition thus triggering an exception.</tip>
+			</para>
+			<para>
+			<emphasis>Multiple methods:</emphasis>
+			</para>
+			<para>Message Handlers with multiple methods are mapped based on the same rules that are described above, however some scenarios might still look confusing.</para>
+			
+			<para><emphasis>Multiple methods (same or different name) with legal (mappable) signatures:</emphasis> </para>
+			
+			<programlisting language="java">public class Foo{
+	public String foo(String str, Map m);
+
+	public String foo(Map m)
+}</programlisting>
+			<para>As you can see, the Message could be mapped to either method. The first method would be invoked where Message Payload 
+			could be mapped to 'str'  and Message Headers could be mapped to 'm'. The second method could easily also be a candidate where 
+			only Message Headers are mapped to 'm'. To make meters worse both methods have the same name which at first might look very 
+			ambiguous considering the following configuration:</para>
+			<programlisting language="xml"><![CDATA[<si:service-activator input-channel="input" output-channel="output" method="foo">
+	<bean class="org.bar.Foo"/>
+</si:service-activator>]]></programlisting>
+			<para>At this point it would be important to understand Spring Integration mapping Conventions where at the very core, 
+			mappings are based on Payload first and everything else next. In other words the method whose argument could be mapped 
+			to a Payload will take precedence over all other methods.</para>
+			
+			<para>On the other hand let's look at slightly different example:</para>
+			<programlisting language="java">public class Foo{
+	public String foo(String str, Map m);
+
+	public String foo(String str)
+}</programlisting>
+
+			<para>If you look at it you can probably see a truly an ambiguous condition. In this example since both methods have signatures that 
+			could be mapped to a Message Payload. They also have the same name. Such handler will trigger an exception.
+However if method names were different you could influence the mapping with 'method' attribute (see below):</para>
+			<programlisting language="java">public class Foo{
+	public String foo(String str, Map m);
+
+	public String bar(String str)
+}</programlisting>
+			<programlisting language="xml"><![CDATA[<si:service-activator input-channel="input" output-channel="output" method="bar">
+	<bean class="org.bar.Foo"/>
+</si:service-activator>]]></programlisting>
+
+			<para>Now there is no ambiguity since the configuration explicitly maps to 'bar' method which has no name conflicts.</para>
+	</section>
+  </section>
 
 </appendix>
