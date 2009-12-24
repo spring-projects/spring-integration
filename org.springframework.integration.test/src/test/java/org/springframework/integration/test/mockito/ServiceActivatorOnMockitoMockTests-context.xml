@@ -14,13 +14,15 @@
 
     <i:channel id="in"/>
 
-    <i:service-activator input-channel="in" output-channel="out">
+    <i:service-activator input-channel="in" output-channel="out" method="move">
         <bean class="org.mockito.Mockito" factory-method="mock">
             <constructor-arg
                     value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests$SingleMethod"/>
         </bean>
     </i:service-activator>
 
-    <i:channel id="out"/>
+    <i:channel id="out">
+        <i:queue capacity="10"/>
+    </i:channel>
 
 </beans>
