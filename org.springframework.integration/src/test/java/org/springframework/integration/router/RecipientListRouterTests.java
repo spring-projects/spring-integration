@@ -25,14 +25,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher
@@ -50,8 +53,10 @@ public class RecipientListRouterTests {
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(channels);
 		router.afterPropertiesSet();
-		Collection<MessageChannel> channelList = (Collection<MessageChannel>)
-				new DirectFieldAccessor(router).getPropertyValue("channels");
+		Map<MessageSelector, Collection<MessageChannel>> channelMap =
+				(Map<MessageSelector, Collection<MessageChannel>>)
+						new DirectFieldAccessor(router).getPropertyValue("channelMap");
+		Collection<MessageChannel> channelList = channelMap.values().iterator().next();
 		assertEquals(2, channelList.size());
 		assertTrue(channelList.contains(channel1));
 		assertTrue(channelList.contains(channel2));
@@ -337,7 +342,6 @@ public class RecipientListRouterTests {
 	public void nullChannelListRejected() {
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(null);
-		router.afterPropertiesSet();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -345,7 +349,6 @@ public class RecipientListRouterTests {
 		RecipientListRouter router = new RecipientListRouter();
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		router.setChannels(channels);
-		router.afterPropertiesSet();
 	}
 
 	@Test(expected = IllegalArgumentException.class)

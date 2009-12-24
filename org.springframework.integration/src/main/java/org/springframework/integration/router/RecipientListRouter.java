@@ -17,7 +17,11 @@
 package org.springframework.integration.router;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -28,13 +32,18 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
- * A Message Router that sends Messages to a statically configured list of
- * recipients. The recipients are provided as a list of {@link MessageChannel}
- * instances. For dynamic recipient lists, consider instead using the @Router
- * annotation or extending {@link AbstractChannelNameResolvingMessageRouter}. 
+ * A Message Router that sends Messages to a list of recipient channels. The
+ * recipients can be provided as a static list of {@link MessageChannel}
+ * instances via the {@link #setChannels(List)} method, or for dynamic
+ * behavior, a map with {@link MessageSelector} instances as the keys and
+ * collections of channels as the values can be provided via the
+ * {@link #setChannelMap(Map)} method. For more advanced, programmatic control
+ * of dynamic recipient lists, consider using the @Router annotation or
+ * extending {@link AbstractChannelNameResolvingMessageRouter} instead. 
  * 
  * @author Mark Fisher
  */
@@ -44,17 +53,27 @@ public class RecipientListRouter extends AbstractMessageHandler implements Initi
 
 	private volatile boolean applySequence;
 
-	private volatile List<MessageChannel> channels;
+	private volatile Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap;
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public void setChannels(List<MessageChannel> channels) {
-		this.channels = channels;
+		Assert.notEmpty(channels, "channels must not be empty");
+		MessageSelector selector = new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return true;
+			}
+		};
+		this.setChannelMap(Collections.singletonMap(selector, channels));
+	}
+
+	public void setChannelMap(Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap) {
+		this.channelMap = channelMap;
 	}
 
 	/**
-	 * Set the timeout for sending a message to the resolved channel. By
+	 * Set the timeout for sending a message to the resolved channel(s). By
 	 * default, there is no timeout, meaning the send will block indefinitely.
 	 */
 	public void setTimeout(long timeout) {
@@ -84,15 +103,22 @@ public class RecipientListRouter extends AbstractMessageHandler implements Initi
 	}
 
 	public void afterPropertiesSet() {
-		Assert.notEmpty(this.channels, "a non-empty channel list is required");
+		Assert.notEmpty(this.channelMap, "a non-empty channel map is required");
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		List<MessageChannel> channelList = new ArrayList<MessageChannel>(this.channels);
-		int sequenceSize = channelList.size();
+		List<MessageChannel> recipients = new ArrayList<MessageChannel>();
+		Map<MessageSelector, Collection<MessageChannel>> map =
+				new HashMap<MessageSelector, Collection<MessageChannel>>(this.channelMap);
+		for (MessageSelector selector : map.keySet()) {
+			if (selector.accept(message)) {
+				recipients.addAll(map.get(selector));
+			}
+		}
+		int sequenceSize = recipients.size();
 		int sequenceNumber = 1;
-		for (MessageChannel channel : channelList) {
+		for (MessageChannel channel : recipients) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 					: MessageBuilder.fromMessage(message)
 							.setSequenceNumber(sequenceNumber++)
