@@ -340,7 +340,9 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 						if (StringUtils.hasText(qualifierExpression)) {
 							sb.append("." + qualifierExpression);
 						}
-						this.setExclusiveTargetParameterType(parameterType);
+						if (!StringUtils.hasText(qualifierExpression)) {
+							this.setExclusiveTargetParameterType(parameterType);
+						}
 					}
 					else if (annotationType.equals(Headers.class)) {
 						Assert.isTrue(Map.class.isAssignableFrom(parameterType),

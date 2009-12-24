@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 
@@ -670,6 +671,19 @@ public class PayloadAndHeaderMappingTests {
 		assertNull(bean.lastHeaders.get("bar"));
 	}
 
+	@Test
+	public void twoPayloadExpressions() throws Exception {
+		MessageHandler handler = this.getHandler("twoPayloadExpressions", String.class, String.class);
+		Map<String, Object> payload = new HashMap<String, Object>();
+		payload.put("foo", new Integer(123));
+		payload.put("bar", new Integer(456));
+		Message<?> message = MessageBuilder.withPayload(payload).build();
+		handler.handleMessage(message);
+		assertNull(bean.lastHeaders);
+		assertNotNull(bean.lastPayload);
+		assertEquals("123456", bean.lastPayload);
+	}
+
 
 	private ServiceActivatingHandler getHandler(String methodName, Class<?>... types) throws Exception {
 		return new ServiceActivatingHandler(bean, TestBean.class.getMethod(methodName, types));
@@ -834,6 +848,10 @@ public class PayloadAndHeaderMappingTests {
 
 		public void singleObjectHeaderOnly(@Header("foo") Object o) {
 			this.lastHeaders = Collections.singletonMap("foo", o);
+		}
+
+		public void twoPayloadExpressions(@Payload("foo") String foo, @Payload("bar") String bar) {
+			this.lastPayload = foo + bar;
 		}
 	}
 
