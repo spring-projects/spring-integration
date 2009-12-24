@@ -82,4 +82,8 @@ Tools' context menu, and deploying to a dm server instance as the project's
 targeted runtime. A comprehensive overview of those OSGi samples is included
 in the "Samples" Appendix of the Spring Integration Reference Manual.
 
+NOTE: Srtarting dmServer v2.0.M5 OSGi console is not available by default in favor of dmShell
+However you can re-enable OSGi console by going to {dm_home}/lib and add osgi.console=<port> to 
+com.springsource.kernel.launch.properties file
+
 Happy integration :-)
