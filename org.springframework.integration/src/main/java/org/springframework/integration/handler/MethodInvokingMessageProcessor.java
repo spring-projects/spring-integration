@@ -67,6 +67,8 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 
 	private final Object targetObject;
 
+	private volatile String displayString;
+
 	private volatile boolean requiresReply;
 
 	private final Map<Class<?>, HandlerMethod> handlerMethods;
@@ -98,9 +100,11 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 	private MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType, Method method) {
 		Assert.notNull(method, "method must not be null");
 		HandlerMethod handlerMethod = new HandlerMethod(method);
+		Assert.notNull(targetObject, "targetObject must not be null");
 		this.targetObject = targetObject;
 		this.handlerMethods = Collections.<Class<?>, HandlerMethod>singletonMap(handlerMethod.getTargetParameterType(), handlerMethod);
 		this.evaluationContext = this.createEvaluationContext(targetObject, method, annotationType);
+		this.setDisplayString(targetObject, method);
 	}
 
 	private MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType, String methodName) {
@@ -108,12 +112,25 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 	}
 
 	private MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType, String methodName, boolean requiresReply) {
+		Assert.notNull(targetObject, "targetObject must not be null");
 		this.targetObject = targetObject;
 		this.requiresReply = requiresReply;
 		this.handlerMethods = this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
 		this.evaluationContext = this.createEvaluationContext(targetObject, methodName, annotationType);
+		this.setDisplayString(targetObject, methodName);
 	}
 
+
+	private void setDisplayString(Object targetObject, Object targetMethod) {
+		StringBuilder sb = new StringBuilder(targetObject.getClass().getName());
+		if (targetMethod instanceof Method) {
+			sb.append("." + ((Method) targetMethod).getName());
+		}
+		else if (targetMethod instanceof String) {
+			sb.append("." + (String) targetMethod);
+		}
+		this.displayString = sb.toString() + "]";
+	}
 
 	private EvaluationContext createEvaluationContext(Object targetObject, Object method, Class<? extends Annotation> annotationType) {
 		StandardEvaluationContext context = new StandardEvaluationContext();
@@ -137,6 +154,10 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		return context;
 	}
 
+
+	public String toString() {
+		return this.displayString;
+	}
 
 	public Object processMessage(Message<?> message) {
 		EvaluationException evaluationException = null;
