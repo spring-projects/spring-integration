@@ -13,9 +13,12 @@
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
 
     <i:channel id="in"/>
-    
+
     <i:service-activator input-channel="in" output-channel="out">
-        <bean class="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests$SingleMethod"/>
+        <bean class="org.mockito.Mockito" factory-method="mock">
+            <constructor-arg
+                    value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests$SingleMethod"/>
+        </bean>
     </i:service-activator>
 
     <i:channel id="out"/>
