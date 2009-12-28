@@ -14,12 +14,32 @@
 
     <i:channel id="in"/>
 
-    <i:service-activator input-channel="in" output-channel="out">
-        <bean class="org.mockito.Mockito" factory-method="mock">
-            <constructor-arg
-                    value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests$SingleMethod"/>
-        </bean>
-    </i:service-activator>
+    <i:chain input-channel="in" output-channel="out">
+        <i:filter expression="payload == 'singleAnnotatedMethodOnClass'"/>
+        <i:service-activator ref="singleAnnotatedMethodOnClass"/>
+    </i:chain>
+    <bean id="singleAnnotatedMethodOnClass" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg
+                value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests.SingleAnnotatedMethodOnClass"/>
+    </bean>
+
+    <i:chain input-channel="in" output-channel="out">
+        <i:filter expression="payload == 'SingleMethodOnClass'"/>
+        <i:service-activator ref="singleMethodOnClass"/>
+    </i:chain>
+    <bean id="singleMethodOnClass" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg
+                value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests.SingleMethodOnClass"/>
+    </bean>
+
+    <i:chain input-channel="in" output-channel="out">
+        <i:filter expression="payload == 'SingleMethodAcceptingHeaderOnClass'"/>
+        <i:service-activator ref="singleMethodAcceptingHeaderOnClass"/>
+    </i:chain>
+    <bean id="singleMethodAcceptingHeaderOnClass" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg
+                value="org.springframework.integration.test.mockito.ServiceActivatorOnMockitoMockTests.SingleMethodAcceptingHeaderOnClass"/>
+    </bean>
 
     <i:channel id="out">
         <i:queue capacity="10"/>

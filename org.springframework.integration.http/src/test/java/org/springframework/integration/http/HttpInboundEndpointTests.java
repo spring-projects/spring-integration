@@ -16,6 +16,30 @@
 
 package org.springframework.integration.http;
 
+import org.easymock.IAnswer;
+import org.easymock.classextension.ConstructorArgs;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.StringMessage;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.servlet.View;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -29,32 +53,6 @@ import static org.easymock.classextension.EasyMock.verify;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.easymock.IAnswer;
-import org.easymock.classextension.ConstructorArgs;
-import org.junit.Before;
-import org.junit.Test;
-
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.message.StringMessage;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.View;
 
 /**
  * @author Alex Peters
@@ -71,7 +69,7 @@ public class HttpInboundEndpointTests {
 
 	private final MessageChannel replyChannel = createMock(MessageChannel.class);
 
-	private final Object[] allmocks = new Object[] { requestChannel, replyChannel };
+	private final Object[] allMocks = new Object[] { requestChannel, replyChannel };
 
 	private HttpInboundEndpoint endpoint;
 
@@ -80,7 +78,7 @@ public class HttpInboundEndpointTests {
 	private MockHttpServletResponse response;
 
 
-	static {
+    static {
 		try {
 			ANY_BINARY_PAYLOAD = "any binary content..blabla...bla.äöüßßß€€€€".getBytes(ANY_ENCODING);
 		}
@@ -96,7 +94,7 @@ public class HttpInboundEndpointTests {
 		endpoint.setRequestChannel(requestChannel);
 		endpoint.setReplyChannel(replyChannel);
 		endpoint.afterPropertiesSet();
-		reset(allmocks);
+		reset(allMocks);
 		request = new MockHttpServletRequest("GET", "/anyurl");
 		response = new MockHttpServletResponse();
 		response.setCharacterEncoding(ANY_ENCODING);
@@ -133,9 +131,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -150,9 +148,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -171,9 +169,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -195,9 +193,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -215,9 +213,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -238,9 +236,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -255,9 +253,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -273,9 +271,9 @@ public class HttpInboundEndpointTests {
 					return true;
 				}
 			});
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -290,7 +288,7 @@ public class HttpInboundEndpointTests {
 	public void handleRequest_withoutReplyMessage_return200()
 			throws ServletException, IOException {
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
 	}
@@ -299,20 +297,20 @@ public class HttpInboundEndpointTests {
 	public void handleRequest_replyWithTextPayload_textAsRespContent()
 			throws ServletException, IOException {
 		setupEndpointAsMock(ANY_STRING_PAYLOAD);
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
 		assertThat(response.getContentAsString(), is(ANY_STRING_PAYLOAD));
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
 	public void handleRequest_replyWithBytePayload_bytesAsRespContent()
 			throws ServletException, IOException {
 		setupEndpointAsMock(ANY_BINARY_PAYLOAD);
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
 		assertThat(response.getContentAsByteArray(), is(ANY_BINARY_PAYLOAD));
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -320,14 +318,14 @@ public class HttpInboundEndpointTests {
 			throws ServletException, IOException, ClassNotFoundException {
 		Date obj = new Date();
 		setupEndpointAsMock(obj);
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
 		byte[] content = response.getContentAsByteArray();
 		Object deserializedObj = new ObjectInputStream(
 				new ByteArrayInputStream(content)).readObject();
 		assertThat(deserializedObj, is(Date.class));
 		assertThat((Date) deserializedObj, is(obj));
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test(expected = ServletException.class)
@@ -335,9 +333,9 @@ public class HttpInboundEndpointTests {
 			throws ServletException, IOException, ClassNotFoundException {
 		Object obj = new Object();
 		setupEndpointAsMock(obj);
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 	}
 
 	@Test
@@ -356,9 +354,9 @@ public class HttpInboundEndpointTests {
 		});
 		endpoint.setView(view);
 		replay(view);
-		replay(allmocks);
+		replay(allMocks);
 		endpoint.handleRequest(request, response);
-		verify(allmocks);
+		verify(allMocks);
 		verify(view);
 	}
 

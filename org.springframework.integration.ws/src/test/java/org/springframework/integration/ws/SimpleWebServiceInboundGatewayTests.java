@@ -16,17 +16,6 @@
 
 package org.springframework.integration.ws;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Before;
@@ -34,9 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnit44Runner;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -44,12 +32,22 @@ import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+
 /**
  * 
  * @author Iwein Fuld
  * 
  */
-@RunWith(MockitoJUnit44Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class SimpleWebServiceInboundGatewayTests {
 
 	private SimpleWebServiceInboundGateway gateway = new SimpleWebServiceInboundGateway();

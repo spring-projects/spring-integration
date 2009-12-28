@@ -15,6 +15,19 @@
  */
 package org.springframework.integration.test.matcher;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.exceptions.verification.junit.ArgumentsAreDifferent;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandler;
+
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -23,25 +36,12 @@ import static org.mockito.Mockito.when;
 import static org.springframework.integration.test.matcher.MockitoMessageMatchers.messageWithHeaderEntry;
 import static org.springframework.integration.test.matcher.MockitoMessageMatchers.messageWithPayload;
 
-import java.util.Date;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.exceptions.verification.junit.ArgumentsAreDifferent;
-import org.mockito.runners.MockitoJUnit44Runner;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandler;
-
 /**
  * @author Alex Peters
  * @author Iwein Fuld
  * 
  */
-@RunWith(MockitoJUnit44Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class MockitoMessageMatchersTests {
 
 	static final Date SOME_PAYLOAD = new Date();

@@ -18,14 +18,17 @@ package org.springframework.integration.test.mockito;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Iwein Fuld
@@ -34,19 +37,58 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ServiceActivatorOnMockitoMockTests {
 
-    @Autowired @Qualifier("in")
+    @Autowired
+    @Qualifier("in")
     MessageChannel in;
 
-    @Autowired @Qualifier("out")
+    @Autowired
+    @Qualifier("out")
     PollableChannel out;
 
-    public static class SingleMethod {
-        public String move(String s){return s;};
+    public static class SingleAnnotatedMethodOnClass {
+        @ServiceActivator
+        public String move(String s) {
+            return s;
+        }
     }
 
+    @Autowired
+    SingleAnnotatedMethodOnClass singleAnnotatedMethodOnClass;
+
     @Test
-    public void shouldInvokeMock() {
-        in.send(MessageBuilder.withPayload("test").build())    ;
+    public void shouldInvokeMockedSingleAnnotatedMethodOnClass() {
+        in.send(MessageBuilder.withPayload("singleAnnotatedMethodOnClass").build());
+        verify(singleAnnotatedMethodOnClass).move("singleAnnotatedMethodOnClass");
+    }
+
+    public static class SingleMethodOnClass {
+        public String move(String s) {
+            return s;
+        }
+    }
+
+    @Autowired
+    SingleMethodOnClass singleMethodOnClass;
+
+    @Test
+    public void shouldInvokeMockedSingleMethodOnClass() {
+        in.send(MessageBuilder.withPayload("SingleMethodOnClass").build());
+        verify(singleMethodOnClass).move("SingleMethodOnClass");
+    }
+
+    public static class SingleMethodAcceptingHeaderOnClass {
+        public String move(@Header("s") String s) {
+            return s;
+        }
+    }
+
+    @Autowired
+    SingleMethodAcceptingHeaderOnClass singleMethodAcceptingHeaderOnClass;
+
+    @Test
+    public void shouldInvokeMockedSingleMethodAcceptingHeaderOnClass() {
+        in.send(MessageBuilder.withPayload("SingleMethodAcceptingHeaderOnClass").setHeader("s", "SingleMethodAcceptingHeaderOnClass").build());
+        verify(singleMethodAcceptingHeaderOnClass).move("SingleMethodAcceptingHeaderOnClass");
     }
 
 }

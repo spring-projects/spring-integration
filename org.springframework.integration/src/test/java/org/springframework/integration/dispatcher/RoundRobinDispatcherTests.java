@@ -15,27 +15,24 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnit44Runner;
-
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.mockito.Mockito.*;
 
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-@RunWith(MockitoJUnit44Runner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class RoundRobinDispatcherTests {
 
 	private UnicastingDispatcher dispatcher = new UnicastingDispatcher();
