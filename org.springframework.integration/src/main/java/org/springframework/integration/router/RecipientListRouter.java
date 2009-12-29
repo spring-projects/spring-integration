@@ -16,14 +16,6 @@
 
 package org.springframework.integration.router;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
@@ -35,103 +27,132 @@ import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
+import java.util.*;
+
 /**
+ * <pre>
+ * &lt;recipient-list-router id="simpleRouter" input-channel="routingChannelA"&gt;
+ *     &lt;recipient channel="channel1"/&gt;
+ *     &lt;recipient channel="channel2"/&gt;
+ * &lt;/recipient-list-router>
+ * </pre>
+ * <p/>
  * A Message Router that sends Messages to a list of recipient channels. The
  * recipients can be provided as a static list of {@link MessageChannel}
  * instances via the {@link #setChannels(List)} method, or for dynamic
  * behavior, a map with {@link MessageSelector} instances as the keys and
  * collections of channels as the values can be provided via the
- * {@link #setChannelMap(Map)} method. For more advanced, programmatic control
+ * {@link #setChannelMap(Map)} method.
+ * <p/>
+ * For more advanced, programmatic control
  * of dynamic recipient lists, consider using the @Router annotation or
- * extending {@link AbstractChannelNameResolvingMessageRouter} instead. 
- * 
+ * extending {@link AbstractChannelNameResolvingMessageRouter} instead.
+ * <p/>
+ * Contrary to a standard &lt;router .../&gt; this handler will try to send to all channels that are configured as
+ * recipients. It is to channels what a publish subscribe channel is to endpoints.
+ * <p/>
+ * Using this class only makes sense if it is essential to send messages on multiple channels instead of
+ * sending them to multiple handlers. If the latter is an option using a publish subscribe channel is the more flexible
+ * solution.
+ *
  * @author Mark Fisher
  */
 public class RecipientListRouter extends AbstractMessageHandler implements InitializingBean {
 
-	private volatile boolean ignoreSendFailures;
+    private volatile boolean ignoreSendFailures;
 
-	private volatile boolean applySequence;
+    private volatile boolean applySequence;
 
-	private volatile Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap;
+    private volatile Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+    private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
-	public void setChannels(List<MessageChannel> channels) {
-		Assert.notEmpty(channels, "channels must not be empty");
-		MessageSelector selector = new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return true;
-			}
-		};
-		this.setChannelMap(Collections.singletonMap(selector, channels));
-	}
+    /**
+     * Set the output channels of this router.
+     *
+     * @param channels
+     */
+    public void setChannels(List<MessageChannel> channels) {
+        Assert.notEmpty(channels, "channels must not be empty");
+        MessageSelector selector = new MessageSelector() {
+            public boolean accept(Message<?> message) {
+                return true;
+            }
+        };
+        this.setChannelMap(Collections.singletonMap(selector, channels));
+    }
 
-	public void setChannelMap(Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap) {
-		this.channelMap = channelMap;
-	}
+    /**
+     * Set a custom map of selectors to channels. This allows a configuration where groups of channels are used for
+     * messages matching a particular filter.
+     *
+     * @param channelMap
+     */
+    public void setChannelMap(Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap) {
+        this.channelMap = channelMap;
+    }
 
-	/**
-	 * Set the timeout for sending a message to the resolved channel(s). By
-	 * default, there is no timeout, meaning the send will block indefinitely.
-	 */
-	public void setTimeout(long timeout) {
-		this.channelTemplate.setSendTimeout(timeout);
-	}
+    /**
+     * Set the timeout for sending a message to the resolved channel(s). By
+     * default, there is no timeout, meaning the send will block indefinitely.
+     */
+    public void setTimeout(long timeout) {
+        this.channelTemplate.setSendTimeout(timeout);
+    }
 
-	/**
-	 * Specify whether send failures for one or more of the recipients
-	 * should be ignored. By default this is <code>false</code> meaning
-	 * that an Exception will be thrown whenever a send fails. To override
-	 * this and suppress Exceptions, set the value to <code>true</code>.
-	 */
-	public void setIgnoreSendFailures(boolean ignoreSendFailures) {
-		this.ignoreSendFailures = ignoreSendFailures;
-	}
+    /**
+     * Specify whether send failures for one or more of the recipients
+     * should be ignored. By default this is <code>false</code> meaning
+     * that an Exception will be thrown whenever a send fails. To override
+     * this and suppress Exceptions, set the value to <code>true</code>.
+     */
+    public void setIgnoreSendFailures(boolean ignoreSendFailures) {
+        this.ignoreSendFailures = ignoreSendFailures;
+    }
 
-	/**
-	 * Specify whether to apply the sequence number and size headers to the
-	 * messages prior to sending to the recipient channels. By default, this
-	 * value is <code>false</code> meaning that sequence headers will
-	 * <em>not</em> be applied. If planning to use an Aggregator downstream
-	 * with the default correlation and completion strategies, you should set
-	 * this flag to <code>true</code>.
-	 */
-	public void setApplySequence(boolean applySequence) {
-		this.applySequence = applySequence;
-	}
+    /**
+     * Specify whether to apply the sequence number and size headers to the
+     * messages prior to sending to the recipient channels. By default, this
+     * value is <code>false</code> meaning that sequence headers will
+     * <em>not</em> be applied. If planning to use an Aggregator downstream
+     * with the default correlation and completion strategies, you should set
+     * this flag to <code>true</code>.
+     */
+    public void setApplySequence(boolean applySequence) {
+        this.applySequence = applySequence;
+    }
 
-	public void afterPropertiesSet() {
-		Assert.notEmpty(this.channelMap, "a non-empty channel map is required");
-	}
+    public void afterPropertiesSet() {
+        Assert.notEmpty(this.channelMap, "a non-empty channel map is required");
+    }
 
-	@Override
-	protected void handleMessageInternal(Message<?> message) throws Exception {
-		List<MessageChannel> recipients = new ArrayList<MessageChannel>();
-		Map<MessageSelector, Collection<MessageChannel>> map =
-				new HashMap<MessageSelector, Collection<MessageChannel>>(this.channelMap);
-		for (MessageSelector selector : map.keySet()) {
-			if (selector.accept(message)) {
-				recipients.addAll(map.get(selector));
-			}
-		}
-		int sequenceSize = recipients.size();
-		int sequenceNumber = 1;
-		for (MessageChannel channel : recipients) {
-			final Message<?> messageToSend = (!this.applySequence) ? message
-					: MessageBuilder.fromMessage(message)
-							.setSequenceNumber(sequenceNumber++)
-							.setSequenceSize(sequenceSize)
-							.setCorrelationId(message.getHeaders().getId())
-							.setHeader(MessageHeaders.ID, UUID.randomUUID())
-							.build();
-			boolean sent = this.channelTemplate.send(messageToSend, channel);
-			if (!sent && !this.ignoreSendFailures) {
-				throw new MessageDeliveryException(message,
-						"RecipientListRouter failed to send to channel: " + channel);
-			}
-		}
-	}
+    @Override
+    protected void handleMessageInternal(Message<?> message) throws Exception {
+        List<MessageChannel> recipients = new ArrayList<MessageChannel>();
+        Map<MessageSelector, Collection<MessageChannel>> map =
+                new HashMap<MessageSelector, Collection<MessageChannel>>(this.channelMap);
+        for (MessageSelector selector : map.keySet()) {
+            if (selector.accept(message)) {
+                recipients.addAll(map.get(selector));
+            }
+        }
+        int sequenceSize = recipients.size();
+        int sequenceNumber = 1;
+        for (MessageChannel channel : recipients) {
+            final Message<?> messageToSend = (!this.applySequence) ? message
+                    : MessageBuilder.fromMessage(message)
+                    .setSequenceNumber(sequenceNumber++)
+                    .setSequenceSize(sequenceSize)
+                    .setCorrelationId(message.getHeaders().getId())
+                    .setHeader(MessageHeaders.ID, UUID.randomUUID())
+                    .build();
+            boolean sent = this.channelTemplate.send(messageToSend, channel);
+            if (!sent && !this.ignoreSendFailures) {
+                throw new MessageDeliveryException(message,
+                        "RecipientListRouter failed to send to channel: " + channel);
+            }
+        }
+    }
 
 }
