@@ -9,10 +9,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a group of correllated messages that is bound to a certain
- * {@link org.springframework.integration.store.MessageStore}. The group can grow during its lifetime, if messages are
- * <code>add</code>ed to it. According to its {@link org.springframework.integration.aggregator.CompletionStrategy} it
- * can be complete depending on the messages in the group.
+ * Represents a group of correlated messages that is bound to a certain
+ * {@link org.springframework.integration.store.MessageStore} and correlation key.
+ * The group can grow during its lifetime, if messages are <code>add</code>ed to it.
+ * <p/>
+ * According to its {@link org.springframework.integration.aggregator.CompletionStrategy} it
+ * can be <i>complete</i> depending on the messages in the group.
+ * <p/>
+ * Listeners can be configured to get callbacks when (parts of) the group are processed or the whole group is completed.
  *
  * @author Iwein Fuld
  */
@@ -29,7 +33,7 @@ public class MessageGroup {
         this.completionStrategy = completionStrategy;
         this.correlationKey = correlationKey;
         this.messages.addAll(store.list(correlationKey));
-               this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
+        this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
     }
 
     public boolean hasNoMessageSuperseding(Message<?> message) {
