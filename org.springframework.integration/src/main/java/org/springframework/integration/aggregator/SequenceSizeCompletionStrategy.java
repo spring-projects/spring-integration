@@ -31,7 +31,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class SequenceSizeCompletionStrategy implements CompletionStrategy {
 
-	public boolean isComplete(List<Message<?>> messages) {
+	public boolean isComplete(List<? extends Message<?>> messages) {
 		if (CollectionUtils.isEmpty(messages)) {
 			return false;
 		}

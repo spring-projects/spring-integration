@@ -108,7 +108,7 @@ public class AggregatorWithCorrelationStrategyTests {
             this.expectedSize = expectedSize;
         }
 
-        public boolean isComplete(List<Message<?>> messages) {
+        public boolean isComplete(List<? extends Message<?>> messages) {
             return messages.size() == expectedSize;
         }
 

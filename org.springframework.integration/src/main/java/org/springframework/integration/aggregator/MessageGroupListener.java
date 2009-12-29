@@ -18,9 +18,12 @@ package org.springframework.integration.aggregator;
 import org.springframework.integration.core.Message;
 
 /**
+ * Listener that can be configured with a MessageGroup to receive notifications on processing of (parts of) the group
+ * and exactly one notification when the whole group completes.
+ *
  * @author Iwein Fuld
  */
-public interface BufferedMessagesCallback {
+public interface MessageGroupListener {
 
     void onProcessingOf(Message<?>... processedMessages);
 

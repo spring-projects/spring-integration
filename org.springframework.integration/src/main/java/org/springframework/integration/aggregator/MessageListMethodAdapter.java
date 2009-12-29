@@ -72,7 +72,7 @@ public class MessageListMethodAdapter {
                 && Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
     }
 
-    protected final Object executeMethod(Collection<Message<?>> messages) {
+    protected final Object executeMethod(Collection<? extends Message<?>> messages) {
         try {
             if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
                     && (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
@@ -89,7 +89,7 @@ public class MessageListMethodAdapter {
         }
     }
 
-    private List<?> extractPayloadsFromMessages(Collection<Message<?>> messages) {
+    private List<?> extractPayloadsFromMessages(Collection<? extends Message<?>> messages) {
         List<Object> payloadList = new ArrayList<Object>();
         for (Message<?> message : messages) {
             payloadList.add(message.getPayload());

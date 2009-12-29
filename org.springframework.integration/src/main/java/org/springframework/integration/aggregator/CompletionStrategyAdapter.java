@@ -43,7 +43,7 @@ public class CompletionStrategyAdapter extends MessageListMethodAdapter implemen
 	}
 
 
-	public boolean isComplete(List<Message<?>> messages) {
+	public boolean isComplete(List<? extends Message<?>> messages) {
 		return ((Boolean) executeMethod(messages)).booleanValue();
 	}
 

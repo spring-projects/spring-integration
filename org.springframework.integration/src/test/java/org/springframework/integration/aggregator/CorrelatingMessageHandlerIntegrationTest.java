@@ -1,24 +1,22 @@
 package org.springframework.integration.aggregator;
 
-import org.junit.Test;
 import org.junit.Before;
-import static org.mockito.Mockito.*;
+import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 
-public class BufferingMessageHandlerIntegrationTest {
+import static org.mockito.Mockito.*;
+
+public class CorrelatingMessageHandlerIntegrationTest {
 
 	private CompletionStrategy completionStrategy;
 	private CorrelationStrategy correlationStrategy;
 	private MessageStore store = new SimpleMessageStore(100);
 	private MessageChannel outputChannel = mock(MessageChannel.class);
 	private MessageGroupProcessor processor = new PassThroughMessageGroupProcessor();
-//	private CorrelatingMessageHandler customizedHandler = new CorrelatingMessageHandler(
-//			store, correlationStrategy, completionStrategy, processor,
-//			outputChannel);
 	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(
 			store, processor);
 
@@ -53,7 +51,7 @@ public class BufferingMessageHandlerIntegrationTest {
 	}
 	
 	@Test
-	public void completesWithoutReleasingIncompleteCorrellations() throws Exception {
+	public void completesWithoutReleasingIncompleteCorrelations() throws Exception {
 		Message<?> message1 = correlatedMessage(1, 2, 1);
 		Message<?> message2 = correlatedMessage(2, 2, 1);
 		Message<?> message1a = correlatedMessage(1, 2, 2);

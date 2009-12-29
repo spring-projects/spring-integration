@@ -16,18 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.NullChannel;
@@ -40,10 +28,15 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
- * MessageHandler that holds a buffer of messages in a MessageStore. This class takes care of 
+ * MessageHandler that holds a buffer of messages in a MessageStore. This class takes care of
  * correlated groups of messages that can be completed in batches. It is useful for aggregating,
- * resequencing, or custom implementations requiring correlation. 
+ * resequencing, or custom implementations requiring correlation.
  *
  * @author Iwein Fuld
  */
@@ -51,24 +44,28 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
     private MessageStore store = new SimpleMessageStore(100);
     private final CorrelationStrategy correlationStrategy;
-    private final IdTracker tracker = new IdTracker();
     private final CompletionStrategy completionStrategy;
     private MessageGroupProcessor outputProcessor;
+
     private MessageChannel outputChannel;
     private volatile MessageChannel discardChannel = new NullChannel();
-    private TaskScheduler taskScheduler;
-    private Object lifecycleMonitor = new Object();
-    private ScheduledFuture<?> reaperFutureTask;
-    private volatile long reaperInterval = 1000l;
-    private final BlockingQueue<DelayedKey> keysInBuffer = new DelayQueue<DelayedKey>();
-    private volatile long timeout = 60000l;
-    private volatile boolean sendPartialResultOnTimeout;
     private ChannelResolver channelResolver;
 
+    private final IdTracker tracker = new IdTracker();
+    private final BlockingQueue<DelayedKey> keysInBuffer = new DelayQueue<DelayedKey>();
+
+    private volatile TaskScheduler taskScheduler;
+    private volatile ScheduledFuture<?> reaperFutureTask;
+    private volatile long reaperInterval = 1000l;
+    private volatile long timeout = 60000l;
+    private volatile boolean sendPartialResultOnTimeout;
+
+    private Object lifecycleMonitor = new Object();
+
     public CorrelatingMessageHandler(MessageStore store,
-                                   CorrelationStrategy correlationStrategy,
-                                   CompletionStrategy completionStrategy,
-                                   MessageGroupProcessor processor) {
+                                     CorrelationStrategy correlationStrategy,
+                                     CompletionStrategy completionStrategy,
+                                     MessageGroupProcessor processor) {
         Assert.notNull(store);
         Assert.notNull(correlationStrategy);
         Assert.notNull(completionStrategy);
@@ -80,7 +77,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     }
 
     public CorrelatingMessageHandler(MessageStore store,
-                                   MessageGroupProcessor processor) {
+                                     MessageGroupProcessor processor) {
         this(store, new HeaderAttributeCorrelationStrategy(
                 MessageHeaders.CORRELATION_ID),
                 new SequenceSizeCompletionStrategy(), processor);
@@ -119,11 +116,16 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
         try {
             if (tracker.aquireLockFor(correlationKey)) {
-                List<Message<?>> group = store.list(correlationKey);
-                if (noSupersedingMessage(message, group)) {
+                MessageGroup group =
+                        new MessageGroup(store, completionStrategy, correlationKey, deleteOrTrackCallback());
+                if (group.hasNoMessageSuperseding(message)) {
                     store(message, correlationKey);
                     group.add(message);
-                    complete(correlationKey, group, this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
+
+                    if (group.isComplete()) {
+                        outputProcessor.processAndSend(group,
+                                this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
+                    }
                 } else {
                     discardChannel.send(message);
                 }
@@ -135,26 +137,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
         }
     }
 
-    private boolean noSupersedingMessage(Message<?> message, List<Message<?>> group) {
-        for (Message<?> member : group) {
-            if (member.getHeaders().getSequenceNumber() == message.getHeaders().getSequenceNumber()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean complete(Object correlationKey, List<Message<?>> correlatedMessages, MessageChannel messageChannel) {
-        boolean processed = false;
-        if (completionStrategy.isComplete(correlatedMessages)) {
-            outputProcessor.processAndSend(correlationKey, correlatedMessages, messageChannel, deleteOrTrackCallback());
-            processed = true;
-        }
-        return processed;
-    }
-
-    private BufferedMessagesCallback deleteOrTrackCallback() {
-        return new BufferedMessagesCallback() {
+    private MessageGroupListener deleteOrTrackCallback() {
+        return new MessageGroupListener() {
             public void onProcessingOf(Message<?>... processedMessage) {
                 for (Message<?> message : processedMessage) {
                     store.delete(message.getHeaders().getId());
@@ -221,17 +205,23 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     }
 
     protected final void forceComplete(Object key) {
+        MessageGroup group = new MessageGroup(store, completionStrategy, key, deleteOrTrackCallback());
         List<Message<?>> all = store.list(key);
         if (all.size() > 0) {
             //last chance for normal completion
             MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel, this.channelResolver);
-            boolean fullyCompleted = complete(key, all, outputChannel);
+            boolean processed = false;
+            if (completionStrategy.isComplete(all)) {
+                outputProcessor.processAndSend(group, outputChannel);
+                processed = true;
+            }
+            boolean fullyCompleted = processed;
             if (!fullyCompleted) {
                 if (sendPartialResultOnTimeout) {
                     if (logger.isInfoEnabled()) {
                         logger.info("Processing partially complete messages for key [" + key + "] to: " + outputChannel);
                     }
-                    outputProcessor.processAndSend(key, all, outputChannel, deleteOrTrackCallback());
+                    outputProcessor.processAndSend(group, outputChannel);
                 } else {
                     if (logger.isInfoEnabled()) {
                         logger.info("Discarding partially complete messages for key [" + key + "] to: " + discardChannel);

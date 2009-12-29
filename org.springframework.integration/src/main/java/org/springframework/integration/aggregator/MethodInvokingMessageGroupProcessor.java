@@ -115,14 +115,14 @@ public class MethodInvokingMessageGroupProcessor implements MessageGroupProcesso
         });
     }
 
-    public void processAndSend(Object correlationKey,
-                               Collection<Message<?>> messagesUpForProcessing,
-                               MessageChannel outputChannel,
-                               BufferedMessagesCallback processedCallback) {
+    public void processAndSend(MessageGroup group,
+                               MessageChannel outputChannel
+    ) {
+        final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
         Message reply = MessageBuilder.withPayload(
                 this.adapter.executeMethod(messagesUpForProcessing)).build();
-        processedCallback.onCompletionOf(correlationKey);
-        processedCallback.onProcessingOf(messagesUpForProcessing
+        group.onCompletion();
+        group.onProcessingOf(messagesUpForProcessing
                 .toArray(new Message[]{}));
         outputChannel.send(reply);
     }

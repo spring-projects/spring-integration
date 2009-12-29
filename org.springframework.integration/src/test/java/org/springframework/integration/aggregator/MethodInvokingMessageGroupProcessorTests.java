@@ -13,7 +13,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -27,13 +26,15 @@ import static org.mockito.Mockito.when;
 public class MethodInvokingMessageGroupProcessorTests {
 
     @Mock
-    private BufferedMessagesCallback processedCallback;
+    private MessageGroupListener processedCallback;
 
     @Mock
     private MessageChannel outputChannel;
 
-    private Collection<Message<?>> messagesUpForProcessing = new ArrayList<Message<?>>(
+    private List<Message<?>> messagesUpForProcessing = new ArrayList<Message<?>>(
             3);
+    @Mock
+    private MessageGroup messageGroupMock;
 
     @Before
     public void initializeMessagesUpForProcessing() {
@@ -66,8 +67,9 @@ public class MethodInvokingMessageGroupProcessorTests {
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor
                 .forClass(Message.class);
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
-        processor.processAndSend(3, messagesUpForProcessing, outputChannel,
-                processedCallback);
+        when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
+        processor.processAndSend(messageGroupMock, outputChannel
+        );
         // verify
         verify(outputChannel).send(messageCaptor.capture());
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
@@ -91,8 +93,9 @@ public class MethodInvokingMessageGroupProcessorTests {
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor
                 .forClass(Message.class);
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
-        processor.processAndSend(3, messagesUpForProcessing, outputChannel,
-                processedCallback);
+        when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
+        processor.processAndSend(messageGroupMock, outputChannel
+        );
         // verify
         verify(outputChannel).send(messageCaptor.capture());
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
@@ -108,10 +111,11 @@ public class MethodInvokingMessageGroupProcessorTests {
             return result;
         }
 
-        public void voidMethodShouldBeIgnored(List<Integer> flags){
+        public void voidMethodShouldBeIgnored(List<Integer> flags) {
             fail("this method should not be invoked");
         }
-        public String methodAcceptingNoCollectionShouldBeIgnored(@Header String irrelevant){
+
+        public String methodAcceptingNoCollectionShouldBeIgnored(@Header String irrelevant) {
             fail("this method should not be invoked");
             return null;
         }
@@ -124,15 +128,17 @@ public class MethodInvokingMessageGroupProcessorTests {
         );
 
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor
-                .forClass(Message.class) ;
+                .forClass(Message.class);
 
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
-        processor.processAndSend(3, messagesUpForProcessing, outputChannel,
-                processedCallback);
+        when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
+        processor.processAndSend(messageGroupMock, outputChannel
+        );
         // verify
         verify(outputChannel).send(messageCaptor.capture());
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
     }
+
     private class AnnotatedParametersAggregator {
         public Integer and(List<Integer> flags) {
             int result = 0;
@@ -142,7 +148,7 @@ public class MethodInvokingMessageGroupProcessorTests {
             return result;
         }
 
-        public String listHeaderShouldBeIgnored(@Header List<Integer> flags){
+        public String listHeaderShouldBeIgnored(@Header List<Integer> flags) {
             fail("this method should not be invoked");
             return "";
         }
@@ -155,11 +161,12 @@ public class MethodInvokingMessageGroupProcessorTests {
         );
 
         ArgumentCaptor<Message> messageCaptor = ArgumentCaptor
-                .forClass(Message.class) ;
+                .forClass(Message.class);
 
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
-        processor.processAndSend(3, messagesUpForProcessing, outputChannel,
-                processedCallback);
+        when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
+        processor.processAndSend(messageGroupMock, outputChannel
+        );
         // verify
         verify(outputChannel).send(messageCaptor.capture());
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));

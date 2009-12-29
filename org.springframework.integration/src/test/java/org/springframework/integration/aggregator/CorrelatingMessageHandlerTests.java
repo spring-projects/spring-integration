@@ -16,26 +16,24 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Iwein Fuld
@@ -79,12 +77,12 @@ public class CorrelatingMessageHandlerTests {
 		when(correlationStrategy.getCorrelationKey(isA(Message.class)))
 				.thenReturn(correlationKey);
 
-		when(completionStrategy.isComplete(storedMessages)).thenReturn(false);
+		when(completionStrategy.isComplete(Arrays.asList(message1))).thenReturn(false);
 
 		handler.handleMessage(message1);
 		storedMessages.add(message1);
 
-		when(completionStrategy.isComplete(storedMessages)).thenReturn(true);
+		when(completionStrategy.isComplete(Arrays.asList(message1, message2))).thenReturn(true);
 		handler.handleMessage(message2);
 		storedMessages.add(message2);
 
@@ -93,15 +91,16 @@ public class CorrelatingMessageHandlerTests {
 		verify(store, times(2)).list(correlationKey);
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(completionStrategy, times(2)).isComplete(storedMessages);
-		verify(processor).processAndSend(eq(correlationKey),
-				eq(storedMessages), eq(outputChannel),
-				isA(BufferedMessagesCallback.class));
+		verify(completionStrategy).isComplete(Arrays.asList(message1));
+		verify(completionStrategy).isComplete(Arrays.asList(message1, message2));
+		verify(processor).processAndSend(isA(MessageGroup.class),
+                eq(outputChannel)
+        );
 	}
 
 
 	private Message<?> testMessage(int id, int sequenceNumber) {
-		return MessageBuilder.withPayload("test")
+		return MessageBuilder.withPayload("test"+id)
 				.setHeader(MessageHeaders.ID, id)
 				.setSequenceNumber(sequenceNumber).build();
 	}

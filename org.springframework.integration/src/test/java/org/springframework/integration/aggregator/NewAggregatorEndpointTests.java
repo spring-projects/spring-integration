@@ -16,25 +16,23 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.CoreMatchers.*;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
-import org.springframework.integration.aggregator.MessageGroupProcessor;
-import org.springframework.integration.aggregator.BufferedMessagesCallback;
 import org.springframework.integration.store.SimpleMessageStore;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -252,24 +250,25 @@ public class NewAggregatorEndpointTests {
     }
 
     private class MultiplyingProcessor implements MessageGroupProcessor {
-        public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing,
-                                   MessageChannel outputChannel, BufferedMessagesCallback processedCallback
+        public void processAndSend(MessageGroup group,
+                                   MessageChannel outputChannel
         ) {
             Integer product = 1;
+            List<Message<?>> messagesUpForProcessing = group.getMessages();
             for (Message<?> message : messagesUpForProcessing) {
                 product *= (Integer) message.getPayload();
             }
             outputChannel.send(MessageBuilder.withPayload(product).build());
 
-            processedCallback.onProcessingOf(
+            group.onProcessingOf(
                     messagesUpForProcessing.toArray(new Message[messagesUpForProcessing.size()])
             );
-            processedCallback.onCompletionOf(correlationKey);
+            group.onCompletion();
         }
     }
 
     private class NullReturningMessageProcessor implements MessageGroupProcessor {
-        public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing, MessageChannel outputChannel, BufferedMessagesCallback processedCallback) {
+        public void processAndSend(MessageGroup group, MessageChannel outputChannel) {
             //noop
         }
     }

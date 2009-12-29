@@ -3,13 +3,13 @@ package org.springframework.integration.aggregator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 
-import java.util.Collection;
-
 public class PassThroughMessageGroupProcessor implements MessageGroupProcessor {
 
-    public void processAndSend(Object correlationKey, Collection<Message<?>> messagesUpForProcessing, MessageChannel outputChannel, BufferedMessagesCallback processedCallback) {
-        for (Message<?> message : messagesUpForProcessing) {
+    public void processAndSend(MessageGroup group, MessageChannel outputChannel) {
+        for (Message<?> message : group.getMessages()) {
             outputChannel.send(message);
+            group.onProcessingOf(message);
         }
+        group.onCompletion();
     }
 }

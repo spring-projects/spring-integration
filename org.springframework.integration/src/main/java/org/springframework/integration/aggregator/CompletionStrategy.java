@@ -29,6 +29,6 @@ import org.springframework.integration.core.Message;
  */
 public interface CompletionStrategy {
 
-	boolean isComplete(List<Message<?>> messages);
+	boolean isComplete(List<? extends Message<?>> messages);
 
 }

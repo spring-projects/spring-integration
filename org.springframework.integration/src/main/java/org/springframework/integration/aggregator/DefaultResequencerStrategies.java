@@ -38,12 +38,14 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
         return key;
     }
 
-    public boolean isComplete(List<Message<?>> messages) {
+    public boolean isComplete(List<? extends Message<?>> messages) {
         return releasePartialSequences||
                 messages.get(0).getHeaders().getSequenceSize()==messages.size();
     }
 
-    public void processAndSend(Object correlationKey, Collection<Message<?>> all, MessageChannel outputChannel, BufferedMessagesCallback processedCallback) {
+    public void processAndSend(MessageGroup group, MessageChannel outputChannel) {
+        List<Message<?>> all =  group.getMessages();
+        Object correlationKey = group.getCorrelationKey();
         if (all.size() > 0) {
             List<Message> sorted = new ArrayList(all);
             Collections.sort(sorted, sequenceSizeComparator);
@@ -53,12 +55,12 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
                 if (sequenceNumber <= nextSequence.get()) {
                     outputChannel.send(message);
                     nextSequence.compareAndSet(sequenceNumber, sequenceNumber + 1);
-                    processedCallback.onProcessingOf(message);
+                    group.onProcessingOf(message);
                 }
             }
             MessageHeaders headers = sorted.get(0).getHeaders();
             if (all.size() == headers.getSequenceSize()){
-                processedCallback.onCompletionOf(correlationKey);
+                group.onCompletion();
             }
         }
     }
