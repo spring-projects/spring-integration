@@ -21,7 +21,7 @@ import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.DirectoryScanner;
 import org.springframework.integration.file.FileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.locking.BaseLockingFilter;
+import org.springframework.integration.file.locking.AbstractLockingFilter;
 
 import java.io.File;
 import java.util.Comparator;
@@ -39,7 +39,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
 
     private volatile FileListFilter filter;
 
-    private volatile BaseLockingFilter locker;
+    private volatile AbstractLockingFilter locker;
 
     private volatile Comparator<File> comparator;
 
@@ -75,7 +75,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
         this.autoCreateDirectory = autoCreateDirectory;
     }
 
-    public void setLocker(BaseLockingFilter locker) {
+    public void setLocker(AbstractLockingFilter locker) {
         this.locker = locker;
     }
 

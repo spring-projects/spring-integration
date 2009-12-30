@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NioFileLocker extends BaseLockingFilter {
+public class NioFileLocker extends AbstractLockingFilter {
 
 	private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<File, FileLock>();
 

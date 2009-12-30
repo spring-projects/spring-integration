@@ -28,7 +28,7 @@ import java.io.File;
  * @since 2.0
  *
  */
-public abstract class BaseLockingFilter extends AbstractFileListFilter implements FileLocker {
+public abstract class AbstractLockingFilter extends AbstractFileListFilter implements FileLocker {
 
     protected final boolean accept(File file) {
         return lock(file);

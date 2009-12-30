@@ -75,7 +75,7 @@ public class FileLockingNamespaceTests {
         assertThat(accessor.getPropertyValue("filter"), is(CompositeFileListFilter.class));
     }
 
-    public static class StubLocker extends BaseLockingFilter {
+    public static class StubLocker extends AbstractLockingFilter {
         public boolean lock(File fileToLock) {
             return true;
         }
