@@ -70,7 +70,7 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.ws</groupId>
+      <groupId>org.springframework</groupId>
       <artifactId>spring-oxm</artifactId>
       <version>${spring.version}</version>
       <scope>compile</scope>
