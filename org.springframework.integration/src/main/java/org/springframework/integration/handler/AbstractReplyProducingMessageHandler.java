@@ -117,7 +117,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
 		if (!this.sendReplyMessage(replyMessage, replyChannel)) {
 			throw new MessageDeliveryException(replyMessage,
-					"failed to send reply Message to channel '" + replyChannel + "'");
+					"failed to send reply Message to channel '" + replyChannel + "'. Consider increasing the " +
+                            "send timeout of this endpoint.");
 		}
 	}
 
