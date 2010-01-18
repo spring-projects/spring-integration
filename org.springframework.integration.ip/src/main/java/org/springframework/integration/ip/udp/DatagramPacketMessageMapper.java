@@ -65,7 +65,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	private boolean lengthCheck = false;
 
 	private static Pattern udpHeadersPattern = 
-		Pattern.compile(IpHeaders.ACK_ADDRESS + "=" + "([^;]*);\\" + 
+		Pattern.compile("\\" + IpHeaders.ACK_ADDRESS + "=" + "([^;]*);\\" + 
 				MessageHeaders.ID + "=" + "([^;]*);");
 
 
