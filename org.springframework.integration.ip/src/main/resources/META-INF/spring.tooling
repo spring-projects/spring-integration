@@ -1,0 +1,4 @@
+# Tooling related information for the integration ip namespace
+http\://www.springframework.org/schema/integration/ip@name=integration ip Namespace
+http\://www.springframework.org/schema/integration/ip@prefix=int-ip
+http\://www.springframework.org/schema/integration/ip@icon=org/springframework/integration/ip/config/spring-integration-ip.gif
