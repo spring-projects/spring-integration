@@ -84,13 +84,18 @@ public abstract class IpAdapterParserUtils {
 		}
 	}
 
+	/**
+	 * Asserts that a protocol attribute (udp or tcp) is supplied,
+	 * @param element
+	 * @return The value of the attribute.
+	 * @throws BeanCreationException if attribute not provided or invalid.
+	 */
 	static String getProtocol(Element element) {
 		String protocol = element.getAttribute(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE);
 		if (!StringUtils.hasText(protocol)) {
 			throw new BeanCreationException(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
 					" is required for an IP channel adapter");
 		}
-		protocol = protocol.trim();
 		if (!protocol.equals("tcp") && !protocol.equals("udp")) {
 			throw new BeanCreationException(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
 					" must be 'tcp' or 'udp' for an IP channel adapter");
@@ -98,6 +103,12 @@ public abstract class IpAdapterParserUtils {
 		return protocol;
 	}
 
+	/**
+	 * Asserts that a port attribute is supplied.
+	 * @param element
+	 * @return The value of the attribute.
+	 * @throws BeanCreationException if attribute is not provided.
+	 */
 	static String getPort(Element element) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (!StringUtils.hasText(port)) {
@@ -107,6 +118,11 @@ public abstract class IpAdapterParserUtils {
 		return port;
 	}
 
+	/**
+	 * Gets the multicast attribute, if present; if not returns 'false'.
+	 * @param element
+	 * @return The value of the attribute or false.
+	 */
 	static String getMulticast(Element element) {
 		String multicast = element.getAttribute(IpAdapterParserUtils.UDP_MULTICAST);
 		if (!StringUtils.hasText(multicast)) {
@@ -115,6 +131,12 @@ public abstract class IpAdapterParserUtils {
 		return multicast;
 	}
 
+	/**
+	 * Sets the common port attributes on the bean being built (timeout, receive buffer size,
+	 * send buffer size).
+	 * @param builder 
+	 * @param element
+	 */
 	static void addCommonSocketOptions(BeanDefinitionBuilder builder, Element element) {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SO_TIMEOUT);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SO_RECEIVE_BUFFER_SIZE);
