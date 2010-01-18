@@ -17,14 +17,16 @@
 package org.springframework.integration.ip;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
@@ -60,9 +62,9 @@ public class DatagramPacketMessageMapperTests {
 	}
 
 	@Test
-	@Ignore
 	public void testTruncation() throws Exception {
-		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
+		String test = "ABCD";
+		Message<byte[]> message = MessageBuilder.withPayload(test.getBytes()).build();
 		DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 		mapper.setAckAddress("localhost:11111");
 		mapper.setAcknowledge(false);
@@ -70,10 +72,16 @@ public class DatagramPacketMessageMapperTests {
 		DatagramPacket packet = mapper.fromMessage(message);
 		// Force a truncation failure
 		ByteBuffer bb = ByteBuffer.wrap(packet.getData());
-		bb.putInt(99999);
+		int bigLen = 99999;
+		bb.putInt(bigLen);
 		packet.setSocketAddress(new InetSocketAddress("localhost", 22222));
-		Message<byte[]> messageOut = mapper.toMessage(packet);
-		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
+		try {
+			mapper.toMessage(packet);
+			fail("Truncated message exception expected");
+		}
+		catch (MessageMappingException e) {
+			assertTrue(e.getMessage().contains("expected " + (bigLen + 4) + ", received " + (test.length() + 4)));
+		}
 	}
 
 }
