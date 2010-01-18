@@ -39,14 +39,54 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 	protected int timeToLive = -1;
 
 
+	/**
+	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
+	 * @param address The multicast address.
+	 * @param port The port.
+	 */
 	public MulticastSendingMessageHandler(String address, int port) {
 		super(address, port);
 	}
 
+	/**
+	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * and enables setting the lengthCheck option (if set, a length is prepended to the packet and checked
+	 * at the destination).
+	 * @param address The multicast address.
+	 * @param port The port.
+	 * @param lengthCheck Enable the lengthCheck option.
+	 */
 	public MulticastSendingMessageHandler(String address, int port, boolean lengthCheck) {
 		super(address, port, lengthCheck);
 	}
 
+
+	/**
+	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
+	 * @param address The multicast address.
+	 * @param port The port.
+	 * @param acknowledge Whether or not acknowledgments are required.
+	 * @param ackHost The host to which acknowledgments should be sent; required if acknowledge is true.
+	 * @param ackPort The port to which acknowledgments should be sent; required if acknowledge is true.
+	 * @param ackTimeout How long to wait (milliseconds) for an acknowledgment.
+	 */
+	public MulticastSendingMessageHandler(String address, int port,
+			boolean acknowledge, String ackHost, int ackPort, int ackTimeout) {
+		super(address, port, acknowledge, ackHost, ackPort, ackTimeout);
+	}
+
+	/**
+	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port
+	 * and enables setting the acknowledge option, where the destination sends a receipt acknowledgment.
+	 * @param address The multicast address.
+	 * @param port The port.
+	 * @param lengthCheck Enable the lengthCheck option.
+	 * @param acknowledge Whether or not acknowledgments are required.
+	 * @param ackHost The host to which acknowledgments should be sent; required if acknowledge is true.
+	 * @param ackPort The port to which acknowledgments should be sent; required if acknowledge is true.
+	 * @param ackTimeout How long to wait (milliseconds) for an acknowledgment.
+	 */
 	public MulticastSendingMessageHandler(String address, int port,
 			boolean lengthCheck, boolean acknowledge, String ackHost,
 			int ackPort, int ackTimeout) {
@@ -62,6 +102,10 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		this.ackCounter = minAcksForSuccess;
 	}
 
+	/**
+	 * Set the underlying {@link MulticastSocket} time to live property.
+	 * @param timeToLive {@see MulticastSocket#setTimeToLive(int)}
+	 */
 	public void setTimeToLive(int timeToLive) {
 		this.timeToLive = timeToLive;
 	}

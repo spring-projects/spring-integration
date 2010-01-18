@@ -34,6 +34,10 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
+ * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a 
+ * 4 byte length field, used to validate that all data was received. Packets may also contain
+ * information indicating an acknowledgment needs to be sent.
+ * 
  * @author Gary Russell
  * @since 2.0
  */
@@ -50,11 +54,22 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	private static Pattern addressPattern = Pattern.compile("([^:]*):([0-9]*)");
 
 
+	/**
+	 * Constructs a UnicastReceivingChannelAdapter that listens on the specified port.
+	 * @param port
+	 */
 	public UnicastReceivingChannelAdapter(int port) {
 		super(port);
 		mapper.setLengthCheck(false);
 	}
 
+	/**
+	 * Constructs a UnicastReceivingChannelAdapter that listens for packets on
+	 * the specified port. Enables setting the lengthCheck option, which expects
+	 * a length to precede the incoming packets.
+	 * @param port The port.
+	 * @param lengthCheck If true, enables the lengthCheck Option.
+	 */
 	public UnicastReceivingChannelAdapter(int port, boolean lengthCheck) {
 		super(port);
 		mapper.setLengthCheck(lengthCheck);
@@ -106,7 +121,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		}
 	}
 
-	private void sendAck(Message<byte[]> message) {
+	protected void sendAck(Message<byte[]> message) {
 		MessageHeaders headers = message.getHeaders();
 		Object id = headers.getId();
 		byte[] ack = id.toString().getBytes();
@@ -155,7 +170,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		return true;
 	}
 
-	public DatagramPacket receive() throws Exception {
+	protected DatagramPacket receive() throws Exception {
 		DatagramSocket socket = this.getSocket();
 		final byte[] buffer = new byte[this.receiveBufferSize];
 		DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
