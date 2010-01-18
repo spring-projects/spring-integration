@@ -35,8 +35,8 @@
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
-					<xsd:attribute name="pool-size" type="xsd:integer" />
-					<xsd:attribute name="receive-buffer-size" type="xsd:integer" />
+					<xsd:attribute name="pool-size" type="xsd:string" />
+					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
 					<xsd:attribute name="multicast-address" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -53,11 +53,11 @@
 			<xsd:complexContent>
 				<xsd:extension base="ipAdapterType">
 					<xsd:attribute name="host" type="xsd:string" />
-					<xsd:attribute name="acknowledge" type="xsd:boolean" />
+					<xsd:attribute name="acknowledge" type="xsd:string" />
 					<xsd:attribute name="ack-host" type="xsd:string" />
-					<xsd:attribute name="ack-port" type="xsd:integer" />
-					<xsd:attribute name="ack-timeout" type="xsd:integer" />
-					<xsd:attribute name="time-to-live" type="xsd:integer" />
+					<xsd:attribute name="ack-port" type="xsd:string" />
+					<xsd:attribute name="ack-timeout" type="xsd:string" />
+					<xsd:attribute name="time-to-live" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -79,12 +79,12 @@
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="port" type="xsd:integer" />
-		<xsd:attribute name="so-receive-buffer-size" type="xsd:integer" />
-		<xsd:attribute name="so-send-buffer-size" type="xsd:integer" />
-		<xsd:attribute name="so-timeout" type="xsd:integer" />
-		<xsd:attribute name="check-length" type="xsd:boolean" />
-		<xsd:attribute name="multicast" type="xsd:boolean" />
+		<xsd:attribute name="port" type="xsd:string" />
+		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
+		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
+		<xsd:attribute name="so-timeout" type="xsd:string" />
+		<xsd:attribute name="check-length" type="xsd:string" />
+		<xsd:attribute name="multicast" type="xsd:string" />
 	</xsd:complexType>
 
 </xsd:schema>
