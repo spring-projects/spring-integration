@@ -27,7 +27,9 @@
 	</channel>
 
 	<chain input-channel="invitations">
-		<header-enricher error-channel="failed-invitations" />
+		<header-enricher>
+			<error-channel ref="failed-invitations" />
+		</header-enricher>
 		<service-activator ref="partyGuest" method="onInvitation" />
 	</chain>
 
