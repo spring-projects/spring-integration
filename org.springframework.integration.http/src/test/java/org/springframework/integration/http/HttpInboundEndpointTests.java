@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,6 @@
 
 package org.springframework.integration.http;
 
-import org.easymock.IAnswer;
-import org.easymock.classextension.ConstructorArgs;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.message.StringMessage;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.web.servlet.View;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -53,6 +29,35 @@ import static org.easymock.classextension.EasyMock.verify;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.easymock.IAnswer;
+import org.easymock.classextension.ConstructorArgs;
+import org.junit.Before;
+import org.junit.Test;
+
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.StringMessage;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.servlet.View;
 
 /**
  * @author Alex Peters
@@ -125,8 +130,8 @@ public class HttpInboundEndpointTests {
 					final Map<?, ?> msgParams = (Map<?, ?>) ((Message) getCurrentArguments()[0]).getPayload();
 					assertThat(msgParams.size(), is(sourceParams.size()));
 					for (String key : sourceParams.keySet()) {
-						assertThat((String[]) msgParams.get(key),
-								is(new String[] { sourceParams.get(key) }));
+						assertThat((List<String>) msgParams.get(key),
+								is(Collections.singletonList(sourceParams.get(key))));
 					}
 					return true;
 				}
@@ -228,10 +233,11 @@ public class HttpInboundEndpointTests {
 			new IAnswer<Boolean>() {
 				@SuppressWarnings("unchecked")
 				public Boolean answer() throws Throwable {
-					Map<String, String> payloadMap = (Map<String, String>) ((Message) getCurrentArguments()[0]).getPayload();
+					MultiValueMap<String, String> payloadMap = (MultiValueMap<String, String>)
+							((Message) getCurrentArguments()[0]).getPayload();
 					for (String key : sourceParams.keySet()) {
 						assertThat(payloadMap.get(key),
-								is((Object) new String[] { sourceParams.get(key) }));
+								is(Collections.singletonList(sourceParams.get(key))));
 					}
 					return true;
 				}
@@ -339,6 +345,7 @@ public class HttpInboundEndpointTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void handleRequest_expectReplyWithView_responseDirectedToView() throws Exception {
 		setupEndpointAsMock(ANY_STRING_PAYLOAD);
 		View view = createMock(View.class);

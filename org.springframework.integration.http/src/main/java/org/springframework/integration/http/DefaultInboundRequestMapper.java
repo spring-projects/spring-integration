@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -36,6 +38,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -47,8 +51,10 @@ import org.springframework.web.multipart.MultipartResolver;
  * <ul>
  * <li>For a GET request or a POST request with a Content-Type of
  * "application/x-www-form-urlencoded", the parameter Map will be copied as the
- * payload. The map's keys will be Strings, and the values will be String arrays
- * as described for {@link ServletRequest#getParameterMap()}.</li>
+ * payload. The map will be an instance of {@link MultiValueMap} where the keys are
+ * Strings and the values are Lists of Strings. Those Lists are populated from the
+ * String array values of the original request parameter Map as described for the
+ * {@link ServletRequest#getParameterMap()} method.</li>
  * <li>If a MultipartResolver has been provided, and a multipart request is
  * detected, the multipart file content will be converted to String for any
  * "text" content type, or byte arrays otherwise.</li>
@@ -231,8 +237,7 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 
 	@SuppressWarnings("unchecked")
 	private Object createPayloadFromParameterMap(HttpServletRequest request) {
-		Map<String, String[]> parameterMap = new HashMap<String, String[]>(request.getParameterMap());
-		return Collections.unmodifiableMap(parameterMap);
+		return new UnmodifiableRequestParameterMap(request.getParameterMap());
 	}
 
 	private Object createPayloadFromTextContent(HttpServletRequest request) throws IOException {
@@ -287,6 +292,63 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 		builder.setHeader(HttpHeaders.REQUEST_URL, request.getRequestURL().toString());
 		builder.setHeader(HttpHeaders.REQUEST_METHOD, request.getMethod());
 		builder.setHeader(HttpHeaders.USER_PRINCIPAL, request.getUserPrincipal());
+	}
+
+
+	/**
+	 * Map class that extends {@link LinkedMultiValueMap} and implements Serializable.
+	 * The contents of the map are unmodifiable, so calling any modification operation
+	 * (e.g. put, add, or remove) will result in an UnsupportedOperationException. 
+	 */
+	private static class UnmodifiableRequestParameterMap
+			extends LinkedMultiValueMap<String, String> implements Serializable {
+
+		UnmodifiableRequestParameterMap(Map<String, String[]> parameters) {
+			for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
+				super.put(entry.getKey(), Arrays.asList(entry.getValue()));
+			}
+		}
+
+		@Override
+		public void add(String key, String value) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void clear() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public List<String> put(String key, List<String> value) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void putAll(Map<? extends String, ? extends List<String>> m) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public List<String> remove(Object key) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void set(String key, String value) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void setAll(Map<String, String> values) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Map<String, String> toSingleValueMap() {
+			return Collections.unmodifiableMap(super.toSingleValueMap());
+		}
+
 	}
 
 }

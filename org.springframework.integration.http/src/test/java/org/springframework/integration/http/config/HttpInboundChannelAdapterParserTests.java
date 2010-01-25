@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,6 +41,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.MultiValueMap;
 
 /**
  * @author Mark Fisher
@@ -75,12 +75,12 @@ public class HttpInboundChannelAdapterParserTests {
 		Message<?> message = requests.receive(0);
 		assertNotNull(message);
 		Object payload = message.getPayload();
-		assertTrue(payload instanceof Map);
-		Map<String, String[]> map = (Map<String, String[]>) payload;
+		assertTrue(payload instanceof MultiValueMap);
+		MultiValueMap<String, String> map = (MultiValueMap<String, String>) payload;
 		assertEquals(1, map.size());
 		assertEquals("foo", map.keySet().iterator().next());
-		assertEquals(1, map.get("foo").length);
-		assertEquals("bar", map.get("foo")[0]);
+		assertEquals(1, map.get("foo").size());
+		assertEquals("bar", map.getFirst("foo"));
 	}
 
 	@Test
