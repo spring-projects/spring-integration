@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@
 
 package org.springframework.integration.jms.config;
 
+import javax.jms.Session;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -31,6 +35,13 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
+
+	private final static String CONTAINER_TYPE_ATTRIBUTE = "container-type";
+
+	private final static String CONTAINER_CLASS_ATTRIBUTE = "container-class";
+
+	private final static String ACKNOWLEDGE_ATTRIBUTE = "acknowledge";
+
 
 	@Override
 	protected String getBeanClassName(Element element) {
@@ -49,6 +60,67 @@ public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
 		}
 		else if ("publish-subscribe-channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "topic");
+		}
+		String containerType = element.getAttribute(CONTAINER_TYPE_ATTRIBUTE);
+		String containerClass = element.getAttribute(CONTAINER_CLASS_ATTRIBUTE);
+		Assert.isTrue(!(StringUtils.hasText(containerType) && StringUtils.hasText(containerClass)),
+				"At most one of '" + CONTAINER_TYPE_ATTRIBUTE + "' or '" + CONTAINER_CLASS_ATTRIBUTE + "' may be configured.");
+		if ("default".equals(containerType)) {
+			containerClass = "org.springframework.jms.listener.DefaultMessageListenerContainer";
+		}
+		else if ("simple".equals(containerType)) {
+			containerClass = "org.springframework.jms.listener.SimpleMessageListenerContainer";
+		}
+		if (StringUtils.hasText(containerClass)) {
+			builder.addPropertyValue("containerType", containerClass);
+			if (containerClass.contains("DefaultMessageListenerContainer")) {
+				containerType = "default"; 
+			}
+		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "phase");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+		String cache = element.getAttribute("cache");
+		if (StringUtils.hasText(cache)) {
+			if (containerType.startsWith("simple")) {
+				if (!("auto".equals(cache) || "consumer".equals(cache))) {
+					parserContext.getReaderContext().warning(
+							"'cache' attribute not actively supported for listener container of type \"simple\". " +
+							"Effective runtime behavior will be equivalent to \"consumer\" / \"auto\".", element);
+				}
+			}
+			else {
+				builder.addPropertyValue("cacheLevelName", "CACHE_" + cache.toUpperCase());
+			}
+		}
+		Integer acknowledgeMode = this.parseAcknowledgeMode(element, parserContext);
+		if (acknowledgeMode != null) {
+			if (acknowledgeMode == Session.SESSION_TRANSACTED) {
+				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
+			}
+			else {
+				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
+			}
+		}
+		int[] concurrency = parseConcurrency(element, parserContext);
+		if (concurrency != null) {
+			if (containerType.startsWith("default")) {
+				builder.addPropertyValue("concurrentConsumers", concurrency[0]);
+				builder.addPropertyValue("maxConcurrentConsumers", concurrency[1]);
+			}
+			else {
+				builder.addPropertyValue("concurrentConsumers", concurrency[1]);
+			}
+		}
+		String prefetch = element.getAttribute("prefetch");
+		if (StringUtils.hasText(prefetch)) {
+			if (containerType.startsWith("default")) {
+				builder.addPropertyValue("maxMessagesPerTask", new Integer(prefetch));
+			}
 		}
 	}
 
@@ -70,8 +142,61 @@ public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
 			builder.addConstructorArgValue(isPubSub);
 			String destinationResolver = element.getAttribute("destination-resolver");
 			if (StringUtils.hasText(destinationResolver)) {
-				builder.addConstructorArgReference(destinationResolver);
+				builder.addPropertyReference("destinationResolver", destinationResolver);
 			}
+		}
+		if (isPubSub) {
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "durable", "subscriptionDurable");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "subscription", "durableSubscriptionName");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "client-id");
+		}
+	}
+
+	private Integer parseAcknowledgeMode(Element ele, ParserContext parserContext) {
+		String acknowledge = ele.getAttribute(ACKNOWLEDGE_ATTRIBUTE);
+		if (StringUtils.hasText(acknowledge)) {
+			int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
+			if ("transacted".equals(acknowledge)) {
+				acknowledgeMode = Session.SESSION_TRANSACTED;
+			}
+			else if ("dups-ok".equals(acknowledge)) {
+				acknowledgeMode = Session.DUPS_OK_ACKNOWLEDGE;
+			}
+			else if ("client".equals(acknowledge)) {
+				acknowledgeMode = Session.CLIENT_ACKNOWLEDGE;
+			}
+			else if (!"auto".equals(acknowledge)) {
+				parserContext.getReaderContext().error("Invalid JMS Channel 'acknowledge' setting [" +
+						acknowledge + "]: only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.", ele);
+			}
+			return acknowledgeMode;
+		}
+		else {
+			return null;
+		}
+	}
+
+	private int[] parseConcurrency(Element ele, ParserContext parserContext) {
+		String concurrency = ele.getAttribute("concurrency");
+		if (!StringUtils.hasText(concurrency)) {
+			return null;
+		}
+		try {
+			int separatorIndex = concurrency.indexOf('-');
+			if (separatorIndex != -1) {
+				int[] result = new int[2];
+				result[0] = Integer.parseInt(concurrency.substring(0, separatorIndex));
+				result[1] = Integer.parseInt(concurrency.substring(separatorIndex + 1, concurrency.length()));
+				return result;
+			}
+			else {
+				return new int[] {1, Integer.parseInt(concurrency)};
+			}
+		}
+		catch (NumberFormatException ex) {
+			parserContext.getReaderContext().error("Invalid concurrency value [" + concurrency + "]: only " +
+					"single maximum integer (e.g. \"5\") and minimum-maximum combo (e.g. \"3-5\") supported.", ele, ex);
+			return null;
 		}
 	}
 

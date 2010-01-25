@@ -72,12 +72,44 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="durable" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Boolean value indicating whether the Topic subscription is durable.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="client-id" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	The JMS client id. Should be specified when using durable subscriptions.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="subscription" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	The name for the durable subscription, if any.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="channelType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+	Base type for JMS Destination backed Message Channels (either 'channel' for a
+	Queue-backed channel or 'publish-subscribe-channel' for a Topic-backed channel).
+			]]></xsd:documentation>
+			<xsd:appinfo>
+				<tool:annotation>
+					<tool:exports type="org.springframework.integration.jms.JmsDestinationBackedMessageChannel"/>
+				</tool:annotation>
+			</xsd:appinfo>
+		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -91,14 +123,198 @@
 	Reference to a JMS ConnectionFactory. If none is provided, the default
 	bean name for the reference will be "connectionFactory".
 				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.jms.ConnectionFactory"/>
+					</tool:annotation>
+				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="destination-resolver" type="xsd:string">
 			<xsd:annotation>
-				<xsd:documentation>
-	Reference to a DestinationResolver. If none is provided, the default will
-	be a DynamicDestinationResolver.
-				</xsd:documentation>
+				<xsd:documentation><![CDATA[
+	A reference to the DestinationResolver strategy for resolving destination names.
+	Default is a DynamicDestinationResolver, using the JMS provider's queue/topic
+	name resolution. Alternatively, specify a reference to a JndiDestinationResolver
+	(typically in a J2EE environment).
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.jms.support.destination.DestinationResolver"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="container-type" default="default">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The type of this listener container: "default" or "simple", choosing
+	between DefaultMessageListenerContainer and SimpleMessageListenerContainer.
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:NMTOKEN">
+					<xsd:enumeration value="default"/>
+					<xsd:enumeration value="simple"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="container-class" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A custom listener container implementation class as fully qualified class name.
+	Default is Spring's standard DefaultMessageListenerContainer or
+	SimpleMessageListenerContainer, according to the "container-type" attribute.
+	Note that a custom container class will typically be a subclass of either of
+	those two Spring-provided standard container classes: Make sure that the
+	"container-type" attribute matches the actual base type that the custom class
+	derives from ("default" will usually be fine anyway, since most custom classes
+	will derive from DefaultMessageListenerContainer).
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation>
+						<tool:expected-type type="java.lang.Class"/>
+						<tool:assignable-to type="org.springframework.jms.listener.AbstractMessageListenerContainer"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="task-executor" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to a Spring TaskExecutor (or standard JDK 1.5+ Executor) for executing
+	JMS listener invokers. Default is a SimpleAsyncTaskExecutor in case of a
+	DefaultMessageListenerContainer, using internally managed threads. For a
+	SimpleMessageListenerContainer, listeners will always get invoked within the
+	JMS provider's receive thread by default.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.concurrent.Executor"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="message-converter" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to the MessageConverter strategy for converting between JMS Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="error-handler" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to an ErrorHandler strategy for handling any uncaught Exceptions
+	that may occur during the execution of the underlying MessageListener.
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.util.ErrorHandler"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="selector" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The JMS message selector for this channel's underlying MessageListener.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="cache" default="auto">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The cache level for JMS resources: "none", "connection", "session", "consumer"
+	or "auto". By default ("auto"), the cache level will effectively be "consumer",
+	unless an external transaction manager has been specified - in which case the
+	effective default will be "none" (assuming J2EE-style transaction management
+	where the given ConnectionFactory is an XA-aware pool).
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:NMTOKEN">
+					<xsd:enumeration value="none"/>
+					<xsd:enumeration value="connection"/>
+					<xsd:enumeration value="session"/>
+					<xsd:enumeration value="consumer"/>
+					<xsd:enumeration value="auto"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="acknowledge" default="transacted">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The native JMS acknowledge mode: "auto", "client", "dups-ok" or "transacted".
+	A value of "transacted" effectively activates a locally transacted Session;
+	alternatively, specify an external "transaction-manager" via the corresponding
+	attribute. Default is "transacted".
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:NMTOKEN">
+					<xsd:enumeration value="auto"/>
+					<xsd:enumeration value="client"/>
+					<xsd:enumeration value="dups-ok"/>
+					<xsd:enumeration value="transacted"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="transaction-manager" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	A reference to an external PlatformTransactionManager (typically an
+	XA-based transaction coordinator, e.g. Spring's JtaTransactionManager).
+	If not specified, native acknowledging will be used (see "acknowledge" attribute).
+				]]></xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.transaction.PlatformTransactionManager"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="concurrency" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The number of concurrent sessions/consumers to start for each listener.
+	Can either be a simple number indicating the maximum number (e.g. "5")
+	or a range indicating the lower as well as the upper limit (e.g. "3-5").
+	Note that a specified minimum is just a hint and might be ignored at runtime.
+	Default is 1; keep concurrency limited to 1 in case of a topic listener
+	or if message ordering is important; consider raising it for general queues.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="prefetch" type="xsd:int">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The maximum number of messages to load into a single session.
+	Note that raising this number might lead to starvation of concurrent consumers!
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Boolean value indicating whether this channel's listener container should start automatically.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="phase" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The lifecycle phase within which this channel's listener container should start and stop.
+	The lower the value the earlier this container will start and the later it will stop. The
+	default is Integer.MAX_VALUE meaning the container will start as late as possible
+	and stop as soon as possible.
+				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
