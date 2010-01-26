@@ -301,7 +301,7 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	 * (e.g. put, add, or remove) will result in an UnsupportedOperationException. 
 	 */
 	private static class UnmodifiableRequestParameterMap
-			extends LinkedMultiValueMap<String, String> implements Serializable {
+			extends LinkedMultiValueMap<String, String> implements Serializable { // TODO: in 3.0.1 LMVM implements Serializable
 
 		UnmodifiableRequestParameterMap(Map<String, String[]> parameters) {
 			for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
