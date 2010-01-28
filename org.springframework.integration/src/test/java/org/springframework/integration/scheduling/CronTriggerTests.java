@@ -16,17 +16,17 @@
 
 package org.springframework.integration.scheduling;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
@@ -239,6 +239,7 @@ public class CronTriggerTests {
 	}
 
 	@Test
+    @Ignore //see INT-971
 	public void testDailyTriggerInLongMonth() throws Exception {
 		CronTrigger trigger = new CronTrigger("0 0 0 * * *");
 		calendar.set(Calendar.MONTH, 9); // October: 31 days

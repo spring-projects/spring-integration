@@ -73,7 +73,8 @@ public class NewConcurrentAggregatorEndpointTests {
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
-        latch.await(1000, TimeUnit.MILLISECONDS);
+        latch.await(10000, TimeUnit.MILLISECONDS);
+        assertThat(latch.getCount(), is(0l));
         Message<?> reply = replyChannel.receive(2000);
         assertNotNull(reply);
         assertEquals(reply.getPayload(), 105);
@@ -184,7 +185,7 @@ public class NewConcurrentAggregatorEndpointTests {
         assertEquals(3, replyChannel.receive(100).getPayload());
         this.aggregator.handleMessage(createMessage(4, 3, 1, 1, replyChannel, null));
         assertEquals(4, replyChannel.receive(100).getPayload());
-        //next message with same correllation ID is discarded
+        //next message with same correlation ID is discarded
         this.aggregator.handleMessage(createMessage(2, 1, 1, 1, replyChannel, null));
         assertEquals(2, discardChannel.receive(100).getPayload());
     }
@@ -232,7 +233,7 @@ public class NewConcurrentAggregatorEndpointTests {
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
         this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
         latch.await(1000, TimeUnit.MILLISECONDS);
-        Message<?> reply = replyChannel.receive(0);
+        Message<?> reply = replyChannel.receive(100);
         assertNotNull("A message should be aggregated", reply);
         assertThat(((Integer) reply.getPayload()), is(105));
     }

@@ -34,9 +34,16 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * MessageHandler that holds a buffer of messages in a MessageStore. This class takes care of
- * correlated groups of messages that can be completed in batches. It is useful for aggregating,
- * resequencing, or custom implementations requiring correlation.
+ * MessageHandler that holds a buffer of correlated messages in a MessageStore. This class takes care of correlated
+ * groups of messages that can be completed in batches. It is useful for aggregating, resequencing, or custom
+ * implementations requiring correlation.
+ * <p/>
+ * To customize this handler inject {@link org.springframework.integration.aggregator.CorrelationStrategy}, {@link
+ * org.springframework.integration.aggregator.CompletionStrategy} and {@link org.springframework.integration.aggregator.MessageGroupProcessor}
+ * implementations as you require.
+ * <p/>
+ * By default the CorrelationStrategy will be a HeaderAttributeCorrelationStrategy and the CompletionStrategy will be a
+ * SequenceSizeCompletionStrategy.
  *
  * @author Iwein Fuld
  */
@@ -115,9 +122,10 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     protected void handleMessageInternal(Message<?> message) throws Exception {
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
         try {
-            if (tracker.aquireLockFor(correlationKey)) {
+            if (tracker.waitForLockIfNotTracked(correlationKey)) {
                 MessageGroup group =
-                        new MessageGroup(store, completionStrategy, correlationKey, deleteOrTrackCallback());
+                        new MessageGroup(store.list(correlationKey),
+                                completionStrategy, correlationKey, deleteOrTrackCallback());
                 if (group.hasNoMessageSuperseding(message)) {
                     store(message, correlationKey);
                     group.add(message);
@@ -146,7 +154,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
             }
 
             public void onCompletionOf(Object correlationKey) {
-                tracker.pushCorrellationId(correlationKey);
+                tracker.pushCorrelationId(correlationKey);
             }
         };
     }
@@ -195,7 +203,9 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
                     if (logger.isDebugEnabled()) {
                         logger.debug(this + "'s PrunerTask is processing " + key);
                     }
-                    forceComplete(key);
+                    if (!forceComplete(key)) {
+                        keysInBuffer.offer(delayedKey);
+                    }
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -204,34 +214,42 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
         }
     }
 
-    protected final void forceComplete(Object key) {
-        MessageGroup group = new MessageGroup(store, completionStrategy, key, deleteOrTrackCallback());
-        List<Message<?>> all = store.list(key);
-        if (all.size() > 0) {
-            //last chance for normal completion
-            MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel, this.channelResolver);
-            boolean processed = false;
-            if (completionStrategy.isComplete(all)) {
-                outputProcessor.processAndSend(group, outputChannel);
-                processed = true;
-            }
-            boolean fullyCompleted = processed;
-            if (!fullyCompleted) {
-                if (sendPartialResultOnTimeout) {
-                    if (logger.isInfoEnabled()) {
-                        logger.info("Processing partially complete messages for key [" + key + "] to: " + outputChannel);
+    protected final boolean forceComplete(Object key) {
+        try {
+            if (tracker.tryLockFor(key)) {
+                List<Message<?>> all = store.list(key);
+                MessageGroup group = new MessageGroup(all, completionStrategy, key, deleteOrTrackCallback());
+                if (all.size() > 0) {
+                    //last chance for normal completion
+                    MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel, this.channelResolver);
+                    boolean processed = false;
+                    if (group.isComplete()) {
+                        outputProcessor.processAndSend(group, outputChannel);
+                        processed = true;
                     }
-                    outputProcessor.processAndSend(group, outputChannel);
-                } else {
-                    if (logger.isInfoEnabled()) {
-                        logger.info("Discarding partially complete messages for key [" + key + "] to: " + discardChannel);
-                    }
-                    for (Message<?> message : all) {
-                        discardChannel.send(message);
-                        store.delete(message.getHeaders().getId());
+                    if (!processed) {
+                        if (sendPartialResultOnTimeout) {
+                            if (logger.isInfoEnabled()) {
+                                logger.info("Processing partially complete messages for key [" + key + "] to: " + outputChannel);
+                            }
+                            outputProcessor.processAndSend(group, outputChannel);
+                        } else {
+                            if (logger.isInfoEnabled()) {
+                                logger.info("Discarding partially complete messages for key [" + key + "] to: " + discardChannel);
+                            }
+                            for (Message<?> message : all) {
+                                discardChannel.send(message);
+                                store.delete(message.getHeaders().getId());
+                            }
+                        }
                     }
                 }
+                return true;
+            } else {
+                return false;
             }
+        } finally {
+            tracker.unlock(key);
         }
     }
 
@@ -262,20 +280,27 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
     private final class IdTracker {
         private ConcurrentMap<Object, ReentrantLock> trackerLocks = new ConcurrentHashMap<Object, ReentrantLock>();
-        private final Queue<Object> trackedCorrellationIds = new LinkedBlockingQueue<Object>();
+        private final Queue<Object> trackedCorrelationIds = new LinkedBlockingQueue<Object>();
 
-        private void pushCorrellationId(Object correlationKey) {
-            while (!trackedCorrellationIds.offer(correlationKey)) {
+        private void pushCorrelationId(Object correlationKey) {
+            while (!trackedCorrelationIds.offer(correlationKey)) {
                 //make room in the queue
-                trackedCorrellationIds.poll();
+                trackedCorrelationIds.poll();
             }
             trackerLocks.remove(correlationKey);
         }
 
-        private boolean aquireLockFor(Object correlationKey) {
+        /**
+         * Call this method to check if an id is tracked and obtain a lock for it. Don't forget to finally unlock
+         * afterwards.
+         *
+         * @return false if the key was tracked, true after obtaining the lock otherwise.
+         */
+        private boolean waitForLockIfNotTracked(Object correlationKey) {
             ReentrantLock lock = trackerLocks.get(correlationKey);
             if (lock == null) {
-                if (trackedCorrellationIds.contains(correlationKey)) {
+                if (trackedCorrelationIds.contains(correlationKey)) {
+                    //this correlation key is already processed in the near past: disallow processing
                     return false;
                 }
                 lock = new ReentrantLock();
@@ -284,6 +309,16 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
             }
             lock.lock();
             return true;
+        }
+
+        private boolean tryLockFor(Object correlationKey) {
+            ReentrantLock lock = trackerLocks.get(correlationKey);
+            if (lock == null) {
+                lock = new ReentrantLock();
+                ReentrantLock original = trackerLocks.putIfAbsent(correlationKey, lock);
+                lock = original == null ? lock : original;
+            }
+            return lock.tryLock();
         }
 
         private void unlock(Object correlationKey) {
