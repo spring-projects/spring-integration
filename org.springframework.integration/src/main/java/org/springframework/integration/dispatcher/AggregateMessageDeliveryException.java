@@ -16,35 +16,53 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
- * An Exception that encapsulates an aggregated group of Exceptions for use by
- * dispatchers that may try multiple handler invocations within a single dispatch
- * operation.
- * 
+ * An Exception that encapsulates an aggregated group of Exceptions for use by dispatchers that may try multiple handler
+ * invocations within a single dispatch operation.
+ *
  * @author Mark Fisher
  * @since 1.0.3
  */
 @SuppressWarnings("serial")
 public class AggregateMessageDeliveryException extends MessageDeliveryException {
 
-	private final List<? extends Exception> aggregatedExceptions;
+    private final List<? extends Exception> aggregatedExceptions;
 
 
-	public AggregateMessageDeliveryException(Message<?> undeliveredMessage,
-			String description, List<? extends Exception> aggregatedExceptions) {
-		super(undeliveredMessage, description);
-		this.aggregatedExceptions = aggregatedExceptions;
-	}
+    public AggregateMessageDeliveryException(Message<?> undeliveredMessage,
+                                             String description, List<? extends Exception> aggregatedExceptions) {
+        super(undeliveredMessage, description);
+        this.initCause(aggregatedExceptions.get(0));
+        this.aggregatedExceptions = aggregatedExceptions;
+    }
 
 
-	public List<? extends Exception> getAggregatedExceptions() {
-		return Collections.unmodifiableList(this.aggregatedExceptions);
-	}
+    public List<? extends Exception> getAggregatedExceptions() {
+        return Collections.unmodifiableList(this.aggregatedExceptions);
+    }
 
+    @Override
+    public String getMessage() {
+        String baseMessage = super.getMessage();
+        StringBuilder message = new StringBuilder(endingWithPeriod(baseMessage) + " Multiple causes are:\n");
+        for (Exception exception : aggregatedExceptions) {
+            message.append("    " + exception.getMessage() + "\n");
+        }
+        message.append("See below for the stacktrace of the first cause.");
+        return message.toString();
+    }
+
+    private String endingWithPeriod(String baseMessage) {
+        if (baseMessage.endsWith(".")) {
+            return baseMessage;
+        } else {
+            return baseMessage + ".";
+        }
+    }
 }
