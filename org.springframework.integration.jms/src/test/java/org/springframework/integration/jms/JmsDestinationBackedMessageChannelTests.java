@@ -19,11 +19,6 @@ package org.springframework.integration.jms;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 import org.apache.activemq.command.ActiveMQTopic;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -38,6 +33,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -117,10 +114,10 @@ public class JmsDestinationBackedMessageChannelTests {
 		JmsDestinationBackedMessageChannel channel =
 				new JmsDestinationBackedMessageChannel(this.connectionFactory, this.topic);
 		channel.afterPropertiesSet();
-		channel.start();
 		channel.subscribe(handler1);
-		channel.subscribe(handler2);
-		channel.send(new StringMessage("foo"));
+        channel.subscribe(handler2);
+        channel.start();
+        channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(2, receivedList1.size());
