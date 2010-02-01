@@ -1,0 +1,167 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.jmx;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.management.MBeanServer;
+import javax.management.Notification;
+import javax.management.NotificationFilter;
+import javax.management.ObjectName;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
+import org.springframework.jmx.export.MBeanExporter;
+import org.springframework.jmx.export.notification.NotificationPublisher;
+import org.springframework.jmx.export.notification.NotificationPublisherAware;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
+import org.springframework.jmx.support.ObjectNameManager;
+
+/**
+ * @author Mark Fisher
+ * @since 2.0
+ */
+public class NotificationListeningAdapterTests {
+
+	private volatile MBeanServer server;
+
+	private volatile ObjectName objectName;
+
+	private final NumberHolder numberHolder = new NumberHolder();
+
+
+	@Before
+	public void setup() throws Exception {
+		MBeanServerFactoryBean serverFactoryBean = new MBeanServerFactoryBean();
+		serverFactoryBean.setLocateExistingServerIfPossible(true);
+		serverFactoryBean.afterPropertiesSet();
+		this.server = serverFactoryBean.getObject();
+		MBeanExporter exporter = new MBeanExporter();
+		exporter.setAutodetect(false);
+		exporter.afterPropertiesSet();
+		this.objectName = ObjectNameManager.getInstance("si:name=numberHolder");
+		exporter.registerManagedResource(this.numberHolder, this.objectName);
+	}
+
+	@After
+	public void cleanup() throws Exception {
+		this.server.unregisterMBean(this.objectName);
+	}
+
+	@Test
+	public void simpleNotification() throws Exception {
+		QueueChannel outputChannel = new QueueChannel();
+		NotificationListeningAdapter adapter = new NotificationListeningAdapter();
+		adapter.setServer(this.server);
+		adapter.setObjectNames(this.objectName);
+		adapter.setOutputChannel(outputChannel);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		this.numberHolder.publish("foo");
+		Message<?> message = outputChannel.receive(0);
+		assertNotNull(message);
+		assertTrue(message.getPayload() instanceof Notification);
+		Notification notification = (Notification) message.getPayload();
+		assertEquals("foo", notification.getMessage());
+		assertEquals(objectName, notification.getSource());
+		assertNull(message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK));
+	}
+
+	@Test
+	public void notificationWithHandback() throws Exception {
+		QueueChannel outputChannel = new QueueChannel();
+		NotificationListeningAdapter adapter = new NotificationListeningAdapter();
+		adapter.setServer(this.server);
+		adapter.setObjectNames(this.objectName);
+		adapter.setOutputChannel(outputChannel);
+		Integer handback = new Integer(123);
+		adapter.setHandback(handback);
+		adapter.afterPropertiesSet();
+		adapter.start();
+		this.numberHolder.publish("foo");
+		Message<?> message = outputChannel.receive(0);
+		assertNotNull(message);
+		assertTrue(message.getPayload() instanceof Notification);
+		Notification notification = (Notification) message.getPayload();
+		assertEquals("foo", notification.getMessage());
+		assertEquals(objectName, notification.getSource());
+		assertEquals(handback, message.getHeaders().get(JmxHeaders.NOTIFICATION_HANDBACK));
+	}
+
+	@Test
+	@SuppressWarnings("serial")
+	public void notificationWithFilter() throws Exception {
+		QueueChannel outputChannel = new QueueChannel();
+		NotificationListeningAdapter adapter = new NotificationListeningAdapter();
+		adapter.setServer(this.server);
+		adapter.setObjectNames(this.objectName);
+		adapter.setOutputChannel(outputChannel);
+		adapter.setFilter(new NotificationFilter() {
+			public boolean isNotificationEnabled(Notification notification) {
+				return !notification.getMessage().equals("bad");
+			}
+		});
+		adapter.afterPropertiesSet();
+		adapter.start();
+		this.numberHolder.publish("bad");
+		Message<?> message = outputChannel.receive(0);
+		assertNull(message);
+		this.numberHolder.publish("okay");
+		message = outputChannel.receive(0);
+		assertNotNull(message);
+		assertTrue(message.getPayload() instanceof Notification);
+		Notification notification = (Notification) message.getPayload();
+		assertEquals("okay", notification.getMessage());
+	}
+
+
+	public static class NumberHolder implements NotificationPublisherAware {
+
+		private final AtomicInteger number = new AtomicInteger();
+
+		private final AtomicInteger sequence = new AtomicInteger();
+
+		private volatile NotificationPublisher notificationPublisher;
+
+		public int getNumber() {
+			return this.number.get();
+		}
+
+		public void setNumber(int value) {
+			this.number.set(value);
+		}
+
+		public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
+			this.notificationPublisher = notificationPublisher;
+		}
+
+		public void publish(String message) {
+			Notification notification = new Notification("testType", this, sequence.getAndIncrement(), message);
+			this.notificationPublisher.sendNotification(notification);
+		}
+	}
+
+}
