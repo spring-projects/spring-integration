@@ -26,6 +26,8 @@ public abstract class JmxHeaders {
 
 	private static final String PREFIX = MessageHeaders.PREFIX + "jmx";
 
-	public static final String NOTIFICATION_HANDBACK = PREFIX + "_handback";
+	public static final String NOTIFICATION_HANDBACK = PREFIX + "_notificationHandback";
+
+	public static final String NOTIFICATION_TYPE = PREFIX + "_notificationType";
 
 }
