@@ -24,10 +24,12 @@ import org.springframework.integration.core.MessageHeaders;
  */
 public abstract class JmxHeaders {
 
-	private static final String PREFIX = MessageHeaders.PREFIX + "jmx";
+	private static final String PREFIX = MessageHeaders.PREFIX + "jmx_";
 
-	public static final String NOTIFICATION_HANDBACK = PREFIX + "_notificationHandback";
+	public static final String NOTIFICATION_HANDBACK = PREFIX + "notificationHandback";
 
-	public static final String NOTIFICATION_TYPE = PREFIX + "_notificationType";
+	public static final String NOTIFICATION_TYPE = PREFIX + "notificationType";
+
+	public static final String OPERATION_NAME = "operationName";
 
 }
