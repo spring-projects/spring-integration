@@ -17,6 +17,7 @@
 package org.springframework.integration.jmx;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,24 +44,26 @@ import org.springframework.util.ObjectUtils;
  */
 public class OperationInvokingHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
-	private volatile ObjectName objectName;
-
 	private volatile MBeanServer server;
+
+	private volatile ObjectName defaultObjectName;
 
 	private volatile String defaultOperationName;
 
 
-	public void setObjectName(String objectName) {
+	public void setServer(MBeanServer server) {
+		this.server = server;
+	}
+
+	public void setDefaultObjectName(String defaultObjectName) {
 		try {
-			this.objectName = ObjectNameManager.getInstance(objectName);
+			if (defaultObjectName != null) {
+				this.defaultObjectName = ObjectNameManager.getInstance(defaultObjectName);
+			}
 		}
 		catch (MalformedObjectNameException e) {
 			throw new IllegalArgumentException(e);
 		}
-	}
-
-	public void setServer(MBeanServer server) {
-		this.server = server;
 	}
 
 	public void setDefaultOperationName(String defaultOperationName) {
@@ -69,18 +72,22 @@ public class OperationInvokingHandler extends AbstractReplyProducingMessageHandl
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.server, "MBeanServer is required.");
-		Assert.notNull(this.objectName, "ObjectName is required.");
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
+		ObjectName objectName = this.resolveObjectName(requestMessage);
 		String operationName = this.resolveOperationName(requestMessage);
 		Map<String, Object> paramsFromMessage = this.resolveParameters(requestMessage);
 		try {
-			MBeanOperationInfo[] opInfoArray = this.server.getMBeanInfo(this.objectName).getOperations();
+			MBeanOperationInfo[] opInfoArray = this.server.getMBeanInfo(objectName).getOperations();
+			boolean hasNoArgOption = false;
 			for (MBeanOperationInfo opInfo : opInfoArray) {
 				if (operationName.equals(opInfo.getName())) {
 					MBeanParameterInfo[] paramInfoArray = opInfo.getSignature();
+					if (paramInfoArray.length == 0) {
+						hasNoArgOption = true;
+					}
 					if (paramInfoArray.length == paramsFromMessage.size()) {
 						int index = 0;
 						Object values[] = new Object[paramInfoArray.length];
@@ -94,20 +101,52 @@ public class OperationInvokingHandler extends AbstractReplyProducingMessageHandl
 							}
 						}
 						if (index == paramInfoArray.length) {
-							return this.server.invoke(this.objectName, operationName, values, signature);
+							return this.server.invoke(objectName, operationName, values, signature);
 						}
 					}
 				}
 			}
+			if (hasNoArgOption) {
+				return this.server.invoke(objectName, operationName, null, null);
+			}
 			throw new MessagingException(requestMessage, "failed to find JMX operation '"
-					+ operationName + "' on MBean [" + this.objectName + "]");
+					+ operationName + "' on MBean [" + objectName + "]");
 		}
 		catch (JMException e) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
-					operationName + "' on MBean [" + this.objectName + "]", e);
+					operationName + "' on MBean [" + objectName + "]", e);
 		}
 	}
 
+	/**
+	 * First checks for the presence of a {@link JmxHeaders#OBJECT_NAME} header,
+	 * then falls back to this handler's {@link #defaultObjectName} if available.
+	 */
+	private ObjectName resolveObjectName(Message<?> message) {
+		ObjectName objectName = null;
+		Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
+		if (objectNameHeader instanceof ObjectName) {
+			objectName = (ObjectName) objectNameHeader;
+		}
+		else if (objectNameHeader instanceof String) {
+			try {
+				objectName = ObjectNameManager.getInstance(objectNameHeader);
+			}
+			catch (MalformedObjectNameException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+		else {
+			objectName = this.defaultObjectName;
+		}
+		Assert.notNull(objectName, "Failed to resolve ObjectName.");
+		return objectName;
+	}
+
+	/**
+	 * First checks for the presence of a {@link JmxHeaders#OPERATION_NAME} header,
+	 * then falls back to this handler's {@link #defaultOperationName} if available.
+	 */
 	private String resolveOperationName(Message<?> message) {
 		String operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
 		if (operationName == null) {
@@ -126,11 +165,16 @@ public class OperationInvokingHandler extends AbstractReplyProducingMessageHandl
 		else if (message.getPayload() instanceof List) {
 			map = this.createParameterMapFromList((List) message.getPayload());
 		}
-		else if (message.getPayload() != null) {
+		else if (message.getPayload() != null && message.getPayload().getClass().isArray()) {
 			map = this.createParameterMapFromList(
 					Arrays.asList(ObjectUtils.toObjectArray(message.getPayload())));
 		}
-		Assert.notNull(map, "Failed to create parameter Map from message.");
+		else if (message.getPayload() != null) {
+			map = this.createParameterMapFromList(Collections.singletonList(message.getPayload()));
+		}
+		else {
+			map = Collections.EMPTY_MAP;
+		}
 		return map;
 	}
 

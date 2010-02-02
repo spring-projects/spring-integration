@@ -67,7 +67,7 @@ public class OperationInvokingHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingHandler handler = new OperationInvokingHandler();
 		handler.setServer(this.server);
-		handler.setObjectName(this.objectName);
+		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<String, Object>();
@@ -86,7 +86,7 @@ public class OperationInvokingHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingHandler handler = new OperationInvokingHandler();
 		handler.setServer(this.server);
-		handler.setObjectName(this.objectName);
+		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
 		handler.afterPropertiesSet();
 		List<Object> params = Arrays.asList(new Object[] { "foo", new Integer(123) });
