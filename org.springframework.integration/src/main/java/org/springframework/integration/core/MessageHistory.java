@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.core;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -78,7 +79,16 @@ public class MessageHistory implements Iterable<MessageHistory.Event>, Serializa
 		}
 
 		public String toString() {
-			return "[name=" + this.componentName + ";type=" + this.componentType + ";timestamp=" + this.timestamp + "]";
+			StringBuilder sb = new StringBuilder("[");
+			if (this.componentName != null) {
+				sb.append("{name=" + this.componentName + "}");
+			}
+			if (this.componentType != null) {
+				sb.append("{type=" + this.componentType + "}");
+			}
+			sb.append("{timestamp=" + new Date(this.timestamp) + "}");
+			sb.append("]");
+			return sb.toString();
 		}
 	}
 
