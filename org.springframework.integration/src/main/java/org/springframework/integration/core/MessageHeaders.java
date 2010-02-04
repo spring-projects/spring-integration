@@ -54,7 +54,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
 
-	public static final String HISTORY = "history";
+	public static final String HISTORY = PREFIX + "history";
 
 	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
 
