@@ -38,9 +38,82 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Oleg Zhurakousky
  */
 public class MethodInvokingMessageProcessorTests {
 
+	@Test
+	public void testHandlerInheritanceMethodImplInSuper() {
+		class A{
+			public Message<String> myMethod(final Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+		    }
+		}
+		class B extends A{}
+		class C extends B{}
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
+				new B(), "myMethod");
+		Message message = (Message) processor.processMessage(new StringMessage(""));
+		assertEquals("A", message.getHeaders().get("A"));
+	}
+	@Test
+	public void testHandlerInheritanceMethodImplInLatestSuper() {
+		class A{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+		    }
+		}
+		class B extends A{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
+		    }
+		}
+		class C extends B{}
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
+				new B(), "myMethod");
+		Message message = (Message) processor.processMessage(new StringMessage(""));
+		assertEquals("B", message.getHeaders().get("B"));
+	}
+	
+	public void testHandlerInheritanceMethodImplInSubClass() {
+		class A{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+		    }
+		}
+		class B extends A{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
+		    }
+		}
+		class C extends B{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
+		    }
+		}
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
+				new C(), "myMethod");
+		Message message = (Message) processor.processMessage(new StringMessage(""));
+		assertEquals("C", message.getHeaders().get("C"));
+	}
+	public void testHandlerInheritanceMethodImplInSubClassAndSuper() {
+		class A{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+		    }
+		}
+		class B extends A{}
+		class C extends B{
+			public Message<String> myMethod(Message<String> msg){
+		        return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
+		    }
+		}
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
+				new C(), "myMethod");
+		Message message = (Message) processor.processMessage(new StringMessage(""));
+		assertEquals("C", message.getHeaders().get("C"));
+	}
+	
 	@Test
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
@@ -198,6 +271,7 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals(String.class, bean.lastArg.getClass());
 		assertEquals("true", bean.lastArg);
 	}
+	
 
 
 	@SuppressWarnings("unused")

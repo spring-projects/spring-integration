@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -56,9 +56,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.ReflectionUtils.MethodCallback;
+import org.springframework.util.ReflectionUtils.MethodFilter;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MethodInvokingMessageProcessor implements MessageProcessor {
@@ -142,7 +144,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 					new FixedHandlerMethodFilter((Method) method), targetType));
 		}
 		else if (method == null || method instanceof String) {
-			context.getMethodResolvers().add(new FilteringReflectiveMethodResolver(
+			context.getMethodResolvers().add(new FilteringReflectiveMethodResolver( 
 					new HandlerMethodFilter(annotationType, (String) method, this.requiresReply), targetType));
 		}
 		context.addPropertyAccessor(new MapAccessor());
@@ -192,7 +194,8 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		final Map<Class<?>, HandlerMethod> candidateMethods = new HashMap<Class<?>, HandlerMethod>();
 		final Map<Class<?>, HandlerMethod> fallbackMethods = new HashMap<Class<?>, HandlerMethod>();
 		final AtomicReference<Class<?>> ambiguousFallbackType = new AtomicReference<Class<?>>();
-		Class<?> targetClass = this.getTargetClass(targetObject);
+		final Class<?> targetClass = this.getTargetClass(targetObject);
+		MethodFilter methodFilter = new UniqueMethodFilter(targetClass);
 		ReflectionUtils.doWithMethods(targetClass, new MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				boolean matchesAnnotation = false;
@@ -240,7 +243,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 					fallbackMethods.put(targetParameterType, handlerMethod);
 				}
 			}
-		});
+		}, methodFilter);
 		if (!candidateMethods.isEmpty()) {
 			return candidateMethods;
 		}
@@ -445,5 +448,21 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 			this.targetParameterType = targetParameterType;
 		}
 	}
-
+	/**
+	 * @author Oleg Zhurakousky
+	 * @since 2.0
+	 */
+	private class UniqueMethodFilter implements MethodFilter {
+		private List<Method> uniqueMethods = new ArrayList<Method>();
+		
+		public UniqueMethodFilter(Class<?> targetClass){
+			ArrayList<Method> allMethods = new ArrayList<Method>(Arrays.asList(targetClass.getMethods()));
+			for (Method method : allMethods) {
+				uniqueMethods.add(org.springframework.util.ClassUtils.getMostSpecificMethod(method, targetClass));
+			}
+		}
+		public boolean matches(Method method) {
+			return uniqueMethods.contains(method);
+		}
+	}
 }
