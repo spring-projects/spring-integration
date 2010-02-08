@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.management.JMException;
+import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
 import javax.management.MBeanServer;
@@ -39,7 +40,17 @@ import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * As the name suggests this MessageHandler will invoke JMX operation after resolving the 
+ * 'objectName', 'operationName' and mapping operation parameters from the message payload. 
+ * When operation has multiple parameters they could be provided as List or Map payload.
+ * Both 'objectName' and 'operationName' could be provided in two different ways; <br>
+ * 1. Setting 'defaultObjectName' via {@link #setDefaultObjectName(String)} and
+ * 'defaultOperationName' via {@link #setDefaultOperationName(String)}<br>
+ * 2. Supplying values with Message headers such as {@link JmxHeaders#OBJECT_NAME} 
+ * and {@link JmxHeaders#OPERATION_NAME}<br>
+ *
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class OperationInvokingHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
@@ -80,7 +91,8 @@ public class OperationInvokingHandler extends AbstractReplyProducingMessageHandl
 		String operationName = this.resolveOperationName(requestMessage);
 		Map<String, Object> paramsFromMessage = this.resolveParameters(requestMessage);
 		try {
-			MBeanOperationInfo[] opInfoArray = this.server.getMBeanInfo(objectName).getOperations();
+			MBeanInfo mbeanInfo = this.server.getMBeanInfo(objectName);
+			MBeanOperationInfo[] opInfoArray = mbeanInfo.getOperations();	
 			boolean hasNoArgOption = false;
 			for (MBeanOperationInfo opInfo : opInfoArray) {
 				if (operationName.equals(opInfo.getName())) {
@@ -110,11 +122,14 @@ public class OperationInvokingHandler extends AbstractReplyProducingMessageHandl
 				return this.server.invoke(objectName, operationName, null, null);
 			}
 			throw new MessagingException(requestMessage, "failed to find JMX operation '"
-					+ operationName + "' on MBean [" + objectName + "]");
+					+ operationName + "' on MBean [" + objectName + "]" + " (implClass:" + mbeanInfo.getClassName()
+					+ ")" + " with " + paramsFromMessage.size() + " parameters: "
+					+ paramsFromMessage.keySet());
 		}
 		catch (JMException e) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
-					operationName + "' on MBean [" + objectName + "]", e);
+					operationName + "' on MBean [" + objectName + "]" + " with " + 
+					paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet(), e);
 		}
 	}
 

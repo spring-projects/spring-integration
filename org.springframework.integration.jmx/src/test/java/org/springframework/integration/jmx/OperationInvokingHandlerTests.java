@@ -32,12 +32,14 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class OperationInvokingHandlerTests {
@@ -80,6 +82,37 @@ public class OperationInvokingHandlerTests {
 		assertNotNull(reply);
 		assertEquals("foobar", reply.getPayload());
 	}
+	
+	@Test
+	public void invocationWithPayloadNoReturnValue() throws Exception {
+		QueueChannel outputChannel = new QueueChannel();
+		OperationInvokingHandler handler = new OperationInvokingHandler();
+		handler.setServer(this.server);
+		handler.setDefaultObjectName(this.objectName);
+		handler.setOutputChannel(outputChannel);
+		handler.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setHeader(JmxHeaders.OPERATION_NAME, "y").build();
+		handler.handleMessage(message);
+	}
+	
+	@Test(expected=MessagingException.class)
+	public void invocationWithMapPayloadNotEnoughParameters() throws Exception {
+		QueueChannel outputChannel = new QueueChannel();
+		OperationInvokingHandler handler = new OperationInvokingHandler();
+		handler.setServer(this.server);
+		handler.setDefaultObjectName(this.objectName);
+		handler.setOutputChannel(outputChannel);
+		handler.afterPropertiesSet();
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("p1", "foo");
+		Message<?> message = MessageBuilder.withPayload(params)
+				.setHeader(JmxHeaders.OPERATION_NAME, "x").build();
+		handler.handleMessage(message);
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("foobar", reply.getPayload());
+	}
 
 	@Test
 	public void invocationWithListPayload() throws Exception {
@@ -98,12 +131,13 @@ public class OperationInvokingHandlerTests {
 		assertEquals("foo123", reply.getPayload());
 	}
 
-
 	public static interface TestOpsMBean {
 
 		String x(String s1, String s2);
 
 		String x(String s, Integer i);
+		
+		void y(String s);
 	}
 
 
@@ -116,6 +150,8 @@ public class OperationInvokingHandlerTests {
 		public String x(String s, Integer i) {
 			return s + i;
 		}
+		
+		public void y(String s){}
 	}
 
 }
