@@ -28,8 +28,6 @@
 	                   ref="testIp"
 	                   method="testIp"/>
 
-	<beans:bean id="testIp" class="org.springframework.integration.ip.TestIp"/>
-
 	<ip:outbound-channel-adapter id="udpSender" protocol="udp"
 		host="localhost"
 		port="11111"
@@ -37,32 +35,9 @@
 		acknowledge="true"
 		ack-host="localhost"
 		ack-port="22222"
-		ack-timeout="5000"
+		ack-timeout="10000"
 		channel="outputChannel"/>
 
-	<channel id="mcInputChannel"/>
+	<beans:import resource="testIp-common-context.xml" />
 
-	<channel id="mcOutputChannel" />
-
-	<service-activator input-channel="mcInputChannel"
-	                   output-channel="mcOutputChannel"
-	                   ref="testIp"
-	                   method="testIp"/>
-
-	<ip:outbound-channel-adapter id="mcUdpSender" protocol="udp"
-		multicast="true"
-		time-to-live="2"
-		host="225.6.7.8"
-		port="11112"
-		check-length="true"
-		acknowledge="true"
-		ack-host="localhost"
-		ack-port="22223"
-		ack-timeout="50000"
-		channel="mcOutputChannel"/>
-		
-	<beans:bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
-		<beans:property name="daemon" value="true" />
-	</beans:bean>
- 
 </beans:beans>

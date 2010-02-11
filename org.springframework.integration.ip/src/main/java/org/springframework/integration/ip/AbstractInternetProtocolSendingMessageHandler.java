@@ -38,9 +38,9 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 
 	protected int soReceiveBufferSize = -1;
 
-	protected int soSendBufferSize = -1;
+	protected volatile int soSendBufferSize = -1;
 
-	protected int soTimeout = -1;
+	protected volatile int soTimeout = -1;
 
 
 	public AbstractInternetProtocolSendingMessageHandler(String host, int port) {

@@ -17,12 +17,13 @@
 		Play with the buffer size to force errors. If the checkLength property is 
 		set and this buffer is too small, we'll throw an exception.
 	-->
-	<ip:inbound-channel-adapter id="udpReceiver"
+	<ip:inbound-channel-adapter id="mcUdpReceiver"
 		channel="udpToStdOutChannel"
 		protocol="udp"
-		port="11111"
+		port="11112"
 		receive-buffer-size="500"
-		multicast="false"
+		multicast="true"
+		multicast-address="225.6.7.8"
 		check-length="true" />
 
 	<beans:import resource="testIp-common-context.xml" />

@@ -47,7 +47,7 @@ import org.springframework.integration.message.StringMessage;
  * @author Gary Russell
  * @since 2.0
  */
-public class TestIpEndToEnd implements Runnable {
+public class TestIpMulticastEndToEnd implements Runnable {
 
 	private String testingIpText;
 
@@ -65,11 +65,14 @@ public class TestIpEndToEnd implements Runnable {
 
 
 	@Test
+	@Ignore
 	public void runIt() throws Exception {
-		TestIpEndToEnd launcher = new TestIpEndToEnd();
+		TestIpMulticastEndToEnd launcher = new TestIpMulticastEndToEnd();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
-		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("testIp-out-context.xml", TestIpEndToEnd.class);	
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+				"testIp-out-multicast-context.xml",
+				TestIpMulticastEndToEnd.class);	
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -77,9 +80,9 @@ public class TestIpEndToEnd implements Runnable {
 
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
-		MessageChannel inputChannel = channelResolver.resolveChannelName("inputChannel");
+		MessageChannel inputChannel = channelResolver.resolveChannelName("mcInputChannel");
 		try {
-			testingIpText = ">>>>>>> Testing IP " + new Date();
+			testingIpText = ">>>>>>> Testing IP (multicast) " + new Date();
 			inputChannel.send(new StringMessage(testingIpText));
 			sentFirst.countDown();
 			try {
@@ -108,7 +111,9 @@ public class TestIpEndToEnd implements Runnable {
 	 * Instantiate the receiving context
 	 */
 	public void run() {
-		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("testIp-in-context.xml", TestIpEndToEnd.class);
+		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"testIp-in-multicast-context.xml",
+				TestIpMulticastEndToEnd.class);
 		while (okToRun) {
 			try {
 				sentFirst.await();
@@ -134,7 +139,7 @@ public class TestIpEndToEnd implements Runnable {
 
 	public static void main(String[] args) throws Exception {
 		hangAroundFor = 120000;
-		new TestIpEndToEnd().runIt();
+		new TestIpMulticastEndToEnd().runIt();
 	}
 
 }

@@ -26,6 +26,7 @@ import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.util.RegexUtils;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -65,8 +66,10 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	private boolean lengthCheck = false;
 
 	private static Pattern udpHeadersPattern = 
-		Pattern.compile("\\" + IpHeaders.ACK_ADDRESS + "=" + "([^;]*);\\" + 
-				MessageHeaders.ID + "=" + "([^;]*);");
+		Pattern.compile(RegexUtils.escapeRegExSpecials(IpHeaders.ACK_ADDRESS) +
+				"=" + "([^;]*);" + 
+				RegexUtils.escapeRegExSpecials(MessageHeaders.ID) + 
+				"=" + "([^;]*);");
 
 
 	public void setCharset(String charset) {
@@ -208,7 +211,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	}
 
 	/**
-	 * Peeks at data in he buffer to see if starts with the prefix.
+	 * Peeks at data in the buffer to see if starts with the prefix.
 	 * @param buffer
 	 * @param prefix
 	 * @return

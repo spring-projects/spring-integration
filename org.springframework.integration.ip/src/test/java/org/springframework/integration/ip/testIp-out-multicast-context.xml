@@ -13,18 +13,33 @@
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<!--  
-		Play with the buffer size to force errors. If the checkLength property is 
-		set and this buffer is too small, we'll throw an exception.
-	-->
-	<ip:inbound-channel-adapter id="udpReceiver"
-		channel="udpToStdOutChannel"
-		protocol="udp"
-		port="11111"
-		receive-buffer-size="500"
-		multicast="false"
-		check-length="true" />
+	<stream:stdin-channel-adapter id="stdin" channel="mcOutputChannel" >
+		<poller>
+			<interval-trigger interval="100" time-unit="MILLISECONDS"/>
+		</poller>
+	</stream:stdin-channel-adapter>
+
+	<channel id="mcInputChannel"/>
+
+	<channel id="mcOutputChannel" />
+
+	<service-activator input-channel="mcInputChannel"
+	                   output-channel="mcOutputChannel"
+	                   ref="testIp"
+	                   method="testIp"/>
+
+	<ip:outbound-channel-adapter id="mcUdpSender" protocol="udp"
+		multicast="true"
+		time-to-live="2"
+		host="225.6.7.8"
+		port="11112"
+		check-length="true"
+		acknowledge="true"
+		ack-host="localhost"
+		ack-port="22223"
+		ack-timeout="10000"
+		channel="mcOutputChannel"/>
 
 	<beans:import resource="testIp-common-context.xml" />
-	
+	 		
 </beans:beans>

@@ -13,18 +13,20 @@
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<!--  
-		Play with the buffer size to force errors. If the checkLength property is 
-		set and this buffer is too small, we'll throw an exception.
-	-->
-	<ip:inbound-channel-adapter id="udpReceiver"
-		channel="udpToStdOutChannel"
-		protocol="udp"
-		port="11111"
-		receive-buffer-size="500"
-		multicast="false"
-		check-length="true" />
+	<beans:bean id="testIp" class="org.springframework.integration.ip.TestIp"/>
 
-	<beans:import resource="testIp-common-context.xml" />
-	
+ 	<channel id="udpToStdOutChannel">
+		<interceptors>
+			<beans:ref bean="stdoutCatcher"/>
+		</interceptors>
+	</channel>
+
+	<beans:bean id="stdoutCatcher" class = "org.springframework.integration.ip.StdOutCatcher"/>
+
+	<stream:stderr-channel-adapter id="stdout" channel="udpToStdOutChannel" append-newline="true"/> 
+
+	<beans:bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
+		<beans:property name="daemon" value="true" />
+	</beans:bean>
+
 </beans:beans>

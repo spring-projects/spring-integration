@@ -53,7 +53,7 @@ import org.springframework.util.Assert;
 public class UnicastSendingMessageHandler extends
 		AbstractInternetProtocolSendingMessageHandler implements Runnable {
 
-	private final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
+	protected final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
 	protected volatile DatagramSocket socket;
 
@@ -188,7 +188,7 @@ public class UnicastSendingMessageHandler extends
 			logger.debug("Sent packet for message id " + message.getHeaders().getId());
 			if (this.waitForAck) {
 				if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
-					throw new MessagingException(message, "Failed to received UDP Ack in " + ackTimeout + " millis");
+					throw new MessagingException(message, "Failed to receive UDP Ack in " + ackTimeout + " millis");
 				}
 			}
 		}
@@ -238,6 +238,9 @@ public class UnicastSendingMessageHandler extends
 	public void run() {
 		Exception fatalException = null;
 		try {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Listening for acks on port: " + ackPort);
+			}
 			this.ackSocket = new DatagramSocket(this.ackPort);
 			if (this.soReceiveBufferSize > 0) {
 				ackSocket.setReceiveBufferSize(this.soReceiveBufferSize);
