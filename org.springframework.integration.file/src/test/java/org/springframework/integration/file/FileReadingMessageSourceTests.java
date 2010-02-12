@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -70,7 +71,7 @@ public class FileReadingMessageSourceTests {
     @Test
     public void straightProcess() throws Exception {
         when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
-        source.onSend(source.receive());
+        assertThat(source.receive().getPayload(), is(fileMock));
     }
 
     @Test

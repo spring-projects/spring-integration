@@ -149,7 +149,7 @@ public class CorrelatingMessageHandlerTests {
             }
         });
 
-        Thread.sleep(10);
+        Thread.sleep(20);
         assertFalse(handler.forceComplete("key"));
 
         bothMessagesHandled.await();

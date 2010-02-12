@@ -77,8 +77,12 @@ public class FileLockingNamespaceTests {
         assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeFileListFilter.class));
     }
 
-    public static class StubLocker extends AbstractLockingFilter {
+    public static class StubLocker extends AbstractFileLockerFilter {
         public boolean lock(File fileToLock) {
+            return true;
+        }
+
+        public boolean isLockable(File file) {
             return true;
         }
 

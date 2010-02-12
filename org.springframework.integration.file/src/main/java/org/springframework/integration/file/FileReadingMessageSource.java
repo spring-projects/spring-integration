@@ -143,9 +143,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
     /**
      * Optional. Sets a
      * {@link org.springframework.integration.file.locking.FileLocker} to be
-     * used instead of the default NoopFileLocker. Note that the locker is not
-     * queried by this FileReadingMessageSource: integration with a
-     * FileListFilter is an external concern.
+     * used to guard files against duplicate processing.
      * <p/>
      * <b>The supplied FileLocker must be thread safe</b>
      */
@@ -216,7 +214,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
     }
 
     /**
-     * Adds the failed message back to the 'toBeReceived' queue.
+     * Adds the failed message back to the 'toBeReceived' queue if there is room.
      */
     public void onFailure(Message<File> failedMessage, Throwable t) {
         if (logger.isWarnEnabled()) {
@@ -232,21 +230,6 @@ public class FileReadingMessageSource implements MessageSource<File>,
     public void onSend(Message<File> sentMessage) {
         if (logger.isDebugEnabled()) {
             logger.debug("Sent: " + sentMessage);
-        }
-    }
-
-    /**
-     * Implementation of FileLocker that doesn't provide any protection against
-     * duplicate listing.
-     */
-    private static class NoopFileLocker implements FileLocker {
-
-        public boolean lock(File fileToLock) {
-            return true;
-        }
-
-        public void unlock(File fileToUnlock) {
-            // noop
         }
     }
 }

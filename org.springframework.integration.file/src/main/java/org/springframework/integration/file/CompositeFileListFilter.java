@@ -16,71 +16,66 @@
 
 package org.springframework.integration.file;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.springframework.util.Assert;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.util.*;
+
 /**
- * Composition that delegates to multiple {@link FileFilter}s. The composition
- * is AND based, meaning that a file must pass through each filter's
- * {@link #filterFiles(File)} method in order to be accepted by the composite.
- * 
+ * Composition that delegates to multiple {@link FileFilter}s. The composition is AND based, meaning that a file must
+ * pass through each filter's {@link #filterFiles(java.io.File[])} method in order to be accepted by the composite.
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  */
 public class CompositeFileListFilter implements FileListFilter {
 
-	private final Set<FileListFilter> fileFilters;
+    private final Set<FileListFilter> fileFilters;
 
 
-	public CompositeFileListFilter(FileListFilter... fileFilters) {
-		this.fileFilters = new LinkedHashSet<FileListFilter>(Arrays.asList(fileFilters));
-	}
+    public CompositeFileListFilter(FileListFilter... fileFilters) {
+        this.fileFilters = new LinkedHashSet<FileListFilter>(Arrays.asList(fileFilters));
+    }
 
-	public CompositeFileListFilter(Collection<FileListFilter> fileFilters) {
-		this.fileFilters = new LinkedHashSet<FileListFilter>(fileFilters);
-	}
+    public CompositeFileListFilter(Collection<FileListFilter> fileFilters) {
+        this.fileFilters = new LinkedHashSet<FileListFilter>(fileFilters);
+    }
 
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * This implementation delegates to a collection of filters and returns
-	 * only files that pass all the filters.
-	 */
-	public List<File> filterFiles(File[] files) {
-		Assert.notNull(files, "'files' should not be null");
-		List<File> leftOver = Arrays.asList(files);
-		for (FileListFilter fileFilter : this.fileFilters) {
-			leftOver = fileFilter.filterFiles(leftOver.toArray(new File[] {}));
-		}
-		return leftOver;
-	}
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * This implementation delegates to a collection of filters and returns only files that pass all the filters.
+     */
+    public List<File> filterFiles(File[] files) {
+        Assert.notNull(files, "'files' should not be null");
+        List<File> leftOver = Arrays.asList(files);
+        for (FileListFilter fileFilter : this.fileFilters) {
+            leftOver = fileFilter.filterFiles(leftOver.toArray(new File[]{}));
+        }
+        return leftOver;
+    }
 
-	/**
-	 * @see #addFilters(Collection)
-	 * @param filters one or more new filters to add
-	 * @return this CompositeFileFilter instance with the added filters
-	 */
-	public CompositeFileListFilter addFilter(FileListFilter... filters) {
-		return addFilters(Arrays.asList(filters));
-	}
+    /**
+     * @param filters one or more new filters to add
+     * @return this CompositeFileFilter instance with the added filters
+     * @see #addFilters(Collection)
+     */
+    public CompositeFileListFilter addFilter(FileListFilter... filters) {
+        return addFilters(Arrays.asList(filters));
+    }
 
-	/**
-	 * Add the new filters to this CompositeFileFilter while maintaining the
-	 * existing filters.
-	 * 
-	 * @param filtersToAdd a list of filters to add
-	 * @return this CompositeFileFilter instance with the added filters
-	 */
-	public CompositeFileListFilter addFilters(Collection<FileListFilter> filtersToAdd) {
-		this.fileFilters.addAll(filtersToAdd);
+    /**
+     * Not thread safe. Only a single thread may add filters at a time.
+     *
+     * Add the new filters to this CompositeFileFilter while maintaining the existing filters.
+     *
+     * @param filtersToAdd a list of filters to add
+     * @return this CompositeFileFilter instance with the added filters
+     */
+    public CompositeFileListFilter addFilters(Collection<FileListFilter> filtersToAdd) {
+        this.fileFilters.addAll(filtersToAdd);
 		return this;
 	}
 

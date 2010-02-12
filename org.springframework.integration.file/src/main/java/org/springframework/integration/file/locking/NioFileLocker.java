@@ -26,56 +26,56 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * File locking strategy that uses java.nio. The locks taken by FileChannel are
- * shared with all the threads in a single JVM, so this locking strategy <b>does
- * not</b> prevent files being picked up multiple times within the same JVM.
- *  {@link FileReadingMessageSource}s sharing a Locker will not pick up
- * the same files.
- * 
- * This implementation will acquire or create a {@link FileLock} for the given
- * file. Caching locks might be expensive, so this locking strategy is not
- * recommended for scenarios where many files are accessed in parallel.
- * 
+ * File locking strategy that uses java.nio. The locks taken by FileChannel are shared with all the threads in a single
+ * JVM, so this locking strategy <b>does not</b> prevent files being picked up multiple times within the same JVM.
+ * {@link FileReadingMessageSource}s sharing a Locker will not pick up the same files.
+ * <p/>
+ * This implementation will acquire or create a {@link FileLock} for the given file. Caching locks might be expensive,
+ * so this locking strategy is not recommended for scenarios where many files are accessed in parallel.
+ *
  * @author Iwein Fuld
  * @author Mark Fisher
  * @since 2.0
  */
-public class NioFileLocker extends AbstractLockingFilter {
+public class NioFileLocker extends AbstractFileLockerFilter {
 
-	private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<File, FileLock>();
+    private final ConcurrentMap<File, FileLock> lockCache = new ConcurrentHashMap<File, FileLock>();
 
     /**
-	 * {@inheritDoc}
-	 * 
-	 */
-	public boolean lock(File fileToLock) {
-		FileLock lock = lockCache.get(fileToLock);
-		if (lock == null) {
-			FileLock newLock = null;
-			try {
-				newLock = FileChannelCache.tryLockFor(fileToLock);
-			} catch (IOException e) {
-				throw new MessagingException("Failed to lock file: "
-						+ fileToLock, e);
-			}
-			if (newLock != null) {
-				FileLock original = lockCache.putIfAbsent(fileToLock, newLock);
-				lock = original != null ? original : newLock;
-			}
-		}
-		return lock != null;
-	}
+     * {@inheritDoc}
+     */
+    public boolean lock(File fileToLock) {
+        FileLock lock = lockCache.get(fileToLock);
+        if (lock == null) {
+            FileLock newLock = null;
+            try {
+                newLock = FileChannelCache.tryLockFor(fileToLock);
+            } catch (IOException e) {
+                throw new MessagingException("Failed to lock file: "
+                        + fileToLock, e);
+            }
+            if (newLock != null) {
+                FileLock original = lockCache.putIfAbsent(fileToLock, newLock);
+                lock = original != null ? original : newLock;
+            }
+        }
+        return lock != null;
+    }
 
-	public void unlock(File fileToUnlock) {
-		FileLock fileLock = lockCache.get(fileToUnlock);
-		try {
-			if (fileLock != null) {
-				fileLock.release();
-			}
-			FileChannelCache.closeChannelFor(fileToUnlock);
-		} catch (IOException e) {
-			throw new MessagingException("Failed to unlock file: "
-					+ fileToUnlock, e);
-		}
+    public boolean isLockable(File file) {
+        return lockCache.containsKey(file) || !FileChannelCache.isLocked(file);
+    }
+
+    public void unlock(File fileToUnlock) {
+        FileLock fileLock = lockCache.get(fileToUnlock);
+        try {
+            if (fileLock != null) {
+                fileLock.release();
+            }
+            FileChannelCache.closeChannelFor(fileToUnlock);
+        } catch (IOException e) {
+            throw new MessagingException("Failed to unlock file: "
+                    + fileToUnlock, e);
+        }
 	}
 }

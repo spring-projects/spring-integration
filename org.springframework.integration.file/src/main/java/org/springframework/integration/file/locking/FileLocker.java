@@ -25,7 +25,7 @@ import java.io.File;
  * contract, defining these guarantees is up to the implementation.
  *
  * If a filter that respects locks is required extend
- * {@link org.springframework.integration.file.locking.AbstractLockingFilter} instead.
+ * {@link AbstractFileLockerFilter} instead.
  * 
  * @author Iwein Fuld
  * @since 2.0
@@ -39,6 +39,13 @@ public interface FileLocker {
      * @param fileToLock   the file that should be locked according to this locker
      */
 	boolean lock(File fileToLock);
+
+    /**
+     * Checks whether the file passed in can be locked by this locker. This method never changes the locked state.
+     *
+     * @return true if the file was locked by another locker than this locker
+     */
+    boolean isLockable(File file);
 
 	/**
 	 * Unlocks the given file.

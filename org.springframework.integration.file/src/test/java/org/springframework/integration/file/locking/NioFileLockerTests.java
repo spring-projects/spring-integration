@@ -15,17 +15,18 @@
  */
 package org.springframework.integration.file.locking;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.springframework.integration.file.FileListFilter;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Iwein Fuld
@@ -49,20 +50,22 @@ public class NioFileLockerTests {
 
     @Test
     public void fileListedByFirstFilter() throws IOException {
-        FileListFilter filter = new NioFileLocker();
+        NioFileLocker filter = new NioFileLocker();
         File testFile = new File(workdir, "test0");
         testFile.createNewFile();
         assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+        filter.lock(testFile);
         assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
     }
 
     @Test
-    public void fileListedByOneFilterOnly() throws IOException {
-        FileListFilter filter1 = new NioFileLocker();
+    public void fileNotListedWhenLockedByOtherFilter() throws IOException {
+        NioFileLocker filter1 = new NioFileLocker();
         FileListFilter filter2 = new NioFileLocker();
         File testFile = new File(workdir, "test1");
         testFile.createNewFile();
         assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
+        filter1.lock(testFile);
         assertThat(filter2.filterFiles(workdir.listFiles()), is((List)new ArrayList<File>()));
     }
 
