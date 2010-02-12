@@ -21,8 +21,8 @@ import org.springframework.integration.file.AbstractFileListFilter;
 import java.io.File;
 
 /**
- * Convenience base class for implementing FileLockers that acquires a lock upon accepting a file. This is required
- * when used in combination with a FileReadingMessageSource.
+ * Convenience base class for implementing FileLockers that acquire a lock upon accepting a file. This is needed
+ * when used in combination with a FileReadingMessageSource through a DirectoryScanner.
  *
  * @author Iwein Fuld
  * @since 2.0

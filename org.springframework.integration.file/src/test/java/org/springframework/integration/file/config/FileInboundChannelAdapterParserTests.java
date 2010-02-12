@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.file.CompositeFileListFilter;
+import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -72,8 +73,11 @@ public class FileInboundChannelAdapterParserTests {
 
 	@Test
 	public void filter() throws Exception {
-		assertTrue("'filter' should be set", accessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
+        DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
+        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
+        assertTrue("'filter' should be set", scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
 	}
+    
 
 	@Test
 	public void comparator() throws Exception {

@@ -36,6 +36,7 @@ import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -77,22 +78,27 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 
 	@Test
 	public void compositeFilterType() {
-		assertTrue(accessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
+        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+		assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void compositeFilterSetSize() {
+        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+
 		Set<FileListFilter> filters = (Set<FileListFilter>) new DirectFieldAccessor(
-				accessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
 		assertEquals(2, filters.size());
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void acceptOnceFilter() {
+        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+
 		Set<FileListFilter> filters = (Set<FileListFilter>) new DirectFieldAccessor(
-				accessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
 		boolean hasAcceptOnceFilter = false;
 		for (FileListFilter filter : filters) {
 			if (filter instanceof AcceptOnceFileListFilter) {
@@ -105,8 +111,10 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void patternFilter() {
+        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
+
 		Set<FileListFilter> filters = (Set<FileListFilter>) new DirectFieldAccessor(
-				accessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
+				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
 		Pattern pattern = null;
 		for (FileListFilter filter : filters) {
 			if (filter instanceof PatternMatchingFileListFilter) {

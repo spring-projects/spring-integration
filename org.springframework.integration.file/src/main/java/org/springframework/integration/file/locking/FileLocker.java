@@ -23,6 +23,9 @@ import java.io.File;
  * single time. Implementations are free to implement any relation between
  * locking and unlocking. This means that there are no safety guarantees in the
  * contract, defining these guarantees is up to the implementation.
+ *
+ * If a filter that respects locks is required extend
+ * {@link org.springframework.integration.file.locking.AbstractLockingFilter} instead.
  * 
  * @author Iwein Fuld
  * @since 2.0
@@ -32,12 +35,16 @@ public interface FileLocker {
 	/**
 	 * Tries to lock the given file and returns <code>true</code> if it was
 	 * successful, <code>false</code> otherwise.
-	 */
+     *
+     * @param fileToLock   the file that should be locked according to this locker
+     */
 	boolean lock(File fileToLock);
 
 	/**
 	 * Unlocks the given file.
-	 */
+     *
+     * @param fileToUnlock  the file that should be unlocked according to this locker
+     */
 	void unlock(File fileToUnlock);
 
 }

@@ -67,7 +67,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
 
     private volatile File directory;
 
-    private volatile DirectoryScanner scanner = new ToplevelDirectoryScanner();
+    private volatile DirectoryScanner scanner = new DefaultDirectoryScanner();
 
     private volatile boolean autoCreateDirectory = true;
 
@@ -77,10 +77,6 @@ public class FileReadingMessageSource implements MessageSource<File>,
      * locking around the queue, so there is also no iteration.
      */
     private final Queue<File> toBeReceived;
-
-    private volatile FileListFilter filter = new AcceptOnceFileListFilter();
-
-    private volatile FileLocker locker = new NoopFileLocker();
 
     private boolean scanEachPoll = false;
 
@@ -141,10 +137,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
      */
     public void setFilter(FileListFilter filter) {
         Assert.notNull(filter, "'filter' must not be null");
-        this.filter = filter;
-        if (filter instanceof FileLocker && locker instanceof NoopFileLocker) {
-            this.locker = (FileLocker) filter;
-        }
+        this.scanner.setFilter(filter);
     }
 
     /**
@@ -158,7 +151,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
      */
     public void setLocker(FileLocker locker) {
         Assert.notNull(locker, "'fileLocker' must not be null.");
-        this.locker = locker;
+        this.scanner.setLocker(locker);
     }
 
     /**
@@ -199,7 +192,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
         File file = toBeReceived.poll();
         // file == null means the queue was empty
         // we can't rely on isEmpty for concurrency reasons
-        while (file != null && !locker.lock(file)) {
+        while (file != null && !scanner.tryClaim(file)) {
             file = toBeReceived.poll();
         }
         if (file != null) {
@@ -212,12 +205,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
     }
 
     private void scanInputDirectory() {
-        File[] fileArray = scanner.listFiles(directory);
-        if (fileArray == null) {
-            throw new MessagingException("The path [" + this.directory
-                    + "] does not denote a properly accessible directory.");
-        }
-        List<File> filteredFiles = this.filter.filterFiles(fileArray);
+        List<File> filteredFiles = scanner.listFiles(directory);
         Set<File> freshFiles = new HashSet<File>(filteredFiles);
         if (!freshFiles.isEmpty()) {
             toBeReceived.addAll(freshFiles);
@@ -259,12 +247,6 @@ public class FileReadingMessageSource implements MessageSource<File>,
 
         public void unlock(File fileToUnlock) {
             // noop
-        }
-    }
-
-    private static class ToplevelDirectoryScanner implements DirectoryScanner {
-        public File[] listFiles(File directory) throws IllegalArgumentException {
-            return directory.listFiles();
         }
     }
 }

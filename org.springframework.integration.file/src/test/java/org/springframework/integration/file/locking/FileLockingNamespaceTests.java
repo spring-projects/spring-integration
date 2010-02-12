@@ -63,16 +63,18 @@ public class FileLockingNamespaceTests {
 
     @Test
     public void shouldSetCustomLockerProperly() {
-        DirectFieldAccessor accessor = new DirectFieldAccessor(customLockingSource);
-        assertThat(accessor.getPropertyValue("locker"), is(StubLocker.class));
-        assertThat(accessor.getPropertyValue("filter"), is(CompositeFileListFilter.class));
+        assertThat(extractFromScanner("locker", customLockingSource), is(StubLocker.class));
+        assertThat(extractFromScanner("filter", customLockingSource), is(CompositeFileListFilter.class));
     }
-    
+
+    private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
+        return new DirectFieldAccessor( new DirectFieldAccessor(source).getPropertyValue("scanner") ).getPropertyValue(propertyName);
+    }
+
     @Test
     public void shouldSetNioLockerProperly() {
-        DirectFieldAccessor accessor = new DirectFieldAccessor(nioLockingSource);
-        assertThat(accessor.getPropertyValue("locker"), is(NioFileLocker.class));
-        assertThat(accessor.getPropertyValue("filter"), is(CompositeFileListFilter.class));
+        assertThat(extractFromScanner("locker", nioLockingSource), is(NioFileLocker.class));
+        assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeFileListFilter.class));
     }
 
     public static class StubLocker extends AbstractLockingFilter {

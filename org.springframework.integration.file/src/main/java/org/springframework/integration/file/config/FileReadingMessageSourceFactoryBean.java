@@ -64,6 +64,9 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
     }
 
     public void setFilter(FileListFilter filter) {
+        if (filter instanceof AbstractLockingFilter && this.locker == null) {
+            this.setLocker((AbstractLockingFilter) filter);
+        }
         this.filter = filter;
     }
 
@@ -102,6 +105,9 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
             this.source = (this.comparator != null) ?
                     new FileReadingMessageSource(this.comparator) : new FileReadingMessageSource();
             this.source.setDirectory(this.directory);
+            if (this.scanner != null) {
+                this.source.setScanner(this.scanner);
+            }
             if (this.filter != null) {
                 if (this.locker == null) {
                     this.source.setFilter(this.filter);
@@ -115,9 +121,6 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
             }
             if (this.autoCreateDirectory != null) {
                 this.source.setAutoCreateDirectory(this.autoCreateDirectory);
-            }
-            if (this.scanner != null) {
-                this.source.setScanner(this.scanner);
             }
             this.source.afterPropertiesSet();
         }
