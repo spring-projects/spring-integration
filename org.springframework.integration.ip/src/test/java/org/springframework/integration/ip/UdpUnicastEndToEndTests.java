@@ -47,7 +47,7 @@ import org.springframework.integration.message.StringMessage;
  * @author Gary Russell
  * @since 2.0
  */
-public class TestIpEndToEnd implements Runnable {
+public class UdpUnicastEndToEndTests implements Runnable {
 
 	private String testingIpText;
 
@@ -66,10 +66,10 @@ public class TestIpEndToEnd implements Runnable {
 
 	@Test
 	public void runIt() throws Exception {
-		TestIpEndToEnd launcher = new TestIpEndToEnd();
+		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
-		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("testIp-out-context.xml", TestIpEndToEnd.class);	
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("testIp-out-context.xml", UdpUnicastEndToEndTests.class);	
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -108,7 +108,7 @@ public class TestIpEndToEnd implements Runnable {
 	 * Instantiate the receiving context
 	 */
 	public void run() {
-		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("testIp-in-context.xml", TestIpEndToEnd.class);
+		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("testIp-in-context.xml", UdpUnicastEndToEndTests.class);
 		while (okToRun) {
 			try {
 				sentFirst.await();
@@ -134,7 +134,7 @@ public class TestIpEndToEnd implements Runnable {
 
 	public static void main(String[] args) throws Exception {
 		hangAroundFor = 120000;
-		new TestIpEndToEnd().runIt();
+		new UdpUnicastEndToEndTests().runIt();
 	}
 
 }

@@ -47,7 +47,7 @@ import org.springframework.integration.message.StringMessage;
  * @author Gary Russell
  * @since 2.0
  */
-public class TestIpMulticastEndToEnd implements Runnable {
+public class UdpMulticastEndToEndTests implements Runnable {
 
 	private String testingIpText;
 
@@ -67,12 +67,12 @@ public class TestIpMulticastEndToEnd implements Runnable {
 	@Test
 	@Ignore
 	public void runIt() throws Exception {
-		TestIpMulticastEndToEnd launcher = new TestIpMulticastEndToEnd();
+		UdpMulticastEndToEndTests launcher = new UdpMulticastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
 		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
 				"testIp-out-multicast-context.xml",
-				TestIpMulticastEndToEnd.class);	
+				UdpMulticastEndToEndTests.class);	
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -113,7 +113,7 @@ public class TestIpMulticastEndToEnd implements Runnable {
 	public void run() {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"testIp-in-multicast-context.xml",
-				TestIpMulticastEndToEnd.class);
+				UdpMulticastEndToEndTests.class);
 		while (okToRun) {
 			try {
 				sentFirst.await();
@@ -139,7 +139,7 @@ public class TestIpMulticastEndToEnd implements Runnable {
 
 	public static void main(String[] args) throws Exception {
 		hangAroundFor = 120000;
-		new TestIpMulticastEndToEnd().runIt();
+		new UdpMulticastEndToEndTests().runIt();
 	}
 
 }
