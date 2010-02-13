@@ -10,6 +10,7 @@
 		<pathelement location="${basedir}/../org.springframework.integration.file"/>
 		<pathelement location="${basedir}/../org.springframework.integration.http"/>
 		<pathelement location="${basedir}/../org.springframework.integration.httpinvoker"/>
+		<pathelement location="${basedir}/../org.springframework.integration.ip"/>
 		<pathelement location="${basedir}/../org.springframework.integration.jdbc"/>
 		<pathelement location="${basedir}/../org.springframework.integration.jms"/>
 		<pathelement location="${basedir}/../org.springframework.integration.jmx"/>
@@ -17,7 +18,6 @@
 		<pathelement location="${basedir}/../org.springframework.integration.rmi"/>
 		<pathelement location="${basedir}/../org.springframework.integration.stream"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
-		<pathelement location="${basedir}/../org.springframework.integration.udp"/>
 		<pathelement location="${basedir}/../org.springframework.integration.osgi"/>
 		<pathelement location="${basedir}/../org.springframework.integration.test"/>
 	</path>
