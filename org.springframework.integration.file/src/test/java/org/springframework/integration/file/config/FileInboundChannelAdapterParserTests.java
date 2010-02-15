@@ -46,17 +46,15 @@ public class FileInboundChannelAdapterParserTests {
 	@Autowired(required=true)
 	private ApplicationContext context;
 
-	@Autowired(required=true)
+	@Autowired
 	private FileReadingMessageSource source;
 
 	private DirectFieldAccessor accessor;
 
-
-	@Before
+    @Before
 	public void init() {
 		accessor = new DirectFieldAccessor(source);
 	}
-
 
 	@Test
 	public void channelName() throws Exception {
@@ -88,7 +86,6 @@ public class FileInboundChannelAdapterParserTests {
 		Object actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
 		assertSame("comparator reference not set, ", expected, actual);
 	}
-
 
 	static class TestComparator implements Comparator<File> {
 

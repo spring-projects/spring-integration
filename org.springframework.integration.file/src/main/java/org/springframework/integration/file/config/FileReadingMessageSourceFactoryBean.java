@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.DirectoryScanner;
@@ -33,6 +35,8 @@ import java.util.Comparator;
  */
 public class FileReadingMessageSourceFactoryBean implements FactoryBean {
 
+    private static Log logger = LogFactory.getLog(FileReadingMessageSourceFactoryBean.class);
+
     private volatile FileReadingMessageSource source;
 
     private volatile File directory;
@@ -48,6 +52,8 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
     private volatile Boolean scanEachPoll;
 
     private volatile Boolean autoCreateDirectory;
+
+    private volatile Integer queueSize;
 
     private final Object initializationMonitor = new Object();
 
@@ -78,6 +84,10 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
         this.autoCreateDirectory = autoCreateDirectory;
     }
 
+    public void setQueueSize(Integer queueSize) {
+        this.queueSize = queueSize;
+    }
+
     public void setLocker(AbstractFileLockerFilter locker) {
         this.locker = locker;
     }
@@ -102,8 +112,19 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
             if (this.source != null) {
                 return;
             }
-            this.source = (this.comparator != null) ?
-                    new FileReadingMessageSource(this.comparator) : new FileReadingMessageSource();
+            boolean comparatorSet = this.comparator != null;
+            boolean queueSizeSet = this.queueSize != null;
+            if (comparatorSet) {
+                if(queueSizeSet){
+                    logger.warn("'comparator' and 'queueSize' are mutually exclusive. Ignoring 'queueSize'");
+                }
+                this.source = new FileReadingMessageSource(this.comparator);
+            } else if ( queueSizeSet) {
+                this.source = new FileReadingMessageSource(queueSize);
+            }
+            else {
+                this.source = new FileReadingMessageSource();
+            }
             this.source.setDirectory(this.directory);
             if (this.scanner != null) {
                 this.source.setScanner(this.scanner);
@@ -125,5 +146,4 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
             this.source.afterPropertiesSet();
         }
     }
-
 }

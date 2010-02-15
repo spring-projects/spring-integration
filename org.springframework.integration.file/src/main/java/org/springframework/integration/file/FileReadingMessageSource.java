@@ -29,6 +29,7 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
@@ -82,17 +83,16 @@ public class FileReadingMessageSource implements MessageSource<File>,
     }
 
     /**
-     * Creates a FileReadingMessageSource with a naturally ordered queue of the given capacity.
+     * Creates a FileReadingMessageSource with a bounded queue of the given capacity.
      *
      * @param internalQueueCapacity the size of the queue used to cache files to be received internally. This queue can
-     *                              be made larger to improve the ordering of incoming files and more importantly to
-     *                              optimize the directory scanning. With scanEachPoll set to false and the queue to a
-     *                              large size, it will be filled once and then completely emptied before a new
-     *                              directory listing is done. This is particularly useful to reduce scans of large
-     *                              numbers of files in a directory.
+     *                              be made larger to optimize the directory scanning. With scanEachPoll set to false
+     *                              and the queue to a large size, it will be filled once and then completely emptied
+     *                              before a new directory listing is done. This is particularly useful to reduce scans
+     *                              of large numbers of files in a directory.
      */
     public FileReadingMessageSource(int internalQueueCapacity) {
-        toBeReceived = new PriorityBlockingQueue<File>(
+        toBeReceived = new ArrayBlockingQueue<File>(
                 internalQueueCapacity < 0 ? DEFAULT_INTERNAL_QUEUE_CAPACITY : internalQueueCapacity);
     }
 
@@ -101,34 +101,14 @@ public class FileReadingMessageSource implements MessageSource<File>,
      * Comparator}
      * <p/>
      * The size of the queue used should be large enough to hold all the files in the input directory in order to sort
-     * all of them. No guarantees about file delivery order can be made under concurrent access.
+     * all of them, so restricting the size of the queue is mutually exclusive with ordering. No guarantees about file
+     * delivery order can be made under concurrent access.
      * <p/>
      *
      * @param receptionOrderComparator the comparator to be used to order the files in the internal queue
      */
     public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
-        this(receptionOrderComparator, -1);
-    }
-
-    /**
-     * Creates a FileReadingMessageSource with a {@link PriorityBlockingQueue} ordered with the passed in {@link
-     * Comparator}
-     * <p/>
-     * The size of the queue used should be large enough to hold all the files in the input directory in order to sort
-     * all of them. No guarantees about file delivery order can be made under concurrent access.
-     * <p/>
-     *
-     * @param receptionOrderComparator the comparator to be used to order the files in the internal queue
-     * @param internalQueueCapacity    the size of the queue used to cache files to be received internally. This queue
-     *                                 can be made larger to improve the ordering of incoming files and more importantly
-     *                                 to optimize the directory scanning. With scanEachPoll set to false and the queue
-     *                                 to a large size, it will be filled once and then completely emptied before a new
-     *                                 directory listing is done. This is particularly useful to reduce scans of large
-     *                                 numbers of files in a directory.
-     */
-    public FileReadingMessageSource(Comparator<File> receptionOrderComparator, int internalQueueCapacity) {
-        toBeReceived = new PriorityBlockingQueue<File>(
-                internalQueueCapacity < 0 ? DEFAULT_INTERNAL_QUEUE_CAPACITY : internalQueueCapacity,
+        toBeReceived = new PriorityBlockingQueue<File>(DEFAULT_INTERNAL_QUEUE_CAPACITY,
                 receptionOrderComparator);
     }
 
@@ -185,9 +165,9 @@ public class FileReadingMessageSource implements MessageSource<File>,
      * <p/>
      * By default this implementation will empty its queue before looking at the directory again. In cases where order
      * is relevant it is important to consider the effects of setting this flag. The internal {@link
-     * PriorityBlockingQueue} that this class is keeping will more likely be out of sync with the file system if this
-     * flag is set to <code>false</code>, but it will change more often (causing expensive reordering) if it is set to
-     * <code>true</code>.
+     * java.util.concurrent.BlockingQueue} that this class is keeping will more likely be out of sync with the file
+     * system if this flag is set to <code>false</code>, but it will change more often (causing expensive reordering) if
+     * it is set to <code>true</code>.
      */
     public void setScanEachPoll(boolean scanEachPoll) {
         this.scanEachPoll = scanEachPoll;

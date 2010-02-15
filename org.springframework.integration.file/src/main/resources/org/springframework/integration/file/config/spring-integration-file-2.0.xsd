@@ -21,8 +21,8 @@
     <xsd:element name="inbound-channel-adapter">
         <xsd:annotation>
             <xsd:documentation>
-                Configures an inbound Channel Adapter that polls a directory and sends
-                Messages whose payloads are instances of java.io.File.
+                Configures an inbound Channel Adapter that polls a directory and sends Messages whose payloads are
+                instances of java.io.File.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
@@ -48,7 +48,7 @@
                 <xsd:annotation>
                     <xsd:documentation><![CDATA[
 	Specify a Comparator to be used when ordering Files. If none is provided, the
-	order will be determined by the java.io.File implementation of Comparable.
+	order will be determined by the java.io.File implementation of Comparable.  MUTUALLY EXCLUSIVE with queue-size.
 					]]></xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
@@ -98,6 +98,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="queue-size" type="xsd:integer">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specify the queue size used internally by the underlying FileReadingMessageSource to store files
+                        listed on a poll. A larger queue size reduces the number of directory listings needed, but it
+                        increases the chances of the internal queue being out of whack with the actual files listed in
+                        the directory. Use 0 for small but volatile directories, use a large number for large
+                        directories that are only written to. MUTUALLY EXCLUSIVE with comparator, if comparator is set
+                        this attribute will be ignored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
 
@@ -128,8 +140,8 @@
         <xsd:complexType>
             <xsd:annotation>
                 <xsd:documentation>
-                    Configures an outbound Gateway that writes request Message payloads to a File and
-                    then generates a reply Message containing the newly written File as its payload.
+                    Configures an outbound Gateway that writes request Message payloads to a File and then generates a
+                    reply Message containing the newly written File as its payload.
                 </xsd:documentation>
             </xsd:annotation>
             <xsd:complexContent>
@@ -193,9 +205,9 @@
         <xsd:attribute name="auto-create-directory" type="xsd:string" default="true">
             <xsd:annotation>
                 <xsd:documentation>
-                    Specify whether to automatically create the destination directory if it does not yet exist
-                    when this adapter is being initialized. The default value is 'true'. If set to 'false' and
-                    the directory does not exist upon initialization, an Exception will be thrown.
+                    Specify whether to automatically create the destination directory if it does not yet exist when this
+                    adapter is being initialized. The default value is 'true'. If set to 'false' and the directory does
+                    not exist upon initialization, an Exception will be thrown.
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
