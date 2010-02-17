@@ -87,7 +87,7 @@
     <section id="channel-implementations-queuechannel">
       <title>QueueChannel</title>
       <para>
-        The <classname>QueueChannel</classname> implementation wraps a queue. Unlike, the
+        The <classname>QueueChannel</classname> implementation wraps a queue. Unlike the
         <classname>PublishSubscribeChannel</classname>, the <classname>QueueChannel</classname> has point-to-point
         semantics. In other words, even if the channel has multiple consumers, only one of them should receive any
         Message sent to that channel. It provides a default no-argument constructor (providing an essentially unbounded
