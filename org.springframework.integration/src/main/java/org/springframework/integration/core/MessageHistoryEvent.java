@@ -16,6 +16,7 @@
 
 package org.springframework.integration.core;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ import java.util.Map;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MessageHistoryEvent {
+public class MessageHistoryEvent implements Serializable {
 
 	public static final String COMPONENT_NAME = "componentName";
 
