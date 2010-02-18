@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -35,12 +36,20 @@ import org.springframework.util.Assert;
  */
 public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
+	private static final String COMPONENT_TYPE_LABEL = "bridge";
+
+
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		if (requestMessage.getHeaders().getReplyChannel() == null) {
 			this.verifyOutputChannel();
 		}
 		return requestMessage;
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent e) {
+		e.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 	private void verifyOutputChannel() {

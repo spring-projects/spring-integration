@@ -49,6 +49,7 @@ public class GatewayProxyMessageMappingTests {
 		GatewayProxyFactoryBean factoryBean = new GatewayProxyFactoryBean();
 		factoryBean.setServiceInterface(TestGateway.class);
 		factoryBean.setDefaultRequestChannel(channel);
+		factoryBean.setBeanName("testGateway");
 		factoryBean.afterPropertiesSet();
 		this.gateway = (TestGateway) factoryBean.getObject();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHistory.ComponentType;
-import org.springframework.integration.core.MessageHistory.Event;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.message.MessageHandler;
@@ -55,6 +54,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReply("foo");
@@ -67,6 +67,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		service.oneWay("test");
@@ -83,6 +84,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setDefaultReplyChannel(replyChannel);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.solicitResponse();
@@ -103,6 +105,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
@@ -171,6 +174,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithMessageParameter(new StringMessage("foo"));
@@ -190,6 +194,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Message<?> result = service.requestReplyWithMessageReturnValue("foo");
@@ -217,6 +222,7 @@ public class GatewayProxyFactoryBeanTests {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		Object proxy = proxyFactory.getObject();
 		String expected = "gateway proxy for";
@@ -237,6 +243,7 @@ public class GatewayProxyFactoryBeanTests {
 		consumer.start();
 		proxyFactory.setDefaultRequestChannel(channel);
 		proxyFactory.setServiceInterface(TestExceptionThrowingInterface.class);
+		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestExceptionThrowingInterface proxy = (TestExceptionThrowingInterface) proxyFactory.getObject();
 		proxy.throwCheckedException("test");
@@ -256,21 +263,23 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testMethodNameInHistory() throws Exception {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setBeanName("testGateway");
 		DirectChannel channel = new DirectChannel();
 		channel.setBeanName("testChannel");
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new BridgeHandler());
+		consumer.setBeanName("testBridge");
 		consumer.start();
 		proxyFactory.setDefaultRequestChannel(channel);
 		proxyFactory.setServiceInterface(TestEchoService.class);
 		proxyFactory.afterPropertiesSet();
 		TestEchoService proxy = (TestEchoService) proxyFactory.getObject();
 		Message<?> message = proxy.echo("test");
-		Iterator<Event> historyIterator = message.getHeaders().getHistory().iterator();
-		Event event1 = historyIterator.next();
-		Event event2 = historyIterator.next();
-		assertEquals(ComponentType.gateway, event1.getComponentType());
-		assertEquals("echo", event1.getComponentName());
-		assertEquals(ComponentType.channel, event2.getComponentType());
+		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
+		MessageHistoryEvent event1 = historyIterator.next();
+		MessageHistoryEvent event2 = historyIterator.next();
+		assertEquals("testGateway", event1.getComponentName());
+		assertEquals("echo", event1.getProperty("method", String.class));
+		assertEquals("channel", event2.getComponentType());
 		assertEquals("testChannel", event2.getComponentName());
 	}
 

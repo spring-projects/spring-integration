@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.filter;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
@@ -36,6 +37,9 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class MessageFilter extends AbstractReplyProducingMessageHandler {
+
+	private static final String COMPONENT_TYPE_LABEL = "filter";
+
 
 	private final MessageSelector selector;
 
@@ -97,6 +101,11 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 			throw new MessageRejectedException(message);
 		}
 		return null;
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent e) {
+		e.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 }

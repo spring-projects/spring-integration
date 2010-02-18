@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.Ordered;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHistory.ComponentType;
-import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistoryEvent;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -59,7 +59,8 @@ public abstract class AbstractMessageHandler implements MessageHandler, Ordered 
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(this + " received message: " + message);
         }
-        message.getHeaders().getHistory().add(ComponentType.endpoint, this.toString());
+        MessageHistoryEvent event = message.getHeaders().getHistory().addEvent(this.toString());
+        this.postProcessHistoryEvent(event);
         try {
             this.handleMessageInternal(message);
         }
@@ -70,6 +71,16 @@ public abstract class AbstractMessageHandler implements MessageHandler, Ordered 
             throw new MessageHandlingException(message,
                     "error occurred in message handler [" + this + "]", e);
         }
+    }
+
+    /**
+     * Post process the history event. For example, this method is commonly overridden
+     * to set the 'componentType' label for the specific handler implementation. As a
+     * result, the "logical" name is available in MessageHistory events. Such a name
+     * should typically match the corresponding configuration element's name (in XML or
+     * Annotations), such as "router" or "splitter". By default this method is a no-op.
+     */
+    protected void postProcessHistoryEvent(MessageHistoryEvent event) {
     }
 
     protected abstract void handleMessageInternal(Message<?> message) throws Exception;

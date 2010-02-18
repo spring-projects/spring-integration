@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -53,10 +54,13 @@ import org.springframework.util.CollectionUtils;
  */
 public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message<?>>> {
 
+	private static final String COMPONENT_TYPE_LABEL = "resequencer";
+
+
 	private volatile boolean releasePartialSequences = true;
 	
 	private static final String LAST_RELEASED_SEQUENCE_NUMBER = "last.released.sequence.number";
-	
+
 
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
@@ -141,6 +145,11 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 }

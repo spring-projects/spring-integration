@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -46,6 +47,9 @@ import org.springframework.util.CollectionUtils;
  */
 public abstract class AbstractMessageAggregator extends
 		AbstractMessageBarrierHandler<List<Message<?>>> {
+
+	private static final String COMPONENT_TYPE_LABEL = "aggregator";
+
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
@@ -83,6 +87,11 @@ public abstract class AbstractMessageAggregator extends
 				this.sendReply(result, this.resolveReplyChannelFromMessage(barrier.getMessages().get(0)));
 			}
 		}
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
     protected abstract Message<?> aggregateMessages(List<Message<?>> messages);

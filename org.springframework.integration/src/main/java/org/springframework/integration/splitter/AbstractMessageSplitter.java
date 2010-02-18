@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 
@@ -33,6 +34,9 @@ import org.springframework.integration.message.MessageBuilder;
  * @author Mark Fisher
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
+
+	private static final String COMPONENT_TYPE_LABEL = "splitter";
+
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -64,6 +68,11 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			messageBuilders.add(this.createBuilder(result, correlationId, 1, 1));
 		}
 		return messageBuilders;
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 	@SuppressWarnings("unchecked")

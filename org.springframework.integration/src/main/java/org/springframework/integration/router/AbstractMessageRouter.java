@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 
@@ -30,6 +31,9 @@ import org.springframework.integration.message.MessageDeliveryException;
  * @author Mark Fisher
  */
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
+
+	private static final String COMPONENT_TYPE_LABEL = "router";
+
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -88,6 +92,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 						"no channel resolved by router and no default output channel defined");
 			}
 		}
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 	/**

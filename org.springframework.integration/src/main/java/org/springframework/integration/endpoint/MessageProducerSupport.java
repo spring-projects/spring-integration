@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -48,7 +49,16 @@ public abstract class MessageProducerSupport extends AbstractEndpoint {
 	}
 
 	protected boolean sendMessage(Message<?> message) {
+		String componentName = this.getBeanName();
+		if (componentName != null) {
+			MessageHistoryEvent event = message.getHeaders().getHistory().addEvent(componentName);
+			this.postProcessHistoryEvent(event);
+		}
 		return this.channelTemplate.send(message, this.outputChannel);
+	}
+
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType("producer");
 	}
 
 }

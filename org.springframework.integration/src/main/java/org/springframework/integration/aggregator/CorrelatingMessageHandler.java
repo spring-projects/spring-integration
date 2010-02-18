@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -117,6 +118,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     public void setSendPartialResultOnTimeout(boolean sendPartialResultOnTimeout) {
         this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
     }
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		// TODO: need to support 'resequencer' as well
+		event.setComponentType("aggregator");
+	}
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {

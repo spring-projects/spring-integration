@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -59,7 +60,10 @@ import java.util.*;
  */
 public class RecipientListRouter extends AbstractMessageHandler implements InitializingBean {
 
-    private volatile boolean ignoreSendFailures;
+    private static final String COMPONENT_TYPE_LABEL = "recipient-list-router";
+
+
+	private volatile boolean ignoreSendFailures;
 
     private volatile boolean applySequence;
 
@@ -154,5 +158,10 @@ public class RecipientListRouter extends AbstractMessageHandler implements Initi
             }
         }
     }
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType(COMPONENT_TYPE_LABEL);
+	}
 
 }

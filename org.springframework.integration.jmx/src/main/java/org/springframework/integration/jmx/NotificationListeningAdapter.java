@@ -32,7 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistory.ComponentType;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
@@ -79,8 +79,13 @@ public class NotificationListeningAdapter extends MessageProducerSupport impleme
 			builder.setHeader(JmxHeaders.NOTIFICATION_HANDBACK, handback);
 		}
 		Message<?> message = builder.build();
-		message.getHeaders().getHistory().add(ComponentType.endpoint, this.getBeanName());
 		this.sendMessage(message);
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
+		event.setComponentType("notification-listener");
+		event.setProperty("transport", "jmx");
 	}
 
 	@Override

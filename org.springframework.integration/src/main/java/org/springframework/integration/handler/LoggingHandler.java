@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,7 +34,9 @@ import org.springframework.util.StringUtils;
  */
 public class LoggingHandler extends AbstractMessageHandler {
 
-	private static enum Level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE };
+	private static enum Level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE }
+
+	private static final String COMPONENT_TYPE_LABEL = "logging-channel-adapter";
 
 
 	private boolean shouldLogFullMessage;
@@ -104,6 +107,11 @@ public class LoggingHandler extends AbstractMessageHandler {
 				}
 				break;
 		}
+	}
+
+	@Override
+	protected void postProcessHistoryEvent(MessageHistoryEvent e) {
+		e.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 }

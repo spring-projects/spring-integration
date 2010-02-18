@@ -17,79 +17,59 @@
 package org.springframework.integration.core;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-public class MessageHistory implements Iterable<MessageHistory.Event>, Serializable {
+public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializable {
 
-	private final List<Event> events = new CopyOnWriteArrayList<Event>();
+	private final List<MessageHistoryEvent> events = new ArrayList<MessageHistoryEvent>();
+
+	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
 
-	public void add(ComponentType componentType, String componentName) {
-		this.events.add(new Event(componentType, componentName));
+	public MessageHistoryEvent addEvent(String componentName) {
+		try {
+			this.lock.writeLock().lock();
+			MessageHistoryEvent event = new MessageHistoryEvent(componentName);
+			this.events.add(event);
+			return event;
+		}
+		finally {
+			this.lock.writeLock().unlock();
+		}
 	}
 
-	public Iterator<Event> iterator() {
-		return Collections.unmodifiableList(this.events).iterator();
+	public MessageHistoryEvent getCurrentEvent() {
+		try {
+			this.lock.readLock().lock();
+			int size = this.events.size();
+			return (size > 0) ? this.events.get(size - 1) : null;
+		}
+		finally {
+			this.lock.readLock().unlock();
+		}
+	}
+
+	public Iterator<MessageHistoryEvent> iterator() {
+		try {
+			this.lock.readLock().lock();
+			return Collections.unmodifiableList(this.events).iterator();
+		}
+		finally {
+			this.lock.readLock().unlock();
+		}
 	}
 
 	public String toString() {
 		return this.events.toString();
-	}
-
-
-	public static enum ComponentType {
-		channel, endpoint, gateway;
-	}
-
-
-	public static class Event implements Serializable {
-
-		private final ComponentType componentType;
-
-		private final String componentName;
-
-		private final long timestamp;
-
-
-		public Event(ComponentType componentType, String componentName) {
-			this.componentType = componentType;
-			this.componentName = componentName;
-			this.timestamp = System.currentTimeMillis();
-		}
-
-
-		public ComponentType getComponentType() {
-			return this.componentType;
-		}
-
-		public String getComponentName() {
-			return this.componentName;
-		}
-
-		public long getTimestamp() {
-			return this.timestamp;
-		}
-
-		public String toString() {
-			StringBuilder sb = new StringBuilder("[");
-			if (this.componentName != null) {
-				sb.append("{name=" + this.componentName + "}");
-			}
-			if (this.componentType != null) {
-				sb.append("{type=" + this.componentType + "}");
-			}
-			sb.append("{timestamp=" + new Date(this.timestamp) + "}");
-			sb.append("]");
-			return sb.toString();
-		}
 	}
 
 }

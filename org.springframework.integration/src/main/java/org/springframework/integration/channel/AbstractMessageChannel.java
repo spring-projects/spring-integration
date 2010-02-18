@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.core.MessageHistory.ComponentType;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
@@ -171,7 +170,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);
-		message.getHeaders().getHistory().add(ComponentType.channel, this.getName());
+		message.getHeaders().getHistory().addEvent(this.getName()).setComponentType("channel");
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;

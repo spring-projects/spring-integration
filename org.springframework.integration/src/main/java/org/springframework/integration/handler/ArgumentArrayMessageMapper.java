@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -34,21 +32,13 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.convert.support.ConversionServiceFactory;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.core.MessageHistory.ComponentType;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -109,7 +99,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]>, OutboundMessageMapper<Object[]> {
+public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]> {
 
 	private static ConversionService conversionService;
 
@@ -128,24 +118,19 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 
-	private final ExpressionParser expressionParser = new SpelExpressionParser();
-
 	private final Method method;
+
+	private final String gatewayName;
 
 	private final List<MethodParameter> parameterList;
 
 
-	public ArgumentArrayMessageMapper(Method method) {
+	public ArgumentArrayMessageMapper(Method method, String gatewayName) {
 		Assert.notNull(method, "method must not be null");
+		Assert.notNull(gatewayName, "gatewayName must not be null");
 		this.method = method;
+		this.gatewayName = gatewayName;
 		this.parameterList = this.getMethodParameterList(method);
-	}
-
-
-	public Object[] fromMessage(Message<?> message) {
-		Assert.notNull(message, "cannot map a null Message");
-		this.validateMessageMapppings(message);
-		return this.mapMessageToArguments(message);
 	}
 
 	public Message<?> toMessage(Object[] arguments) {
@@ -157,58 +142,12 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		}
 		Message<?> message = this.mapArgumentsToMessage(arguments);
 		if (message != null) {
-			message.getHeaders().getHistory().add(ComponentType.gateway, this.method.getName());
+			message.getHeaders().getHistory().addEvent(this.gatewayName)
+					.setComponentType("gateway")
+					// TODO: add METHOD_NAME key for props?
+					.setProperty("method", this.method.getName());
 		}
 		return message;
-	}
-
-	private Object[] mapMessageToArguments(Message<?> message) {
-		final Map<String, Object> messageArgumentsMap = new LinkedHashMap<String, Object>();
-		for (MethodParameter methodParameter : this.parameterList) {
-			String parameterName = methodParameter.getParameterName();
-			Annotation mappingAnnotation = null;
-			Object value = null;
-			mappingAnnotation = this.findMappingAnnotation(methodParameter.getParameterAnnotations());
-			if (mappingAnnotation == null) {
-				String[] expressions = null;
-				if ("headers".equals(parameterName) || "payload".equals(parameterName)) {
-					expressions = new String[] { parameterName };
-				}
-				else if ("message".equals(parameterName)) {
-					// just in case 'parameterName' is 'message' but type is not Message
-					expressions = new String[] { "#this", "payload" };
-				}
-				else {
-					expressions = new String[] { "payload." + parameterName, "headers." + parameterName, "payload", "headers", "#this" };
-				}
-				value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), false, expressions);
-			}
-			else {
-				if (mappingAnnotation.annotationType().equals(Header.class)) {
-					value = this.retrieveHeaderFromMessage((Header) mappingAnnotation, message, methodParameter)[1];
-				}
-				else if (mappingAnnotation.annotationType().equals(Headers.class)) {
-					String[] expressions = new String[] {"headers"};
-					value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), false, expressions);
-				}
-				else if (mappingAnnotation.annotationType().isAssignableFrom(Payload.class)) {
-					String[] expressions = null;
-					String payloadExpression = ((Payload) mappingAnnotation).value();
-					if (payloadExpression.length() == 0) {
-						expressions = new String[] { "payload" };
-					}
-					else {
-						expressions = new String[] { "payload." + payloadExpression };
-					}
-					value = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), true, expressions);
-				}
-				else {
-					throw new IllegalArgumentException("unsupported mapping annotation: " + mappingAnnotation);
-				}
-			}
-			messageArgumentsMap.put(methodParameter.getParameterIndex() + ":" + parameterName, value);		
-		}
-		return messageArgumentsMap.values().toArray();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -312,52 +251,12 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				"found more than one on method [" + methodParameter.getMethod() + "]");
 	}
 
-	private Object[] retrieveHeaderFromMessage(Header headerAnnotation, Message<?> message, MethodParameter methodParameter) {
-		Object headerValue = null;
-		String headerName = this.determineHeaderName(headerAnnotation, methodParameter);
-		if (message != null) {
-			headerValue = this.getValueFromMessageBasedOnEL(message, methodParameter.getParameterType(), false, "headers." + headerName);
-		}
-		if (headerAnnotation.required() && headerValue == null) {
-			throw new MessageHandlingException(message, "Message is missing required header: '" + headerName + "'");
-		}
-		return new Object[] {headerName, headerValue};
-	}
-
 	private String determineHeaderName(Header headerAnnotation, MethodParameter methodParameter) {
 		String valueAttribute = headerAnnotation.value();
 		String headerName = StringUtils.hasText(valueAttribute) ? valueAttribute : methodParameter.getParameterName();
 		Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is " +
 				"disabled or header name is not explicitly provided via @Header annotation.");
 		return headerName;
-	}
-
-	@SuppressWarnings("unchecked") 
-	private Object getValueFromMessageBasedOnEL(Message message, Class targetType, boolean rethrowException, String... expressions) {
-		Object value = null;
-		for (String expression : expressions) {
-			StandardEvaluationContext context = new StandardEvaluationContext(message);
-			context.setTypeConverter(new StandardTypeConverter(conversionService));
-			try { 
-				Expression exp = expressionParser.parseExpression(expression); 
-				context.addPropertyAccessor(new MapAccessor());	
-				value = exp.getValue(context);
-				if (value != null && conversionService.canConvert(value.getClass(), targetType)) {
-					// to accommodate Map->Properties conversion
-					value = expression.equals("headers") ? conversionService.convert(value, targetType) : value;
-					break;
-				}
-				else {
-					value = null;
-				}
-			}
-			catch (Throwable e) {
-				if (rethrowException) {
-					throw new MessageHandlingException(message, e);
-				}
-			}
-		}
-		return value;
 	}
 
 	private List<MethodParameter> getMethodParameterList(Method method) {
