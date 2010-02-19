@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,18 @@
 package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 
+import org.springframework.expression.MethodFilter;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
+ * A {@link MethodFilter} implementation that will always return
+ * the same Method instance within a single-element list if it is
+ * present in the candidate list. If the Method is not present
+ * in the candidate list, it will return an empty list.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
@@ -36,11 +43,11 @@ class FixedHandlerMethodFilter implements MethodFilter {
 	}
 
 
-	public Method[] filter(Method[] methods) {
-		if (ObjectUtils.containsElement(methods, this.method)) {
-			return new Method[] { this.method };
+	public List<Method> filter(List<Method> methods) {
+		if (methods != null && methods.contains(this.method)) {
+			return Collections.singletonList(this.method);
 		}
-		return new Method[0];
+		return Collections.<Method>emptyList();
 	}
 
 }

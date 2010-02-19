@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.expression.MethodFilter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -52,7 +53,7 @@ class HandlerMethodFilter implements MethodFilter {
 	}
 
 
-	public Method[] filter(Method[] methods) {
+	public List<Method> filter(List<Method> methods) {
 		List<Method> annotatedCandidates = new ArrayList<Method>();
 		List<Method> fallbackCandidates = new ArrayList<Method>();
 		for (Method method : methods) {
@@ -72,8 +73,7 @@ class HandlerMethodFilter implements MethodFilter {
 				fallbackCandidates.add(method);
 			}
 		}
-		return (!annotatedCandidates.isEmpty() ? annotatedCandidates.toArray(new Method[annotatedCandidates.size()])
-				: fallbackCandidates.toArray(new Method[fallbackCandidates.size()]));
+		return (!annotatedCandidates.isEmpty()) ? annotatedCandidates : fallbackCandidates;
 	}
 
 }

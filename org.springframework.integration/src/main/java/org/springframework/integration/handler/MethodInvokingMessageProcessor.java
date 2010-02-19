@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -106,7 +107,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		this.targetObject = targetObject;
 		this.handlerMethods = Collections.<Class<?>, HandlerMethod>singletonMap(handlerMethod.getTargetParameterType(), handlerMethod);
-		this.evaluationContext = this.createEvaluationContext(targetObject, method, annotationType);
+		this.evaluationContext = this.createEvaluationContext(method, annotationType);
 		this.setDisplayString(targetObject, method);
 	}
 
@@ -119,7 +120,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		this.targetObject = targetObject;
 		this.requiresReply = requiresReply;
 		this.handlerMethods = this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
-		this.evaluationContext = this.createEvaluationContext(targetObject, methodName, annotationType);
+		this.evaluationContext = this.createEvaluationContext(methodName, annotationType);
 		this.setDisplayString(targetObject, methodName);
 	}
 
@@ -135,18 +136,15 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		this.displayString = sb.toString() + "]";
 	}
 
-	private EvaluationContext createEvaluationContext(Object targetObject, Object method, Class<? extends Annotation> annotationType) {
+	private EvaluationContext createEvaluationContext(Object method, Class<? extends Annotation> annotationType) {
 		StandardEvaluationContext context = new StandardEvaluationContext();
-		// TODO: StandardEvaluationContext may soon provide a better way to *replace* the MethodResolver
-		context.getMethodResolvers().clear();
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
 		if (method instanceof Method) {
-			context.getMethodResolvers().add(new FilteringReflectiveMethodResolver(
-					new FixedHandlerMethodFilter((Method) method), targetType));
+			context.registerMethodFilter(targetType, new FixedHandlerMethodFilter((Method) method));
 		}
 		else if (method == null || method instanceof String) {
-			context.getMethodResolvers().add(new FilteringReflectiveMethodResolver( 
-					new HandlerMethodFilter(annotationType, (String) method, this.requiresReply), targetType));
+			context.registerMethodFilter(targetType,
+					new HandlerMethodFilter(annotationType, (String) method, this.requiresReply));
 		}
 		context.addPropertyAccessor(new MapAccessor());
 		// TODO: Enable configuration of an integration ConversionService bean to be used here,
