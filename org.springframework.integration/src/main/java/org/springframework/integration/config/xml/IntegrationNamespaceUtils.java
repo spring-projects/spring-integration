@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
@@ -193,6 +194,7 @@ public abstract class IntegrationNamespaceUtils {
 			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
 			innerDefinition = bdHolder.getBeanDefinition();
+			BeanDefinitionReaderUtils.registerWithGeneratedName((AbstractBeanDefinition) innerDefinition, parserContext.getRegistry());
 		}
 		
 		String ref = element.getAttribute(REF_ATTRIBUTE);
