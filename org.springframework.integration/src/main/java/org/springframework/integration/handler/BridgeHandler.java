@@ -17,7 +17,6 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +35,7 @@ import org.springframework.util.Assert;
  */
 public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
-	private static final String COMPONENT_TYPE_LABEL = "bridge";
+	public static final String COMPONENT_TYPE_LABEL = "bridge";
 
 
 	@Override
@@ -45,11 +44,6 @@ public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 			this.verifyOutputChannel();
 		}
 		return requestMessage;
-	}
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent e) {
-		e.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 	private void verifyOutputChannel() {

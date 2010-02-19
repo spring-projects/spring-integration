@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.CorrelationStrategy;
@@ -38,6 +37,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Marius Bogoevici
@@ -79,7 +79,7 @@ public class ResequencerParserTests {
 	@Test
 	public void testDefaultResequencerProperties() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultResequencer");
-		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
 		assertNull(getPropertyValue(resequencer, "discardChannel"));
 		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
@@ -101,7 +101,7 @@ public class ResequencerParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
 				outputChannel, getPropertyValue(resequencer, "outputChannel"));
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",
@@ -123,7 +123,7 @@ public class ResequencerParserTests {
 	@Test
 	public void testCorrelationStrategyRefOnly() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithCorrelationStrategyRefOnly");
-		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate CorrelationStrategy",
 				context.getBean("testCorrelationStrategy"), getPropertyValue(resequencer, "correlationStrategy"));
 	}
@@ -131,7 +131,7 @@ public class ResequencerParserTests {
 	@Test
 	public void testCorrelationStrategyRefAndMethod() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithCorrelationStrategyRefAndMethod");
-		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
 		Object correlationStrategy = getPropertyValue(resequencer, "correlationStrategy");
 		assertEquals("The ResequencerEndpoint is not configured with a CorrelationStrategy adapter",
 				CorrelationStrategyAdapter.class, correlationStrategy.getClass());

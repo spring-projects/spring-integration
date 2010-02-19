@@ -17,7 +17,6 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -30,7 +29,7 @@ import org.springframework.util.Assert;
  */
 public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private static final String COMPONENT_TYPE_LABEL = "gateway";
+	public static final String COMPONENT_TYPE_LABEL = "gateway";
 
 
 	private GenericSendAndRecieveGateway gateway;
@@ -48,11 +47,6 @@ public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessage
 	 */
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		return gateway.sendAndRecieve(requestMessage);
-	}
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 }

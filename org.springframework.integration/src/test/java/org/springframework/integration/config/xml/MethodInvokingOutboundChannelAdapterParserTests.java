@@ -26,6 +26,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,23 +44,21 @@ public class MethodInvokingOutboundChannelAdapterParserTests {
 	@Test
 	public void checkConfig() {
 		Object adapter = context.getBean("adapter");
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Object handler = adapterAccessor.getPropertyValue("handler");
+		Object handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(99, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 	}
 	
 	@Test
 	public void checkConfigWithInnerBeanAndPoller() {
 		Object adapter = context.getBean("adapterB");
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		Object handler = adapterAccessor.getPropertyValue("handler");
+		Object handler = TestUtils.getPropertyValue(adapter, "handler");
 		assertEquals(MethodInvokingMessageHandler.class, handler.getClass());
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(99, handlerAccessor.getPropertyValue("order"));
-		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		assertEquals(Boolean.FALSE, TestUtils.getPropertyValue(adapter, "autoStartup"));
 	}
 
 

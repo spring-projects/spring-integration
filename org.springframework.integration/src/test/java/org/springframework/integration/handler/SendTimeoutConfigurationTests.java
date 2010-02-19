@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -65,10 +65,8 @@ public class SendTimeoutConfigurationTests {
 
 
 	private long getTimeout(String endpointName) {
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(context.getBean(endpointName));
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(endpointAccessor.getPropertyValue("handler"));
-		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("channelTemplate"));
-		return ((Long) templateAccessor.getPropertyValue("sendTimeout")).longValue();
+		return TestUtils.getPropertyValue(context.getBean(endpointName),
+				"handler.channelTemplate.sendTimeout", Long.class).longValue();
 	}
 
 }

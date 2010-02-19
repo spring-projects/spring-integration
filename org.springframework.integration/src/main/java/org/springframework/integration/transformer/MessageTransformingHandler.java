@@ -17,7 +17,6 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
 
@@ -30,7 +29,7 @@ import org.springframework.util.Assert;
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler {
 
-	private static final String COMPONENT_TYPE_LABEL = "transformer";
+	public static final String COMPONENT_TYPE_LABEL = "transformer";
 
 
 	private final Transformer transformer;
@@ -57,11 +56,6 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 			}
 			throw new MessageTransformationException(message, e);
 		}
-	}
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 }

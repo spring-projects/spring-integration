@@ -21,7 +21,6 @@ import java.util.Collection;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 
@@ -32,7 +31,7 @@ import org.springframework.integration.message.MessageDeliveryException;
  */
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
-	private static final String COMPONENT_TYPE_LABEL = "router";
+	public static final String COMPONENT_TYPE_LABEL = "router";
 
 
 	private volatile MessageChannel defaultOutputChannel;
@@ -92,11 +91,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 						"no channel resolved by router and no default output channel defined");
 			}
 		}
-	}
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 	/**

@@ -32,6 +32,10 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 
 	private final MessageHandler handler;
 
+	private volatile HandlerInvocationChain handlerInvocationChain;
+
+	private final Object initializationMonitor = new Object();
+
 
 	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
@@ -44,12 +48,17 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		this.inputChannel.subscribe(this.handler);
+		synchronized (this.initializationMonitor) {
+			if (this.handlerInvocationChain == null) {
+				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getBeanName());
+			}
+		}
+		this.inputChannel.subscribe(this.handlerInvocationChain);
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		this.inputChannel.unsubscribe(this.handler);
+		this.inputChannel.unsubscribe(this.handlerInvocationChain);
 	}
 
 }

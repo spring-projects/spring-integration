@@ -268,6 +268,7 @@ public class GatewayProxyFactoryBeanTests {
 		channel.setBeanName("testChannel");
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new BridgeHandler());
 		consumer.setBeanName("testBridge");
+		consumer.afterPropertiesSet();
 		consumer.start();
 		proxyFactory.setDefaultRequestChannel(channel);
 		proxyFactory.setServiceInterface(TestEchoService.class);

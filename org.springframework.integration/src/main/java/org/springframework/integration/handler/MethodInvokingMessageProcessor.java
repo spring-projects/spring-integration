@@ -49,6 +49,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.util.ClassUtils;
@@ -166,11 +167,20 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		List<HandlerMethod> candidates = this.findHandlerMethodsForMessage(message);
 		for (HandlerMethod candidate : candidates) {
 			try {
-				Object result = candidate.getExpression().getValue(this.evaluationContext, message);
+				Expression expression = candidate.getExpression();
+				Object result = expression.getValue(this.evaluationContext, message);
 				if (this.requiresReply) {
 					// TODO: remove this if SpEL is modified to throw an EvaluationException instead
 					// e.g. we can invoke getValue(this.evaluationContext, message, candidate.getReturnType);
 					Assert.notNull(result, "Expression evaluation result was null, but this processor requires a reply.");
+				}
+				MessageHistoryEvent event = message.getHeaders().getHistory().getCurrentEvent();
+				if (event != null) {
+					String typeName = org.springframework.util.ClassUtils.getShortNameAsProperty(this.targetObject.getClass());
+					event.setProperty("targetType", typeName);
+					if (candidate.method != null) {
+						event.setProperty("targetMethod", candidate.method.getName());
+					}
 				}
 				return result;
 			}

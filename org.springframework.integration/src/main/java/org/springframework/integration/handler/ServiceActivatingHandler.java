@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.message.MessageHandlingException;
 
 /**
@@ -28,7 +27,7 @@ import org.springframework.integration.message.MessageHandlingException;
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
 
-	private static final String COMPONENT_TYPE_LABEL = "service-activator";
+	public static final String COMPONENT_TYPE_LABEL = "service-activator";
 
 
 	private final MethodInvokingMessageProcessor processor;
@@ -58,11 +57,6 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 			}
 			throw new MessageHandlingException(message, "failure occurred in Service Activator '" + this + "'", e);
 		}
-	}
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 	public String toString() {

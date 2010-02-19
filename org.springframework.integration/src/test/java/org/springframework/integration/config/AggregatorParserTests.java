@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ public class AggregatorParserTests {
         CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Object consumer = TestUtils.getPropertyValue(endpoint, "handler");
 		Assert.assertEquals(MethodInvokingAggregator.class, consumer.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
@@ -141,8 +141,8 @@ public class AggregatorParserTests {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoCompletionStrategyInput");
 		EventDrivenConsumer endpoint =
 				(EventDrivenConsumer) context.getBean("aggregatorWithPojoCompletionStrategy");
-		CompletionStrategy completionStrategy = (CompletionStrategy) new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("completionStrategy");
+		CompletionStrategy completionStrategy = TestUtils.getPropertyValue(endpoint,
+				"handler.completionStrategy", CompletionStrategy.class);
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
 		DirectFieldAccessor completionStrategyAccessor = new DirectFieldAccessor(completionStrategy);
 		MethodInvoker invoker = (MethodInvoker) completionStrategyAccessor.getPropertyValue("invoker");

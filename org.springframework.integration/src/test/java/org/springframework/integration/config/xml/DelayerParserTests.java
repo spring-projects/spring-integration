@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.DelayHandler;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -46,7 +47,7 @@ public class DelayerParserTests {
 	public void defaultScheduler() {
 		Object endpoint = context.getBean("delayerWithDefaultScheduler");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
 		assertEquals(DelayHandler.class, handler.getClass());
 		DelayHandler delayHandler = (DelayHandler) handler;
 		assertEquals(99, delayHandler.getOrder());
@@ -65,7 +66,7 @@ public class DelayerParserTests {
 	public void customScheduler() {
 		Object endpoint = context.getBean("delayerWithCustomScheduler");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
-		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
 		assertEquals(DelayHandler.class, handler.getClass());
 		DelayHandler delayHandler = (DelayHandler) handler;
 		assertEquals(Ordered.LOWEST_PRECEDENCE, delayHandler.getOrder());

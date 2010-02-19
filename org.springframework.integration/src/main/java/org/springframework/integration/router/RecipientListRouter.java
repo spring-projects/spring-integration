@@ -16,19 +16,24 @@
 
 package org.springframework.integration.router;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
-
-import java.util.*;
 
 /**
  * <pre>
@@ -60,7 +65,7 @@ import java.util.*;
  */
 public class RecipientListRouter extends AbstractMessageHandler implements InitializingBean {
 
-    private static final String COMPONENT_TYPE_LABEL = "recipient-list-router";
+    public static final String COMPONENT_TYPE_LABEL = "recipient-list-router";
 
 
 	private volatile boolean ignoreSendFailures;
@@ -158,10 +163,5 @@ public class RecipientListRouter extends AbstractMessageHandler implements Initi
             }
         }
     }
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType(COMPONENT_TYPE_LABEL);
-	}
 
 }

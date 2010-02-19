@@ -31,6 +31,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.router.RecipientListRouter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -64,7 +65,7 @@ public class RecipientListRouterParserTests {
 	@Test
 	public void simpleRouter() {
 		Object endpoint = context.getBean("simpleRouter");
-		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
 		assertEquals(RecipientListRouter.class, handler.getClass());
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
@@ -77,7 +78,7 @@ public class RecipientListRouterParserTests {
 	@Test
 	public void customRouter() {
 		Object endpoint = context.getBean("customRouter");
-		Object handler = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
 		assertEquals(RecipientListRouter.class, handler.getClass());
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);

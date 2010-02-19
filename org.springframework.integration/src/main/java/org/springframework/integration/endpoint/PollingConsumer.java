@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,13 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 
 	private final MessageHandler handler;
 
+	private volatile MessageHandler handlerInvocationChain;
+
 	private volatile long receiveTimeout = 1000;
+
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
 
 
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
@@ -49,6 +55,17 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	}
 
 	@Override
+	protected void onInit() {
+		synchronized (this.initializationMonitor) {
+			if (!this.initialized) {
+				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getBeanName());
+			}
+			this.initialized = true;
+		}
+		super.onInit();
+	}
+
+	@Override
 	protected boolean doPoll() {
 		Message<?> message = (this.receiveTimeout >= 0)
 				? this.inputChannel.receive(this.receiveTimeout)
@@ -56,7 +73,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		if (message == null) {
 			return false;
 		}
-		this.handler.handleMessage(message);
+		this.handlerInvocationChain.handleMessage(message);
 		return true;
 	}
 

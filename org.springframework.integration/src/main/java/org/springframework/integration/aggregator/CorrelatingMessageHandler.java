@@ -22,7 +22,6 @@ import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -49,6 +48,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Iwein Fuld
  */
 public class CorrelatingMessageHandler extends AbstractMessageHandler implements Lifecycle {
+
+	// TODO: need to support 'resequencer' as well
+	public static final String COMPONENT_TYPE_LABEL = "aggregator";
+
 
     private MessageStore store = new SimpleMessageStore(100);
     private final CorrelationStrategy correlationStrategy;
@@ -118,12 +121,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     public void setSendPartialResultOnTimeout(boolean sendPartialResultOnTimeout) {
         this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
     }
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		// TODO: need to support 'resequencer' as well
-		event.setComponentType("aggregator");
-	}
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {

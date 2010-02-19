@@ -39,6 +39,7 @@ import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -128,8 +129,8 @@ public class RouterParserTests {
 	public void timeoutValueConfigured() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"routerParserTests.xml", this.getClass());
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(context.getBean("routerWithTimeout"));
-		MethodInvokingRouter router = (MethodInvokingRouter) endpointAccessor.getPropertyValue("handler");
+		Object endpoint = context.getBean("routerWithTimeout");
+		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
 		MessageChannelTemplate template = (MessageChannelTemplate)
 				new DirectFieldAccessor(router).getPropertyValue("channelTemplate");
 		Long timeout = (Long) new DirectFieldAccessor(template).getPropertyValue("sendTimeout");
@@ -141,8 +142,8 @@ public class RouterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"routerParserTests.xml", this.getClass());
 		Object channelResolverBean = context.getBean("testChannelResolver");
-		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(context.getBean("routerWithChannelResolver"));
-		MethodInvokingRouter router = (MethodInvokingRouter) endpointAccessor.getPropertyValue("handler");
+		Object endpoint = context.getBean("routerWithChannelResolver");
+		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
 		ChannelResolver channelResolver = (ChannelResolver)
 				new DirectFieldAccessor(router).getPropertyValue("channelResolver");
 		assertSame(channelResolverBean, channelResolver);

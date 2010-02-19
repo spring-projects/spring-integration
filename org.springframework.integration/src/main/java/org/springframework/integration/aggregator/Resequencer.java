@@ -23,7 +23,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -54,7 +53,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message<?>>> {
 
-	private static final String COMPONENT_TYPE_LABEL = "resequencer";
+	public static final String COMPONENT_TYPE_LABEL = "resequencer";
 
 
 	private volatile boolean releasePartialSequences = true;
@@ -145,11 +144,6 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 			return false;
 		}
 		return true;
-	}
-
-	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType(COMPONENT_TYPE_LABEL);
 	}
 
 }
