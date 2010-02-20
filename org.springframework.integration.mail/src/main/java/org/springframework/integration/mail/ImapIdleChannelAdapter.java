@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.springframework.integration.mail;
 
+import java.util.concurrent.Executor;
+
 import javax.mail.FolderClosedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
@@ -43,7 +44,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private volatile boolean shouldReconnectAutomatically = true;
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile Executor taskExecutor;
 
 	private final ImapMailReceiver mailReceiver;
 
@@ -63,7 +64,7 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 		this.shouldReconnectAutomatically = shouldReconnectAutomatically;
 	}
 
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
+	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
