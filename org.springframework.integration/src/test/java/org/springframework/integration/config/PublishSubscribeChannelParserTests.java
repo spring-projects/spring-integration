@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.Executor;
+
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -47,7 +48,7 @@ public class PublishSubscribeChannelParserTests {
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
-		assertNull(dispatcherAccessor.getPropertyValue("taskExecutor"));
+		assertNull(dispatcherAccessor.getPropertyValue("executor"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
 		assertFalse((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
 	}
@@ -86,11 +87,11 @@ public class PublishSubscribeChannelParserTests {
 		BroadcastingDispatcher dispatcher = (BroadcastingDispatcher)
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
-		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
+		Executor executor = (Executor) dispatcherAccessor.getPropertyValue("executor");
 		assertNotNull(executor);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
-		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
+		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
 		assertEquals(context.getBean("pool"), innerExecutor);
 	}
 
@@ -105,11 +106,11 @@ public class PublishSubscribeChannelParserTests {
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("ignoreFailures"));
-		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
+		Executor executor = (Executor) dispatcherAccessor.getPropertyValue("executor");
 		assertNotNull(executor);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
-		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
+		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
 		assertEquals(context.getBean("pool"), innerExecutor);
 	}
 
@@ -124,11 +125,11 @@ public class PublishSubscribeChannelParserTests {
 				accessor.getPropertyValue("dispatcher");
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		assertTrue((Boolean) dispatcherAccessor.getPropertyValue("applySequence"));
-		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
+		Executor executor = (Executor) dispatcherAccessor.getPropertyValue("executor");
 		assertNotNull(executor);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
-		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
+		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
 		assertEquals(context.getBean("pool"), innerExecutor);
 	}
 

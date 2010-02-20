@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.integration.channel;
 
+import java.util.concurrent.Executor;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -29,11 +30,11 @@ import org.springframework.util.ErrorHandler;
 /**
  * An implementation of {@link MessageChannel} that delegates to an instance of
  * {@link UnicastingDispatcher} which in turn delegates all dispatching
- * invocations to a {@link TaskExecutor}.
+ * invocations to an {@link Executor}.
  * <p>
  * <emphasis>NOTE: unlike DirectChannel, the ExecutorChannel does not support a
  * shared transactional context between sender and handler, because the
- * {@link TaskExecutor} typically does not block the sender's Thread since it
+ * {@link Executor} typically does not block the sender's Thread since it
  * uses another Thread for the dispatch.</emphasis> (SyncTaskExecutor is an
  * exception but would provide no value for this channel. If synchronous
  * dispatching is required, a DirectChannel should be used instead). 
@@ -45,7 +46,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel implements Bean
 
 	private volatile UnicastingDispatcher dispatcher;
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile Executor executor;
 
 	private volatile boolean failover = true;
 
@@ -54,24 +55,24 @@ public class ExecutorChannel extends AbstractSubscribableChannel implements Bean
 
 	/**
 	 * Create an ExecutorChannel that delegates to the provided
-	 * {@link TaskExecutor} when dispatching Messages.
+	 * {@link Executor} when dispatching Messages.
 	 * <p>
-	 * The TaskExecutor must not be null.
+	 * The Executor must not be null.
 	 */
-	public ExecutorChannel(TaskExecutor taskExecutor) {
-		this(taskExecutor, null);
+	public ExecutorChannel(Executor executor) {
+		this(executor, null);
 	}
 
 	/**
 	 * Create an ExecutorChannel with a {@link LoadBalancingStrategy} that
-	 * delegates to the provided {@link TaskExecutor} when dispatching Messages.
+	 * delegates to the provided {@link Executor} when dispatching Messages.
 	 * <p>
-	 * The TaskExecutor must not be null.
+	 * The Executor must not be null.
 	 */
-	public ExecutorChannel(TaskExecutor taskExecutor, LoadBalancingStrategy loadBalancingStrategy) {
-		Assert.notNull(taskExecutor, "taskExecutor must not be null");
-		this.taskExecutor = taskExecutor;
-		this.dispatcher = new UnicastingDispatcher(taskExecutor);
+	public ExecutorChannel(Executor executor, LoadBalancingStrategy loadBalancingStrategy) {
+		Assert.notNull(executor, "executor must not be null");
+		this.executor = executor;
+		this.dispatcher = new UnicastingDispatcher(executor);
 		if (loadBalancingStrategy != null) {
 			this.loadBalancingStrategy = loadBalancingStrategy;
 			this.dispatcher.setLoadBalancingStrategy(loadBalancingStrategy);
@@ -94,11 +95,11 @@ public class ExecutorChannel extends AbstractSubscribableChannel implements Bean
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 			ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
-			this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, errorHandler);
+			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);
 		}
-		this.dispatcher = new UnicastingDispatcher(this.taskExecutor);
+		this.dispatcher = new UnicastingDispatcher(this.executor);
 		this.dispatcher.setFailover(this.failover);
 		if (this.loadBalancingStrategy != null) {
 			this.dispatcher.setLoadBalancingStrategy(this.loadBalancingStrategy);

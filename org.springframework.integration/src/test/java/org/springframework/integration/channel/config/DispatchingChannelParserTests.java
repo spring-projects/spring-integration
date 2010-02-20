@@ -72,10 +72,10 @@ public class DispatchingChannelParserTests {
 	public void taskExecutorOnly() {
 		MessageChannel channel = channels.get("taskExecutorOnly");
 		assertEquals(ExecutorChannel.class, channel.getClass());
-		Object executor = getDispatcherProperty("taskExecutor", channel);
+		Object executor = getDispatcherProperty("executor", channel);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		assertSame(context.getBean("taskExecutor"),
-				new DirectFieldAccessor(executor).getPropertyValue("taskExecutor"));
+				new DirectFieldAccessor(executor).getPropertyValue("executor"));
 		assertTrue((Boolean) getDispatcherProperty("failover", channel));
 		assertEquals(RoundRobinLoadBalancingStrategy.class,
 				getDispatcherProperty("loadBalancingStrategy", channel).getClass());
@@ -113,10 +113,10 @@ public class DispatchingChannelParserTests {
 		assertEquals(ExecutorChannel.class, channel.getClass());
 		assertTrue((Boolean) getDispatcherProperty("failover", channel));
 		assertNull(getDispatcherProperty("loadBalancingStrategy", channel));
-		Object executor = getDispatcherProperty("taskExecutor", channel);
+		Object executor = getDispatcherProperty("executor", channel);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		assertSame(context.getBean("taskExecutor"),
-				new DirectFieldAccessor(executor).getPropertyValue("taskExecutor"));
+				new DirectFieldAccessor(executor).getPropertyValue("executor"));
 	}
 
 	@Test
@@ -126,10 +126,10 @@ public class DispatchingChannelParserTests {
 		assertTrue((Boolean) getDispatcherProperty("failover", channel));
 		assertEquals(RoundRobinLoadBalancingStrategy.class,
 				getDispatcherProperty("loadBalancingStrategy", channel).getClass());
-		Object executor = getDispatcherProperty("taskExecutor", channel);
+		Object executor = getDispatcherProperty("executor", channel);
 		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
 		assertSame(context.getBean("taskExecutor"),
-				new DirectFieldAccessor(executor).getPropertyValue("taskExecutor"));
+				new DirectFieldAccessor(executor).getPropertyValue("executor"));
 	}
 
 

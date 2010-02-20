@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package org.springframework.integration.util;
 
+import java.util.concurrent.Executor;
+
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 /**
- * A {@link TaskExecutor} implementation that wraps an existing TaskExecutor
+ * A {@link TaskExecutor} implementation that wraps an existing Executor
  * instance in order to catch any exceptions. If an exception is thrown, it
  * will be handled by the provided {@link ErrorHandler}.
  * 
@@ -30,21 +32,21 @@ import org.springframework.util.ErrorHandler;
  */
 public class ErrorHandlingTaskExecutor implements TaskExecutor {
 
-	private final TaskExecutor taskExecutor;
+	private final Executor executor;
 
 	private final ErrorHandler errorHandler;
 
 
-	public ErrorHandlingTaskExecutor(TaskExecutor taskExecutor, ErrorHandler errorHandler) {
-		Assert.notNull(taskExecutor, "taskExecutor must not be null");
+	public ErrorHandlingTaskExecutor(Executor executor, ErrorHandler errorHandler) {
+		Assert.notNull(executor, "executor must not be null");
 		Assert.notNull(errorHandler, "errorHandler must not be null");
-		this.taskExecutor = taskExecutor;
+		this.executor = executor;
 		this.errorHandler = errorHandler;
 	}
 
 
 	public void execute(final Runnable task) {
-		this.taskExecutor.execute(new Runnable() {
+		this.executor.execute(new Runnable() {
 			public void run() {
 				try {
 					task.run();

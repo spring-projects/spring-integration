@@ -25,13 +25,14 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.Executor;
+
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -114,13 +115,13 @@ public class ChannelParserTests {
 		assertEquals(PublishSubscribeChannel.class, channel.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("dispatcher"));
-		Object taskExecutorProperty = accessor.getPropertyValue("taskExecutor");
-		assertNotNull(taskExecutorProperty);
-		assertEquals(ErrorHandlingTaskExecutor.class, taskExecutorProperty.getClass());
-		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(taskExecutorProperty);
-		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
-		Object taskExecutorBean = context.getBean("taskExecutor");
-		assertEquals(taskExecutorBean, innerExecutor);
+		Object executorProperty = accessor.getPropertyValue("executor");
+		assertNotNull(executorProperty);
+		assertEquals(ErrorHandlingTaskExecutor.class, executorProperty.getClass());
+		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executorProperty);
+		Executor innerExecutor = (Executor) executorAccessor.getPropertyValue("executor");
+		Object executorBean = context.getBean("taskExecutor");
+		assertEquals(executorBean, innerExecutor);
 	}
 
 	@Test

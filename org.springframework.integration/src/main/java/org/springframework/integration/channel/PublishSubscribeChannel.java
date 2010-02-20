@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package org.springframework.integration.channel;
 
+import java.util.concurrent.Executor;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.ErrorHandler;
@@ -32,7 +33,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 
 	private volatile BroadcastingDispatcher dispatcher;
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile Executor executor;
 
 	private volatile ErrorHandler errorHandler;
 
@@ -42,13 +43,13 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 
 
 	/**
-	 * Create a PublishSubscribeChannel that will use a {@link TaskExecutor}
+	 * Create a PublishSubscribeChannel that will use an {@link Executor}
 	 * to invoke the handlers. If this is null, each invocation will occur in
 	 * the message sender's thread.
 	 */
-	public PublishSubscribeChannel(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
-		this.dispatcher = new BroadcastingDispatcher(taskExecutor);
+	public PublishSubscribeChannel(Executor executor) {
+		this.executor = executor;
+		this.dispatcher = new BroadcastingDispatcher(executor);
 	}
 
 	/**
@@ -63,14 +64,14 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 	/**
 	 * Provide an {@link ErrorHandler} strategy for handling Exceptions that
 	 * occur downstream from this channel. This will <i>only</i> be applied if
-	 * a TaskExecutor has been configured to dispatch the Messages for this
+	 * an Executor has been configured to dispatch the Messages for this
 	 * channel. Otherwise, Exceptions will be thrown directly within the
 	 * sending Thread. If no ErrorHandler is provided, and this channel does
-	 * delegate its dispatching to a TaskExecutor, the default strategy is
+	 * delegate its dispatching to an Executor, the default strategy is
 	 * a {@link MessagePublishingErrorHandler} that sends error messages to
 	 * the failed request Message's error channel header if available or to
 	 * the default 'errorChannel' otherwise.
-	 * @see #PublishSubscribeChannel(TaskExecutor)
+	 * @see #PublishSubscribeChannel(Executor)
 	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -104,14 +105,14 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 	 * Callback method for the {@link BeanFactoryAware} interface.
 	 */
 	public void setBeanFactory(BeanFactory beanFactory) {
-		if (this.taskExecutor != null) {
-			if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+		if (this.executor != null) {
+			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
 					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
 				}
-				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
+				this.executor = new ErrorHandlingTaskExecutor(this.executor, this.errorHandler);
 			}
-			this.dispatcher = new BroadcastingDispatcher(this.taskExecutor);
+			this.dispatcher = new BroadcastingDispatcher(this.executor);
 			this.dispatcher.setIgnoreFailures(this.ignoreFailures);
 			this.dispatcher.setApplySequence(this.applySequence);
 		}

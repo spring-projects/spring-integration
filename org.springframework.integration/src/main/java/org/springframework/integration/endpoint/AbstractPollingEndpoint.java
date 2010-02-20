@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ package org.springframework.integration.endpoint;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -51,7 +51,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	protected volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED; 
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile Executor taskExecutor;
 
 	private volatile ErrorHandler errorHandler;
 
@@ -96,7 +96,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.maxMessagesPerPoll = maxMessagesPerPoll;
 	}
 
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
+	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 

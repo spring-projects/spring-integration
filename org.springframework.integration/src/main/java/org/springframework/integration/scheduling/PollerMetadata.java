@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.integration.scheduling;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -37,7 +37,7 @@ public class PollerMetadata {
 
 	private List<Advice> adviceChain;
 
-	private volatile TaskExecutor taskExecutor;
+	private volatile Executor taskExecutor;
 
 	private volatile PlatformTransactionManager transactionManager;
 
@@ -76,11 +76,11 @@ public class PollerMetadata {
 		return this.adviceChain;
 	}
 
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
+	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
-	public TaskExecutor getTaskExecutor() {
+	public Executor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 

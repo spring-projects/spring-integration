@@ -1,4 +1,4 @@
-/* Copyright 2002-2009 the original author or authors.
+/* Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.dispatcher;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executor;
 
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
@@ -49,15 +49,15 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
-	private final TaskExecutor taskExecutor;
+	private final Executor executor;
 
 
 	public UnicastingDispatcher() {
-		this.taskExecutor = null;
+		this.executor = null;
 	}
 
-	public UnicastingDispatcher(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
+	public UnicastingDispatcher(Executor executor) {
+		this.executor = executor;
 	}
 
 
@@ -79,8 +79,8 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	}
 
 	public final boolean dispatch(final Message<?> message) {
-		if (this.taskExecutor != null) {
-			this.taskExecutor.execute(new Runnable() {
+		if (this.executor != null) {
+			this.executor.execute(new Runnable() {
 				public void run() {
 					doDispatch(message);
 				}
