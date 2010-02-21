@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip;
+package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -23,31 +23,29 @@ import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.ip.StdOutCatcher;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
  * If run as a JUnit just sends one message and terminates (see console).
- * TODO: Use a custom output stream and catch output to verify.
  * 
  * If run from main(),  
- * hangs around for a couple of minutes to allow console interaction (enter a message on the
+ * hangs around for a couple of minutes to allow console interaction - enter a message on the
  * console and you should see it go through the outbound context, over UDP, and 
  * received in the other context (and written back to the console).
  *  
  * @author Gary Russell
  * @since 2.0
  */
-public class UdpMulticastEndToEndTests implements Runnable {
+public class UdpUnicastEndToEndTests implements Runnable {
 
 	private String testingIpText;
 
@@ -65,14 +63,11 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 
 	@Test
-	@Ignore
 	public void runIt() throws Exception {
-		UdpMulticastEndToEndTests launcher = new UdpMulticastEndToEndTests();
+		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
-		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"testIp-out-multicast-context.xml",
-				UdpMulticastEndToEndTests.class);	
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("testIp-out-context.xml", UdpUnicastEndToEndTests.class);	
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -80,9 +75,9 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
-		MessageChannel inputChannel = channelResolver.resolveChannelName("mcInputChannel");
+		MessageChannel inputChannel = channelResolver.resolveChannelName("inputChannel");
 		try {
-			testingIpText = ">>>>>>> Testing IP (multicast) " + new Date();
+			testingIpText = ">>>>>>> Testing IP " + new Date();
 			inputChannel.send(new StringMessage(testingIpText));
 			sentFirst.countDown();
 			try {
@@ -111,9 +106,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 	 * Instantiate the receiving context
 	 */
 	public void run() {
-		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
-				"testIp-in-multicast-context.xml",
-				UdpMulticastEndToEndTests.class);
+		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("testIp-in-context.xml", UdpUnicastEndToEndTests.class);
 		while (okToRun) {
 			try {
 				sentFirst.await();
@@ -139,7 +132,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 	public static void main(String[] args) throws Exception {
 		hangAroundFor = 120000;
-		new UdpMulticastEndToEndTests().runIt();
+		new UdpUnicastEndToEndTests().runIt();
 	}
 
 }

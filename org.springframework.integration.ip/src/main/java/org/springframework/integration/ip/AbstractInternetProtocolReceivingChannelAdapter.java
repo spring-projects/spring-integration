@@ -34,7 +34,7 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	protected final int port;
 
-	protected volatile int soTimeout = 60 * 1000;
+	protected volatile int soTimeout = 0;
 
 	protected volatile int soReceiveBufferSize = -1;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip;
+package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
