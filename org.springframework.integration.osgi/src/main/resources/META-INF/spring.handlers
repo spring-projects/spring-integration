@@ -1,2 +1,0 @@
-http\://www.springframework.org/schema/integration/integration-control-bus=org.springframework.integration.osgi.config.xml.IntegrationOSGiControlBusNamespaceHandler
-http\://www.springframework.org/schema/integration/integration-service-extender=org.springframework.integration.osgi.config.xml.IntegrationOSGiServiceExtenderNamespaceHandler

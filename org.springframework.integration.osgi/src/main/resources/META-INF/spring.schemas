@@ -1,3 +1,0 @@
-http\://www.springframework.org/schema/integration/integration-control-bus/spring-integration-bus-1.0.xsd=org/springframework/integration/osgi/config/xml/spring-integration-bus-1.0.xsd
-http\://www.springframework.org/schema/integration/integration-service-extender/spring-integration-service-extender-1.0.xsd=org/springframework/integration/osgi/config/xml/spring-integration-service-extender-1.0.xsd
-
