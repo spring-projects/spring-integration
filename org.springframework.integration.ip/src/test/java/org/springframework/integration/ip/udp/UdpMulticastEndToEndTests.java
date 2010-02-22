@@ -25,14 +25,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.ip.StdOutCatcher;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -52,7 +52,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 	private String testingIpText;
 
-	private String stdOutput;
+	private Message<byte[]> finalMessage;
 
 	private CountDownLatch sentFirst = new CountDownLatch(1);
 
@@ -104,13 +104,14 @@ public class UdpMulticastEndToEndTests implements Runnable {
 			doneProcessing.countDown();
 		}
 		assertTrue(firstReceived.await(2, TimeUnit.SECONDS));
-		assertEquals(testingIpText, stdOutput);
+		assertEquals(testingIpText, new String(finalMessage.getPayload()));
 	}
 
 
 	/**
 	 * Instantiate the receiving context
 	 */
+	@SuppressWarnings("unchecked")
 	public void run() {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"testIp-in-multicast-context.xml",
@@ -118,14 +119,12 @@ public class UdpMulticastEndToEndTests implements Runnable {
 		while (okToRun) {
 			try {
 				sentFirst.await();
-				// wait another second to allow for the asynch handoffs
-				Thread.sleep(1000);
 			}
 			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			StdOutCatcher out = ctx.getBean(StdOutCatcher.class);
-			stdOutput = out.getContent();
+			QueueChannel channel = ctx.getBean("udpOutChannel", QueueChannel.class);
+			finalMessage = (Message<byte[]>) channel.receive();
 			firstReceived.countDown();
 			try {
 				doneProcessing.await();

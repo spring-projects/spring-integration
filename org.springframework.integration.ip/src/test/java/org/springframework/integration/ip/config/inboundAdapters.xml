@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ip
+			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+	
+	<!-- nio without direct buffers -->
+	<ip:inbound-channel-adapter id="tcp1"
+		channel="channel"
+		protocol="tcp"
+		port="9876"
+		message-format="length-header"
+		using-nio="true"
+		using-direct-buffers="false"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+			
+	<!-- nio with direct buffers -->
+	<ip:inbound-channel-adapter id="tcp2"
+		channel="channel"
+		protocol="tcp"
+		port="9877"
+		message-format="length-header"
+		using-nio="true"
+		using-direct-buffers="true"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+	
+	<!-- net -->
+	<ip:inbound-channel-adapter id="tcp3"
+		channel="channel"
+		protocol="tcp"
+		port="9878"
+		message-format="length-header"
+		using-nio="false"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+
+	<!-- net stxetx -->
+	<ip:inbound-channel-adapter id="tcp4"
+		channel="channel"
+		protocol="tcp"
+		port="9879"
+		message-format="stx-etx"
+		using-nio="false"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+
+	<!-- net crlf -->
+	<ip:inbound-channel-adapter id="tcp5"
+		channel="channel"
+		protocol="tcp"
+		port="9880"
+		message-format="crlf"
+		using-nio="false"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+
+	<!-- net custom -->
+	<ip:inbound-channel-adapter id="tcp6"
+		channel="channel"
+		protocol="tcp"
+		port="9881"
+		message-format="custom"
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNetSocketReader"
+		using-nio="false"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+
+	<ip:inbound-channel-adapter id="udp1"
+		channel="channel"
+		protocol="udp"
+		port="9976"
+		receive-buffer-size="500"
+		multicast="false"
+		check-length="true" />
+
+	<channel id="channel" >
+		<queue capacity="2"/>
+	</channel>
+
+</beans:beans>

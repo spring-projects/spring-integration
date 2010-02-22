@@ -196,7 +196,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	@Override
 	protected void doStop() {
-		this.active = false;
+		super.doStop();
 		try {
 			this.socket.close();
 		}

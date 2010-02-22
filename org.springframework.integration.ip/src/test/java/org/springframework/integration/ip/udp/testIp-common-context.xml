@@ -15,15 +15,9 @@
 
 	<beans:bean id="testIp" class="org.springframework.integration.ip.TestIp"/>
 
- 	<channel id="udpToStdOutChannel">
-		<interceptors>
-			<beans:ref bean="stdoutCatcher"/>
-		</interceptors>
+ 	<channel id="udpOutChannel">
+ 		<queue capacity="1"/>
 	</channel>
-
-	<beans:bean id="stdoutCatcher" class = "org.springframework.integration.ip.StdOutCatcher"/>
-
-	<stream:stdout-channel-adapter id="stdout" channel="udpToStdOutChannel" append-newline="true"/> 
 
 	<beans:bean id="taskScheduler" class="org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler">
 		<beans:property name="daemon" value="true" />

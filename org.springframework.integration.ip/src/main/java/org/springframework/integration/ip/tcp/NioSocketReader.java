@@ -94,7 +94,14 @@ public class NioSocketReader extends AbstractSocketReader {
 					return false;
 				}
 			} 
-			assembledData = dataPart.array();
+			if (usingDirectBuffers) {
+				byte[] assembledData = new byte[dataPart.capacity()];
+				dataPart.flip();
+				dataPart.get(assembledData);
+				this.assembledData = assembledData;
+			} else {
+				assembledData = dataPart.array();
+			}
 			lengthPart = dataPart = null;
 			return true;
 		} catch (Exception e) {

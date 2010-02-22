@@ -65,15 +65,15 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 		builder.addConstructorArgValue(host);
 		String port = IpAdapterParserUtils.getPort(element);
 		builder.addConstructorArgValue(port);
-		IpAdapterParserUtils.addConstuctirValueIfAttributeDefined(builder,
+		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
-		IpAdapterParserUtils.addConstuctirValueIfAttributeDefined(builder,
+		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.ACK, true);
-		IpAdapterParserUtils.addConstuctirValueIfAttributeDefined(builder,
+		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.ACK_HOST, false);
-		IpAdapterParserUtils.addConstuctirValueIfAttributeDefined(builder,
+		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.ACK_PORT, false);
-		IpAdapterParserUtils.addConstuctirValueIfAttributeDefined(builder,
+		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.ACK_TIMEOUT, false);
 		String ack = element.getAttribute(IpAdapterParserUtils.ACK);
 		if (ack.equals("true")) {

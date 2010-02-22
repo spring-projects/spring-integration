@@ -55,15 +55,6 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 		super(port);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.endpoint.AbstractEndpoint#doStop()
-	 */
-	@Override
-	protected void doStop() {
-		// TODO Auto-generated method stub
-
-	}
-
 	/**
 	 * Creates the ThreadPoolTaskScheduler, if necessary, and calls 
 	 * {@link #server()}.
@@ -129,7 +120,7 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
-	public void setCustomSocketReader(String customSocketReaderClassName) throws ClassNotFoundException {
+	public void setCustomSocketReaderClassName(String customSocketReaderClassName) throws ClassNotFoundException {
 		this.customSocketReader = (Class<SocketReader>) Class.forName(customSocketReaderClassName);
 	}
 

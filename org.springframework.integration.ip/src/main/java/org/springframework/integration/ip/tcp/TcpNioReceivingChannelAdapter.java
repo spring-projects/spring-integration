@@ -41,6 +41,8 @@ import org.springframework.integration.core.Message;
 public class TcpNioReceivingChannelAdapter extends
 		AbstractTcpReceivingChannelAdapter {
 
+	protected ServerSocketChannel serverChannel;
+	
 	/**
 	 * Constructs a TcpNioReceivingChannelAdapter to listen on the port.
 	 * @param port The port.
@@ -58,14 +60,24 @@ public class TcpNioReceivingChannelAdapter extends
 	@Override
 	protected void server() {
 		try {
-			final ServerSocketChannel server = ServerSocketChannel.open();
-			server.configureBlocking(false);
-			server.socket().bind(new InetSocketAddress(port));
+			serverChannel = ServerSocketChannel.open();
+			serverChannel.configureBlocking(false);
+			serverChannel.socket().bind(new InetSocketAddress(port));
 			final Selector selector = Selector.open();
-			server.register(selector, SelectionKey.OP_ACCEPT);
-			doSelect(server, selector);
+			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+			doSelect(serverChannel, selector);
 
 		} catch (IOException e) {
+			if (!active) {
+				try {
+					serverChannel.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				serverChannel = null;
+				return;
+			}
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -87,7 +99,7 @@ public class TcpNioReceivingChannelAdapter extends
 	 */
 	private void doSelect(ServerSocketChannel server, final Selector selector)
 			throws IOException, ClosedChannelException, SocketException {
-		while (true) {
+		while (active) {
 			int selectionCount = selector.select();
 			if (logger.isDebugEnabled())
 				logger.debug("SelectionCount: " + selectionCount);
@@ -181,6 +193,17 @@ public class TcpNioReceivingChannelAdapter extends
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		super.doStop();
+		try {
+			this.serverChannel.close();
+		}
+		catch (Exception e) {
+			// ignore
 		}
 	}
 

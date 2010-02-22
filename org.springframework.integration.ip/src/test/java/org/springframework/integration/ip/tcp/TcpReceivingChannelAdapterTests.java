@@ -65,7 +65,7 @@ public class TcpReceivingChannelAdapterTests {
 		int port = 12346;
 		AbstractTcpReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
-		adapter.setCustomSocketReader("org.springframework.integration.ip.tcp.CustomNetSocketReader");
+		adapter.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNetSocketReader");
 		adapter.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
@@ -120,7 +120,7 @@ public class TcpReceivingChannelAdapterTests {
 		int port = 12356;
 		TcpNioReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
-		adapter.setCustomSocketReader("org.springframework.integration.ip.tcp.CustomNioSocketReader");
+		adapter.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNioSocketReader");
 		adapter.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();

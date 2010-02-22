@@ -18,7 +18,7 @@
 		set and this buffer is too small, we'll throw an exception.
 	-->
 	<ip:inbound-channel-adapter id="mcUdpReceiver"
-		channel="udpToStdOutChannel"
+		channel="udpOutChannel"
 		protocol="udp"
 		port="11112"
 		receive-buffer-size="500"

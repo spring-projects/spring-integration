@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ip.tcp.MessageFormats;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,10 +46,12 @@ public abstract class IpAdapterParserUtils {
 
 	static final String SO_TIMEOUT = "so-timeout";
 
-	static final String SO_RECEIVE_BUFFER_SIZE = "so-receive-bufffer-size";
+	static final String SO_RECEIVE_BUFFER_SIZE = "so-receive-buffer-size";
 
 	static final String SO_SEND_BUFFER_SIZE = "so-send-buffer-size";
 
+	static final String SO_KEEP_ALIVE = "so-keep-alive";
+	
 	static final String RECEIVE_BUFFER_SIZE = "receive-buffer-size";
 
 	static final String POOL_SIZE = "pool-size";
@@ -64,6 +67,17 @@ public abstract class IpAdapterParserUtils {
 	static final String MIN_ACKS_SUCCESS = "min-acks-for-success";
 
 	static final String TIME_TO_LIVE = "time-to-live";
+	
+	static final String USING_NIO = "using-nio";
+	
+	static final String USING_DIRECT_BUFFERS = "using-direct-buffers";
+	
+	static final String MESSAGE_FORMAT = "message-format";
+	
+	static final String CUSTOM_SOCKET_READER_CLASS_NAME = 
+							"custom-socket-reader-class-name";
+	
+//	static final String 
 
 
 	/**
@@ -76,7 +90,7 @@ public abstract class IpAdapterParserUtils {
 	 * @param attributeName the name of the attribute whose value will be
 	 * used to populate the property
 	 */
-	public static void addConstuctirValueIfAttributeDefined(BeanDefinitionBuilder builder,
+	public static void addConstuctorValueIfAttributeDefined(BeanDefinitionBuilder builder,
 			Element element, String attributeName, boolean trueFalse) {
 		String attributeValue = element.getAttribute(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
@@ -129,6 +143,45 @@ public abstract class IpAdapterParserUtils {
 			multicast = "false";
 		}
 		return multicast;
+	}
+
+	/**
+	 * Gets the use-nio attribute, if present; if not returns 'false'.
+	 * @param element
+	 * @return The value of the attribute or false.
+	 */
+	static String getUseNio(Element element) {
+		String useNio = element.getAttribute(IpAdapterParserUtils.USING_NIO);
+		if (!StringUtils.hasText(useNio)) {
+			useNio = "false";
+		}
+		return useNio;
+	}
+
+	/**
+	 * Gets the message-format attribute, if present; if not returns 
+	 * {@link MessageFormats#FORMAT_LENGTH_HEADER}.
+	 * @param element
+	 * @return The value of the attribute or false.
+	 */
+	static Integer getMessageFormat(Element element) {
+		String useNio = element.getAttribute(IpAdapterParserUtils.MESSAGE_FORMAT);
+		if (!StringUtils.hasText(useNio)) {
+			return MessageFormats.FORMAT_LENGTH_HEADER;
+		}
+		if (useNio.equals("length-header")) {
+			return MessageFormats.FORMAT_LENGTH_HEADER;
+		}
+		if (useNio.equals("stx-etx")) {
+			return MessageFormats.FORMAT_STX_ETX;
+		}
+		if (useNio.equals("crlf")) {
+			return MessageFormats.FORMAT_CRLF;
+		}
+		if (useNio.equals("custom")) {
+			return MessageFormats.FORMAT_CUSTOM;
+		}
+		return MessageFormats.FORMAT_LENGTH_HEADER;
 	}
 
 	/**

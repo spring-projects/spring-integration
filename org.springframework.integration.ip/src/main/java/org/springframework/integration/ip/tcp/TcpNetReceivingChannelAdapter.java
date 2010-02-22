@@ -35,6 +35,7 @@ import org.springframework.integration.core.Message;
 public class TcpNetReceivingChannelAdapter extends
 		AbstractTcpReceivingChannelAdapter {
 
+	protected ServerSocket serverSocket;
 	/**
 	 * Constructs a TcpNetReceivingChannelAdapter that listens on the port.
 	 * @param port The port.
@@ -52,11 +53,11 @@ public class TcpNetReceivingChannelAdapter extends
 	 */
 	@Override
 	protected void server() {
-		while (true) {
+		while (active) {
 			try {
-				ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+				serverSocket = ServerSocketFactory.getDefault().createServerSocket(port);
 				while (true) {
-					final Socket socket = server.accept();
+					final Socket socket = serverSocket.accept();
 					setSocketOptions(socket);
 					this.threadPoolTaskScheduler.execute(new Runnable() {
 						public void run() {
@@ -64,6 +65,15 @@ public class TcpNetReceivingChannelAdapter extends
 						}});
 				}
 			} catch (IOException e) {
+				if (!active) {
+					if (serverSocket != null) {
+						try {
+							serverSocket.close();
+						} catch (IOException e1) {}
+					}
+					serverSocket = null;
+					return;
+				}
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -114,6 +124,16 @@ public class TcpNetReceivingChannelAdapter extends
 					e1.printStackTrace();
 				}
 			}
+		}
+	}
+	@Override
+	protected void doStop() {
+		super.doStop();
+		try {
+			this.serverSocket.close();
+		}
+		catch (Exception e) {
+			// ignore
 		}
 	}
 

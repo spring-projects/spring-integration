@@ -49,6 +49,13 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		this.port = port;
 	}
 
+	/**
+	 * 
+	 * @return The port on which this receiver is listening.
+	 */
+	public int getPort() {
+		return port;
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.SocketOptions#setSoTimeout(int)
@@ -81,6 +88,14 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		Assert.state(taskScheduler != null, "taskScheduler is required");
 		this.active = true;
 		taskScheduler.schedule(this, new Date());
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.endpoint.AbstractEndpoint#doStop()
+	 */
+	@Override
+	protected void doStop() {
+		this.active = false;
 	}
 
 }

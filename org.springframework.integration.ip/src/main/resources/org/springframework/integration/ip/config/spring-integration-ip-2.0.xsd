@@ -38,6 +38,14 @@
 					<xsd:attribute name="pool-size" type="xsd:string" />
 					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
 					<xsd:attribute name="multicast-address" type="xsd:string" />
+					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
+						<xsd:annotation>
+							<xsd:documentation>
+If message-format = 'custom' you must provide a sub class of the appropriate type to implement
+the custom message format. See java docs for TcpNetReceivingChannelAdapter and TcpNioReceivingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>					
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -85,6 +93,20 @@
 		<xsd:attribute name="so-timeout" type="xsd:string" />
 		<xsd:attribute name="check-length" type="xsd:string" />
 		<xsd:attribute name="multicast" type="xsd:string" />
+		<xsd:attribute name="using-nio" type="xsd:boolean" />
+		<xsd:attribute name="message-format">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:NMTOKEN">
+					<xsd:enumeration value="length-header" />
+					<xsd:enumeration value="stx-etx" />
+					<xsd:enumeration value="crlf" />
+					<xsd:enumeration value="custom" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="using-direct-buffers" type="xsd:boolean" />
+		<xsd:attribute name="so-keep-alive" type="xsd:boolean" />
+		
 	</xsd:complexType>
 
 </xsd:schema>
