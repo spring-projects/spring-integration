@@ -110,7 +110,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		this.timeToLive = timeToLive;
 	}
 
-	protected DatagramSocket getSocket() throws IOException {
+	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
 			MulticastSocket socket = new MulticastSocket();
 			if (this.timeToLive >= 0) {

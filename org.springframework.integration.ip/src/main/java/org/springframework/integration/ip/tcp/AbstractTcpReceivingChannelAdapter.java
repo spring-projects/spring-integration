@@ -43,10 +43,6 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 
 	protected int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
 	
-	protected Class<SocketReader> customSocketReader;
-	
-	protected boolean usingDirectBuffers; 
-	
 	/**
 	 * Constructs a receiving channel adapter that listens on the port.
 	 * @param port The port to listen on.
@@ -102,6 +98,7 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	}
 
 	/**
+	 * @see {@link Socket#setKeepAlive(boolean)}.
 	 * @param soKeepAlive the soKeepAlive to set
 	 */
 	public void setSoKeepAlive(boolean soKeepAlive) {
@@ -109,26 +106,11 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	}
 
 	/**
+	 * @See {@link MessageFormats}
 	 * @param messageFormat the messageFormat to set
 	 */
 	public void setMessageFormat(int messageFormat) {
 		this.messageFormat = messageFormat;
-	}
-
-	/**
-	 * @param customSocketReader the customSocketReader to set
-	 * @throws ClassNotFoundException 
-	 */
-	@SuppressWarnings("unchecked")
-	public void setCustomSocketReaderClassName(String customSocketReaderClassName) throws ClassNotFoundException {
-		this.customSocketReader = (Class<SocketReader>) Class.forName(customSocketReaderClassName);
-	}
-
-	/**
-	 * @param usingDirectBuffers the usingDirectBuffers to set
-	 */
-	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
-		this.usingDirectBuffers = usingDirectBuffers;
 	}
 
 	/**

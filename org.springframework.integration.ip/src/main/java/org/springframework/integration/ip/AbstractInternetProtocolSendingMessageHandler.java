@@ -18,6 +18,7 @@ package org.springframework.integration.ip;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,6 +36,10 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	protected final SocketAddress destinationAddress;
+	
+	protected final String host;
+	
+	protected final int port;
 
 	protected int soReceiveBufferSize = -1;
 
@@ -42,10 +47,14 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 
 	protected volatile int soTimeout = -1;
 
+	protected volatile ExecutorService executorService;
+
 
 	public AbstractInternetProtocolSendingMessageHandler(String host, int port) {
 		Assert.notNull(host, "host must not be null");
 		this.destinationAddress = new InetSocketAddress(host, port);
+		this.host = host;
+		this.port = port;
 	}
 
 

@@ -21,10 +21,10 @@ import static org.junit.Assert.fail;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Gary Russell
@@ -54,11 +54,16 @@ public class SocketMessageMapperTests {
 
 	/**
 	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#fromMessage(org.springframework.integration.core.Message)}.
+	 * @throws Exception 
 	 */
 	@Test
-	@Ignore
-	public void testFromMessage() {
-		fail("Not yet implemented");
+	public void testFromMessage() throws Exception {
+		String s = "test";
+		Message<String> message = MessageBuilder.withPayload(s).build();
+		SocketMessageMapper mapper = new SocketMessageMapper();
+		byte[] bArray = mapper.fromMessage(message);
+		assertEquals(s, new String(bArray));
+		
 	}
 
 
@@ -87,11 +92,6 @@ public class SocketMessageMapperTests {
 			return false;
 		}
 
-		
-	}
-	
-	private class StubSocketWriter implements SocketWriter {
-	
 		
 	}
 	

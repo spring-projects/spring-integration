@@ -17,6 +17,7 @@ package org.springframework.integration.ip.tcp;
 
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -28,12 +29,14 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.integration.core.Message;
 
 /**
  * Tcp Receiving Channel adapter that uses a {@link java.nio.channels.SocketChannel}.
  * Sockets are multiplexed across the pooled threads. More than one thread will
- * be required with large numbers of connections and incoming traffic.
+ * be required with large numbers of connections and incoming traffic. The
+ * number of threads is controlled by the poolSize property.
  * 
  * @author Gary Russell
  *
@@ -42,6 +45,8 @@ public class TcpNioReceivingChannelAdapter extends
 		AbstractTcpReceivingChannelAdapter {
 
 	protected ServerSocketChannel serverChannel;
+	protected boolean usingDirectBuffers;
+	protected Class<NioSocketReader> customSocketReader;
 	
 	/**
 	 * Constructs a TcpNioReceivingChannelAdapter to listen on the port.
@@ -152,8 +157,9 @@ public class TcpNioReceivingChannelAdapter extends
 		SocketChannel channel = (SocketChannel) key.channel();
 		if (messageFormat == MessageFormats.FORMAT_CUSTOM) {
 			try {
-				reader = (NioSocketReader) customSocketReader.newInstance();
-				reader.setChannel(channel);
+				Constructor<NioSocketReader> ctor = customSocketReader
+						.getConstructor(SocketChannel.class);
+				reader = BeanUtils.instantiateClass(ctor, channel);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -184,16 +190,7 @@ public class TcpNioReceivingChannelAdapter extends
 						sendMessage(message);
 					}
 			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			try {
-				key.channel().close();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
+		} catch (Exception e) {}
 	}
 
 	@Override
@@ -205,6 +202,25 @@ public class TcpNioReceivingChannelAdapter extends
 		catch (Exception e) {
 			// ignore
 		}
+	}
+
+	/**
+	 * @param usingDirectBuffers Set true if you wish to use direct buffers
+	 * for NIO operations.
+	 */
+	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
+		this.usingDirectBuffers = usingDirectBuffers;
+	}
+
+	/**
+	 * @param customSocketReader the customSocketReader to set
+	 * @throws ClassNotFoundException 
+	 */
+	@SuppressWarnings("unchecked")
+	public void setCustomSocketReaderClassName(String customSocketReaderClassName)
+			throws ClassNotFoundException {
+		this.customSocketReader = (Class<NioSocketReader>) Class
+				.forName(customSocketReaderClassName);
 	}
 
 }

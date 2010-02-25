@@ -107,7 +107,7 @@ public class NetSocketReader extends AbstractSocketReader {
 
 	/**
 	 * Throws {@link UnsupportedOperationException}; custom implementations can
-	 * subclass this class and provide an implementation.
+	 * subclass this class and provide an implementation for this method.
 	 * @throws IOException 
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat().
 	 * 
@@ -153,18 +153,21 @@ public class NetSocketReader extends AbstractSocketReader {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#doClose()
+	 */
+	@Override
+	protected void doClose() {
+		try {
+			socket.close();
+		} catch (IOException e) {}
+	}
+
+	
+	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.SocketReader#getAddress()
 	 */
 	public InetAddress getAddress() {
 		return this.socket.getInetAddress();
-	}
-
-	/**
-	 * Sets the socket.
-	 * @param socket
-	 */
-	public void setSocket(Socket socket) {
-		this.socket = socket;
 	}
 
 }

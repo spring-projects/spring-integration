@@ -16,11 +16,13 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import javax.net.ServerSocketFactory;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 
@@ -36,6 +38,7 @@ public class TcpNetReceivingChannelAdapter extends
 		AbstractTcpReceivingChannelAdapter {
 
 	protected ServerSocket serverSocket;
+	protected Class<NetSocketReader> customSocketReader;
 	/**
 	 * Constructs a TcpNetReceivingChannelAdapter that listens on the port.
 	 * @param port The port.
@@ -93,8 +96,9 @@ public class TcpNetReceivingChannelAdapter extends
 		NetSocketReader reader = null;
 		if (messageFormat == MessageFormats.FORMAT_CUSTOM) {
 			try {
-				reader = (NetSocketReader) customSocketReader.newInstance();
-				reader.setSocket(socket);
+				Constructor<NetSocketReader> ctor = 
+					customSocketReader.getConstructor(Socket.class);
+				reader = BeanUtils.instantiateClass(ctor, socket);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -114,18 +118,11 @@ public class TcpNetReceivingChannelAdapter extends
 					}
 				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				try {
-					socket.close();
-					return;
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				return;
 			}
 		}
 	}
+	
 	@Override
 	protected void doStop() {
 		super.doStop();
@@ -135,6 +132,17 @@ public class TcpNetReceivingChannelAdapter extends
 		catch (Exception e) {
 			// ignore
 		}
+	}
+
+	/**
+	 * @param customSocketReader the customSocketReader to set
+	 * @throws ClassNotFoundException 
+	 */
+	@SuppressWarnings("unchecked")
+	public void setCustomSocketReaderClassName(
+			String customSocketReaderClassName) throws ClassNotFoundException {
+		this.customSocketReader = (Class<NetSocketReader>) Class
+				.forName(customSocketReaderClassName);
 	}
 
 }

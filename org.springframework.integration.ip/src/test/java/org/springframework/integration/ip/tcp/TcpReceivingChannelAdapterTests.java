@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -35,8 +36,8 @@ public class TcpReceivingChannelAdapterTests {
 	@Test
 	public void testNet() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = 12345;
-		AbstractTcpReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
+		int port = Utils.findAvailableServerSocket();
+		AbstractInternetProtocolReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
@@ -53,6 +54,7 @@ public class TcpReceivingChannelAdapterTests {
 		assertNotNull(message);
 		assertEquals(Utils.TEST_STRING + Utils.TEST_STRING, 
 				new String((byte[])message.getPayload()));
+		adapter.stop();
 	}
 
 	/**
@@ -62,8 +64,8 @@ public class TcpReceivingChannelAdapterTests {
 	@Test
 	public void testNetCustom() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = 12346;
-		AbstractTcpReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
+		int port = Utils.findAvailableServerSocket();
+		TcpNetReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		adapter.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNetSocketReader");
 		adapter.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
@@ -82,6 +84,7 @@ public class TcpReceivingChannelAdapterTests {
 		assertNotNull(message);
 		assertEquals("\u0002" + Utils.TEST_STRING + Utils.TEST_STRING + "\u0003", 
 				new String((byte[])message.getPayload()));
+		adapter.stop();
 	}
 
 
@@ -91,7 +94,7 @@ public class TcpReceivingChannelAdapterTests {
 	@Test
 	public void testNio() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = 12355;
+		int port = Utils.findAvailableServerSocket();
 		TcpNioReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -109,6 +112,7 @@ public class TcpReceivingChannelAdapterTests {
 		assertNotNull(message);
 		assertEquals(Utils.TEST_STRING + Utils.TEST_STRING, 
 				new String((byte[])message.getPayload()));
+		adapter.stop();
 	}
 
 	/**
@@ -117,7 +121,7 @@ public class TcpReceivingChannelAdapterTests {
 	@Test
 	public void testNioCustom() throws Exception {
 		QueueChannel channel = new QueueChannel(2);
-		int port = 12356;
+		int port = Utils.findAvailableServerSocket();
 		TcpNioReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
 		adapter.setOutputChannel(channel);
 		adapter.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNioSocketReader");
@@ -137,6 +141,7 @@ public class TcpReceivingChannelAdapterTests {
 		assertNotNull(message);
 		assertEquals("\u0002" + Utils.TEST_STRING + Utils.TEST_STRING + "\u0003", 
 				new String((byte[])message.getPayload()));
+		adapter.stop();
 	}
 
 }

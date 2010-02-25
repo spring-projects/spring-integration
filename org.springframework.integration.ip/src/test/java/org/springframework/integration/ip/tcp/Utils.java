@@ -17,9 +17,12 @@ package org.springframework.integration.ip.tcp;
 
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
+
+import javax.net.ServerSocketFactory;
 
 /**
  * TCP/IP Test utilities.
@@ -163,5 +166,16 @@ public class Utils {
 		});
 		thread.setDaemon(true);
 		thread.start();
+	}
+	
+	public static int findAvailableServerSocket() {
+		for (int i = 5678; i < 5878; i++) {
+			try {
+				ServerSocket sock = ServerSocketFactory.getDefault().createServerSocket(i);
+				sock.close();
+				return i;
+			} catch (Exception e) { }
+		}
+		throw new RuntimeException("Cannot find a free server socket");
 	}
 }

@@ -71,50 +71,38 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * @see org.springframework.integration.ip.tcp.SocketReader#assembleData()
 	 */
 	@Override
-	public boolean assembleDataLengthFormat() {
-		try {
-			if (lengthPart == null) {
-				lengthPart = allocate(4);
+	public boolean assembleDataLengthFormat() throws IOException {
+		if (lengthPart == null) {
+			lengthPart = allocate(4);
+		}
+		if (lengthPart.hasRemaining()) {
+			readChannel(lengthPart);
+			return false;
+		}
+		if (dataPart == null) {
+			lengthPart.flip();
+			int messageLength = lengthPart.getInt();
+			if (logger.isDebugEnabled()) {
+				logger.debug("Message length is " + messageLength);
 			}
-			if (lengthPart.hasRemaining()) {
-				readChannel(lengthPart);
+			dataPart = allocate(messageLength);
+		}
+		if (dataPart.hasRemaining()) {
+			readChannel(dataPart);
+			if (dataPart.hasRemaining()) {
 				return false;
 			}
-			if (dataPart == null) {
-				lengthPart.flip();
-				int messageLength = lengthPart.getInt();
-				if (logger.isDebugEnabled()) {
-					logger.debug("Message length is " + messageLength);
-				}
-				dataPart = allocate(messageLength);
-			}
-			if (dataPart.hasRemaining()) {
-				readChannel(dataPart);
-				if (dataPart.hasRemaining()) {
-					return false;
-				}
-			} 
-			if (usingDirectBuffers) {
-				byte[] assembledData = new byte[dataPart.capacity()];
-				dataPart.flip();
-				dataPart.get(assembledData);
-				this.assembledData = assembledData;
-			} else {
-				assembledData = dataPart.array();
-			}
-			lengthPart = dataPart = null;
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-			// TODO
-			try {
-				channel.close();
-			} catch (IOException e1) { 
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			throw new MessageMappingException("Message assembly exception", e);
+		} 
+		if (usingDirectBuffers) {
+			byte[] assembledData = new byte[dataPart.capacity()];
+			dataPart.flip();
+			dataPart.get(assembledData);
+			this.assembledData = assembledData;
+		} else {
+			assembledData = dataPart.array();
 		}
+		lengthPart = dataPart = null;
+		return true;
 	}
 
 	/* (non-Javadoc)
@@ -294,6 +282,18 @@ public class NioSocketReader extends AbstractSocketReader {
 		}
 		return buffer;
 	}
+	
+	
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#doClose()
+	 */
+	@Override
+	protected void doClose() {
+		try {
+			channel.close();
+		} catch (IOException e) {}
+	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.SocketReader#getAddress()
@@ -314,13 +314,6 @@ public class NioSocketReader extends AbstractSocketReader {
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
-	}
-
-	/**
-	 * @param channel
-	 */
-	public void setChannel(SocketChannel channel) {
-		this.channel = channel;
 	}
 
 }

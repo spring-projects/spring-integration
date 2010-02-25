@@ -16,23 +16,38 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
-
+import java.net.Socket;
 
 /**
- * A general interface for writing to sockets.
- * 
+ * Writes packets that are always 24 bytes long.
  * @author Gary Russell
  *
  */
-public interface SocketWriter {
+public class CustomNetSocketWriter extends NetSocketWriter {
 
 	/**
-	 * Write the entire buffer to the underlying socket. Appropriate wire
-	 * protocols will be implemented so the receiving side can decode and
-	 * reassemble the message, if packetized by the network.
-	 * @param bytes The bytes to write.
-	 * @throws IOException 
+	 * @param socket
 	 */
-	void write(byte[] bytes) throws IOException;
+	public CustomNetSocketWriter(Socket socket) {
+		super(socket);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.NetSocketWriter#writeCustomFormat(byte[])
+	 */
+	@Override
+	protected void writeCustomFormat(byte[] bytes) throws IOException {
+		if (bytes.length > 24) {
+			socket.getOutputStream().write(bytes, 0, 24);
+			return;
+		}
+		socket.getOutputStream().write(bytes);
+		if (bytes.length < 24) {
+			socket.getOutputStream().write(
+				"                        ".substring(bytes.length) .getBytes());
+		}
+	}
+	
+	
 
 }

@@ -44,7 +44,7 @@ public class NioSocketReaderTests {
 	public void testReadLength() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = 23456;
+		int port = Utils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
@@ -93,13 +93,14 @@ public class NioSocketReaderTests {
 			}
 		}
 		assertEquals("Did not receive data", 2, count);
+		server.close();
 	}
 
 	@Test
 	public void testFragmented() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = 23457;
+		int port = Utils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
@@ -148,6 +149,7 @@ public class NioSocketReaderTests {
 			}
 		}
 		assertTrue("Did not receive data", done);
+		server.close();
 	}
 	
 	/**
@@ -157,7 +159,7 @@ public class NioSocketReaderTests {
 	public void testReadStxEtx() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = 23458;
+		int port = Utils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
@@ -207,6 +209,7 @@ public class NioSocketReaderTests {
 			}
 		}
 		assertEquals("Did not receive data", 2, count);
+		server.close();
 	}
 
 	/**
@@ -216,7 +219,7 @@ public class NioSocketReaderTests {
 	public void testReadCrLf() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = 23459;
+		int port = Utils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
@@ -266,6 +269,7 @@ public class NioSocketReaderTests {
 			}
 		}
 		assertEquals("Did not receive data", 2, count);
+		server.close();
 	}
 
 }

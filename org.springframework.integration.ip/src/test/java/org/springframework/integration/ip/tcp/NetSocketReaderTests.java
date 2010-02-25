@@ -37,7 +37,7 @@ public class NetSocketReaderTests {
 	 */
 	@Test
 	public void testReadLength() throws Exception {
-		int port = 23556;
+		int port = Utils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		Utils.testSendLength(port, null);
 		Socket socket = server.accept();
@@ -57,6 +57,7 @@ public class NetSocketReaderTests {
 		else {
 			fail("Failed to assemble second message");
 		}
+		server.close();
 	}
 	
 	/**
@@ -65,7 +66,7 @@ public class NetSocketReaderTests {
 	 */
 	@Test
 	public void testReadStxEtx() throws Exception {
-		int port = 23557;
+		int port = Utils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		Utils.testSendStxEtx(port, null);
 		Socket socket = server.accept();
@@ -86,6 +87,7 @@ public class NetSocketReaderTests {
 		else {
 			fail("Failed to assemble second message");
 		}
+		server.close();
 	}
 
 	/**
@@ -94,7 +96,7 @@ public class NetSocketReaderTests {
 	 */
 	@Test
 	public void testReadCrLf() throws Exception {
-		int port = 23558;
+		int port = Utils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 		Utils.testSendCrLf(port, null);
 		Socket socket = server.accept();
@@ -115,6 +117,7 @@ public class NetSocketReaderTests {
 		else {
 			fail("Failed to assemble second message");
 		}
+		server.close();
 	}
 
 }

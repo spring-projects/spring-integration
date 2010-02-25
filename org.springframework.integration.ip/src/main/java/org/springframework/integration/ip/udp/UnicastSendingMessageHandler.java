@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -73,8 +72,6 @@ public class UnicastSendingMessageHandler extends
 			.synchronizedMap(new HashMap<String, CountDownLatch>());
 
 	protected volatile DatagramSocket ackSocket;
-
-	protected volatile ExecutorService executorService;
 
 	protected volatile Exception fatalException;
 
@@ -215,7 +212,7 @@ public class UnicastSendingMessageHandler extends
 		socket.send(packet);
 	}
 
-	protected DatagramSocket getSocket() throws IOException {
+	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
 			this.socket = new DatagramSocket();
 			setSocketAttributes(this.socket);

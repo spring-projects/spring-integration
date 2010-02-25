@@ -16,11 +16,13 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.OutboundMessageMapper;
 
 /**
@@ -31,8 +33,10 @@ import org.springframework.integration.message.OutboundMessageMapper;
  */
 public class SocketMessageMapper implements
 		InboundMessageMapper<SocketReader>, 
-		OutboundMessageMapper<SocketWriter> {
+		OutboundMessageMapper<byte[]> {
 
+	private volatile String charset = "UTF-8";
+	
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.message.InboundMessageMapper#toMessage(java.lang.Object)
 	 */
@@ -42,6 +46,9 @@ public class SocketMessageMapper implements
 
 
 	/**
+	 * Calls {@link SocketReader#getAssembledData()} and creates a message with
+	 * the socket data (excluding any protocol parts) as the payload. The source
+	 * hostname and ip address are added to the message headers.
 	 * @param socketReader
 	 * @return
 	 * @throws IOException 
@@ -61,10 +68,42 @@ public class SocketMessageMapper implements
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.message.OutboundMessageMapper#fromMessage(org.springframework.integration.core.Message)
 	 */
-	public SocketWriter fromMessage(Message<?> message) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public byte[] fromMessage(Message<?> message) throws Exception {
+		return getPayloadAsBytes(message);
 	}
 
+	/**
+	 * Extracts the payload as a byte array.
+	 * @param message
+	 * @return
+	 */
+	private byte[] getPayloadAsBytes(Message<?> message) {
+		byte[] bytes = null;
+		Object payload = message.getPayload();
+		if (payload instanceof byte[]) {
+			bytes = (byte[]) payload;
+		}
+		else if (payload instanceof String) {
+			try {
+				bytes = ((String) payload).getBytes(this.charset);
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new MessageHandlingException(message, e);
+			}
+		}
+		else {
+			throw new MessageHandlingException(message, "The socket mapper expects " +
+					"either a byte array or String payload, but received: " + payload.getClass());
+		}
+		return bytes;
+	}
+
+
+	/**
+	 * @param charset the charset to set
+	 */
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
 
 }
