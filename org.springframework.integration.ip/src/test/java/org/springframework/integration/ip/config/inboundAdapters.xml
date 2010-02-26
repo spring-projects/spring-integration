@@ -9,12 +9,14 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
-	
+
+	<beans:bean id="tcpIpUtils" class="org.springframework.integration.ip.tcp.Utils" />
+		
 	<!-- nio without direct buffers -->
 	<ip:inbound-channel-adapter id="tcp1"
 		channel="channel"
 		protocol="tcp"
-		port="9876"
+		port="#{tcpIpUtils.findAvailableServerSocket(5000)}"
 		message-format="length-header"
 		using-nio="true"
 		using-direct-buffers="false"
@@ -27,7 +29,7 @@
 	<ip:inbound-channel-adapter id="tcp2"
 		channel="channel"
 		protocol="tcp"
-		port="9877"
+		port="#{tcpIpUtils.findAvailableServerSocket(6000)}"
 		message-format="length-header"
 		using-nio="true"
 		using-direct-buffers="true"
@@ -40,7 +42,7 @@
 	<ip:inbound-channel-adapter id="tcp3"
 		channel="channel"
 		protocol="tcp"
-		port="9878"
+		port="#{tcpIpUtils.findAvailableServerSocket(7000)}"
 		message-format="length-header"
 		using-nio="false"
 		pool-size="2"
@@ -52,7 +54,7 @@
 	<ip:inbound-channel-adapter id="tcp4"
 		channel="channel"
 		protocol="tcp"
-		port="9879"
+		port="#{tcpIpUtils.findAvailableServerSocket(8000)}"
 		message-format="stx-etx"
 		using-nio="false"
 		pool-size="2"
@@ -64,7 +66,7 @@
 	<ip:inbound-channel-adapter id="tcp5"
 		channel="channel"
 		protocol="tcp"
-		port="9880"
+		port="#{tcpIpUtils.findAvailableServerSocket(9000)}"
 		message-format="crlf"
 		using-nio="false"
 		pool-size="2"
@@ -76,7 +78,7 @@
 	<ip:inbound-channel-adapter id="tcp6"
 		channel="channel"
 		protocol="tcp"
-		port="9881"
+		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
 		message-format="custom"
 		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNetSocketReader"
 		using-nio="false"
@@ -88,7 +90,7 @@
 	<ip:inbound-channel-adapter id="udp1"
 		channel="channel"
 		protocol="udp"
-		port="9976"
+		port="#{tcpIpUtils.findAvailableServerSocket(11000)}"
 		receive-buffer-size="500"
 		multicast="false"
 		check-length="true" />

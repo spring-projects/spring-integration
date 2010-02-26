@@ -50,7 +50,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	
 	protected boolean soKeepAlive = false;
 
-	protected int messageFormat;
+	protected int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
 	
 	protected boolean blockingWrite = false;
 	
@@ -111,7 +111,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 			.newSingleThreadExecutor(new ThreadFactory() {
 				public Thread newThread(Runnable runner) {
 					Thread thread = new Thread(runner);
-					thread.setName("UDP-Ack-Handler");
+					thread.setName("Tcp-NonBlocking-Handler-port-" + port);
 					thread.setDaemon(true);
 					return thread;
 				}
@@ -131,9 +131,16 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	protected void doWrite(Message<?> message) {
 		try {
 			byte[] bytes = mapper.fromMessage(message);
-			this.getWriter().write(bytes);
+			SocketWriter writer = this.getWriter();
+			if (writer == null) {
+				throw new MessageMappingException("Failed to create SocketWriter");
+			}
+			writer.write(bytes);
 		} catch (Exception e) {
 			writer = null;
+			if (e instanceof MessageMappingException) {
+				throw (MessageMappingException) e;
+			}
 			throw new MessageMappingException("Failed to map message", e);
 		}
 	}

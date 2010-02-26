@@ -66,6 +66,11 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 					<xsd:attribute name="ack-port" type="xsd:string" />
 					<xsd:attribute name="ack-timeout" type="xsd:string" />
 					<xsd:attribute name="time-to-live" type="xsd:string" />
+					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string" />
+					<xsd:attribute name="so-linger" type="xsd:string" />
+					<xsd:attribute name="so-tcp-nodelay" type="xsd:boolean" />
+					<xsd:attribute name="so-traffic-class" type="xsd:string" />
+					<xsd:attribute name="blocking-write" type="xsd:boolean" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

@@ -230,6 +230,10 @@ public class NioSocketReader extends AbstractSocketReader {
 	protected void readChannel(ByteBuffer buffer) throws IOException {
 		try {
 			int len = channel.read(buffer);
+			if (len < 0) {
+				logger.debug("Socket closed");
+				throw new IOException("Socket closed");
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + len + " bytes, buffer is now at " + 
 							 buffer.position() + " of " +

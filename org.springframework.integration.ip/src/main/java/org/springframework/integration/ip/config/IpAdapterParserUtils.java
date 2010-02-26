@@ -77,8 +77,15 @@ public abstract class IpAdapterParserUtils {
 	static final String CUSTOM_SOCKET_READER_CLASS_NAME = 
 							"custom-socket-reader-class-name";
 	
-//	static final String 
+	static final String CUSTOM_SOCKET_WRITER_CLASS_NAME = 
+							"custom-socket-writer-class-name";
 
+	static final String SO_LINGER = "so-linger";
+
+	static final String SO_TCP_NODELAY = "so-tcp-nodelay";
+
+	static final String SO_TRAFFIC_CLASS = "so-traffic-class";
+	
 
 	/**
 	 * Adds a constructor-arg to the bean definition with the value

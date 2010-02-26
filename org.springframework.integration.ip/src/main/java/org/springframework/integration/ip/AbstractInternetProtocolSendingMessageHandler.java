@@ -82,4 +82,12 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 		this.soSendBufferSize = size;
 	}
 
+
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
 }

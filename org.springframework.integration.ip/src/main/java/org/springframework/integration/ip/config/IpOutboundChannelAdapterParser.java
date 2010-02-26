@@ -16,17 +16,19 @@
 
 package org.springframework.integration.ip.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Conventions;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
+import org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
@@ -38,25 +40,21 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 		String protocol = IpAdapterParserUtils.getProtocol(element);
 		BeanDefinitionBuilder builder = null;
 		if (protocol.equals("tcp")) {
-			throw new BeanCreationException("tcp not yet supported");
+			builder = parseTcp(element);
 		}
 		else if (protocol.equals("udp")) {
-			String multicast = IpAdapterParserUtils.getMulticast(element);
-			if (multicast.equals("true")) {
-				builder = BeanDefinitionBuilder
-						.genericBeanDefinition(MulticastSendingMessageHandler.class);
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
-						element, IpAdapterParserUtils.MIN_ACKS_SUCCESS,
-						"minAcksForSuccess");
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
-						element, IpAdapterParserUtils.TIME_TO_LIVE,
-						"timeToLive");
-			}
-			else {
-				builder = BeanDefinitionBuilder
-						.genericBeanDefinition(UnicastSendingMessageHandler.class);
-			}
+			builder = parseUdp(element);
 		}
+		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
+		return builder.getBeanDefinition();
+	}
+
+	/**
+	 * @param element
+	 * @param builder
+	 */
+	private void addHostAndPortToConstructor(Element element,
+			BeanDefinitionBuilder builder) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		if (!StringUtils.hasText(host)) {
 			throw new BeanCreationException(IpAdapterParserUtils.HOST
@@ -65,6 +63,30 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 		builder.addConstructorArgValue(host);
 		String port = IpAdapterParserUtils.getPort(element);
 		builder.addConstructorArgValue(port);
+	}
+
+	/**
+	 * @param element
+	 * @return
+	 */
+	private BeanDefinitionBuilder parseUdp(Element element) {
+		BeanDefinitionBuilder builder;
+		String multicast = IpAdapterParserUtils.getMulticast(element);
+		if (multicast.equals("true")) {
+			builder = BeanDefinitionBuilder
+					.genericBeanDefinition(MulticastSendingMessageHandler.class);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
+					element, IpAdapterParserUtils.MIN_ACKS_SUCCESS,
+					"minAcksForSuccess");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
+					element, IpAdapterParserUtils.TIME_TO_LIVE,
+					"timeToLive");
+		}
+		else {
+			builder = BeanDefinitionBuilder
+					.genericBeanDefinition(UnicastSendingMessageHandler.class);
+		}
+		addHostAndPortToConstructor(element, builder);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
@@ -91,10 +113,43 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 						+ " must be supplied");
 			}
 		}
-		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
-		return builder.getBeanDefinition();
+		return builder;
+	}
+
+	/**
+	 * @param element
+	 * @return
+	 */
+	private BeanDefinitionBuilder parseTcp(Element element) {
+		BeanDefinitionBuilder builder;
+		String useNio = IpAdapterParserUtils.getUseNio(element);
+		if (useNio.equals("false")) {
+			builder = BeanDefinitionBuilder
+					.genericBeanDefinition(TcpNetSendingMessageHandler.class);
+		}
+		else {
+			builder = BeanDefinitionBuilder
+					.genericBeanDefinition(TcpNioSendingMessageHandler.class);
+		}
+		addHostAndPortToConstructor(element, builder);
+		builder.addPropertyValue(
+				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
+				IpAdapterParserUtils.getMessageFormat(element));
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.CUSTOM_SOCKET_WRITER_CLASS_NAME); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_KEEP_ALIVE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_LINGER);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_TCP_NODELAY);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_TRAFFIC_CLASS);
+		return builder;
 	}
 
 }

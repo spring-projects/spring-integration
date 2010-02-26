@@ -57,7 +57,7 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	 */
 	public void run() {
 		if (logger.isDebugEnabled()) {
-			logger.debug(this.getClass().getSimpleName() + " running...");
+			logger.debug(this.getClass().getSimpleName() + " running on port: " + port);
 		}
 		if (this.active && this.threadPoolTaskScheduler == null) {
 			this.threadPoolTaskScheduler = new ThreadPoolTaskScheduler();

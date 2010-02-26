@@ -67,7 +67,7 @@ public class TcpNioReceivingChannelAdapter extends
 		try {
 			serverChannel = ServerSocketChannel.open();
 			serverChannel.configureBlocking(false);
-			serverChannel.socket().bind(new InetSocketAddress(port));
+			serverChannel.socket().bind(new InetSocketAddress(port), 10);
 			final Selector selector = Selector.open();
 			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 			doSelect(serverChannel, selector);
@@ -107,7 +107,7 @@ public class TcpNioReceivingChannelAdapter extends
 		while (active) {
 			int selectionCount = selector.select();
 			if (logger.isDebugEnabled())
-				logger.debug("SelectionCount: " + selectionCount);
+				logger.debug("Port " + port + " SelectionCount: " + selectionCount);
 			if (selectionCount > 0) {
 				Set<SelectionKey> keys = selector.selectedKeys();
 				Iterator<SelectionKey> iterator = keys.iterator();

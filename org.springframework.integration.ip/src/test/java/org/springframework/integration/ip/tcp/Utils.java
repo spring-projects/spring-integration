@@ -78,6 +78,7 @@ public class Utils {
 		Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
+					System.out.println("Connecting to " + port);
 					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
 					OutputStream os = socket.getOutputStream();
 					writeByte(os, 0);
@@ -168,8 +169,8 @@ public class Utils {
 		thread.start();
 	}
 	
-	public static int findAvailableServerSocket() {
-		for (int i = 5678; i < 5878; i++) {
+	public static int findAvailableServerSocket(int seed) {
+		for (int i = seed; i < seed+200; i++) {
 			try {
 				ServerSocket sock = ServerSocketFactory.getDefault().createServerSocket(i);
 				sock.close();
@@ -177,5 +178,9 @@ public class Utils {
 			} catch (Exception e) { }
 		}
 		throw new RuntimeException("Cannot find a free server socket");
+	}
+	
+	public static int findAvailableServerSocket() {
+		return findAvailableServerSocket(5678);
 	}
 }
