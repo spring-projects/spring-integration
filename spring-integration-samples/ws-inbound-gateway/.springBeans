@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beansProjectDescription>
+	<version>1</version>
+	<pluginVersion><![CDATA[2.3.1.201002191658-RC1]]></pluginVersion>
+	<configSuffixes>
+		<configSuffix><![CDATA[xml]]></configSuffix>
+	</configSuffixes>
+	<enableImports><![CDATA[true]]></enableImports>
+	<configs>
+		<config>src/main/webapp/WEB-INF/spring-ws-config.xml</config>
+		<config>src/main/java/org/springframework/integration/samples/ws/inbound-gateway-config.xml</config>
+	</configs>
+	<configSets>
+	</configSets>
+</beansProjectDescription>

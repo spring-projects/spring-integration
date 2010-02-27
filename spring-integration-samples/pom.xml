@@ -10,6 +10,7 @@
 	<name>Spring Integration Samples</name>
 	<properties>
 		<release.version>2.0.0.BUILD-SNAPSHOT</release.version>
+		<spring.framework.version>3.0.0.RELEASE</spring.framework.version>
 	</properties>
 	<modules>
 		<module>cafe</module>
@@ -102,6 +103,7 @@
 				<includes>
 					<include>**/*.xml</include>
 					<include>**/*.xsl</include>
+					<include>**/*.dtd</include>
 				</includes>
 			</resource>
 		</resources>
