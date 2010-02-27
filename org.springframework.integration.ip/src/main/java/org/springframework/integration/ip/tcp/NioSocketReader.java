@@ -264,6 +264,10 @@ public class NioSocketReader extends AbstractSocketReader {
 		if (len == 0) {
 			return false;
 		}
+		if (len < 0) {
+			logger.debug("Socket closed");
+			throw new IOException("Socket closed");
+		}
 		rawBuffer.flip();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
@@ -307,14 +311,14 @@ public class NioSocketReader extends AbstractSocketReader {
 	}
 	
 	/**
-	 * @return the useDirectBuffers
+	 * @return the usingeDirectBuffers
 	 */
 	public boolean isUsingDirectBuffers() {
 		return usingDirectBuffers;
 	}
 
 	/**
-	 * @param useDirectBuffers the useDirectBuffers to set
+	 * @param usingDirectBuffers the usingDirectBuffers to set
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;

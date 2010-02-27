@@ -85,6 +85,8 @@ public abstract class IpAdapterParserUtils {
 	static final String SO_TCP_NODELAY = "so-tcp-nodelay";
 
 	static final String SO_TRAFFIC_CLASS = "so-traffic-class";
+
+	static final String BLOCKING_WRITE = "blocking-write";
 	
 
 	/**

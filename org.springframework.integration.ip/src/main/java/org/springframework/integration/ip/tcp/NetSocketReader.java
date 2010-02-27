@@ -140,7 +140,8 @@ public class NetSocketReader extends AbstractSocketReader {
 			len = socket.getInputStream().read(buffer, lengthRead,
 					needed - lengthRead);
 			if (len < 0) {
-				throw new IOException("EOF");
+				logger.debug("Socket closed");				
+				throw new IOException("Socket Closed");
 			}
 			lengthRead += len;
 			if (logger.isDebugEnabled()) {

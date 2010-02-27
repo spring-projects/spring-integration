@@ -76,7 +76,7 @@ public class TcpNetSendingMessageHandler extends
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
-	public void setCustomSocketWriteriClassName(
+	public void setCustomSocketWriterClassName(
 			String customSocketWriterClassName) throws ClassNotFoundException {
 		this.customSocketWriter = (Class<NetSocketWriter>) Class
 				.forName(customSocketWriterClassName);

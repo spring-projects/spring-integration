@@ -108,7 +108,7 @@ public class TcpSendingMessageHandlerTests {
 					TcpNetSendingMessageHandler handler = new TcpNetSendingMessageHandler("localhost", port);
 					handler.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
 					handler.setBlockingWrite(true);
-					handler.setCustomSocketWriteriClassName("org.springframework.integration.ip.tcp.CustomNetSocketWriter");
+					handler.setCustomSocketWriterClassName("org.springframework.integration.ip.tcp.CustomNetSocketWriter");
 					Message<String> message = MessageBuilder.withPayload(testString).build();
 					handler.handleMessage(message);
 					Thread.sleep(1000000000L);

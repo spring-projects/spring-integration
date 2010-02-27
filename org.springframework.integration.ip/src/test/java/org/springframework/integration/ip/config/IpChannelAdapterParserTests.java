@@ -18,22 +18,13 @@ package org.springframework.integration.ip.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
-import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
@@ -53,7 +44,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 								,"outboundAdapters.xml"
 								})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class IpChannelAdapterParserTests {
+public class IpChannelAdapterParserTests 
+//				implements ApplicationContextAware 
+										{
 
 	@Autowired
 	QueueChannel channel;
@@ -90,10 +83,30 @@ public class IpChannelAdapterParserTests {
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler#0")
 	TcpNioSendingMessageHandler tcpOut1;
 	
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler#1")
+	TcpNioSendingMessageHandler tcpOut2;
+	
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#0")
+	TcpNetSendingMessageHandler tcpOut3;
+	
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#1")
+	TcpNetSendingMessageHandler tcpOut4;
+	
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#2")
+	TcpNetSendingMessageHandler tcpOut5;
+	
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#3")
+	TcpNetSendingMessageHandler tcpOut6;
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound1() {
-		Utils.testSendFragmented(tcp1.getPort());
+		Utils.testSendFragmented(tcp1.getPort(), true);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
 		assertEquals("xx", new String(message.getPayload()));
@@ -102,7 +115,7 @@ public class IpChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound2() {
-		Utils.testSendFragmented(tcp2.getPort());
+		Utils.testSendFragmented(tcp2.getPort(), true);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
 		assertEquals("xx", new String(message.getPayload()));
@@ -111,7 +124,7 @@ public class IpChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound3() {
-		Utils.testSendFragmented(tcp3.getPort());
+		Utils.testSendFragmented(tcp3.getPort(), true);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
 		assertEquals("xx", new String(message.getPayload()));
@@ -163,7 +176,6 @@ public class IpChannelAdapterParserTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpOutbound1() {
-		setPort(tcpOut1, tcp1);
 		Message<String> message = MessageBuilder.withPayload("TESTING").build();
 		tcpOut1.handleMessage(message);
 		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
@@ -172,21 +184,86 @@ public class IpChannelAdapterParserTests {
 
 	}
 
-	private void setPort(AbstractInternetProtocolSendingMessageHandler tcpSMA,
-			AbstractInternetProtocolReceivingChannelAdapter tcpRCA) {
-		try {
-			int port = tcpRCA.getPort();
-			Field portField = tcpSMA.getClass().getSuperclass().getSuperclass().getDeclaredField("port");
-			portField.setAccessible(true);
-			assertEquals(9999, portField.getInt(tcpSMA));
-			portField.setInt(tcpSMA, port);
-			InetSocketAddress address = new InetSocketAddress("localhost", port);
-			Field addressField = tcpSMA.getClass().getSuperclass().getSuperclass().getDeclaredField("destinationAddress");
-			addressField.setAccessible(true);
-			addressField.set(tcpSMA, address);
-		} catch (Exception e) {
-			fail("Couldn't fix port:" + e);
-		}
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testTcpOutbound2() {
+		Message<String> message = MessageBuilder.withPayload("TESTING").build();
+		tcpOut2.handleMessage(message);
+		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("TESTING", new String(mOut.getPayload()));
+
 	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testTcpOutbound3() {
+		Message<String> message = MessageBuilder.withPayload("TESTING").build();
+		tcpOut3.handleMessage(message);
+		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("TESTING", new String(mOut.getPayload()));
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testTcpOutbound4() {
+		Message<String> message = MessageBuilder.withPayload("TESTING").build();
+		tcpOut4.handleMessage(message);
+		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("TESTING", new String(mOut.getPayload()));
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testTcpOutbound5() {
+		Message<String> message = MessageBuilder.withPayload("TESTING").build();
+		tcpOut5.handleMessage(message);
+		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("TESTING", new String(mOut.getPayload()));
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testTcpOutbound6() {
+		Message<String> message = MessageBuilder.withPayload("TESTING").build();
+		tcpOut6.handleMessage(message);
+		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
+		assertNotNull(mOut);
+		// custom format pads to 24 bytes
+		assertEquals("TESTING                 ", new String(mOut.getPayload()));
+
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testTcpOutbound6a() {
+		Message<String> message = MessageBuilder.withPayload(
+				"abcdefghijklmnopqrdtuvwxyz").build();
+		tcpOut6.handleMessage(message);
+		Message<byte[]> mOut = (Message<byte[]>) channel.receive(10000);
+		assertNotNull(mOut);
+		// custom format truncates to 24 bytes
+		assertEquals("abcdefghijklmnopqrdtuvwx", new String(mOut.getPayload()));
+
+	}
+
+//	/* (non-Javadoc)
+//	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
+//	 */
+//	@Override
+//	public void setApplicationContext(ApplicationContext applicationContext)
+//			throws BeansException {
+//		String[] names = 
+//		applicationContext.getBeanNamesForType(TcpNetSendingMessageHandler.class);
+//		for (String n : names) {
+//			System.out.println(n);
+//		}
+//	}
 
 }

@@ -17,10 +17,73 @@
 		channel="inChannel"
 		protocol="tcp"
 		host="localhost"
-		port="9999"
+		port="#{tcp1.port}"
 		message-format="length-header"
 		using-nio="true"
 		using-direct-buffers="false"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+			
+	<!-- nio with direct buffers -->
+	<ip:outbound-channel-adapter id="tcpOut2"
+		channel="inChannel"
+		protocol="tcp"
+		host="localhost"
+		port="#{tcp2.port}"
+		message-format="length-header"
+		using-nio="true"
+		using-direct-buffers="true"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+			
+	<!-- net -->
+	<ip:outbound-channel-adapter id="tcpOut3"
+		channel="inChannel"
+		protocol="tcp"
+		host="localhost"
+		port="#{tcp3.port}"
+		message-format="length-header"
+		using-nio="false"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+			
+	<!-- net stxetx -->
+	<ip:outbound-channel-adapter id="tcpOut4"
+		channel="inChannel"
+		protocol="tcp"
+		host="localhost"
+		port="#{tcp4.port}"
+		message-format="stx-etx"
+		using-nio="false"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+			
+	<!-- net crlf -->
+	<ip:outbound-channel-adapter id="tcpOut5"
+		channel="inChannel"
+		protocol="tcp"
+		host="localhost"
+		port="#{tcp5.port}"
+		message-format="crlf"
+		using-nio="false"
+		so-keep-alive="true"
+		so-timeout="100000"
+		/>
+		
+	<!-- net custom -->
+	<ip:outbound-channel-adapter id="tcpOut6"
+		channel="inChannel"
+		protocol="tcp"
+		host="localhost"
+		port="#{tcp6.port}"
+		blocking-write="true"
+		message-format="custom"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"
+		using-nio="false"
 		so-keep-alive="true"
 		so-timeout="100000"
 		/>

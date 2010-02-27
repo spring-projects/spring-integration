@@ -106,7 +106,7 @@ public class NioSocketReaderTests {
 		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		// Fire up the sender.
-		Utils.testSendFragmented(port);
+		Utils.testSendFragmented(port, false);
 		
 		if(selector.select(10000) <= 0) {
 			fail("Socket failed to connect");

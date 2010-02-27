@@ -24,6 +24,9 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.net.ServerSocketFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * TCP/IP Test utilities.
  * 
@@ -34,6 +37,8 @@ public class Utils {
 
 	public static final String TEST_STRING = "TestMessage";
 
+	private static final Log logger = LogFactory.getLog(Utils.class);
+	
 	/**
 	 * Sends a message in two chunks with a preceding length. Two such messages are sent.
 	 * @param latch If not null, await until counted down before sending second chunk.
@@ -48,14 +53,14 @@ public class Utils {
 						ByteBuffer.wrap(len).putInt(TEST_STRING.length() * 2);
 						socket.getOutputStream().write(len);
 						socket.getOutputStream().write(TEST_STRING.getBytes());
-						System.out.println(i + " Wrote first part");
+						logger.debug(i + " Wrote first part");
 						if (latch != null) {
 							latch.await();
 						}
 						Thread.sleep(500);
 						// send the second chunk
 						socket.getOutputStream().write(TEST_STRING.getBytes());
-						System.out.println(i + " Wrote second part");
+						logger.debug(i + " Wrote second part");
 					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {
@@ -74,19 +79,19 @@ public class Utils {
 	 * @param b
 	 * @throws Exception
 	 */
-	public static void testSendFragmented(final int port) {
+	public static void testSendFragmented(final int port, final boolean noDelay) {
 		Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
-					System.out.println("Connecting to " + port);
+					logger.debug("Connecting to " + port);
 					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
 					OutputStream os = socket.getOutputStream();
-					writeByte(os, 0);
-					writeByte(os, 0);
-					writeByte(os, 0);
-					writeByte(os, 2);
-					writeByte(os, 'x');
-					writeByte(os, 'x');
+					writeByte(os, 0, noDelay);
+					writeByte(os, 0, noDelay);
+					writeByte(os, 0, noDelay);
+					writeByte(os, 2, noDelay);
+					writeByte(os, 'x', noDelay);
+					writeByte(os, 'x', noDelay);
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -97,9 +102,12 @@ public class Utils {
 		thread.start();
 	}
 
-	private static void writeByte(OutputStream os, int b) throws Exception {
+	private static void writeByte(OutputStream os, int b, boolean noDelay) throws Exception {
 		os.write(b);
-		System.out.printf("Wrote 0x%x\n", b);
+		logger.debug("Wrote 0x%x\n" + Integer.toHexString(b));
+		if (noDelay) {
+			return;
+		}
 		Thread.sleep(500);
 	}
 	
@@ -114,17 +122,17 @@ public class Utils {
 					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
 					OutputStream outputStream = socket.getOutputStream();
 					for (int i = 0; i < 2; i++) {
-						writeByte(outputStream, 0x02);
+						writeByte(outputStream, 0x02, true);
 						outputStream.write(TEST_STRING.getBytes());
-						System.out.println(i + " Wrote first part");
+						logger.debug(i + " Wrote first part");
 						if (latch != null) {
 							latch.await();
 						}
 						Thread.sleep(500);
 						// send the second chunk
 						outputStream.write(TEST_STRING.getBytes());
-						System.out.println(i + " Wrote second part");
-						writeByte(outputStream, 0x03);
+						logger.debug(i + " Wrote second part");
+						writeByte(outputStream, 0x03, true);
 					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {
@@ -148,16 +156,16 @@ public class Utils {
 					OutputStream outputStream = socket.getOutputStream();
 					for (int i = 0; i < 2; i++) {
 						outputStream.write(TEST_STRING.getBytes());
-						System.out.println(i + " Wrote first part");
+						logger.debug(i + " Wrote first part");
 						if (latch != null) {
 							latch.await();
 						}
 						Thread.sleep(500);
 						// send the second chunk
 						outputStream.write(TEST_STRING.getBytes());
-						System.out.println(i + " Wrote second part");
-						writeByte(outputStream, '\r');
-						writeByte(outputStream, '\n');
+						logger.debug(i + " Wrote second part");
+						writeByte(outputStream, '\r', true);
+						writeByte(outputStream, '\n', true);
 					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {

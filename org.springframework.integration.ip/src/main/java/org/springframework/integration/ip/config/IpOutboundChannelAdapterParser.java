@@ -138,6 +138,8 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
 				IpAdapterParserUtils.getMessageFormat(element));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.BLOCKING_WRITE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.CUSTOM_SOCKET_WRITER_CLASS_NAME); 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
