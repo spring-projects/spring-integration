@@ -16,13 +16,16 @@
 
 package org.springframework.integration.samples.ws;
 
+import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
 import org.springframework.integration.xml.source.DomSourceFactory;
 
 public class SimpleEchoResponder {
-	public DOMSource issueResponseFor(Object request) {
-		return (DOMSource) new DomSourceFactory().createSource(
-				"<echoResponse xmlns=\"http://www.springframework.org/spring-ws/samples/echo\">hello</echoResponse>");
+
+	public Source issueResponseFor(DOMSource request) {
+		return new DomSourceFactory().createSource(
+				"<echoResponse xmlns=\"http://www.springframework.org/spring-ws/samples/echo\">" +
+				request.getNode().getTextContent() + "</echoResponse>");
 	}
 }
