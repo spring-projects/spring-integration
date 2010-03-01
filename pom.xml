@@ -11,18 +11,20 @@
 		<module>spring-integration-parent</module>
 		<module>org.springframework.integration</module>
 		<module>org.springframework.integration.adapter</module>
+		<module>org.springframework.integration.test</module>
 		<module>org.springframework.integration.event</module>
 		<module>org.springframework.integration.file</module>
 		<module>org.springframework.integration.http</module>
 		<module>org.springframework.integration.httpinvoker</module>
+		<module>org.springframework.integration.ip</module>
+		<module>org.springframework.integration.jdbc</module>
 		<module>org.springframework.integration.jms</module>
+		<module>org.springframework.integration.jmx</module>
 		<module>org.springframework.integration.mail</module>
 		<module>org.springframework.integration.rmi</module>
 		<module>org.springframework.integration.security</module>
 		<module>org.springframework.integration.stream</module>
-		<module>org.springframework.integration.ip</module>
 		<module>org.springframework.integration.ws</module>
 		<module>org.springframework.integration.xml</module>
-		<module>org.springframework.integration.test</module>
 	</modules>
 </project>
