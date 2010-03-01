@@ -1,6 +1,7 @@
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,7 +10,6 @@ import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.RowMapper;
@@ -71,6 +71,62 @@ public class JdbcPollingChannelAdapterIntegrationTest {
         Item item = (Item)rows.get(0);
         assertEquals("Wrong id", 1, item.getId());
         assertEquals("Wrong status", 2, item.getStatus());
+        
+    }
+    
+
+    @Test
+    public void testSimplePollForListWithRowMapperAndOneUpdate(){
+        JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(this.embeddedDatabase, "select * from item where status=2");
+        adapter.setUpdateQuery("update item set status = 10 where id in (:idList)");
+        adapter.setRowMapper(new ItemRowMapper());
+        
+        this.jdbcTemplate.update("insert into item values(1,2)") ;
+        this.jdbcTemplate.update("insert into item values(2,2)") ;
+        
+        Message<Object> message = adapter.receive();
+        Object payload = message.getPayload();
+        List rows = (List)payload;
+        assertEquals("Wrong number of elements" , 2, rows.size());
+        assertTrue("Wrong payload type",  rows.get(0) instanceof Item);
+        Item item = (Item)rows.get(0);
+        assertEquals("Wrong id", 1, item.getId());
+        assertEquals("Wrong status", 2, item.getStatus());
+        
+        int countOfStatusTwo = this.jdbcTemplate.queryForInt("select count(*) from item where status = 2");
+        assertEquals("Status not updated incorect number of rows with status 2", 0, countOfStatusTwo);
+        
+        int countOfStatusTen = this.jdbcTemplate.queryForInt("select count(*) from item where status = 10");
+        assertEquals("Status not updated incorect number of rows with status 10", 2, countOfStatusTen);
+        
+        
+    }
+    
+    @Test
+    public void testSimplePollForListWithRowMapperAndUpdatePerRow(){
+        JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(this.embeddedDatabase, "select * from item where status=2");
+        adapter.setUpdateQuery("update item set status = 10 where id = :id");
+        adapter.setUpdatePerRow(true);
+        adapter.setRowMapper(new ItemRowMapper());
+        
+        this.jdbcTemplate.update("insert into item values(1,2)") ;
+        this.jdbcTemplate.update("insert into item values(2,2)") ;
+        
+        Message<Object> message = adapter.receive();
+        Object payload = message.getPayload();
+        List rows = (List)payload;
+        assertEquals("Wrong number of elements" , 2, rows.size());
+        assertTrue("Wrong payload type",  rows.get(0) instanceof Item);
+        Item item = (Item)rows.get(0);
+        assertEquals("Wrong id", 1, item.getId());
+        assertEquals("Wrong status", 2, item.getStatus());
+        
+        int countOfStatusTwo = this.jdbcTemplate.queryForInt("select count(*) from item where status = 2");
+        assertEquals("Status not updated incorect number of rows with status 2", 0, countOfStatusTwo);
+        
+        int countOfStatusTen = this.jdbcTemplate.queryForInt("select count(*) from item where status = 10");
+        assertEquals("Status not updated incorect number of rows with status 10", 2, countOfStatusTen);
+        
         
     }
     

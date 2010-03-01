@@ -16,6 +16,11 @@
 
 package org.springframework.integration.jdbc;
 
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -31,115 +36,154 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.sql.DataSource;
-import java.util.List;
-
 /**
- * A polling channel adapter that creates messages from the payload returned by executing a select query
- * Optionally an update can be executed after the select in order to update processed rows
- *
+ * A polling channel adapter that creates messages from the payload returned by
+ * executing a select query Optionally an update can be executed after the
+ * select in order to update processed rows
+ * 
  * @author Jonas Partner
  */
-public class JdbcPollingChannelAdapter implements MessageSource<Object>, InitializingBean {
+public class JdbcPollingChannelAdapter implements MessageSource<Object>,
+		InitializingBean {
 
-    private final SimpleJdbcOperations jdbcOperations;
+	private final SimpleJdbcOperations jdbcOperations;
 
-    private final String selectQuery;
+	private final String selectQuery;
 
-    private volatile RowMapper<?> rowMapper;
+	private volatile RowMapper<?> rowMapper;
 
-    private volatile String updateQuery;
+	private volatile SqlParameterSource sqlQueryParameterSource;
 
-    private volatile SqlParameterSource sqlQueryParameterSource;
+	private volatile TransactionDefinition transactionDefinition;
 
-    private volatile TransactionDefinition transactionDefinition;
+	private volatile TransactionTemplate transactionTemplate;
 
-    private volatile TransactionTemplate transactionTemplate;
+	private volatile PlatformTransactionManager platformTransactionManager;
 
-    private volatile PlatformTransactionManager platformTransactionManager;
+	private volatile boolean updatePerRow = false;
 
-    public JdbcPollingChannelAdapter(DataSource dataSource, String selectQuery) {
-        this.jdbcOperations = new SimpleJdbcTemplate(dataSource);
-        this.selectQuery = selectQuery;
-    }
+	private volatile String updateQuery;
 
-    public JdbcPollingChannelAdapter(SimpleJdbcOperations jdbcOperations, String selectQuery) {
-        this.jdbcOperations = jdbcOperations;
-        this.selectQuery = selectQuery;
-    }
+	private volatile SqlParamterSourceFactory sqlParameterSourceFactoryForUpdate = new DefaultSqlParamterSourceFactory();
 
-    public void setTransactionDefinition(TransactionDefinition transactionDefinition) {
-        this.transactionDefinition = transactionDefinition;
-    }
+	public JdbcPollingChannelAdapter(DataSource dataSource, String selectQuery) {
+		this.jdbcOperations = new SimpleJdbcTemplate(dataSource);
+		this.selectQuery = selectQuery;
+	}
 
-    public void setTransactionManager(PlatformTransactionManager transactionManager) {
-        this.platformTransactionManager = platformTransactionManager;
-    }
+	public JdbcPollingChannelAdapter(SimpleJdbcOperations jdbcOperations,
+			String selectQuery) {
+		this.jdbcOperations = jdbcOperations;
+		this.selectQuery = selectQuery;
+	}
 
-    public void setRowMapper(RowMapper<?> rowMapper) {
-        this.rowMapper = rowMapper;
-    }
+	public void setTransactionDefinition(
+			TransactionDefinition transactionDefinition) {
+		this.transactionDefinition = transactionDefinition;
+	}
 
-    public void setUpdateQuery(String updateQuery) {
-        this.updateQuery = updateQuery;
-    }
+	public void setTransactionManager(
+			PlatformTransactionManager platformTransactionManager) {
+		this.platformTransactionManager = platformTransactionManager;
+	}
 
+	public void setRowMapper(RowMapper<?> rowMapper) {
+		this.rowMapper = rowMapper;
+	}
 
-    public void afterPropertiesSet() throws Exception {
-        if (this.transactionDefinition == null) {
-            this.transactionDefinition = new DefaultTransactionDefinition();
-        }
+	public void setUpdateQuery(String updateQuery) {
+		this.updateQuery = updateQuery;
+	}
+	
+	public void setUpdatePerRow(boolean updatePerRow){
+		this.updatePerRow = updatePerRow;
+	}
 
-        if (this.platformTransactionManager != null) {
-            this.transactionTemplate = new TransactionTemplate(this.platformTransactionManager, this.transactionDefinition);
-        }
-    }
+	public void setSqlParameterSourceFactoryForUpdate(
+			SqlParamterSourceFactory sqlParameterSourceFactoryForUpdate) {
+		this.sqlParameterSourceFactoryForUpdate = sqlParameterSourceFactoryForUpdate;
+	}
 
-    public Message<Object> receive() {
-        Object payload = null;
-        if (this.transactionTemplate != null){
-            payload = this.transactionTemplate.execute(new TransactionCallback<Object>(){
-                public Object doInTransaction(TransactionStatus status) {
-                    return pollAndUpdate();
-                }
-            });
-        } else {
-            payload = pollAndUpdate();
-        }
-        return MessageBuilder.withPayload(payload).build();
-    }
+	public void afterPropertiesSet() throws Exception {
+		if (this.transactionDefinition == null) {
+			this.transactionDefinition = new DefaultTransactionDefinition();
+		}
 
-    protected Object pollAndUpdate(){
-        List payload;
-           if (this.rowMapper != null) {
-                payload = pollWithRowMapper();
-           } else {
-               payload = this.jdbcOperations.queryForList(this.selectQuery, this.sqlQueryParameterSource);
-           }
+		if (this.platformTransactionManager != null) {
+			this.transactionTemplate = new TransactionTemplate(
+					this.platformTransactionManager, this.transactionDefinition);
+		}
+	}
 
-        return payload;
+	public Message<Object> receive() {
+		Object payload = null;
+		if (this.transactionTemplate != null) {
+			payload = this.transactionTemplate
+					.execute(new TransactionCallback<Object>() {
+						public Object doInTransaction(TransactionStatus status) {
+							return pollAndUpdate();
+						}
+					});
+		} else {
+			payload = pollAndUpdate();
+		}
+		return MessageBuilder.withPayload(payload).build();
+	}
 
-    }
+	protected Object pollAndUpdate() {
+		List payload;
+		if (this.rowMapper != null) {
+			payload = pollWithRowMapper();
+		} else {
+			payload = this.jdbcOperations.queryForList(this.selectQuery,
+					this.sqlQueryParameterSource);
+		}
+		if (updateQuery != null) {
+			if (this.updatePerRow) {
+				for (Object row : payload) {
+					executeUpdateQuery(row);
+				}
+			} else {
+				executeUpdateQuery(payload);
+			}
+		}
+		return payload;
 
-    protected List pollWithRowMapper(){
-        List payload = null;
-        if(this.sqlQueryParameterSource != null){
-            payload = this.jdbcOperations.query(this.selectQuery, this.rowMapper, this.sqlQueryParameterSource);
-        } else {
-            payload = this.jdbcOperations.query(this.selectQuery, this.rowMapper);
-        }
-        return payload;
-    }
+	}
 
-    protected Object pollForListOfMap(){
-        List payload = null;
-            if(this.sqlQueryParameterSource != null){
-                payload = this.jdbcOperations.queryForList(this.selectQuery,  this.sqlQueryParameterSource);
-            } else {
-                payload = this.jdbcOperations.queryForList(this.selectQuery);
-            }
-            return payload;
-    }
+	protected void executeUpdateQuery(Object obj) {
+		SqlParameterSource updateParamaterSource = null;
+		if (this.sqlParameterSourceFactoryForUpdate != null) {
+			
+			updateParamaterSource = this.sqlParameterSourceFactoryForUpdate
+					.createParamterSource(obj);
+			this.jdbcOperations.update(this.updateQuery, updateParamaterSource);
+		} else {
+			this.jdbcOperations.update(this.updateQuery);
+		}
+	}
 
+	protected List pollWithRowMapper() {
+		List payload = null;
+		if (this.sqlQueryParameterSource != null) {
+			payload = this.jdbcOperations.query(this.selectQuery,
+					this.rowMapper, this.sqlQueryParameterSource);
+		} else {
+			payload = this.jdbcOperations.query(this.selectQuery,
+					this.rowMapper);
+		}
+		return payload;
+	}
+
+	protected List<Map<String, Object>> pollForListOfMap() {
+		List<Map<String, Object>> payload = null;
+		if (this.sqlQueryParameterSource != null) {
+			payload = this.jdbcOperations.queryForList(this.selectQuery,
+					this.sqlQueryParameterSource);
+		} else {
+			payload = this.jdbcOperations.queryForList(this.selectQuery);
+		}
+		return payload;
+	}
 
 }
