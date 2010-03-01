@@ -62,7 +62,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object>,
 
 	private volatile boolean updatePerRow = false;
 
-	private volatile String updateQuery;
+	private volatile String updateSql;
 
 	private volatile SqlParamterSourceFactory sqlParameterSourceFactoryForUpdate = new DefaultSqlParamterSourceFactory();
 
@@ -91,8 +91,8 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object>,
 		this.rowMapper = rowMapper;
 	}
 
-	public void setUpdateQuery(String updateQuery) {
-		this.updateQuery = updateQuery;
+	public void setUpdatesql(String updateSql) {
+		this.updateSql = updateSql;
 	}
 	
 	public void setUpdatePerRow(boolean updatePerRow){
@@ -127,6 +127,9 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object>,
 		} else {
 			payload = pollAndUpdate();
 		}
+		if(payload == null){
+			return null;
+		}
 		return MessageBuilder.withPayload(payload).build();
 	}
 
@@ -138,7 +141,12 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object>,
 			payload = this.jdbcOperations.queryForList(this.selectQuery,
 					this.sqlQueryParameterSource);
 		}
-		if (updateQuery != null) {
+		
+		if(payload.size() < 1){
+			payload = null;
+		}
+		
+		if (payload != null && updateSql != null) {
 			if (this.updatePerRow) {
 				for (Object row : payload) {
 					executeUpdateQuery(row);
@@ -157,9 +165,9 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object>,
 			
 			updateParamaterSource = this.sqlParameterSourceFactoryForUpdate
 					.createParamterSource(obj);
-			this.jdbcOperations.update(this.updateQuery, updateParamaterSource);
+			this.jdbcOperations.update(this.updateSql, updateParamaterSource);
 		} else {
-			this.jdbcOperations.update(this.updateQuery);
+			this.jdbcOperations.update(this.updateSql);
 		}
 	}
 
