@@ -67,7 +67,8 @@ public class TcpNioReceivingChannelAdapter extends
 		try {
 			serverChannel = ServerSocketChannel.open();
 			serverChannel.configureBlocking(false);
-			serverChannel.socket().bind(new InetSocketAddress(port), 10);
+			serverChannel.socket().bind(new InetSocketAddress(port),
+					Math.abs(poolSize));
 			final Selector selector = Selector.open();
 			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 			doSelect(serverChannel, selector);

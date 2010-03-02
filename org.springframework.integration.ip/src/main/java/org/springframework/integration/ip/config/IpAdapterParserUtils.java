@@ -18,8 +18,8 @@ package org.springframework.integration.ip.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.tcp.MessageFormats;
 import org.springframework.util.StringUtils;
@@ -86,8 +86,6 @@ public abstract class IpAdapterParserUtils {
 
 	static final String SO_TRAFFIC_CLASS = "so-traffic-class";
 
-	static final String BLOCKING_WRITE = "blocking-write";
-	
 
 	/**
 	 * Adds a constructor-arg to the bean definition with the value
@@ -110,18 +108,19 @@ public abstract class IpAdapterParserUtils {
 	/**
 	 * Asserts that a protocol attribute (udp or tcp) is supplied,
 	 * @param element
+	 * @param parserContext 
 	 * @return The value of the attribute.
 	 * @throws BeanCreationException if attribute not provided or invalid.
 	 */
-	static String getProtocol(Element element) {
+	static String getProtocol(Element element, ParserContext parserContext) {
 		String protocol = element.getAttribute(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE);
 		if (!StringUtils.hasText(protocol)) {
-			throw new BeanCreationException(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
-					" is required for an IP channel adapter");
+			parserContext.getReaderContext().error(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
+					" is required for an IP channel adapter", element);
 		}
 		if (!protocol.equals("tcp") && !protocol.equals("udp")) {
-			throw new BeanCreationException(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
-					" must be 'tcp' or 'udp' for an IP channel adapter");
+			parserContext.getReaderContext().error(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
+					" must be 'tcp' or 'udp' for an IP channel adapter", element);
 		}
 		return protocol;
 	}
@@ -129,14 +128,15 @@ public abstract class IpAdapterParserUtils {
 	/**
 	 * Asserts that a port attribute is supplied.
 	 * @param element
+	 * @param parserContext 
 	 * @return The value of the attribute.
 	 * @throws BeanCreationException if attribute is not provided.
 	 */
-	static String getPort(Element element) {
+	static String getPort(Element element, ParserContext parserContext) {
 		String port = element.getAttribute(IpAdapterParserUtils.PORT);
 		if (!StringUtils.hasText(port)) {
-			throw new BeanCreationException(IpAdapterParserUtils.PORT +
-					" is required for IP channel adapters");
+			parserContext.getReaderContext().error(IpAdapterParserUtils.PORT +
+					" is required for IP channel adapters", element);
 		}
 		return port;
 	}

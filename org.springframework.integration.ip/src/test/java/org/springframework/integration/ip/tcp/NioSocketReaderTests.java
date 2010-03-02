@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
+import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -44,13 +45,13 @@ public class NioSocketReaderTests {
 	public void testReadLength() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		// Fire up the sender.
-		Utils.testSendLength(port, latch);
+		SocketUtils.testSendLength(port, latch);
 		
 		if(selector.select(10000) <= 0) {
 			fail("Socket failed to connect");
@@ -81,7 +82,7 @@ public class NioSocketReaderTests {
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData()) {
-						assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 						         new String(reader.getAssembledData()));
 						count++;
 					}
@@ -100,13 +101,13 @@ public class NioSocketReaderTests {
 	public void testFragmented() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		// Fire up the sender.
-		Utils.testSendFragmented(port, false);
+		SocketUtils.testSendFragmented(port, false);
 		
 		if(selector.select(10000) <= 0) {
 			fail("Socket failed to connect");
@@ -159,13 +160,13 @@ public class NioSocketReaderTests {
 	public void testReadStxEtx() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		// Fire up the sender.
-		Utils.testSendStxEtx(port, latch);
+		SocketUtils.testSendStxEtx(port, latch);
 		
 		if(selector.select(10000) <= 0) {
 			fail("Socket failed to connect");
@@ -197,7 +198,7 @@ public class NioSocketReaderTests {
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData()) {
-						assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 						         new String(reader.getAssembledData()));
 						count++;
 					}
@@ -219,13 +220,13 @@ public class NioSocketReaderTests {
 	public void testReadCrLf() throws Exception {
 		ServerSocketChannel server = ServerSocketChannel.open();
 		server.configureBlocking(false);
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		server.socket().bind(new InetSocketAddress(port));
 		final Selector selector = Selector.open();
 		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		// Fire up the sender.
-		Utils.testSendCrLf(port, latch);
+		SocketUtils.testSendCrLf(port, latch);
 		
 		if(selector.select(10000) <= 0) {
 			fail("Socket failed to connect");
@@ -257,7 +258,7 @@ public class NioSocketReaderTests {
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData()) {
-						assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 						         new String(reader.getAssembledData()));
 						count++;
 					}

@@ -52,8 +52,6 @@ public abstract class AbstractTcpSendingMessageHandler extends
 
 	protected int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
 	
-	protected boolean blockingWrite = false;
-	
 	/**
 	 * Constructs a message handler that sends messages to the specified
 	 * host and port.
@@ -94,34 +92,12 @@ public abstract class AbstractTcpSendingMessageHandler extends
 
 	/**
 	 * Writes the message payload to the underlying socket, using the specified
-	 * message format. If blockingWrite is true, the write to the socket
-	 * will occur on the caller's thread. Otherwise, the method will return 
-	 * immediately and the write will occur on a separate thread.
-	 * 
+	 * message format. 
 	 * @see org.springframework.integration.message.MessageHandler#handleMessage(org.springframework.integration.core.Message)
 	 */
 	public void handleMessage(final Message<?> message) throws MessageRejectedException,
 			MessageHandlingException, MessageDeliveryException {
-		if (blockingWrite) {
-			doWrite(message);
-			return;
-		}
-		if (this.executorService == null) {
-			this.executorService = Executors
-			.newSingleThreadExecutor(new ThreadFactory() {
-				public Thread newThread(Runnable runner) {
-					Thread thread = new Thread(runner);
-					thread.setName("Tcp-NonBlocking-Handler-port-" + port);
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
-		}
-		executorService.execute(new Runnable() {
-			public void run() {
-				doWrite(message);
-			}
-		});
+		doWrite(message);
 	}
 
 	/**
@@ -184,14 +160,6 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	 */
 	public void setMessageFormat(int messageFormat) {
 		this.messageFormat = messageFormat;
-	}
-
-	/**
-	 * If true, socket writes will occur on the caller's thread.
-	 * @param blockingWrite the blockingWrite to set
-	 */
-	public void setBlockingWrite(boolean blockingWrite) {
-		this.blockingWrite = blockingWrite;
 	}
 
 }

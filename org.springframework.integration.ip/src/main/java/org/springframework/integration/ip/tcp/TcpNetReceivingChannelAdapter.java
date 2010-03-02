@@ -58,7 +58,8 @@ public class TcpNetReceivingChannelAdapter extends
 	protected void server() {
 		while (active) {
 			try {
-				serverSocket = ServerSocketFactory.getDefault().createServerSocket(port);
+				serverSocket = ServerSocketFactory.getDefault()
+						.createServerSocket(port, Math.abs(poolSize));
 				while (true) {
 					final Socket socket = serverSocket.accept();
 					setSocketOptions(socket);

@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -62,9 +63,10 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 		if (this.active && this.threadPoolTaskScheduler == null) {
 			this.threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
 			this.threadPoolTaskScheduler.setThreadFactory(new ThreadFactory() {
+				private AtomicInteger n = new AtomicInteger(); 
 				public Thread newThread(Runnable runner) {
 					Thread thread = new Thread(runner);
-					thread.setName("TCP-Incoming-Msg-Handler");
+					thread.setName("TCP-Incoming-Msg-Handler-" + n.getAndIncrement());
 					thread.setDaemon(true);
 					return thread;
 				}

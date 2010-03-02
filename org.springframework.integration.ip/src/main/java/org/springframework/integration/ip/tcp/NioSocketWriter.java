@@ -124,6 +124,8 @@ public class NioSocketWriter extends AbstractSocketWriter {
 		}
 		if (lengthPart == null) {
 			lengthPart = ByteBuffer.allocate(4);
+		} else {
+			lengthPart.clear();
 		}
 		lengthPart.putInt(bytes.length);
 		lengthPart.flip();

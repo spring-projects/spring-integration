@@ -29,8 +29,8 @@ import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler;
-import org.springframework.integration.ip.tcp.Utils;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
+import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -106,7 +106,7 @@ public class IpChannelAdapterParserTests
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound1() {
-		Utils.testSendFragmented(tcp1.getPort(), true);
+		SocketUtils.testSendFragmented(tcp1.getPort(), true);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
 		assertEquals("xx", new String(message.getPayload()));
@@ -115,7 +115,7 @@ public class IpChannelAdapterParserTests
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound2() {
-		Utils.testSendFragmented(tcp2.getPort(), true);
+		SocketUtils.testSendFragmented(tcp2.getPort(), true);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
 		assertEquals("xx", new String(message.getPayload()));
@@ -124,7 +124,7 @@ public class IpChannelAdapterParserTests
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound3() {
-		Utils.testSendFragmented(tcp3.getPort(), true);
+		SocketUtils.testSendFragmented(tcp3.getPort(), true);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
 		assertEquals("xx", new String(message.getPayload()));
@@ -133,38 +133,38 @@ public class IpChannelAdapterParserTests
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound4() {
-		Utils.testSendStxEtx(tcp4.getPort(), null);
+		SocketUtils.testSendStxEtx(tcp4.getPort(), null);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
-		assertEquals(Utils.TEST_STRING + Utils.TEST_STRING, new String(message.getPayload()));
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, new String(message.getPayload()));
 		message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
-		assertEquals(Utils.TEST_STRING + Utils.TEST_STRING, new String(message.getPayload()));
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, new String(message.getPayload()));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound5() {
-		Utils.testSendCrLf(tcp5.getPort(), null);
+		SocketUtils.testSendCrLf(tcp5.getPort(), null);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
-		assertEquals(Utils.TEST_STRING + Utils.TEST_STRING, new String(message.getPayload()));
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, new String(message.getPayload()));
 		message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
-		assertEquals(Utils.TEST_STRING + Utils.TEST_STRING, new String(message.getPayload()));
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, new String(message.getPayload()));
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testTcpInbound6() {
-		Utils.testSendStxEtx(tcp6.getPort(), null);
+		SocketUtils.testSendStxEtx(tcp6.getPort(), null);
 		Message<byte[]> message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
-		assertEquals("\u0002" + Utils.TEST_STRING + Utils.TEST_STRING + "\u0003", 
+		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
 				new String(message.getPayload()));
 		message = (Message<byte[]>) channel.receive(10000);
 		assertNotNull(message);
-		assertEquals("\u0002" + Utils.TEST_STRING + Utils.TEST_STRING + "\u0003", 
+		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
 				new String(message.getPayload()));
 	}
 

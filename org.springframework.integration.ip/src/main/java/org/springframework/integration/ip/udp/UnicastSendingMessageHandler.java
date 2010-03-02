@@ -28,6 +28,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
@@ -155,9 +156,10 @@ public class UnicastSendingMessageHandler extends
 			Assert.hasLength(ackHost);
 			this.executorService = Executors
 					.newSingleThreadExecutor(new ThreadFactory() {
+						private AtomicInteger n = new AtomicInteger(); 
 						public Thread newThread(Runnable runner) {
 							Thread thread = new Thread(runner);
-							thread.setName("UDP-Ack-Handler");
+							thread.setName("UDP-Ack-Handler-" + n.getAndIncrement());
 							thread.setDaemon(true);
 							return thread;
 						}
@@ -256,10 +258,8 @@ public class UnicastSendingMessageHandler extends
 			}
 		}
 		catch (IOException e) {
-			if (this.ackSocket != null) {
-				logger.error("Error on UDP Acknowledge thread");
-				fatalException = e;
-			}
+			logger.error("Error on UDP Acknowledge thread" + e.getMessage());
+			fatalException = e;
 		}
 		finally {
 			if (this.ackSocket != null) {

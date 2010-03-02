@@ -24,6 +24,7 @@ import java.net.Socket;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -37,21 +38,21 @@ public class NetSocketReaderTests {
 	 */
 	@Test
 	public void testReadLength() throws Exception {
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		Utils.testSendLength(port, null);
+		SocketUtils.testSendLength(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
 		if (reader.assembleData()) {
-			assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
 		if (reader.assembleData()) {
-			assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
@@ -66,22 +67,22 @@ public class NetSocketReaderTests {
 	 */
 	@Test
 	public void testReadStxEtx() throws Exception {
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		Utils.testSendStxEtx(port, null);
+		SocketUtils.testSendStxEtx(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
 		if (reader.assembleData()) {
-			assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
 		if (reader.assembleData()) {
-			assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
@@ -96,22 +97,22 @@ public class NetSocketReaderTests {
 	 */
 	@Test
 	public void testReadCrLf() throws Exception {
-		int port = Utils.findAvailableServerSocket();
+		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		Utils.testSendCrLf(port, null);
+		SocketUtils.testSendCrLf(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		if (reader.assembleData()) {
-			assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
 		if (reader.assembleData()) {
-			assertEquals("Data", Utils.TEST_STRING + Utils.TEST_STRING, 
+			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {

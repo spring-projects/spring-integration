@@ -80,7 +80,6 @@
 		protocol="tcp"
 		host="localhost"
 		port="#{tcp6.port}"
-		blocking-write="true"
 		message-format="custom"
 		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"
 		using-nio="false"

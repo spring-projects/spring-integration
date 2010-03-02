@@ -10,7 +10,7 @@
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<beans:bean id="tcpIpUtils" class="org.springframework.integration.ip.tcp.Utils" />
+	<beans:bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 		
 	<!-- nio without direct buffers -->
 	<ip:inbound-channel-adapter id="tcp1"

@@ -28,6 +28,7 @@ import java.nio.channels.SocketChannel;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
@@ -37,7 +38,7 @@ public class NioSocketWriterTests {
 
 		@Test
 		public void testWriteLengthHeader() throws Exception {
-			final int port = Utils.findAvailableServerSocket();
+			final int port = SocketUtils.findAvailableServerSocket();
 			final String testString = "abcdef";
 			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 			Thread t = new Thread(new Runnable() {
@@ -69,7 +70,7 @@ public class NioSocketWriterTests {
 
 		@Test
 		public void testWriteStxEtx() throws Exception {
-			final int port = Utils.findAvailableServerSocket();
+			final int port = SocketUtils.findAvailableServerSocket();
 			final String testString = "abcdef";
 			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 			Thread t = new Thread(new Runnable() {
@@ -101,7 +102,7 @@ public class NioSocketWriterTests {
 
 		@Test
 		public void testWriteCrLf() throws Exception {
-			final int port = Utils.findAvailableServerSocket();
+			final int port = SocketUtils.findAvailableServerSocket();
 			final String testString = "abcdef";
 			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 			Thread t = new Thread(new Runnable() {
@@ -133,7 +134,7 @@ public class NioSocketWriterTests {
 		
 		@Test
 		public void testWriteLengthHeaderDirect() throws Exception {
-			final int port = Utils.findAvailableServerSocket();
+			final int port = SocketUtils.findAvailableServerSocket();
 			final String testString = "abcdef";
 			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 			Thread t = new Thread(new Runnable() {
@@ -166,7 +167,7 @@ public class NioSocketWriterTests {
 
 		@Test
 		public void testWriteStxEtxDirect() throws Exception {
-			final int port = Utils.findAvailableServerSocket();
+			final int port = SocketUtils.findAvailableServerSocket();
 			final String testString = "abcdef";
 			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 			Thread t = new Thread(new Runnable() {
@@ -199,7 +200,7 @@ public class NioSocketWriterTests {
 
 		@Test
 		public void testWriteCrLfDirect() throws Exception {
-			final int port = Utils.findAvailableServerSocket();
+			final int port = SocketUtils.findAvailableServerSocket();
 			final String testString = "abcdef";
 			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 			Thread t = new Thread(new Runnable() {

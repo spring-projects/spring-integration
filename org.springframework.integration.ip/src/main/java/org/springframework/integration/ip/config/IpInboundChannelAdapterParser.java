@@ -18,7 +18,6 @@ package org.springframework.integration.ip.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -40,13 +39,14 @@ import org.springframework.util.StringUtils;
 public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		String protocol = IpAdapterParserUtils.getProtocol(element);
+		String protocol = IpAdapterParserUtils.getProtocol(element, parserContext);
 		BeanDefinitionBuilder builder = null;
 		if (protocol.equals("tcp")) {
-			builder = parseTcp(element);
+			builder = parseTcp(element, parserContext);
 		} else if (protocol.equals("udp")) {
-			builder = parseUdp(element);
+			builder = parseUdp(element, parserContext);
 		}
+		parserContext.extractSource(element);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
@@ -60,18 +60,20 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 	/**
 	 * @param element
 	 * @param builder
+	 * @param parserContext 
 	 */
 	private void addPortToConstructor(Element element,
-			BeanDefinitionBuilder builder) {
-		String port = IpAdapterParserUtils.getPort(element);
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String port = IpAdapterParserUtils.getPort(element, parserContext);
 		builder.addConstructorArgValue(port);
 	}
 
 	/**
 	 * @param element
+	 * @param parserContext 
 	 * @return
 	 */
-	private BeanDefinitionBuilder parseUdp(Element element) {
+	private BeanDefinitionBuilder parseUdp(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("false")) {
@@ -84,13 +86,14 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 			String mcAddress = element
 					.getAttribute(IpAdapterParserUtils.MULTICAST_ADDRESS);
 			if (!StringUtils.hasText(mcAddress)) {
-				throw new BeanCreationException(
+				parserContext.getReaderContext().error(
 						IpAdapterParserUtils.MULTICAST_ADDRESS
-								+ " is required for a multicast UDP/IP channel adapter");
+							+ " is required for a multicast UDP/IP channel adapter",
+							element);
 			}
 			builder.addConstructorArgValue(mcAddress);
 		}
-		addPortToConstructor(element, builder);
+		addPortToConstructor(element, builder, parserContext);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
 		return builder;
@@ -98,9 +101,10 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 
 	/**
 	 * @param element
+	 * @param parserContext 
 	 * @return
 	 */
-	private BeanDefinitionBuilder parseTcp(Element element) {
+	private BeanDefinitionBuilder parseTcp(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String useNio = IpAdapterParserUtils.getUseNio(element);
 		if (useNio.equals("false")) {
@@ -111,7 +115,7 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 			builder = BeanDefinitionBuilder
 					.genericBeanDefinition(TcpNioReceivingChannelAdapter.class);
 		}
-		addPortToConstructor(element, builder);
+		addPortToConstructor(element, builder, parserContext);
 		builder.addPropertyValue(
 				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
 				IpAdapterParserUtils.getMessageFormat(element));

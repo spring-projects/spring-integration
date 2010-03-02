@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.util;
 
 import java.io.OutputStream;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -33,11 +34,11 @@ import org.apache.commons.logging.LogFactory;
  * @author Gary Russell
  *
  */
-public class Utils {
+public class SocketUtils {
 
 	public static final String TEST_STRING = "TestMessage";
 
-	private static final Log logger = LogFactory.getLog(Utils.class);
+	private static final Log logger = LogFactory.getLog(SocketUtils.class);
 	
 	/**
 	 * Sends a message in two chunks with a preceding length. Two such messages are sent.
@@ -104,7 +105,7 @@ public class Utils {
 
 	private static void writeByte(OutputStream os, int b, boolean noDelay) throws Exception {
 		os.write(b);
-		logger.debug("Wrote 0x%x\n" + Integer.toHexString(b));
+		logger.debug("Wrote 0x" + Integer.toHexString(b));
 		if (noDelay) {
 			return;
 		}
@@ -191,4 +192,21 @@ public class Utils {
 	public static int findAvailableServerSocket() {
 		return findAvailableServerSocket(5678);
 	}
+
+	public static int findAvailableUdpSocket(int seed) {
+		for (int i = seed; i < seed+200; i++) {
+			try {
+				DatagramSocket sock = new DatagramSocket(i);
+				sock.close();
+				Thread.sleep(100);
+				return i;
+			} catch (Exception e) { }
+		}
+		throw new RuntimeException("Cannot find a free server socket");
+	}
+	
+	public static int findAvailableUdpSocket() {
+		return findAvailableUdpSocket(9876);
+	}
+
 }

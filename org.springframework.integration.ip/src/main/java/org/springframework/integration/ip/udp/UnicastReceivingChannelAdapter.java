@@ -82,7 +82,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	public void run() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("UDP Receiver running...");
+			logger.debug("UDP Receiver running on port:" + port);
 		}
 		if (this.active && this.threadPoolTaskScheduler == null) {
 			this.threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
@@ -199,6 +199,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		super.doStop();
 		try {
 			this.socket.close();
+			socket = null;
 		}
 		catch (Exception e) {
 			// ignore

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.ip.config;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -37,13 +36,13 @@ import org.w3c.dom.Element;
 public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		String protocol = IpAdapterParserUtils.getProtocol(element);
+		String protocol = IpAdapterParserUtils.getProtocol(element, parserContext);
 		BeanDefinitionBuilder builder = null;
 		if (protocol.equals("tcp")) {
-			builder = parseTcp(element);
+			builder = parseTcp(element, parserContext);
 		}
 		else if (protocol.equals("udp")) {
-			builder = parseUdp(element);
+			builder = parseUdp(element, parserContext);
 		}
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		return builder.getBeanDefinition();
@@ -52,24 +51,26 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 	/**
 	 * @param element
 	 * @param builder
+	 * @param parserContext 
 	 */
 	private void addHostAndPortToConstructor(Element element,
-			BeanDefinitionBuilder builder) {
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
 		String host = element.getAttribute(IpAdapterParserUtils.HOST);
 		if (!StringUtils.hasText(host)) {
-			throw new BeanCreationException(IpAdapterParserUtils.HOST
-					+ " is required for IP outbound channel adapters");
+			parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
+					+ " is required for IP outbound channel adapters", element);
 		}
 		builder.addConstructorArgValue(host);
-		String port = IpAdapterParserUtils.getPort(element);
+		String port = IpAdapterParserUtils.getPort(element, parserContext);
 		builder.addConstructorArgValue(port);
 	}
 
 	/**
 	 * @param element
+	 * @param parserContext 
 	 * @return
 	 */
-	private BeanDefinitionBuilder parseUdp(Element element) {
+	private BeanDefinitionBuilder parseUdp(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("true")) {
@@ -86,7 +87,7 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 			builder = BeanDefinitionBuilder
 					.genericBeanDefinition(UnicastSendingMessageHandler.class);
 		}
-		addHostAndPortToConstructor(element, builder);
+		addHostAndPortToConstructor(element, builder, parserContext);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
@@ -105,12 +106,12 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 							.getAttribute(IpAdapterParserUtils.ACK_PORT))
 					|| !StringUtils.hasText(element
 							.getAttribute(IpAdapterParserUtils.ACK_TIMEOUT))) {
-				throw new BeanCreationException("When "
+				parserContext.getReaderContext().error("When "
 						+ IpAdapterParserUtils.ACK + " is true, "
 						+ IpAdapterParserUtils.ACK_HOST + ", "
 						+ IpAdapterParserUtils.ACK_PORT + ", and "
 						+ IpAdapterParserUtils.ACK_TIMEOUT
-						+ " must be supplied");
+						+ " must be supplied", element);
 			}
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
@@ -120,9 +121,10 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 
 	/**
 	 * @param element
+	 * @param parserContext 
 	 * @return
 	 */
-	private BeanDefinitionBuilder parseTcp(Element element) {
+	private BeanDefinitionBuilder parseTcp(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder;
 		String useNio = IpAdapterParserUtils.getUseNio(element);
 		if (useNio.equals("false")) {
@@ -133,12 +135,10 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 			builder = BeanDefinitionBuilder
 					.genericBeanDefinition(TcpNioSendingMessageHandler.class);
 		}
-		addHostAndPortToConstructor(element, builder);
+		addHostAndPortToConstructor(element, builder, parserContext);
 		builder.addPropertyValue(
 				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
 				IpAdapterParserUtils.getMessageFormat(element));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.BLOCKING_WRITE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.CUSTOM_SOCKET_WRITER_CLASS_NAME); 
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
