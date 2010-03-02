@@ -45,7 +45,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
  */
 class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-	private static final String INTERNAL_BEAN_PREFIX = "_org.springframework.integration.";
+	private static final String ERROR_LOGGER_BEAN_NAME = "_org.springframework.integration.errorLogger";
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
@@ -109,9 +109,8 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
 			loggingEndpointBuilder.addConstructorArgReference(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
 			loggingEndpointBuilder.addConstructorArgValue(loggingHandlerBuilder.getBeanDefinition());
-			String loggingEndpointBeanName = INTERNAL_BEAN_PREFIX + "errorLoggerEndpoint";
 			BeanComponentDefinition componentDefinition = new BeanComponentDefinition(
-					loggingEndpointBuilder.getBeanDefinition(), loggingEndpointBeanName);
+					loggingEndpointBuilder.getBeanDefinition(), ERROR_LOGGER_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(componentDefinition, registry);
 		}
 	}
