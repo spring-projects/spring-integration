@@ -98,7 +98,6 @@ public class NotificationPublishingAdapter extends AbstractMessageHandler
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Assert.state(delegate != null, "NotificationPublisher is required");
 		this.delegate.publish(this.notificationMapper.fromMessage(message));
 	}
 
