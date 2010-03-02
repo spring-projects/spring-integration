@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,7 +159,6 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param parserContext the parserContext for the target builder
 	 */
 	public static void configurePollerMetadata(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
-		String pollerMetadataRef = null;
 		if (pollerElement.hasAttribute("ref")) {
 			if (pollerElement.getAttributes().getLength() != 1) {
 				parserContext.getReaderContext().error(
@@ -169,7 +168,7 @@ public abstract class IntegrationNamespaceUtils {
 				parserContext.getReaderContext().error(
 						"A 'poller' element that provides a 'ref' must have no child elements.", pollerElement);
 			}
-			pollerMetadataRef = pollerElement.getAttribute("ref");
+			targetBuilder.addPropertyReference("pollerMetadata", pollerElement.getAttribute("ref"));
 		}
 		else {
 			BeanDefinition beanDefinition = parserContext.getDelegate().parseCustomElement(
@@ -177,11 +176,8 @@ public abstract class IntegrationNamespaceUtils {
 			if (beanDefinition == null) {
 				parserContext.getReaderContext().error("BeanDefinition must not be null", pollerElement);
 			}
-			pollerMetadataRef = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
-			BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, pollerMetadataRef);
-			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+			targetBuilder.addPropertyValue("pollerMetadata", beanDefinition);
 		}
-		targetBuilder.addPropertyReference("pollerMetadata", pollerMetadataRef);
 	}
 
 	public static BeanDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext){
