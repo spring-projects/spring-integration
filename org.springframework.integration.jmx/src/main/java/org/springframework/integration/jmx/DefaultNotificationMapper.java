@@ -34,7 +34,7 @@ class DefaultNotificationMapper implements OutboundMessageMapper<Notification> {
 
 	private final ObjectName sourceObjectName;
 
-	private volatile String defaultNotificationType = "SpringIntegrationNotification";
+	private volatile String defaultNotificationType = "org.springframework.integration.jmx.event";
 
 	private final AtomicInteger sequence = new AtomicInteger();
 

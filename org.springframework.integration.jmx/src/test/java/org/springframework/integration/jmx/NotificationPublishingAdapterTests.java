@@ -61,6 +61,7 @@ public class NotificationPublishingAdapterTests {
 	@After
 	public void cleanup() {
 		this.listener.clearNotifications();
+		context.close();
 	}
 
 
@@ -73,7 +74,7 @@ public class NotificationPublishingAdapterTests {
 		Notification notification = this.listener.notifications.get(0);
 		assertEquals(this.publisherObjectName, notification.getSource());
 		assertEquals("foo", notification.getMessage());
-		assertEquals("SpringIntegrationNotification", notification.getType());
+		assertEquals("org.springframework.integration.jmx.event", notification.getType());
 	}
 
 

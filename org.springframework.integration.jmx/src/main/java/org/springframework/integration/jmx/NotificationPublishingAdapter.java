@@ -41,9 +41,9 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class NotificationPublishingAdapter extends AbstractMessageHandler
-		implements NotificationPublisherAware, BeanNameAware, BeanFactoryAware, InitializingBean {
+		implements BeanNameAware, BeanFactoryAware, InitializingBean {
 
-	private volatile NotificationPublisher notificationPublisher;
+	private final PublisherDelegate delegate = new PublisherDelegate();
 
 	private volatile OutboundMessageMapper<Notification> notificationMapper;
 
@@ -65,10 +65,6 @@ public class NotificationPublishingAdapter extends AbstractMessageHandler
 
 	public void setNotificationMapper(OutboundMessageMapper<Notification> notificationMapper) {
 		this.notificationMapper = notificationMapper;
-	}
-
-	public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
-		this.notificationPublisher = notificationPublisher;
 	}
 
 	public void setBeanName(String beanName) {
@@ -94,16 +90,31 @@ public class NotificationPublishingAdapter extends AbstractMessageHandler
 		if (this.notificationMapper == null) {
 			this.notificationMapper = new DefaultNotificationMapper(this.objectName);
 		}
-		exporter.registerManagedResource(this, ObjectNameManager.getInstance(this.objectName));
+		exporter.registerManagedResource(this.delegate, ObjectNameManager.getInstance(this.objectName));
 		if (this.logger.isInfoEnabled()) {
-			this.logger.info("Registered NotificationPublishingAdapter as MBean with ObjectName: " + this.objectName);
+			this.logger.info("Registered JMX notification publisher as MBean with ObjectName: " + this.objectName);
 		}
 	}
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Assert.state(this.notificationPublisher != null, "NotificationPublisher must not be null.");
-		this.notificationPublisher.sendNotification(this.notificationMapper.fromMessage(message));
+		Assert.state(delegate != null, "NotificationPublisher is required");
+		this.delegate.publish(this.notificationMapper.fromMessage(message));
+	}
+
+
+	private static class PublisherDelegate implements NotificationPublisherAware {
+
+		private volatile NotificationPublisher notificationPublisher;
+
+		public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
+			this.notificationPublisher = notificationPublisher;
+		}
+
+		private void publish(Notification notification) {
+			Assert.state(this.notificationPublisher != null, "NotificationPublisher must not be null.");
+			this.notificationPublisher.sendNotification(notification);
+		}
 	}
 
 }
