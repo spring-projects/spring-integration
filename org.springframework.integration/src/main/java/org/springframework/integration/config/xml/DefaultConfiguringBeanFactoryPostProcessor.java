@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -43,6 +44,8 @@ import org.springframework.integration.context.IntegrationContextUtils;
  * @author Oleg Zhurakousky
  */
 class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+
+	private static final String INTERNAL_BEAN_PREFIX = "_org.springframework.integration.";
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
@@ -102,13 +105,14 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 			BeanDefinitionBuilder loggingHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
 			loggingHandlerBuilder.addConstructorArgValue("ERROR");
-			String loggingHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					loggingHandlerBuilder.getBeanDefinition(), registry);
 			BeanDefinitionBuilder loggingEndpointBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.EventDrivenConsumer");
 			loggingEndpointBuilder.addConstructorArgReference(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			loggingEndpointBuilder.addConstructorArgReference(loggingHandlerBeanName);
-			BeanDefinitionReaderUtils.registerWithGeneratedName(loggingEndpointBuilder.getBeanDefinition(), registry);
+			loggingEndpointBuilder.addConstructorArgValue(loggingHandlerBuilder.getBeanDefinition());
+			String loggingEndpointBeanName = INTERNAL_BEAN_PREFIX + "errorLoggerEndpoint";
+			BeanComponentDefinition componentDefinition = new BeanComponentDefinition(
+					loggingEndpointBuilder.getBeanDefinition(), loggingEndpointBeanName);
+			BeanDefinitionReaderUtils.registerBeanDefinition(componentDefinition, registry);
 		}
 	}
 
@@ -131,12 +135,10 @@ class DefaultConfiguringBeanFactoryPostProcessor implements BeanFactoryPostProce
 			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MessagePublishingErrorHandler");
 			errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-			String errorHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					errorHandlerBuilder.getBeanDefinition(), registry);
-			schedulerBuilder.addPropertyReference("errorHandler", errorHandlerBeanName);
-			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(
+			schedulerBuilder.addPropertyValue("errorHandler", errorHandlerBuilder.getBeanDefinition());
+			BeanComponentDefinition schedulerComponent = new BeanComponentDefinition(
 					schedulerBuilder.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerHolder, registry);
+			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerComponent, registry);
 		}
 	}
 
