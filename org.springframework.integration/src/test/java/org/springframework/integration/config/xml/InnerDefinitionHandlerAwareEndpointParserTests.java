@@ -16,20 +16,9 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.ByteArrayInputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import junit.framework.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -42,13 +31,17 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.io.ByteArrayInputStream;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
@@ -253,11 +246,11 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		MessageChannel inChannel = (MessageChannel) ac.getBean("inChannel");
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
-			Message<Integer> message = new GenericMessage<Integer>(i, headers);
+			Message<Integer> message =       MessageBuilder.withPayload(i).copyHeaders(headers).build();
 			inChannel.send(message);
 		}
 		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
-		assertEquals(0 + 1 + 2 + 3 + 4, output.receive().getPayload());
+		assertEquals(0 + 1 + 2 + 3 + 4, output.receive(100).getPayload());
 	}
 
 	private void testFilterDefinitionSuccess(String configProperty){
@@ -284,7 +277,6 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		headers.put(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
 		headers.put(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
 		headers.put(MessageHeaders.CORRELATION_ID, correllationId);
-		headers.put(MessageHeaders.ID, 1);
 		return headers;
 	}
 

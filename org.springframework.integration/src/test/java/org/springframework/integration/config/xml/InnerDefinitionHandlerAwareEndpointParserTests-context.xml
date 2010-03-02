@@ -10,6 +10,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<util:properties id="testConfigurations" location="classpath:org/springframework/integration/config/xml/innerdefaware.properties"/>
+	<util:properties id="testConfigurations"
+                   location="classpath:org/springframework/integration/config/xml/innerdefaware.properties"/>
 
 </beans:beans>

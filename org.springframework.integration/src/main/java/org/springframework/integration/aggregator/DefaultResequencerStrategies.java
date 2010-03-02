@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.aggregator;
 
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -25,6 +26,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * This class implements all the strategy interfaces needed for a default resequencer.
+ *
  * @author Iwein Fuld
  */
 public class DefaultResequencerStrategies implements CorrelationStrategy, CompletionStrategy, MessageGroupProcessor {
@@ -39,12 +42,12 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
     }
 
     public boolean isComplete(List<? extends Message<?>> messages) {
-        return releasePartialSequences||
-                messages.get(0).getHeaders().getSequenceSize()==messages.size();
+        return releasePartialSequences ||
+                messages.get(0).getHeaders().getSequenceSize() == messages.size();
     }
 
-    public void processAndSend(MessageGroup group, MessageChannel outputChannel) {
-        List<Message<?>> all =  group.getMessages();
+    public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
+        List<Message<?>> all = group.getMessages();
         Object correlationKey = group.getCorrelationKey();
         if (all.size() > 0) {
             List<Message> sorted = new ArrayList(all);
@@ -53,13 +56,13 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
             for (Message message : sorted) {
                 final int sequenceNumber = message.getHeaders().getSequenceNumber();
                 if (sequenceNumber <= nextSequence.get()) {
-                    outputChannel.send(message);
+                    channelTemplate.send(message, outputChannel);
                     nextSequence.compareAndSet(sequenceNumber, sequenceNumber + 1);
                     group.onProcessingOf(message);
                 }
             }
             MessageHeaders headers = sorted.get(0).getHeaders();
-            if (all.size() == headers.getSequenceSize()){
+            if (all.size() == headers.getSequenceSize()) {
                 group.onCompletion();
             }
         }

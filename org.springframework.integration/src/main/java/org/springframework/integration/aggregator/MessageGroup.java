@@ -35,8 +35,13 @@ public class MessageGroup {
     }
 
     public boolean hasNoMessageSuperseding(Message<?> message) {
+        Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
+        if (messageSequenceNumber == null) {
+            return true;
+        }
         for (Message<?> member : messages) {
-            if (member.getHeaders().getSequenceNumber() == message.getHeaders().getSequenceNumber()) {
+            Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
+            if (memberSequenceNumber == messageSequenceNumber) {
                 return false;
             }
         }

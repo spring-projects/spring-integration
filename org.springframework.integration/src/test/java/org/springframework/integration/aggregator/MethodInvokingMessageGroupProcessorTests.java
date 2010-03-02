@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
@@ -18,6 +19,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +37,9 @@ public class MethodInvokingMessageGroupProcessorTests {
             3);
     @Mock
     private MessageGroup messageGroupMock;
+
+    @Mock
+    private MessageChannelTemplate channelTemplate;
 
     @Before
     public void initializeMessagesUpForProcessing() {
@@ -68,10 +73,9 @@ public class MethodInvokingMessageGroupProcessorTests {
                 .forClass(Message.class);
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
         when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
-        processor.processAndSend(messageGroupMock, outputChannel
-        );
+        processor.processAndSend(messageGroupMock, channelTemplate, outputChannel);
         // verify
-        verify(outputChannel).send(messageCaptor.capture());
+        verify(channelTemplate).send(messageCaptor.capture(), eq(outputChannel));
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
     }
 
@@ -94,10 +98,9 @@ public class MethodInvokingMessageGroupProcessorTests {
                 .forClass(Message.class);
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
         when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
-        processor.processAndSend(messageGroupMock, outputChannel
-        );
+        processor.processAndSend(messageGroupMock, channelTemplate, outputChannel);
         // verify
-        verify(outputChannel).send(messageCaptor.capture());
+        verify(channelTemplate).send(messageCaptor.capture(), eq(outputChannel));
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
     }
 
@@ -132,10 +135,10 @@ public class MethodInvokingMessageGroupProcessorTests {
 
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
         when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
-        processor.processAndSend(messageGroupMock, outputChannel
+        processor.processAndSend(messageGroupMock, channelTemplate, outputChannel
         );
         // verify
-        verify(outputChannel).send(messageCaptor.capture());
+        verify(channelTemplate).send(messageCaptor.capture(), eq(outputChannel));
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
     }
 
@@ -165,10 +168,10 @@ public class MethodInvokingMessageGroupProcessorTests {
 
         when(outputChannel.send(isA(Message.class))).thenReturn(true);
         when(messageGroupMock.getMessages()).thenReturn(messagesUpForProcessing);
-        processor.processAndSend(messageGroupMock, outputChannel
+        processor.processAndSend(messageGroupMock, channelTemplate, outputChannel
         );
         // verify
-        verify(outputChannel).send(messageCaptor.capture());
+        verify(channelTemplate).send(messageCaptor.capture(), eq(outputChannel));
         assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
     }
 }

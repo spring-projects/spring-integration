@@ -15,7 +15,8 @@
 	</channel>
 
 	<channel id="aggregatorWithReferenceInput"/>
-	<aggregator id="aggregatorWithReference" ref="aggregatorBean" input-channel="aggregatorWithReferenceInput"/>
+	<aggregator id="aggregatorWithReference" ref="aggregatorBean"
+              input-channel="aggregatorWithReferenceInput" output-channel="outputChannel"/>
 
 	<channel id="completelyDefinedAggregatorInput"/>
 	<aggregator id="completelyDefinedAggregator"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2010 the original author or authors.
+ * Copyright 2002-2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,20 @@
 
 package org.springframework.integration.aggregator;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.TaskScheduler;
@@ -47,18 +54,24 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author Iwein Fuld
  */
-public class CorrelatingMessageHandler extends AbstractMessageHandler implements Lifecycle {
+public class CorrelatingMessageHandler extends AbstractMessageHandler implements Lifecycle, BeanFactoryAware {
+    private static final Log logger = LogFactory.getLog(CorrelatingMessageHandler.class);
 
-	// TODO: need to support 'resequencer' as well
-	public static final String COMPONENT_TYPE_LABEL = "aggregator";
+    public static final String COMPONENT_TYPE_LABEL = "aggregator";
+    
+    private static final long DEFAULT_SEND_TIMEOUT = 1000l;
+    private static final long DEFAULT_REAPER_INTERVAL = 1000l;
+    private static final long DEFAULT_TIMEOUT = 60000l;
 
+    private final MessageStore store;
+    private final MessageGroupProcessor outputProcessor;
 
-    private MessageStore store = new SimpleMessageStore(100);
-    private final CorrelationStrategy correlationStrategy;
-    private final CompletionStrategy completionStrategy;
-    private MessageGroupProcessor outputProcessor;
+    private volatile CorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);
+    private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
     private MessageChannel outputChannel;
+    private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+
     private volatile MessageChannel discardChannel = new NullChannel();
     private ChannelResolver channelResolver;
 
@@ -67,8 +80,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
     private volatile TaskScheduler taskScheduler;
     private volatile ScheduledFuture<?> reaperFutureTask;
-    private volatile long reaperInterval = 1000l;
-    private volatile long timeout = 60000l;
+    private volatile long reaperInterval = DEFAULT_REAPER_INTERVAL;
+    private volatile long timeout = DEFAULT_TIMEOUT;
     private volatile boolean sendPartialResultOnTimeout;
 
     private Object lifecycleMonitor = new Object();
@@ -78,13 +91,14 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
                                      CompletionStrategy completionStrategy,
                                      MessageGroupProcessor processor) {
         Assert.notNull(store);
-        Assert.notNull(correlationStrategy);
-        Assert.notNull(completionStrategy);
         Assert.notNull(processor);
+        Assert.notNull(correlationStrategy);
+        Assert.notNull(completionStrategy);   
         this.store = store;
+        this.outputProcessor = processor;
         this.correlationStrategy = correlationStrategy;
         this.completionStrategy = completionStrategy;
-        this.outputProcessor = processor;
+        this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
     }
 
     public CorrelatingMessageHandler(MessageStore store,
@@ -92,6 +106,23 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
         this(store, new HeaderAttributeCorrelationStrategy(
                 MessageHeaders.CORRELATION_ID),
                 new SequenceSizeCompletionStrategy(), processor);
+    }
+
+    public CorrelatingMessageHandler(
+            MessageGroupProcessor processor) {
+        this(new SimpleMessageStore(100),
+                new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID),
+                new SequenceSizeCompletionStrategy(), processor);
+    }
+
+    public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
+        Assert.notNull(correlationStrategy);
+        this.correlationStrategy = correlationStrategy;
+    }
+
+    public void setCompletionStrategy(CompletionStrategy completionStrategy) {
+        Assert.notNull(completionStrategy);
+        this.completionStrategy = completionStrategy;
     }
 
     public void setTaskScheduler(TaskScheduler taskScheduler) {
@@ -107,6 +138,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     }
 
     public void setOutputChannel(MessageChannel outputChannel) {
+        Assert.notNull(outputChannel, "'outputChannel' must not be null");
         this.outputChannel = outputChannel;
     }
 
@@ -118,13 +150,26 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
         this.discardChannel = discardChannel;
     }
 
+    public void setSendTimeout(long sendTimeout) {
+        this.channelTemplate.setSendTimeout(sendTimeout);
+    }
+
     public void setSendPartialResultOnTimeout(boolean sendPartialResultOnTimeout) {
         this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
+    }
+
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (this.taskScheduler == null) {
+            this.taskScheduler = IntegrationContextUtils.getRequiredTaskScheduler(beanFactory);
+        }
     }
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Handling message with correllationKey [" + correlationKey + "]: " + message);
+        }
         try {
             if (tracker.waitForLockIfNotTracked(correlationKey)) {
                 MessageGroup group =
@@ -135,8 +180,11 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
                     group.add(message);
 
                     if (group.isComplete()) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Completing group with correllationKey [" + correlationKey + "]");
+                        }
                         outputProcessor.processAndSend(group,
-                                this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
+                                channelTemplate, this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
                     }
                 } else {
                     discardChannel.send(message);
@@ -164,7 +212,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
     }
 
     private void store(Message<?> message, Object correlationKey) {
-        store.put(message);
+        Message toStore = message;
+        if (!correlationKey.equals(message.getHeaders().getCorrelationId())) {
+            toStore = MessageBuilder.fromMessage(message)
+                    .setCorrelationId(correlationKey).build();
+        }
+        store.put(toStore);
         if (!keysInBuffer.contains(correlationKey)) {
             keysInBuffer.add(new DelayedKey(correlationKey, timeout));
         }
@@ -228,7 +281,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
                     MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel, this.channelResolver);
                     boolean processed = false;
                     if (group.isComplete()) {
-                        outputProcessor.processAndSend(group, outputChannel);
+                        outputProcessor.processAndSend(group, channelTemplate, outputChannel);
                         processed = true;
                     }
                     if (!processed) {
@@ -236,7 +289,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
                             if (logger.isInfoEnabled()) {
                                 logger.info("Processing partially complete messages for key [" + key + "] to: " + outputChannel);
                             }
-                            outputProcessor.processAndSend(group, outputChannel);
+                            outputProcessor.processAndSend(group, channelTemplate, outputChannel);
                         } else {
                             if (logger.isInfoEnabled()) {
                                 logger.info("Discarding partially complete messages for key [" + key + "] to: " + discardChannel);

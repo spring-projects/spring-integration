@@ -6,9 +6,11 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-    <beans:bean id="correlationStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$FirstLetterCorrelationStrategy"/>
+    <beans:bean id="correlationStrategy"
+                class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$FirstLetterCorrelationStrategy"/>
 
-    <beans:bean id="pojoCorrelationStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$PojoCorrelationStrategy"/>
+    <beans:bean id="pojoCorrelationStrategy"
+                class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$PojoCorrelationStrategy"/>
 
     <beans:bean id="completionStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$MessageCountCompletionStrategy">
         <beans:constructor-arg value="3"/>

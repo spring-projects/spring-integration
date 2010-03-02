@@ -63,7 +63,7 @@ public class MessageListMethodAdapter {
     }
 
 
-    protected Method getMethod() {
+    public Method getMethod() {
         return method;
     }
 

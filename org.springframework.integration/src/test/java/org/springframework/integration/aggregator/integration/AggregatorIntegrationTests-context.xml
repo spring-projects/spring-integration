@@ -25,6 +25,6 @@
 	</channel>
 
 	<beans:bean id="summer"
-		class="org.springframework.integration.aggregator.integration.ConcurrentAggregatorIntegrationTests$SummingAggregator" />
+		class="org.springframework.integration.aggregator.integration.AggregatorIntegrationTests$SummingAggregator" />
 
 </beans:beans>

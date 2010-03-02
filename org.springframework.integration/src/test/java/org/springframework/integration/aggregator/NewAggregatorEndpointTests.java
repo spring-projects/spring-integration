@@ -19,6 +19,7 @@ package org.springframework.integration.aggregator;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -251,14 +252,14 @@ public class NewAggregatorEndpointTests {
 
     private class MultiplyingProcessor implements MessageGroupProcessor {
         public void processAndSend(MessageGroup group,
-                                   MessageChannel outputChannel
+                                   MessageChannelTemplate channelTemplate, MessageChannel outputChannel
         ) {
             Integer product = 1;
             List<Message<?>> messagesUpForProcessing = group.getMessages();
             for (Message<?> message : messagesUpForProcessing) {
                 product *= (Integer) message.getPayload();
             }
-            outputChannel.send(MessageBuilder.withPayload(product).build());
+            channelTemplate.send(MessageBuilder.withPayload(product).build(), outputChannel);
 
             group.onProcessingOf(
                     messagesUpForProcessing.toArray(new Message[messagesUpForProcessing.size()])
@@ -268,7 +269,7 @@ public class NewAggregatorEndpointTests {
     }
 
     private class NullReturningMessageProcessor implements MessageGroupProcessor {
-        public void processAndSend(MessageGroup group, MessageChannel outputChannel) {
+        public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
             //noop
         }
     }

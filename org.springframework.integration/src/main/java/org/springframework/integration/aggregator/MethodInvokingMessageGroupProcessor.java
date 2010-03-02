@@ -2,6 +2,7 @@ package org.springframework.integration.aggregator;
 
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
@@ -13,14 +14,14 @@ import java.util.*;
 
 public class MethodInvokingMessageGroupProcessor implements MessageGroupProcessor {
 
-    private final Object target;
-    private final Method method;
 
     private final MessageListMethodAdapter adapter;
 
     public MethodInvokingMessageGroupProcessor(Object target) {
-        this.target = target;
-        this.method = selectMethodFrom(target);
+        this.adapter = new MessageListMethodAdapter(target, selectMethodFrom(target));
+    }
+
+    public MethodInvokingMessageGroupProcessor (Object target, String method){
         this.adapter = new MessageListMethodAdapter(target, method);
     }
 
@@ -116,7 +117,7 @@ public class MethodInvokingMessageGroupProcessor implements MessageGroupProcesso
     }
 
     public void processAndSend(MessageGroup group,
-                               MessageChannel outputChannel
+                               MessageChannelTemplate channelTemplate, MessageChannel outputChannel
     ) {
         final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
         Message reply = MessageBuilder.withPayload(
@@ -124,10 +125,10 @@ public class MethodInvokingMessageGroupProcessor implements MessageGroupProcesso
         group.onCompletion();
         group.onProcessingOf(messagesUpForProcessing
                 .toArray(new Message[]{}));
-        outputChannel.send(reply);
+        channelTemplate.send(reply, outputChannel);
     }
 
-    public Set<Method> removeMethodsMatchingSelector(Set<Method> candidates, MethodSelector selector) {
+    private Set<Method> removeMethodsMatchingSelector(Set<Method> candidates, MethodSelector selector) {
         Set<Method> removed = new HashSet<Method>();
         Iterator<Method> iterator = candidates.iterator();
         while (iterator.hasNext()) {

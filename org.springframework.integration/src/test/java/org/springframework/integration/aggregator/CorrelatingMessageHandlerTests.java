@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -76,14 +77,14 @@ public class CorrelatingMessageHandlerTests {
                 return null;
             }
         }).when(processor).processAndSend(isA(MessageGroup.class),
-                eq(outputChannel));
+                isA(MessageChannelTemplate.class), eq(outputChannel));
     }
 
     @Test
     public void bufferCompletesNormally() throws Exception {
         String correlationKey = "key";
-        Message<?> message1 = testMessage(1, 1);
-        Message<?> message2 = testMessage(2, 2);
+        Message<?> message1 = testMessage(correlationKey, 1, 1);
+        Message<?> message2 = testMessage(correlationKey, 2, 2);
         List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         when(store.list(correlationKey)).thenReturn(storedMessages);
@@ -108,7 +109,7 @@ public class CorrelatingMessageHandlerTests {
         verify(completionStrategy).isComplete(Arrays.asList(message1));
         verify(completionStrategy).isComplete(Arrays.asList(message1, message2));
         verify(processor).processAndSend(isA(MessageGroup.class),
-                eq(outputChannel)
+                isA(MessageChannelTemplate.class), eq(outputChannel)
         );
     }
 
@@ -120,8 +121,8 @@ public class CorrelatingMessageHandlerTests {
     @Test
     public void shouldNotPruneWhileCompleting() throws Exception {
         String correlationKey = "key";
-        final Message<?> message1 = testMessage(1, 1);
-        final Message<?> message2 = testMessage(2, 2);
+        final Message<?> message1 = testMessage(correlationKey, 1, 1);
+        final Message<?> message2 = testMessage(correlationKey, 2, 2);
         final List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         final CountDownLatch bothMessagesHandled = new CountDownLatch(2);
@@ -159,9 +160,10 @@ public class CorrelatingMessageHandlerTests {
         verify(store).delete(2);
     }
 
-    private Message<?> testMessage(int id, int sequenceNumber) {
+    private Message<?> testMessage(String correllationKey, int id, int sequenceNumber) {
         return MessageBuilder.withPayload("test" + id)
                 .setHeader(MessageHeaders.ID, id)
+                .setCorrelationId(correllationKey)
                 .setSequenceNumber(sequenceNumber).build();
     }
 

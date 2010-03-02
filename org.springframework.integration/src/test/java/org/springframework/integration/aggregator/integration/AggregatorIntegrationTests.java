@@ -16,15 +16,10 @@
 
 package org.springframework.integration.aggregator.integration;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.aggregator.AbstractMessageAggregator;
-import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -36,6 +31,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Iwein Fuld
  * @author Alex Peters
@@ -43,7 +40,7 @@ import java.util.Map;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class ConcurrentAggregatorIntegrationTests {
+public class AggregatorIntegrationTests {
 
 	@Autowired
 	@Qualifier("input")
@@ -52,14 +49,6 @@ public class ConcurrentAggregatorIntegrationTests {
 	@Autowired
 	@Qualifier("output")
 	private PollableChannel output;
-
-	@Autowired
-	AbstractMessageAggregator aggregator;
-
-	@Test
-	public void configOk() throws Exception {
-		assertThat(aggregator, is(MethodInvokingAggregator.class));
-	}
 
 	@Test(timeout=5000)
 	public void aggregate() throws Exception {

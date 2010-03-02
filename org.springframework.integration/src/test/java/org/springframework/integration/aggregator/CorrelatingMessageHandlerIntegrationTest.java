@@ -38,6 +38,7 @@ public class CorrelatingMessageHandlerIntegrationTest {
 
     @Before public void setupHandler(){
         defaultHandler.setOutputChannel(outputChannel);
+        defaultHandler.setSendTimeout(-1);
     }
 
 	private Message<?> correlatedMessage(Object correlationId,
