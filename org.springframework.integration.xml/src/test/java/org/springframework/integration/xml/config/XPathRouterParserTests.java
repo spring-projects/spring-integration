@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,8 +77,7 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
-	
+		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
 	}
 
 	@Test
@@ -87,8 +86,7 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
-	
+		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
 	}
 
 	@Test
@@ -102,8 +100,7 @@ public class XPathRouterParserTests {
 		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
-	
+		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
 	}
 
 	@Test
@@ -118,9 +115,9 @@ public class XPathRouterParserTests {
 		
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, outputChannel.getQueueSize());
 	}
-	
+
 	@Test
 	public void testSetChannelResolver() throws Exception {
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' channel-resolver='stubResolver' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
@@ -132,7 +129,6 @@ public class XPathRouterParserTests {
 		accessor = new DirectFieldAccessor(handler);
 		Object resolver = accessor.getPropertyValue("channelResolver");
 		assertEquals("Wrong channel resolver ",StubChannelResolver.class, resolver.getClass());
-		
 	}
 	
 	@Test
@@ -145,7 +141,6 @@ public class XPathRouterParserTests {
 		accessor = new DirectFieldAccessor(handler);
 		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
 		assertEquals("Resolution required not set to false ", false, resolutionRequired);
-		
 	}
 	
 	@Test
@@ -172,6 +167,7 @@ public class XPathRouterParserTests {
 		Object defaultOutputChannelValue = accessor.getPropertyValue("defaultOutputChannel");
 		assertEquals("Default output channel not correctly set ", defaultOutput, defaultOutputChannelValue);
 		inputChannel.send(MessageBuilder.withPayload("<unrelated/>").build());
-		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getMesssageCount());
+		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getQueueSize());
 	}
+
 }

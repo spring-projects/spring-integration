@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ public class XPathMessageSplitterParserTests {
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of split messages ", 2, outputChannel.getQueueSize());
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public class XPathMessageSplitterParserTests {
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of split messages ", 2, outputChannel.getQueueSize());
 		assertTrue("Splitter failed to create documents ",
 				((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document);
 		assertTrue("Splitter failed to create documents ",

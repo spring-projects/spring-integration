@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ public class XmlPayloadValidatingRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:validating-router id='router' input-channel='test-input' valid-channel='validOutputChannel' invalid-channel='invalidOutputChannel' schema-location='org/springframework/integration/xml/config/validationTestsSchema.xsd' />");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, validOutputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, validOutputChannel.getQueueSize());
 	}
 
 	@Test
@@ -82,10 +82,7 @@ public class XmlPayloadValidatingRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:validating-router id='router' input-channel='test-input' valid-channel='validOutputChannel' invalid-channel='invalidOutputChannel' schema-location='org/springframework/integration/xml/config/validationTestsSchema.xsd' />");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, invalidOutputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, invalidOutputChannel.getQueueSize());
 	}
-	
-	
 
-	
 }
