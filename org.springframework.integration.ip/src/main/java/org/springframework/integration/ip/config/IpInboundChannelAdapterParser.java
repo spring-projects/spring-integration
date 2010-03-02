@@ -46,7 +46,6 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 		} else if (protocol.equals("udp")) {
 			builder = parseUdp(element, parserContext);
 		}
-		parserContext.extractSource(element);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
