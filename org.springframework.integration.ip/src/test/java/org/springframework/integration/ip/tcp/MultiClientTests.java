@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertNotNull;
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -38,7 +39,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test @Ignore
 	public void testNet() throws Exception {
 		final String payload = largePayload(10000); // force fragmentation 
 		final TcpNetReceivingChannelAdapter adapter = 
@@ -78,7 +79,7 @@ public class MultiClientTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test @Ignore
 	public void testNio() throws Exception {
 		final String payload = largePayload(10000); // force fragmentation 
 		final TcpNioReceivingChannelAdapter adapter = 

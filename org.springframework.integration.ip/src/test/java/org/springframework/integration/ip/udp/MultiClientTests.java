@@ -18,6 +18,7 @@ package org.springframework.integration.ip.udp;
 import static org.junit.Assert.assertNotNull;
 import junit.framework.Assert;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -43,7 +44,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class MultiClientTests {
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test @Ignore
 	public void testNoAck() throws Exception {
 		final String payload = largePayload(1000); 
 		final UnicastReceivingChannelAdapter adapter = 
@@ -86,7 +87,7 @@ public class MultiClientTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test @Ignore
 	public void testAck() throws Exception {
 		Thread.sleep(1000);
 		final String payload = largePayload(1000); 
@@ -134,7 +135,7 @@ public class MultiClientTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test
+	@Test @Ignore
 	public void testAckWithLength() throws Exception {
 		Thread.sleep(1000);
 		final String payload = largePayload(1000); 
