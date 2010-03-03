@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.jms.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -80,7 +82,11 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+		BeanDefinition beanDefinition = builder.getBeanDefinition();
+		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
+		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName); 
+		parserContext.registerBeanComponent(component);
+		return beanName;
 	}
 
 }
