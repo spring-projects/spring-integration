@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.util.Assert;
 import org.springframework.util.PatternMatchUtils;
 
@@ -29,7 +27,7 @@ import org.springframework.util.PatternMatchUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MethodNameMappingExpressionSource implements ExpressionSource {
+public class MethodNameMappingExpressionSource extends AbstractExpressionSource {
 
 	private final Map<String, String> payloadExpressionMap;
 
@@ -39,53 +37,10 @@ public class MethodNameMappingExpressionSource implements ExpressionSource {
 
 	private volatile Map<String, String[]> argumentVariableNameMap;
 
-	private volatile String methodNameVariableName = ExpressionSource.DEFAULT_METHOD_NAME_VARIABLE_NAME;
-
-	private volatile String argumentMapVariableName = ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME;
-
-	private volatile String returnValueVariableName = ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME;
-
-	private volatile String exceptionVariableName = ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME;
-
-	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
-
 
 	public MethodNameMappingExpressionSource(Map<String, String> payloadExpressionMap) {
 		Assert.notEmpty(payloadExpressionMap, "payloadExpressionMap must not be empty");
 		this.payloadExpressionMap = payloadExpressionMap;
-	}
-
-
-	public void setMethodNameVariableName(String methodNameVariableName) {
-		this.methodNameVariableName = methodNameVariableName;
-	}
-
-	public String getMethodNameVariableName(Method method) {
-		return this.methodNameVariableName;
-	}
-
-	public void setArgumentMapVariableName(String argumentMapVariableName) {
-		this.argumentMapVariableName = argumentMapVariableName;
-	}
-
-	public String getArgumentMapVariableName(Method method) {
-		return this.argumentMapVariableName;
-	}
-
-	public void setExceptionVariableName(String exceptionVariableName) {
-		this.exceptionVariableName = exceptionVariableName;
-	}
-
-	public String getExceptionVariableName(Method method) {
-		return this.exceptionVariableName;
-	}
-
-	public void setReturnValueVariableName(String returnValueVariableName) {
-		this.returnValueVariableName = returnValueVariableName;
-	}
-
-	public String getReturnValueVariableName(Method method) {
-		return this.returnValueVariableName;
 	}
 
 	public void setArgumentVariableNameMap(Map<String, String[]> argumentVariableNameMap) {
@@ -108,7 +63,7 @@ public class MethodNameMappingExpressionSource implements ExpressionSource {
 				}
 			}
 		}
-		return this.parameterNameDiscoverer.getParameterNames(method);
+		return this.discoverMethodParameterNames(method);
 	}
 
 	public String getPayloadExpression(Method method) {
