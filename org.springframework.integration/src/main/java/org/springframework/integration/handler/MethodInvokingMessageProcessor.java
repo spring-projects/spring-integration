@@ -61,6 +61,14 @@ import org.springframework.util.ReflectionUtils.MethodCallback;
 import org.springframework.util.ReflectionUtils.MethodFilter;
 
 /**
+ * A MessageProcessor implementation that invokes a method on a target Object.
+ * The Method instance or method name may be provided as a constructor argument.
+ * If a method name is provided, and more than one declared method has that name,
+ * the method-selection will be dynamic, based on the underlying SpEL method
+ * resolution. Alternatively, an annotation type may be provided so that the
+ * candidates for SpEL's method resolution are determined by the presence of that
+ * annotation rather than the method name.
+ * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -255,7 +263,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		if (!candidateMethods.isEmpty()) {
 			return candidateMethods;
 		}
-		Assert.notEmpty(fallbackMethods, "Target object [" + this.targetObject +
+		Assert.notEmpty(fallbackMethods, "Target object of type [" + this.targetObject.getClass() +
 				"] has no eligible methods for handling Messages.");
 		Assert.isNull(ambiguousFallbackType.get(),
 				"Found more than one method match for type [" + ambiguousFallbackType + "]");
