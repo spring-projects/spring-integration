@@ -103,6 +103,15 @@ public class ComponentMetadata implements Serializable {
 		return Collections.unmodifiableMap(this.attributes);
 	}
 
+	public boolean equals(Object other) {
+		return (other instanceof ComponentMetadata
+				&& this.attributes.equals(((ComponentMetadata) other).attributes));
+	}
+
+	public int hashCode() {
+		return 17 * this.attributes.hashCode();
+	}
+
 	public String toString() {
 		return this.attributes.toString();
 	}

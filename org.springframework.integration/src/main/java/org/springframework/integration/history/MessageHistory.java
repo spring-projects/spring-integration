@@ -70,6 +70,15 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 		}
 	}
 
+	public boolean equals(Object other) {
+		return (other instanceof MessageHistory
+				&& this.events.equals(((MessageHistory) other).events));
+	}
+
+	public int hashCode() {
+		return 17 * this.events.hashCode();
+	}
+
 	/**
 	 * Returns a String representation of the history event list.
 	 */
