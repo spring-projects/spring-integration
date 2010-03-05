@@ -33,8 +33,7 @@ public class TestTemplatesFactory implements FactoryBean<Templates> {
 		return TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
 	}
 
-	@SuppressWarnings("unchecked")
-	public Class getObjectType() {
+	public Class<Templates> getObjectType() {
 		return Templates.class;
 	}
 
