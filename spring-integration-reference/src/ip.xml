@@ -2,12 +2,189 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="ip">
   <title>TCP and UDP Support</title>
-
+  <para>
+    Spring Integration provides Channel Adapters for receiving and sending messages over internet protocols. Both UDP 
+    (User Datagram Protocol)
+    and TCP (Transmission Control Protocol) adapters are provided. Each adapter provides for one-way communication 
+    over the underlying protocol. Gateways providing two-way communication may be considered in a future release.
+  </para>
   <section id="ip-intro">
     <title>Introduction</title>
     <para>
-      TODO
+      Two flavors each of UDP inbound and outbound adapters are provided <classname>UnicastSendingMessageHandler</classname>
+      sends a datagram packet to a single destination. <classname>UnicastReceivingChannelAdapter</classname> receives 
+      incoming datagram packets. <classname>MulticastSendingMessageHandler</classname> sends (broadcasts) datagram packets to
+      a multicast address. <classname>MulticastReceivingChannelAdapter</classname> receives incoming datagram packets
+      by joining to a multicast address.
+    </para>
+    <para>
+      Two flavors each of TCP inbound and outbound adapters are provided <classname>TcpNetSendingMessageHandler</classname>
+      and <classname>TcpNioSendingMessageHandler</classname> send messages over TCP. They are functionally equivalent,
+      but use different underlying technology for socket communication. Similarly, <classname>TcpNetReceivingChannelAdapter</classname>
+      and <classname>TcpNioReceivingChannelAdapter</classname> are the equivalent inbound channel adapters.
+      The choice of which to use in what circumstances is described below.
     </para>
   </section>
-
+  <section id="udp-adapters">
+    <title>UDP Adapters</title>
+    <para>
+      <programlisting language="xml"><![CDATA[ <ip:outbound-channel-adapter id="udpOut"
+		protocol="udp"
+		host="somehost"
+		port="11111"
+		multicast="false"
+		channel="exampleChannel" />]]></programlisting>
+	    A simple UDP outbound channel adapter.		
+	    <tip>
+	      When setting multicast to true, provide the multicast address in the host 
+	      attribute.
+	    </tip>								
+    </para>
+    <para>
+    	UDP is an efficient, but unreliable protocol. Two attributes are added to improve reliability. When check-length is
+    	set to true, the adapter precedes the message data with a length field (4 bytes in network byte order). This enables
+    	the receiving side to verify the length of the packet received. If a receiving system uses a buffer that is too
+    	short the contain the packet, the packet can be truncated. The length header provides a mechanism to detect this.
+    </para>
+    <para>
+      <programlisting language="xml"><![CDATA[  <ip:outbound-channel-adapter id="udpOut"
+		protocol="udp"
+		host="somehost"
+		port="11111"
+		multicast="false"
+		check-length="true"
+		channel="exampleChannel" />]]></programlisting>
+	    An outbound channel adapter that adds length checking to the datagram packets.
+	    <tip>
+	      The recipient of the packet must also be configured to expect a length to precede the 
+	      actual data. For a Spring Integration UDP inbound channel adapter, set its
+	      <classname>check-length</classname> attribute.
+	    </tip>
+    </para>
+    <para>
+    	The second reliability improvement allows an application-level acknowledgment protocol to be used. The receiver
+    	must send an acknowledgment to the sender within a specified time.
+    </para>
+    <para>
+      <programlisting language="xml"><![CDATA[  <ip:outbound-channel-adapter id="udpOut"
+		protocol="udp"
+		host="somehost"
+		port="11111"
+		multicast="false"
+		check-length="true"
+		acknowledge="true"
+		ack-host="thishost"
+		ack-port="22222"
+		ack-timeout="10000"
+		channel="exampleChannel" />]]></programlisting>
+	    An outbound channel adapter that adds length checking to the datagram packets and waits for an acknowledgment.
+	    <tip>
+	    	Setting acknowledge to true implies the recipient of the packet can interpret the header added to the packet
+	    	containing acknowledgment data (host and port). Most likely, the recipient will be a Spring Integration inbound
+	    	channel adapter.
+	    </tip>
+	    <tip>
+	    	When multicast is true, an additional attribute min-acks-for-success specifies
+	    	how many acknowledgments must be received within the ack-timeout.
+	    </tip>
+    </para>
+    <para>
+    	For even more reliable networking, TCP can be used.
+    </para>
+    <para>
+	  <programlisting language="xml"><![CDATA[  <ip:inbound-channel-adapter id="udpReceiver"
+		channel="udpOutChannel"
+		protocol="udp"
+		port="11111"
+		receive-buffer-size="500"
+		multicast="false"
+		check-length="true" />]]></programlisting>
+    	A basic unicast inbound udp channel adapter.
+    </para>
+    <para>
+	  <programlisting language="xml"><![CDATA[  <ip:inbound-channel-adapter id="udpReceiver"
+		channel="udpOutChannel"
+		protocol="udp"
+		port="11111"
+		receive-buffer-size="500"
+		multicast="true"
+		multicast-address="225.6.7.8"
+		check-length="true" />]]></programlisting>
+    	A basic multicast inbound udp channel adapter.
+    </para>
+  </section>
+  <section id="tcp-adapters">
+    <title>TCP Adapters</title>
+    <para>
+      Two versions of TCP inbound and outbound channel adapters are provided; these adapters
+      use either java.net.Socket IO, or java.nio.channels.SocketChannel IO. The choice of which
+      to use depends on the application. The TcpNet* adapters use java.net.Socket and the TcpNio*
+      adapters use java.nio.channels.ChannelSocket. It is not anticipated that much difference in
+      performance, if any, would exist between these technologies on the outbound side. This is
+      because each outbound adapter sends data over only one socket. On the receiving side 
+      however, consideration should be given to the number of connections. For the 
+      <classname>TcpNetReceivingChannelAdapter</classname> a thread is dedicated to receiving
+      data on each connected socket; the pool size must therefore be set large enough to handle
+      the expected number of connections. For the <classname>TcpNioReceivingChannelAdapter</classname>
+      threads are used on an as-needed basis and it is likely that many fewer threads would be 
+      needed. If a small number of connections is expected, we expect that the the TcpNetReceivingChannelAdapter
+      will give the best performance. For large number of connections, the TcpNioReceivingChannelAdapter will
+      likely give the best performance. In addition, the TcpNioReceivingChannelAdapter provides an 
+      attribute <classname>using-direct-buffers</classname> which attempts to use direct buffers. See 
+      <classname>java.nio.ByteBuffer</classname> for more information about direct buffers. 
+      <tip>
+        It is not expected that direct buffers will offer much, if any, performance difference. You
+        should experiment with the use of TcpNxx* adapters, and direct buffers when using TcpNio*
+        adapters to determine the best performance in your environment.
+      </tip>
+    </para>
+    <para>
+      TCP is a streaming protocol; this means that some structure has to be provided to data 
+      transported over TCP, so the receiver can delimit the data into discrete messages.
+      Three standard message formats are provided for this purpose; you can also provide code
+      for your own custom format. The first of the three standard formats is length-header, in which case a 4 byte 
+      length header precedes the data; this is the default. The second is stx-etx in which the message 
+      data is preceded by an STX (0x02) character and terminated with an ETX (0x03) character.
+      The third is crlf in which the message is terminated with a carriage return and line feed
+      (\r\n). The first format (the default) is likely to be the most performant. This is because
+      we can determine exactly how many bytes to read to obtain the complete message. The other
+      two formats require examining each byte to determine if the end of the message has been 
+      received. This length-header format can also handle binary data. The other two formats an only handle
+      text data (specifcally, data that does not contain characters 0x02 and 0x03 for stx-etx and
+      0x0d and 0x0a for crlf. This limitation can be avoided by appropriate character escaping techniques
+      in the application layer. No such escaping is provided by the adapters.
+    </para>
+    <para>
+	  <programlisting language="xml"><![CDATA[ <ip:outbound-channel-adapter id="tcpOut"
+		channel="inChannel"
+		protocol="tcp"
+		host="somehost"
+		port="11111"
+		message-format="length-header"
+		using-nio="true"
+		using-direct-buffers="false"
+		so-keep-alive="true"
+		so-timeout="10000"
+		/>]]></programlisting>
+    	A basic outbound tcp channel adapter. This adapter uses java.nio.channels.SocketChannel.
+    	To use a java.net.Socket, set <classname>using-nio</classname> to false and 
+    	<classname>using-direct-buffers</classname> is not relevant.
+    </para>
+  </section>
+  <para>
+  	  <programlisting language="xml"><![CDATA[	<ip:inbound-channel-adapter id="tcp1"
+		channel="channel"
+		protocol="tcp"
+		port="11111"
+		message-format="length-header"
+		using-nio="true"
+		using-direct-buffers="false"
+		pool-size="2"
+		so-keep-alive="true"
+		so-timeout="10000"
+		/>]]></programlisting>
+    	A basic inbound tcp channel adapter. This adapter uses java.nio.channels.SocketChannel.
+    	To use a java.net.Socket, set <classname>using-nio</classname> to false and 
+    	<classname>using-direct-buffers</classname> is not relevant.
+    </para>
 </chapter>
