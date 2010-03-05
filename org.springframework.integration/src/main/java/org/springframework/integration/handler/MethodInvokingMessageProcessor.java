@@ -84,6 +84,8 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 
 	private final Map<Class<?>, HandlerMethod> handlerMethods;
 
+	private volatile ConversionService conversionService;
+
 	private final EvaluationContext evaluationContext;
 
 
@@ -143,6 +145,17 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		this.displayString = sb.toString() + "]";
 	}
 
+	public void setConversionService(ConversionService conversionService) {
+		this.conversionService = conversionService;
+	}
+
+	private ConversionService getRequiredConversionService() {
+		if (this.conversionService == null) {
+			this.conversionService = ConversionServiceFactory.createDefaultConversionService();
+		}
+		return this.conversionService;
+	}
+
 	private EvaluationContext createEvaluationContext(Object method, Class<? extends Annotation> annotationType) {
 		StandardEvaluationContext context = new StandardEvaluationContext();
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
@@ -154,10 +167,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 					new HandlerMethodFilter(annotationType, (String) method, this.requiresReply));
 		}
 		context.addPropertyAccessor(new MapAccessor());
-		// TODO: Enable configuration of an integration ConversionService bean to be used here,
-		//       but then fallback to this same default if no such bean has been defined.
-		ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
-		context.setTypeConverter(new StandardTypeConverter(conversionService));
+		context.setTypeConverter(new StandardTypeConverter(this.getRequiredConversionService()));
 		context.setVariable("target", targetObject);
 		return context;
 	}

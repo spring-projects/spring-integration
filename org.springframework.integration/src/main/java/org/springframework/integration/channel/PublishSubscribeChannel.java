@@ -18,8 +18,6 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.ErrorHandler;
@@ -29,7 +27,7 @@ import org.springframework.util.ErrorHandler;
  * 
  * @author Mark Fisher
  */
-public class PublishSubscribeChannel extends AbstractSubscribableChannel implements BeanFactoryAware {
+public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	private volatile BroadcastingDispatcher dispatcher;
 
@@ -102,13 +100,15 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel impleme
 	}
 
 	/**
-	 * Callback method for the {@link BeanFactoryAware} interface.
+	 * Callback method for initialization.
 	 */
-	public void setBeanFactory(BeanFactory beanFactory) {
+	@Override
+	public final void onInit() {
 		if (this.executor != null) {
 			if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
-					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
+					this.errorHandler = new MessagePublishingErrorHandler(
+							new BeanFactoryChannelResolver(this.getBeanFactory()));
 				}
 				this.executor = new ErrorHandlingTaskExecutor(this.executor, this.errorHandler);
 			}

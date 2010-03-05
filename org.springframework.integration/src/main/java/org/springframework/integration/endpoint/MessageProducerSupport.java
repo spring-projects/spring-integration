@@ -48,8 +48,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint {
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.outputChannel, "outputChannel is required");
-		this.componentMetadata.setComponentName(this.getBeanName());
-		this.populateComponentMetadata(this.componentMetadata);
 	}
 
 	protected boolean sendMessage(Message<?> message) {
@@ -57,13 +55,6 @@ public abstract class MessageProducerSupport extends AbstractEndpoint {
 			message.getHeaders().getHistory().addEvent(this.componentMetadata);
 		}
 		return this.channelTemplate.send(message, this.outputChannel);
-	}
-
-	/**
-	 * Subclasses may override this no-op method to add attributes to this
-	 * adapter's {@link ComponentMetadata}.
-	 */
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
 	}
 
 }

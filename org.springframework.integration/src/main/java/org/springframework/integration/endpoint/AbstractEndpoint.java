@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.endpoint;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.scheduling.TaskScheduler;
@@ -36,7 +34,7 @@ import org.springframework.scheduling.TaskScheduler;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle, InitializingBean {
+public abstract class AbstractEndpoint extends IntegrationObjectSupport implements SmartLifecycle {
 
 	private volatile boolean autoStartup = true;
 
@@ -57,15 +55,6 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		super.setTaskScheduler(taskScheduler);
-	}
-
-	public final void afterPropertiesSet() {
-		try {
-			this.onInit();
-		}
-		catch (Exception e) {
-			throw new BeanInitializationException("failed to initialize", e);
-		}
 	}
 
 	// SmartLifecycle implementation
@@ -129,9 +118,6 @@ public abstract class AbstractEndpoint extends IntegrationObjectSupport implemen
 		finally {
 			this.lifecycleLock.unlock();
 		}
-	}
-
-	protected void onInit() throws Exception {
 	}
 
 	/**

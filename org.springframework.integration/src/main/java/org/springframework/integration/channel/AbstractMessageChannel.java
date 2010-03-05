@@ -22,10 +22,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
@@ -43,41 +41,20 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageChannel implements MessageChannel, BeanFactoryAware, BeanNameAware {
+public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile String name;
-
 	private volatile Class<?>[] datatypes = new Class<?>[] { Object.class };
-
-	private volatile ConversionService conversionService;
-
-	private volatile BeanFactory beanFactory;
-
-	private final ComponentMetadata metadata = new ComponentMetadata();
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
-
-	public AbstractMessageChannel() {
-		this.metadata.setComponentType("channel");
-	}
-
-	/**
-	 * Set the name of this channel. This will be invoked automatically whenever
-	 * the channel is configured explicitly with a bean definition.
-	 */
-	public void setBeanName(String name) {
-		this.name = name;
-		this.metadata.setComponentName(name);
-	}
 
 	/**
 	 * Return the name of this channel.
 	 */
 	public String getName() {
-		return this.name;
+		return this.getBeanName();
 	}
 
 	/**
@@ -114,29 +91,13 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 	 * Specify the {@link ConversionService} to use when trying to convert to
 	 * one of this channel's supported datatypes for a Message whose payload
 	 * does not already match. If this property is not set explicitly but
-	 * the channel is managed within a context, it will fallback to a bean
-	 * named "conversionService" defined within that context.
+	 * the channel is managed within a context, it will attempt to locate a
+	 * bean named "integrationConversionService" defined within that context.
+	 * Finally, if that bean is not available, it will fallback to the
+	 * "conversionService" bean, if available.
 	 */
 	public void setConversionService(ConversionService conversionService) {
-		this.conversionService = conversionService;
-	}
-
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
-
-	private ConversionService getConversionService() {
-		if (this.conversionService == null && this.beanFactory != null) {
-			if (this.beanFactory.containsBean("conversionService")) {
-				this.conversionService = this.beanFactory.getBean("conversionService", ConversionService.class);
-			}
-			else if (logger.isWarnEnabled()) {
-				logger.warn("Unable to attempt conversion of Message payload types. Datatype channel '" +
-						this.getName() + "' has no explicit ConversionService reference, " +
-						"and there is no 'conversionService' bean within the context.");
-			}
-		}
-		return this.conversionService;
+		super.setConversionService(conversionService);
 	}
 
 	/**
@@ -144,6 +105,11 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 	 */
 	protected ChannelInterceptorList getInterceptors() {
 		return this.interceptors;
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("channel");
 	}
 
 	/**
@@ -178,7 +144,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);
-		message.getHeaders().getHistory().addEvent(this.metadata);
+		message.getHeaders().getHistory().addEvent(this.getComponentMetadata());
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;
@@ -218,10 +184,6 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 				"' expected one of the following datataypes [" + 
 				StringUtils.arrayToCommaDelimitedString(this.datatypes) + 
 				"], but received [" + message.getPayload().getClass() + "]");
-	}
-
-	public String toString() {
-		return (this.name != null) ? this.name : super.toString();
 	}
 
 	/**

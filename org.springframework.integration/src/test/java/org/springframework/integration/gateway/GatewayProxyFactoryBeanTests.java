@@ -266,6 +266,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setBeanName("testGateway");
 		DirectChannel channel = new DirectChannel();
 		channel.setBeanName("testChannel");
+		channel.afterPropertiesSet();
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new BridgeHandler());
 		consumer.setBeanName("testBridge");
 		consumer.afterPropertiesSet();

@@ -18,8 +18,6 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
@@ -42,7 +40,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class ExecutorChannel extends AbstractSubscribableChannel implements BeanFactoryAware {
+public class ExecutorChannel extends AbstractSubscribableChannel {
 
 	private volatile UnicastingDispatcher dispatcher;
 
@@ -94,9 +92,11 @@ public class ExecutorChannel extends AbstractSubscribableChannel implements Bean
 		return this.dispatcher;
 	}
 
-	public void setBeanFactory(BeanFactory beanFactory) {
+	@Override
+	public final void onInit() {
 		if (!(this.executor instanceof ErrorHandlingTaskExecutor)) {
-			ErrorHandler errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
+			ErrorHandler errorHandler = new MessagePublishingErrorHandler(
+					new BeanFactoryChannelResolver(this.getBeanFactory()));
 			this.executor = new ErrorHandlingTaskExecutor(this.executor, errorHandler);
 		}
 		this.dispatcher = new UnicastingDispatcher(this.executor);

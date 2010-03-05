@@ -20,9 +20,13 @@ import java.util.List;
 
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.PropertyAccessor;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.core.Ordered;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -63,7 +67,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler, Ordered {
+public class MessageHandlerChain implements MessageHandler, Ordered, BeanFactoryAware, BeanNameAware {
 
 	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
 
@@ -72,6 +76,12 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 	private volatile MessageChannel outputChannel;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
+
+	private volatile String beanName;
+
+	private volatile BeanFactory beanFactory;
+
+	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean initialized;
 
@@ -94,7 +104,22 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 		return this.order;
 	}
 
-	public final void afterPropertiesSet() {
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
+
+	private ChannelResolver getChannelResolver() {
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory); 
+		}
+		return this.channelResolver;
+	}
+
+	private void initialize() {
 		synchronized (this.initializationMonitor) {
 			if (!this.initialized) {
 				Assert.notEmpty(this.handlers, "handler list must not be empty");
@@ -106,7 +131,7 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 	public void handleMessage(Message<?> message) {
 		if (!this.initialized) {
-			this.afterPropertiesSet();
+			this.initialize();
 		}
 		this.handlers.get(0).handleMessage(message);
 	}
@@ -148,7 +173,7 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 	private class ReplyForwardingMessageChannel implements MessageChannel {
 
 		public String getName() {
-			return MessageHandlerChain.this.getBeanName();
+			return MessageHandlerChain.this.beanName;
 		}
 
 		public boolean send(Message<?> message) {

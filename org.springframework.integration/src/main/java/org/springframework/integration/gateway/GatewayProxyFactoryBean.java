@@ -143,7 +143,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
@@ -232,7 +232,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		throw originalException;
 	}
 
-	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
+	private MessagingGateway createGatewayForMethod(Method method) {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
 				new ArgumentArrayMessageMapper(method, this.getBeanName()), new SimpleMessageMapper());
 		if (this.getTaskScheduler() != null) {
