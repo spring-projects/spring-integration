@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 import org.springframework.ws.server.endpoint.MessageEndpoint;
 import org.springframework.ws.soap.SoapHeader;
+import org.springframework.ws.soap.SoapHeaderElement;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
@@ -69,10 +70,18 @@ public class SimpleWebServiceInboundGateway extends SimpleMessagingGateway imple
 			SoapMessage soapMessage = (SoapMessage) request;
 			SoapHeader soapHeader = soapMessage.getSoapHeader();
 			if (soapHeader != null) {
-				Iterator<?> iter = soapHeader.getAllAttributes();
-				while (iter.hasNext()) {
-					QName name = (QName) iter.next();
+				Iterator<?> attributeIter = soapHeader.getAllAttributes();
+				while (attributeIter.hasNext()) {
+					QName name = (QName) attributeIter.next();
 					builder.setHeader(name.toString(), soapHeader.getAttributeValue(name));
+				}
+				Iterator<?> elementIter = soapHeader.examineAllHeaderElements();
+				while (elementIter.hasNext()) {
+					Object element = elementIter.next();
+					if (element instanceof SoapHeaderElement) {
+						QName name = ((SoapHeaderElement) element).getName();
+						builder.setHeader(name.toString(), element);
+					}
 				}
 			}
 		}
