@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,17 @@
 package org.springframework.integration.context;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
+ * Utility methods for accessing common integration components from the BeanFactory.
+ * 
  * @author Mark Fisher
  */
 public abstract class IntegrationContextUtils {
@@ -32,6 +37,8 @@ public abstract class IntegrationContextUtils {
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
 	public static final String NULL_CHANNEL_BEAN_NAME = "nullChannel";
+
+	public static final String INTEGRATION_CONVERSION_SERVICE_BEAN_NAME = "integrationConversionService";
 
 	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "org.springframework.integration.context.defaultPollerMetadata";
 
@@ -54,15 +61,25 @@ public abstract class IntegrationContextUtils {
 		return getBeanOfType(beanFactory, DEFAULT_POLLER_METADATA_BEAN_NAME, PollerMetadata.class);
 	}
 
-	@SuppressWarnings("unchecked")
+	public static ConversionService getConversionService(BeanFactory beanFactory) {
+		ConversionService conversionService = getBeanOfType(beanFactory,
+				INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
+		if (conversionService == null && beanFactory instanceof ConfigurableListableBeanFactory) {
+			conversionService = ((ConfigurableListableBeanFactory) beanFactory).getConversionService();
+		}
+		if (conversionService == null && beanFactory.containsBean(
+				ConfigurableApplicationContext.CONVERSION_SERVICE_BEAN_NAME)) {
+			conversionService = getBeanOfType(beanFactory,
+					ConfigurableApplicationContext.CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
+		}
+		return conversionService;
+	}
+
 	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {
 		if (!beanFactory.containsBean(beanName)) {
 			return null;
 		}
-		Object bean = beanFactory.getBean(beanName);
-		Assert.state(type.isAssignableFrom(bean.getClass()), "incorrect type for bean '" + beanName
-				+ "' expected [" + type + "], but actual type is [" + bean.getClass() + "].");
-		return (T) bean;
+		return beanFactory.getBean(beanName, type);
 	}
 
 }
