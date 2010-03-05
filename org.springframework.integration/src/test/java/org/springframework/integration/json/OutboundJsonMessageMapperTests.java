@@ -11,7 +11,6 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 
 
@@ -23,11 +22,13 @@ public class OutboundJsonMessageMapperTests {
 	@Test
 	public void testFromMessageWithHeadersAndStringPayload() throws Exception {
 		Message<String> testMessage = MessageBuilder.withPayload("myPayloadStuff").build();
-		String expected = "{\"headers\":{\"$timestamp\":"+testMessage.getHeaders().getTimestamp()+
-			",\"$history\":[],\"$id\":\""+testMessage.getHeaders().getId()+"\"},\"payload\":\"myPayloadStuff\"}"; 
 		OutboundJsonMessageMapper mapper = new OutboundJsonMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertEquals(expected, result);
+		assertTrue(result.startsWith("{\"headers\":{"));
+		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"$history\":[]"));
+		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
+		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
 	}
 	
 	@Test
@@ -43,12 +44,13 @@ public class OutboundJsonMessageMapperTests {
 	@Test
 	public void testFromMessageWithHeadersAndBeanPayload() throws Exception {
 		TestBean payload = new TestBean();
-		Message<TestBean> testMessage = MessageBuilder.withPayload(payload).setHeader(MessageHeaders.TIMESTAMP, new Long(1234)).setHeader(MessageHeaders.ID, "myUniqueId").build();
-		String expectedHeaders = "\"headers\":{\"$timestamp\":"+testMessage.getHeaders().getTimestamp()+
-			",\"$history\":[],\"$id\":\""+testMessage.getHeaders().getId()+"\""; 
+		Message<TestBean> testMessage = MessageBuilder.withPayload(payload).build();
 		OutboundJsonMessageMapper mapper = new OutboundJsonMessageMapper();
 		String result = mapper.fromMessage(testMessage);
-		assertTrue(result.contains(expectedHeaders));
+		assertTrue(result.startsWith("{\"headers\":{"));
+		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
+		assertTrue(result.contains("\"$history\":[]"));
+		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
 		assertEquals(payload, parsedPayload);
 	}
