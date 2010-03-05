@@ -21,5 +21,7 @@
 	<classpathentry kind="var" path="SI_IVY_CACHE/org.springframework/org.springframework.test/3.0.1.RELEASE-A/org.springframework.test-3.0.1.RELEASE-A.jar" sourcepath="/SI_IVY_CACHE/org.springframework/org.springframework.test/3.0.1.RELEASE-A/org.springframework.test-sources-3.0.1.RELEASE-A.jar"/>
 	<classpathentry kind="var" path="SI_IVY_CACHE/org.mockito/com.springsource.org.mockito/1.8.0/com.springsource.org.mockito-1.8.0.jar" sourcepath="/SI_IVY_CACHE/org.mockito/com.springsource.org.mockito/1.8.0/com.springsource.org.mockito-sources-1.8.0.jar"/>
 	<classpathentry kind="var" path="SI_IVY_CACHE/org.objenesis/com.springsource.org.objenesis/1.0.0/com.springsource.org.objenesis-1.0.0.jar" sourcepath="/SI_IVY_CACHE/org.objenesis/com.springsource.org.objenesis/1.0.0/com.springsource.org.objenesis-sources-1.0.0.jar"/>
+	<classpathentry kind="var" path="SI_IVY_CACHE/org.codehaus.jackson/com.springsource.org.codehaus.jackson/1.4.2/com.springsource.org.codehaus.jackson-1.4.2.jar" sourcepath="/SI_IVY_CACHE/org.codehaus.jackson/com.springsource.org.codehaus.jackson/1.4.2/com.springsource.org.codehaus.jackson-sources-1.4.2.jar"/>
+	<classpathentry kind="var" path="SI_IVY_CACHE/org.codehaus.jackson/com.springsource.org.codehaus.jackson.mapper/1.4.2/com.springsource.org.codehaus.jackson.mapper-1.4.2.jar" sourcepath="/SI_IVY_CACHE/org.codehaus.jackson/com.springsource.org.codehaus.jackson.mapper/1.4.2/com.springsource.org.codehaus.jackson.mapper-sources-1.4.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

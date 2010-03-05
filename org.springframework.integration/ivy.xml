@@ -29,7 +29,8 @@
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="${mockito.version}" conf="test->runtime"/>
 		<dependency org="org.aspectj" name="com.springsource.org.aspectj.weaver" rev="1.6.5.RELEASE" conf="test->runtime"/>
-        <dependency org="org.springframework.integration" name="org.springframework.integration.test" rev="latest.integration" conf="test->runtime"/>        
+        <dependency org="org.springframework.integration" name="org.springframework.integration.test" rev="latest.integration" conf="test->runtime"/>
+        <dependency org="org.codehaus.jackson" name="com.springsource.org.codehaus.jackson.mapper" rev="1.4.2"  conf="compile->runtime"/>        
 	</dependencies>
 
 </ivy-module>
