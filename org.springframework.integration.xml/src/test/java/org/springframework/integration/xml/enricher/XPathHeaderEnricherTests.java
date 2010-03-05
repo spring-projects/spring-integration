@@ -16,9 +16,12 @@
 
 package org.springframework.integration.xml.enricher;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
-import org.junit.Before;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
@@ -26,9 +29,6 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class XPathHeaderEnricherTests {
@@ -43,7 +43,7 @@ public class XPathHeaderEnricherTests {
         String docAsString = "<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>";
 
         XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
-        Message result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
+        Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 
         MessageHeaders headers = result.getHeaders();
 
@@ -58,7 +58,7 @@ public class XPathHeaderEnricherTests {
         String docAsString = "<root><elementOne>1</elementOne></root>";
 
         XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
-        Message result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
+        Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 
         MessageHeaders headers = result.getHeaders();
         assertNull("value set for two when result was null",headers.get("two"));
@@ -72,7 +72,7 @@ public class XPathHeaderEnricherTests {
 
         XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
         enricher.setSkipSettingNullResults(false);
-        Message result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
+        Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 
         MessageHeaders headers = result.getHeaders();
         assertEquals("no value set for two when result was null and skip null was false","" ,headers.get("two"));
@@ -90,7 +90,7 @@ public class XPathHeaderEnricherTests {
 
         XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
         enricher.setEvaluationTypes(evalTypeMap);
-        Message result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
+        Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 
         MessageHeaders headers = result.getHeaders();
 

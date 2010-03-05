@@ -26,9 +26,9 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Jonas Partner
  */
-public class TestTemplatesFactory implements FactoryBean {
+public class TestTemplatesFactory implements FactoryBean<Templates> {
 
-	public Object getObject() throws Exception {
+	public Templates getObject() throws Exception {
 		org.springframework.core.io.Resource xslResource = new ClassPathResource("test.xsl", getClass());
 		return TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
 	}

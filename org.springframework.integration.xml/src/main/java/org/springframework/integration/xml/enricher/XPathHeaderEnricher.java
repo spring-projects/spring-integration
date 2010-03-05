@@ -16,6 +16,10 @@
 
 package org.springframework.integration.xml.enricher;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.transformer.Transformer;
@@ -25,10 +29,6 @@ import org.springframework.integration.xml.xpath.XPathEvaluationType;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.Node;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -77,7 +77,7 @@ public class XPathHeaderEnricher implements Transformer {
     }
 
     public Message<?> transform(Message<?> message) {
-        MessageBuilder builder = MessageBuilder.fromMessage(message);
+        MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
         Node node = this.converter.convertToNode(message.getPayload());
 
         Set<String> keys = this.expressionMap.keySet();
@@ -94,7 +94,7 @@ public class XPathHeaderEnricher implements Transformer {
         return builder.build();
     }
 
-    protected void setHeader(Node node, String headerName, XPathExpression expression, XPathEvaluationType evaluationType, MessageBuilder builder) {
+    protected void setHeader(Node node, String headerName, XPathExpression expression, XPathEvaluationType evaluationType, MessageBuilder<?> builder) {
         Object result = evaluationType.evaluateXPath(expression, node);
 
         boolean  nullOrEmptyString = (result == null ||
