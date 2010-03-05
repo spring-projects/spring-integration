@@ -35,9 +35,9 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.history.MessageHistoryEvent;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.ReflectionUtils;
@@ -278,10 +278,13 @@ public class GatewayProxyFactoryBeanTests {
 		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
 		MessageHistoryEvent event1 = historyIterator.next();
 		MessageHistoryEvent event2 = historyIterator.next();
+		MessageHistoryEvent event3 = historyIterator.next();
+		assertEquals("echo", event1.getAttribute("method", String.class));
 		assertEquals("testGateway", event1.getComponentName());
-		assertEquals("echo", event1.getProperty("method", String.class));
 		assertEquals("channel", event2.getComponentType());
 		assertEquals("testChannel", event2.getComponentName());
+		assertEquals("bridge", event3.getComponentType());
+		assertEquals("testBridge", event3.getComponentName());
 	}
 
 

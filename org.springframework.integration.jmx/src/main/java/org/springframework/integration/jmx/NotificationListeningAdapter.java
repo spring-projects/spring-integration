@@ -32,9 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -83,9 +83,9 @@ public class NotificationListeningAdapter extends MessageProducerSupport impleme
 	}
 
 	@Override
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType("notification-listener");
-		event.setProperty("transport", "jmx");
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("notification-listener");
+		metadata.setAttribute("transport", "jmx");
 	}
 
 	@Override

@@ -20,8 +20,9 @@ import java.lang.reflect.Field;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHistoryEvent;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.support.ComponentMetadata;
+import org.springframework.integration.support.ComponentMetadataProvider;
 import org.springframework.util.StringUtils;
 
 /**
@@ -36,15 +37,20 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 
 	private final MessageHandler handler;
 
-	private final String componentName;
-
-	private final String componentType;
+	private final ComponentMetadata metadata;
 
 
-	public HandlerInvocationChain(MessageHandler handler, String componentName) {
+	public HandlerInvocationChain(MessageHandler handler, String endpointName) {
 		this.handler = handler;
-		this.componentName = componentName;
-		this.componentType = determineComponentTypeFromHandlerIfPossible(handler);
+		if (this.handler instanceof ComponentMetadataProvider) {
+			this.metadata = ((ComponentMetadataProvider) this.handler).getComponentMetadata();
+		}
+		else {
+			this.metadata = new ComponentMetadata();
+		}
+		this.metadata.setComponentName(endpointName);
+		// todo move this into the handler impls componentMetadata
+		this.metadata.setComponentType(determineComponentTypeFromHandlerIfPossible(this.handler));
 	}
 
 
@@ -54,13 +60,11 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 	}
 
 	public void handleMessage(Message<?> message) {
-		MessageHistoryEvent event = message.getHeaders().getHistory().addEvent(this.componentName);
-		if (this.componentType != null) {
-			event.setComponentType(this.componentType);
+		if (message != null) {
+			message.getHeaders().getHistory().addEvent(this.metadata);
 		}
 		this.handler.handleMessage(message);
 	}
-
 
 	private static String determineComponentTypeFromHandlerIfPossible(MessageHandler handler) {
 		String type = null;
@@ -72,7 +76,7 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 			}
 		}
 		catch (Exception e) {
-			// no COMPONENT_TYPE_LABEL avaiable
+			// no COMPONENT_TYPE_LABEL available
 		}
 		return type;
 	}

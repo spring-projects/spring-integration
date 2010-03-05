@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHistoryEvent;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -31,6 +31,8 @@ import org.springframework.util.Assert;
 public abstract class MessageProducerSupport extends AbstractEndpoint {
 
 	private volatile MessageChannel outputChannel;
+
+	private final ComponentMetadata componentMetadata = new ComponentMetadata();
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
@@ -46,19 +48,22 @@ public abstract class MessageProducerSupport extends AbstractEndpoint {
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.outputChannel, "outputChannel is required");
+		this.componentMetadata.setComponentName(this.getBeanName());
+		this.populateComponentMetadata(this.componentMetadata);
 	}
 
 	protected boolean sendMessage(Message<?> message) {
-		String componentName = this.getBeanName();
-		if (componentName != null) {
-			MessageHistoryEvent event = message.getHeaders().getHistory().addEvent(componentName);
-			this.postProcessHistoryEvent(event);
+		if (message != null) {
+			message.getHeaders().getHistory().addEvent(this.componentMetadata);
 		}
 		return this.channelTemplate.send(message, this.outputChannel);
 	}
 
-	protected void postProcessHistoryEvent(MessageHistoryEvent event) {
-		event.setComponentType("producer");
+	/**
+	 * Subclasses may override this no-op method to add attributes to this
+	 * adapter's {@link ComponentMetadata}.
+	 */
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
 	}
 
 }

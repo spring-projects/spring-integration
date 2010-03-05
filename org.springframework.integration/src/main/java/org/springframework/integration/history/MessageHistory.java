@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration.history;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,7 +24,11 @@ import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.springframework.integration.support.ComponentMetadata;
+
 /**
+ * Iterable list of {@link MessageHistoryEvent} instances.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
@@ -35,29 +39,27 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
 
-	public MessageHistoryEvent addEvent(String componentName) {
-		try {
-			this.lock.writeLock().lock();
-			MessageHistoryEvent event = new MessageHistoryEvent(componentName);
-			this.events.add(event);
-			return event;
+	/**
+	 * Add a new event with the provided component metadata.
+	 */
+	public MessageHistoryEvent addEvent(ComponentMetadata metadata) {
+		if (metadata != null && metadata.getComponentName() != null) {
+			try {
+				this.lock.writeLock().lock();
+				MessageHistoryEvent event = new MessageHistoryEvent(metadata);
+				this.events.add(event);
+				return event;
+			}
+			finally {
+				this.lock.writeLock().unlock();
+			}
 		}
-		finally {
-			this.lock.writeLock().unlock();
-		}
+		return null;
 	}
 
-	public MessageHistoryEvent getCurrentEvent() {
-		try {
-			this.lock.readLock().lock();
-			int size = this.events.size();
-			return (size > 0) ? this.events.get(size - 1) : null;
-		}
-		finally {
-			this.lock.readLock().unlock();
-		}
-	}
-
+	/**
+	 * Returns an iterator for an unmodifiable list of the history events.
+	 */
 	public Iterator<MessageHistoryEvent> iterator() {
 		try {
 			this.lock.readLock().lock();
@@ -68,6 +70,9 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 		}
 	}
 
+	/**
+	 * Returns a String representation of the history event list.
+	 */
 	public String toString() {
 		return this.events.toString();
 	}

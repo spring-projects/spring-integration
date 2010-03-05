@@ -39,6 +39,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -120,17 +121,19 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Method method;
 
-	private final String gatewayName;
-
 	private final List<MethodParameter> parameterList;
+
+	private final ComponentMetadata metadata = new ComponentMetadata();
 
 
 	public ArgumentArrayMessageMapper(Method method, String gatewayName) {
 		Assert.notNull(method, "method must not be null");
 		Assert.notNull(gatewayName, "gatewayName must not be null");
 		this.method = method;
-		this.gatewayName = gatewayName;
 		this.parameterList = this.getMethodParameterList(method);
+		this.metadata.setComponentName(gatewayName);
+		// TODO: add METHOD_NAME key for attributes?
+		this.metadata.setAttribute("method", this.method.getName());
 	}
 
 	public Message<?> toMessage(Object[] arguments) {
@@ -142,10 +145,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		}
 		Message<?> message = this.mapArgumentsToMessage(arguments);
 		if (message != null) {
-			message.getHeaders().getHistory().addEvent(this.gatewayName)
-					.setComponentType("gateway")
-					// TODO: add METHOD_NAME key for props?
-					.setProperty("method", this.method.getName());
+			message.getHeaders().getHistory().addEvent(this.metadata);
 		}
 		return message;
 	}

@@ -31,6 +31,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -54,8 +55,14 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 
 	private volatile BeanFactory beanFactory;
 
+	private final ComponentMetadata metadata = new ComponentMetadata();
+
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
+
+	public AbstractMessageChannel() {
+		this.metadata.setComponentType("channel");
+	}
 
 	/**
 	 * Set the name of this channel. This will be invoked automatically whenever
@@ -63,6 +70,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 	 */
 	public void setBeanName(String name) {
 		this.name = name;
+		this.metadata.setComponentName(name);
 	}
 
 	/**
@@ -170,7 +178,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanFact
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);
-		message.getHeaders().getHistory().addEvent(this.getName()).setComponentType("channel");
+		message.getHeaders().getHistory().addEvent(this.metadata);
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;
