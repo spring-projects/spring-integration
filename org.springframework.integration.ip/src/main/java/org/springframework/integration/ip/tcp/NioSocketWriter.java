@@ -104,8 +104,6 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	 */
 	@Override
 	protected void writeCustomFormat(byte[] bytes) throws IOException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	/* (non-Javadoc)

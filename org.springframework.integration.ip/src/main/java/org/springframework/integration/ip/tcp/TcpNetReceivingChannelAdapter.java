@@ -69,17 +69,16 @@ public class TcpNetReceivingChannelAdapter extends
 						}});
 				}
 			} catch (IOException e) {
-				if (!active) {
-					if (serverSocket != null) {
-						try {
-							serverSocket.close();
-						} catch (IOException e1) {}
-					}
-					serverSocket = null;
-					return;
+				if (serverSocket != null) {
+					try {
+						serverSocket.close();
+					} catch (IOException e1) {}
 				}
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				serverSocket = null;
+				if (active) {
+					logger.error("Error on ServerSocket", e);
+				}
+
 			}
 
 		}
@@ -101,8 +100,6 @@ public class TcpNetReceivingChannelAdapter extends
 					customSocketReader.getConstructor(Socket.class);
 				reader = BeanUtils.instantiateClass(ctor, socket);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 				throw new MessageMappingException("Failed to instantiate custom reader", e);
 			}
 		}

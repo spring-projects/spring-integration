@@ -61,8 +61,7 @@ public class TcpNioSendingMessageHandler extends
 				writer.setUsingDirectBuffers(usingDirectBuffers);
 				this.writer = writer;
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Error creating SocketWriter", e);
 			}
 		}
 		return this.writer;

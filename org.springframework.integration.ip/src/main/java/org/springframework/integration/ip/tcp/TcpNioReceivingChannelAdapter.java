@@ -74,18 +74,13 @@ public class TcpNioReceivingChannelAdapter extends
 			doSelect(serverChannel, selector);
 
 		} catch (IOException e) {
-			if (!active) {
-				try {
-					serverChannel.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				serverChannel = null;
-				return;
+			try {
+				serverChannel.close();
+			} catch (IOException e1) { }
+			serverChannel = null;
+			if (active) {
+				logger.error("Error on ServerSocketChannel", e);
 			}
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -127,6 +122,9 @@ public class TcpNioReceivingChannelAdapter extends
 						key.interestOps(key.interestOps() - key.readyOps());
 						if (key.attachment() == null) {
 							NioSocketReader reader = createSocketReader(key);
+							if (reader == null) {
+								continue;
+							}
 							key.attach(reader);
 						}
 						this.threadPoolTaskScheduler.execute(new Runnable() {
@@ -162,8 +160,7 @@ public class TcpNioReceivingChannelAdapter extends
 						.getConstructor(SocketChannel.class);
 				reader = BeanUtils.instantiateClass(ctor, channel);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("Error creating SocketReader", e);
 			}
 		} else {
 			reader = new NioSocketReader(channel);

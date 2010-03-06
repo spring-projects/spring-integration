@@ -38,7 +38,6 @@ import org.springframework.integration.message.StringMessage;
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
  * If run as a JUnit just sends one message and terminates (see console).
- * TODO: Use a custom output stream and catch output to verify.
  * 
  * If run from main(),  
  * hangs around for a couple of minutes to allow console interaction (enter a message on the
