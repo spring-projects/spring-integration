@@ -41,8 +41,6 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 	
 	protected final int port;
 
-	protected int soReceiveBufferSize = -1;
-
 	protected volatile int soSendBufferSize = -1;
 
 	protected volatile int soTimeout = -1;
@@ -71,7 +69,6 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 	 * @param size
 	 */
 	public void setSoReceiveBufferSize(int size) {
-		this.soReceiveBufferSize = size;
 	}
 
 	/**

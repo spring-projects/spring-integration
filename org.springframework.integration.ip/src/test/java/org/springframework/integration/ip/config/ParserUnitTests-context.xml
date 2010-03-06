@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd	
+		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+
+	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
+
+	<int:channel id="udpChannel" />
+	<int:channel id="tcpChannel" />
+	
+	<ip:inbound-channel-adapter id="testInUdp"
+		channel="udpChannel"
+		check-length="true"
+		message-format="stx-etx"
+		multicast="false"
+		pool-size="27"
+		port="#{tcpIpUtils.findAvailableUdpSocket(5000)}"
+		protocol="udp"
+		receive-buffer-size="29"
+		so-keep-alive="true"
+		so-receive-buffer-size="30"
+		so-send-buffer-size="31"
+		so-timeout="32"
+	/>
+
+	<ip:inbound-channel-adapter id="testInUdpMulticast"
+		channel="udpChannel"
+		check-length="true"
+		message-format="stx-etx"
+		multicast="true"
+		multicast-address="225.6.7.8"
+		pool-size="27"
+		port="#{tcpIpUtils.findAvailableUdpSocket(5100)}"
+		protocol="udp"
+		receive-buffer-size="29"
+		so-keep-alive="true"
+		so-receive-buffer-size="30"
+		so-send-buffer-size="31"
+		so-timeout="32"
+	/>
+
+	<ip:inbound-channel-adapter id="testInTcpNio"
+		channel="tcpChannel"
+		check-length="true"
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNioSocketReader"
+		message-format="stx-etx"
+		pool-size="27"
+		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
+		protocol="tcp"
+		receive-buffer-size="29"
+		so-keep-alive="true"
+		so-receive-buffer-size="30"
+		so-timeout="32"
+		using-direct-buffers="false"
+		using-nio="true"
+	/>
+
+	<ip:inbound-channel-adapter id="testInTcpNioDirect"
+		channel="tcpChannel"
+		check-length="true"
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNioSocketReader"
+		message-format="stx-etx"
+		pool-size="27"
+		port="#{tcpIpUtils.findAvailableServerSocket(5300)}"
+		protocol="tcp"
+		receive-buffer-size="29"
+		so-keep-alive="true"
+		so-receive-buffer-size="30"
+		so-timeout="32"
+		using-direct-buffers="true"
+		using-nio="true"
+	/>
+
+	<ip:inbound-channel-adapter id="testInTcpNet"
+		channel="tcpChannel"
+		check-length="true"
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNetSocketReader"
+		message-format="stx-etx"
+		pool-size="27"
+		port="#{tcpIpUtils.findAvailableServerSocket(5400)}"
+		protocol="tcp"
+		receive-buffer-size="29"
+		so-keep-alive="true"
+		so-receive-buffer-size="30"
+		so-timeout="32"
+	/>
+
+	<ip:outbound-channel-adapter id="testOutUdp" 
+		ack-host="somehost"
+		ack-port="#{tcpIpUtils.findAvailableUdpSocket(7000)}"
+		ack-timeout="51"
+		acknowledge="true"
+		channel="udpChannel"
+		check-length="true"
+		host="localhost"
+		port="#{tcpIpUtils.findAvailableUdpSocket(6000)}"
+		protocol="udp"
+		multicast="false"
+		so-receive-buffer-size="52"
+		so-send-buffer-size="53"
+		so-timeout="54"
+	/>
+	
+	<ip:outbound-channel-adapter id="testOutUdpiMulticast" 
+		ack-host="somehost"
+		ack-port="#{tcpIpUtils.findAvailableUdpSocket(7100)}"
+		ack-timeout="51"
+		acknowledge="true"
+		channel="udpChannel"
+		check-length="true"
+		host="225.6.7.8"
+		port="#{tcpIpUtils.findAvailableUdpSocket(6100)}"
+		protocol="udp"
+		multicast="true"
+		min-acks-for-success="2"
+		so-receive-buffer-size="52"
+		so-send-buffer-size="53"
+		so-timeout="54"
+		time-to-live="55"
+	/>
+
+	<ip:outbound-channel-adapter id="testOutTcpNio" 
+		channel="tcpChannel"
+		host="localhost"
+		port="#{tcpIpUtils.findAvailableServerSocket(6200)}"
+		protocol="tcp"
+		so-send-buffer-size="53"
+		so-timeout="54"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNioSocketWriter"
+		message-format="stx-etx"
+		so-keep-alive="true"
+		so-linger="3"
+		so-tcp-no-delay="true"
+		so-traffic-class="27"
+		using-nio="true"
+		using-direct-buffers="false"
+	/>
+	
+	<ip:outbound-channel-adapter id="testOutTcpNioDirect" 
+		channel="tcpChannel"
+		host="localhost"
+		port="#{tcpIpUtils.findAvailableServerSocket(6300)}"
+		protocol="tcp"
+		so-send-buffer-size="53"
+		so-timeout="54"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNioSocketWriter"
+		message-format="stx-etx"
+		so-keep-alive="true"
+		so-linger="3"
+		so-tcp-no-delay="true"
+		so-traffic-class="27"
+		using-nio="true"
+		using-direct-buffers="true"
+	/>
+	
+
+	<ip:outbound-channel-adapter id="testOutTcpNet" 
+		channel="tcpChannel"
+		host="localhost"
+		port="#{tcpIpUtils.findAvailableServerSocket(6400)}"
+		protocol="tcp"
+		so-send-buffer-size="53"
+		so-timeout="54"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"
+		message-format="stx-etx"
+		so-keep-alive="true"
+		so-linger="3"
+		so-tcp-no-delay="true"
+		so-traffic-class="27"
+	/>
+	
+	
+	
+</beans>

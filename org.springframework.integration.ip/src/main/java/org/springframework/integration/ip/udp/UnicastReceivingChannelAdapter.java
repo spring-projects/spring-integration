@@ -51,6 +51,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	protected volatile int poolSize = -1;
 
+	protected volatile int soSendBufferSize = -1;
+
 	private static Pattern addressPattern = Pattern.compile("([^:]*):([0-9]*)");
 
 
@@ -204,6 +206,10 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		catch (Exception e) {
 			// ignore
 		}
+	}
+
+	public void setSoSendBufferSize(int soSendBufferSize) {
+		this.soSendBufferSize = soSendBufferSize;
 	}
 
 }

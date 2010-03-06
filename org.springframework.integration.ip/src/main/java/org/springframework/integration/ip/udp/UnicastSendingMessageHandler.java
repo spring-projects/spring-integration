@@ -76,6 +76,8 @@ public class UnicastSendingMessageHandler extends
 
 	protected volatile Exception fatalException;
 
+	protected int soReceiveBufferSize = -1;
+
 
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
@@ -293,6 +295,14 @@ public class UnicastSendingMessageHandler extends
 		if (socket != null) {
 			socket.close();
 		}
+	}
+
+	/**
+	 * @see {@link Socket#setReceiveBufferSize(int)} and {@link DatagramSocket#setReceiveBufferSize(int)}
+	 * @param size
+	 */
+	public void setSoReceiveBufferSize(int size) {
+		this.soReceiveBufferSize = size;
 	}
 
 }

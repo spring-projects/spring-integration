@@ -17,8 +17,6 @@ package org.springframework.integration.ip.tcp;
 
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;

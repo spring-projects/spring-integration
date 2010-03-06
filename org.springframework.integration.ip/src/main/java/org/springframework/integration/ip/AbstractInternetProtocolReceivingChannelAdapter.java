@@ -38,8 +38,6 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	protected volatile int soReceiveBufferSize = -1;
 
-	protected volatile int soSendBufferSize = -1;
-
 	protected volatile int receiveBufferSize = 2048;
 
 	protected volatile boolean active;
@@ -72,10 +70,9 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.integration.ip.SocketOptions#setSoSendBufferSize(int)
+	 * @see org.springframework.integration.ip.CommonSocketOptions#setSoSendBufferSize(int)
 	 */
 	public void setSoSendBufferSize(int soSendBufferSize) {
-		this.soSendBufferSize = soSendBufferSize;
 	}
 
 	public void setReceiveBufferSize(int receiveBufferSize) {

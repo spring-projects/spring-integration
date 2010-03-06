@@ -167,7 +167,7 @@ public class TcpSendingMessageHandlerTests {
 				try {
 					TcpNioSendingMessageHandler handler = new TcpNioSendingMessageHandler("localhost", port);
 					handler.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
-					handler.setCustomSocketWriteriClassName("org.springframework.integration.ip.tcp.CustomNioSocketWriter");
+					handler.setCustomSocketWriterClassName("org.springframework.integration.ip.tcp.CustomNioSocketWriter");
 					Message<String> message = MessageBuilder.withPayload(testString).build();
 					handler.handleMessage(message);
 					Thread.sleep(1000000000L);

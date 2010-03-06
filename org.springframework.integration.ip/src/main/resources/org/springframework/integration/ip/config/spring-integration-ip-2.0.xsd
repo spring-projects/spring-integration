@@ -65,10 +65,11 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 					<xsd:attribute name="ack-host" type="xsd:string" />
 					<xsd:attribute name="ack-port" type="xsd:string" />
 					<xsd:attribute name="ack-timeout" type="xsd:string" />
+					<xsd:attribute name="min-acks-for-success" type="xsd:string" />
 					<xsd:attribute name="time-to-live" type="xsd:string" />
 					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string" />
 					<xsd:attribute name="so-linger" type="xsd:string" />
-					<xsd:attribute name="so-tcp-nodelay" type="xsd:boolean" />
+					<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
 					<xsd:attribute name="so-traffic-class" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -97,7 +98,7 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 		<xsd:attribute name="so-timeout" type="xsd:string" />
 		<xsd:attribute name="check-length" type="xsd:string" />
 		<xsd:attribute name="multicast" type="xsd:string" />
-		<xsd:attribute name="using-nio" type="xsd:boolean" />
+		<xsd:attribute name="using-nio" type="xsd:string" />
 		<xsd:attribute name="message-format">
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:NMTOKEN">
@@ -108,8 +109,8 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="using-direct-buffers" type="xsd:boolean" />
-		<xsd:attribute name="so-keep-alive" type="xsd:boolean" />
+		<xsd:attribute name="using-direct-buffers" type="xsd:string" />
+		<xsd:attribute name="so-keep-alive" type="xsd:string" />
 		
 	</xsd:complexType>
 
