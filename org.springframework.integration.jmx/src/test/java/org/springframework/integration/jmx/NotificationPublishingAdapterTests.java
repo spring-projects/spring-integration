@@ -29,6 +29,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.jmx.export.MBeanExporter;
@@ -49,13 +50,15 @@ public class NotificationPublishingAdapterTests {
 
 	@Before
 	public void setup() throws Exception {
-		this.publisherObjectName = ObjectNameManager.getInstance(
-				"org.springframework.integration:type=notificationPublishingAdapter,name=testPublisher");
+		this.publisherObjectName = ObjectNameManager.getInstance("test:type=publisher");
 		context.registerSingleton("exporter", MBeanExporter.class);
-		context.registerSingleton("testPublisher", NotificationPublishingAdapter.class);
+		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingAdapter.class);
+		publisherDefinition.getConstructorArgumentValues().addGenericArgumentValue(this.publisherObjectName);
+		publisherDefinition.getPropertyValues().add("defaultNotificationType", "test.type");
+		context.registerBeanDefinition("testPublisher", publisherDefinition);
 		context.refresh();
 		MBeanExporter exporter = context.getBean(MBeanExporter.class);
-		exporter.getServer().addNotificationListener(this.publisherObjectName, this.listener, null, null);
+		exporter.getServer().addNotificationListener(publisherObjectName, this.listener, null, null);
 	}
 
 	@After
@@ -74,7 +77,7 @@ public class NotificationPublishingAdapterTests {
 		Notification notification = this.listener.notifications.get(0);
 		assertEquals(this.publisherObjectName, notification.getSource());
 		assertEquals("foo", notification.getMessage());
-		assertEquals("org.springframework.integration.jmx.event", notification.getType());
+		assertEquals("test.type", notification.getType());
 	}
 
 

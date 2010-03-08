@@ -38,6 +38,9 @@ import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
+ * A JMX {@link NotificationListener} implementation that will send Messages
+ * containing the JMX {@link Notification} instances as their payloads.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
@@ -54,22 +57,44 @@ public class NotificationListeningAdapter extends MessageProducerSupport impleme
 	private volatile Object handback;
 
 
+	/**
+	 * Provide a reference to the MBeanServer where the notification
+	 * publishing MBeans are registered. 
+	 */
 	public void setServer(MBeanServer server) {
 		this.server = server;
 	}
 
+	/**
+	 * Specify one or more JMX ObjectNames of notification publishers
+ 	 * to which this notification listener should be subscribed.
+	 */
 	public void setObjectNames(ObjectName... objectNames) {
 		this.objectNames = new LinkedHashSet<ObjectName>(Arrays.asList(objectNames));
 	}
 
+	/**
+	 * Specify a {@link NotificationFilter} to be passed to the server
+	 * when registering this listener. The filter may be null.
+	 */
 	public void setFilter(NotificationFilter filter) {
 		this.filter = filter;
 	}
 
+	/**
+	 * Specify a handback object to provide context to the listener
+	 * upon notification. This object may be null.
+	 */
 	public void setHandback(Object handback) {
 		this.handback = handback;
 	}
 
+	/**
+	 * Notification handling method implementation. Creates a Message with the
+	 * JMX {@link Notification} as its payload, and if the handback object is
+	 * not null, it sets that as a Message header value. The Message is then
+	 * sent to this producer's output channel.
+	 */
 	public void handleNotification(Notification notification, Object handback) {
 		if (logger.isInfoEnabled()) {
 			logger.info("received notification: " + notification + ", and handback: " + handback);
@@ -88,10 +113,14 @@ public class NotificationListeningAdapter extends MessageProducerSupport impleme
 		metadata.setAttribute("transport", "jmx");
 	}
 
+	/**
+	 * Registers the notification listener with the specified ObjectNames.
+	 */
 	@Override
 	protected void doStart() {
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
+			Assert.notEmpty(this.objectNames, "One or more ObjectNames are required.");
 			for (ObjectName objectName : this.objectNames) {
 				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
 			}
@@ -101,10 +130,14 @@ public class NotificationListeningAdapter extends MessageProducerSupport impleme
 		}
 	}
 
+	/**
+	 * Unregisters the notification listener.
+	 */
 	@Override
 	protected void doStop() {
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
+			Assert.notEmpty(this.objectNames, "One or more ObjectNames are required.");
 			for (ObjectName objectName : this.objectNames) {
 				this.server.removeNotificationListener(objectName, this, this.filter, this.handback);
 			}

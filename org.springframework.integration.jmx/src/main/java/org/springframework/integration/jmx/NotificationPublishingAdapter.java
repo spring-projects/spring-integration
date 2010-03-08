@@ -18,13 +18,14 @@ package org.springframework.integration.jmx;
 
 import java.util.Map;
 
+import javax.management.MalformedObjectNameException;
 import javax.management.Notification;
+import javax.management.ObjectName;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.core.Message;
@@ -40,35 +41,53 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NotificationPublishingAdapter extends AbstractMessageHandler
-		implements BeanNameAware, BeanFactoryAware, InitializingBean {
+public class NotificationPublishingAdapter extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
 
 	private final PublisherDelegate delegate = new PublisherDelegate();
 
 	private volatile OutboundMessageMapper<Notification> notificationMapper;
 
-	private volatile String objectName;
+	private final ObjectName objectName;
 
-	private volatile String beanName;
+	private volatile String defaultNotificationType;
 
 	private volatile ListableBeanFactory beanFactory;
 
 
-	public NotificationPublishingAdapter() {
-		this(null);
-	}
-
-	public NotificationPublishingAdapter(String objectName) {
+	public NotificationPublishingAdapter(ObjectName objectName) {
+		Assert.notNull(objectName, "JMX ObjectName is required");
 		this.objectName = objectName;
 	}
 
+	public NotificationPublishingAdapter(String objectName) {
+		Assert.notNull(objectName, "JMX ObjectName is required");
+		try {
+			this.objectName = ObjectNameManager.getInstance(objectName);
+		}
+		catch (MalformedObjectNameException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 
+
+	/**
+	 * Set a mapper for creating Notifications from a Message. If not provided,
+	 * a default implementation will be used such that String-typed payloads will be
+	 * passed as the 'message' of the Notification and all other payload types
+	 * will be passed as the 'userData' of the Notification.
+	 */
 	public void setNotificationMapper(OutboundMessageMapper<Notification> notificationMapper) {
 		this.notificationMapper = notificationMapper;
 	}
 
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
+	/**
+	 * Specify a dot-delimited String representing the Notification type to
+	 * use by default when <emphasis>no</emphasis> explicit Notification mapper
+	 * has been configured. If not provided, then a notification type header will
+	 * be required for each message being mapped into a Notification. 
+	 */
+	public void setDefaultNotificationType(String defaultNotificationType) {
+		this.defaultNotificationType = defaultNotificationType;
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
@@ -83,14 +102,10 @@ public class NotificationPublishingAdapter extends AbstractMessageHandler
 				"No unique MBeanExporter is available in the current context (found " +
 				exporters.size() + ").");
 		MBeanExporter exporter = exporters.values().iterator().next();
-		if (this.objectName == null) {
-			this.objectName = "org.springframework.integration:" +
-					"type=notificationPublishingAdapter,name=" + this.beanName;
-		}
 		if (this.notificationMapper == null) {
-			this.notificationMapper = new DefaultNotificationMapper(this.objectName);
+			this.notificationMapper = new DefaultNotificationMapper(this.objectName, this.defaultNotificationType);
 		}
-		exporter.registerManagedResource(this.delegate, ObjectNameManager.getInstance(this.objectName));
+		exporter.registerManagedResource(this.delegate, this.objectName);
 		if (this.logger.isInfoEnabled()) {
 			this.logger.info("Registered JMX notification publisher as MBean with ObjectName: " + this.objectName);
 		}
@@ -102,6 +117,9 @@ public class NotificationPublishingAdapter extends AbstractMessageHandler
 	}
 
 
+	/**
+	 * Simple class used for the actual MBean instances to be registered.
+	 */
 	private static class PublisherDelegate implements NotificationPublisherAware {
 
 		private volatile NotificationPublisher notificationPublisher;
