@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NotificationListeningAdapter extends MessageProducerSupport implements NotificationListener {
+public class NotificationListeningMessageProducer extends MessageProducerSupport implements NotificationListener {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

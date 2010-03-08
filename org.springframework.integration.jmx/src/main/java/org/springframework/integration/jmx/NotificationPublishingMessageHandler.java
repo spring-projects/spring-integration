@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NotificationPublishingAdapter extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
+public class NotificationPublishingMessageHandler extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
 
 	private final PublisherDelegate delegate = new PublisherDelegate();
 
@@ -54,12 +54,12 @@ public class NotificationPublishingAdapter extends AbstractMessageHandler implem
 	private volatile ListableBeanFactory beanFactory;
 
 
-	public NotificationPublishingAdapter(ObjectName objectName) {
+	public NotificationPublishingMessageHandler(ObjectName objectName) {
 		Assert.notNull(objectName, "JMX ObjectName is required");
 		this.objectName = objectName;
 	}
 
-	public NotificationPublishingAdapter(String objectName) {
+	public NotificationPublishingMessageHandler(String objectName) {
 		Assert.notNull(objectName, "JMX ObjectName is required");
 		try {
 			this.objectName = ObjectNameManager.getInstance(objectName);

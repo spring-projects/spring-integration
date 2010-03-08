@@ -39,7 +39,7 @@ import org.springframework.jmx.support.ObjectNameManager;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NotificationPublishingAdapterTests {
+public class NotificationPublishingMessageHandlerTests {
 
 	private final StaticApplicationContext context = new StaticApplicationContext();
 
@@ -52,7 +52,7 @@ public class NotificationPublishingAdapterTests {
 	public void setup() throws Exception {
 		this.publisherObjectName = ObjectNameManager.getInstance("test:type=publisher");
 		context.registerSingleton("exporter", MBeanExporter.class);
-		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingAdapter.class);
+		RootBeanDefinition publisherDefinition = new RootBeanDefinition(NotificationPublishingMessageHandler.class);
 		publisherDefinition.getConstructorArgumentValues().addGenericArgumentValue(this.publisherObjectName);
 		publisherDefinition.getPropertyValues().add("defaultNotificationType", "test.type");
 		context.registerBeanDefinition("testPublisher", publisherDefinition);
@@ -70,7 +70,7 @@ public class NotificationPublishingAdapterTests {
 
 	@Test
 	public void simplePublish() {
-		NotificationPublishingAdapter adapter = context.getBean(NotificationPublishingAdapter.class);
+		NotificationPublishingMessageHandler adapter = context.getBean(NotificationPublishingMessageHandler.class);
 		assertEquals(0, this.listener.notifications.size());
 		adapter.handleMessage(new StringMessage("foo"));
 		assertEquals(1, this.listener.notifications.size());

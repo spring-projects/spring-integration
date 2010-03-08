@@ -26,7 +26,7 @@ import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.util.Assert;
 
 /**
- * Default Messaging Mapper implementation for the {@link NotificationPublishingAdapter}.
+ * Default Messaging Mapper implementation for the {@link NotificationPublishingMessageHandler}.
  * If the Message has a String-typed payload, that will be passed as the 'message' of
  * the Notification instance. Otherwise, the payload object will be passed as the
  * 'userData' of the Notification instance.

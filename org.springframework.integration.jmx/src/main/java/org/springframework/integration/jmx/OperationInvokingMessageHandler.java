@@ -53,7 +53,7 @@ import org.springframework.util.ObjectUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class OperationInvokingHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class OperationInvokingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
 	private volatile MBeanServer server;
 

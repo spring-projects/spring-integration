@@ -44,7 +44,7 @@ import org.springframework.jmx.support.ObjectNameManager;
  * @author Mark Fisher
  * @since 2.0
  */
-public class NotificationListeningAdapterTests {
+public class NotificationListeningMessageProducerTests {
 
 	private volatile MBeanServer server;
 
@@ -74,7 +74,7 @@ public class NotificationListeningAdapterTests {
 	@Test
 	public void simpleNotification() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		NotificationListeningAdapter adapter = new NotificationListeningAdapter();
+		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
 		adapter.setObjectNames(this.objectName);
 		adapter.setOutputChannel(outputChannel);
@@ -93,7 +93,7 @@ public class NotificationListeningAdapterTests {
 	@Test
 	public void notificationWithHandback() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		NotificationListeningAdapter adapter = new NotificationListeningAdapter();
+		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
 		adapter.setObjectNames(this.objectName);
 		adapter.setOutputChannel(outputChannel);
@@ -115,7 +115,7 @@ public class NotificationListeningAdapterTests {
 	@SuppressWarnings("serial")
 	public void notificationWithFilter() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		NotificationListeningAdapter adapter = new NotificationListeningAdapter();
+		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
 		adapter.setObjectNames(this.objectName);
 		adapter.setOutputChannel(outputChannel);

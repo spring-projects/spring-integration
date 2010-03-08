@@ -42,7 +42,7 @@ import org.springframework.jmx.support.ObjectNameManager;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class OperationInvokingHandlerTests {
+public class OperationInvokingMessageHandlerTests {
 
 	private final String objectName = "si:name=test";
 
@@ -67,7 +67,7 @@ public class OperationInvokingHandlerTests {
 	@Test
 	public void invocationWithMapPayload() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingHandler handler = new OperationInvokingHandler();
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
@@ -86,7 +86,7 @@ public class OperationInvokingHandlerTests {
 	@Test
 	public void invocationWithPayloadNoReturnValue() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingHandler handler = new OperationInvokingHandler();
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
@@ -99,7 +99,7 @@ public class OperationInvokingHandlerTests {
 	@Test(expected=MessagingException.class)
 	public void invocationWithMapPayloadNotEnoughParameters() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingHandler handler = new OperationInvokingHandler();
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
@@ -117,7 +117,7 @@ public class OperationInvokingHandlerTests {
 	@Test
 	public void invocationWithListPayload() throws Exception {
 		QueueChannel outputChannel = new QueueChannel();
-		OperationInvokingHandler handler = new OperationInvokingHandler();
+		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
