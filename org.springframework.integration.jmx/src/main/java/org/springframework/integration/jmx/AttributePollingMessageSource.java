@@ -26,8 +26,12 @@ import org.springframework.integration.gateway.SimpleMessageMapper;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.jmx.support.ObjectNameManager;
+import org.springframework.util.Assert;
 
 /**
+ * A {@link MessageSource} implementation that retrieves the current
+ * value of a JMX attribute each time {@link #receive()} is invoked.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
@@ -43,6 +47,16 @@ public class AttributePollingMessageSource implements MessageSource {
 	private volatile InboundMessageMapper<Object> mapper = new SimpleMessageMapper();
 
 
+	/**
+	 * Provide the MBeanServer where the JMX MBean has been registered.
+	 */
+	public void setServer(MBeanServer server) {
+		this.server = server;
+	}
+
+	/**
+	 * Specify the String value of the JMX MBean's {@link ObjectName}.  
+	 */
 	public void setObjectName(String objectName) {
 		try {
 			this.objectName = ObjectNameManager.getInstance(objectName);
@@ -52,15 +66,21 @@ public class AttributePollingMessageSource implements MessageSource {
 		}
 	}
 
+	/**
+	 * Specify the name of the attribute to be retrieved.
+	 */
 	public void setAttributeName(String attributeName) {
 		this.attributeName = attributeName;
 	}
 
-	public void setServer(MBeanServer server) {
-		this.server = server;
-	}
-
+	/**
+	 * Retrieves the attribute value and returns it in the
+	 * payload of a Message.
+	 */
 	public Message<?> receive() {
+		Assert.notNull(this.server, "MBeanServer is required");
+		Assert.notNull(this.objectName, "object name is required");
+		Assert.notNull(this.attributeName, "attribute name is required");
 		try {
 			Object value = this.server.getAttribute(this.objectName, this.attributeName);
 			return this.mapper.toMessage(value);
