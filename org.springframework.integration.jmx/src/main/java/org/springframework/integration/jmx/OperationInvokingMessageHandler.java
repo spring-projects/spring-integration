@@ -34,20 +34,26 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 /**
- * As the name suggests this MessageHandler will invoke JMX operation after resolving the 
- * 'objectName', 'operationName' and mapping operation parameters from the message payload. 
- * When operation has multiple parameters they could be provided as List or Map payload.
- * Both 'objectName' and 'operationName' could be provided in two different ways; <br>
- * 1. Setting 'defaultObjectName' via {@link #setDefaultObjectName(String)} and
- * 'defaultOperationName' via {@link #setDefaultOperationName(String)}<br>
- * 2. Supplying values with Message headers such as {@link JmxHeaders#OBJECT_NAME} 
- * and {@link JmxHeaders#OPERATION_NAME}<br>
+ * A {@link MessageHandler} implementation for invoking JMX operations based on
+ * the Message sent to its {@link #handleMessage(Message)} method. Message headers
+ * will be checked first when resolving the 'objectName' and 'operationName' to be
+ * invoked on an MBean. These values would be supplied with the Message headers
+ * defined as {@link JmxHeaders#OBJECT_NAME} and {@link JmxHeaders#OPERATION_NAME},
+ * respectively. In either case, if no header is present, the value resolution
+ * will fallback to the defaults, if any have been configured on this instance via
+ * {@link #setDefaultObjectName(String)} and {@link #setDefaultOperationName(String)},
+ * respectively.
+ * 
+ * <p>The operation parameter(s), if any, must be available within the payload of the
+ * Message being handled. If the target operation expects multiple parameters, they
+ * can be provided in either a List or Map typed payload.
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -62,10 +68,18 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	private volatile String defaultOperationName;
 
 
+	/**
+	 * Provide a reference to the MBeanServer within which the MBean
+	 * target for operation invocation has been registered.
+	 */
 	public void setServer(MBeanServer server) {
 		this.server = server;
 	}
 
+	/**
+	 * Specify a default ObjectName to use when no such header is
+	 * available on the Message being handled.
+	 */
 	public void setDefaultObjectName(String defaultObjectName) {
 		try {
 			if (defaultObjectName != null) {
@@ -77,6 +91,10 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		}
 	}
 
+	/**
+	 * Specify a default operation name to be invoked when no such
+	 * header is available on the Message being handled.
+	 */	
 	public void setDefaultOperationName(String defaultOperationName) {
 		this.defaultOperationName = defaultOperationName; 
 	}
@@ -122,9 +140,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 				return this.server.invoke(objectName, operationName, null, null);
 			}
 			throw new MessagingException(requestMessage, "failed to find JMX operation '"
-					+ operationName + "' on MBean [" + objectName + "]" + " (implClass:" + mbeanInfo.getClassName()
-					+ ")" + " with " + paramsFromMessage.size() + " parameters: "
-					+ paramsFromMessage.keySet());
+					+ operationName + "' on MBean [" + objectName + "] of type [" + mbeanInfo.getClassName()
+					+ "] with " + paramsFromMessage.size() + " parameters: " + paramsFromMessage.keySet());
 		}
 		catch (JMException e) {
 			throw new MessageHandlingException(requestMessage, "failed to invoke JMX operation '" +
