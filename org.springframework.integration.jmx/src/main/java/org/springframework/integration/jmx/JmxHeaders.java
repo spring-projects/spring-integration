@@ -26,7 +26,7 @@ import org.springframework.integration.core.MessageHeaders;
  */
 public abstract class JmxHeaders {
 
-	private static final String PREFIX = MessageHeaders.PREFIX + "jmx_";
+	public static final String PREFIX = MessageHeaders.PREFIX + "jmx_";
 
 	public static final String OBJECT_NAME = PREFIX + "objectName";
 
