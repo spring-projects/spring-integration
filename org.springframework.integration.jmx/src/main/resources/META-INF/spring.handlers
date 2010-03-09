@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/jmx=org.springframework.integration.jmx.config.JmxNamespaceHandler

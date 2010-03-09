@@ -1,0 +1,4 @@
+# Tooling related information for the integration jmx namespace
+http\://www.springframework.org/schema/integration/jmx@name=integration jmx Namespace
+http\://www.springframework.org/schema/integration/jmx@prefix=int-jmx
+#http\://www.springframework.org/schema/integration/jmx@icon=org/springframework/integration/jmx/config/spring-integration-jmx.gif
