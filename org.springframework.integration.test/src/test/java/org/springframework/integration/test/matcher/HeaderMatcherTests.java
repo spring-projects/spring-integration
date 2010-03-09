@@ -16,21 +16,20 @@
 
 package org.springframework.integration.test.matcher;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.HeaderMatcher.*;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.matcher.HeaderMatcher.*;
 
 /**
  * @author Alex Peters
@@ -55,8 +54,8 @@ public class HeaderMatcherTests {
 
 	@Before
 	public void setUp() {
-		message = MessageBuilder.withPayload(ANY_PAYLOAD).setHeader(ANY_HEADER_KEY,
-				ANY_HEADER_VALUE).setHeader(OTHER_HEADER_KEY, OTHER_HEADER_VALUE).build();
+		message = MessageBuilder.withPayload(ANY_PAYLOAD).setHeader(ANY_HEADER_KEY, ANY_HEADER_VALUE).setHeader(
+				OTHER_HEADER_KEY, OTHER_HEADER_VALUE).build();
 	}
 
 	@Test
@@ -116,17 +115,17 @@ public class HeaderMatcherTests {
 		expectedInHeaderMap.remove(UNKNOWN_KEY);
 		expectedInHeaderMap.put(OTHER_HEADER_KEY, ANY_HEADER_VALUE); // fails
 	}
-	
+
 	@Test
 	public void readableException_singleHeader() throws Exception {
 		try {
-		assertThat(message, hasHeader("corn", "bread"));
+			assertThat(message, hasHeader("corn", "bread"));
 		}
-		catch (AssertionError ae){
+		catch (AssertionError ae) {
 			assertTrue(ae.getMessage().contains("Expected: a Message with Headers containing "));
 		}
 	}
-	
+
 	@Test
 	public void readableException_allHeaders() throws Exception {
 		try {
@@ -135,8 +134,50 @@ public class HeaderMatcherTests {
 			entries.put("chocolate", "pudding");
 			assertThat(message, hasAllHeaders(entries));
 		}
-		catch (AssertionError ae){
+		catch (AssertionError ae) {
 			assertTrue(ae.getMessage().contains("Expected: a Message with Headers containing "));
 		}
+	}
+
+	@Test
+	public void hasMessageId_sameId() throws Exception {
+		assertThat(message, hasMessageId(message.getHeaders().getId()));
+	}
+
+	@Test
+	public void hasCorrelationId_() throws Exception {
+		Object correlationId = message.getHeaders().getId();
+		message = MessageBuilder.withPayload("blabla").setCorrelationId(correlationId).build();
+		assertThat(message, hasCorrelationId(correlationId));
+	}
+
+	@Test
+	public void hasSequenceNumber_() throws Exception {
+		int sequenceNumber = 123;
+		message = MessageBuilder.fromMessage(message).setSequenceNumber(sequenceNumber).build();
+		assertThat(message, hasSequenceNumber(sequenceNumber));
+	}
+
+	@Test
+	public void hasSequenceSize_() throws Exception {
+		int sequenceSize = 123;
+		message = MessageBuilder.fromMessage(message).setSequenceSize(sequenceSize).build();
+		assertThat(message, hasSequenceSize(sequenceSize));
+		assertThat(message, hasSequenceSize(is(sequenceSize)));
+	}
+
+	@Test
+	public void hasTimestamp_() throws Exception {
+		assertThat(message, hasTimestamp(new Date(message.getHeaders().getTimestamp())));
+	}
+
+	@Test
+	public void hasExpirationDate_() throws Exception {
+		Matcher<Long> anyMatcher = anything();
+		assertThat(message, not(hasExpirationDate(anyMatcher)));
+		Date expirationDate = new Date(System.currentTimeMillis() + 10000);
+		message = MessageBuilder.fromMessage(message).setExpirationDate(expirationDate).build();
+		assertThat(message, hasExpirationDate(expirationDate));
+		assertThat(message, hasExpirationDate(not(is((System.currentTimeMillis())))));
 	}
 }
