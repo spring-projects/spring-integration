@@ -26,7 +26,15 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence minOccurs="0" maxOccurs="1">
+				<xsd:element ref="integration:poller"/>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="optional"/>
+			<xsd:attribute name="channel" type="xsd:string" use="optional"/>
+			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
+			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
+			<xsd:attribute name="attribute-name" type="xsd:string" use="required"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -40,8 +48,8 @@
 			<xsd:attribute name="id" type="xsd:string" use="optional"/>
 			<xsd:attribute name="channel" type="xsd:string" use="optional"/>
 			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
-			<xsd:attribute name="default-operation-name" type="xsd:string" use="optional"/>
 			<xsd:attribute name="default-object-name" type="xsd:string" use="optional"/>
+			<xsd:attribute name="default-operation-name" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 

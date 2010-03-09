@@ -28,6 +28,7 @@ public class JmxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		this.registerBeanDefinitionParser("operation-invoking-channel-adapter", new OperationInvokingChannelAdapterParser());
+		this.registerBeanDefinitionParser("attribute-polling-channel-adapter", new AttributePollingChannelAdapterParser());
 	}
 
 }
