@@ -18,6 +18,7 @@ package org.springframework.integration.control;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -34,10 +35,16 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.jmx.JmxHeaders;
+import org.springframework.integration.jmx.OperationInvokingMessageHandler;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.export.assembler.AbstractConfigurableMBeanInfoAssembler;
 import org.springframework.jmx.export.assembler.MBeanInfoAssembler;
@@ -57,10 +64,16 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 
 	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
+	public static final String TARGET_BEAN_NAME = JmxHeaders.PREFIX + "_controlBus_targetBeanName";
+
 
 	private final MBeanExporter exporter;
 
 	private final String domain;
+
+	private final Map<String, ObjectName> exportedBeanObjectNameMap = new HashMap<String, ObjectName>();
+
+	private final DirectChannel operationChannel = new DirectChannel();
 
 	private volatile ListableBeanFactory beanFactory;
 
@@ -94,6 +107,17 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 	}
 
 
+	/**
+	 * Returns the channel to which operation-invoking Messages may be sent. Any messages
+	 * sent to this channel must contain {@link ControlBus#TARGET_BEAN_NAME} and
+	 * {@link JmxHeaders#OPERATION_NAME} header values, and the target bean name must
+	 * match one that has been exported by this Control Bus. If the operation returns a
+	 * result, the {@link MessageHeaders#REPLY_CHANNEL} header is also required.
+	 */
+	public MessageChannel getOperationChannel() {
+		return this.operationChannel;
+	}
+
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		Assert.isTrue(beanFactory instanceof ListableBeanFactory,
 				"A ListableBeanFactory is required.");
@@ -109,13 +133,20 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 				String beanName = entry.getKey();
 				Class<?> beanType = bean.getClass();
 				try {
-					this.exporter.registerManagedResource(bean, this.generateObjectName(beanName, beanType));
+					ObjectName objectName = this.generateObjectName(beanName, beanType);
+					this.exporter.registerManagedResource(bean, objectName);
+					this.exportedBeanObjectNameMap.put(beanName, objectName);
 				}
 				catch (MalformedObjectNameException e) {
 					throw new BeanInitializationException("Failed to generate JMX ObjectName.", e);
 				}
 			}
 		}
+		OperationInvokingMessageHandler handler = new ControlBusOperationInvokingMessageHandler();
+		handler.setBeanFactory(this.beanFactory);
+		handler.setServer(this.exporter.getServer());
+		handler.afterPropertiesSet();
+		this.operationChannel.subscribe(handler);
 	}
 
 	private ObjectName generateObjectName(String beanName, Class<?> beanType) throws MalformedObjectNameException {
@@ -186,6 +217,24 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 				return MessageChannelInfo.class;
 			}
 			return null;
+		}
+	}
+
+
+	private class ControlBusOperationInvokingMessageHandler extends OperationInvokingMessageHandler {
+
+		@Override
+		protected Object handleRequestMessage(Message<?> requestMessage) {
+			String beanName = requestMessage.getHeaders().get(TARGET_BEAN_NAME, String.class);
+			Assert.notNull(beanName, "The ControlBus.TARGET_BEAN_NAME is required.");
+			ObjectName objectName = exportedBeanObjectNameMap.get(beanName);
+			Assert.notNull(objectName,
+					"ControlBus has not exported an MBean for '" + beanName + "'");
+			requestMessage = MessageBuilder.fromMessage(requestMessage)
+					.setHeader(JmxHeaders.OBJECT_NAME, objectName)
+					.setHeader(TARGET_BEAN_NAME, null)
+					.build(); 
+			return super.handleRequestMessage(requestMessage);
 		}
 	}
 
