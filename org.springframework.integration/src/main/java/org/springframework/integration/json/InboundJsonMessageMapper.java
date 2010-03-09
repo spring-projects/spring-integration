@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.json;
 
 import java.util.HashMap;
@@ -22,8 +38,10 @@ import org.springframework.util.Assert;
  * {@link InboundMessageMapper} implementation that maps incoming JSON messages to a {@link Message} with the specified payload type.  
  * 
  * TODO - Need to figure out if we need to go as deep in mapping HeaderTypes...right now it wouldn't work if the header type was something like List<TestBean>
+ *      - cannot assume order as implemented; headers may not always precede the payload
  * 
  * @author Jeremy Grelle
+ * @since 2.0
  */
 public class InboundJsonMessageMapper implements
 		InboundMessageMapper<String> {
