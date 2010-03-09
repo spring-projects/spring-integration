@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
@@ -128,20 +129,22 @@ public class MessageHandlerChainTests {
 		chain.handleMessage(message);
 	}
 
-	private class ProducingHandlerStub implements MessageHandler {
-		private MessageChannel output;
-		
+
+	private static class ProducingHandlerStub implements MessageHandler, MessageProducer {
+
+		private volatile MessageChannel output;
+
 		private final MessageHandler messageHandler;
-		
+
 		public ProducingHandlerStub(MessageHandler handler) {
-			messageHandler = handler;
+			this.messageHandler = handler;
 		}
-		
+
 		public void setOutputChannel(MessageChannel channel) {
 			this.output = channel;
 			
 		}
-		
+
 		public void handleMessage(Message<?> message) {
 			messageHandler.handleMessage(message);
 			output.send(message);
