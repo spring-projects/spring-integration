@@ -19,6 +19,7 @@ package org.springframework.integration.jmx.config;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
@@ -30,6 +31,11 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 public class TestBean {
 
 	final List<String> messages = new ArrayList<String>();
+
+	@ManagedAttribute
+	public String getFirstMessage() {
+		return (messages.size() > 0) ? messages.get(0) : null;
+	}
 
 	@ManagedOperation
 	public void test(String text) {
