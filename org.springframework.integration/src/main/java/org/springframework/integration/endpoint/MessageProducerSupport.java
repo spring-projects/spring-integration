@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
@@ -28,7 +29,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class MessageProducerSupport extends AbstractEndpoint {
+public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer {
 
 	private volatile MessageChannel outputChannel;
 
