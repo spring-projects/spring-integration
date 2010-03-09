@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,32 @@ import org.springframework.integration.core.MessageChannel;
  */
 public interface ChannelInterceptor {
 
+	/**
+	 * Invoked before the Message is actually sent to the channel.
+	 * This allows for modification of the Message if necessary.
+	 * If this method returns <code>null</code>, then the actual
+	 * send invocation will not occur.
+	 */
 	Message<?> preSend(Message<?> message, MessageChannel channel);
 
+	/**
+	 * Invoked immediately after the send invocation. The boolean
+	 * value argument represents the return value of that invocation.
+	 */
 	void postSend(Message<?> message, MessageChannel channel, boolean sent);
 
+	/**
+	 * Invoked as soon as receive is called and before a Message is
+	 * actually retrieved. If the return value is 'false', then no
+	 * Message will be retrieved. This only applies to PollableChannels.
+	 */
 	boolean preReceive(MessageChannel channel);
 
+	/**
+	 * Invoked immediately after a Message has been retrieved but before
+	 * it is returned to the caller. The Message may be modified if
+	 * necessary. This only applies to PollableChannels. 
+	 */
 	Message<?> postReceive(Message<?> message, MessageChannel channel);
 
 }

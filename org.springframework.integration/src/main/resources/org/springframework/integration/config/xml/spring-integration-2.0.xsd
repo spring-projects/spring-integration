@@ -67,7 +67,13 @@
 							<xsd:element name="dispatcher" type="dispatcherType" />
 						</xsd:choice>
 						<xsd:element name="interceptors" type="channelInterceptorsType"
-							minOccurs="0" maxOccurs="1" />
+							minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation><![CDATA[
+	A list of ChannelInterceptor instances to be applied to this channel.
+								]]></xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -203,7 +209,15 @@
 				<xsd:extension base="channelType">
 					<xsd:sequence>
 						<xsd:element name="interceptors" type="channelInterceptorsType"
-							minOccurs="0" maxOccurs="1" />
+							minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:documentation><![CDATA[
+	A list of ChannelInterceptor instances whose preSend and postSend methods
+	will be applied to this channel. Note that the preReceive and postReceive
+	methods have no effect for a SubscribableChannel instance.
+								]]></xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
@@ -1443,9 +1457,7 @@
 	<xsd:complexType name="channelInterceptorsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a list of interceptors. Each element may
-				be a ChannelInterceptor,
-				ref, or inner-bean.
+	Defines a list of interceptors. Each element may be a ChannelInterceptor, ref, or inner-bean.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -1474,7 +1486,7 @@
 	<xsd:complexType name="wireTapType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines a Wire Tap Channel Interceptor.
+	Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="channel" type="xsd:string" use="required">
@@ -1582,8 +1594,8 @@
 	<xsd:element name="publisher">
 		<xsd:annotation>
 					<xsd:documentation>
-						Defines a MessagePublishingInterceptor which allows you to generate messages as a by-product of 
-						method invocations on Spring configured components.
+	Defines a MessagePublishingInterceptor which allows you to generate messages
+	as a by-product of method invocations on Spring configured components.
 					</xsd:documentation>
 		</xsd:annotation> 
 		<xsd:complexType>
@@ -1601,7 +1613,7 @@
 			<xsd:attribute name="default-channel" type="xsd:string" default="nullChannel">
 				<xsd:annotation> 
 					<xsd:documentation><![CDATA[
-						Specifies default-channel to publish messages
+	Specifies default-channel to publish messages
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
