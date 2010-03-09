@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -75,7 +76,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  */
 public abstract class AbstractMessageBarrierHandler<T extends Collection<? extends Message<?>>>
-		extends AbstractMessageHandler implements BeanFactoryAware, InitializingBean {
+		extends AbstractMessageHandler implements MessageProducer, BeanFactoryAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
