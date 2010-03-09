@@ -18,8 +18,6 @@ package org.springframework.integration.handler;
 
 import java.util.List;
 
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.PropertyAccessor;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
@@ -28,6 +26,7 @@ import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -37,11 +36,10 @@ import org.springframework.util.Assert;
  * A composite {@link MessageHandler} implementation that invokes a chain of
  * MessageHandler instances in order.
  * <p/>
- * Each of the handlers has to implement
- * <code>public void setOutputChannel(MessageChannel outputChannel);</code>. An
- * exception is made for the last handler in the case that the chain itself does
- * not have an output channel. No other assumptions about the type of handler
- * are made.
+ * Each of the handlers except for the last one <b>must</b> implement the
+ * {@link MessageProducer} interface. The last handler must also <b>if</b>
+ * the chain itself has an output channel configured. No other assumptions
+ * are made about the type of handler.
  * <p/>
  * It is expected that each handler will produce reply messages and send them to
  * its output channel, although this is not enforced. It is possible to filter
@@ -65,9 +63,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class MessageHandlerChain implements MessageHandler, Ordered, BeanFactoryAware, BeanNameAware {
-
-	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannel";
+public class MessageHandlerChain implements MessageHandler, MessageProducer, Ordered, BeanFactoryAware, BeanNameAware {
 
 	private volatile List<MessageHandler> handlers;
 
@@ -139,11 +135,9 @@ public class MessageHandlerChain implements MessageHandler, Ordered, BeanFactory
 		for (int i = 0; i < handlers.size(); i++) {
 			boolean last = (i == handlers.size() - 1);
 			MessageHandler handler = handlers.get(i);
-			PropertyAccessor accessor = new BeanWrapperImpl(handler);
 			if (!last) {
-				Assert.notNull(accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY),
-						"All handlers except for the last one in the chain must implement property '"
-						+ OUTPUT_CHANNEL_PROPERTY + "' of type 'MessageChannel'");
+				Assert.isTrue(handler instanceof MessageProducer, "All handlers except for " +
+						"the last one in the chain must implement the MessageProducer interface.");
 				final MessageHandler nextHandler = handlers.get(i + 1);
 				final MessageChannel nextChannel = new MessageChannel() {
 					public boolean send(Message<?> message, long timeout) {
@@ -157,17 +151,17 @@ public class MessageHandlerChain implements MessageHandler, Ordered, BeanFactory
 						return null;
 					}
 				};
-				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, nextChannel);
+				((MessageProducer) handler).setOutputChannel(nextChannel);
 			}
-			else if (accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY) != null) {
+			else if (handler instanceof MessageProducer) {
 				MessageChannel replyChannel = (this.outputChannel != null) ? this.outputChannel
 						: new ReplyForwardingMessageChannel();
-				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, replyChannel);
+				((MessageProducer) handler).setOutputChannel(replyChannel);
 			}
 			else {
 				Assert.isNull(this.outputChannel,
-						"An output channel was provided, but the final handler in the chain does not implement property '"
-						+ OUTPUT_CHANNEL_PROPERTY + "'  of type 'MessageChannel'");
+						"An output channel was provided, but the final handler in " +
+						"the chain does not implement the MessageProducer interface.");
 			}
 		}
 	}
