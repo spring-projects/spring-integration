@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,8 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -137,24 +135,29 @@ public class MessageHandlerChain implements MessageHandler, Ordered, BeanFactory
 	}
 
 	private void configureChain() {
-		DirectChannel channel = null;
 		List<MessageHandler> handlers = this.handlers;
 		for (int i = 0; i < handlers.size(); i++) {
-			boolean first = (i == 0);
 			boolean last = (i == handlers.size() - 1);
 			MessageHandler handler = handlers.get(i);
 			PropertyAccessor accessor = new BeanWrapperImpl(handler);
-			if (!first) {
-				EventDrivenConsumer consumer = new EventDrivenConsumer(channel, handler);
-				consumer.start();
-			}
 			if (!last) {
-				channel = new DirectChannel();
-				channel.setBeanName("_" + this + ".channel#" + i);
 				Assert.notNull(accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY),
 						"All handlers except for the last one in the chain must implement property '"
 						+ OUTPUT_CHANNEL_PROPERTY + "' of type 'MessageChannel'");
-				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, channel);
+				final MessageHandler nextHandler = handlers.get(i + 1);
+				final MessageChannel nextChannel = new MessageChannel() {
+					public boolean send(Message<?> message, long timeout) {
+						return this.send(message);
+					}
+					public boolean send(Message<?> message) {
+						nextHandler.handleMessage(message);
+						return true;
+					}
+					public String getName() {
+						return null;
+					}
+				};
+				accessor.setPropertyValue(OUTPUT_CHANNEL_PROPERTY, nextChannel);
 			}
 			else if (accessor.getPropertyType(OUTPUT_CHANNEL_PROPERTY) != null) {
 				MessageChannel replyChannel = (this.outputChannel != null) ? this.outputChannel
