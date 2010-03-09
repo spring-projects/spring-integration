@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
@@ -45,16 +46,19 @@ import java.util.concurrent.locks.ReentrantLock;
  * groups of messages that can be completed in batches. It is useful for aggregating, resequencing, or custom
  * implementations requiring correlation.
  * <p/>
- * To customize this handler inject {@link org.springframework.integration.aggregator.CorrelationStrategy}, {@link
- * org.springframework.integration.aggregator.CompletionStrategy} and {@link org.springframework.integration.aggregator.MessageGroupProcessor}
- * implementations as you require.
+ * To customize this handler inject {@link org.springframework.integration.aggregator.CorrelationStrategy},
+ * {@link org.springframework.integration.aggregator.CompletionStrategy}, and
+ * {@link org.springframework.integration.aggregator.MessageGroupProcessor} implementations as you require.
  * <p/>
  * By default the CorrelationStrategy will be a HeaderAttributeCorrelationStrategy and the CompletionStrategy will be a
  * SequenceSizeCompletionStrategy.
  *
  * @author Iwein Fuld
+ * @since 2.0
  */
-public class CorrelatingMessageHandler extends AbstractMessageHandler implements Lifecycle, BeanFactoryAware {
+public class CorrelatingMessageHandler extends AbstractMessageHandler
+		implements MessageProducer, Lifecycle, BeanFactoryAware {
+
     private static final Log logger = LogFactory.getLog(CorrelatingMessageHandler.class);
 
     public static final String COMPONENT_TYPE_LABEL = "aggregator";

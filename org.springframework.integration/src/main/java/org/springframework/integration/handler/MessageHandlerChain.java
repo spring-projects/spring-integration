@@ -133,9 +133,8 @@ public class MessageHandlerChain implements MessageHandler, MessageProducer, Ord
 	private void configureChain() {
 		List<MessageHandler> handlers = this.handlers;
 		for (int i = 0; i < handlers.size(); i++) {
-			boolean last = (i == handlers.size() - 1);
 			MessageHandler handler = handlers.get(i);
-			if (!last) {
+			if (i < handlers.size() - 1) { // not the last handler
 				Assert.isTrue(handler instanceof MessageProducer, "All handlers except for " +
 						"the last one in the chain must implement the MessageProducer interface.");
 				final MessageHandler nextHandler = handlers.get(i + 1);
