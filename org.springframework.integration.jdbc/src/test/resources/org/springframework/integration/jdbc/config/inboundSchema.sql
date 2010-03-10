@@ -1,0 +1,1 @@
+create table item(id int,status int);

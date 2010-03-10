@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -26,6 +27,7 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 
 	SimpleJdbcTemplate jdbcTemplate;
 
+	
 	@Before
 	public void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
@@ -59,8 +61,6 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 
 	}
 	
-	
-
 	@Test
 	public void testSimplePollForListWithRowMapperNoUpdate() {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
@@ -83,7 +83,7 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
 				this.embeddedDatabase, "select * from item where status=2");
 		adapter
-				.setUpdatesql("update item set status = 10 where id in (:idList)");
+				.setUpdateSql("update item set status = 10 where id in (:idList)");
 		adapter.setRowMapper(new ItemRowMapper());
 
 		this.jdbcTemplate.update("insert into item values(1,2)");
@@ -116,7 +116,7 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 	public void testSimplePollForListWithRowMapperAndUpdatePerRow() {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
 				this.embeddedDatabase, "select * from item where status=2");
-		adapter.setUpdatesql("update item set status = 10 where id = :id");
+		adapter.setUpdateSql("update item set status = 10 where id = :id");
 		adapter.setUpdatePerRow(true);
 		adapter.setRowMapper(new ItemRowMapper());
 
