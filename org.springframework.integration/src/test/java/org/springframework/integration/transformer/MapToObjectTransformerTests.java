@@ -64,7 +64,7 @@ public class MapToObjectTransformerTests {
 	}
 	@SuppressWarnings("unchecked")
 	@Test(expected=MessageTransformationException.class)
-	public void testMapToObjectTransformationWithSingleton(){
+	public void testMapToObjectTransformationNonPrototype(){
 		Map map = new HashMap();
 		map.put("fname", "Justin");
 		map.put("lname", "Case");

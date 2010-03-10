@@ -24,25 +24,32 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
 
 /**
+ * Will transform Map to an instance of Object. There are two ways to specify the type of the transformed Object.
+ * You can use one of two constructors. The constructor that takes the Class&lt;?&gt; as an argument will construct the Object of 
+ * that type. There is another constructor that takes a 'beanName' as an argument and will populate this bean with transformed data.
+ * Such bean must be of 'prototype' scope otherwise {@link MessageTransformationException} will be thrown.
+ * This transformer is integrated with the {@link ConversionService} allowing values in the Map to be converted 
+ * to types that represent the properties of the Object.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>, Object> implements BeanFactoryAware{
-	private Object target;
+	private Class<?> targetClass;
 	private String targetBeanName;
 	private ConfigurableBeanFactory beanFactory;
 	/**
-	 * 
 	 * @param targetClass
 	 */
 	public MapToObjectTransformer(Class<?> targetClass){
 		try {
-			this.target = BeanUtils.instantiate(targetClass);
+			this.targetClass = targetClass;
 		} catch (Exception e) {
 			throw new MessageTransformationException("Can not create instance of " + targetClass, e);
 		}	
@@ -60,14 +67,18 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 	 */
 	@SuppressWarnings("unchecked")
 	protected Object transformPayload(Map<?,?> payload) throws Exception {
+		Object target = null;
 		if (StringUtils.hasText(targetBeanName)){
-			Assert.isTrue(!beanFactory.isSingleton(targetBeanName), "bean " + targetBeanName + " must be 'prototype'");
+			Assert.isTrue(beanFactory.isPrototype(targetBeanName), "bean " + targetBeanName + " must be 'prototype' or not managed by Spring AC");
 			target = beanFactory.getBean(targetBeanName);
+		} else if (targetClass != null){
+			target = BeanUtils.instantiate(targetClass);
+		} else {
+			throw new MessageTransformationException("'targetClass or target 'beanName' must be specified");
 		}
 		DataBinder binder = new DataBinder(target);	
 		binder.setConversionService(beanFactory.getConversionService());
-		MutablePropertyValues pv = new MutablePropertyValues((Map)payload);
-		binder.bind(pv);
+		binder.bind(new MutablePropertyValues((Map)payload));
 		return target;
 	}
 	/*
