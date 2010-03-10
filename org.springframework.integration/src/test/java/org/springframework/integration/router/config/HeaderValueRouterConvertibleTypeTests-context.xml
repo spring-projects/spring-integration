@@ -20,6 +20,4 @@
 		<mapping value="false" channel="falseChannel" />
 	</header-value-router>
 
-	<beans:bean id="integrationConversionService" class="org.springframework.context.support.ConversionServiceFactoryBean"/>
-
 </beans:beans>

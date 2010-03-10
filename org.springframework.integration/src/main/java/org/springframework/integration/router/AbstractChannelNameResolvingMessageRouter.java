@@ -25,6 +25,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
@@ -140,17 +141,13 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 			else if (channelIndicator instanceof Collection) {
 				addToCollection(channels, (Collection<?>) channelIndicator, message);
 			}
+			else if (this.getConversionService().canConvert(channelIndicator.getClass(), String.class)) {
+				addChannelFromString(channels,
+						this.getConversionService().convert(channelIndicator, String.class), message);
+			}
 			else {
-				if (this.conversionService == null && this.beanFactory != null) {
-					this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
-				}
-				if (this.conversionService != null
-						&& this.conversionService.canConvert(channelIndicator.getClass(), String.class)) {
-					addChannelFromString(channels, this.conversionService.convert(channelIndicator, String.class), message);
-				}
-				else {
-					throw new MessagingException("unsupported return type for router [" + channelIndicator.getClass() + "]");
-				}
+				throw new MessagingException(
+						"unsupported return type for router [" + channelIndicator.getClass() + "]");
 			}
 		}
 	}
@@ -166,6 +163,18 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		if (channel != null) {
 			channels.add(channel);
 		}
+	}
+
+	private ConversionService getConversionService() {
+		if (this.conversionService == null) {
+			if (this.beanFactory != null) {
+				this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+			}
+			if (this.conversionService == null) {
+				this.conversionService = ConversionServiceFactory.createDefaultConversionService();
+			}
+		}
+		return this.conversionService;
 	}
 
 	/**
