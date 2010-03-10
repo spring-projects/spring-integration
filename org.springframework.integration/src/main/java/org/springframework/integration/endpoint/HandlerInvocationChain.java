@@ -50,7 +50,9 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 		}
 		this.metadata.setComponentName(endpointName);
 		// todo move this into the handler impls componentMetadata
-		this.metadata.setComponentType(determineComponentTypeFromHandlerIfPossible(this.handler));
+		if (this.metadata.getComponentType() == null) {
+			this.metadata.setComponentType(determineComponentTypeFromHandlerIfPossible(this.handler));
+		}
 	}
 
 

@@ -18,18 +18,15 @@ package org.springframework.integration.handler;
 
 import java.util.List;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.core.Ordered;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -63,19 +60,13 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class MessageHandlerChain implements MessageHandler, MessageProducer, Ordered, BeanFactoryAware, BeanNameAware {
+public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler, MessageProducer, Ordered {
 
 	private volatile List<MessageHandler> handlers;
 
 	private volatile MessageChannel outputChannel;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
-
-	private volatile String beanName;
-
-	private volatile BeanFactory beanFactory;
-
-	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean initialized;
 
@@ -98,19 +89,10 @@ public class MessageHandlerChain implements MessageHandler, MessageProducer, Ord
 		return this.order;
 	}
 
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
 
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
-
-	private ChannelResolver getChannelResolver() {
-		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory); 
-		}
-		return this.channelResolver;
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("chain");
 	}
 
 	private void initialize() {
@@ -169,7 +151,7 @@ public class MessageHandlerChain implements MessageHandler, MessageProducer, Ord
 	private class ReplyForwardingMessageChannel implements MessageChannel {
 
 		public String getName() {
-			return MessageHandlerChain.this.beanName;
+			return MessageHandlerChain.this.getBeanName();
 		}
 
 		public boolean send(Message<?> message) {
