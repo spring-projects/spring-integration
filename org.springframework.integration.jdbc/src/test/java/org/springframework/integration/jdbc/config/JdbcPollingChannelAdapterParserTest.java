@@ -16,8 +16,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.sun.xml.internal.xsom.impl.scd.Iterators.Map;
-
 @Transactional
 public class JdbcPollingChannelAdapterParserTest {
 	
