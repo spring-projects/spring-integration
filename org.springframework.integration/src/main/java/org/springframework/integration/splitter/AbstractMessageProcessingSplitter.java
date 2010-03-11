@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.splitter;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.util.Assert;
 
@@ -35,6 +37,14 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 	protected AbstractMessageProcessingSplitter(MessageProcessor messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
+	}
+
+	@Override
+	public void onInit() {
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
+			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+		}
 	}
 
 	@Override
