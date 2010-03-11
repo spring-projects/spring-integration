@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/integration
+            http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<service-activator input-channel="serviceActivatorChannel" ref="testService" method="test"/>
+
+	<transformer input-channel="transformerChannel" ref="testService" method="test"/>
+
+	<router input-channel="routerChannel" ref="testService" method="test"/>
+
+	<splitter input-channel="splitterChannel" ref="testService" method="test"/>
+
+	<filter input-channel="filterChannel" ref="testService" method="filter"/>
+
+	<channel id="ROUTER_TARGET_CHANNEL">
+		<queue/>
+	</channel>
+
+	<beans:bean id="testService"
+		class="org.springframework.integration.handler.CustomConverterMessageProcessingTests$TestService"/>
+
+	<beans:bean id="integrationConversionService"
+		class="org.springframework.context.support.ConversionServiceFactoryBean">
+		<beans:property name="converters">
+			<beans:bean class="org.springframework.integration.handler.CustomConverterMessageProcessingTests$TestConverter"/>
+		</beans:property>
+	</beans:bean>
+
+</beans:beans>
