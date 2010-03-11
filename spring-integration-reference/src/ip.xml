@@ -170,8 +170,7 @@
     	To use a java.net.Socket, set <classname>using-nio</classname> to false and 
     	<classname>using-direct-buffers</classname> is not relevant.
     </para>
-  </section>
-  <para>
+    <para>
   	  <programlisting language="xml"><![CDATA[	<ip:inbound-channel-adapter id="tcp1"
 		channel="channel"
 		protocol="tcp"
@@ -187,4 +186,355 @@
     	To use a java.net.Socket, set <classname>using-nio</classname> to false and 
     	<classname>using-direct-buffers</classname> is not relevant.
     </para>
+  </section>
+  <section id="ip-adapter-reference">
+    <title>IP Adapter Attributes</title>
+    <para>
+      <table id="ip-ob-adapter-attributes">
+        <title>IP Outbound Channel Adapter Attributes</title>
+        <tgroup cols="5">
+          <colspec align="left" />
+          <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="0.3*" align="center"/>
+          <colspec colnum="3" colname="col3" colwidth="0.3*" align="center"/>
+          <colspec colnum="4" colname="col4" colwidth="1*"/>
+          <colspec colnum="5" colname="col5" colwidth="2*"/>
+          <thead>
+            <row>
+              <entry align="center">Attribute Name</entry>
+              <entry align="center">TCP?</entry>
+              <entry align="center">UDP?</entry>
+              <entry align="center">Allowed Values</entry>
+              <entry align="center">Attribute Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>protocol</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry>tcp, udp</entry>
+              <entry>Determines whether the adapter uses TCP or UDP, over IP.</entry>
+            </row>
+            <row>
+              <entry>host</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>The host name or ip address of the destination. For multicast udp
+                     adapters, the multicast address.</entry>
+            </row>
+            <row>
+              <entry>port</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>The port on the destination.</entry>
+            </row>
+            <row>
+              <entry>multicast</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not the udp adapter uses multicast.</entry>
+            </row>
+            <row>
+              <entry>acknowledge</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not a udp adapter requires an acknowledment from the destination. 
+                     when enabled, requires setting the following 4 attributes.</entry>
+            </row>
+            <row>
+              <entry>ack-host</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>When acknowledge is true, indicates the host or ip address to which the
+                     acknowledgment should be sent. Usually the current host, but may be
+                     different, for example when Netword Address Transation (NAT) is 
+                     being used.</entry>
+            </row>
+            <row>
+              <entry>ack-port</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>When acknowledge is true, indicates the port to which the
+                     acknowledgment should be sent. The adapter listens on this port for
+                     acknowledgments.</entry>
+            </row>
+            <row>
+              <entry>ack-timeout</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>When acknowledge is true, indicates the time in milliseconds that the
+                     adapter will wait for an acknowlegment. If an acknowlegment is not
+                     received in time, the adapter will throw an exception.</entry>
+            </row>
+            <row>
+              <entry>min-acks-for- success</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>Defaults to 1. For multicast adapters, you can set this to a larger
+                     value, requiring acknowlegments from multiple destinations.</entry>
+            </row>
+            <row>
+              <entry>check-length</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not a udp adapter includes a data length field in the 
+                     packet sent to the destination.</entry>
+            </row>
+            <row>
+              <entry>time-to-live</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>For multicast adapters, specifies the time to live attribute for
+		     the <classname>MulticastSocket</classname>; controls the scope
+                     of the multicasts. Refer to the Java API
+                     documentation for more information.</entry>
+            </row>
+            <row>
+              <entry>using-nio</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not the tcp adapter is using NIO. Refer to the java.nio
+                     package for more information.</entry>
+            </row>
+            <row>
+              <entry>using-direct-buffers</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>When using NIO, whether or not the tcp adapter uses direct buffers.
+                     Refer to java.nio.ByteBuffer documentation for more information.</entry>
+            </row>
+            <row>
+              <entry>message-format</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>The formatting that the tcp adapter uses so the receiver can demarcate
+                     messages. Defaults to length-header.
+                     See the discussion above for details on each format.</entry>
+            </row>
+            <row>
+              <entry>custom-socket- writer-class-name</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>Subclass of TcpNetSocketWriter or TcpNioSocketWriter</entry>
+              <entry>When message-format is 'custom' the name of the class that
+                     implements the custom format. Must be a subclass of the TcpNxxSocketWriter,
+                     depending on whether using-nio is false or true.</entry>
+            </row>
+            <row>
+              <entry>so-timeout</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname> and <classname>java.net.DatagramSocket</classname>
+                     setSoTimeout() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-send-buffer-size</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname> and <classname>java.net.DatagramSocket</classname>
+                     setSendBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-receive-buffer- size</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>Used for udp acknowlegment packets. See <classname>java.net.DatagramSocket</classname>
+                     setReceiveBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-keep-alive</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
+            </row>
+            <row>
+              <entry>so-linger</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry></entry>
+              <entry>Sets linger to true with supplied value. 
+                     See <classname>java.net.Socket. setSoLinger()</classname>.</entry>
+            </row>
+            <row>
+              <entry>so-tcp-no-delay</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>See <classname>java.net.Socket. setTcpNoDelay()</classname>.</entry>
+            </row>
+            <row>
+              <entry>so-traffic-class</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket. setTrafficClass()</classname>.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table id="ip-ib-adapter-attributes">
+        <title>IP Inbound Channel Adapter Attributes</title>
+        <tgroup cols="5">
+          <colspec align="left" />
+          <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="0.3*" align="center"/>
+          <colspec colnum="3" colname="col3" colwidth="0.3*" align="center"/>
+          <colspec colnum="4" colname="col4" colwidth="1*"/>
+          <colspec colnum="5" colname="col5" colwidth="2*"/>
+          <thead>
+            <row>
+              <entry align="center">Attribute Name</entry>
+              <entry align="center">TCP?</entry>
+              <entry align="center">UDP?</entry>
+              <entry align="center">Allowed Values</entry>
+              <entry align="center">Attribute Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>protocol</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry>tcp, udp</entry>
+              <entry>Determines whether the adapter uses TCP or UDP, over IP.</entry>
+            </row>
+            <row>
+              <entry>port</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>The port on which the adapter listens.</entry>
+            </row>
+            <row>
+              <entry>multicast</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not the udp adapter uses multicast.</entry>
+            </row>
+            <row>
+              <entry>multicast-address</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>When multicast is true, the multicast address to which the adapter
+                     joins.</entry>
+            </row>
+            <row>
+              <entry>pool-size</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>Specifies the concurrency. For udp, specifies how many packets can 
+                     be handled concurrently. For tcp, not using nio, specifies the 
+                     number of concurrent connections supported by the adapter. For tcp,
+                     using nio, specifies the number of tcp fragments that are concurrently
+                     reassembled into complete messages.</entry>
+            </row>
+            <row>
+              <entry>receive-buffer-size</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>For udp, the size of the buffer used to receive DatagramPackets. 
+                     Usually set to the MTU size. If a smaller buffer is used than the 
+                     size of the sent packet, truncation can occur. This can be detected
+                     by means of the check-length attribute.</entry>
+            </row>
+            <row>
+              <entry>check-length</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not a udp adapter expects a data length field in the 
+                     packet received. Used to detect packet truncation.</entry>
+            </row>
+            <row>
+              <entry>using-nio</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>Whether or not the tcp adapter is using NIO. Refer to the java.nio
+                     package for more information.</entry>
+            </row>
+            <row>
+              <entry>using-direct-buffers</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>When using NIO, whether or not the tcp adapter uses direct buffers.
+                     Refer to java.nio.ByteBuffer documentation for more information.</entry>
+            </row>
+            <row>
+              <entry>message-format</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>The formatting that the tcp adapter uses so the adapter can demarcate
+                     messages. Defaults to length-header.
+                     See the discussion above for details on each format.</entry>
+            </row>
+            <row>
+              <entry>custom-socket- reader-class-name</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>Subclass of TcpNetSocketReader or TcpNioSocketReader</entry>
+              <entry>When message-format is 'custom' the name of the class that
+                     implements the custom format. Must be a subclass of the TcpNxxSocketReader,
+                     depending on whether using-nio is false or true.</entry>
+            </row>
+            <row>
+              <entry>so-timeout</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname> and <classname>java.net.DatagramSocket</classname>
+                     setSoTimeout() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-send-buffer-size</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>Used for udp acknowlegment packets. See <classname>java.net.DatagramSocket</classname>
+                     setSendBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-receive-buffer- size</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname> and <classname>java.net.DatagramSocket</classname>
+                     setReceiveBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-keep-alive</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </para>
+  </section>
 </chapter>
