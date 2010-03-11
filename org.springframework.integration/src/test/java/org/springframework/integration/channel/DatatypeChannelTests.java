@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.ErrorMessage;
@@ -98,7 +99,8 @@ public class DatatypeChannelTests {
 		BeanDefinitionBuilder conversionServiceBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(ConversionServiceFactoryBean.class);
 		conversionServiceBuilder.addPropertyValue("converters", Collections.singleton(converter));
-		context.registerBeanDefinition("conversionService", conversionServiceBuilder.getBeanDefinition());
+		context.registerBeanDefinition(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,
+				conversionServiceBuilder.getBeanDefinition());
 		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(QueueChannel.class);
 		channelBuilder.addPropertyValue("datatypes", "java.lang.Integer, java.util.Date");
 		context.registerBeanDefinition("testChannel", channelBuilder.getBeanDefinition());
