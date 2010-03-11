@@ -19,6 +19,7 @@ package org.springframework.integration.gateway;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -29,9 +30,6 @@ import org.springframework.util.Assert;
  */
 public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	public static final String COMPONENT_TYPE_LABEL = "gateway";
-
-
 	private GenericSendAndRecieveGateway gateway;
 
 	/**
@@ -40,6 +38,11 @@ public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessage
 	public GatewayInvokingMessageHandler(GenericSendAndRecieveGateway gateway) {
 		Assert.notNull(gateway, "gateway must not be null");
 		this.gateway = gateway;
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("gateway");
 	}
 
 	/**
