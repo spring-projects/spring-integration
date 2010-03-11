@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,12 @@ package org.springframework.integration.transformer;
 import java.util.Map;
 import java.util.Properties;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -30,7 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageProcessingTransformer implements Transformer {
+public abstract class AbstractMessageProcessingTransformer implements Transformer, BeanFactoryAware {
 
 	private final MessageProcessor messageProcessor;
 
@@ -40,6 +45,13 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		this.messageProcessor = messageProcessor;
 	}
 
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
+		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
+			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+		}
+	}
 
 	public final Message<?> transform(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);

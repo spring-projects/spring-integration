@@ -16,6 +16,7 @@
 
 package org.springframework.integration.transformer;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.ComponentMetadata;
@@ -46,6 +47,13 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	@Override
 	protected void populateComponentMetadata(ComponentMetadata metadata) {
 		metadata.setComponentType("transformer");
+	}
+
+	@Override
+	protected void onInit() {
+		if (this.getBeanFactory() != null && this.transformer instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.transformer).setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override
