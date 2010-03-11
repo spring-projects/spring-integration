@@ -38,14 +38,10 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.ConversionServiceFactory;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
@@ -72,7 +68,7 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class MethodInvokingMessageProcessor implements MessageProcessor {
+public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -83,10 +79,6 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 	private volatile boolean requiresReply;
 
 	private final Map<Class<?>, HandlerMethod> handlerMethods;
-
-	private volatile ConversionService conversionService;
-
-	private final EvaluationContext evaluationContext;
 
 
 	public MethodInvokingMessageProcessor(Object targetObject, Method method) {
@@ -116,7 +108,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		Assert.notNull(targetObject, "targetObject must not be null");
 		this.targetObject = targetObject;
 		this.handlerMethods = Collections.<Class<?>, HandlerMethod>singletonMap(handlerMethod.getTargetParameterType(), handlerMethod);
-		this.evaluationContext = this.createEvaluationContext(method, annotationType);
+		this.prepareEvaluationContext(this.getEvaluationContext(), method, annotationType);
 		this.setDisplayString(targetObject, method);
 	}
 
@@ -129,7 +121,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		this.targetObject = targetObject;
 		this.requiresReply = requiresReply;
 		this.handlerMethods = this.findHandlerMethodsForTarget(targetObject, annotationType, methodName, requiresReply);
-		this.evaluationContext = this.createEvaluationContext(methodName, annotationType);
+		this.prepareEvaluationContext(this.getEvaluationContext(), methodName, annotationType);
 		this.setDisplayString(targetObject, methodName);
 	}
 
@@ -145,19 +137,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		this.displayString = sb.toString() + "]";
 	}
 
-	public void setConversionService(ConversionService conversionService) {
-		this.conversionService = conversionService;
-	}
-
-	private ConversionService getRequiredConversionService() {
-		if (this.conversionService == null) {
-			this.conversionService = ConversionServiceFactory.createDefaultConversionService();
-		}
-		return this.conversionService;
-	}
-
-	private EvaluationContext createEvaluationContext(Object method, Class<? extends Annotation> annotationType) {
-		StandardEvaluationContext context = new StandardEvaluationContext();
+	private void prepareEvaluationContext(StandardEvaluationContext context, Object method, Class<? extends Annotation> annotationType) {
 		Class<?> targetType = AopUtils.getTargetClass(this.targetObject);
 		if (method instanceof Method) {
 			context.registerMethodFilter(targetType, new FixedHandlerMethodFilter((Method) method));
@@ -167,9 +147,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 					new HandlerMethodFilter(annotationType, (String) method, this.requiresReply));
 		}
 		context.addPropertyAccessor(new MapAccessor());
-		context.setTypeConverter(new StandardTypeConverter(this.getRequiredConversionService()));
 		context.setVariable("target", targetObject);
-		return context;
 	}
 
 
@@ -183,7 +161,7 @@ public class MethodInvokingMessageProcessor implements MessageProcessor {
 		for (HandlerMethod candidate : candidates) {
 			try {
 				Expression expression = candidate.getExpression();
-				Object result = expression.getValue(this.evaluationContext, message);
+				Object result = this.evaluateExpression(expression, message);
 				if (this.requiresReply) {
 					// TODO: remove this if SpEL is modified to throw an EvaluationException instead
 					// e.g. we can invoke getValue(this.evaluationContext, message, candidate.getReturnType);

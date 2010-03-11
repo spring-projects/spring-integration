@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,12 @@
 package org.springframework.integration.handler;
 
 import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * A {@link MessageProcessor} implementation that evaluates a SpEL expression
@@ -34,7 +31,7 @@ import org.springframework.integration.message.MessageHandlingException;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageProcessor implements MessageProcessor {
+public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -44,6 +41,7 @@ public class ExpressionEvaluatingMessageProcessor implements MessageProcessor {
 	public ExpressionEvaluatingMessageProcessor(String expression) {
 		try {
 			this.expression = parser.parseExpression(expression);
+			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);
@@ -52,14 +50,7 @@ public class ExpressionEvaluatingMessageProcessor implements MessageProcessor {
 
 
 	public Object processMessage(Message<?> message) {
-		StandardEvaluationContext context = new StandardEvaluationContext(message);
-		context.addPropertyAccessor(new MapAccessor());
-		try {
-			return this.expression.getValue(context);
-		}
-		catch (EvaluationException e) {
-			throw new MessageHandlingException(message, "Expression evaluation failed.", e);
-		}
+		return this.evaluateExpression(this.expression, message);
 	}
 
 }
