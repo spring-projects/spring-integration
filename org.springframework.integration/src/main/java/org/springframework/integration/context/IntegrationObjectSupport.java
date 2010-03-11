@@ -109,6 +109,11 @@ public abstract class IntegrationObjectSupport implements ComponentMetadataProvi
 		return this.channelResolver;
 	}
 
+	protected void setChannelResolver(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "channelResolver must not be null");
+		this.channelResolver = channelResolver;
+	}
+
 	protected TaskScheduler getTaskScheduler() {
 		if (this.taskScheduler == null && this.beanFactory != null) {
 			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
