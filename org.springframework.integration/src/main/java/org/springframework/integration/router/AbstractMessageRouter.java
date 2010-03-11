@@ -17,11 +17,14 @@
 package org.springframework.integration.router;
 
 import java.util.Collection;
+import java.util.UUID;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 
 /**
@@ -37,6 +40,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	private volatile MessageChannel defaultOutputChannel;
 
 	private volatile boolean resolutionRequired;
+
+	private volatile boolean ignoreSendFailures;
+
+	private volatile boolean applySequence;
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
@@ -69,15 +76,50 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		this.resolutionRequired = resolutionRequired;
 	}
 
+	/**
+	 * Specify whether send failures for one or more of the recipients should be
+	 * ignored. By default this is <code>false</code> meaning that an Exception
+	 * will be thrown whenever a send fails. To override this and suppress
+	 * Exceptions, set the value to <code>true</code>.
+	 */
+	public void setIgnoreSendFailures(boolean ignoreSendFailures) {
+		this.ignoreSendFailures = ignoreSendFailures;
+	}
+
+	/**
+	 * Specify whether to apply the sequence number and size headers to the
+	 * messages prior to sending to the recipient channels. By default, this
+	 * value is <code>false</code> meaning that sequence headers will
+	 * <em>not</em> be applied. If planning to use an Aggregator downstream with
+	 * the default correlation and completion strategies, you should set this
+	 * flag to <code>true</code>.
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		boolean sent = false;
 		Collection<MessageChannel> results = this.determineTargetChannels(message);
 		if (results != null) {
+			int sequenceSize = results.size();
+			int sequenceNumber = 1;
 			for (MessageChannel channel : results) {
+				final Message<?> messageToSend = (!this.applySequence) ? message
+						: MessageBuilder.fromMessage(message)
+								.setSequenceNumber(sequenceNumber++)
+								.setSequenceSize(sequenceSize)
+								.setCorrelationId(message.getHeaders().getId())
+								.setHeader(MessageHeaders.ID, UUID.randomUUID())
+								.build();
 				if (channel != null) {
-					if (this.channelTemplate.send(message, channel)) {
+					if (this.channelTemplate.send(messageToSend, channel)) {
 						sent = true;
+					}
+					else if (!this.ignoreSendFailures) {
+						throw new MessageDeliveryException(message,
+								"Router failed to send to channel: " + channel);
 					}
 				}
 			}

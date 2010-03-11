@@ -1318,9 +1318,35 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="resolution-required" type="xsd:string" />
-				<xsd:attribute name="ignore-channel-name-resolution-failures"
-					type="xsd:string" />
+				<xsd:attribute name="resolution-required" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether this router should always be required to return at least one channel or name.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether a failure to resolve a channel name returned by this router should be ignored.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="ignore-send-failures" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether a failure to send to a single channel should be ignored.
+	Otherwise MessageDeliveryExceptions will be thrown.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="apply-sequence" type="xsd:string" >
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether sequence number and size headers should be added to each Message.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

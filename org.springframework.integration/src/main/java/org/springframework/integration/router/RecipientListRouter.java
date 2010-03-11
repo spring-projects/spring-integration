@@ -22,16 +22,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
@@ -63,18 +57,12 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  */
-public class RecipientListRouter extends AbstractMessageHandler implements InitializingBean {
+public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
     public static final String COMPONENT_TYPE_LABEL = "recipient-list-router";
 
 
-	private volatile boolean ignoreSendFailures;
-
-    private volatile boolean applySequence;
-
     private volatile Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap;
-
-    private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
     /**
@@ -102,66 +90,20 @@ public class RecipientListRouter extends AbstractMessageHandler implements Initi
         this.channelMap = channelMap;
     }
 
-    /**
-     * Set the timeout for sending a message to the resolved channel(s). By
-     * default, there is no timeout, meaning the send will block indefinitely.
-     */
-    public void setTimeout(long timeout) {
-        this.channelTemplate.setSendTimeout(timeout);
-    }
-
-    /**
-     * Specify whether send failures for one or more of the recipients
-     * should be ignored. By default this is <code>false</code> meaning
-     * that an Exception will be thrown whenever a send fails. To override
-     * this and suppress Exceptions, set the value to <code>true</code>.
-     */
-    public void setIgnoreSendFailures(boolean ignoreSendFailures) {
-        this.ignoreSendFailures = ignoreSendFailures;
-    }
-
-    /**
-     * Specify whether to apply the sequence number and size headers to the
-     * messages prior to sending to the recipient channels. By default, this
-     * value is <code>false</code> meaning that sequence headers will
-     * <em>not</em> be applied. If planning to use an Aggregator downstream
-     * with the default correlation and completion strategies, you should set
-     * this flag to <code>true</code>.
-     */
-    public void setApplySequence(boolean applySequence) {
-        this.applySequence = applySequence;
-    }
-
     public void afterPropertiesSet() {
         Assert.notEmpty(this.channelMap, "a non-empty channel map is required");
     }
 
-    @Override
-    protected void handleMessageInternal(Message<?> message) throws Exception {
-        List<MessageChannel> recipients = new ArrayList<MessageChannel>();
-        Map<MessageSelector, Collection<MessageChannel>> map =
-                new HashMap<MessageSelector, Collection<MessageChannel>>(this.channelMap);
-        for (MessageSelector selector : map.keySet()) {
-            if (selector.accept(message)) {
-                recipients.addAll(map.get(selector));
-            }
-        }
-        int sequenceSize = recipients.size();
-        int sequenceNumber = 1;
-        for (MessageChannel channel : recipients) {
-            final Message<?> messageToSend = (!this.applySequence) ? message
-                    : MessageBuilder.fromMessage(message)
-                    .setSequenceNumber(sequenceNumber++)
-                    .setSequenceSize(sequenceSize)
-                    .setCorrelationId(message.getHeaders().getId())
-                    .setHeader(MessageHeaders.ID, UUID.randomUUID())
-                    .build();
-            boolean sent = this.channelTemplate.send(messageToSend, channel);
-            if (!sent && !this.ignoreSendFailures) {
-                throw new MessageDeliveryException(message,
-                        "RecipientListRouter failed to send to channel: " + channel);
-            }
-        }
-    }
+	@Override
+	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+		List<MessageChannel> recipients = new ArrayList<MessageChannel>();
+		Map<MessageSelector, Collection<MessageChannel>> map = new HashMap<MessageSelector, Collection<MessageChannel>>(this.channelMap);
+		for (MessageSelector selector : map.keySet()) {
+			if (selector.accept(message)) {
+				recipients.addAll(map.get(selector));
+			}
+		}
+		return recipients;
+	}
 
 }
