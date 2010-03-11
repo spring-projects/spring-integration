@@ -31,8 +31,7 @@ import org.w3c.dom.Document;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.core.MessagingException; 
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
@@ -79,7 +78,7 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
     private volatile boolean alwaysUseSourceResultFactories = false;
     
-    private volatile TransformerConfigurer transformerConfigurer;
+    private volatile TransformerConfigurer transformerConfigurer = new DefaultTransformerConfigurer();
 
 
     public XsltPayloadTransformer(Templates templates) throws ParserConfigurationException {

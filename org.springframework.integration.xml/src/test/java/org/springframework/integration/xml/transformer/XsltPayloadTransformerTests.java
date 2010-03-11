@@ -26,7 +26,6 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertThat;
 import org.w3c.dom.Document;
 
 import org.springframework.core.io.ByteArrayResource;
@@ -37,7 +36,7 @@ import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
-import static org.hamcrest.CoreMatchers.is;
+
 
 /**
  * @author Jonas Partner
@@ -57,7 +56,8 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testDocumentAsPayload() throws Exception {
-		Object transformed = transformer.doTransform(buildMessage(XmlTestUtil.getDocumentForString(docAsString)));
+		Object transformed = transformer.doTransform(buildMessage(XmlTestUtil
+				.getDocumentForString(docAsString)));
 		assertTrue("Wrong return type for document payload", Document.class
 				.isAssignableFrom(transformed.getClass()));
 		Document transformedDocument = (Document) transformed;
@@ -67,7 +67,8 @@ public class XsltPayloadTransformerTests {
 
 	@Test
 	public void testSourceAsPayload() throws Exception {
-		Object transformed = transformer.doTransform(buildMessage(new StringSource(docAsString)));
+		Object transformed = transformer
+				.doTransform(buildMessage(new StringSource(docAsString)));
 		assertEquals("Wrong return type for source payload", DOMResult.class,
 				transformed.getClass());
 		DOMResult result = (DOMResult) transformed;
@@ -103,8 +104,8 @@ public class XsltPayloadTransformerTests {
 		Integer returnValue = new Integer(13);
 		transformer = new XsltPayloadTransformer(getXslResource(),
 				new StubResultTransformer(returnValue));
-		Object transformed = transformer.doTransform(buildMessage(new StringSource(
-				docAsString)));
+		Object transformed = transformer
+				.doTransform(buildMessage(new StringSource(docAsString)));
 		assertEquals("Wrong value from result conversion", returnValue,
 				transformed);
 	}
@@ -124,15 +125,33 @@ public class XsltPayloadTransformerTests {
 		Resource resource = new ClassPathResource("transform-with-import.xsl",
 				this.getClass());
 		transformer = new XsltPayloadTransformer(resource);
-		assertEquals(transformer.doTransform(buildMessage(docAsString)), outputAsString);
+		assertEquals(transformer.doTransform(buildMessage(docAsString)),
+				outputAsString);
+	}
+	
+	@Test
+	public void testXslWithParameters() throws Exception {
+		transformer = new XsltPayloadTransformer(getXslParameterResource());
+		Message<?> message = MessageBuilder.withPayload(this.docAsString).setHeader("xslt_parameter_testParam", "testParamValue").build(); 
+		Object returnedPayload = transformer.doTransform(message);
+		assertEquals("Wrong payload type",String.class, returnedPayload.getClass());
+		assertTrue("Param value not found in xslt output", ((String) returnedPayload).contains("testParamValue"));
 	}
 
-	protected Message<?> buildMessage(Object payload){
+	protected Message<?> buildMessage(Object payload) {
 		return MessageBuilder.withPayload(payload).build();
-}
-	
+	}
+
 	private Resource getXslResource() throws Exception {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
+		return new ByteArrayResource(xsl.getBytes("UTF-8"));
+	}
+
+	private Resource getXslParameterResource() throws Exception {
+		String xsl = "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+				+ "<xsl:param name=\"testParam\"></xsl:param><xsl:output omit-xml-declaration=\"yes\"/><xsl:template match=\"order\">"
+				+ "<bob>test</bob><xsl:if test=\"$testParam\"><xsl:value-of select=\"$testParam\"/></xsl:if>"
+				+ "</xsl:template></xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
 	}
 
