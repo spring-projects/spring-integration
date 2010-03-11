@@ -32,6 +32,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.jmx.export.MBeanExporter;
+import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.export.notification.NotificationPublisher;
 import org.springframework.jmx.export.notification.NotificationPublisherAware;
 import org.springframework.jmx.support.ObjectNameManager;
@@ -120,6 +121,7 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	/**
 	 * Simple class used for the actual MBean instances to be registered.
 	 */
+	@ManagedResource
 	private static class PublisherDelegate implements NotificationPublisherAware {
 
 		private volatile NotificationPublisher notificationPublisher;

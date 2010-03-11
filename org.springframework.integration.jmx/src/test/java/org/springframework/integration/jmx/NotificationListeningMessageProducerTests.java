@@ -76,7 +76,7 @@ public class NotificationListeningMessageProducerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
-		adapter.setObjectNames(this.objectName);
+		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
 		adapter.afterPropertiesSet();
 		adapter.start();
@@ -95,7 +95,7 @@ public class NotificationListeningMessageProducerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
-		adapter.setObjectNames(this.objectName);
+		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
 		Integer handback = new Integer(123);
 		adapter.setHandback(handback);
@@ -117,7 +117,7 @@ public class NotificationListeningMessageProducerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		NotificationListeningMessageProducer adapter = new NotificationListeningMessageProducer();
 		adapter.setServer(this.server);
-		adapter.setObjectNames(this.objectName);
+		adapter.setObjectName(this.objectName);
 		adapter.setOutputChannel(outputChannel);
 		adapter.setFilter(new NotificationFilter() {
 			public boolean isNotificationEnabled(Notification notification) {

@@ -16,10 +16,6 @@
 
 package org.springframework.integration.jmx;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import javax.management.InstanceNotFoundException;
 import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServer;
@@ -50,7 +46,7 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 
 	private volatile MBeanServer server;
 
-	private volatile Set<ObjectName> objectNames;
+	private volatile ObjectName objectName;
 
 	private volatile NotificationFilter filter;
 
@@ -66,11 +62,11 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	/**
-	 * Specify one or more JMX ObjectNames of notification publishers
+	 * Specify the JMX ObjectName of the notification publisher
  	 * to which this notification listener should be subscribed.
 	 */
-	public void setObjectNames(ObjectName... objectNames) {
-		this.objectNames = new LinkedHashSet<ObjectName>(Arrays.asList(objectNames));
+	public void setObjectName(ObjectName objectName) {
+		this.objectName = objectName;
 	}
 
 	/**
@@ -120,10 +116,8 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	protected void doStart() {
 		try {
 			Assert.notNull(this.server, "MBeanServer is required.");
-			Assert.notEmpty(this.objectNames, "One or more ObjectNames are required.");
-			for (ObjectName objectName : this.objectNames) {
-				this.server.addNotificationListener(objectName, this, this.filter, this.handback);
-			}
+			Assert.notNull(this.objectName, "An ObjectName is required.");
+			this.server.addNotificationListener(this.objectName, this, this.filter, this.handback);
 		}
 		catch (InstanceNotFoundException e) {
 			throw new IllegalStateException("Failed to find MBean instance.", e); 
@@ -135,18 +129,16 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	 */
 	@Override
 	protected void doStop() {
-		try {
-			Assert.notNull(this.server, "MBeanServer is required.");
-			Assert.notEmpty(this.objectNames, "One or more ObjectNames are required.");
-			for (ObjectName objectName : this.objectNames) {
-				this.server.removeNotificationListener(objectName, this, this.filter, this.handback);
+		if (this.server != null && this.objectName != null) {
+			try {
+				this.server.removeNotificationListener(this.objectName, this, this.filter, this.handback);
 			}
-		}
-		catch (InstanceNotFoundException e) {
-			throw new IllegalStateException("Failed to find MBean instance.", e); 
-		}
-		catch (ListenerNotFoundException e) {
-			throw new IllegalStateException("Failed to find NotificationListener.", e); 
+			catch (InstanceNotFoundException e) {
+				throw new IllegalStateException("Failed to find MBean instance.", e);
+			}
+			catch (ListenerNotFoundException e) {
+				throw new IllegalStateException("Failed to find NotificationListener.", e);
+			}
 		}
 	}
 

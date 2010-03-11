@@ -53,4 +53,34 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="notification-listening-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an inbound Channel Adapter that listens for JMX notifications.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="optional"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
+			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
+			<xsd:attribute name="notification-filter" type="xsd:string" use="optional"/>
+			<xsd:attribute name="handback" type="xsd:string" use="optional"/>
+			<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="notification-publishing-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an outbound Channel Adapter that publishes JMX notifications.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="optional"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 </xsd:schema>
