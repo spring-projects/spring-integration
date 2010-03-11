@@ -17,8 +17,6 @@
 package org.springframework.integration.context;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -62,17 +60,7 @@ public abstract class IntegrationContextUtils {
 	}
 
 	public static ConversionService getConversionService(BeanFactory beanFactory) {
-		ConversionService conversionService = getBeanOfType(beanFactory,
-				INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
-		if (conversionService == null && beanFactory instanceof ConfigurableListableBeanFactory) {
-			conversionService = ((ConfigurableListableBeanFactory) beanFactory).getConversionService();
-		}
-		if (conversionService == null && beanFactory.containsBean(
-				ConfigurableApplicationContext.CONVERSION_SERVICE_BEAN_NAME)) {
-			conversionService = getBeanOfType(beanFactory,
-					ConfigurableApplicationContext.CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
-		}
-		return conversionService;
+		return getBeanOfType(beanFactory, INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class);
 	}
 
 	private static <T> T getBeanOfType(BeanFactory beanFactory, String beanName, Class<T> type) {

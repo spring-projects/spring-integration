@@ -132,8 +132,7 @@ public abstract class IntegrationObjectSupport implements ComponentMetadataProvi
 			if (this.conversionService == null && logger.isWarnEnabled()) {
 				logger.warn("Unable to attempt conversion of Message payload types. Component '" +
 						this.getBeanName() + "' has no explicit ConversionService reference, " +
-						"and there is no 'integrationConversionService' or 'conversionService' " +
-						"bean within the context.");
+						"and there is no 'integrationConversionService' bean within the context.");
 			}
 		}
 		return this.conversionService;
