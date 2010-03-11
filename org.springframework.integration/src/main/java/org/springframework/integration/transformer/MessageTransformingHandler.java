@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -28,9 +29,6 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler {
-
-	public static final String COMPONENT_TYPE_LABEL = "transformer";
-
 
 	private final Transformer transformer;
 
@@ -44,6 +42,11 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 		this.transformer = transformer;
 	}
 
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("transformer");
+	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> message) {

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -59,9 +60,6 @@ import org.springframework.util.Assert;
  */
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
-    public static final String COMPONENT_TYPE_LABEL = "recipient-list-router";
-
-
     private volatile Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap;
 
 
@@ -89,6 +87,11 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
     public void setChannelMap(Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap) {
         this.channelMap = channelMap;
     }
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("recipient-list-router");
+	}
 
     @Override
     public final void onInit() {

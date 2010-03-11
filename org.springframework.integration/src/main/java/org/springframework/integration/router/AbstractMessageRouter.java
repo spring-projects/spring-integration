@@ -26,6 +26,7 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * Base class for Message Routers.
@@ -33,9 +34,6 @@ import org.springframework.integration.message.MessageDeliveryException;
  * @author Mark Fisher
  */
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
-
-	public static final String COMPONENT_TYPE_LABEL = "router";
-
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -96,6 +94,11 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("router");
 	}
 
 	@Override
