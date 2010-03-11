@@ -88,6 +88,13 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
+	public final void onInit() {
+		if (this.selector instanceof AbstractMessageProcessingSelector) {
+			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
+		}
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> message) {
 		if (this.selector.accept(message)) {
 			return message;

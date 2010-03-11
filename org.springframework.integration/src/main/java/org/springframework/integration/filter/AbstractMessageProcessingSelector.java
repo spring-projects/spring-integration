@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
@@ -37,6 +39,12 @@ abstract class AbstractMessageProcessingSelector implements MessageSelector {
 		this.messageProcessor = messageProcessor;
 	}
 
+
+	protected void setConversionService(ConversionService conversionService) {
+		if (this.messageProcessor instanceof AbstractMessageProcessor) {
+			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+		}
+	}
 
 	public final boolean accept(Message<?> message) {
 		Object result = this.messageProcessor.processMessage(message);
