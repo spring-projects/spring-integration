@@ -56,35 +56,4 @@ Open any project and you will see the 'lib' directory with all of the JARs
 required to run the demos. Now you can configure your IDE to point to those
 directories.
 
-===============================================================================
-OSGi Samples
-------------
-
-The Hello World and Cafe samples listed above are both OSGi-enabled. Instead
-of running those as standalone applications via their main() methods, you can
-deploy them to an OSGi runtime and rely on the included BundleActivators.
-
-Before running those or any other OSGi-based applications that rely on Spring
-Integration, you will need to deploy the necessary Spring Integration bundles
-into the OSGi deployment environment (you can just copy all of the JARs within
-the 'dist' directory of the distribution). You may also need some of the other
-dependencies that are located within the 'lib' directory of the distribution.
-For the detailed instructions, refer to the "Samples" Appendix of the Spring
-Integration Reference Manual.
-
-This release also includes two new samples that are dedicated to showcasing
-capabilities of the Spring Integration and OSGi combination. They form a
-producer/consumer pair: osgi-inbound and osgi-outbound. Unlike the others,
-they are not Maven-enabled, but instead they are ready to run directly within
-SpringSource dm Server, and with the SpringSource Tool Suite support, this
-requires only an import, adding "OSGi Bundle Project Nature" via the 'Spring
-Tools' context menu, and deploying to a dm server instance as the project's
-targeted runtime. A comprehensive overview of those OSGi samples is included
-in the "Samples" Appendix of the Spring Integration Reference Manual.
-
-NOTE: Starting dmServer v2.0.M5 OSGi console is not available by default in
-favor of dmShell. However you can re-enable the OSGi console by going to
-{dm_home}/lib and adding osgi.console=<port> to the
-com.springsource.kernel.launch.properties file.
-
 Happy integration :-)
