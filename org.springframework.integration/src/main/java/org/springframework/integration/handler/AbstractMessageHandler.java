@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandler implements MessageHandler, Ordered {
+public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, Ordered {
 
     protected final Log logger = LogFactory.getLog(this.getClass());
 

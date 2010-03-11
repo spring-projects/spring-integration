@@ -16,9 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
@@ -37,14 +34,12 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer, BeanFactoryAware {
+		implements MessageProducer {
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000;
 
 
 	private MessageChannel outputChannel;
-
-	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean requiresReply = false;
 
@@ -77,7 +72,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		this.channelResolver = channelResolver;
+		super.setChannelResolver(channelResolver);
 	}
 
 	/**
@@ -86,12 +81,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
-	}
-
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (this.channelResolver == null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
-		}
 	}
 
 	/**
@@ -110,7 +99,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			return;
 		}
-		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.channelResolver);
+		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.getChannelResolver());
 		MessageHeaders requestHeaders = message.getHeaders();
 		this.handleResult(result, requestHeaders, replyChannel);
 	}

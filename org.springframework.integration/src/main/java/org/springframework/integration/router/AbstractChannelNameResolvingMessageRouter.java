@@ -21,15 +21,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
@@ -42,24 +37,17 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public abstract class AbstractChannelNameResolvingMessageRouter extends AbstractMessageRouter
-		implements BeanFactoryAware, InitializingBean {
-
-	private volatile ChannelResolver channelResolver;
-
-	private volatile ConversionService conversionService;
+public abstract class AbstractChannelNameResolvingMessageRouter extends AbstractMessageRouter {
 
 	private volatile String prefix;
 
 	private volatile String suffix;
 
-	private volatile BeanFactory beanFactory;
-
 	private volatile boolean ignoreChannelNameResolutionFailures;
 
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
+		super.setChannelResolver(channelResolver);
 	}
 
 	public void setPrefix(String prefix) {
@@ -70,29 +58,23 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		this.suffix = suffix;
 	}
 
-	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
-
 	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
 
-	public void afterPropertiesSet() {
-		if (this.channelResolver == null) {
-			Assert.notNull(beanFactory,
-					"either a ChannelResolver or BeanFactory is required");
-			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
-		}
+	@Override
+	public final void onInit() {
+		Assert.notNull(this.getChannelResolver(),
+				"either a ChannelResolver or BeanFactory is required");
 	}
 
 	protected MessageChannel resolveChannelForName(String channelName, Message<?> message) {
-		Assert.state(this.channelResolver != null,
+		Assert.state(this.getChannelResolver() != null,
 				"unable to resolve channel names, no ChannelResolver available");
 
 		MessageChannel channel = null;
 		try {
-			channel = this.channelResolver.resolveChannelName(channelName);
+			channel = this.getChannelResolver().resolveChannelName(channelName);
 		}
 		catch (ChannelResolutionException e) {
 			if (!ignoreChannelNameResolutionFailures)
@@ -141,7 +123,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 			else if (channelIndicator instanceof Collection) {
 				addToCollection(channels, (Collection<?>) channelIndicator, message);
 			}
-			else if (this.getConversionService().canConvert(channelIndicator.getClass(), String.class)) {
+			else if (this.getRequiredConversionService().canConvert(channelIndicator.getClass(), String.class)) {
 				addChannelFromString(channels,
 						this.getConversionService().convert(channelIndicator, String.class), message);
 			}
@@ -165,16 +147,11 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		}
 	}
 
-	private ConversionService getConversionService() {
-		if (this.conversionService == null) {
-			if (this.beanFactory != null) {
-				this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
-			}
-			if (this.conversionService == null) {
-				this.conversionService = ConversionServiceFactory.createDefaultConversionService();
-			}
+	private ConversionService getRequiredConversionService() {
+		if (this.getConversionService() == null) {
+			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
 		}
-		return this.conversionService;
+		return this.getConversionService();
 	}
 
 	/**

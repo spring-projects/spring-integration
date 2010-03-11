@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.nio.charset.Charset;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -57,7 +56,7 @@ import org.springframework.util.FileCopyUtils;
  * @author Iwein Fuld
  * @author Alex Peters
  */
-public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class FileWritingMessageHandler extends AbstractReplyProducingMessageHandler {
 
 	private static final String TEMPORARY_FILE_SUFFIX =".writing";
 
@@ -136,7 +135,8 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		this.charset = Charset.forName(charset);
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+	public final void onInit() {
 		if (!this.destinationDirectory.exists() && this.autoCreateDirectory) {
 			this.destinationDirectory.mkdirs();
 		}

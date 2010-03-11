@@ -99,7 +99,8 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 		this.defaultOperationName = defaultOperationName; 
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+	public final void onInit() {
 		Assert.notNull(this.server, "MBeanServer is required.");
 	}
 

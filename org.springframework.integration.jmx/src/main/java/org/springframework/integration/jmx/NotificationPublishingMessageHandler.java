@@ -22,8 +22,6 @@ import javax.management.MalformedObjectNameException;
 import javax.management.Notification;
 import javax.management.ObjectName;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,8 +49,6 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 	private final ObjectName objectName;
 
 	private volatile String defaultNotificationType;
-
-	private volatile ListableBeanFactory beanFactory;
 
 
 	public NotificationPublishingMessageHandler(ObjectName objectName) {
@@ -91,14 +87,11 @@ public class NotificationPublishingMessageHandler extends AbstractMessageHandler
 		this.defaultNotificationType = defaultNotificationType;
 	}
 
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isTrue(beanFactory instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
-		this.beanFactory = (ListableBeanFactory) beanFactory;
-	}
-
-	public void afterPropertiesSet() throws Exception {
+	@Override
+	public final void onInit() throws Exception {
+		Assert.isTrue(this.getBeanFactory() instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		Map<String, MBeanExporter> exporters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-				this.beanFactory, MBeanExporter.class);
+				(ListableBeanFactory) this.getBeanFactory(), MBeanExporter.class);
 		Assert.isTrue(exporters.size() == 1,
 				"No unique MBeanExporter is available in the current context (found " +
 				exporters.size() + ").");

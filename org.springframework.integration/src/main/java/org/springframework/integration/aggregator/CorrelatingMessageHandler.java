@@ -18,13 +18,12 @@ package org.springframework.integration.aggregator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.BeanFactory;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -82,7 +81,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler
     private final IdTracker tracker = new IdTracker();
     private final BlockingQueue<DelayedKey> keysInBuffer = new DelayQueue<DelayedKey>();
 
-    private volatile TaskScheduler taskScheduler;
     private volatile ScheduledFuture<?> reaperFutureTask;
     private volatile long reaperInterval = DEFAULT_REAPER_INTERVAL;
     private volatile long timeout = DEFAULT_TIMEOUT;
@@ -130,7 +128,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler
     }
 
     public void setTaskScheduler(TaskScheduler taskScheduler) {
-        this.taskScheduler = taskScheduler;
+        super.setTaskScheduler(taskScheduler);
     }
 
     public void setTimeout(long timeout) {
@@ -162,11 +160,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler
         this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
     }
 
-    public void setBeanFactory(BeanFactory beanFactory) {
-        if (this.taskScheduler == null) {
-            this.taskScheduler = IntegrationContextUtils.getRequiredTaskScheduler(beanFactory);
-        }
-    }
 
     @Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
@@ -215,6 +208,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler
         };
     }
 
+    @SuppressWarnings("unchecked")
     private void store(Message<?> message, Object correlationKey) {
         Message toStore = message;
         if (!correlationKey.equals(message.getHeaders().getCorrelationId())) {
@@ -238,8 +232,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler
             if (this.isRunning()) {
                 return;
             }
-            Assert.state(this.taskScheduler != null, "'taskScheduler' must not be null");
-            this.reaperFutureTask = this.taskScheduler.scheduleWithFixedDelay(
+            Assert.state(this.getTaskScheduler() != null, "'taskScheduler' must not be null");
+            this.reaperFutureTask = this.getTaskScheduler().scheduleWithFixedDelay(
                     new PrunerTask(), this.reaperInterval);
         }
     }

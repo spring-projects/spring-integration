@@ -90,7 +90,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
         this.channelMap = channelMap;
     }
 
-    public void afterPropertiesSet() {
+    @Override
+    public final void onInit() {
         Assert.notEmpty(this.channelMap, "a non-empty channel map is required");
     }
 

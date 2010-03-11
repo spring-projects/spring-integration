@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -51,7 +50,7 @@ import org.springframework.util.Assert;
  * @author Arjen Poutsma
  * @author Juergen Hoeller
  */
-public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private volatile Destination requestDestination;
 
@@ -265,7 +264,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		return session.createTemporaryQueue();
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+	public final void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;

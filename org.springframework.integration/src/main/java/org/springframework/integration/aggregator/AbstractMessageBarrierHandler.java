@@ -27,11 +27,9 @@ import java.util.concurrent.ScheduledFuture;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -108,8 +106,6 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 
 	private volatile boolean autoStartup = true;
 
-	private volatile TaskScheduler taskScheduler;
-
 	private volatile ScheduledFuture<?> reaperFutureTask;
 
 	private volatile boolean initialized;
@@ -173,25 +169,19 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 	}
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler, "taskScheduler must not be null");
-		this.taskScheduler = taskScheduler;
+		super.setTaskScheduler(taskScheduler);
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
 	}
 
-	public void setBeanFactory(BeanFactory beanFactory) {
-		if (this.taskScheduler == null) {
-			this.taskScheduler = IntegrationContextUtils.getRequiredTaskScheduler(beanFactory);
-		}
-	}
-
     public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
         this.correlationStrategy = correlationStrategy;
     }
 
-    public final void afterPropertiesSet() {
+    @Override
+    public final void onInit() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.initialized) {
 				if (this.trackedCorrelationIdCapacity > 0) {
@@ -216,8 +206,8 @@ public abstract class AbstractMessageBarrierHandler<T extends Collection<? exten
 			if (this.isRunning()) {
 				return;
 			}
-			Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
-			this.reaperFutureTask = this.taskScheduler.scheduleWithFixedDelay(
+			Assert.state(this.getTaskScheduler() != null, "TaskScheduler must not be null");
+			this.reaperFutureTask = this.getTaskScheduler().scheduleWithFixedDelay(
 					new PrunerTask(), this.reaperInterval);
 		}
 	}

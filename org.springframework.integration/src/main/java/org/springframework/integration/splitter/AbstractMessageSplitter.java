@@ -26,6 +26,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * Base class for Message-splitting handlers.
@@ -33,9 +34,6 @@ import org.springframework.integration.message.MessageBuilder;
  * @author Mark Fisher
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
-
-	public static final String COMPONENT_TYPE_LABEL = "splitter";
-
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -91,6 +89,11 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		else {
 			super.handleResult(result, requestHeaders, replyChannel);
 		}
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("splitter");
 	}
 
 	/**
