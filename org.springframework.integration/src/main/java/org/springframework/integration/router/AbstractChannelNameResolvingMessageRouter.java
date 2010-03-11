@@ -63,7 +63,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	}
 
 	@Override
-	public final void onInit() {
+	public void onInit() {
 		Assert.notNull(this.getChannelResolver(),
 				"either a ChannelResolver or BeanFactory is required");
 	}
