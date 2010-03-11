@@ -140,7 +140,7 @@
     </para>
     <para>
       TCP is a streaming protocol; this means that some structure has to be provided to data 
-      transported over TCP, so the receiver can delimit the data into discrete messages.
+      transported over TCP, so the receiver can demarcate the data into discrete messages.
       Three standard message formats are provided for this purpose; you can also provide code
       for your own custom format. The first of the three standard formats is length-header, in which case a 4 byte 
       length header precedes the data; this is the default. The second is stx-etx in which the message 
@@ -243,7 +243,7 @@
               <entry>N</entry>
               <entry>Y</entry>
               <entry>true, false</entry>
-              <entry>Whether or not a udp adapter requires an acknowledment from the destination. 
+              <entry>Whether or not a udp adapter requires an acknowledgment from the destination. 
                      when enabled, requires setting the following 4 attributes.</entry>
             </row>
             <row>
@@ -253,7 +253,7 @@
               <entry></entry>
               <entry>When acknowledge is true, indicates the host or ip address to which the
                      acknowledgment should be sent. Usually the current host, but may be
-                     different, for example when Netword Address Transation (NAT) is 
+                     different, for example when Network Address Transation (NAT) is 
                      being used.</entry>
             </row>
             <row>
@@ -314,7 +314,8 @@
               <entry>N</entry>
               <entry>true, false</entry>
               <entry>When using NIO, whether or not the tcp adapter uses direct buffers.
-                     Refer to java.nio.ByteBuffer documentation for more information.</entry>
+                     Refer to <classname>java.nio.ByteBuffer</classname> documentation for 
+                     more information.</entry>
             </row>
             <row>
               <entry>message-format</entry>
@@ -323,13 +324,13 @@
               <entry>length-header, stx-etx, crlf, custom</entry>
               <entry>The formatting that the tcp adapter uses so the receiver can demarcate
                      messages. Defaults to length-header.
-                     See the discussion above for details on each format.</entry>
+                     See the discussion above for details about each format.</entry>
             </row>
             <row>
               <entry>custom-socket- writer-class-name</entry>
               <entry>Y</entry>
               <entry>N</entry>
-              <entry>Subclass of TcpNetSocketWriter or TcpNioSocketWriter</entry>
+              <entry>Subclass of TcpNetSocket- Writer or TcpNioSocket- Writer</entry>
               <entry>When message-format is 'custom' the name of the class that
                      implements the custom format. Must be a subclass of the TcpNxxSocketWriter,
                      depending on whether using-nio is false or true.</entry>
@@ -490,13 +491,13 @@
               <entry>length-header, stx-etx, crlf, custom</entry>
               <entry>The formatting that the tcp adapter uses so the adapter can demarcate
                      messages. Defaults to length-header.
-                     See the discussion above for details on each format.</entry>
+                     See the discussion above for details about each format.</entry>
             </row>
             <row>
               <entry>custom-socket- reader-class-name</entry>
               <entry>Y</entry>
               <entry>N</entry>
-              <entry>Subclass of TcpNetSocketReader or TcpNioSocketReader</entry>
+              <entry>Subclass of TcpNetSocket- Reader or TcpNioSocket- Reader</entry>
               <entry>When message-format is 'custom' the name of the class that
                      implements the custom format. Must be a subclass of the TcpNxxSocketReader,
                      depending on whether using-nio is false or true.</entry>
@@ -523,7 +524,7 @@
               <entry>Y</entry>
               <entry></entry>
               <entry>See <classname>java.net.Socket</classname> and <classname>java.net.DatagramSocket</classname>
-                     setReceiveBufferSize() methods for more information.</entry>
+                     setReceiveBufferSize() for more information.</entry>
             </row>
             <row>
               <entry>so-keep-alive</entry>
