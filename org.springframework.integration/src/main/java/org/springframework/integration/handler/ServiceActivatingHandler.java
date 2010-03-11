@@ -50,6 +50,11 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	}
 
 	@Override
+	public final void onInit() {
+		this.processor.setConversionService(this.getConversionService());
+	}
+
+	@Override
 	protected Object handleRequestMessage(Message<?> message) {
 		try {
 			return this.processor.processMessage(message);
