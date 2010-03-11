@@ -16,14 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
-import java.lang.reflect.Field;
-
 import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.integration.support.ComponentMetadataProvider;
-import org.springframework.util.StringUtils;
 
 /**
  * A {@link MessageHandler} implementation that delegates to a target
@@ -42,17 +39,10 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 
 	public HandlerInvocationChain(MessageHandler handler, String endpointName) {
 		this.handler = handler;
-		if (this.handler instanceof ComponentMetadataProvider) {
-			this.metadata = ((ComponentMetadataProvider) this.handler).getComponentMetadata();
-		}
-		else {
-			this.metadata = new ComponentMetadata();
-		}
+		this.metadata = (this.handler instanceof ComponentMetadataProvider)
+				? ((ComponentMetadataProvider) this.handler).getComponentMetadata()
+				: new ComponentMetadata();
 		this.metadata.setComponentName(endpointName);
-		// todo move this into the handler impls componentMetadata
-		if (this.metadata.getComponentType() == null) {
-			this.metadata.setComponentType(determineComponentTypeFromHandlerIfPossible(this.handler));
-		}
 	}
 
 
@@ -66,21 +56,6 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 			message.getHeaders().getHistory().addEvent(this.metadata);
 		}
 		this.handler.handleMessage(message);
-	}
-
-	private static String determineComponentTypeFromHandlerIfPossible(MessageHandler handler) {
-		String type = null;
-		try {
-			Field componentTypeField = handler.getClass().getField("COMPONENT_TYPE_LABEL");
-			Object componentType = componentTypeField.get(null);
-			if (componentType instanceof String && StringUtils.hasText((String) componentType)) {
-				type = (String) componentType;
-			}
-		}
-		catch (Exception e) {
-			// no COMPONENT_TYPE_LABEL available
-		}
-		return type;
 	}
 
 }
