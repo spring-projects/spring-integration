@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -47,9 +48,6 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractMessageAggregator extends
 		AbstractMessageBarrierHandler<List<Message<?>>> {
 
-	public static final String COMPONENT_TYPE_LABEL = "aggregator";
-
-
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
 	
@@ -60,6 +58,11 @@ public abstract class AbstractMessageAggregator extends
 		Assert.notNull(completionStrategy,
 				"'completionStrategy' must not be null");
 		this.completionStrategy = completionStrategy;
+	}
+
+    @Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+    	metadata.setComponentType("aggregator");
 	}
 
 	@Override

@@ -19,7 +19,6 @@ package org.springframework.integration.aggregator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
@@ -32,6 +31,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -55,13 +55,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Iwein Fuld
  * @since 2.0
  */
-public class CorrelatingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer, Lifecycle, BeanFactoryAware {
+public class CorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer, Lifecycle {
 
     private static final Log logger = LogFactory.getLog(CorrelatingMessageHandler.class);
 
-    public static final String COMPONENT_TYPE_LABEL = "aggregator";
-    
     private static final long DEFAULT_SEND_TIMEOUT = 1000l;
     private static final long DEFAULT_REAPER_INTERVAL = 1000l;
     private static final long DEFAULT_TIMEOUT = 60000l;
@@ -160,8 +157,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler
         this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
     }
 
-
     @Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+    	metadata.setComponentType("aggregator");
+	}
+
+	@Override
     protected void handleMessageInternal(Message<?> message) throws Exception {
         Object correlationKey = correlationStrategy.getCorrelationKey(message);
         if (logger.isDebugEnabled()) {

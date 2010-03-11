@@ -23,6 +23,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -53,9 +54,6 @@ import org.springframework.util.CollectionUtils;
  */
 public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message<?>>> {
 
-	public static final String COMPONENT_TYPE_LABEL = "resequencer";
-
-
 	private volatile boolean releasePartialSequences = true;
 	
 	private static final String LAST_RELEASED_SEQUENCE_NUMBER = "last.released.sequence.number";
@@ -63,6 +61,11 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+    	metadata.setComponentType("resequencer");
 	}
 
 	@Override
