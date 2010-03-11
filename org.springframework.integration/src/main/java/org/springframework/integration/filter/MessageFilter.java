@@ -22,6 +22,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -36,9 +37,6 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class MessageFilter extends AbstractReplyProducingMessageHandler {
-
-	public static final String COMPONENT_TYPE_LABEL = "filter";
-
 
 	private final MessageSelector selector;
 
@@ -82,6 +80,11 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	 */
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("filter");
 	}
 
 	@Override

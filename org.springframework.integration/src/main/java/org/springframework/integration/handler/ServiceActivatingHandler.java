@@ -21,14 +21,12 @@ import java.lang.reflect.Method;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * @author Mark Fisher
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
-
-	public static final String COMPONENT_TYPE_LABEL = "service-activator";
-
 
 	private final MethodInvokingMessageProcessor processor;
 
@@ -45,6 +43,11 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 		this.processor = new MethodInvokingMessageProcessor(object, methodName);
 	}
 
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("service-activator");
+	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> message) {

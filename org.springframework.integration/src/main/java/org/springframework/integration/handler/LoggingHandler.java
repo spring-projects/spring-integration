@@ -20,6 +20,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,8 +35,6 @@ import org.springframework.util.StringUtils;
 public class LoggingHandler extends AbstractMessageHandler {
 
 	private static enum Level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE }
-
-	public static final String COMPONENT_TYPE_LABEL = "logging-channel-adapter";
 
 
 	private boolean shouldLogFullMessage;
@@ -64,6 +63,11 @@ public class LoggingHandler extends AbstractMessageHandler {
 	 */
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
 		this.shouldLogFullMessage = shouldLogFullMessage;
+	}
+
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("logging-channel-adapter");
 	}
 
 	@Override

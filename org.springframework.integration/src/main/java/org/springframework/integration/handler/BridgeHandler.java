@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -35,8 +36,10 @@ import org.springframework.util.Assert;
  */
 public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
-	public static final String COMPONENT_TYPE_LABEL = "bridge";
-
+	@Override
+	protected void populateComponentMetadata(ComponentMetadata metadata) {
+		metadata.setComponentType("bridge");
+	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
