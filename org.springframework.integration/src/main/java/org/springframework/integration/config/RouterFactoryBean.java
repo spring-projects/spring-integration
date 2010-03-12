@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,10 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile Boolean ignoreChannelNameResolutionFailures;
 
+	private volatile Boolean applySequence;
+
+	private volatile Boolean ignoreSendFailures;
+
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
@@ -63,6 +67,14 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	public void setIgnoreChannelNameResolutionFailures(Boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
+	}
+
+	public void setApplySequence(Boolean applySequence) {
+		this.applySequence = applySequence;
+	}
+
+	public void setIgnoreSendFailures(Boolean ignoreSendFailures) {
+		this.ignoreSendFailures = ignoreSendFailures;
 	}
 
 	@Override
@@ -105,6 +117,12 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 					"The 'ignoreChannelNameResolutionFailures' property can only be set on routers that extend "
 					+ AbstractChannelNameResolvingMessageRouter.class.getName());
 			((AbstractChannelNameResolvingMessageRouter) router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
+		}
+		if (this.applySequence != null) {
+			router.setApplySequence(this.applySequence);
+		}
+		if (this.ignoreSendFailures != null) {
+			router.setIgnoreSendFailures(this.ignoreSendFailures);
 		}
 		if (this.resolutionRequired != null) {
 			router.setResolutionRequired(this.resolutionRequired);
