@@ -18,6 +18,7 @@ import java.util.*;
  *
  *
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class MessageGroup {
     private final CompletionStrategy completionStrategy;
@@ -34,17 +35,19 @@ public class MessageGroup {
         this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
     }
 
-    public boolean hasNoMessageSuperseding(Message<?> message) {
+    public boolean hasNoMessageSuperseding(Message<?> message) { 	
         Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
-        if (messageSequenceNumber == null) {
-            return true;
-        }
-        for (Message<?> member : messages) {
-            Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
-            if (memberSequenceNumber == messageSequenceNumber) {
-                return false;
+        if (messageSequenceNumber > 0){
+        	if (messageSequenceNumber == null) {
+                return true;
             }
-        }
+            for (Message<?> member : messages) {
+                Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
+                if (memberSequenceNumber == messageSequenceNumber) {
+                    return false;
+                }
+            }
+    	} 
         return true;
     }
 
