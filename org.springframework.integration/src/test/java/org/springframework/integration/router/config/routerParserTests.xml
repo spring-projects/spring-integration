@@ -51,6 +51,20 @@
 
 	<router input-channel="inputForAnnotatedRouter" ref="annotated"/>
 
+	<router input-channel="sequenceRouter" apply-sequence="true" expression="'sequenceOut1,sequenceOut2,sequenceOut3'"/>
+
+	<channel id="sequenceOut1">
+		<queue/>
+	</channel>
+
+	<channel id="sequenceOut2">
+		<queue/>
+	</channel>
+
+	<channel id="sequenceOut3">
+		<queue/>
+	</channel>
+
 	<beans:bean id="annotated" class="org.springframework.integration.router.config.RouterParserTests$AnnotatedTestRouterBean">
 		<beans:constructor-arg ref="output4"/>
 	</beans:bean>

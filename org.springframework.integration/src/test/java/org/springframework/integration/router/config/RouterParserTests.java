@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -149,6 +149,29 @@ public class RouterParserTests {
 		assertSame(channelResolverBean, channelResolver);
 	}
 
+	@Test
+	public void sequence() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		MessageChannel input = context.getBean("sequenceRouter", MessageChannel.class);
+		PollableChannel out1 = context.getBean("sequenceOut1", PollableChannel.class);
+		PollableChannel out2 = context.getBean("sequenceOut2", PollableChannel.class);
+		PollableChannel out3 = context.getBean("sequenceOut3", PollableChannel.class);
+		Message<?> originalMessage = new StringMessage("test");
+		input.send(originalMessage);
+		Message<?> message1 = out1.receive(0);
+		Message<?> message2 = out2.receive(0);
+		Message<?> message3 = out3.receive(0);
+		assertEquals(originalMessage.getHeaders().getId(), message1.getHeaders().getCorrelationId());
+		assertEquals(originalMessage.getHeaders().getId(), message2.getHeaders().getCorrelationId());
+		assertEquals(originalMessage.getHeaders().getId(), message3.getHeaders().getCorrelationId());
+		assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), message1.getHeaders().getSequenceSize());
+		assertEquals(new Integer(2), message2.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), message2.getHeaders().getSequenceSize());
+		assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
+		assertEquals(new Integer(3), message3.getHeaders().getSequenceSize());
+	}
 
 	public static class TestRouterImplementation extends AbstractMessageRouter {
 

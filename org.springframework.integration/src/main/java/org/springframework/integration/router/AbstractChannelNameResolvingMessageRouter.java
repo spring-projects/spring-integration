@@ -29,6 +29,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A base class for router implementations that return only the channel name(s)
@@ -135,6 +136,12 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	}
 
 	protected void addChannelFromString(Collection<MessageChannel> channels, String channelName, Message<?> message) {
+		if (channelName.indexOf(',') != -1) {
+			for (String name : StringUtils.commaDelimitedListToStringArray(channelName)) {
+				addChannelFromString(channels, name, message);
+			}
+			return;
+		}
 		if (this.prefix != null) {
 			channelName = this.prefix + channelName;
 		}
