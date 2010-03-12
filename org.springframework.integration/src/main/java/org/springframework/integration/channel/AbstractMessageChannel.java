@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,6 +46,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	private final AtomicLong sendSuccessCount = new AtomicLong();
+
+	private final AtomicLong sendErrorCount = new AtomicLong();
+
 	private volatile Class<?>[] datatypes = new Class<?>[] { Object.class };
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
@@ -55,6 +60,24 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 */
 	public String getName() {
 		return this.getBeanName();
+	}
+
+	/**
+	 * Return the current count of Messages that have been sent
+	 * to this channel successfully.
+	 */
+	public long getSendSuccessCount() {
+		return this.sendSuccessCount.get();
+	}
+
+	/**
+	 * Return the current count of errors that have occurred while
+	 * attempting to send a Message to this channel. This value is
+	 * incremented whenever an Exception is thrown from one of the
+	 * send() methods. 
+	 */
+	public long getSendErrorCount() {
+		return this.sendErrorCount.get();
 	}
 
 	/**
@@ -151,13 +174,17 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		}
 		try {
 			boolean sent = this.doSend(message, timeout);
+			if (sent) {
+				this.sendSuccessCount.incrementAndGet();
+			}
 			this.interceptors.postSend(message, this, sent);
 			return sent;
 		}
-		catch (MessagingException e) {
-			throw e;
-		}
 		catch (Exception e) {
+			this.sendErrorCount.incrementAndGet();
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
 			throw new MessageDeliveryException(message,
 					"failed to send Message to channel '" + this.getName() + "'", e);
 		}
