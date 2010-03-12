@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration">
+	
+	<bean id="creditBureau" class="org.springframework.integration.loanbroker.stubs.CreditBureauStub" />
+
+	<bean id="bankStub" class="org.springframework.integration.loanbroker.stubs.BankStub"/>
+	
+	<!-- Bank Endpoints (to be rewired to remoting adapters) -->
+	<int:service-activator input-channel="abcBankChannel" output-channel="quotesAggregationChannel" ref="bankStub"/>
+			
+	<int:service-activator input-channel="efgBankChannel" output-channel="quotesAggregationChannel" ref="bankStub"/>
+			
+	<int:service-activator input-channel="hijBankChannel" output-channel="quotesAggregationChannel" ref="bankStub"/>
+			
+	<int:service-activator input-channel="xyzBankChannel" output-channel="quotesAggregationChannel" ref="bankStub"/>
+			
+	<int:service-activator input-channel="fooBankChannel" output-channel="quotesAggregationChannel" ref="bankStub"/>		
+	<!-- end Bank Endpoints -->
+
+</beans>

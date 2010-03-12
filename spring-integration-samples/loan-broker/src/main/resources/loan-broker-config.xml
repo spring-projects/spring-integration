@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:util="http://www.springframework.org/schema/util">
+
+	<import resource="classpath:bank-channel-mappings-config.xml" />
+	<import resource="classpath:stub-services-config.xml" />
+
+	<int:gateway id="loanBrokerGateway"
+		default-request-channel="loanBrokerPreProcessingChannel"
+		service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway"/>
+
+	<int:chain input-channel="loanBrokerPreProcessingChannel" output-channel="banksDistributionChannel">
+		<int:header-enricher>
+			<int:header name="RESPONSE_TYPE"
+				expression="headers.history.iterator().next().attributes['method'].equals('getLoanQuote') ? 'BEST' : 'ALL'" />
+		</int:header-enricher>
+		<int:header-enricher>
+				<int:header name="CREDIT_SCORE" ref="creditBureau" method="getCreditScore"/>
+		</int:header-enricher>
+		<int:header-enricher>
+			<int:header name="BANKS" ref="bankSelector" method="selectBankChannels"/>
+		</int:header-enricher>
+	</int:chain>
+
+	<int:router id="bankRecipientListRouter" input-channel="banksDistributionChannel" 
+											 expression="headers['BANKS']" 
+											 apply-sequence="true"/>
+
+	<!-- Messages are sent to the banks via bank channels and will be recieved and processed by aggregator-->
+		
+	<int:aggregator input-channel="quotesAggregationChannel" method="aggregateQuotes">
+		<bean class="org.springframework.integration.loanbroker.LoanQuoteAggregator"/>
+	</int:aggregator>
+	
+	<bean id="bankSelector" class="org.springframework.integration.loanbroker.BanksChannelSelector">
+		<constructor-arg ref="banks"/>
+		<property name="routingExpression">
+			<value>
+				headers['CREDIT_SCORE'].score > 780 ? #banks.?[value.equals('premier')].keySet()
+													: #banks.?[value.equals('secondary')].keySet()
+			</value>	
+		</property>
+	</bean>
+</beans>
