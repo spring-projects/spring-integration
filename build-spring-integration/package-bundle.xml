@@ -20,11 +20,11 @@
 				<include name="filecopy/**"/>
 				<include name="helloworld/**"/>
 				<include name="jms/**"/>
+				<include name="loan-broker/**"/>
 				<include name="oddeven/**"/>
-				<include name="osgi-inbound/**"/>
-				<include name="osgi-outbound/**"/>
 				<include name="quote/**"/>
 				<include name="ws/**"/>
+				<include name="ws-inbound-gateway/**"/>
 				<include name="xml/**"/>
 				<include name="pom.xml"/>
 				<include name="README.txt"/>
