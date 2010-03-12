@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>loan.broker</groupId>
-	<artifactId>loan.broker</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>org.springframework.integration.samples</groupId>
+	<artifactId>loan-broker</artifactId>
+	<version>1.0</version>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration</artifactId>
-			<version>2.0.0.BUILD-20100312044142</version>
+			<version>2.0.0.BUILD-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
