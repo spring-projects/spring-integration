@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.transformer;
 
 import java.util.Map;
@@ -41,51 +42,60 @@ import org.springframework.validation.DataBinder;
  * @since 2.0
  */
 public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>, Object> implements BeanFactoryAware{
-	private Class<?> targetClass;
-	private String targetBeanName;
-	private ConfigurableBeanFactory beanFactory;
+
+	private final Class<?> targetClass;
+
+	private final String targetBeanName;
+
+	private volatile ConfigurableBeanFactory beanFactory;
+
+
 	/**
 	 * @param targetClass
 	 */
-	public MapToObjectTransformer(Class<?> targetClass){
-		try {
-			this.targetClass = targetClass;
-		} catch (Exception e) {
-			throw new MessageTransformationException("Can not create instance of " + targetClass, e);
-		}	
+	public MapToObjectTransformer(Class<?> targetClass) {
+		Assert.notNull(targetClass, "targetClass must not be null");
+		this.targetClass = targetClass;
+		this.targetBeanName = null;
 	}
+
 	/**
-	 * 
 	 * @param beanName
 	 */
-	public MapToObjectTransformer(String beanName){
+	public MapToObjectTransformer(String beanName) {
+		Assert.hasText(beanName, "beanName must not be empty");
 		this.targetBeanName = beanName;
+		this.targetClass = null;
 	}
+
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
 	 */
 	@SuppressWarnings("unchecked")
 	protected Object transformPayload(Map<?,?> payload) throws Exception {
-		Object target = null;
-		if (StringUtils.hasText(targetBeanName)){
-			Assert.isTrue(beanFactory.isPrototype(targetBeanName), "bean " + targetBeanName + " must be 'prototype' or not managed by Spring AC");
-			target = beanFactory.getBean(targetBeanName);
-		} else if (targetClass != null){
-			target = BeanUtils.instantiate(targetClass);
-		} else {
-			throw new MessageTransformationException("'targetClass or target 'beanName' must be specified");
-		}
+		Object target = (this.targetClass != null)
+				? BeanUtils.instantiate(this.targetClass)
+				: this.beanFactory.getBean(this.targetBeanName);
 		DataBinder binder = new DataBinder(target);	
-		binder.setConversionService(beanFactory.getConversionService());
-		binder.bind(new MutablePropertyValues((Map)payload));
+		binder.setConversionService(this.beanFactory.getConversionService());
+		binder.bind(new MutablePropertyValues((Map) payload));
 		return target;
 	}
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
 	 */
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		Assert.isTrue(beanFactory instanceof ConfigurableListableBeanFactory,
+				"A ConfigurableListableBeanFactory is required.");
 		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		if (StringUtils.hasText(this.targetBeanName)) {
+			Assert.isTrue(this.beanFactory.isPrototype(this.targetBeanName),
+					"target bean [" + targetBeanName + "] must have 'prototype' scope");
+		}
 	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.transformer;
 
 import static junit.framework.Assert.assertEquals;
@@ -26,6 +27,8 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
@@ -38,6 +41,7 @@ import org.springframework.integration.message.MessageBuilder;
  * @since 2.0
  */
 public class MapToObjectTransformerTests {
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMapToObjectTransformation(){
@@ -62,8 +66,9 @@ public class MapToObjectTransformerTests {
 		assertTrue(person.getAddress() instanceof Address);
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
+
 	@SuppressWarnings("unchecked")
-	@Test(expected=MessageTransformationException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void testMapToObjectTransformationNonPrototype(){
 		Map map = new HashMap();
 		map.put("fname", "Justin");
@@ -73,10 +78,11 @@ public class MapToObjectTransformerTests {
 		map.put("address", address);
 		
 		Message message = MessageBuilder.withPayload(map).build();
-		ConfigurableBeanFactory beanFactory = this.getBeanFactory();
-		beanFactory.registerSingleton("person", new Person());
+		GenericApplicationContext context = new GenericApplicationContext();
+		RootBeanDefinition personDef = new RootBeanDefinition(Person.class);
+		context.registerBeanDefinition("person", personDef);
 		MapToObjectTransformer transformer = new MapToObjectTransformer("person");
-		transformer.setBeanFactory(beanFactory);
+		transformer.setBeanFactory(context.getBeanFactory());
 		transformer.transform(message);
 	}
 	
@@ -105,6 +111,7 @@ public class MapToObjectTransformerTests {
 		assertTrue(person.getAddress() instanceof Address);
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testMapToObjectTransformationWithConversionService(){
@@ -136,6 +143,7 @@ public class MapToObjectTransformerTests {
 		beanFactory.setConversionService(conversionService);
 		return beanFactory;
 	}
+
 	public static class Person{
 		private String fname;
 		private String lname;
