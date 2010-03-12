@@ -43,4 +43,8 @@ public abstract class JmsHeaders {
 
 	public static final String TYPE = PREFIX + "type";
 
+	public static final String DELIVERY_MODE = PREFIX + "deliveryMode";
+
+	public static final String PRIORITY = PREFIX + "priority";
+
 }
