@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.transformer;
 
 import java.beans.PropertyDescriptor;
@@ -34,120 +35,108 @@ import org.springframework.util.CollectionUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ObjectToSpelMapBuilder {
+class ObjectToSpelMapBuilder {
+
 	private final ExpressionParser parser = new SpelExpressionParser();
+
 	private boolean serializeTypeName;
-	
-	/**
-	 * 
-	 * @return
-	 */
-	public Map<String, Object> buildspelMap(Object rootObject){
+
+
+	public Map<String, Object> buildSpelMap(Object rootObject) {
 		Map<String, Object> propertiesMap = new HashMap<String, Object>();
 		EvaluationContext context = new StandardEvaluationContext(rootObject);
 		this.buildProperties(context, "", propertiesMap, rootObject);
 		return propertiesMap;
 	}
-	/*
-	 * 
-	 */
-	private void buildProperties(EvaluationContext context, String parentPropertyPath, Map<String, Object> propertiesMap, Object object){ 
+
+	private void buildProperties(EvaluationContext context, String parentPropertyPath, Map<String, Object> propertiesMap, Object object) { 
 		BeanWrapperImpl bw = new BeanWrapperImpl(object);
 		PropertyDescriptor[] descriptors =  bw.getPropertyDescriptors(); 
 		for (PropertyDescriptor propertyDescriptor : descriptors) {
 			Class<?> propertyType = propertyDescriptor.getPropertyType();
 			String propertyName = propertyDescriptor.getName();
 			String propertyPath = parentPropertyPath + propertyName;
-			if (propertyType.isArray() || Collection.class.isAssignableFrom(propertyType)){
+			if (propertyType.isArray() || Collection.class.isAssignableFrom(propertyType)) {
 				this.processArray(context, propertyPath, propertyName, propertyType, propertiesMap);
-			} else if (propertyType.isAnonymousClass()){
+			}
+			else if (propertyType.isAnonymousClass()) {
 				throw new IllegalArgumentException("anonymous class property transformation is not supported");
-			} else if (propertyType.isAssignableFrom(Map.class)){
+			}
+			else if (propertyType.isAssignableFrom(Map.class)) {
 				Expression expression = parser.parseExpression(propertyPath);				
 				Map<?,?> map = (Map<?,?>) expression.getValue(context);
-				if (map != null){
+				if (map != null) {
 					this.processMap(context, propertiesMap, map, parentPropertyPath, propertyName);
 				}	
-			} else {
+			}
+			else {
 				Expression expression = parser.parseExpression(propertyPath);
 				Object propertyValue = expression.getValue(context);
-				if (propertyValue != null){
+				if (propertyValue != null) {
 					this.processElementValue(context, propertyValue, propertyName, propertyPath, propertiesMap);		
 				}			
 			}
 		}
 	}
-	/*
-	 * 
-	 */
-	private void processMap(EvaluationContext context, Map<String, Object> mappedProperties, Map<?,?> mapToTransform, String propertyPath, String propertyName){
+
+	private void processMap(EvaluationContext context, Map<String, Object> mappedProperties, Map<?,?> mapToTransform, String propertyPath, String propertyName) {
 		Iterator<?> mapIter = mapToTransform.keySet().iterator();
 		while (mapIter.hasNext()) {
 			Object keyElement = mapIter.next();
 			Object elementValue = mapToTransform.get(keyElement);
 			String mapPropertyPath = propertyPath + propertyName + "['" + keyElement.toString() + "']";
-			if (elementValue.getClass().isArray() || elementValue instanceof Collection<?>){
+			if (elementValue.getClass().isArray() || elementValue instanceof Collection<?>) {
 				this.processArray(context, mapPropertyPath, "", elementValue.getClass(), mappedProperties);
-			} else if (elementValue instanceof Map<?,?>) {
+			}
+			else if (elementValue instanceof Map<?,?>) {
 				this.processMap(context, mappedProperties, (Map<?, ?>) elementValue, mapPropertyPath, "");
-			} else {
+			}
+			else {
 				this.processElementValue(context, elementValue, propertyName, mapPropertyPath, mappedProperties);
 			}
 		}
 	}
-	/*
-	 * 
-	 */
-	private void processArray(EvaluationContext context, String propertyPath, String propertyName, Class<?> elementType, Map<String, Object> propertiesMap){
-		Expression arrayExp = parser.parseExpression(propertyPath);				
+
+	private void processArray(EvaluationContext context, String propertyPath, String propertyName, Class<?> elementType, Map<String, Object> propertiesMap) {
+		Expression arrayExp = parser.parseExpression(propertyPath);
 		Object array = arrayExp.getValue(context);
 		List<?> arrayElements = null;
-		if (elementType.isArray()){
+		if (elementType.isArray()) {
 			arrayElements =  CollectionUtils.arrayToList(array); 
-		} else {
+		}
+		else {
 			arrayElements = (List<?>) array;
 		}
-		
+
 		int i = 0;
 		for (Object arrayElement : arrayElements) {
 			String arrayPropertyPath = propertyPath + "[" + i++ + "]";	
-			if (arrayElement instanceof Map){
-				// last argument is empty because it is not a named property, but a array element
+			if (arrayElement instanceof Map) {
+				// last argument is empty because it is not a named property, but an array element
 				this.processMap(context, propertiesMap, (Map<?, ?>) arrayElement, arrayPropertyPath, "");
-			} else if (arrayElement.getClass().isArray()){
+			}
+			else if (arrayElement.getClass().isArray()){
 				this.processArray(context, arrayPropertyPath, propertyName, elementType, propertiesMap);
-			} else {
+			}
+			else {
 				this.processElementValue(context, arrayElement, propertyName, arrayPropertyPath, propertiesMap);
 			}
 		}
 	}
-	/*
-	 * 
-	 */
-	private void processElementValue(EvaluationContext context, Object elementValue, String propertyName, String propertyPath, Map<String, Object> propertiesMap){
+
+	private void processElementValue(EvaluationContext context, Object elementValue, String propertyName, String propertyPath, Map<String, Object> propertiesMap) {
 		// JDK packages considered shared, thus serializable
-		if (elementValue.getClass().getPackage().getName().contains("java")){
-			if (propertyName.equals("class") && !serializeTypeName){
+		if (elementValue.getClass().getPackage().getName().startsWith("java.lang")) {
+			if (propertyName.equals("class") && !this.serializeTypeName) {
 				return;
-			} else {
+			}
+			else {
 				propertiesMap.put(propertyPath, elementValue);
 			}
-		} else {
-			this.buildProperties(context, propertyPath+".", propertiesMap, elementValue);		
+		}
+		else {
+			this.buildProperties(context, propertyPath + ".", propertiesMap, elementValue);		
 		}
 	}
-	/**
-	 * 
-	 * @return
-	 */
-	public boolean isSerializeTypeName() {
-		return serializeTypeName;
-	}
-	/**
-	 * 
-	 * @param serializeTypeName
-	 */
-	public void setSerializeTypeName(boolean serializeTypeName) {
-		this.serializeTypeName = serializeTypeName;
-	}
+
 }

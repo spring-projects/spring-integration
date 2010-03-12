@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 package org.springframework.integration.transformer;
 
-import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * Will transform an object graph into a flat Map where keys are valid SpEL expressions
@@ -40,14 +38,14 @@ import java.util.Map;
  * @since 2.0
  */
 public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, Map<?,?>> {
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
 	 */
 	protected Map<String, Object> transformPayload(Object payload) throws Exception {
-		Map<String, Object> transformedMap = new HashMap<String, Object>();
 		ObjectToSpelMapBuilder builder = new ObjectToSpelMapBuilder();
-		transformedMap = builder.buildspelMap(payload);
-		return transformedMap;
+		return builder.buildSpelMap(payload);
 	}
+
 }
