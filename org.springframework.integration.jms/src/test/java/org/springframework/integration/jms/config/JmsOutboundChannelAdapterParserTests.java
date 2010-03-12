@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package org.springframework.integration.jms.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import javax.jms.DeliveryMode;
 
 import org.junit.Test;
 
@@ -95,6 +97,31 @@ public class JmsOutboundChannelAdapterParserTests {
 			assertTrue(e.getMessage().contains("connection-factory"));
 			throw e;
 		}
+	}
+
+	@Test
+	public void adapterWithQosSettings() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithQos.xml", this.getClass());
+		EventDrivenConsumer endpoint = context.getBean("qosAdapter", EventDrivenConsumer.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"))
+						.getPropertyValue("jmsTemplate"));
+		assertEquals(true, accessor.getPropertyValue("explicitQosEnabled"));
+		assertEquals(12345L, accessor.getPropertyValue("timeToLive"));
+		assertEquals(7, accessor.getPropertyValue("priority"));
+		assertEquals(DeliveryMode.NON_PERSISTENT, accessor.getPropertyValue("deliveryMode"));
+	}
+
+	@Test
+	public void qosNotExplicitByDefault() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithQos.xml", this.getClass());
+		EventDrivenConsumer endpoint = context.getBean("defaultAdapter", EventDrivenConsumer.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"))
+						.getPropertyValue("jmsTemplate"));
+		assertEquals(false, accessor.getPropertyValue("explicitQosEnabled"));
 	}
 
 }

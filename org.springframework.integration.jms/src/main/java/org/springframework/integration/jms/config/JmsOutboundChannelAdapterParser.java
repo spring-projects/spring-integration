@@ -71,6 +71,10 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
 		return builder.getBeanDefinition();
 	}
 

@@ -72,6 +72,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private volatile int priority = javax.jms.Message.DEFAULT_PRIORITY;
 
+	private volatile boolean explicitQosEnabled;
+
 	private ConnectionFactory connectionFactory;
 
 	private volatile MessageConverter messageConverter;
@@ -179,6 +181,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 */
 	public void setTimeToLive(long timeToLive) {
 		this.timeToLive = timeToLive;
+	}
+
+	/**
+	 * Specify whether explicit QoS settings are enabled
+	 * (deliveryMode, priority, and timeToLive).
+	 */
+	public void setExplicitQosEnabled(boolean explicitQosEnabled) {
+		this.explicitQosEnabled = explicitQosEnabled;
 	}
 
 	/**
@@ -312,13 +322,16 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			session = createSession(connection);
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(requestMessage, session);
 			messageProducer = session.createProducer(this.getRequestDestination(session));
-			messageProducer.setDeliveryMode(this.deliveryMode);
-			messageProducer.setPriority(this.priority);
-			messageProducer.setTimeToLive(this.timeToLive);
 			replyTo = this.getReplyDestination(session);
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
-			messageProducer.send(jmsRequest);
+			if (this.explicitQosEnabled) {
+				messageProducer.send(jmsRequest,
+						this.deliveryMode, this.priority, this.timeToLive);
+			}
+			else {
+				messageProducer.send(jmsRequest);
+			}
 			if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
 				messageConsumer = session.createConsumer(replyTo);
 			}

@@ -17,6 +17,7 @@
 package org.springframework.integration.jms;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -40,6 +41,14 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	private volatile boolean pubSubDomain;
 
 	private volatile DestinationResolver destinationResolver;
+
+	private volatile int deliveryMode = javax.jms.Message.DEFAULT_DELIVERY_MODE;
+
+	private volatile long timeToLive = javax.jms.Message.DEFAULT_TIME_TO_LIVE;
+
+	private volatile int priority = javax.jms.Message.DEFAULT_PRIORITY;
+
+	private volatile boolean explicitQosEnabled;
 
 	private volatile JmsTemplate jmsTemplate;
 
@@ -100,6 +109,42 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		this.headerMapper = headerMapper;
 	}
 
+	/**
+	 * @see JmsTemplate#setExplicitQosEnabled(boolean)
+	 */
+	public void setExplicitQosEnabled(boolean explicitQosEnabled) {
+		this.explicitQosEnabled = explicitQosEnabled;
+	}
+
+	/**
+	 * @see JmsTemplate#setTimeToLive(long)
+	 */
+	public void setTimeToLive(long timeToLive) {
+		this.timeToLive = timeToLive;
+	}
+
+	/**
+	 * @see JmsTemplate#setDeliveryMode(int)
+	 */
+	public void setDeliveryMode(int deliveryMode) {
+		this.deliveryMode = deliveryMode;
+	}
+
+	/**
+	 * @see JmsTemplate#setDeliveryPersistent(boolean)
+	 */
+	public void setDeliveryPersistent(boolean deliveryPersistent) {
+		this.deliveryMode = deliveryPersistent ?
+				DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
+	}
+
+	/**
+	 * @see JmsTemplate#setPriority(int)
+	 */
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
 	protected JmsTemplate getJmsTemplate() {
 		if (this.jmsTemplate == null) {
 			this.afterPropertiesSet();
@@ -119,6 +164,10 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 						+ " 'destination' (or 'destination-name') are required.");
 				this.jmsTemplate = this.createDefaultJmsTemplate();
 			}
+			this.jmsTemplate.setExplicitQosEnabled(this.explicitQosEnabled);
+			this.jmsTemplate.setTimeToLive(this.timeToLive);
+			this.jmsTemplate.setPriority(this.priority);
+			this.jmsTemplate.setDeliveryMode(this.deliveryMode);
 			this.configureMessageConverter(this.jmsTemplate, this.headerMapper);
 			this.initialized = true;
 		}
