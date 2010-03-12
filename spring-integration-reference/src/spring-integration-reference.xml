@@ -75,6 +75,7 @@
   <xi:include href="./http.xml"/>
   <xi:include href="./ip.xml"/>
   <xi:include href="./mail.xml"/>
+  <xi:include href="./jmx.xml"/>
   <xi:include href="./stream.xml"/>
   <xi:include href="./event.xml"/> 
   <xi:include href="./xml.xml"/>
