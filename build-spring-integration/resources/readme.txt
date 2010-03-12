@@ -1,4 +1,4 @@
-SPRING INTEGRATION 2.0.0 Milestone 2 (Dec 24, 2009)
+SPRING INTEGRATION 2.0.0 Milestone 3 (Mar 12, 2010)
 ---------------------------------------------------
 
 To find out what has changed since version 1.0.3 or 2.0 M2, see 'changelog.txt'
