@@ -80,6 +80,7 @@
 			<xsd:attribute name="id" type="xsd:string" use="optional"/>
 			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
+			<xsd:attribute name="default-notification-type" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 

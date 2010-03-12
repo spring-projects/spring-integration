@@ -20,7 +20,8 @@
 
 	<jmx:notification-publishing-channel-adapter
 			id="adapter" channel="channel"
-			object-name="test.publisher:name=publisher"/>
+			object-name="test.publisher:name=publisher"
+			default-notification-type="default.type"/>
 
 	<bean id="testListener" class="org.springframework.integration.jmx.config.TestListener"/>
 

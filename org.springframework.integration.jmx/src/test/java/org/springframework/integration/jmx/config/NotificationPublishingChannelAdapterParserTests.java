@@ -81,6 +81,17 @@ public class NotificationPublishingChannelAdapterParserTests {
 		assertEquals("test.type", notification.getType());
 	}
 
+	@Test
+	public void defaultNotificationType() throws Exception {
+		assertNull(listener.lastNotification);
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		channel.send(message);
+		assertNotNull(listener.lastNotification);
+		Notification notification = listener.lastNotification;
+		assertEquals("default.type", notification.getType());
+	}
+
+
 
 	private static class TestData {
 	}
