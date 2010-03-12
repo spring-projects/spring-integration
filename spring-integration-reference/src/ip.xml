@@ -149,10 +149,11 @@
       (\r\n). The first format (the default) is likely to be the most performant. This is because
       we can determine exactly how many bytes to read to obtain the complete message. The other
       two formats require examining each byte to determine if the end of the message has been 
-      received. This length-header format can also handle binary data. The other two formats an only handle
+      received. The length-header format can also handle binary data. The other two formats can only handle
       text data (specifcally, data that does not contain characters 0x02 and 0x03 for stx-etx and
-      0x0d and 0x0a for crlf. This limitation can be avoided by appropriate character escaping techniques
-      in the application layer. No such escaping is provided by the adapters.
+      0x0d and 0x0a for crlf). This limitation can be avoided by appropriate character escaping techniques
+      in the application layer. No such escaping is provided by the adapters; therefore it is not recommened
+      that these formats be used without some transformation if the data may contain these characters.
     </para>
     <para>
 	  <programlisting language="xml"><![CDATA[ <ip:outbound-channel-adapter id="tcpOut"
