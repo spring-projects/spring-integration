@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;jms-target/&gt; element. 
+ * Parser for the &lt;outbound-channel-adapter/&gt; element of the jms namespace.
  * 
  * @author Mark Fisher
  */
@@ -41,16 +41,17 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
 		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		boolean hasDestinationRef = StringUtils.hasText(destination);
+		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		if (StringUtils.hasText(jmsTemplate)) {
 			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
-					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE) ||
-					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE)) {
+					hasDestinationRef || hasDestinationName) {
 				throw new BeanCreationException("When providing a 'jms-template' reference, none of " +
 						"'connection-factory', 'destination', or 'destination-name' should be provided.");
 			}
 			builder.addPropertyReference(JmsAdapterParserUtils.JMS_TEMPLATE_PROPERTY, jmsTemplate);
 		}
-		else if (StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName)) {
+		else if (hasDestinationRef ^ hasDestinationName) {
 			builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
 					JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 			if (StringUtils.hasText(destination)) {
@@ -58,6 +59,8 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			}
 			else {
 				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(
+						builder, element, JmsAdapterParserUtils.PUB_SUB_DOMAIN_ATTRIBUTE);
 			}
 		}
 		else {

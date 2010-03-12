@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.InvalidDestinationException;
 import javax.jms.JMSException;
@@ -54,6 +55,12 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile Object defaultReplyDestination;
+
+	private volatile long replyTimeToLive = javax.jms.Message.DEFAULT_TIME_TO_LIVE;
+
+	private volatile int replyPriority = javax.jms.Message.DEFAULT_PRIORITY;
+
+	private volatile int replyDeliveryMode = javax.jms.Message.DEFAULT_DELIVERY_MODE;
 
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
@@ -125,6 +132,30 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	 */
 	public void setDefaultReplyTopicName(String destinationName) {
 		this.defaultReplyDestination = new DestinationNameHolder(destinationName, true);
+	}
+
+	/**
+	 * Specify the time-to-live property for JMS reply Messages.
+	 * @see javax.jms.MessageProducer#setTimeToLive(long)
+	 */
+	public void setReplyTimeToLive(long replyTimeToLive) {
+		this.replyTimeToLive = replyTimeToLive;
+	}
+
+	/**
+	 * Specify the priority value for JMS reply Messages.
+	 * @see javax.jms.MessageProducer#setPriority(int)
+	 */
+	public void setReplyPriority(int replyPriority) {
+		this.replyPriority = replyPriority;
+	}
+
+	/**
+	 * Specify the delivery mode for JMS reply Messages.
+	 * @see javax.jms.MessageProducer#setDeliveryMode(int)
+	 */
+	public void setReplyDeliveryPersistent(boolean replyDeliveryPersistent) {
+		this.replyDeliveryMode = replyDeliveryPersistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT;
 	}
 
 	/**
@@ -214,6 +245,9 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 				}
 				MessageProducer producer = session.createProducer(destination);
+				producer.setTimeToLive(this.replyTimeToLive);
+				producer.setPriority(this.replyPriority);
+				producer.setDeliveryMode(this.replyDeliveryMode);
 				try {
 					producer.send(jmsReply);
 				}

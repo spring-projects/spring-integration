@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	private volatile Destination destination;
 
 	private volatile String destinationName;
+
+	private volatile boolean pubSubDomain;
 
 	private volatile DestinationResolver destinationResolver;
 
@@ -82,6 +84,10 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		this.destinationName = destinationName;
 	}
 
+	public void setPubSubDomain(boolean pubSubDomain) {
+		this.pubSubDomain = pubSubDomain;
+	}
+
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
 	}
@@ -126,6 +132,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		}
 		else {
 			jmsTemplate.setDefaultDestinationName(this.destinationName);
+			jmsTemplate.setPubSubDomain(this.pubSubDomain);
 		}
 		if (this.destinationResolver != null) {
 			jmsTemplate.setDestinationResolver(this.destinationResolver);

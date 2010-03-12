@@ -41,12 +41,18 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	private static final String DEFAULT_REPLY_TOPIC_NAME_ATTRIB = "default-reply-topic-name";
 
+	private static final String REPLY_TIME_TO_LIVE = "reply-time-to-live";
+
+	private static final String REPLY_PRIORITY = "reply-priority";
+
+	private static final String REPLY_DELIVERY_PERSISTENT = "reply-delivery-persistent";
+
 
 	private static String[] containerAttributes = new String[] {
 		JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
 		JmsAdapterParserUtils.DESTINATION_ATTRIBUTE,
 		JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE,
-		"destination-resolver", "transaction-manager", "pub-sub-domain",
+		"destination-resolver", "transaction-manager",
 		"concurrent-consumers", "max-concurrent-consumers",
 		"max-messages-per-task", "idle-task-execution-limit", "selector"
 	};
@@ -101,17 +107,22 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		String destinationNameAttribute = this.expectReply ? "request-destination-name" : "destination-name";
 		String destination = element.getAttribute(destinationAttribute);
 		String destinationName = element.getAttribute(destinationNameAttribute);
-		if (!(StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName))) {
+		boolean hasDestination = StringUtils.hasText(destination);
+		boolean hasDestinationName = StringUtils.hasText(destinationName);
+		if (!(hasDestination ^ hasDestinationName)) {
 			parserContext.getReaderContext().error(
-					"Exactly one of '" + destinationAttribute + "' or '" + destinationNameAttribute + "' is required.", element);
+					"Exactly one of '" + destinationAttribute +
+					"' or '" + destinationNameAttribute + "' is required.", element);
 		}
 		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
 				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
-		if (StringUtils.hasText(destination)) {
+		if (hasDestination) {
 			builder.addPropertyReference("destination", destination);
 		}
 		else {
 			builder.addPropertyValue("destinationName", destinationName);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+					"request-pub-sub-domain", "pubSubDomain");
 		}
 		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
 		if (acknowledgeMode != null) {
@@ -124,7 +135,6 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
@@ -163,6 +173,9 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, DEFAULT_REPLY_QUEUE_NAME_ATTRIB);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, DEFAULT_REPLY_TOPIC_NAME_ATTRIB);
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REPLY_TIME_TO_LIVE);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REPLY_PRIORITY);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REPLY_DELIVERY_PERSISTENT);
 		}
 		else {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");

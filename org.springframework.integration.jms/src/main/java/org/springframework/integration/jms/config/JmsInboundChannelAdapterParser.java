@@ -45,36 +45,48 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
+		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.jms.JmsDestinationPollingSource");
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String pubSubDomain = element.getAttribute(JmsAdapterParserUtils.PUB_SUB_DOMAIN_ATTRIBUTE);
 		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		boolean hasDestinationRef = StringUtils.hasText(destination);
+		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		if (StringUtils.hasText(jmsTemplate)) {
 			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
-					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE) ||
-					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE)) {
-				throw new BeanCreationException(
+					hasDestinationRef || hasDestinationName) {
+				parserContext.getReaderContext().error(
 						"When providing '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
 						"', none of '" + JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE +
 						"', '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "', or '" +
-						JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' should be provided.");
+						JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' are allowed.",
+						source);
 			}
 			builder.addConstructorArgReference(jmsTemplate);
 		}
-		else if (StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
+		else if (hasDestinationRef || hasDestinationName) {
 			builder.addConstructorArgReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
-			if (StringUtils.hasText(destination)) {
+			if (hasDestinationRef) {
+				if (hasDestinationName) {
+					parserContext.getReaderContext().error("The 'destination-name' " +
+							"and 'destination' attributes are mutually exclusive.", source);
+				}
 				builder.addConstructorArgReference(destination);
 			}
-			else if (StringUtils.hasText(destinationName)) {
+			else if (hasDestinationName) {
 				builder.addConstructorArgValue(destinationName);
+				if (StringUtils.hasText(pubSubDomain)) {
+					builder.addPropertyValue(JmsAdapterParserUtils.PUB_SUB_DOMAIN_PROPERTY, pubSubDomain);
+				}
 			}
 		}
 		else {
-			throw new BeanCreationException("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE + "' or one of '" +
-					JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '" + JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
+			throw new BeanCreationException("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '"
+					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
 					"' attributes must be provided for a polling JMS adapter");
 		}
 		if (StringUtils.hasText(headerMapper)) {

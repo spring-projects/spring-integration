@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import javax.jms.DeliveryMode;
 
 import org.junit.Test;
 
@@ -260,6 +262,18 @@ public class JmsInboundGatewayParserTests {
 		String messageSelector = (String) new DirectFieldAccessor(container).getPropertyValue("messageSelector");
 		assertEquals("TestProperty = 'foo'", messageSelector);
 		gateway.stop();
+	}
+
+	@Test
+	public void testGatewayWithReplyQosProperties() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"inboundGatewayWithReplyQos.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = context.getBean("gatewayWithReplyQos", JmsMessageDrivenEndpoint.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(gateway).getPropertyValue("listener"));
+		assertEquals(12345L, accessor.getPropertyValue("replyTimeToLive"));
+		assertEquals(7, accessor.getPropertyValue("replyPriority"));
+		assertEquals(DeliveryMode.NON_PERSISTENT, accessor.getPropertyValue("replyDeliveryMode"));
 	}
 
 }

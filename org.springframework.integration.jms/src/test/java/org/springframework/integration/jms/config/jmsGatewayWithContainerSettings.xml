@@ -17,25 +17,29 @@
 	<jms:inbound-gateway id="gatewayWithConcurrentConsumers"
 		 			 	 connection-factory="testConnectionFactory"
 		 			 	 request-channel="requestChannel"
-		 			 	 request-destination-name="test"
+		 			 	 request-destination-name="testQueue"
+		 			 	 request-pub-sub-domain="false"
 		 			 	 concurrent-consumers="3"/>
 
 	<jms:inbound-gateway id="gatewayWithMaxConcurrentConsumers"
 				 	 	 connection-factory="testConnectionFactory"
 		 			 	 request-channel="requestChannel"
-		 			 	 request-destination-name="test"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
 		 				 max-concurrent-consumers="22"/>
 
 	<jms:inbound-gateway id="gatewayWithMaxMessagesPerTask"
 					 	 connection-factory="testConnectionFactory"
 		 			 	 request-channel="requestChannel"
-		 			 	 request-destination-name="test"
+		 			 	 request-destination-name="testQueue"
+		 			 	 request-pub-sub-domain="false"
 		 			 	 max-messages-per-task="99"/>
 
 	<jms:inbound-gateway id="gatewayWithIdleTaskExecutionLimit"
 					 	 connection-factory="testConnectionFactory"
 		 		   	 	 request-channel="requestChannel"
-		 			 	 request-destination-name="test"
+		 			 	 request-destination-name="testTopic"
+		 			 	 request-pub-sub-domain="true"
 		 				 idle-task-execution-limit="7"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">

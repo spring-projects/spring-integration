@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,10 @@ abstract class JmsAdapterParserUtils {
 	static final String DESTINATION_PROPERTY = "destination";
 
 	static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
+
+	static final String PUB_SUB_DOMAIN_ATTRIBUTE = "pub-sub-domain";
+
+	static final String PUB_SUB_DOMAIN_PROPERTY = "pubSubDomain";
 
 	static final String DESTINATION_NAME_PROPERTY = "destinationName";
 
