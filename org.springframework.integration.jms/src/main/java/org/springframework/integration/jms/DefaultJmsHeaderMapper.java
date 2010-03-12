@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,14 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			Object jmsType = headers.get(JmsHeaders.TYPE);
 			if (jmsType != null && (jmsType instanceof String)) {
 				jmsMessage.setJMSType((String) jmsType);
+			}
+			Object jmsDeliveryMode = headers.get(JmsHeaders.DELIVERY_MODE);
+			if (jmsDeliveryMode != null && (Integer.class.isAssignableFrom(jmsDeliveryMode.getClass()))) {
+				jmsMessage.setJMSDeliveryMode((Integer) jmsDeliveryMode); 
+			}
+			Object jmsPriority = headers.get(JmsHeaders.PRIORITY);
+			if (jmsPriority != null && (Integer.class.isAssignableFrom(jmsPriority.getClass()))) {
+				jmsMessage.setJMSPriority((Integer) jmsPriority);
 			}
 			Set<String> attributeNames = headers.keySet();
 			for (String attributeName : attributeNames) {
