@@ -74,14 +74,6 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			if (jmsType != null && (jmsType instanceof String)) {
 				jmsMessage.setJMSType((String) jmsType);
 			}
-			Object jmsDeliveryMode = headers.get(JmsHeaders.DELIVERY_MODE);
-			if (jmsDeliveryMode != null && (Integer.class.isAssignableFrom(jmsDeliveryMode.getClass()))) {
-				jmsMessage.setJMSDeliveryMode((Integer) jmsDeliveryMode); 
-			}
-			Object jmsPriority = headers.get(JmsHeaders.PRIORITY);
-			if (jmsPriority != null && (Integer.class.isAssignableFrom(jmsPriority.getClass()))) {
-				jmsMessage.setJMSPriority((Integer) jmsPriority);
-			}
 			Set<String> attributeNames = headers.keySet();
 			for (String attributeName : attributeNames) {
 				if (!attributeName.startsWith(JmsHeaders.PREFIX)) {
