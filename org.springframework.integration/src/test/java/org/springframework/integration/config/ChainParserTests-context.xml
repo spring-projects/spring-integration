@@ -66,6 +66,21 @@
 		</chain>
 	</chain>
 
+	<chain input-channel="payloadTypeRouterInput">
+		<payload-type-router>
+			<mapping type="java.lang.String" channel="strings"/>
+			<mapping type="java.lang.Integer" channel="numbers"/>
+		</payload-type-router>
+	</chain>
+
+	<channel id="strings">
+		<queue/>
+	</channel>
+
+	<channel id="numbers">
+		<queue/>
+	</channel>
+
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.ChainParserTests$StubAggregator" />
 

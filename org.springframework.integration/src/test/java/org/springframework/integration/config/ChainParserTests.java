@@ -70,6 +70,18 @@ public class ChainParserTests  {
 	private PollableChannel replyOutput;
 
 	@Autowired
+	@Qualifier("payloadTypeRouterInput")
+	private MessageChannel payloadTypeRouterInput;
+
+	@Autowired
+	@Qualifier("strings")
+	private PollableChannel strings;
+
+	@Autowired
+	@Qualifier("numbers")
+	private PollableChannel numbers;
+
+	@Autowired
 	@Qualifier("beanInput")
 	private MessageChannel beanInput;
 	@Autowired
@@ -145,7 +157,21 @@ public class ChainParserTests  {
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
 	}
-	
+
+	@Test
+	public void chainWithPayloadTypeRouter() throws Exception {
+		Message<?> message1 = MessageBuilder.withPayload("test").build();
+		Message<?> message2 = MessageBuilder.withPayload(123).build();
+		this.payloadTypeRouterInput.send(message1);
+		this.payloadTypeRouterInput.send(message2);
+		Message<?> reply1 = this.strings.receive(0);
+		Message<?> reply2 = this.numbers.receive(0);
+		assertNotNull(reply1);
+		assertNotNull(reply2);
+		assertEquals("test", reply1.getPayload());
+		assertEquals(123, reply2.getPayload());
+	}
+
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override
