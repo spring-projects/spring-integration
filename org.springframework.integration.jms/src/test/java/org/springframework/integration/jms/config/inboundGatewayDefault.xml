@@ -14,13 +14,9 @@
 		<si:queue/>
 	</si:channel>
 
-	<jms:inbound-gateway id="gatewayWithReplyQos"
+	<jms:inbound-gateway id="gateway"
 					 	 request-destination-name="testDestinationName"
-					 	 request-channel="requestChannel"
-					 	 reply-time-to-live="12345"
-					 	 reply-priority="7"
-					 	 reply-delivery-persistent="false"
-					 	 explicit-qos-enabled-for-replies="true"/>
+					 	 request-channel="requestChannel"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

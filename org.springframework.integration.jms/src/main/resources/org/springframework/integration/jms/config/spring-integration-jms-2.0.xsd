@@ -522,6 +522,7 @@
 					<xsd:attribute name="reply-time-to-live" type="xsd:string"/>
 					<xsd:attribute name="reply-priority" type="xsd:string"/>
 					<xsd:attribute name="reply-delivery-persistent" type="xsd:string"/>
+					<xsd:attribute name="explicit-qos-enabled-for-replies" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

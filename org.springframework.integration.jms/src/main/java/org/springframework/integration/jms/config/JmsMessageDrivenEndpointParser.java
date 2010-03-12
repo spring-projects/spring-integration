@@ -47,6 +47,8 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 
 	private static final String REPLY_DELIVERY_PERSISTENT = "reply-delivery-persistent";
 
+	private static final String EXPLICIT_QOS_ENABLED_FOR_REPLIES = "explicit-qos-enabled-for-replies";
+
 
 	private static String[] containerAttributes = new String[] {
 		JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
@@ -176,6 +178,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REPLY_TIME_TO_LIVE);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REPLY_PRIORITY);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REPLY_DELIVERY_PERSISTENT);
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, EXPLICIT_QOS_ENABLED_FOR_REPLIES);
 		}
 		else {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");

@@ -274,6 +274,17 @@ public class JmsInboundGatewayParserTests {
 		assertEquals(12345L, accessor.getPropertyValue("replyTimeToLive"));
 		assertEquals(7, accessor.getPropertyValue("replyPriority"));
 		assertEquals(DeliveryMode.NON_PERSISTENT, accessor.getPropertyValue("replyDeliveryMode"));
+		assertEquals(true, accessor.getPropertyValue("explicitQosEnabledForReplies"));
+	}
+
+	@Test
+	public void replyQosPropertiesDisabledByDefault() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"inboundGatewayDefault.xml", this.getClass());
+		JmsMessageDrivenEndpoint gateway = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(gateway).getPropertyValue("listener"));
+		assertEquals(false, accessor.getPropertyValue("explicitQosEnabledForReplies"));
 	}
 
 }

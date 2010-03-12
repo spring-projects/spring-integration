@@ -62,6 +62,8 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 
 	private volatile int replyDeliveryMode = javax.jms.Message.DEFAULT_DELIVERY_MODE;
 
+	private volatile boolean explicitQosEnabledForReplies;
+
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
 	private volatile JmsHeaderMapper headerMapper;
@@ -159,6 +161,14 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	}
 
 	/**
+	 * Specify whether explicit QoS should be enabled for replies
+	 * (for timeToLive, priority, and deliveryMode settings). 
+	 */
+	public void setExplicitQosEnabledForReplies(boolean explicitQosEnabledForReplies) {
+		this.explicitQosEnabledForReplies = explicitQosEnabledForReplies;
+	}
+
+	/**
 	 * Set the DestinationResolver that should be used to resolve reply
 	 * destination names for this listener.
 	 * <p>The default resolver is a DynamicDestinationResolver. Specify a
@@ -245,11 +255,14 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 				}
 				MessageProducer producer = session.createProducer(destination);
-				producer.setTimeToLive(this.replyTimeToLive);
-				producer.setPriority(this.replyPriority);
-				producer.setDeliveryMode(this.replyDeliveryMode);
 				try {
-					producer.send(jmsReply);
+					if (this.explicitQosEnabledForReplies) {
+						producer.send(jmsReply,
+								this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
+					}
+					else {
+						producer.send(jmsReply);
+					}
 				}
 				finally {
 					producer.close();
