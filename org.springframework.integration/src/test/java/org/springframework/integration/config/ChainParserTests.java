@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,9 +71,20 @@ public class ChainParserTests  {
 	@Autowired
 	@Qualifier("beanInput")
 	private MessageChannel beanInput;
+
 	@Autowired
 	@Qualifier("aggregatorInput")
 	private MessageChannel aggregatorInput;
+
+	@Autowired
+	private MessageChannel payloadTypeRouterInput;
+
+	@Autowired
+	private PollableChannel strings;
+
+	@Autowired
+	private PollableChannel numbers;
+
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
@@ -144,7 +155,21 @@ public class ChainParserTests  {
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
 	}
-	
+
+	@Test
+	public void chainWithPayloadTypeRouter() throws Exception {
+		Message<?> message1 = MessageBuilder.withPayload("test").build();
+		Message<?> message2 = MessageBuilder.withPayload(123).build();
+		this.payloadTypeRouterInput.send(message1);
+		this.payloadTypeRouterInput.send(message2);
+		Message<?> reply1 = this.strings.receive(0);
+		Message<?> reply2 = this.numbers.receive(0);
+		assertNotNull(reply1);
+		assertNotNull(reply2);
+		assertEquals("test", reply1.getPayload());
+		assertEquals(123, reply2.getPayload());
+	}
+
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override

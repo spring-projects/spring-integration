@@ -67,6 +67,21 @@
 		</chain>
 	</chain>
 
+	<chain input-channel="payloadTypeRouterInput">
+		<payload-type-router>
+			<mapping type="java.lang.String" channel="strings"/>
+			<mapping type="java.lang.Number" channel="numbers"/>
+		</payload-type-router>
+	</chain>
+
+	<channel id="strings">
+		<queue/>
+	</channel>
+
+	<channel id="numbers">
+		<queue/>
+	</channel>
+
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.ChainParserTests$StubAggregator" />
 
@@ -84,4 +99,7 @@
 		<beans:constructor-arg value="1" />
 		<beans:property name="replyMessageText" value="foo" />
 	</beans:bean>
+
+	<beans:bean id="testOutbound" class="org.springframework.integration.config.TestOutboundAdapter"/>
+
 </beans:beans>
