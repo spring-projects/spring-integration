@@ -20,6 +20,22 @@ import java.util.Map;
 
 
 /**
+ * Will transform an object graph into a flat Map where keys are valid SpEL expressions
+ * and values are of java.lang.* type. This means that this transformer will recursively navigate 
+ * through the Object graph until the value could be java.lang.*
+ * It supports Collections, Maps and Arrays which means it will flatten Object's attributes that are defined as such:<br>
+ * 
+ * private Map<String, Map<String, Object>> testMapInMapData;<br>
+ * private List<String> departments;<br>
+ * private String[] akaNames;<br>
+ * private Map<String, List<String>> mapWithListData;<br>
+ * 
+ * The resulting Map structure will look similar to this:<br>
+ * 
+ * person.address.mapWithListData['mapWithListTestData'][1]=blah<br>
+ * departments[0]=HR<br>
+ * person.lname=Case
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
