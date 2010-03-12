@@ -21,6 +21,8 @@
 	<jms:publish-subscribe-channel id="topicNameWithResolverChannel" topic-name="foo"
 			     destination-resolver="destinationResolver" connection-factory="connFact"/>
 
+	<jms:channel id="channelWithConcurrencySettings" queue-name="foo" concurrency="11-55"/>
+
 	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<property name="physicalName" value="test.queue"/>
 	</bean>

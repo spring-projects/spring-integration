@@ -33,6 +33,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.jms.JmsDestinationBackedMessageChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -64,6 +65,9 @@ public class JmsChannelParserTests {
 
 	@Autowired
 	private MessageChannel topicNameWithResolverChannel;
+
+	@Autowired
+	private MessageChannel channelWithConcurrencySettings;
 
 	@Autowired
 	private Topic topic;
@@ -133,6 +137,16 @@ public class JmsChannelParserTests {
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals("foo", jmsTemplate.getDefaultDestinationName());
 		assertEquals("foo", container.getDestinationName());
+	}
+
+	@Test
+	public void channelWithConcurrencySettings() {
+		assertEquals(JmsDestinationBackedMessageChannel.class, channelWithConcurrencySettings.getClass());
+		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) channelWithConcurrencySettings;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) accessor.getPropertyValue("container");
+		assertEquals(11, container.getConcurrentConsumers());
+		assertEquals(55, container.getMaxConcurrentConsumers());
 	}
 
 
