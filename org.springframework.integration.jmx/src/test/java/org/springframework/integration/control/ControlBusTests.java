@@ -18,9 +18,12 @@ package org.springframework.integration.control;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectInstance;
+import javax.management.ObjectName;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,9 +35,13 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -42,6 +49,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
+ * @since 2.0
  */
 public class ControlBusTests {
 
@@ -132,6 +140,42 @@ public class ControlBusTests {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance("domain.test4:type=endpoint,name=pollingConsumer"));
 		assertEquals(PollingConsumer.class.getName(), instance.getClassName());
+	}
+
+	@Test
+	public void channelMonitoring() throws Exception {
+		RootBeanDefinition channelDef = new RootBeanDefinition(DirectChannel.class);
+		context.registerBeanDefinition("testChannel", channelDef);
+		RootBeanDefinition endpointDef = new RootBeanDefinition(EventDrivenConsumer.class);
+		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("testChannel"));
+		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new MessageHandler() {
+			private final AtomicInteger count = new AtomicInteger();
+			public void handleMessage(Message<?> message) {
+				int current = count.incrementAndGet();
+				if (current % 10 == 0) {
+					throw new RuntimeException("intentional test failure");
+				}
+			}
+		});
+		context.registerBeanDefinition("testEndpoint", endpointDef);
+		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue("domain.channel.monitor");
+		context.registerBeanDefinition("controlBus", controlBusDef);
+		context.refresh();
+		MessageChannel channel = context.getBean("testChannel", MessageChannel.class);
+		for (int i = 0; i < 100; i++) {
+			try {
+				channel.send(new StringMessage("foo"));
+			}
+			catch (Exception e) {
+				// ignore
+			}
+		}
+		MBeanServer server = context.getBean("mbeanServer", MBeanServer.class);
+		ObjectName objectName = ObjectNameManager.getInstance("domain.channel.monitor:type=channel,name=testChannel");
+		assertEquals(90L, server.getAttribute(objectName, "SendSuccessCount"));
+		assertEquals(10L, server.getAttribute(objectName, "SendErrorCount"));
 	}
 
 }

@@ -30,4 +30,15 @@ interface MessageChannelInfo {
 	 */
 	String getName();
 
+	/**
+	 * Number of Messages that have been sent successfully.
+	 */
+	long getSendSuccessCount();
+
+	/**
+	 * Number of Messages that have caused Exceptions on send.
+	 * @return
+	 */
+	long getSendErrorCount();
+
 }
