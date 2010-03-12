@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 
 import javax.management.Notification;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -47,16 +48,41 @@ public class NotificationPublishingChannelAdapterParserTests {
 	@Autowired
 	private TestListener listener;
 
+	@After
+	public void clearListener() {
+		listener.lastNotification = null;
+	}
+
+
 	@Test
-	public void publishAndVerify() throws Exception {
+	public void publishStringMessag() throws Exception {
 		assertNull(listener.lastNotification);
 		Message<?> message = MessageBuilder.withPayload("XYZ")
 				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
 		channel.send(message);
 		assertNotNull(listener.lastNotification);
 		Notification notification = listener.lastNotification;
-		assertEquals("XYZ", (notification).getMessage());
+		assertEquals("XYZ", notification.getMessage());
 		assertEquals("test.type", notification.getType());
+		assertNull(notification.getUserData());
+	}
+
+	@Test
+	public void publishUserData() throws Exception {
+		assertNull(listener.lastNotification);
+		TestData data = new TestData();
+		Message<?> message = MessageBuilder.withPayload(data)
+				.setHeader(JmxHeaders.NOTIFICATION_TYPE, "test.type").build();
+		channel.send(message);
+		assertNotNull(listener.lastNotification);
+		Notification notification = listener.lastNotification;
+		assertNull(notification.getMessage());
+		assertEquals(data, notification.getUserData());
+		assertEquals("test.type", notification.getType());
+	}
+
+
+	private static class TestData {
 	}
 
 }
