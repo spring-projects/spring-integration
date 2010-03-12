@@ -33,7 +33,7 @@ import org.springframework.integration.core.Message;
  *									   : #banks.?[value.equals('secondary')].keySet()
  * </pre><br>
  * The above SpEL expression upon evaluation will return the list of premier bank 
- * channels if customer's credit score is above 780. 
+ * channels if customer's credit score (retrieved from message header 'CREDIT_SCORE') is above 780. 
  * 
  * @author Oleg Zhurakousky
  *

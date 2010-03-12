@@ -18,6 +18,7 @@ package org.springframework.integration.loanbroker.demo;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.loanbroker.LoanBrokerGateway;
 import org.springframework.integration.loanbroker.domain.Customer;
@@ -34,7 +35,8 @@ public class LoanBrokerDemo {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("loan-broker-config.xml");
+		ConfigurableApplicationContext ac = 
+						new ClassPathXmlApplicationContext("bootstrap-config/stubed-loan-broker.xml");
 		LoanBrokerGateway broker = ac.getBean("loanBrokerGateway", LoanBrokerGateway.class);
 		LoanRequest loanRequest = new LoanRequest();
 		loanRequest.setCustomer(new Customer());   

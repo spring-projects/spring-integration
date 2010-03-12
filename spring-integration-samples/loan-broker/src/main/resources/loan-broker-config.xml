@@ -7,9 +7,6 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:util="http://www.springframework.org/schema/util">
 
-	<import resource="classpath:bank-channel-mappings-config.xml" />
-	<import resource="classpath:stub-services-config.xml" />
-
 	<int:gateway id="loanBrokerGateway"
 		default-request-channel="loanBrokerPreProcessingChannel"
 		service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway"/>
