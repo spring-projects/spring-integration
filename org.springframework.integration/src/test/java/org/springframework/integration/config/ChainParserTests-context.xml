@@ -100,6 +100,4 @@
 		<beans:property name="replyMessageText" value="foo" />
 	</beans:bean>
 
-	<beans:bean id="testOutbound" class="org.springframework.integration.config.TestOutboundAdapter"/>
-
 </beans:beans>
