@@ -18,6 +18,7 @@ package org.springframework.integration.loanbroker.demo;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.loanbroker.LoanBrokerGateway;
@@ -27,30 +28,39 @@ import org.springframework.integration.loanbroker.domain.LoanRequest;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * 
  */
 public class LoanBrokerDemo {
 	private static Logger logger = Logger.getLogger(LoanBrokerDemo.class);
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		new LoanBrokerDemo().runDemo();
+	}
+	/**
+	 * 
+	 */
+	@Test
+	public void runDemo() {
+
 		ConfigurableApplicationContext ac = 
 						new ClassPathXmlApplicationContext("bootstrap-config/stubed-loan-broker.xml");
+
 		LoanBrokerGateway broker = ac.getBean("loanBrokerGateway", LoanBrokerGateway.class);
 		LoanRequest loanRequest = new LoanRequest();
-		loanRequest.setCustomer(new Customer());   
-		
+		loanRequest.setCustomer(new Customer());
+
 		LoanQuote loan = broker.getLoanQuote(loanRequest);
 		logger.info("\n********* Best Quote: " + loan);
-		
+
 		List<LoanQuote> loanQuotes = broker.getAllLoanQuotes(loanRequest);
 		logger.info("\n********* All Quotes: ");
 		for (LoanQuote loanQuote : loanQuotes) {
 			logger.info(loanQuote);
 		}
-		
+
 		ac.close();
 	}
-
 }
