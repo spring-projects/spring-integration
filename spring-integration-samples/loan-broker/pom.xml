@@ -8,13 +8,13 @@
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>org.springframework.integration</artifactId>
-			<version>2.0.0.BUILD-SNAPSHOT</version>
+			<version>2.0.0.M3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>org.springframework.spring-library</artifactId>
 			<type>libd</type>
-			<version>3.0.1.RELEASE</version>
+			<version>3.0.1.RELEASE-A</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit</groupId>
