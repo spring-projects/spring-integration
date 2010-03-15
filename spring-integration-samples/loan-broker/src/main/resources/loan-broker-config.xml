@@ -37,6 +37,9 @@
 	<bean id="bankSelector" class="org.springframework.integration.loanbroker.BanksChannelSelector">
 		<constructor-arg ref="banks"/>
 		<property name="routingExpression">
+			<!-- This expression also demonstrates 'Collection Selection' concept of SpEL 
+			(see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e11961)
+			-->
 			<value>
 				headers['CREDIT_SCORE'].score > 780 ? #banks.?[value.equals('premier')].keySet()
 													: #banks.?[value.equals('secondary')].keySet()
