@@ -14,7 +14,8 @@
  MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);</programlisting>
       <classname>MailSendingMessageHandler</classname> has various mapping strategies that use Spring's
       <interfacename>MailMessage</interfacename> abstraction. If the received Message's payload is already
-      a MailMessage instance, it will be sent directly. Therefore, it is generally recommended to precede this
+      a <classname>MailMessage</classname> instance, it will be sent directly. 
+      Therefore, it is generally recommended to precede this
       consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple
       Message mapping strategies are supported out-of-the-box. For example, if the message payload is a byte array,
       then that will be mapped to an attachment. For simple text-based emails, you can provide a String-based
@@ -35,6 +36,11 @@
  MailHeaders.FROM
  MailHeaders.REPLY_TO</programlisting>
     </para>
+    <note>
+    	<classname>MailHeaders</classname>  also allows you to override corresponding <classname>MailMessage</classname> values. 
+    	For example: If <classname>MailMessage.to</classname> is set to 'foo@bar.com' and <classname>MailHeaders.TO</classname>  
+    	Message header is provided it will take precedence and override the corresponding value in <classname>MailMessage</classname> 
+    </note>
   </section>
 
   <section id="mail-inbound">
