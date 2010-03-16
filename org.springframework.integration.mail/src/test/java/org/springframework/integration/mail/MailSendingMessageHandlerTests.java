@@ -30,14 +30,14 @@ import javax.mail.internet.MimeMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;
 
 /**
  * @author Marius Bogoevici
+ * @author Oleg Zhurakousky
  */
-public class MailSendingMessageHandlerTests {
+public class MailSendingMessageHandlerTests { 
 
 	private MailSendingMessageHandler handler;
 
@@ -49,7 +49,7 @@ public class MailSendingMessageHandlerTests {
 		this.mailSender = new StubJavaMailSender(new MimeMessage((Session) null));
 		this.handler = new MailSendingMessageHandler(this.mailSender);
 	}
-
+  
 	@After
 	public void reset() {
 		this.mailSender.reset();
@@ -98,6 +98,26 @@ public class MailSendingMessageHandlerTests {
 				1, mailSender.getSentSimpleMailMessages().size());
 		assertEquals("message content different from expected",
 				mailMessage, mailSender.getSentSimpleMailMessages().get(0));
+	}
+	@Test
+	public void simpleMailMessage() {
+		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
+		String[] toHeaders = mailMessage.getTo();
+		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).build());
+		assertEquals("only one simple message must be sent",
+				1, mailSender.getSentSimpleMailMessages().size());
+		SimpleMailMessage sentMessage = mailSender.getSentSimpleMailMessages().get(0);
+		assertTrue(sentMessage.getTo().equals(toHeaders));
+	}
+	@Test
+	public void simpleMailMessageOverrideWithHeaders() {
+		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
+		String[] toHeaders = mailMessage.getTo();
+		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).setHeader(MailHeaders.TO, new String[]{"foo@bar.bam"}).build());
+		assertEquals("only one simple message must be sent",
+				1, mailSender.getSentSimpleMailMessages().size());
+		SimpleMailMessage sentMessage = mailSender.getSentSimpleMailMessages().get(0);
+		assertTrue(sentMessage.getTo()[0].equals("foo@bar.bam"));
 	}
 
 }

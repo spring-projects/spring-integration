@@ -47,6 +47,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MailSendingMessageHandler implements MessageHandler {
 
@@ -127,7 +128,9 @@ public class MailSendingMessageHandler implements MessageHandler {
 			mailMessage.setSubject(subject);
 		}
 		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
-		mailMessage.setTo(to);
+		if (to != null){
+			mailMessage.setTo(to);
+		}	
 		if (mailMessage instanceof SimpleMailMessage) {
 			Assert.state(!ObjectUtils.isEmpty(((SimpleMailMessage) mailMessage).getTo()),
 					"No recipient has been provided on the MailMessage or the 'MailHeaders.TO' header.");
@@ -152,15 +155,18 @@ public class MailSendingMessageHandler implements MessageHandler {
 
 	private String[] retrieveHeaderValueAsStringArray(MessageHeaders headers, String key) {
 		Object value = headers.get(key);
+		String[] returnedHeaders = null;
 		if (value != null) {
 			if (value instanceof String[]) {
-				return (String[]) value;
-			}
-			if (value instanceof String) {
-				return StringUtils.commaDelimitedListToStringArray((String) value);
-			}
+				returnedHeaders = (String[]) value;
+			} else if (value instanceof String) {
+				returnedHeaders = StringUtils.commaDelimitedListToStringArray((String) value);
+			}	
 		}
-		return null;
+		if (returnedHeaders == null || ObjectUtils.isEmpty(returnedHeaders)){
+			returnedHeaders = null;
+		}
+		return returnedHeaders;
 	}
 
 }
