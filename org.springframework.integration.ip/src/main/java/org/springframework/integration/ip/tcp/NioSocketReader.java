@@ -46,8 +46,6 @@ public class NioSocketReader extends AbstractSocketReader {
 	
 	protected ByteBuffer buildBuffer;
 
-	protected int receiveBufferSize = 1024 * 60;
-
 	protected boolean building;
 
 	/**
@@ -85,7 +83,11 @@ public class NioSocketReader extends AbstractSocketReader {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Message length is " + messageLength);
 			}
-			dataPart = allocate(messageLength);
+			if (messageLength > maxMessageSize) {
+				throw new IOException("Message length " + messageLength + 
+						" exceeds max message length " + maxMessageSize);
+			}
+			dataPart = ByteBuffer.allocate(messageLength);
 		}
 		if (dataPart.hasRemaining()) {
 			readChannel(dataPart);
@@ -93,14 +95,7 @@ public class NioSocketReader extends AbstractSocketReader {
 				return false;
 			}
 		} 
-		if (usingDirectBuffers) {
-			byte[] assembledData = new byte[dataPart.capacity()];
-			dataPart.flip();
-			dataPart.get(assembledData);
-			this.assembledData = assembledData;
-		} else {
-			assembledData = dataPart.array();
-		}
+		assembledData = dataPart.array();
 		lengthPart = dataPart = null;
 		return true;
 	}
@@ -132,6 +127,10 @@ public class NioSocketReader extends AbstractSocketReader {
 				}
 				buildBuffer.put(bite);
 				count++;
+				if (buildBuffer.position() >= buildBuffer.limit()) {
+					throw new IOException("ETX not found before max message length: "
+							+ maxMessageSize);
+				}
 			}
 			while (true) {
 				if (!rawBuffer.hasRemaining()) {
@@ -146,6 +145,10 @@ public class NioSocketReader extends AbstractSocketReader {
 				}
 				buildBuffer.put(bite);
 				count++;
+				if (buildBuffer.position() >= buildBuffer.limit()) {
+					throw new IOException("ETX not found before max message length: "
+							+ maxMessageSize);
+				}
 			} 
 			if (logger.isDebugEnabled()) {
 				logger.debug("Consumed " + count + " bytes");
@@ -195,6 +198,10 @@ public class NioSocketReader extends AbstractSocketReader {
 				}
 				buildBuffer.put(bite);
 				count++;
+				if (buildBuffer.position() >= buildBuffer.limit()) {
+					throw new IOException("CRLF not found before max message length: "
+							+ maxMessageSize);
+				}
 			} 
 			if (logger.isDebugEnabled()) {
 				logger.debug("Consumed " + count + " bytes");
@@ -251,8 +258,8 @@ public class NioSocketReader extends AbstractSocketReader {
 	 */
 	protected boolean readChannelNonDeterministic() throws IOException {
 		if (rawBuffer == null) {
-			rawBuffer = allocate(receiveBufferSize);
-			buildBuffer = ByteBuffer.allocate(receiveBufferSize);
+			rawBuffer = allocate(maxMessageSize);
+			buildBuffer = ByteBuffer.allocate(maxMessageSize);
 		} else if (rawBuffer.hasRemaining()) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Raw buffer has " + rawBuffer.remaining() + " remaining");

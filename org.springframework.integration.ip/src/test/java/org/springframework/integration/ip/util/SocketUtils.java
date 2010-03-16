@@ -74,6 +74,28 @@ public class SocketUtils {
 	}
 
 	/**
+	 * Sends a message with a bad length part, causing an overflow on the receiver.
+	 */
+	public static void testSendLengthOverflow(final int port) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+					byte[] len = new byte[4];
+					ByteBuffer.wrap(len).putInt(Integer.MAX_VALUE);
+					socket.getOutputStream().write(len);
+					socket.getOutputStream().write(TEST_STRING.getBytes());
+					Thread.sleep(1000000000L); // wait forever, but we're a daemon
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	/**
 	 * Test for reassembly of completely fragmented message; sends
 	 * 6 bytes 500ms apart.
 	 * @param os
@@ -146,6 +168,29 @@ public class SocketUtils {
 	}
 	
 	/**
+	 * Sends a large STX/ETX message with no ETX
+	 */
+	public static void testSendStxEtxOverflow(final int port) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+					OutputStream outputStream = socket.getOutputStream();
+					writeByte(outputStream, 0x02, true);
+					for (int i = 0; i < 1500; i++) {
+						writeByte(outputStream, 'x', true);
+					}
+					Thread.sleep(1000000000L); // wait forever, but we're a daemon
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+	}
+	
+	/**
 	 * Sends a message +CRLF in two chunks. Two such messages are sent.
 	 * @param latch If not null, await until counted down before sending second chunk.
 	 */
@@ -167,6 +212,28 @@ public class SocketUtils {
 						logger.debug(i + " Wrote second part");
 						writeByte(outputStream, '\r', true);
 						writeByte(outputStream, '\n', true);
+					}
+					Thread.sleep(1000000000L); // wait forever, but we're a daemon
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+	}
+	
+	/**
+	 * Sends a large CRLF message with no CRLF.
+	 */
+	public static void testSendCrLfOverflow(final int port) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+					OutputStream outputStream = socket.getOutputStream();
+					for (int i = 0; i < 1500; i++) {
+						writeByte(outputStream, 'x', true);
 					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {

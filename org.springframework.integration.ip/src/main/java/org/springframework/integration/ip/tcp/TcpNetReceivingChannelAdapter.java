@@ -107,6 +107,7 @@ public class TcpNetReceivingChannelAdapter extends
 			reader = new NetSocketReader(socket);
 		}
 		reader.setMessageFormat(messageFormat);
+		reader.setMaxMessageSize(receiveBufferSize);
 		while (true) {
 			try {
 				if (reader.assembleData()) {

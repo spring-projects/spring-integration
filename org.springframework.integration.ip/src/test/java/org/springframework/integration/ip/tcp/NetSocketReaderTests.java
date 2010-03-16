@@ -16,8 +16,10 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -117,6 +119,117 @@ public class NetSocketReaderTests {
 		}
 		else {
 			fail("Failed to assemble second message");
+		}
+		server.close();
+	}
+
+	@Test
+	public void testReadLengthOverflow() throws Exception {
+		int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		SocketUtils.testSendLengthOverflow(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
+		NetSocketReader reader = new NetSocketReader(socket);
+		try {
+		    if (reader.assembleData()) {
+		    	fail("Expected message length exceeded exception");
+		    }
+		} catch (IOException e) {
+			if (!e.getMessage().startsWith("Message length")) {
+				e.printStackTrace();
+				fail("Unexpected IO Error:" + e.getMessage());
+			}
+		}
+		server.close();
+	}
+
+	@Test
+	public void testReadStxEtxTimeout() throws Exception {
+		int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		SocketUtils.testSendStxEtxOverflow(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(500);
+		NetSocketReader reader = new NetSocketReader(socket);
+		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+		try {
+		    if (reader.assembleData()) {
+		    	fail("Expected message length exceeded exception");
+		    }
+		} catch (IOException e) {
+			if (!e.getMessage().startsWith("Read timed out")) {
+				e.printStackTrace();
+				fail("Unexpected IO Error:" + e.getMessage());
+			}
+		}
+		server.close();
+	}
+
+	@Test
+	public void testReadStxEtxOverflow() throws Exception {
+		int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		SocketUtils.testSendStxEtxOverflow(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
+		NetSocketReader reader = new NetSocketReader(socket);
+		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+		reader.setMaxMessageSize(1024);
+		try {
+		    if (reader.assembleData()) {
+		    	fail("Expected message length exceeded exception");
+		    }
+		} catch (IOException e) {
+			if (!e.getMessage().startsWith("ETX not found")) {
+				e.printStackTrace();
+				fail("Unexpected IO Error:" + e.getMessage());
+			}
+		}
+		server.close();
+	}
+
+	@Test
+	public void testReadCrLfTimeout() throws Exception {
+		int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		SocketUtils.testSendCrLfOverflow(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(500);
+		NetSocketReader reader = new NetSocketReader(socket);
+		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		try {
+		    if (reader.assembleData()) {
+		    	fail("Expected message length exceeded exception");
+		    }
+		} catch (IOException e) {
+			if (!e.getMessage().startsWith("Read timed out")) {
+				e.printStackTrace();
+				fail("Unexpected IO Error:" + e.getMessage());
+			}
+		}
+		server.close();
+	}
+
+	@Test
+	public void testReadCrLfOverflow() throws Exception {
+		int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		SocketUtils.testSendCrLfOverflow(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
+		NetSocketReader reader = new NetSocketReader(socket);
+		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		reader.setMaxMessageSize(1024);
+		try {
+		    if (reader.assembleData()) {
+		    	fail("Expected message length exceeded exception");
+		    }
+		} catch (IOException e) {
+			if (!e.getMessage().startsWith("CRLF not found")) {
+				e.printStackTrace();
+				fail("Unexpected IO Error:" + e.getMessage());
+			}
 		}
 		server.close();
 	}

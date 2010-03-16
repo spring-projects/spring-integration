@@ -44,6 +44,8 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 	 * returns true; will be set to null when getAssembledData() is called.
 	 */
 	protected byte[] assembledData;
+
+	protected int maxMessageSize = 1024 * 60;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_LENGTH_HEADER}.
@@ -109,4 +111,7 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 		this.messageFormat = messageFormat;
 	}
 
+	public void setMaxMessageSize(int maxMessageSize) {
+		this.maxMessageSize = maxMessageSize;
+	}
 }

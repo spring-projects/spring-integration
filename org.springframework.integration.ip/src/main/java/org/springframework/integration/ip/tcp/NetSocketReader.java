@@ -39,8 +39,6 @@ public class NetSocketReader extends AbstractSocketReader {
 	
 	protected Socket socket;
 
-	protected int receiveBufferSize = 1024 * 60;
-	
 	/**
 	 * Constructs a NetsocketReader which reads from the Socket.
 	 * @param socket The socket.
@@ -59,7 +57,11 @@ public class NetSocketReader extends AbstractSocketReader {
 		int messageLength = ByteBuffer.wrap(lengthPart).getInt();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Message length is " + messageLength);
-		}		
+		}	
+		if (messageLength > maxMessageSize) {
+			throw new IOException("Message length " + messageLength + 
+					" exceeds max message length: " + maxMessageSize);
+		}
 		byte[] messagePart = new byte[messageLength];
 		read(messagePart);
 		assembledData = messagePart;
@@ -74,11 +76,15 @@ public class NetSocketReader extends AbstractSocketReader {
 		InputStream inputStream = socket.getInputStream();
 		if (inputStream.read() != STX)
 			throw new MessageMappingException("Expected STX to begin message");
-		byte[] buffer = new byte[receiveBufferSize];
+		byte[] buffer = new byte[maxMessageSize];
 		int n = 0;
 		int bite;
 		while ((bite = inputStream.read()) != ETX) {
 			buffer[n++] = (byte) bite;
+			if (n >= maxMessageSize) {
+				throw new IOException("ETX not found before max message length: "
+						+ maxMessageSize);
+			}
 		}
 		assembledData = new byte[n];
 		System.arraycopy(buffer, 0, assembledData, 0, n);
@@ -91,7 +97,7 @@ public class NetSocketReader extends AbstractSocketReader {
 	@Override
 	protected boolean assembleDataCrLfFormat() throws IOException {
 		InputStream inputStream = socket.getInputStream();
-		byte[] buffer = new byte[receiveBufferSize];
+		byte[] buffer = new byte[maxMessageSize];
 		int n = 0;
 		int bite;
 		while (true) {
@@ -99,6 +105,10 @@ public class NetSocketReader extends AbstractSocketReader {
 			if (n > 0 && bite == '\n' && buffer[n-1] == '\r')
 				break;
 			buffer[n++] = (byte) bite;
+			if (n >= maxMessageSize) {
+				throw new IOException("CRLF not found before max message length: "
+						+ maxMessageSize);
+			}
 		};
 		assembledData = new byte[n-1];
 		System.arraycopy(buffer, 0, assembledData, 0, n-1);

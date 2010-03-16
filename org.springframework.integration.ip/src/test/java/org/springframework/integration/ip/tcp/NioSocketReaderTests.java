@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -270,6 +271,211 @@ public class NioSocketReaderTests {
 			}
 		}
 		assertEquals("Did not receive data", 2, count);
+		server.close();
+	}
+
+	/**
+	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
+	 */
+	@Test
+	public void testReadLengthOverflow() throws Exception {
+		ServerSocketChannel server = ServerSocketChannel.open();
+		server.configureBlocking(false);
+		int port = SocketUtils.findAvailableServerSocket();
+		server.socket().bind(new InetSocketAddress(port));
+		final Selector selector = Selector.open();
+		server.register(selector, SelectionKey.OP_ACCEPT);
+		
+		// Fire up the sender.
+		SocketUtils.testSendLengthOverflow(port);
+		
+		if(selector.select(10000) <= 0) {
+			fail("Socket failed to connect");
+		}
+		Set<SelectionKey> keys = selector.selectedKeys();
+		Iterator<SelectionKey> iterator = keys.iterator();
+		SocketChannel channel = null;
+		while (iterator.hasNext()) {
+			SelectionKey key = iterator.next();
+			iterator.remove();
+			if (key.isAcceptable()) {
+				channel = server.accept();
+				channel.configureBlocking(false);
+				channel.register(selector, SelectionKey.OP_READ);
+			}
+			else {
+				fail("Unexpected key: " + key);
+			}
+		}
+		NioSocketReader reader = new NioSocketReader(channel);
+		int count = 0;
+		while(selector.select(1000) > 0) {
+			keys = selector.selectedKeys();
+			iterator = keys.iterator();
+			while (iterator.hasNext()) {
+				SelectionKey key = iterator.next();
+				iterator.remove();
+				if (key.isReadable()) {
+					assertEquals(channel, key.channel());
+					try {
+					    if (reader.assembleData()) {
+					    	fail("Expected message length exceeded exception");
+					    }
+					} catch (IOException e) {
+						if (!e.getMessage().startsWith("Message length")) {
+							e.printStackTrace();
+							fail("Unexpected IO Error:" + e.getMessage());
+						}
+						count++;
+						break;
+					}
+				}
+				else {
+					fail("Unexpected key: " + key);
+				}
+			}
+			if (count > 0) {
+				break;
+			}
+		}
+		server.close();
+	}
+
+	/**
+	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
+	 */
+	@Test
+	public void testReadStxEtxOverflow() throws Exception {
+		ServerSocketChannel server = ServerSocketChannel.open();
+		server.configureBlocking(false);
+		int port = SocketUtils.findAvailableServerSocket();
+		server.socket().bind(new InetSocketAddress(port));
+		final Selector selector = Selector.open();
+		server.register(selector, SelectionKey.OP_ACCEPT);
+		
+		// Fire up the sender.
+		SocketUtils.testSendStxEtxOverflow(port);
+		
+		if(selector.select(10000) <= 0) {
+			fail("Socket failed to connect");
+		}
+		Set<SelectionKey> keys = selector.selectedKeys();
+		Iterator<SelectionKey> iterator = keys.iterator();
+		SocketChannel channel = null;
+		while (iterator.hasNext()) {
+			SelectionKey key = iterator.next();
+			iterator.remove();
+			if (key.isAcceptable()) {
+				channel = server.accept();
+				channel.configureBlocking(false);
+				channel.register(selector, SelectionKey.OP_READ);
+			}
+			else {
+				fail("Unexpected key: " + key);
+			}
+		}
+		NioSocketReader reader = new NioSocketReader(channel);
+		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+		reader.setMaxMessageSize(1024);
+		int count = 0;
+		while(selector.select(1000) > 0) {
+			keys = selector.selectedKeys();
+			iterator = keys.iterator();
+			while (iterator.hasNext()) {
+				SelectionKey key = iterator.next();
+				iterator.remove();
+				if (key.isReadable()) {
+					assertEquals(channel, key.channel());
+					try {
+					    if (reader.assembleData()) {
+					    	fail("Expected message length exceeded exception");
+					    }
+					} catch (IOException e) {
+						if (!e.getMessage().startsWith("ETX not found")) {
+							e.printStackTrace();
+							fail("Unexpected IO Error:" + e.getMessage());
+						}
+						count++;
+						break;
+					}
+				}
+				else {
+					fail("Unexpected key: " + key);
+				}
+			}
+			if (count > 0) {
+				break;
+			}
+		}
+		server.close();
+	}
+
+	/**
+	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader}.
+	 */
+	@Test
+	public void testReadCrLfOverflow() throws Exception {
+		ServerSocketChannel server = ServerSocketChannel.open();
+		server.configureBlocking(false);
+		int port = SocketUtils.findAvailableServerSocket();
+		server.socket().bind(new InetSocketAddress(port));
+		final Selector selector = Selector.open();
+		server.register(selector, SelectionKey.OP_ACCEPT);
+		
+		// Fire up the sender.
+		SocketUtils.testSendCrLfOverflow(port);
+		
+		if(selector.select(10000) <= 0) {
+			fail("Socket failed to connect");
+		}
+		Set<SelectionKey> keys = selector.selectedKeys();
+		Iterator<SelectionKey> iterator = keys.iterator();
+		SocketChannel channel = null;
+		while (iterator.hasNext()) {
+			SelectionKey key = iterator.next();
+			iterator.remove();
+			if (key.isAcceptable()) {
+				channel = server.accept();
+				channel.configureBlocking(false);
+				channel.register(selector, SelectionKey.OP_READ);
+			}
+			else {
+				fail("Unexpected key: " + key);
+			}
+		}
+		NioSocketReader reader = new NioSocketReader(channel);
+		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		reader.setMaxMessageSize(1024);
+		int count = 0;
+		while(selector.select(1000) > 0) {
+			keys = selector.selectedKeys();
+			iterator = keys.iterator();
+			while (iterator.hasNext()) {
+				SelectionKey key = iterator.next();
+				iterator.remove();
+				if (key.isReadable()) {
+					assertEquals(channel, key.channel());
+					try {
+					    if (reader.assembleData()) {
+					    	fail("Expected message length exceeded exception");
+					    }
+					} catch (IOException e) {
+						if (!e.getMessage().startsWith("CRLF not found")) {
+							e.printStackTrace();
+							fail("Unexpected IO Error:" + e.getMessage());
+						}
+						count++;
+						break;
+					}
+				}
+				else {
+					fail("Unexpected key: " + key);
+				}
+			}
+			if (count > 0) {
+				break;
+			}
+		}
 		server.close();
 	}
 

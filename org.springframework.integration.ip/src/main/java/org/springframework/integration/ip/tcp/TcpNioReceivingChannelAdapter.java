@@ -167,6 +167,7 @@ public class TcpNioReceivingChannelAdapter extends
 		}
 		reader.setUsingDirectBuffers(usingDirectBuffers);
 		reader.setMessageFormat(messageFormat);
+		reader.setMaxMessageSize(receiveBufferSize);
 		return reader;
 	}
 
