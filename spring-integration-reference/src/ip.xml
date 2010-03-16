@@ -453,13 +453,15 @@
             </row>
             <row>
               <entry>receive-buffer-size</entry>
-              <entry>N</entry>
+              <entry>Y</entry>
               <entry>Y</entry>
               <entry></entry>
               <entry>For udp, the size of the buffer used to receive DatagramPackets. 
                      Usually set to the MTU size. If a smaller buffer is used than the 
                      size of the sent packet, truncation can occur. This can be detected
-                     by means of the check-length attribute.</entry>
+                     by means of the check-length attribute.For tcp, the size of the
+                     buffer used to reassemble incoming messages. Effectively the maximum
+                     message size that can be received.</entry>
             </row>
             <row>
               <entry>check-length</entry>
