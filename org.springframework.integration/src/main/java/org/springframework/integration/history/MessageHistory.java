@@ -30,8 +30,10 @@ import org.springframework.integration.support.ComponentMetadata;
  * Iterable list of {@link MessageHistoryEvent} instances.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
+@SuppressWarnings("serial")
 public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializable {
 
 	private final List<MessageHistoryEvent> events = new ArrayList<MessageHistoryEvent>();
@@ -76,14 +78,26 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	}
 
 	public int hashCode() {
-		return 17 * this.events.hashCode();
+		
+		try {
+			this.lock.readLock().lock();
+			return 17 * this.events.hashCode();
+		}
+		finally {
+			this.lock.readLock().unlock();
+		}
 	}
 
 	/**
 	 * Returns a String representation of the history event list.
 	 */
 	public String toString() {
-		return this.events.toString();
+		try {
+			this.lock.readLock().lock();
+			return this.events.toString();
+		}
+		finally {
+			this.lock.readLock().unlock();
+		}
 	}
-
 }
