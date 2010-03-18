@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,14 +73,21 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private Map<String, GatewayMethodDefinition> methodToChannelMap;
 
+
 	/**
-	 * Will initialize this Factory with he default instance of the 'gateway' interface
-	 * {@link GenericSendAndRecieveGateway} which will be used by this proxy if
-	 * 'service-interface' attribute is not set.
+	 * Create a Factory whose service interface type can be configured by setter injection.
+	 * If none is set, it will fall back to the default service interface type,
+	 * {@link GenericSendAndRecieveGateway}, upon initialization.
 	 */
-	public GatewayProxyFactoryBean(){
-		this.serviceInterface = GenericSendAndRecieveGateway.class;
+	public GatewayProxyFactoryBean() {
+		// serviceInterface will be determined on demand later
 	}
+
+	public GatewayProxyFactoryBean(Class<?> serviceInterface) {
+		this.serviceInterface = serviceInterface;
+	}
+
+
 	/**
 	 * Set the interface class that the generated proxy should implement.
 	 * If none is provided explicitly, the default is MessageHandler.
@@ -90,6 +97,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
 		this.serviceInterface = serviceInterface;
 	}
+
 
 	/**
 	 * Set the default request channel.
@@ -148,24 +156,35 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			if (this.initialized) {
 				return;
 			}
-			Assert.notNull(this.serviceInterface, "'serviceInterface' must not be null");
-			Method[] methods = this.serviceInterface.getDeclaredMethods();
+			Class<?> proxyInterface = this.determineServiceInterface();
+			Method[] methods = proxyInterface.getDeclaredMethods();
 			for (Method method : methods) {
 				MessagingGateway gateway = this.createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
-			this.serviceProxy = new ProxyFactory(this.serviceInterface, this).getProxy(this.beanClassLoader);
+			this.serviceProxy = new ProxyFactory(proxyInterface, this).getProxy(this.beanClassLoader);
 			this.start();
 			this.initialized = true;
 		}
 	}
 
-	public Object getObject() throws Exception {
-		return this.serviceProxy;
+	private Class<?> determineServiceInterface() {
+		if (this.serviceInterface == null) {
+			this.serviceInterface = GenericSendAndRecieveGateway.class;
+		}
+		return this.serviceInterface;
 	}
 
 	public Class<?> getObjectType() {
-		return this.serviceInterface;
+		return (this.serviceInterface != null ? this.serviceInterface : null);
+	}
+
+	public Object getObject() throws Exception {
+		if (this.serviceProxy == null) {
+			this.onInit();
+			Assert.notNull(this.serviceProxy, "failed to initialize proxy");
+		}
+		return this.serviceProxy;
 	}
 
 	public boolean isSingleton() {

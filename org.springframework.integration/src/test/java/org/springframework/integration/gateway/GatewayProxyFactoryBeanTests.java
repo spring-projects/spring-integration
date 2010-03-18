@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -290,6 +291,11 @@ public class GatewayProxyFactoryBeanTests {
 		assertEquals("testBridge", event3.getComponentName());
 	}
 
+	@Test
+	public void autowiredGateway() {
+		new ClassPathXmlApplicationContext("gatewayAutowiring.xml", GatewayProxyFactoryBeanTests.class);
+	}
+
 
 	public static void throwTestException() throws TestException {
 		throw new TestException();
@@ -310,6 +316,17 @@ public class GatewayProxyFactoryBeanTests {
 
 	@SuppressWarnings("serial")
 	static class TestException extends Exception {
+	}
+
+
+	public static class TestClient {
+
+		private final TestService service;
+
+		@Autowired
+		public TestClient(TestService service) {
+			this.service = service;
+		}
 	}
 
 }
