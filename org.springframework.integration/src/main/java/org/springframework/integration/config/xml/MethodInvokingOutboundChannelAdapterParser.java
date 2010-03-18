@@ -40,7 +40,7 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					this.parseConsumer(element, parserContext), parserContext.getRegistry());
 		}
-		Assert.notNull(consumerRef, "Can not determine consumer for outbound-channel-adapter");
+		Assert.hasText(consumerRef, "Can not determine consumer for 'outbound-channel-adapter'");
 		return consumerRef;
 	}
 
