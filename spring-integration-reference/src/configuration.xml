@@ -316,8 +316,8 @@ As you can see, the above method takes 5 arguments where:
       That provides a pure annotation-driven alternative to the XML configuration. However, it is generally recommended
       to use XML for the endpoints, since it is easier to keep track of the overall configuration in a single, external
       location (and besides the namespace-based XML configuration is not very verbose). If you do prefer to provide
-      channels with the annotations however, you just need to enable a BeanPostProcessor. The following element should
-      be added: <programlisting language="xml"><![CDATA[ <annotation-config/> ]]></programlisting>
+      channels with the annotations however, you just need to enable a SI Annotations BeanPostProcessor. The following element should
+      be added: <programlisting language="xml"><![CDATA[ <int:annotation-config/> ]]></programlisting>
       <note>
         When configuring the "inputChannel" and "outputChannel" with annotations, the "inputChannel"
         <emphasis>must</emphasis> be a reference to a <interfacename>SubscribableChannel</interfacename> instance.
