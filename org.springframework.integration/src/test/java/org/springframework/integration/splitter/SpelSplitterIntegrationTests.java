@@ -50,16 +50,25 @@ public class SpelSplitterIntegrationTests {
 
 	@Test
 	public void split() {
-		Message<?> message = MessageBuilder.withPayload(new TestBean()).build();
+		Message<?> message = MessageBuilder.withPayload(new TestBean()).setHeader("foo", "foo").build();
 		this.input.send(message);
-		assertEquals(new Integer(1), output.receive(0).getPayload());
-		assertEquals(new Integer(2), output.receive(0).getPayload());
-		assertEquals(new Integer(3), output.receive(0).getPayload());
-		assertEquals(new Integer(4), output.receive(0).getPayload());
+		Message one = output.receive(0);
+		Message two = output.receive(0);
+		Message three = output.receive(0);
+		Message four = output.receive(0);
+		assertEquals(new Integer(1), one.getPayload());
+		assertEquals("foo", one.getHeaders().get("foo"));
+		assertEquals(new Integer(2), two.getPayload());
+		assertEquals("foo", two.getHeaders().get("foo"));
+		assertEquals(new Integer(3), three.getPayload());
+		assertEquals("foo", three.getHeaders().get("foo"));
+		assertEquals(new Integer(4), four.getPayload());
+		assertEquals("foo", four.getHeaders().get("foo"));
 		assertNull(output.receive(0));
 	}
-
-
+	
+	
+	
 	static class TestBean {
 
 		private final List<Integer> numbers = new ArrayList<Integer>();
