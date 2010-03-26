@@ -27,6 +27,7 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 
 /**
@@ -56,7 +57,9 @@ public class ChannelInterceptorParser {
 				Element childElement = (Element) child;
 				String localName = child.getLocalName();
 				if ("bean".equals(localName)) {
-					BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(childElement);
+					BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
+					BeanDefinitionHolder holder = delegate.parseBeanDefinitionElement(childElement);
+					holder = delegate.decorateBeanDefinitionIfRequired(childElement, holder);
 					parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 					interceptors.add(new RuntimeBeanReference(holder.getBeanName()));
 				}

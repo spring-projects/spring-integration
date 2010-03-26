@@ -22,16 +22,23 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests.SampleInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -151,9 +158,23 @@ public class ChannelInterceptorTests {
 		assertEquals(2, invokedCount.get());
 		assertEquals(1, messageCount.get());
 	}
+	@Test
+	public void testInterceptorBeanWithPnamespace(){
+		ApplicationContext ac = new ClassPathXmlApplicationContext("ChannelInterceptorTests-context.xml", ChannelInterceptorTests.class);
+		AbstractMessageChannel channel = ac.getBean("input", AbstractMessageChannel.class);
+		DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
+		Object iList = cAccessor.getPropertyValue("interceptors");
+		DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
+		List<PreSendReturnsMessageInterceptor> interceptoList = 
+					(List<PreSendReturnsMessageInterceptor>) iAccessor.getPropertyValue("interceptors");
+		String foo = interceptoList.get(0).getFoo();
+		assertTrue(StringUtils.hasText(foo));
+		assertEquals("foo", foo);
+	}
 
 
-	private static class PreSendReturnsMessageInterceptor extends ChannelInterceptorAdapter { 
+	public static class PreSendReturnsMessageInterceptor extends ChannelInterceptorAdapter { 
+		private String foo;
 
 		private static AtomicInteger counter = new AtomicInteger();
 
@@ -163,6 +184,13 @@ public class ChannelInterceptorTests {
 			Message<?> reply = MessageBuilder.fromMessage(message)
 					.setHeader(this.getClass().getSimpleName(), counter.incrementAndGet()).build();
 			return reply;
+		}
+		public String getFoo() {
+			return foo;
+		}
+
+		public void setFoo(String foo) {
+			this.foo = foo;
 		}
 	}
 
