@@ -16,6 +16,7 @@
 
 package org.springframework.integration.channel;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -23,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
@@ -100,6 +102,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * interceptors.
 	 */
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
+		Collections.sort(interceptors, new OrderComparator());
 		this.interceptors.set(interceptors);
 	}
 
