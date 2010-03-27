@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	targetNamespace="http://www.springframework.org/schema/integration"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
@@ -1655,12 +1656,16 @@
 	</xsd:element>
 	
 	<xsd:element name="channel-interceptor-chain">
+	<xsd:annotation>
+			<xsd:documentation>
+		Allows you to define channel interceptors to be applied globally
+			</xsd:documentation>
+		</xsd:annotation>
 	  <xsd:complexType>
 	    <xsd:sequence>
-	     	<xsd:element ref="beans:ref" minOccurs="0" maxOccurs="unbounded"/>
 	     	<xsd:choice minOccurs="0" maxOccurs="unbounded">
-	     		<xsd:element ref="beans:bean"/>  
 	     		<xsd:element ref="beans:ref"/> 
+	     		<xsd:element ref="beans:bean"/> 
 	     	</xsd:choice>		 
 	    </xsd:sequence>
 	    <xsd:attribute name="channel-name-pattern" type="xsd:string" use="required">

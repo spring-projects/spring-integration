@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.channel.interceptor;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -167,13 +166,29 @@ public class GlobalChannelInterceptorTests {
 			} 
 		}
 	}
-	/**
-	 * Will test failure if 'channel-name-pattern' filter points to a valid 
-	 * bean which is not an AbstractMessageChannel
-	 */
-	@Test(expected=BeanCreationException.class)
-	public void failGlobalInterceptorConfig(){
-		new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-failed-context.xml", GlobalChannelInterceptorTests.class);
+	@SuppressWarnings("unchecked")
+	@Test
+	public void validateGlobalInterceptorsAllPattern(){
+		ApplicationContext applicationContext = 
+			new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-all-context.xml", GlobalChannelInterceptorTests.class);
+		Map<String, AbstractMessageChannel> channels = applicationContext.getBeansOfType(AbstractMessageChannel.class);
+		for (String channelName : channels.keySet()) {
+			AbstractMessageChannel channel = channels.get(channelName);
+			DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
+			Object iList = cAccessor.getPropertyValue("interceptors");
+			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
+			List<SampleInterceptor> interceptoList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
+			if (channelName.equals("inputA")){
+				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
+				Assert.assertTrue(inter.length == 2);
+			} else if (channelName.equals("inputB")){
+				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
+				Assert.assertTrue(inter.length == 1);
+			} else if (channelName.equals("inputC")){
+				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
+				Assert.assertTrue(inter.length == 1);
+			}
+		}
 	}
 	
 	public static class SampleInterceptor implements ChannelInterceptor {

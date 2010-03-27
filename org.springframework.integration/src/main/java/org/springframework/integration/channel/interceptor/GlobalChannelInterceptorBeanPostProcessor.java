@@ -95,10 +95,14 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	public Object postProcessBeforeInitialization(Object bean, String beanName)
 			throws BeansException {
 		if (channelPatternMatches(beanName)){
-			Assert.isTrue(bean instanceof AbstractMessageChannel, "channel interceptors can only be added to " +
-					"AbstractMessageChannel. Current implementation is: " + bean.getClass());
-			logger.debug("Applying global interceptors on channel '" + beanName + "'");
-			this.mergeInterceptorsToChannel((AbstractMessageChannel) bean, beanName);
+			if (bean instanceof AbstractMessageChannel){
+				logger.debug("Applying global interceptors on channel '" + beanName + "'");
+				this.mergeInterceptorsToChannel((AbstractMessageChannel) bean, beanName);
+			} else {
+				logger.warn("Attempt to add channel interceptors is unsuccessfull. Global channel interceptors " +
+						"can only be added to AbstractMessageChannel. Current implementation is: " + bean.getClass() +
+						" This might happen becouse you specified a single wild-card '*' in 'channel-name-pattern'");
+			}		
 		}
 		return bean;
 	}
@@ -177,6 +181,9 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 			patterns = allAvailablePatters.toArray(new String[]{});
 		}
 		for (String channelPattern : patterns) {
+			if (channelPattern.trim().equals("*")){
+				return true;
+			}
 			Pattern p = Pattern.compile(channelPattern.trim());
 			Matcher m = p.matcher(beanName);
 			if (m.find()){
