@@ -1051,50 +1051,7 @@
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
-
-	<xsd:element name="thread-pool-task-executor">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					Defines a ThreadPoolTaskExecutor.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID" use="required" />
-			<xsd:attribute name="core-size" type="xsd:string"
-				default="1" />
-			<xsd:attribute name="max-size" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Specifies the maximum pool size in order to
-						limit the number of concurrent
-						tasks.
-						Otherwise, the default will be
-						Integer.MAX_VALUE.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="queue-capacity" type="xsd:string"
-				default="0" />
-			<xsd:attribute name="keep-alive-seconds" type="xsd:string"
-				default="60" />
-			<xsd:attribute name="rejection-policy" default="CALLER_RUNS">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	The RejectedExecutionHandler type.
-					]]></xsd:documentation>
-				</xsd:annotation>
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="ABORT" />
-						<xsd:enumeration value="CALLER_RUNS" />
-						<xsd:enumeration value="DISCARD" />
-						<xsd:enumeration value="DISCARD_OLDEST" />
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-		</xsd:complexType>
-	</xsd:element>
-
+	
 	<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
