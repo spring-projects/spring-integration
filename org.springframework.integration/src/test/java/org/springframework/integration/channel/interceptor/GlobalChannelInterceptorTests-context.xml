@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:p="http://www.springframework.org/schema/p">
+
+	<int:channel id="inputA">
+		<int:interceptors>
+			<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="eight"/>
+			<ref bean="channelInterceptor"/>
+		</int:interceptors>
+	</int:channel>
+	
+	<int:channel id="inputB">
+		<int:queue capacity="1"/>
+	</int:channel>
+	  
+	<int:publish-subscribe-channel id="foo"/>  
+	
+	<int:channel id="bar">
+		<int:interceptors>
+			<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="eight"/>
+			<ref bean="channelInterceptor"/>
+		</int:interceptors>
+	</int:channel>
+	
+	<int:channel id="baz"/>
+
+	<int:channel-interceptor-chain channel-name-pattern="input*, foo, object" order="3">
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="six"/>
+		<ref bean="channelInterceptor"/>
+	</int:channel-interceptor-chain>
+	<int:channel-interceptor-chain channel-name-pattern="input*, fooA" order="1">
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="one"/>
+		<ref bean="channelInterceptor"/>
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="two"/>
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="three"/>
+		<ref bean="channelInterceptor"/>
+	</int:channel-interceptor-chain>
+	<int:channel-interceptor-chain channel-name-pattern="input*, foo, object" order="-1">
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="four"/>
+		<ref bean="channelInterceptor"/>
+	</int:channel-interceptor-chain>
+	<int:channel-interceptor-chain channel-name-pattern="input*, foo, object" order="-5">
+		<bean class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="five"/>
+		<ref bean="channelInterceptor"/>
+	</int:channel-interceptor-chain>
+	
+	
+	<bean id="channelInterceptor" class="org.springframework.integration.channel.interceptor.GlobalChannelInterceptorTests$SampleInterceptor" p:testIdentifier="seven"/>
+<!--	<bean id="object" class="java.lang.Object"/>-->
+</beans>

@@ -1653,5 +1653,36 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-
+	
+	<xsd:element name="channel-interceptor-chain">
+	  <xsd:complexType>
+	    <xsd:sequence>
+	     	<xsd:element ref="beans:ref" minOccurs="0" maxOccurs="unbounded"/>
+	     	<xsd:choice minOccurs="0" maxOccurs="unbounded">
+	     		<xsd:element ref="beans:bean"/>  
+	     		<xsd:element ref="beans:ref"/> 
+	     	</xsd:choice>		 
+	    </xsd:sequence>
+	    <xsd:attribute name="channel-name-pattern" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+		[REQUIRED] Channel name(s) or patterns. To specify more then one channel use ',' 
+		(e.g., channel-name-pattern="input*, foo, bar")
+					</xsd:documentation>
+				</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="order" type="xsd:integer" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+		[OPTIONAL] Specifies the order in which these interceptors will be 
+		added to the existing channel interceptors (if any). 
+		Negative value (e.g., -2) will signify AFTER, but BEFORE the 
+		the chain that might specify -1 (if any). Positive value (e.g., 2) 
+		will signify BEFORE, but AFTER the chain that might specify 1 (if any).
+					</xsd:documentation>
+				</xsd:annotation>
+		</xsd:attribute>
+	  </xsd:complexType>
+	</xsd:element>
+	
 </xsd:schema>
