@@ -59,7 +59,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		AbstractBeanDefinition definition = this.parseConsumer(element, parserContext);
 		if (definition == null) {
 			parserContext.getReaderContext().error(
-					"Consumer parsing must return a BeanDefinition.", element);
+					"Consumer parsing must return a BeanComponentDefinition.", element);
 		}
 		String order = element.getAttribute("order");
 		if (StringUtils.hasText(order)) {

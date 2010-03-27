@@ -19,6 +19,7 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -63,7 +64,7 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
     @Override
     protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-        BeanDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+        BeanComponentDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
         String ref = element.getAttribute(REF_ATTRIBUTE);
         BeanDefinitionBuilder builder;
 

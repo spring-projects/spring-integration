@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -32,9 +33,15 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		String sourceRef = element.getAttribute("ref");
+		BeanComponentDefinition bcDef = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		String sourceRef = null;
+		if (bcDef != null){
+			sourceRef = bcDef.getBeanName();
+		} else {
+			sourceRef = element.getAttribute("ref");
+		}
 		if (!StringUtils.hasText(sourceRef)) {
-			parserContext.getReaderContext().error("The 'ref' attribute is required.", element);
+			parserContext.getReaderContext().error("Either 'ref' attribute or inner-bean consumer definition is required.", element);
 		}
 		String methodName = element.getAttribute("method");
 		if (StringUtils.hasText(methodName)) {

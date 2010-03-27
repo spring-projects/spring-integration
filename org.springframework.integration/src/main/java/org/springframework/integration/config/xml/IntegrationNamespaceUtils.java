@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -180,24 +181,28 @@ public abstract class IntegrationNamespaceUtils {
 		}
 	}
 
-	public static BeanDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext){
+	public static BeanComponentDefinition parseInnerHandlerDefinition(Element element, ParserContext parserContext){
 		// parses out inner bean definition for concrete implementation if defined
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
-		BeanDefinition innerDefinition = null;
+		BeanComponentDefinition innerComponentDefinition = null;
 		if (childElements != null && childElements.size() == 1){
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
 			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
 			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
-			innerDefinition = bdHolder.getBeanDefinition();
-			BeanDefinitionReaderUtils.registerWithGeneratedName((AbstractBeanDefinition) innerDefinition, parserContext.getRegistry());
+			BeanDefinition inDef = bdHolder.getBeanDefinition();
+			String beanName = BeanDefinitionReaderUtils.generateBeanName(inDef, parserContext.getRegistry());
+			innerComponentDefinition = new BeanComponentDefinition(inDef, beanName);
+			parserContext.registerBeanComponent(innerComponentDefinition);
 		}
 		
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		Assert.isTrue(!(StringUtils.hasText(ref) && innerDefinition != null), "Ambiguous definition. Inner bean " + 
-				(innerDefinition == null ? innerDefinition : innerDefinition.getBeanClassName()) + " declaration and \"ref\" " + ref + 
-		       " are not allowed together.");
-		return innerDefinition;
+		Assert.isTrue(!(StringUtils.hasText(ref) && innerComponentDefinition != null), "Ambiguous definition. Inner bean " + 
+				(innerComponentDefinition == null 
+						? innerComponentDefinition 
+						: innerComponentDefinition.getBeanDefinition().getBeanClassName()) + " declaration and \"ref\" " + ref + 
+		       								" are not allowed together.");
+		return innerComponentDefinition;
 	}
 
 }

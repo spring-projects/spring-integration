@@ -16,15 +16,14 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;outbound-channel-adapter/&gt; element.
@@ -35,7 +34,13 @@ import org.springframework.util.StringUtils;
 public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
-		String consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
+		BeanComponentDefinition consumerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		String consumerRef = null;
+		if (consumerDefinition == null){
+			consumerRef = element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE);
+		} else {
+			consumerRef = consumerDefinition.getBeanName();
+		}	
 		if (element.hasAttribute(IntegrationNamespaceUtils.METHOD_ATTRIBUTE)) {
 			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					this.parseConsumer(element, parserContext), parserContext.getRegistry());
@@ -48,7 +53,7 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageHandler");
-		BeanDefinition innerHandlerDefinition = 
+		BeanComponentDefinition innerHandlerDefinition = 
 					IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (innerHandlerDefinition == null){
 			Assert.hasText(element.getAttribute(IntegrationNamespaceUtils.REF_ATTRIBUTE), 

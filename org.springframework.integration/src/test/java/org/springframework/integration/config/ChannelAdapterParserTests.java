@@ -39,16 +39,20 @@ import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ChannelAdapterParserTests {
 
 	private AbstractApplicationContext applicationContext;
+	private AbstractApplicationContext applicationContextInner;
 
 
 	@Before
 	public void setUp() {
 		this.applicationContext = new ClassPathXmlApplicationContext(
 				"ChannelAdapterParserTests-context.xml", this.getClass());
+		this.applicationContextInner = new ClassPathXmlApplicationContext(
+				"ChannelAdapterParserTests-inner-context.xml", this.getClass());
 	}
 
 	@After
@@ -71,6 +75,23 @@ public class ChannelAdapterParserTests {
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
 		this.applicationContext.stop();
+		message = channel.receive(100);
+		assertNull(message);
+	}
+	@Test
+	public void methodInvokingSourceStoppedByApplicationContextInner() {
+		String beanName = "methodInvokingSource";
+		PollableChannel channel = (PollableChannel) this.applicationContextInner.getBean("queueChannel");
+//		TestBean testBean = (TestBean) this.applicationContextInner.getBean("testBean");
+//		testBean.store("source test");
+		Object adapter = this.applicationContextInner.getBean(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		this.applicationContextInner.start();
+		Message<?> message = channel.receive(1000);
+		assertNotNull(message);
+		//assertEquals("source test", testBean.getMessage());
+		this.applicationContextInner.stop();
 		message = channel.receive(100);
 		assertNull(message);
 	}
@@ -180,4 +201,11 @@ public class ChannelAdapterParserTests {
 		channelResolver.resolveChannelName("methodInvokingSource");
 	}
 
+	public static class SampleBean{
+		private String message = "hello";
+
+		String getMessage() {
+			return message;
+		}
+	}
 }

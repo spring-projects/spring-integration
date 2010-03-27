@@ -17,6 +17,7 @@
 package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
@@ -36,7 +37,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 	@Override
 	protected final BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getFactoryBeanClassName());
-		BeanDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
+		BeanComponentDefinition innerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
 		boolean hasRef = StringUtils.hasText(ref);
