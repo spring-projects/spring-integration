@@ -19,6 +19,7 @@ package org.springframework.integration.ip.udp;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -186,7 +187,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 					payload = new byte[length];
 					System.arraycopy(packet.getData(), offset + matcher.end(), payload, 0, length);
 					message = MessageBuilder.withPayload(payload)
-							.setHeader(MessageHeaders.ID, matcher.group(2))
+							.setHeader(MessageHeaders.ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
 							.setHeader(IpHeaders.HOSTNAME, packet.getAddress().getHostName())
 							.setHeader(IpHeaders.IP_ADDRESS, packet.getAddress().getHostAddress())
