@@ -190,6 +190,7 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 			Pattern p = compiledPatterns.get(channelPattern);
 			if (p == null){
 				p = Pattern.compile(channelPattern);
+				compiledPatterns.put(channelPattern, p);
 			}
 			Matcher m = p.matcher(beanName);
 			if (m.find()){
