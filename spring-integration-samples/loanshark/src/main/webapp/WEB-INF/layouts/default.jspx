@@ -1,0 +1,71 @@
+<html 
+ 	xmlns:jsp="http://java.sun.com/JSP/Page"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:tiles="http://tiles.apache.org/tags-tiles"
+	xmlns:form="http://www.springframework.org/tags/form"
+	xmlns:spring="http://www.springframework.org/tags"
+	xmlns:roo="urn:jsptagdir:/WEB-INF/tags" >  
+	
+	<jsp:directive.page contentType="text/html;charset=UTF-8" />  
+		
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=8" />		
+		<spring:theme code="styleSheet" var="roo_css"/>	
+		<spring:url value="/${roo_css}" var="roo_css_url"/>
+		<spring:url value="/resources/dojo/dojo.js" var="dojo_url"/>
+		<spring:url value="/resources/dijit/themes/tundra/tundra.css" var="tundra_url"/>
+		<spring:url value="/resources/spring/Spring.js" var="spring_url"/>
+		<spring:url value="/resources/spring/Spring-Dojo.js" var="spring_dojo_url"/>		
+		<spring:url value="/static/images/favicon.ico" var="favicon" />
+		<link rel="stylesheet" type="text/css" media="screen" href="${roo_css_url}"><!-- //required for FF3 and Opera --></link>
+		<link rel="stylesheet" type="text/css" href="${tundra_url}"><!-- //required for FF3 and Opera --></link>	
+		<link rel="SHORTCUT ICON" href="${favicon}" />
+		<script type="text/javascript"><![CDATA[
+			function readCookie(name) {
+				var nameEQ = name + '=';
+				var ca = document.cookie.split(';');
+				for(var i=0;i < ca.length;i++) {
+					var c = ca[i];
+					while (c.charAt(0)==' ') c = c.substring(1,c.length);
+					if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+				}
+				return null;
+			}
+			var djConfig={locale:readCookie('locale')}; 
+		]]>
+		</script>
+		<script src="${dojo_url}" type="text/javascript" ><!-- //required for FF3 and Opera --></script>
+		<script src="${spring_url}" type="text/javascript"><!-- //required for FF3 and Opera --></script>
+		<script src="${spring_dojo_url}" type="text/javascript"><!-- //required for FF3 and Opera --></script>
+		<script language="JavaScript" type="text/javascript">dojo.require("dojo.parser");</script>
+		<spring:message code="application.name" var="app_name"/>
+		<title><spring:message code="welcome.h3" arguments="${app_name}" /></title>
+	</head>
+   	<body class="tundra spring">		
+   		<div id="wrapper">
+		    <tiles:insertAttribute name="menu" ignore="true" />   
+	    	<div id="main">
+	    		<tiles:insertAttribute name="body" />
+	    		<div id="footer">				
+				  	<spring:url var="home" value="/" />
+				    <span><a href="${home}"><spring:message code="button.home"/></a></span>				    
+				    <c:if test="${pageContext.request.userPrincipal != null}">	
+				    	<c:out value=" | "/>
+				    	<span>			    
+						    <spring:url var="logout" value="/static/j_spring_security_logout" />
+						    <a href="${logout}"><spring:message code="security.logout" /></a>
+					    </span>					    
+					</c:if>			    
+				    
+				    <roo:language />
+				    <roo:theme />
+				    				    
+				    <spring:url var="logo" value="/static/images/springsource-logo.png" />
+				    <spring:message code="global.sponsored" var="sponsored"/>
+				    <span><a href="http://springsource.com" title="${sponsored}"><img src="${logo}" alt="${sponsored}" align="right"/></a></span>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

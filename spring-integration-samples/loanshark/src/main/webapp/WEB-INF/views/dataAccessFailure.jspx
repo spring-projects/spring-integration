@@ -1,0 +1,30 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:spring="http://www.springframework.org/tags" xmlns:jsp="http://java.sun.com/JSP/Page" version="2.0">
+	<jsp:output omit-xml-declaration="yes"/>
+	<script type="text/javascript">dojo.require("dijit.TitlePane")</script>
+    <div id="_title">
+    <spring:message var="title" code="error.dataaccessfailure.title" />
+    <script type="text/javascript">Spring.addDecoration(new Spring.ElementDecoration({elementId : '_title', widgetType : 'dijit.TitlePane', widgetAttrs : {title: '${title}'}})); </script>
+  		<h2>${title}</h2>
+		<p><spring:message code="error.dataaccessfailure.problemdescription" /></p>
+		<c:if test="${not empty exception}">
+			<p>
+				<h4><spring:message code="exception.details" /></h4>
+				
+				<spring:message var="message" code="exception.message" />
+				<div id="_exception">
+					<script type="text/javascript">Spring.addDecoration(new Spring.ElementDecoration({elementId : '_exception', widgetType : 'dijit.TitlePane', widgetAttrs : {title: '${message}', open:false}})); </script>
+					<c:out value="${exception.localizedMessage}" />
+				</div>
+				
+				<spring:message var="stacktrace" code="exception.stacktrace" />
+				<div id="_stacktrace">
+					<script type="text/javascript">Spring.addDecoration(new Spring.ElementDecoration({elementId : '_stacktrace', widgetType : 'dijit.TitlePane', widgetAttrs : {title: '${stacktrace}', open:false}})); </script>
+					<c:forEach items="${exception.stackTrace}" var="trace">
+						<c:out value="${trace}"/><br/>
+					</c:forEach>
+				</div>
+			</p>
+		</c:if>
+	</div>
+</div>
+

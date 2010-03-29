@@ -1,0 +1,87 @@
+<div xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:fmt="http://java.sun.com/jsp/jstl/fmt" xmlns:fn="http://java.sun.com/jsp/jstl/functions" xmlns:form="http://www.springframework.org/tags/form" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:roo="urn:jsptagdir:/WEB-INF/tags" xmlns:spring="http://www.springframework.org/tags" version="2.0">
+    <jsp:output omit-xml-declaration="yes"/>
+    <script type="text/javascript">dojo.require('dijit.TitlePane');</script>
+    <div id="_title_div">
+        <spring:message code="label.loanshark" var="entity_label"/>
+        <spring:message code="label.loansharks" var="entity_label_plural"/>
+        <spring:message arguments="${entity_label_plural}" code="entity.list.all" var="title_msg"/>
+        <script type="text/javascript">Spring.addDecoration(new Spring.ElementDecoration({elementId : '_title_div', widgetType : 'dijit.TitlePane', widgetAttrs : {title: '${title_msg}'}})); </script>
+        <c:if test="${not empty loansharks}">
+            <table width="300px">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>Counter</th>
+                        <th>Average Rate</th>
+                        <th/>
+                        <th/>
+                        <th/>
+                    </tr>
+                </thead>
+                <c:forEach items="${loansharks}" var="loanShark">
+                    <tr>
+                        <td>${loanShark.id}</td>
+                        <td>
+                            <c:out value="${fn:substring(loanShark.name, 0, 15)}"/>
+                        </td>
+                        <td>
+                            <c:out value="${fn:substring(loanShark.counter, 0, 10)}"/>
+                        </td>
+                        <td>
+                            <c:out value="${fn:substring(loanShark.averageRate, 0, 10)}"/>
+                        </td>
+                        <td>
+                            <spring:url value="/loanshark/${loanShark.id}" var="show_form_url"/>
+                            <spring:url value="/static/images/show.png" var="show_image_url"/>
+                            <form:form action="${show_form_url}" method="GET">
+                                <spring:message arguments="${entity_label}" code="entity.show" var="show_label"/>
+                                <input alt="${show_label}" class="image" src="${show_image_url}" title="${show_label}" type="image" value="${show_label}"/>
+                            </form:form>
+                        </td>
+                        <td>
+                            <spring:url value="/loanshark/${loanShark.id}/form" var="update_form_url"/>
+                            <spring:url value="/static/images/update.png" var="update_image_url"/>
+                            <form:form action="${update_form_url}" method="GET">
+                                <spring:message arguments="${entity_label}" code="entity.update" var="update_label"/>
+                                <input alt="${update_label}" class="image" src="${update_image_url}" title="${update_label}" type="image" value="${update_label}"/>
+                            </form:form>
+                        </td>
+                        <td>
+                            <spring:url value="/loanshark/${loanShark.id}" var="delete_form_url"/>
+                            <spring:url value="/static/images/delete.png" var="delete_image_url"/>
+                            <form:form action="${delete_form_url}" method="DELETE">
+                                <spring:message arguments="${entity_label}" code="entity.delete" var="delete_label"/>
+                                <input alt="${delete_label}" class="image" src="${delete_image_url}" title="${delete_label}" type="image" value="${delete_label}"/>
+                                <c:if test="${not empty param.page}">
+                                    <input name="page" type="hidden" value="${param.page}"/>
+                                </c:if>
+                                <c:if test="${not empty param.size}">
+                                    <input name="size" type="hidden" value="${param.size}"/>
+                                </c:if>
+                            </form:form>
+                        </td>
+                    </tr>
+                </c:forEach>
+                <tr class="footer">
+                    <td colspan="7">
+                        <span class="new">
+                            <spring:url value="/loanshark/form" var="create_url"/>
+                            <a href="${create_url}">
+                                <spring:url value="/static/images/add.png" var="create_img_url"/>
+                                <spring:message arguments="${entity_label}" code="global.menu.new" var="add_message"/>
+                                <img alt="${add_message}" src="${create_img_url}" title="${add_message}"/>
+                            </a>
+                        </span>
+                        <c:if test="${not empty maxPages}">
+                            <roo:pagination maxPages="${maxPages}" page="${param.page}" size="${param.size}"/>
+                        </c:if>
+                    </td>
+                </tr>
+            </table>
+        </c:if>
+        <c:if test="${empty loansharks}">
+            <spring:message arguments="${entity_label_plural}" code="entity.not.found"/>
+        </c:if>
+    </div>
+</div>

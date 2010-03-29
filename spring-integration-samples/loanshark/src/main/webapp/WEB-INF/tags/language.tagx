@@ -1,0 +1,93 @@
+<jsp:root xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:spring="http://www.springframework.org/tags" xmlns:jsp="http://java.sun.com/JSP/Page" version="2.0">
+	<jsp:output omit-xml-declaration="yes"/>
+
+    <span>
+    	<c:out value=" | "/>
+    	<spring:message code="global.language" />
+    	<c:out value=": "/>
+    	<spring:url var="url_en" value="">
+			<spring:param name="lang" value="en" />
+			<c:if test="${not empty param.page}">
+   				<spring:param name="page" value="${param.page}" />
+    		</c:if>
+    		<c:if test="${not empty param.size}">
+    			<spring:param name="size" value="${param.size}" />
+    		</c:if>
+    	</spring:url>	
+    	<spring:url var="img_en" value="/static/images/gb.png" />    	
+    	<spring:message code="global.language.switch" arguments="English" var="lang_en"/>
+    	<a href="${url_en}" title="${lang_en}"><img src="${img_en}" alt="${lang_en}"/></a>
+    	<c:out value=" "/>
+
+    	<spring:url var="img_de" value="/static/images/de.png" />
+    	<spring:url var="url_de" value="">
+    		<spring:param name="lang" value="de" />
+			<c:if test="${not empty param.page}">
+   				<spring:param name="page" value="${param.page}" />
+    		</c:if>
+    		<c:if test="${not empty param.size}">
+    			<spring:param name="size" value="${param.size}" />
+    		</c:if>	    		
+    	</spring:url>	
+    	<spring:message code="global.language.switch" arguments="Deutsch" var="lang_de"/>			    	
+    	<a href="${url_de}" title="${lang_de}"><img src="${img_de}" alt="${lang_de}"/></a>
+    	<c:out value=" "/>
+
+    	<spring:url var="img_sv" value="/static/images/sv.png" />
+    	<spring:url var="url_sv" value="">
+    		<spring:param name="lang" value="sv" />
+			<c:if test="${not empty param.page}">
+   				<spring:param name="page" value="${param.page}" />
+    		</c:if>
+    		<c:if test="${not empty param.size}">
+    			<spring:param name="size" value="${param.size}" />
+    		</c:if>	    		
+    	</spring:url>	
+    	<spring:message code="global.language.switch" arguments="Svenska" var="lang_sv"/>			    	
+    	<a href="${url_sv}" title="${lang_sv}"><img src="${img_sv}" alt="${lang_sv}"/></a>
+    	<c:out value=" "/>
+
+    	<spring:url var="img_es" value="/static/images/es.png" />
+    	<spring:url var="url_es" value="">
+    		<spring:param name="lang" value="es" />
+			<c:if test="${not empty param.page}">
+   				<spring:param name="page" value="${param.page}" />
+    		</c:if>
+    		<c:if test="${not empty param.size}">
+    			<spring:param name="size" value="${param.size}" />
+    		</c:if>	    		
+    	</spring:url>	
+    	<spring:message code="global.language.switch" arguments="Espanol" var="lang_es"/>
+    	<a href="${url_es}" title="${lang_es}"><img src="${img_es}" alt="${lang_es}"/></a>
+    	<c:out value=" "/>
+
+    	<spring:url var="img_it" value="/static/images/it.png" />
+    	<spring:url var="url_it" value="">
+    		<spring:param name="lang" value="it" />
+			<c:if test="${not empty param.page}">
+   				<spring:param name="page" value="${param.page}" />
+    		</c:if>
+    		<c:if test="${not empty param.size}">
+    			<spring:param name="size" value="${param.size}" />
+    		</c:if>	    		
+    	</spring:url>	
+    	<spring:message code="global.language.switch" arguments="Italiano" var="lang_it"/>
+    	<a href="${url_it}" title="${lang_it}"><img src="${img_it}" alt="${lang_it}"/></a>
+		<c:out value=" "/>
+		
+		<spring:url var="img_nl" value="/static/images/nl.png" />
+    	<spring:url var="url_nl" value="">
+    		<spring:param name="lang" value="nl" />
+			<c:if test="${not empty param.page}">
+   				<spring:param name="page" value="${param.page}" />
+    		</c:if>
+    		<c:if test="${not empty param.size}">
+    			<spring:param name="size" value="${param.size}" />
+    		</c:if>	    		
+    	</spring:url>	
+    	<spring:message code="global.language.switch" arguments="Nederlandse" var="lang_nl"/>
+    	<a href="${url_nl}" title="${lang_nl}"><img src="${img_nl}" alt="${lang_nl}"/></a>
+    	
+    </span>
+    
+ </jsp:root>
