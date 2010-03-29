@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip-2.0.xsd">
+
+	<int:channel id="quotesAggregationChannel">
+		<int:interceptors>
+			<int:wire-tap channel="loanSharkDetectorChannel"/>
+		</int:interceptors>
+	</int:channel>
+				
+	<int:channel id="loanSharkDetectorChannel" />
+	
+	<int:filter id="loanSharkFilter" 
+				input-channel="loanSharkDetectorChannel" 
+				output-channel="loanSharkChannel" 
+				expression="payload.rate > 5.2"/>
+
+	<int:channel id="loanSharkChannel" />
+	
+	<int:transformer ref="udpTransformer" 
+		input-channel="loanSharkChannel"
+		output-channel="sharkOutChannel"/>
+
+	<bean id="udpTransformer" class="org.springframework.integration.loanbroker.Transformer"/>
+
+	<int:channel id="sharkOutChannel" />
+	
+	<int-ip:outbound-channel-adapter id="udpOut"
+		channel="sharkOutChannel"
+		protocol="udp"
+		host="225.6.7.8"
+		multicast="true"
+		port="11111"/>
+
+</beans>
