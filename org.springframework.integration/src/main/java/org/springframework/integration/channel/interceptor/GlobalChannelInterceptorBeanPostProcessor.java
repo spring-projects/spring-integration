@@ -17,7 +17,9 @@ package org.springframework.integration.channel.interceptor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,7 +32,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -70,6 +71,7 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	private final OrderComparator comparator = new OrderComparator();
 	private List<String> allAvailablePatters;
 	private List<GlobalChannelInterceptorChain> globalInterceptors;
+	private final Map<String, Pattern> compiledPatterns = new HashMap<String, Pattern>();
 	
 	private List<GlobalChannelInterceptorChain> positiveOrderChains = new ArrayList<GlobalChannelInterceptorChain>();
 	private List<GlobalChannelInterceptorChain> negativeOrderChains = new ArrayList<GlobalChannelInterceptorChain>();
@@ -181,10 +183,14 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 			patterns = allAvailablePatters.toArray(new String[]{});
 		}
 		for (String channelPattern : patterns) {
+			channelPattern = channelPattern.trim();
 			if (channelPattern.trim().equals("*")){
 				return true;
 			}
-			Pattern p = Pattern.compile(channelPattern.trim());
+			Pattern p = compiledPatterns.get(channelPattern);
+			if (p == null){
+				p = Pattern.compile(channelPattern);
+			}
 			Matcher m = p.matcher(beanName);
 			if (m.find()){
 				return true;
