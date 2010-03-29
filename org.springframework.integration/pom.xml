@@ -13,6 +13,12 @@
 	</parent>
 	<dependencies>
 		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-api</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib</artifactId>
 			<version>2.1_3</version>
@@ -45,11 +51,16 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.4.3</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 			<version>${spring.version}</version>
