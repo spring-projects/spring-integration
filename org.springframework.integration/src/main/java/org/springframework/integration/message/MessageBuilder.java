@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -87,6 +88,7 @@ public final class MessageBuilder<T> {
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
 		if (StringUtils.hasLength(headerName)) {
+			this.verifyType(headerName, headerValue);
 			this.modified = true;
 			if (headerValue == null) {
 				this.headers.remove(headerName);
@@ -199,6 +201,34 @@ public final class MessageBuilder<T> {
 			return this.originalMessage;
 		}
 		return new GenericMessage<T>(this.payload, this.headers);
+	}
+
+	private void verifyType(String headerName, Object headerValue) {
+		if (headerName != null && headerValue != null) {
+			if (MessageHeaders.ID.equals(headerName)) {
+				Assert.isTrue(headerValue instanceof UUID,
+						"The '" + headerName + "' header value must be a UUID.");
+			}
+			else if (MessageHeaders.TIMESTAMP.equals(headerName)) {
+				Assert.isTrue(headerValue instanceof Long,
+						"The '" + headerName + "' header value must be a Long.");
+			}
+			else if (MessageHeaders.EXPIRATION_DATE.equals(headerName)) {
+				Assert.isTrue(headerValue instanceof Date || headerValue instanceof Long,
+						"The '" + headerName + "' header value must be a Date or Long.");
+			}
+			else if (MessageHeaders.ERROR_CHANNEL.equals(headerName) ||
+					MessageHeaders.REPLY_CHANNEL.endsWith(headerName)) {
+				Assert.isTrue(headerValue instanceof MessageChannel ||
+						headerValue instanceof String,
+						"The '" + headerName + "' header value must be a MessageChannel or String.");
+			}
+			else if (MessageHeaders.SEQUENCE_NUMBER.equals(headerName) ||
+					MessageHeaders.SEQUENCE_SIZE.equals(headerName)) {
+				Assert.isTrue(Integer.class.isAssignableFrom(headerValue.getClass()),
+						"The '" + headerName + "' header value must be an Integer.");
+			}
+		}
 	}
 
 }

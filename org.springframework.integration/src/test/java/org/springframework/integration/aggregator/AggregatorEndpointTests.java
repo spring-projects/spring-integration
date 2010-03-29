@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,22 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
-import static org.junit.Assert.*;
+
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
@@ -37,7 +42,6 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import static org.hamcrest.CoreMatchers.is;
 
 /**
  * @author Mark Fisher
@@ -81,9 +85,10 @@ public class AggregatorEndpointTests {
 	@Test
 	public void testCompleteGroupWithinTimeoutWithSameId() throws InterruptedException {
 		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel, "ID#1");
-		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel, "ID#1");
-		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel, "ID#1");
+		UUID id = UUID.randomUUID();
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel, id);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel, id);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel, id);
 		CountDownLatch latch = new CountDownLatch(3);
 		//for testing the duplication scenario, the messages must be processed synchronously
 		new AggregatorTestTask(this.aggregator, message1, latch).run();
@@ -258,7 +263,7 @@ public class AggregatorEndpointTests {
 
 
 	private static Message<?> createMessage(String payload, Object correlationId,
-                                            int sequenceSize, int sequenceNumber, MessageChannel replyChannel, String predefinedId) {
+                                            int sequenceSize, int sequenceNumber, MessageChannel replyChannel, UUID predefinedId) {
         MessageBuilder<String> builder = MessageBuilder.withPayload(payload)
                 .setCorrelationId(correlationId)
                 .setSequenceSize(sequenceSize)
