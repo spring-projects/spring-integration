@@ -19,6 +19,7 @@ package org.springframework.integration.json;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonParser;
@@ -60,6 +61,7 @@ public class InboundJsonMessageMapper implements
 	
 	static {
 		DEFAULT_HEADER_TYPES = new HashMap<String, Class<?>>();
+		DEFAULT_HEADER_TYPES.put(MessageHeaders.ID, UUID.class);
 		DEFAULT_HEADER_TYPES.put(MessageHeaders.TIMESTAMP, Long.class);
 		DEFAULT_HEADER_TYPES.put(MessageHeaders.EXPIRATION_DATE, Long.class);
 	}

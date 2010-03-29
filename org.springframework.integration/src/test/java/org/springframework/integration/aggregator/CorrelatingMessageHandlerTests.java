@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,21 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,23 +38,13 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Iwein Fuld
@@ -69,7 +74,7 @@ public class CorrelatingMessageHandlerTests {
         handler = new CorrelatingMessageHandler(
                 store, correlationStrategy, completionStrategy, processor);
         handler.setOutputChannel(outputChannel);
-        doAnswer(new Answer() {
+        doAnswer(new Answer<Object>() {
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 MessageGroup messageGroup = (MessageGroup) invocation.getArguments()[0];
                 messageGroup.onProcessingOf(messageGroup.getMessages().toArray(new Message[2]));
@@ -83,8 +88,10 @@ public class CorrelatingMessageHandlerTests {
     @Test
     public void bufferCompletesNormally() throws Exception {
         String correlationKey = "key";
-        Message<?> message1 = testMessage(correlationKey, 1, 1);
-        Message<?> message2 = testMessage(correlationKey, 2, 2);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        Message<?> message1 = testMessage(correlationKey, id1, 1);
+        Message<?> message2 = testMessage(correlationKey, id2, 2);
         List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         when(store.list(correlationKey)).thenReturn(storedMessages);
@@ -92,12 +99,12 @@ public class CorrelatingMessageHandlerTests {
         when(correlationStrategy.getCorrelationKey(isA(Message.class)))
                 .thenReturn(correlationKey);
 
-        when(completionStrategy.isComplete(Arrays.asList(message1))).thenReturn(false);
+        when(completionStrategy.isComplete(Arrays.<Message<?>>asList(message1))).thenReturn(false);
 
         handler.handleMessage(message1);
         storedMessages.add(message1);
 
-        when(completionStrategy.isComplete(Arrays.asList(message1, message2))).thenReturn(true);
+        when(completionStrategy.isComplete(Arrays.<Message<?>>asList(message1, message2))).thenReturn(true);
         handler.handleMessage(message2);
         storedMessages.add(message2);
 
@@ -106,8 +113,8 @@ public class CorrelatingMessageHandlerTests {
         verify(store, times(2)).list(correlationKey);
         verify(correlationStrategy).getCorrelationKey(message1);
         verify(correlationStrategy).getCorrelationKey(message2);
-        verify(completionStrategy).isComplete(Arrays.asList(message1));
-        verify(completionStrategy).isComplete(Arrays.asList(message1, message2));
+        verify(completionStrategy).isComplete(Arrays.<Message<?>>asList(message1));
+        verify(completionStrategy).isComplete(Arrays.<Message<?>>asList(message1, message2));
         verify(processor).processAndSend(isA(MessageGroup.class),
                 isA(MessageChannelTemplate.class), eq(outputChannel)
         );
@@ -121,8 +128,10 @@ public class CorrelatingMessageHandlerTests {
     @Test
     public void shouldNotPruneWhileCompleting() throws Exception {
         String correlationKey = "key";
-        final Message<?> message1 = testMessage(correlationKey, 1, 1);
-        final Message<?> message2 = testMessage(correlationKey, 2, 2);
+        UUID id1 = UUID.randomUUID();
+        UUID id2 = UUID.randomUUID();
+        final Message<?> message1 = testMessage(correlationKey, id1, 1);
+        final Message<?> message2 = testMessage(correlationKey, id2, 2);
         final List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         final CountDownLatch bothMessagesHandled = new CountDownLatch(2);
@@ -132,12 +141,13 @@ public class CorrelatingMessageHandlerTests {
         when(correlationStrategy.getCorrelationKey(isA(Message.class)))
                 .thenReturn(correlationKey);
 
-        when(completionStrategy.isComplete(Arrays.asList(message1, message2))).thenAnswer(new Answer<Boolean>() {
-            public Boolean answer(InvocationOnMock invocation) throws Throwable {
-                Thread.sleep(50);
-                return true;
-            }
-        }).thenReturn(true);
+        when(completionStrategy.isComplete(Arrays.<Message<?>>asList(message1, message2)))
+        		.thenAnswer(new Answer<Boolean>() {
+        				public Boolean answer(InvocationOnMock invocation) throws Throwable {
+        					Thread.sleep(50);
+        					return true;
+        				}
+        		}).thenReturn(true);
 
         handler.handleMessage(message1);
         bothMessagesHandled.countDown();
@@ -156,11 +166,11 @@ public class CorrelatingMessageHandlerTests {
         bothMessagesHandled.await();
         verify(store).put(message1);
         verify(store).put(message2);
-        verify(store).delete(1);
-        verify(store).delete(2);
+        verify(store).delete(id1);
+        verify(store).delete(id2);
     }
 
-    private Message<?> testMessage(String correllationKey, int id, int sequenceNumber) {
+    private Message<?> testMessage(String correllationKey, UUID id, int sequenceNumber) {
         return MessageBuilder.withPayload("test" + id)
                 .setHeader(MessageHeaders.ID, id)
                 .setCorrelationId(correllationKey)

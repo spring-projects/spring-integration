@@ -31,6 +31,7 @@ import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.history.MessageHistory;
 
 /**
@@ -45,6 +46,11 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String PREFIX = "$";
 
+	/**
+	 * The key for the Message ID. This is an automatically generated UUID and should
+	 * never be explicitly set in the header map <b>except</b> in the case of Message
+	 * deserialization where the serialized Message's generated UUID is being restored.
+	 */
 	public static final String ID = PREFIX + "id";
 
 	public static final String TIMESTAMP = PREFIX + "timestamp";
@@ -85,8 +91,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 
-	public Object getId() {
-		return this.get(ID);
+	public UUID getId() {
+		return this.get(ID, UUID.class);
 	}
 
 	public Long getTimestamp() {

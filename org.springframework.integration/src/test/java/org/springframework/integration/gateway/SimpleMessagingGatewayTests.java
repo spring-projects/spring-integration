@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,16 @@
 package org.springframework.integration.gateway;
 
 import static org.easymock.EasyMock.*;
-import org.easymock.IAnswer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import java.util.UUID;
+
+import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -152,7 +156,7 @@ public class SimpleMessagingGatewayTests {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(requestChannel.send(messageMock)).andReturn(true);
-		expect(messageHeadersMock.getId()).andReturn(1);
+		expect(messageHeadersMock.getId()).andReturn(UUID.randomUUID());
 
 		//play scenario
 		replay(allmocks);
@@ -194,7 +198,7 @@ public class SimpleMessagingGatewayTests {
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(messageHeadersMock.getReplyChannel()).andReturn(replyChannel);
 		expect(requestChannel.send(messageMock)).andReturn(true);
-		expect(messageHeadersMock.getId()).andReturn(1);
+		expect(messageHeadersMock.getId()).andReturn(UUID.randomUUID());
 
 		replay(allmocks);
 		this.simpleMessagingGateway.sendAndReceiveMessage(messageMock);

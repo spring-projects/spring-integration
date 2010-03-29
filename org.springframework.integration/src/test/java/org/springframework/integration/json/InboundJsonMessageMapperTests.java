@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.json;
 
 import static org.junit.Assert.assertEquals;
@@ -9,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -19,14 +36,19 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 
+/**
+ * @author Jeremy Grelle
+ * @author Mark Fisher
+ */
 public class InboundJsonMessageMapperTests {
 
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Test
 	public void testToMessageWithHeadersAndStringPayload() throws Exception {
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":\"myPayloadStuff\"}";
-		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID,"myUniqueId").build();
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
+		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertEquals(expected, result);
@@ -45,8 +67,9 @@ public class InboundJsonMessageMapperTests {
 	@Test
 	public void testToMessageWithHeadersAndBeanPayload() throws Exception {
 		TestBean bean = new TestBean();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":"+getBeanAsJson(bean)+"}";
-		Message<TestBean> expected = MessageBuilder.withPayload(bean).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID,"myUniqueId").build();
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
+		Message<TestBean> expected = MessageBuilder.withPayload(bean).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(TestBean.class);
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertEquals(expected, result);
@@ -65,9 +88,10 @@ public class InboundJsonMessageMapperTests {
 	@Test
 	public void testToMessageWithBeanHeaderAndStringPayload() throws Exception {
 		TestBean bean = new TestBean();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\", \"myHeader\":"+getBeanAsJson(bean)+"},\"payload\":\"myPayloadStuff\"}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\", \"myHeader\":" + getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").
-			setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID,"myUniqueId").setHeader("myHeader", bean).build();
+			setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).setHeader("myHeader", bean).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
 		Map<String, Class<?>> headerTypes = new HashMap<String, Class<?>>();
 		headerTypes.put("myHeader", TestBean.class);
@@ -78,9 +102,10 @@ public class InboundJsonMessageMapperTests {
 	
 	@Test 
 	public void testToMessageWithHeadersAndListOfStringsPayload() throws Exception {
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":[\"myPayloadStuff1\",\"myPayloadStuff2\",\"myPayloadStuff3\"]}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":[\"myPayloadStuff1\",\"myPayloadStuff2\",\"myPayloadStuff3\"]}";
 		List<String> expectedList = Arrays.asList(new String[]{"myPayloadStuff1", "myPayloadStuff2", "myPayloadStuff3"});
-		Message<List<String>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID,"myUniqueId").build();
+		Message<List<String>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(new TypeReference<List<String>>(){});
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertEquals(expected, result);
@@ -90,9 +115,10 @@ public class InboundJsonMessageMapperTests {
 	public void testToMessageWithHeadersAndListOfBeansPayload() throws Exception {
 		TestBean bean1 = new TestBean();
 		TestBean bean2 = new TestBean();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":["+getBeanAsJson(bean1)+","+getBeanAsJson(bean2)+"]}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":[" + getBeanAsJson(bean1) + "," + getBeanAsJson(bean2) + "]}";
 		List<TestBean> expectedList = Arrays.asList(new TestBean[]{bean1, bean2});
-		Message<List<TestBean>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID,"myUniqueId").build();
+		Message<List<TestBean>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(new TypeReference<List<TestBean>>(){});
 		Message<?> result = mapper.toMessage(jsonMessage);
 		assertEquals(expected, result);
@@ -100,87 +126,96 @@ public class InboundJsonMessageMapperTests {
 	
 	@Test
 	public void testToMessageInvalidFormatPayloadAndHeadersReversed() throws Exception {
-		String jsonMessage = "{\"payload\":\"myPayloadStuff\",\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"}}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"payload\":\"myPayloadStuff\",\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"}}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
-		
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
+
 	@Test
 	public void testToMessageInvalidFormatPayloadNoHeaders() throws Exception {
 		String jsonMessage = "{\"payload\":\"myPayloadStuff\"}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
-		
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
+
 	@Test
 	public void testToMessageInvalidFormatHeadersNoPayload() throws Exception {
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"}}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"}}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
-		
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
+
 	@Test
 	public void testToMessageInvalidFormatHeadersAndStringPayloadWithMapToPayload() throws Exception {
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":\"myPayloadStuff\"}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
 		mapper.setMapToPayload(true);
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
+
 	@Test
 	public void testToMessageInvalidFormatHeadersAndBeanPayloadWithMapToPayload() throws Exception {
 		TestBean bean = new TestBean();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":"+getBeanAsJson(bean)+"}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(TestBean.class);
 		mapper.setMapToPayload(true);
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
+
 	@Test
 	public void testToMessageWithHeadersAndPayloadTypeMappingFailure() throws Exception {
 		TestBean bean = new TestBean();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\"},\"payload\":"+getBeanAsJson(bean)+"}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":" + getBeanAsJson(bean) + "}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(Long.class);
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
+
 	@Test
 	public void testToMessageWithBeanHeaderTypeMappingFailure() throws Exception {
 		TestBean bean = new TestBean();
-		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"myUniqueId\",\"myHeader\":"+getBeanAsJson(bean)+"},\"payload\":\"myPayloadStuff\"}";
+		UUID id = UUID.randomUUID();
+		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\",\"myHeader\":" + getBeanAsJson(bean) + "},\"payload\":\"myPayloadStuff\"}";
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
 		Map<String, Class<?>> headerTypes = new HashMap<String, Class<?>>();
 		headerTypes.put("myHeader", Long.class);
@@ -188,16 +223,17 @@ public class InboundJsonMessageMapperTests {
 		try {
 			mapper.toMessage(jsonMessage);
 			fail();
-		} catch(IllegalArgumentException ex) {
+		}
+		catch(IllegalArgumentException ex) {
 			//Expected
 		}
 	}
-	
-	
-	
+
+
 	private String getBeanAsJson(TestBean bean) throws JsonGenerationException, JsonMappingException, IOException {
 		StringWriter writer = new StringWriter();
 		mapper.writeValue(writer, bean);
 		return writer.toString();
 	}
+
 }
