@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,15 @@
 
 package org.springframework.integration.http;
 
+import org.springframework.integration.core.MessageHeaders;
+
 /**
  * @author Mark Fisher
  * @since 1.0.2
  */
 public abstract class HttpHeaders {
 
-	private static final String PREFIX = "springintegration_http_";
+	private static final String PREFIX = MessageHeaders.PREFIX + "http_";
 
 	public static final String REQUEST_URL = PREFIX + "requestUrl";
 
