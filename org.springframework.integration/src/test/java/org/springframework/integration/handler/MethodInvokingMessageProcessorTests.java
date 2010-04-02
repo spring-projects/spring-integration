@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,76 +44,92 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void testHandlerInheritanceMethodImplInSuper() {
-		class A{
-			public Message<String> myMethod(final Message<String> msg){
+		class A {
+			@SuppressWarnings("unused")
+			public Message<String> myMethod(final Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
 		    }
 		}
-		class B extends A{}
-		class C extends B{}
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new B(), "myMethod");
-		Message message = (Message) processor.processMessage(new StringMessage(""));
+
+		class B extends A {}
+
+		@SuppressWarnings("unused")
+		class C extends B {}
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
+		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
 		assertEquals("A", message.getHeaders().get("A"));
 	}
+
 	@Test
 	public void testHandlerInheritanceMethodImplInLatestSuper() {
-		class A{
-			public Message<String> myMethod(Message<String> msg){
+		class A {
+			@SuppressWarnings("unused")
+			public Message<String> myMethod(Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
 		    }
 		}
-		class B extends A{
-			public Message<String> myMethod(Message<String> msg){
+
+		class B extends A {
+			public Message<String> myMethod(Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
 		    }
 		}
-		class C extends B{}
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new B(), "myMethod");
-		Message message = (Message) processor.processMessage(new StringMessage(""));
+
+		@SuppressWarnings("unused")
+		class C extends B {}
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
+		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
 		assertEquals("B", message.getHeaders().get("B"));
 	}
-	
+
 	public void testHandlerInheritanceMethodImplInSubClass() {
-		class A{
-			public Message<String> myMethod(Message<String> msg){
+		class A {
+			@SuppressWarnings("unused")
+			public Message<String> myMethod(Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
 		    }
 		}
-		class B extends A{
-			public Message<String> myMethod(Message<String> msg){
+
+		class B extends A {
+			public Message<String> myMethod(Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
 		    }
 		}
-		class C extends B{
-			public Message<String> myMethod(Message<String> msg){
+
+		class C extends B {
+			public Message<String> myMethod(Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
 		    }
 		}
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new C(), "myMethod");
-		Message message = (Message) processor.processMessage(new StringMessage(""));
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
+		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
 		assertEquals("C", message.getHeaders().get("C"));
 	}
+
 	public void testHandlerInheritanceMethodImplInSubClassAndSuper() {
-		class A{
+		class A {
+			@SuppressWarnings("unused")
 			public Message<String> myMethod(Message<String> msg){
 		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
 		    }
 		}
-		class B extends A{}
-		class C extends B{
-			public Message<String> myMethod(Message<String> msg){
+
+		class B extends A {}
+
+		class C extends B {
+			public Message<String> myMethod(Message<String> msg) {
 		        return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
 		    }
 		}
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new C(), "myMethod");
-		Message message = (Message) processor.processMessage(new StringMessage(""));
+
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
+		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
 		assertEquals("C", message.getHeaders().get("C"));
 	}
-	
+
 	@Test
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
@@ -185,10 +201,11 @@ public class MethodInvokingMessageProcessorTests {
         MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods", true);
         assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
         try {
-        	processor.processMessage(MessageBuilder.withPayload("Something").build());
+        	processor.processMessage(MessageBuilder.withPayload("not_a_number").build());
             fail();
         }
         catch(MessageHandlingException ex) {
+        	// the only void method expects a number
         	exception = ex;
         }
         assertNotNull(exception);

@@ -404,7 +404,7 @@
 	</build>
 	
 	<properties>
-		<spring.version>3.0.1.RELEASE-A</spring.version>
+		<spring.version>3.0.2.RELEASE</spring.version>
 		<aspectj.version>1.6.6.RELEASE</aspectj.version>
 	</properties>
 </project>

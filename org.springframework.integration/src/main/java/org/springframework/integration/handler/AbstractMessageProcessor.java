@@ -47,7 +47,7 @@ public abstract class AbstractMessageProcessor implements MessageProcessor {
 		try {
 			return expression.getValue(this.evaluationContext, message);
 		}
-		catch (EvaluationException e) {
+		catch (Exception e) {
 			throw new MessageHandlingException(message, "Expression evaluation failed.", e);
 		}
 	}
