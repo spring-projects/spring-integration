@@ -129,8 +129,8 @@ public abstract class IntegrationObjectSupport implements ComponentMetadataProvi
 	protected final ConversionService getConversionService() {
 		if (this.conversionService == null && this.beanFactory != null) {
 			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
-			if (this.conversionService == null && logger.isWarnEnabled()) {
-				logger.warn("Unable to attempt conversion of Message payload types. Component '" +
+			if (this.conversionService == null && logger.isDebugEnabled()) {
+				logger.debug("Unable to attempt conversion of Message payload types. Component '" +
 						this.getBeanName() + "' has no explicit ConversionService reference, " +
 						"and there is no 'integrationConversionService' bean within the context.");
 			}
