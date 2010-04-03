@@ -18,6 +18,7 @@ package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -61,6 +62,8 @@ public class UdpMulticastEndToEndTests implements Runnable {
 
 	private boolean okToRun = true;
 
+	private CountDownLatch readyToReceive = new CountDownLatch(1);
+
 	private static long hangAroundFor = 0;
 
 
@@ -81,6 +84,9 @@ public class UdpMulticastEndToEndTests implements Runnable {
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
 		MessageChannel inputChannel = channelResolver.resolveChannelName("mcInputChannel");
+		if (!readyToReceive.await(30, TimeUnit.SECONDS)) {
+			fail("Receiver failed to start in 30s");
+		}
 		try {
 			testingIpText = ">>>>>>> Testing IP (multicast) " + new Date();
 			inputChannel.send(new StringMessage(testingIpText));
@@ -117,6 +123,7 @@ public class UdpMulticastEndToEndTests implements Runnable {
 				UdpMulticastEndToEndTests.class);
 		while (okToRun) {
 			try {
+				readyToReceive.countDown();				
 				sentFirst.await();
 			}
 			catch (InterruptedException e) {

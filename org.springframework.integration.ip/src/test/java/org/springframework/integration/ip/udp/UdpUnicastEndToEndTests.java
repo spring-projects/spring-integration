@@ -18,6 +18,7 @@ package org.springframework.integration.ip.udp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -60,15 +61,17 @@ public class UdpUnicastEndToEndTests implements Runnable {
 
 	private boolean okToRun = true;
 
-	private static long hangAroundFor = 0;
+	private CountDownLatch readyToReceive = new CountDownLatch(1);
 
+	private static long hangAroundFor = 0;
 
 	@Test
 	public void runIt() throws Exception {
 		UdpUnicastEndToEndTests launcher = new UdpUnicastEndToEndTests();
 		Thread t = new Thread(launcher);
 		t.start(); // launch the receiver
-		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("testIp-out-context.xml", UdpUnicastEndToEndTests.class);	
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+				"testIp-out-context.xml", UdpUnicastEndToEndTests.class);	
 		launcher.launchSender(applicationContext);
 		applicationContext.stop();
 	}
@@ -77,6 +80,9 @@ public class UdpUnicastEndToEndTests implements Runnable {
 	public void launchSender(ApplicationContext applicationContext) throws Exception {
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(applicationContext);
 		MessageChannel inputChannel = channelResolver.resolveChannelName("inputChannel");
+		if (!readyToReceive.await(30, TimeUnit.SECONDS)) {
+			fail("Receiver failed to start in 30s");
+		}
 		try {
 			testingIpText = ">>>>>>> Testing IP " + new Date();
 			inputChannel.send(new StringMessage(testingIpText));
@@ -108,9 +114,11 @@ public class UdpUnicastEndToEndTests implements Runnable {
 	 */
 	@SuppressWarnings("unchecked")
 	public void run() {
-		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext("testIp-in-context.xml", UdpUnicastEndToEndTests.class);
+		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
+				"testIp-in-context.xml", UdpUnicastEndToEndTests.class);
 		while (okToRun) {
 			try {
+				readyToReceive.countDown();
 				sentFirst.await();
 			}
 			catch (InterruptedException e) {
