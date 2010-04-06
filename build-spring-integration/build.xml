@@ -2,6 +2,7 @@
 <project name="build-spring-integration" default="precommit">
 
 	<path id="bundles">
+		<pathelement location="${basedir}/../spring-integration-parent"/>
 		<pathelement location="${basedir}/../org.springframework.integration"/>
 		<pathelement location="${basedir}/../org.springframework.integration.security"/>
 		<pathelement location="${basedir}/../org.springframework.integration.adapter"/>
