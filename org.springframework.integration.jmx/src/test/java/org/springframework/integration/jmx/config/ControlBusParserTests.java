@@ -18,12 +18,16 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 
+import javax.management.MBeanServer;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.control.ControlBus;
+import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,6 +47,10 @@ public class ControlBusParserTests {
 	public void test() throws InterruptedException {
 		ControlBus controlBus = this.context.getBean("controlBus", ControlBus.class);
 		assertEquals(controlBus.getOperationChannel(), this.context.getBean("testChannel"));
+		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
+		MBeanExporter exporter = (MBeanExporter) new DirectFieldAccessor(controlBus).getPropertyValue("exporter");
+		assertEquals(server, exporter.getServer());
+		exporter.destroy();
 	}
 
 }
