@@ -38,6 +38,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -67,13 +68,13 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 	public static final String TARGET_BEAN_NAME = JmxHeaders.PREFIX + "_controlBus_targetBeanName";
 
 
+	private volatile SubscribableChannel operationChannel;
+
 	private final MBeanExporter exporter;
 
 	private final String domain;
 
 	private final Map<String, ObjectName> exportedBeanObjectNameMap = new HashMap<String, ObjectName>();
-
-	private final DirectChannel operationChannel = new DirectChannel();
 
 	private volatile ListableBeanFactory beanFactory;
 
@@ -107,6 +108,10 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 	}
 
 
+	public void setOperationChannel(SubscribableChannel operationChannel) {
+		this.operationChannel = operationChannel;
+	}
+
 	/**
 	 * Returns the channel to which operation-invoking Messages may be sent. Any messages
 	 * sent to this channel must contain {@link ControlBus#TARGET_BEAN_NAME} and
@@ -114,7 +119,7 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 	 * match one that has been exported by this Control Bus. If the operation returns a
 	 * result, the {@link MessageHeaders#REPLY_CHANNEL} header is also required.
 	 */
-	public MessageChannel getOperationChannel() {
+	public SubscribableChannel getOperationChannel() {
 		return this.operationChannel;
 	}
 
@@ -146,6 +151,9 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		handler.setBeanFactory(this.beanFactory);
 		handler.setServer(this.exporter.getServer());
 		handler.afterPropertiesSet();
+		if (this.operationChannel == null) {
+			this.operationChannel = new DirectChannel();
+		}
 		this.operationChannel.subscribe(handler);
 	}
 
