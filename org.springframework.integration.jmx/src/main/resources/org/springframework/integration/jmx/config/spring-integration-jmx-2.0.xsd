@@ -84,4 +84,43 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="control-bus">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Control Bus that exports Message Channels and Endpoints as MBeans
+	and connects to an "operation channel".
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" use="optional"/>
+			<xsd:attribute name="mbean-server" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+	The MBeanServer to which this Control Bus should export MBeans.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="domain" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+	The domain name for the MBeans exported by this Control Bus.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="operation-channel" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+	The Message Channel that can be used to send operation commands to
+	this Control Bus. It must implement SubscribableChannel.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation>
+							<tool:expected-type type="org.springframework.integration.channel.SubscribableChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 </xsd:schema>

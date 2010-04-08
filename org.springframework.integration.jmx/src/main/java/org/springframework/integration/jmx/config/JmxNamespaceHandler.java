@@ -31,6 +31,7 @@ public class JmxNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("attribute-polling-channel-adapter", new AttributePollingChannelAdapterParser());
 		this.registerBeanDefinitionParser("notification-listening-channel-adapter", new NotificationListeningChannelAdapterParser());
 		this.registerBeanDefinitionParser("notification-publishing-channel-adapter", new NotificationPublishingChannelAdapterParser());
+		this.registerBeanDefinitionParser("control-bus", new ControlBusParser());
 	}
 
 }
