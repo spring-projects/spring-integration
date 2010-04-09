@@ -28,7 +28,12 @@
 								   channel="testChannel"
 								   delete-source-files="true"
 								   directory="${java.io.tmpdir}"/>
-
+	
+	<file:outbound-channel-adapter id="adapterWithCharset"
+								   channel="testChannel" 
+								   charset="UTF-8"
+								   directory="${java.io.tmpdir}"/>
+								
 	<file:outbound-channel-adapter id="adapterWithOrder"
 								   channel="testChannel"
 								   order="555"

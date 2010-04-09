@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,7 +57,10 @@ public class FileOutboundChannelAdapterParserTests {
 	@Autowired
 	@Qualifier("adapterWithOrder")
 	EventDrivenConsumer adapterWithOrder;
-
+	
+	@Autowired
+	@Qualifier("adapterWithCharset")
+	EventDrivenConsumer adapterWithCharset;
 
 	@Test
 	public void simpleAdapter() {
@@ -105,6 +109,15 @@ public class FileOutboundChannelAdapterParserTests {
 	public void adapterWithAutoStartupFalse() {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithOrder);
 		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+	}
+	
+	@Test
+	public void adapterWithCharset() {
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCharset);
+	 	FileWritingMessageHandler handler = (FileWritingMessageHandler)
+	 	adapterAccessor.getPropertyValue("handler");
+	 	DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+	 	assertEquals(Charset.forName("UTF-8"), handlerAccessor.getPropertyValue("charset"));
 	}
 
 }
