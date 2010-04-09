@@ -33,7 +33,8 @@ public class MessageHistoryTests {
 	@Test
 	public void testConcurrentModificationsOnObjectMethods() throws Exception{
 		final MessageHistory history = new MessageHistory();
-		
+		final MessageHistory otherHistory = new MessageHistory();
+
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
@@ -42,29 +43,30 @@ public class MessageHistoryTests {
 					event.setAttribute("bar", "bar");
 					event.setComponentName("MessageHistoryTests");
 					history.addEvent(event);
+                    otherHistory.addEvent(event);
 				}
 			}
 		});
-		
+
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
 					history.toString();
-				}	
+				}
 			}
 		});
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
 					history.hashCode();
-				}	
+				}
 			}
 		});
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
 					history.equals(new Object());
-				}	
+				}
 			}
 		});
 		executor.shutdown();
