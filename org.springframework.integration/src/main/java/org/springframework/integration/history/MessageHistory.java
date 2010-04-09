@@ -16,88 +16,61 @@
 
 package org.springframework.integration.history;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.springframework.integration.support.ComponentMetadata;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 /**
- * Iterable list of {@link MessageHistoryEvent} instances.
- * 
+ * Threadsafe Iterable list of {@link MessageHistoryEvent} instances.
+ *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Iwein Fuld
  * @since 2.0
  */
 @SuppressWarnings("serial")
 public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializable {
 
-	private final List<MessageHistoryEvent> events = new ArrayList<MessageHistoryEvent>();
-
-	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
+	private final Queue<MessageHistoryEvent> events = new ConcurrentLinkedQueue<MessageHistoryEvent>();
 
 	/**
 	 * Add a new event with the provided component metadata.
 	 */
-	public MessageHistoryEvent addEvent(ComponentMetadata metadata) {
-		if (metadata != null && metadata.getComponentName() != null) {
-			try {
-				this.lock.writeLock().lock();
-				MessageHistoryEvent event = new MessageHistoryEvent(metadata);
-				this.events.add(event);
-				return event;
-			}
-			finally {
-				this.lock.writeLock().unlock();
-			}
-		}
-		return null;
-	}
+    public MessageHistoryEvent addEvent(ComponentMetadata metadata) {
+        if (metadata != null && metadata.getComponentName() != null) {
+            MessageHistoryEvent event = new MessageHistoryEvent(metadata);
+            this.events.add(event);
+            return event;
+        }
+        return null;
+    }
 
-	/**
-	 * Returns an iterator for an unmodifiable list of the history events.
-	 */
-	public Iterator<MessageHistoryEvent> iterator() {
-		try {
-			this.lock.readLock().lock();
-			return Collections.unmodifiableList(this.events).iterator();
-		}
-		finally {
-			this.lock.readLock().unlock();
-		}
-	}
+    /**
+     * Returns a weakly consistent iterator that will never throw
+     * ConcurrentModificationException as in {@link java.util.concurrent.ConcurrentLinkedQueue#iterator()}.
+     */
+    public Iterator<MessageHistoryEvent> iterator() {
+        return this.events.iterator();
+    }
 
 	public boolean equals(Object other) {
 		return (other instanceof MessageHistory
-				&& this.events.equals(((MessageHistory) other).events));
+				&& this.events.containsAll(((MessageHistory) other).events))
+                && ((MessageHistory) other).events.containsAll(this.events);
 	}
 
 	public int hashCode() {
-		
-		try {
-			this.lock.readLock().lock();
-			return 17 * this.events.hashCode();
-		}
-		finally {
-			this.lock.readLock().unlock();
-		}
+        return 17 * this.events.hashCode();
 	}
 
 	/**
 	 * Returns a String representation of the history event list.
 	 */
 	public String toString() {
-		try {
-			this.lock.readLock().lock();
-			return this.events.toString();
-		}
-		finally {
-			this.lock.readLock().unlock();
-		}
-	}
+        return new ArrayList<MessageHistoryEvent>(events).toString();
+    }
 }

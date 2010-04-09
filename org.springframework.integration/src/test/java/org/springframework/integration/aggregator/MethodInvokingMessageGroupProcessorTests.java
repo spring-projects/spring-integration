@@ -60,7 +60,7 @@ public class MethodInvokingMessageGroupProcessorTests {
             return result;
         }
 
-        public String know() {
+        public String know(List<Integer> flags) {
             return "I'm not the one ";
         }
     }

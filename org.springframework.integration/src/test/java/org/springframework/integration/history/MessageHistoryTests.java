@@ -15,12 +15,12 @@
  */
 package org.springframework.integration.history;
 
+import org.junit.Test;
+import org.springframework.integration.support.ComponentMetadata;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Test;
-import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * @author Oleg Zhurakousky
@@ -29,6 +29,7 @@ import org.springframework.integration.support.ComponentMetadata;
 public class MessageHistoryTests {
 	private long times = 1000;
 	private ExecutorService executor = Executors.newCachedThreadPool();
+
 	@Test
 	public void testConcurrentModificationsOnObjectMethods() throws Exception{
 		final MessageHistory history = new MessageHistory();

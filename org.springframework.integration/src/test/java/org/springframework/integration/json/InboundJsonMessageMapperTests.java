@@ -16,7 +16,9 @@
 
 package org.springframework.integration.json;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -50,8 +52,8 @@ public class InboundJsonMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
-		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result);
+		Message<String> result = (Message<String>) mapper.toMessage(jsonMessage);
+		assertThat(result, is(expected));
 	}
 	
 	@Test
