@@ -16,16 +16,9 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-
-import java.lang.reflect.Method;
-import java.util.List;
-
 import org.junit.Test;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -33,173 +26,182 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageBuilder;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Mark Fisher
  */
+/*
+ * TODO This class needs to be removed with INT-1017. We need to ensure that the tests herein are superseded by
+ * MethodInvokingMessageGroupProcessorTests before deleting it entirely.
+ */
 public class AggregatorMethodResolutionTests {
 
-	@Test
-	public void singleAnnotation() throws Exception {
-		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean);
-		Method method = this.getMethod(aggregator);
-		Method expected = SingleAnnotationTestBean.class.getMethod("method1", new Class[] { List.class });
-		assertEquals(expected, method);
-	}
+    @Test
+    public void singleAnnotation() throws Exception {
+        SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
+        MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean);
+        Method method = this.getMethod(aggregator);
+        Method expected = SingleAnnotationTestBean.class.getMethod("method1", new Class[]{List.class});
+        assertEquals(expected, method);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void multipleAnnotations() {
-		MultipleAnnotationTestBean bean = new MultipleAnnotationTestBean();
-		new MethodInvokingAggregator(bean);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void multipleAnnotations() {
+        MultipleAnnotationTestBean bean = new MultipleAnnotationTestBean();
+        new MethodInvokingAggregator(bean);
+    }
 
-	@Test
-	public void noAnnotations() throws Exception {
-		NoAnnotationTestBean bean = new NoAnnotationTestBean();
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean);
-		Method method = this.getMethod(aggregator);
-		Method expected = NoAnnotationTestBean.class.getMethod("method1", new Class[] { List.class });
-		assertEquals(expected, method);
-	}
+    @Test
+    public void noAnnotations() throws Exception {
+        NoAnnotationTestBean bean = new NoAnnotationTestBean();
+        MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean);
+        Method method = this.getMethod(aggregator);
+        Method expected = NoAnnotationTestBean.class.getMethod("method1", new Class[]{List.class});
+        assertEquals(expected, method);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void multiplePublicMethods() {
-		MultiplePublicMethodTestBean bean = new MultiplePublicMethodTestBean();
-		new MethodInvokingAggregator(bean);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void multiplePublicMethods() {
+        MultiplePublicMethodTestBean bean = new MultiplePublicMethodTestBean();
+        new MethodInvokingAggregator(bean);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void noPublicMethods() {
-		NoPublicMethodTestBean bean = new NoPublicMethodTestBean();
-		new MethodInvokingAggregator(bean);
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void noPublicMethods() {
+        NoPublicMethodTestBean bean = new NoPublicMethodTestBean();
+        new MethodInvokingAggregator(bean);
+    }
 
-	@Test
-	public void jdkProxy() {
-		DirectChannel input = new DirectChannel();
-		QueueChannel output = new QueueChannel();
-		GreetingService testBean = new GreetingBean();
-		ProxyFactory proxyFactory = new ProxyFactory(testBean);
-		proxyFactory.setProxyTargetClass(false);
-		testBean = (GreetingService) proxyFactory.getProxy();
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(testBean);
-		aggregator.setAutoStartup(false);
-		aggregator.setOutputChannel(output);
-		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, aggregator);
-		endpoint.start();
-		Message<?> message = MessageBuilder.withPayload("proxy")
-				.setCorrelationId("abc")
-				.build();
-		input.send(message);
-		assertEquals("hello proxy", output.receive(0).getPayload());;
-	}
+    @Test
+    public void jdkProxy() {
+        DirectChannel input = new DirectChannel();
+        QueueChannel output = new QueueChannel();
+        GreetingService testBean = new GreetingBean();
+        ProxyFactory proxyFactory = new ProxyFactory(testBean);
+        proxyFactory.setProxyTargetClass(false);
+        testBean = (GreetingService) proxyFactory.getProxy();
+        MethodInvokingAggregator aggregator = new MethodInvokingAggregator(testBean);
+        aggregator.setAutoStartup(false);
+        aggregator.setOutputChannel(output);
+        EventDrivenConsumer endpoint = new EventDrivenConsumer(input, aggregator);
+        endpoint.start();
+        Message<?> message = MessageBuilder.withPayload("proxy")
+                .setCorrelationId("abc")
+                .build();
+        input.send(message);
+        assertEquals("hello proxy", output.receive(0).getPayload());
+    }
 
-	@Test
-	public void cglibProxy() {
-		DirectChannel input = new DirectChannel();
-		QueueChannel output = new QueueChannel();
-		GreetingService testBean = new GreetingBean();
-		ProxyFactory proxyFactory = new ProxyFactory(testBean);
-		proxyFactory.setProxyTargetClass(true);
-		testBean = (GreetingService) proxyFactory.getProxy();
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(testBean);
-		aggregator.setAutoStartup(false);
-		aggregator.setOutputChannel(output);
-		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, aggregator);
-		endpoint.start();
-		Message<?> message = MessageBuilder.withPayload("proxy")
-				.setCorrelationId("abc")
-				.build();
-		input.send(message);
-		assertEquals("hello proxy", output.receive(0).getPayload());;
-	}
-
-
-	private Method getMethod(MethodInvokingAggregator aggregator) {
-		Object invoker = new DirectFieldAccessor(aggregator).getPropertyValue("methodInvoker");
-		return (Method) new DirectFieldAccessor(invoker).getPropertyValue("method");
-	}
+    @Test
+    public void cglibProxy() {
+        DirectChannel input = new DirectChannel();
+        QueueChannel output = new QueueChannel();
+        GreetingService testBean = new GreetingBean();
+        ProxyFactory proxyFactory = new ProxyFactory(testBean);
+        proxyFactory.setProxyTargetClass(true);
+        testBean = (GreetingService) proxyFactory.getProxy();
+        MethodInvokingAggregator aggregator = new MethodInvokingAggregator(testBean);
+        aggregator.setAutoStartup(false);
+        aggregator.setOutputChannel(output);
+        EventDrivenConsumer endpoint = new EventDrivenConsumer(input, aggregator);
+        endpoint.start();
+        Message<?> message = MessageBuilder.withPayload("proxy")
+                .setCorrelationId("abc")
+                .build();
+        input.send(message);
+        assertEquals("hello proxy", output.receive(0).getPayload());
+    }
 
 
-	private static class SingleAnnotationTestBean {
-
-		@Aggregator
-		public String method1(List<String> input) {
-			return input.get(0);
-		}
-
-		public String method2(List<String> input) {
-			return input.get(0);
-		}
-	}
+    private Method getMethod(MethodInvokingAggregator aggregator) {
+        Object invoker = new DirectFieldAccessor(aggregator).getPropertyValue("methodInvoker");
+        return (Method) new DirectFieldAccessor(invoker).getPropertyValue("method");
+    }
 
 
-	private static class MultipleAnnotationTestBean {
+    private static class SingleAnnotationTestBean {
 
-		@Aggregator
-		public String method1(List<String> input) {
-			return input.get(0);
-		}
+        @Aggregator
+        public String method1(List<String> input) {
+            return input.get(0);
+        }
 
-		@Aggregator
-		public String method2(List<String> input) {
-			return input.get(0);
-		}
-	}
-
-
-	private static class NoAnnotationTestBean {
-
-		public String method1(List<String> input) {
-			return input.get(0);
-		}
-
-		String method2(List<String> input) {
-			return input.get(0);
-		}
-	}
+        public String method2(List<String> input) {
+            return input.get(0);
+        }
+    }
 
 
-	private static class MultiplePublicMethodTestBean {
+    private static class MultipleAnnotationTestBean {
 
-		public String upperCase(String s) {
-			return s.toUpperCase();
-		}
+        @Aggregator
+        public String method1(List<String> input) {
+            return input.get(0);
+        }
 
-		public String lowerCase(String s) {
-			return s.toLowerCase();
-		}
-	}
-
-
-	private static class NoPublicMethodTestBean {
-
-		String lowerCase(String s) {
-			return s.toLowerCase();
-		}
-	}
+        @Aggregator
+        public String method2(List<String> input) {
+            return input.get(0);
+        }
+    }
 
 
-	public interface GreetingService {
+    private static class NoAnnotationTestBean {
 
-		String sayHello(List<String> names);
+        public String method1(List<String> input) {
+            return input.get(0);
+        }
 
-	}
+        String method2(List<String> input) {
+            return input.get(0);
+        }
+    }
 
 
-	public static class GreetingBean implements GreetingService {
+    private static class MultiplePublicMethodTestBean {
 
-		private String greeting = "hello";
+        public String upperCase(String s) {
+            return s.toUpperCase();
+        }
 
-		public void setGreeting(String greeting) {
-			this.greeting = greeting;
-		}
+        public String lowerCase(String s) {
+            return s.toLowerCase();
+        }
+    }
 
-		@Aggregator
-		public String sayHello(List<String> names) {
-			return greeting + " " + names.get(0);
-		}
 
-	}
+    private static class NoPublicMethodTestBean {
+
+        String lowerCase(String s) {
+            return s.toLowerCase();
+        }
+    }
+
+
+    public interface GreetingService {
+
+        String sayHello(List<String> names);
+
+    }
+
+
+    public static class GreetingBean implements GreetingService {
+
+        private String greeting = "hello";
+
+        public void setGreeting(String greeting) {
+            this.greeting = greeting;
+        }
+
+        @Aggregator
+        public String sayHello(List<String> names) {
+            return greeting + " " + names.get(0);
+        }
+
+    }
 
 }
