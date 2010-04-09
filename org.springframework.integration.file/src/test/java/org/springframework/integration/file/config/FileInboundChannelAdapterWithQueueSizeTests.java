@@ -22,10 +22,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.HeadDirectoryScanner;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.concurrent.BlockingQueue;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -49,9 +48,7 @@ public class FileInboundChannelAdapterWithQueueSizeTests {
 
     @Test
     public void queueSize() {
-        Object queue = accessor.getPropertyValue("toBeReceived");
-        assertThat(queue, is(BlockingQueue.class));
-        BlockingQueue blockingQueue = (BlockingQueue) queue;
-        assertThat(blockingQueue.remainingCapacity()+blockingQueue.size(), is(30));
+        Object scanner = accessor.getPropertyValue("scanner");
+        assertThat(scanner, is(HeadDirectoryScanner.class));
     }
 }

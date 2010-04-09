@@ -100,14 +100,13 @@
             </xsd:attribute>
             <xsd:attribute name="queue-size" type="xsd:integer">
                 <xsd:annotation>
-                    <xsd:documentation>
-                        Specify the queue size used internally by the underlying FileReadingMessageSource to store files
-                        listed on a poll. A larger queue size reduces the number of directory listings needed, but it
-                        increases the chances of the internal queue being out of whack with the actual files listed in
-                        the directory. Use 0 for small but volatile directories, use a large number for large
-                        directories that are only written to. MUTUALLY EXCLUSIVE with comparator, if comparator is set
-                        this attribute will be ignored.
-                    </xsd:documentation>
+                  <xsd:documentation>
+                    Specify the maximum number of files stored in memory by the underlying FileReadingMessageSource.
+                    This is useful to limit the memory footprint of this endpoint. Using a stateful filter would counter
+                    this benefit, so AcceptOnceFileListFilter is not used when this attribute is specified.
+                    MUTUALLY EXCLUSIVE with comparator, if comparator is set this attribute will be ignored.
+                    MUTUALLY EXCLUSIVE with stateful filtering.
+                  </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
         </xsd:complexType>

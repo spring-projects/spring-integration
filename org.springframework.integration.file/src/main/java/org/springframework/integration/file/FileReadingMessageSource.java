@@ -29,7 +29,6 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 
 /**
@@ -76,14 +75,15 @@ public class FileReadingMessageSource implements MessageSource<File>,
     private boolean scanEachPoll = false;
 
     /**
-     * Creates a FileReadingMessageSource with a naturally ordered queue of default capacity.
+     * Creates a FileReadingMessageSource with a naturally ordered queue of unbounded capacity.
      */
     public FileReadingMessageSource() {
-        this(-1);
+        this(null);
     }
 
     /**
-     * Creates a FileReadingMessageSource with a bounded queue of the given capacity.
+     * Creates a FileReadingMessageSource with a bounded queue of the given capacity. This can be used to reduce the
+     * memory footprint of this component when reading from a large directory.
      *
      * @param internalQueueCapacity the size of the queue used to cache files to be received internally. This queue can
      *                              be made larger to optimize the directory scanning. With scanEachPoll set to false
@@ -92,8 +92,9 @@ public class FileReadingMessageSource implements MessageSource<File>,
      *                              of large numbers of files in a directory.
      */
     public FileReadingMessageSource(int internalQueueCapacity) {
-        toBeReceived = new ArrayBlockingQueue<File>(
-                internalQueueCapacity < 0 ? DEFAULT_INTERNAL_QUEUE_CAPACITY : internalQueueCapacity);
+        this(null);
+        Assert.isTrue(internalQueueCapacity>0, "Cannot create a queue with non positive capacity");
+        this.setScanner(new HeadDirectoryScanner(internalQueueCapacity));
     }
 
     /**
