@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.aggregator;
 
 import org.springframework.integration.annotation.Aggregator;
@@ -12,16 +28,36 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 
+/**
+ * MessageGroupProcessor that serves as a wrapper around a POJO.
+ *
+ * @author Iwein Fuld
+ * @since 2.0.0
+ */
 public class MethodInvokingMessageGroupProcessor implements MessageGroupProcessor {
 
 
     private final MessageListMethodAdapter adapter;
 
+    /**
+     * Creates a wrapper around the target passed in. This constructor will choose the best fitting method and throw an
+     * exception when methods are ambiguous or no fitting methods can be found.
+     *
+     * @param target the object to wrap
+     * @throws IllegalStateException when no single method can be found unambiguously
+     */
     public MethodInvokingMessageGroupProcessor(Object target) {
         this.adapter = new MessageListMethodAdapter(target, selectMethodFrom(target));
     }
 
-    public MethodInvokingMessageGroupProcessor (Object target, String method){
+    /**
+     * Creates a wrapper around the object passed in. This constructor will look for a named method specifically and
+     * fail when it cannot find a method with the given name.
+     *
+     * @param target the object to wrap
+     * @param method the name of the method to look for
+     */
+    public MethodInvokingMessageGroupProcessor(Object target, String method) {
         this.adapter = new MessageListMethodAdapter(target, method);
     }
 
@@ -32,13 +68,13 @@ public class MethodInvokingMessageGroupProcessor implements MessageGroupProcesso
         removeObjectMethodsFrom(candidates);
         removeVoidMethodsFrom(candidates);
         removeListIncompatibleMethodsFrom(candidates);
-        Set<Method> unanotatedCandidates = new HashSet<Method>();
+        Set<Method> notAnnotatedCandidates = new HashSet<Method>();
         if (candidates.size() > 1) {
-            unanotatedCandidates.addAll(removeUnanotatedFrom(candidates));
+            notAnnotatedCandidates.addAll(removeNotAnnotatedFrom(candidates));
         }
         //if no methods are annotated we need to look in more detail in the unannotated methods
         if (candidates.size() < 1) {
-            candidates = unanotatedCandidates;
+            candidates = notAnnotatedCandidates;
             removeUnfittingFrom(candidates);
         }
 
@@ -70,7 +106,7 @@ public class MethodInvokingMessageGroupProcessor implements MessageGroupProcesso
         });
     }
 
-    private Set<Method> removeUnanotatedFrom(Set<Method> candidates) {
+    private Set<Method> removeNotAnnotatedFrom(Set<Method> candidates) {
         return removeMethodsMatchingSelector(candidates, new MethodSelector() {
             public boolean select(Method method) {
                 Aggregator annotation = method.getAnnotation(Aggregator.class);
@@ -117,14 +153,15 @@ public class MethodInvokingMessageGroupProcessor implements MessageGroupProcesso
     }
 
     public void processAndSend(MessageGroup group,
-                               MessageChannelTemplate channelTemplate, MessageChannel outputChannel
-    ) {
+                               MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
         final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
         Message reply = MessageBuilder.withPayload(
                 this.adapter.executeMethod(messagesUpForProcessing)).build();
+
         group.onCompletion();
         group.onProcessingOf(messagesUpForProcessing
-                .toArray(new Message[]{}));
+                .toArray(new Message[messagesUpForProcessing.size()]));
+
         channelTemplate.send(reply, outputChannel);
     }
 
