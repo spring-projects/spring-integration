@@ -16,6 +16,8 @@
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
 	Defines the configuration elements for Spring Integration's HttpInvoker adapters.
+	NOTE: The http-invoker support is deprecated as of 2.0.x
+	      We recommend using the REST-based HTTP adapters instead.
 		]]></xsd:documentation>
 	</xsd:annotation>
 

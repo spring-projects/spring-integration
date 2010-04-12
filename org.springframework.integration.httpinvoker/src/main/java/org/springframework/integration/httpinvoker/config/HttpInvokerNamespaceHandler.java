@@ -22,7 +22,10 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * Namespace handler for Spring Integration's <em>httpinvoker</em> namespace.
  * 
  * @author Mark Fisher
+ * 
+ * @deprecated as of 2.0.x. We recommend using the REST-based HTTP adapters instead.
  */
+@Deprecated
 public class HttpInvokerNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {

@@ -57,7 +57,10 @@ import org.springframework.web.HttpRequestHandler;
  * </p>
  * 
  * @author Mark Fisher
+ * 
+ * @deprecated as of 2.0.x. We recommend using the REST-based HTTP adapters instead.
  */
+@Deprecated
 public class HttpInvokerInboundGateway extends RemotingInboundGatewaySupport implements HttpRequestHandler {
 
 	private volatile HttpInvokerServiceExporter exporter;

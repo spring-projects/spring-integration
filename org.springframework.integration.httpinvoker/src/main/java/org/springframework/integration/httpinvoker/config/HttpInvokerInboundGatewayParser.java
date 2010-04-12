@@ -24,7 +24,10 @@ import org.springframework.integration.adapter.config.AbstractRemotingGatewayPar
  * Parser for the &lt;httpinvoker-gateway/&gt; element. 
  * 
  * @author Mark Fisher
+ * 
+ * @deprecated as of 2.0.x. We recommend using the REST-based HTTP adapters instead.
  */
+@Deprecated
 public class HttpInvokerInboundGatewayParser extends AbstractRemotingGatewayParser {
 
 	@Override

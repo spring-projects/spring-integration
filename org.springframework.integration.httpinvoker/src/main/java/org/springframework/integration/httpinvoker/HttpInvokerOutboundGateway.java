@@ -24,7 +24,10 @@ import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
  * A MessageHandler adapter for HttpInvoker-based remoting.
  * 
  * @author Mark Fisher
+ * 
+ * @deprecated as of 2.0.x. We recommend using the REST-based HTTP adapters instead.
  */
+@Deprecated
 public class HttpInvokerOutboundGateway extends AbstractRemotingOutboundGateway {
 
 	public HttpInvokerOutboundGateway(String url) {
