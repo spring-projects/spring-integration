@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.springframework.integration.filter;
 
 import java.lang.reflect.Method;
 
+import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
@@ -39,6 +40,10 @@ public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 
 	public MethodInvokingSelector(Object object, String methodName) {
 		super(new MethodInvokingMessageProcessor(object, methodName));
+	}
+
+	public MethodInvokingSelector(Object object) {
+		super(new MethodInvokingMessageProcessor(object, Filter.class));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
@@ -57,7 +58,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanPostProcessor} implementation that processes method-level
- * messaging annotations such as @Transformer, @Splitter, and @Router.
+ * messaging annotations such as @Transformer, @Splitter, @Router, and @Filter.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -87,11 +88,12 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Filter.class, new FilterAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,15 +53,17 @@ public class FilterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+		MessageSelector selector = null;
 		if (targetObject instanceof MessageSelector) {
-			return this.createFilter((MessageSelector) targetObject);
+			selector = (MessageSelector) targetObject;
 		}
-		if (StringUtils.hasText(targetMethodName)) {
-			MessageSelector selector = new MethodInvokingSelector(targetObject, targetMethodName);
-			return this.createFilter(selector);
+		else if (StringUtils.hasText(targetMethodName)) {
+			selector = new MethodInvokingSelector(targetObject, targetMethodName);
 		}
-		throw new IllegalArgumentException("Filter must provide a target method" +
-				" name if the 'ref' does not point to a MessageSelector instance.");
+		else {
+			selector = new MethodInvokingSelector(targetObject);
+		}
+		return this.createFilter(selector);
 	}
 
 	@Override
