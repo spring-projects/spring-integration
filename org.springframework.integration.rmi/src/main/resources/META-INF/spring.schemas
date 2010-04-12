@@ -1,1 +1,2 @@
 http\://www.springframework.org/schema/integration/rmi/spring-integration-rmi-1.0.xsd=org/springframework/integration/rmi/config/spring-integration-rmi-1.0.xsd
+http\://www.springframework.org/schema/integration/rmi/spring-integration-rmi.xsd=org/springframework/integration/rmi/config/spring-integration-rmi-1.0.xsd
