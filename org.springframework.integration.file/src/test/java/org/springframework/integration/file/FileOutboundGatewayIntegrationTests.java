@@ -81,7 +81,7 @@ public class FileOutboundGatewayIntegrationTests {
 
 	@BeforeClass
 	public static void setupClass() {
-		workDir = new File(System.getProperty("java.io.tmpdir") + File.separator + "anyDir");
+		workDir = new File(System.getProperty("java.io.tmpdir"), "anyDir");
 		workDir.mkdir();
 		workDir.deleteOnExit();
 	}
