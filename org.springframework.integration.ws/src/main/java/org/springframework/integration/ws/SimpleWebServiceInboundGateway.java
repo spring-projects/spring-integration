@@ -55,6 +55,19 @@ public class SimpleWebServiceInboundGateway extends SimpleMessagingGateway imple
 	}
 
 	public void invoke(MessageContext messageContext) throws Exception {
+		try {
+			this.doInvoke(messageContext);
+		}
+		catch (Exception e) {
+			while (e.getClass().getName().startsWith("org.springframework") &&
+					e.getCause() instanceof Exception) {
+				e = (Exception) e.getCause();
+			}
+			throw e;
+		}
+	}
+
+	private void doInvoke(MessageContext messageContext) throws Exception {
 		Assert.notNull(messageContext,"'messageContext' is required; it must not be null.");
 		WebServiceMessage request = messageContext.getRequest();
 		Assert.notNull(request, "Invalid message context: request was null.");
