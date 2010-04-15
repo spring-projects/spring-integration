@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.core.Message;
@@ -107,6 +113,7 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return this.createRequestFromMessage(message, url, requestMethod);
 	}
 
+	@SuppressWarnings("unchecked")
 	private HttpRequest createRequestFromPayload(Object payload, URL url, String requestMethod) throws Exception {
 		ByteArrayOutputStream requestBody = new ByteArrayOutputStream();
 		String contentType = null;
@@ -160,6 +167,7 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return parameterMap;
 	}
 
+	@SuppressWarnings("unchecked")
 	private String writeToRequestBody(Object object, ByteArrayOutputStream byteStream) throws Exception {
 		String contentType = null;
 		if (object instanceof byte[]) {
@@ -170,15 +178,87 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 			byteStream.write(((String) object).getBytes(this.charset));
 			contentType = "text/plain; charset=" + this.charset;
 		}
-		else if (object instanceof Serializable) {
-			byteStream.write(this.serializeObject((Serializable) object));
-			contentType = "application/x-java-serialized-object";
-		}
 		else {
+			if (object instanceof Map && isFormData((Map) object)) {
+				byte[] data = this.formDataAsBytes((Map) object);
+				if (data != null) {
+					byteStream.write(data);
+					contentType = "application/x-www-form-urlencoded";
+				}
+			}
+			if (contentType == null && object instanceof Serializable) {
+				byteStream.write(this.serializeObject((Serializable) object));
+				contentType = "application/x-java-serialized-object";
+			}
+		}
+		if (contentType == null) {
 			throw new IllegalArgumentException("payload must be a byte array, " +
-					"String, or Serializable object for a 'POST' or 'PUT' request");
+					"String, Map, or Serializable object for a 'POST' or 'PUT' request");
 		}
 		return contentType;
+	}
+
+	/**
+	 * If all keys are Strings, we'll consider the Map to be form data.
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean isFormData(Map map) {
+		for (Object key : map.keySet()) {
+			if (!(key instanceof String)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	private byte[] formDataAsBytes(Map form) throws UnsupportedEncodingException {
+		StringBuilder builder = new StringBuilder();
+		Iterator<?> nameIterator = form.keySet().iterator();
+		while (nameIterator.hasNext()) {
+			Object next = nameIterator.next();
+			Assert.isTrue(next instanceof String, "Form map keys must be Strings.");
+			String name = (String) next;
+			Object value = form.get(name);
+			if (value == null) {
+				builder.append(URLEncoder.encode(name, this.charset));
+			}
+			else {
+				List<String> values = null;
+				if (value instanceof String) {
+					values = Collections.singletonList((String) value);
+				}
+				else if (value instanceof String[]) {
+					values = Arrays.asList((String[]) value);
+				}
+				else {
+					if (!(value instanceof Iterable)) {
+						return null;
+					}
+					Iterator iterator = ((Iterable) value).iterator();
+					values = new ArrayList<String>();
+					while (iterator.hasNext()) {
+						Object nextValue = iterator.next();
+						if (!(nextValue instanceof String)) {
+							return null;
+						}
+						values.add((String) nextValue);
+					}
+				}
+				Iterator<String> valueIterator = values.iterator();
+				builder.append(URLEncoder.encode(name, this.charset));
+				while (valueIterator.hasNext()) {
+					builder.append('=' + URLEncoder.encode(valueIterator.next(), this.charset));
+					if (valueIterator.hasNext()) {
+						builder.append('&' + URLEncoder.encode(name, this.charset));
+					}
+				}
+			}
+			if (nameIterator.hasNext()) {
+				builder.append('&');
+			}
+		}
+		return builder.toString().getBytes(this.charset);
 	}
 
 	private byte[] serializeObject(Serializable object) throws IOException {
