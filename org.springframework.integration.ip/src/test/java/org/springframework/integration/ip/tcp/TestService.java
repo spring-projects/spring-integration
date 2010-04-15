@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.integration.ip.config;
-
-import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHandler;
+package org.springframework.integration.ip.tcp;
 
 /**
- * Namespace handler for Spring Integration's <em>ip</em> namespace.
+ * Simple echo service.
  * 
  * @author Gary Russell
- * @since 2.0
+ *
  */
-public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
+public class TestService {
 
-	public void init() {
-		this.registerBeanDefinitionParser("inbound-channel-adapter", new IpInboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("outbound-channel-adapter", new IpOutboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("inbound-gateway", new IpInboundGatewayParser());
+	public String test(byte[] bytes) {
+		return "echo:" + new String(bytes);
 	}
-
 }

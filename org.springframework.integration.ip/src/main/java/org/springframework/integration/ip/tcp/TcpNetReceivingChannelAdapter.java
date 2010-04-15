@@ -111,14 +111,25 @@ public class TcpNetReceivingChannelAdapter extends
 		while (true) {
 			try {
 				if (reader.assembleData()) {
-					Message<byte[]> message = mapper.toMessage(reader);
-					if (message != null) {
-						sendMessage(message);
-					}
+					processMessage(reader);
 				}
 			} catch (Exception e) {
+				logger.error("processMessage failed", e);
 				return;
 			}
+		}
+	}
+
+	/**
+	 * @param reader
+	 * @return
+	 * @throws Exception
+	 */
+	protected void processMessage(NetSocketReader reader)
+			throws Exception {
+		Message<byte[]> message = mapper.toMessage(reader);
+		if (message != null) {
+			sendMessage(message);
 		}
 	}
 	
@@ -140,8 +151,10 @@ public class TcpNetReceivingChannelAdapter extends
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketReaderClassName(
 			String customSocketReaderClassName) throws ClassNotFoundException {
-		this.customSocketReader = (Class<NetSocketReader>) Class
+		if (customSocketReaderClassName != null) {
+			this.customSocketReader = (Class<NetSocketReader>) Class
 				.forName(customSocketReaderClassName);
+		}
 	}
 
 }

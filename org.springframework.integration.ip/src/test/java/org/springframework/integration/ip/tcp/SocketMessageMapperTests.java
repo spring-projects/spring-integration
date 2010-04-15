@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.junit.Test;
@@ -50,6 +51,8 @@ public class SocketMessageMapperTests {
 				.getHeaders().get(IpHeaders.HOSTNAME));
 		assertEquals(InetAddress.getLocalHost().getHostAddress(), message
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(0, message
+				.getHeaders().get(IpHeaders.REMOTE_PORT));
 	}
 
 	/**
@@ -90,6 +93,13 @@ public class SocketMessageMapperTests {
 		 */
 		public boolean assembleData() {
 			return false;
+		}
+
+		/* (non-Javadoc)
+		 * @see org.springframework.integration.ip.tcp.SocketReader#getSocket()
+		 */
+		public Socket getSocket() {
+			return new Socket();
 		}
 
 		

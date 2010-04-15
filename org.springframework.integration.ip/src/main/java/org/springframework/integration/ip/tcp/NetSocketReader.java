@@ -181,4 +181,11 @@ public class NetSocketReader extends AbstractSocketReader {
 		return this.socket.getInetAddress();
 	}
 
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.SocketReader#getSocket()
+	 */
+	public Socket getSocket() {
+		return socket;
+	}
+
 }

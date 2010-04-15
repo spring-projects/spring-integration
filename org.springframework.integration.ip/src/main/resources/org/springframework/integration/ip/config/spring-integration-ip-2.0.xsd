@@ -28,13 +28,6 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="ipAdapterType">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
 					<xsd:attribute name="pool-size" type="xsd:string" />
 					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
 					<xsd:attribute name="multicast-address" type="xsd:string" />
@@ -67,10 +60,49 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 					<xsd:attribute name="ack-timeout" type="xsd:string" />
 					<xsd:attribute name="min-acks-for-success" type="xsd:string" />
 					<xsd:attribute name="time-to-live" type="xsd:string" />
-					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string" />
+					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+If message-format = 'custom' you must provide a sub class of the appropriate type to implement
+the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="so-linger" type="xsd:string" />
 					<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
 					<xsd:attribute name="so-traffic-class" type="xsd:string" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an inbound Gateway for receiving and replying to incoming IP packets.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="pool-size" type="xsd:string" />
+					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
+					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
+						<xsd:annotation>
+							<xsd:documentation>
+If message-format = 'custom' you must provide a sub class of the appropriate type to implement
+the custom message format. See java docs for TcpNetReceivingChannelAdapter and TcpNioReceivingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>	
+					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+If message-format = 'custom' you must provide a sub class of the appropriate type to implement
+the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -82,22 +114,71 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 	Common configuration for IP-based adapters.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="common-attributes">
+				<xsd:attribute name="channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="protocol">
+					<xsd:simpleType>
+						<xsd:restriction base="xsd:NMTOKEN">
+							<xsd:enumeration value="tcp" />
+							<xsd:enumeration value="udp" />
+						</xsd:restriction>
+					</xsd:simpleType>
+				</xsd:attribute>
+				<xsd:attribute name="check-length" type="xsd:string" />
+				<xsd:attribute name="multicast" type="xsd:string" />
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="gatewayType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines common configuration for gateway adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="common-attributes">
+				<xsd:attribute name="name" type="xsd:string"/>
+				<xsd:attribute name="request-channel" type="xsd:string" use="required">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="reply-channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="request-timeout" type="xsd:string"/>
+				<xsd:attribute name="reply-timeout" type="xsd:string"/>
+				<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="common-attributes">
 		<xsd:attribute name="id" type="xsd:ID"/>
-		<xsd:attribute name="channel" type="xsd:string" />
-		<xsd:attribute name="protocol">
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="tcp" />
-					<xsd:enumeration value="udp" />
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
 		<xsd:attribute name="port" type="xsd:string" />
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-timeout" type="xsd:string" />
-		<xsd:attribute name="check-length" type="xsd:string" />
-		<xsd:attribute name="multicast" type="xsd:string" />
 		<xsd:attribute name="using-nio" type="xsd:string" />
 		<xsd:attribute name="message-format">
 			<xsd:simpleType>
@@ -111,7 +192,6 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 		</xsd:attribute>
 		<xsd:attribute name="using-direct-buffers" type="xsd:string" />
 		<xsd:attribute name="so-keep-alive" type="xsd:string" />
-		
 	</xsd:complexType>
 
 </xsd:schema>

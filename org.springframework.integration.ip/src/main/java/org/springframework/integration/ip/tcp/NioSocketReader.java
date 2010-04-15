@@ -17,6 +17,7 @@ package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
@@ -329,6 +330,13 @@ public class NioSocketReader extends AbstractSocketReader {
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.SocketReader#getSocket()
+	 */
+	public Socket getSocket() {
+		return channel.socket();
 	}
 
 }

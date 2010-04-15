@@ -29,16 +29,18 @@ public abstract class IpHeaders {
 
 	private static final String PREFIX = MessageHeaders.PREFIX;
 
-	private static final String IP = "ip_";
+	private static final String IP = PREFIX + "ip_";
 
-	private static final String TCP = "tcp_";
+	private static final String TCP = IP + "tcp_";
 
-	private static final String UDP = "udp_";
+	private static final String UDP = IP + "udp_";
 
-	public static final String HOSTNAME = PREFIX + IP + "hostname";
+	public static final String HOSTNAME = IP + "hostname";
 
-	public static final String IP_ADDRESS = PREFIX + IP + "address"; 
+	public static final String IP_ADDRESS = IP + "address"; 
 
-	public static final String ACK_ADDRESS = PREFIX + "ackTo";
+	public static final String ACK_ADDRESS = IP + "ackTo";
+
+	public static final String REMOTE_PORT = TCP + "remote_port";
 
 }

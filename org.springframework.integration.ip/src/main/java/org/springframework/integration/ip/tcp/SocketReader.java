@@ -17,6 +17,7 @@ package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.Socket;
 
 /**
  * General interface for assembling message data from a TCP/IP Socket.
@@ -49,4 +50,9 @@ public interface SocketReader {
 	 * @return The InetAddress.
 	 */
 	public InetAddress getAddress();
+
+	/**
+	 * @return the Socket
+	 */
+	public Socket getSocket();
 }

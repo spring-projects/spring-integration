@@ -174,20 +174,20 @@ public abstract class IpAdapterParserUtils {
 	 * @return The value of the attribute or false.
 	 */
 	static Integer getMessageFormat(Element element) {
-		String useNio = element.getAttribute(IpAdapterParserUtils.MESSAGE_FORMAT);
-		if (!StringUtils.hasText(useNio)) {
+		String messageFormat = element.getAttribute(IpAdapterParserUtils.MESSAGE_FORMAT);
+		if (!StringUtils.hasText(messageFormat)) {
 			return MessageFormats.FORMAT_LENGTH_HEADER;
 		}
-		if (useNio.equals("length-header")) {
+		if (messageFormat.equals("length-header")) {
 			return MessageFormats.FORMAT_LENGTH_HEADER;
 		}
-		if (useNio.equals("stx-etx")) {
+		if (messageFormat.equals("stx-etx")) {
 			return MessageFormats.FORMAT_STX_ETX;
 		}
-		if (useNio.equals("crlf")) {
+		if (messageFormat.equals("crlf")) {
 			return MessageFormats.FORMAT_CRLF;
 		}
-		if (useNio.equals("custom")) {
+		if (messageFormat.equals("custom")) {
 			return MessageFormats.FORMAT_CUSTOM;
 		}
 		return MessageFormats.FORMAT_LENGTH_HEADER;

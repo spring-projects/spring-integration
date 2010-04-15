@@ -60,6 +60,7 @@ public class SocketMessageMapper implements
 			message = MessageBuilder.withPayload(payload)
 					.setHeader(IpHeaders.HOSTNAME, socketReader.getAddress().getHostName())
 					.setHeader(IpHeaders.IP_ADDRESS, socketReader.getAddress().getHostAddress())
+					.setHeader(IpHeaders.REMOTE_PORT, socketReader.getSocket().getPort())
 					.build();
 		}
 		return message;

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ip
+			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+
+	<beans:bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
+
+	<ip:inbound-gateway id="tcpGateway"
+		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
+		request-channel="toSA"
+		reply-channel="fromSA"
+		message-format="crlf" />
+
+	<channel id="toSA" />
+	
+	<channel id="fromSA">
+		<queue capacity="1"/>
+	</channel>
+	
+	<service-activator id="SA" 
+		input-channel="toSA"
+		output-channel="fromSA"
+		ref="service"
+		method="test"
+	/>
+	
+	<beans:bean id="service" class="org.springframework.integration.ip.tcp.TestService" />
+
+</beans:beans>
