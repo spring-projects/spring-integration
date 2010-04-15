@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,16 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 
 	@Override
 	protected Object invokeInternal(Object requestObject) throws Exception {
-		return this.gatewayDelegate.sendAndReceive(requestObject);
+		try {
+			return this.gatewayDelegate.sendAndReceive(requestObject);
+		}
+		catch (Exception e) {
+			while (e.getClass().getName().startsWith("org.springframework") &&
+					e.getCause() instanceof Exception) {
+				e = (Exception) e.getCause();
+			}
+			throw e;
+		}
 	}
 
 
