@@ -26,7 +26,7 @@
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.transaction" rev="${spring.version}" conf="test->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
-		<dependency org="org.springframework.security" name="org.springframework.security" rev="2.0.4.A" conf="compile->runtime">
+		<dependency org="org.springframework.security" name="org.springframework.security.core" rev="2.0.5.RELEASE" conf="compile->runtime">
 			<exclude org="org.springframework"/>
 		</dependency>
 	</dependencies>
