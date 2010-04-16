@@ -22,6 +22,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.oxm.Marshaller;
@@ -113,8 +114,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 			return this.gatewayDelegate.sendAndReceive(requestObject);
 		}
 		catch (Exception e) {
-			while (e.getClass().getName().startsWith("org.springframework") &&
-					e.getCause() instanceof Exception) {
+			while (e instanceof MessagingException && e.getCause() instanceof Exception) {
 				e = (Exception) e.getCause();
 			}
 			throw e;

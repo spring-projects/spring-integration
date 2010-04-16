@@ -27,6 +27,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
@@ -59,8 +60,7 @@ public class SimpleWebServiceInboundGateway extends SimpleMessagingGateway imple
 			this.doInvoke(messageContext);
 		}
 		catch (Exception e) {
-			while (e.getClass().getName().startsWith("org.springframework") &&
-					e.getCause() instanceof Exception) {
+			while (e instanceof MessagingException && e.getCause() instanceof Exception) {
 				e = (Exception) e.getCause();
 			}
 			throw e;
