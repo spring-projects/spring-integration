@@ -87,7 +87,6 @@ public class XPathMessageSplitterParserTests {
 
 	@Test
 	public void testProvideDocumentBuilder() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<names><name>Bob</name><name>John</name></names>");
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
 				.getTestAppContext("<bean id='docBuilderFactory' class='org.springframework.integration.xml.config.StubDocumentBuilderFactory' />"
 						+ channelDefinitions
@@ -96,13 +95,12 @@ public class XPathMessageSplitterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
 		Object handler = fieldAccessor.getPropertyValue("handler");
 		fieldAccessor = new DirectFieldAccessor(handler);
-		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
-		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
+		Object documentBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
+		assertTrue("DocumentBuilderFactory was not expected stub ", documentBuilderFactory instanceof DocumentBuilderFactory);
 	}
 	
 	@Test
 	public void testXPathExpressionRef() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<names><name>Bob</name><name>John</name></names>");
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
 				.getTestAppContext(
 						 channelDefinitions +
@@ -112,8 +110,8 @@ public class XPathMessageSplitterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
 		Object handler = fieldAccessor.getPropertyValue("handler");
 		fieldAccessor = new DirectFieldAccessor(handler);
-		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
-		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
+		Object documentBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
+		assertTrue("DocumentBuilderFactory was not expected stub ", documentBuilderFactory instanceof DocumentBuilderFactory);
 	}
 
 }
