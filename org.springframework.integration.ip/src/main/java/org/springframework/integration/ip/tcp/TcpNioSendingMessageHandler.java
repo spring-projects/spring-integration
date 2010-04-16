@@ -33,6 +33,8 @@ public class TcpNioSendingMessageHandler extends
 	protected boolean usingDirectBuffers;
 
 	protected Class<NioSocketWriter> customSocketWriter;
+
+	protected int buffsPerConnection = 5;
 	
 	/**
 	 * @param host
@@ -52,10 +54,11 @@ public class TcpNioSendingMessageHandler extends
 				this.setSocketAttributes(socketChannel.socket());
 				NioSocketWriter writer;
 				if (messageFormat == MessageFormats.FORMAT_CUSTOM){
-					Constructor<NioSocketWriter> ctor = customSocketWriter.getConstructor(SocketChannel.class);
-					writer = BeanUtils.instantiateClass(ctor, socketChannel);
+					Constructor<NioSocketWriter> ctor = customSocketWriter
+							.getConstructor(SocketChannel.class, int.class, int.class);
+					writer = BeanUtils.instantiateClass(ctor, socketChannel, buffsPerConnection, soSendBufferSize);
 				} else {
-					writer = new NioSocketWriter(socketChannel);
+					writer = new NioSocketWriter(socketChannel, buffsPerConnection, soSendBufferSize);
 				}
 				writer.setMessageFormat(messageFormat);
 				writer.setUsingDirectBuffers(usingDirectBuffers);
@@ -84,6 +87,18 @@ public class TcpNioSendingMessageHandler extends
 			String customSocketWriterClassName) throws ClassNotFoundException {
 		this.customSocketWriter = (Class<NioSocketWriter>) Class
 				.forName(customSocketWriterClassName);
+	}
+
+	/**
+	 * If direct buffers are being used, sets the max number of 
+	 * buffers allowed per connection. Defaults to 5. It is unlikely
+	 * this would ever need to be changed. Each buffer is set at the 
+	 * soSendBufferSize or, if not set, 2048 bytes.
+	 * 
+	 * @param buffsPerConnection the buffsPerConnection to set
+	 */
+	public void setBuffsPerConnection(int buffsPerConnection) {
+		this.buffsPerConnection = buffsPerConnection;
 	}
 
 }

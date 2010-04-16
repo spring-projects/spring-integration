@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * A {@link SocketWriter} that writes to a {@link java.nio.channels.SocketChannel}. The 
@@ -61,10 +63,33 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	protected ByteBuffer crLfPart;
 	
 	/**
+	 * If we are using direct buffers, we don't want to churn them using
+	 * normal heap management. But, 
+	 * because we can have multiple threads writing and we might write in 
+	 * chunks, we need a dedicated buffer for each thread; up to a limit.
+	 * We handle this with a blocking queue.
+	 */
+	protected BlockingQueue<ByteBuffer> buffers;
+	
+	protected int maxBuffers = 2;
+	
+	protected int bufferCount = 0;
+
+	private int sendBufferSize;
+	
+	/**
 	 * @param socket
 	 */
-	public NioSocketWriter(SocketChannel channel) {
+	public NioSocketWriter(SocketChannel channel, 
+							      int maxBuffers, 
+							      int sendBufferSize) {
 		this.channel = channel;
+		this.maxBuffers = maxBuffers;
+		if (sendBufferSize <= 0) {
+			sendBufferSize = 2048;
+		}
+		this.sendBufferSize = sendBufferSize;
+		buffers = new LinkedBlockingQueue<ByteBuffer>(maxBuffers);
 	}
 	
 	/**
@@ -74,6 +99,33 @@ public class NioSocketWriter extends AbstractSocketWriter {
 		this.usingDirectBuffers = usingDirectBuffers;
 	}
 
+	protected ByteBuffer getBuffer() throws InterruptedException  {
+		ByteBuffer buffer = this.buffers.poll();
+		if (buffer != null) {
+			return buffer;
+		}
+		synchronized (buffers) {
+			if (bufferCount < maxBuffers) {
+				bufferCount++;
+				return ByteBuffer.allocateDirect(this.sendBufferSize);
+			}
+			// another thread may have returned one while we were sync'd
+			buffer = this.buffers.poll();
+			if (buffer != null) {
+				return buffer;
+			}
+		}
+		buffer = this.buffers.take();
+		buffer.clear();
+		return buffer;
+	}
+	
+	protected void returnBuffer(ByteBuffer buffer) {
+		if (buffer != null) {
+			buffers.offer(buffer);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketWriter#writeCrLfFormat(byte[])
 	 */
@@ -81,22 +133,31 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	protected void writeCrLfFormat(byte[] bytes) throws IOException {
 		ByteBuffer buffer = null;
 		if (usingDirectBuffers) {
-			buffer = ByteBuffer.allocateDirect(bytes.length + 2);
-			buffer.put(bytes);
-			buffer.put((byte) '\r');
-			buffer.put((byte) '\n');
-			buffer.flip();
-			channel.write(buffer);
-			return;
+			try {
+				checkBufferSize(bytes, 2);
+				buffer = getBuffer();
+				buffer.put(bytes);
+				buffer.put((byte) '\r');
+				buffer.put((byte) '\n');
+				buffer.flip();
+				channel.write(buffer);
+				return;
+			} catch (InterruptedException e) {
+				throw new IOException("Could not get buffer", e);
+			} finally {
+				returnBuffer(buffer);
+			}
 		}
-		if (crLfPart == null) {
-			crLfPart = ByteBuffer.allocate(2);
-			crLfPart.put((byte) '\r');
-			crLfPart.put((byte) '\n');
+		synchronized (channel) {
+			if (crLfPart == null) {
+				crLfPart = ByteBuffer.allocate(2);
+				crLfPart.put((byte) '\r');
+				crLfPart.put((byte) '\n');
+			}
+			channel.write(ByteBuffer.wrap(bytes));
+			crLfPart.flip();
+			channel.write(crLfPart);
 		}
-		channel.write(ByteBuffer.wrap(bytes));
-		crLfPart.flip();
-		channel.write(crLfPart);
 	}
 
 	/* (non-Javadoc)
@@ -113,23 +174,31 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	protected void writeLengthFormat(byte[] bytes) throws IOException {
 		ByteBuffer buffer = null;
 		if (usingDirectBuffers) {
-			buffer = ByteBuffer.allocateDirect(bytes.length + 4);
-			buffer.putInt(bytes.length);
-			buffer.put(bytes);
-			buffer.flip();
-			channel.write(buffer);
-			return;
+			try {
+				checkBufferSize(bytes, 4);
+				buffer = getBuffer();
+				buffer.putInt(bytes.length);
+				buffer.put(bytes);
+				buffer.flip();
+				channel.write(buffer);
+				return;
+			} catch (InterruptedException e) {
+				throw new IOException("Could not get buffer", e);
+			} finally {
+				returnBuffer(buffer);
+			}
 		}
-		if (lengthPart == null) {
-			lengthPart = ByteBuffer.allocate(4);
-		} else {
-			lengthPart.clear();
-		}
-		lengthPart.putInt(bytes.length);
-		lengthPart.flip();
-		channel.write(lengthPart);
-		channel.write(ByteBuffer.wrap(bytes));
-		
+		synchronized (channel) {
+			if (lengthPart == null) {
+				lengthPart = ByteBuffer.allocate(4);
+			} else {
+				lengthPart.clear();
+			}
+			lengthPart.putInt(bytes.length);
+			lengthPart.flip();
+			channel.write(lengthPart);
+			channel.write(ByteBuffer.wrap(bytes));
+		}		
 	}
 
 	/* (non-Javadoc)
@@ -139,25 +208,47 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	protected void writeStxEtxFormat(byte[] bytes) throws IOException {
 		ByteBuffer buffer = null;
 		if (usingDirectBuffers) {
-			buffer = ByteBuffer.allocateDirect(bytes.length + 2);
-			buffer.put((byte) STX); 
-			buffer.put(bytes);
-			buffer.put((byte) ETX);
-			buffer.flip();
-			channel.write(buffer);
-			return;
+			try {
+				checkBufferSize(bytes, 2);
+				buffer = getBuffer();
+				buffer.put((byte) STX); 
+				buffer.put(bytes);
+				buffer.put((byte) ETX);
+				buffer.flip();
+				channel.write(buffer);
+				return;
+			} catch (InterruptedException e) {
+				throw new IOException("Could not get buffer", e);
+			} finally {
+				returnBuffer(buffer);
+			}
+			
 		}
-		if (stxPart == null) {
-			stxPart = ByteBuffer.allocate(1);
-			stxPart.put((byte) STX);
-			etxPart = ByteBuffer.allocate(1);
-			etxPart.put((byte) ETX);
+		synchronized (channel) {
+			if (stxPart == null) {
+				stxPart = ByteBuffer.allocate(1);
+				stxPart.put((byte) STX);
+				etxPart = ByteBuffer.allocate(1);
+				etxPart.put((byte) ETX);
+			}
+			stxPart.flip();
+			channel.write(stxPart);
+			channel.write(ByteBuffer.wrap(bytes));
+			etxPart.flip();
+			channel.write(etxPart);
 		}
-		stxPart.flip();
-		channel.write(stxPart);
-		channel.write(ByteBuffer.wrap(bytes));
-		etxPart.flip();
-		channel.write(etxPart);
+	}
+
+	/**
+	 * @param bytes
+	 * @throws IOException
+	 */
+	private void checkBufferSize(byte[] bytes, int pad) throws IOException {
+		if (bytes.length + pad > sendBufferSize) {
+			throw new IOException("Send buffer too small (" + sendBufferSize + 
+						") increase so-send-buffer-size to at least " + 
+						bytes.length + pad);
+		}
 	}
 
 	/* (non-Javadoc)

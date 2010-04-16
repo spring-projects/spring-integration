@@ -26,11 +26,15 @@ import java.nio.channels.SocketChannel;
  */
 public class CustomNioSocketWriter extends NioSocketWriter {
 
+
 	/**
-	 * @param socket
+	 * @param channel
+	 * @param maxBuffers
+	 * @param sendBufferSize
 	 */
-	public CustomNioSocketWriter(SocketChannel channel) {
-		super(channel);
+	public CustomNioSocketWriter(SocketChannel channel, int maxBuffers,
+			int sendBufferSize) {
+		super(channel, maxBuffers, sendBufferSize);
 	}
 
 	/* (non-Javadoc)
