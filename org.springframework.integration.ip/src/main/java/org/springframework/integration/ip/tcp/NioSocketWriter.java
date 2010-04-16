@@ -143,7 +143,7 @@ public class NioSocketWriter extends AbstractSocketWriter {
 				channel.write(buffer);
 				return;
 			} catch (InterruptedException e) {
-				throw new IOException("Could not get buffer", e);
+				throw new IOException("Could not get buffer; interrupted");
 			} finally {
 				returnBuffer(buffer);
 			}
@@ -183,7 +183,7 @@ public class NioSocketWriter extends AbstractSocketWriter {
 				channel.write(buffer);
 				return;
 			} catch (InterruptedException e) {
-				throw new IOException("Could not get buffer", e);
+				throw new IOException("Could not get buffer; interrupted");
 			} finally {
 				returnBuffer(buffer);
 			}
@@ -218,7 +218,7 @@ public class NioSocketWriter extends AbstractSocketWriter {
 				channel.write(buffer);
 				return;
 			} catch (InterruptedException e) {
-				throw new IOException("Could not get buffer", e);
+				throw new IOException("Could not get buffer; interrupted");
 			} finally {
 				returnBuffer(buffer);
 			}
