@@ -1,7 +1,7 @@
-SPRING INTEGRATION 1.0.3 (Jul 18, 2009)
+SPRING INTEGRATION 1.0.4 (Apr 16, 2010)
 ---------------------------------------
 
-To find out what has changed since version 1.0.2, see 'changelog.txt'
+To find out what has changed since version 1.0.3, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release  and also visit the official Spring Integration home at:
