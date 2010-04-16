@@ -122,7 +122,7 @@ public class QueueChannel extends AbstractPollableChannel {
 		return purgedMessages;
 	}
 
-	public int getMesssageCount(){
+	public int getMessageCount(){
 		return this.queue.size();
 	}
 	

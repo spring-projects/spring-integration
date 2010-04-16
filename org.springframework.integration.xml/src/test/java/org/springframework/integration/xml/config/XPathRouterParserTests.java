@@ -77,7 +77,7 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, outputChannel.getMessageCount());
 	
 	}
 
@@ -87,7 +87,7 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, outputChannel.getMessageCount());
 	
 	}
 
@@ -102,7 +102,7 @@ public class XPathRouterParserTests {
 		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, outputChannel.getMessageCount());
 	
 	}
 
@@ -118,7 +118,7 @@ public class XPathRouterParserTests {
 		
 		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, outputChannel.getMessageCount());
 	}
 	
 	@Test
@@ -172,6 +172,6 @@ public class XPathRouterParserTests {
 		Object defaultOutputChannelValue = accessor.getPropertyValue("defaultOutputChannel");
 		assertEquals("Default output channel not correctly set ", defaultOutput, defaultOutputChannelValue);
 		inputChannel.send(MessageBuilder.withPayload("<unrelated/>").build());
-		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getMesssageCount());
+		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getMessageCount());
 	}
 }

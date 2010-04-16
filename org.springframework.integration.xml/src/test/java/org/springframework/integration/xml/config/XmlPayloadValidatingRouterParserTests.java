@@ -73,7 +73,7 @@ public class XmlPayloadValidatingRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:validating-router id='router' input-channel='test-input' valid-channel='validOutputChannel' invalid-channel='invalidOutputChannel' schema-location='org/springframework/integration/xml/config/validationTestsSchema.xsd' />");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, validOutputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, validOutputChannel.getMessageCount());
 	}
 
 	@Test
@@ -82,7 +82,7 @@ public class XmlPayloadValidatingRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		buildContext("<si-xml:validating-router id='router' input-channel='test-input' valid-channel='validOutputChannel' invalid-channel='invalidOutputChannel' schema-location='org/springframework/integration/xml/config/validationTestsSchema.xsd' />");
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of messages", 1, invalidOutputChannel.getMesssageCount());
+		assertEquals("Wrong number of messages", 1, invalidOutputChannel.getMessageCount());
 	}
 	
 	

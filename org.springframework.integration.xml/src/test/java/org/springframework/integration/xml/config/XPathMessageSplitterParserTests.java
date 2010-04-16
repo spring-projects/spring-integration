@@ -63,7 +63,7 @@ public class XPathMessageSplitterParserTests {
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of split messages ", 2, outputChannel.getMessageCount());
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public class XPathMessageSplitterParserTests {
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
 				false);
 		inputChannel.send(docMessage);
-		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
+		assertEquals("Wrong number of split messages ", 2, outputChannel.getMessageCount());
 		assertTrue("Splitter failed to create documents ",
 				((Message<?>) outputChannel.receive(1000)).getPayload() instanceof Document);
 		assertTrue("Splitter failed to create documents ",
