@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
-Bundle-Version: 1.0.3
+Bundle-Version: 1.0.4
 Bundle-Name: org.springframework.integration.samples.helloworld
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.springframework.integration.samples.helloworld
 Bundle-Activator: org.springframework.integration.samples.osgi.helloworld.HelloWorldBundleActivator
 Import-Package: org.osgi.framework;version="[1.4.0,1.4.0]"
-Import-Library: org.aspectj;version="[1.6.2.RELEASE,1.6.2.RELEASE]",
- org.springframework.spring;version="[2.5.6.A,2.5.6.A]"
-Import-Bundle: org.springframework.integration;version="(1.0.2,1.0.4)"
+Import-Library: org.aspectj;version="[1.6.2.RELEASE, 1.7.0)",
+ org.springframework.spring;version="[2.5.6.A, 3.1.0)"
+Import-Bundle: org.springframework.integration;version="[1.0.4, 1.0.5)"
