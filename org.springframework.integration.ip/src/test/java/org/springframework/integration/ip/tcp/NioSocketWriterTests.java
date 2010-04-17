@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.CountDownLatch;
@@ -91,6 +92,23 @@ public class NioSocketWriterTests {
 		b3 = writer.getBuffer();
 		assertEquals(b1, b3);
 		writer.returnBuffer(b3);
+	}
+	
+	@Test
+	public void testBuffersClear() throws Exception {
+		NioSocketWriter writer = new NioSocketWriter(null, 2, 2048);
+		ByteBuffer b1 = writer.getBuffer();
+		b1.putInt(1);
+		assertEquals(4, b1.position());
+		b1.flip();
+		assertEquals(0, b1.position());
+		assertEquals(4, b1.limit());
+		writer.returnBuffer(b1);
+		Buffer b2 = writer.getBuffer();
+		assertEquals(b1, b2);
+		assertEquals(0, b2.position());
+		assertEquals(2048, b2.limit());
+		
 	}
 	
 	@Test
