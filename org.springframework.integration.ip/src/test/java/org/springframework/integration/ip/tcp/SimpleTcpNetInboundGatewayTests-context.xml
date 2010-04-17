@@ -12,25 +12,36 @@
 
 	<beans:bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 
-	<ip:inbound-gateway id="tcpGateway"
+	<ip:inbound-gateway id="gatewayCrLf"
 		port="#{tcpIpUtils.findAvailableServerSocket(5200)}"
 		request-channel="toSA"
-		reply-channel="fromSA"
 		message-format="crlf" />
+
+	<ip:inbound-gateway id="gatewayStxEtx"
+		port="#{tcpIpUtils.findAvailableServerSocket(5300)}"
+		request-channel="toSA"
+		message-format="stx-etx" />
+
+	<ip:inbound-gateway id="gatewayLength"
+		port="#{tcpIpUtils.findAvailableServerSocket(5400)}"
+		request-channel="toSA"
+		message-format="length-header" />
+
+	<ip:inbound-gateway id="gatewayCustom"
+		port="#{tcpIpUtils.findAvailableServerSocket(5500)}"
+		request-channel="toSA"
+		message-format="custom" 
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNetSocketReader"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"/>
 
 	<channel id="toSA" />
 	
-	<channel id="fromSA">
-		<queue capacity="1"/>
-	</channel>
-	
 	<service-activator id="SA" 
 		input-channel="toSA"
-		output-channel="fromSA"
 		ref="service"
 		method="test"
 	/>
-	
+
 	<beans:bean id="service" class="org.springframework.integration.ip.tcp.TestService" />
 
 </beans:beans>

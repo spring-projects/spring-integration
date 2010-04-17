@@ -28,6 +28,7 @@ import org.springframework.integration.ip.tcp.CustomNetSocketWriter;
 import org.springframework.integration.ip.tcp.CustomNioSocketReader;
 import org.springframework.integration.ip.tcp.CustomNioSocketWriter;
 import org.springframework.integration.ip.tcp.MessageFormats;
+import org.springframework.integration.ip.tcp.SimpleTcpNetInboundGateway;
 import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
@@ -89,6 +90,8 @@ public class ParserUnitTests {
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#0")
 	TcpNetSendingMessageHandler tcpOutNet;
 
+	@Autowired
+	SimpleTcpNetInboundGateway simpleTcpNetInboundGateway;
 	
 	@Test
 	public void testInUdp() {
@@ -239,4 +242,23 @@ public class ParserUnitTests {
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		
 	}
+	
+	@Test
+	public void testInGateway() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(simpleTcpNetInboundGateway);
+		assertTrue(simpleTcpNetInboundGateway.getPort() >= 6500);
+		assertEquals(MessageFormats.FORMAT_CRLF, dfa.getPropertyValue("messageFormat"));
+		TcpNetReceivingChannelAdapter delegate = (TcpNetReceivingChannelAdapter) dfa
+				.getPropertyValue("delegate");
+		DirectFieldAccessor delegateDfa = new DirectFieldAccessor(delegate);
+		assertEquals(CustomNetSocketReader.class, delegateDfa.getPropertyValue("customSocketReader"));
+		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriter"));
+		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
+		assertEquals(123, dfa.getPropertyValue("receiveBufferSize"));
+		assertEquals(124, dfa.getPropertyValue("soReceiveBufferSize"));
+		assertEquals(125, dfa.getPropertyValue("soSendBufferSize"));
+		assertEquals(126, dfa.getPropertyValue("soTimeout"));
+		assertEquals(23, dfa.getPropertyValue("poolSize"));
+
+	}	
 }

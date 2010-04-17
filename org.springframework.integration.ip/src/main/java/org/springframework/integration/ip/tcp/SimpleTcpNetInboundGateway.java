@@ -15,9 +15,11 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.lang.reflect.Constructor;
 import java.net.Socket;
 import java.net.SocketException;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
@@ -59,7 +61,7 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 
 	private String customSocketReaderClassName;
 	
-	private String customSocketWriterClassName;
+	private Class<NetSocketWriter> customSocketWriter;
 	
 	
 	/* (non-Javadoc)
@@ -190,10 +192,19 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	}
 
 	/**
-	 * @param customSocketWriterClassName the customSocketWriterClassName to set
+	 * @param customSocketWriter the customSocketWriter to set
+	 * @throws ClassNotFoundException 
 	 */
-	public void setCustomSocketWriterClassName(String customSocketWriterClassName) {
-		this.customSocketWriterClassName = customSocketWriterClassName;
+	@SuppressWarnings("unchecked")
+	public void setCustomSocketWriterClassName(
+			String customSocketWriterClassName) throws ClassNotFoundException {
+		if (customSocketWriterClassName != null) {
+			this.customSocketWriter = (Class<NetSocketWriter>) Class
+				.forName(customSocketWriterClassName);
+			if (!(NetSocketWriter.class.isAssignableFrom(this.customSocketWriter))) {
+				throw new IllegalArgumentException("Custom socket writer must be of type NetSocketWriter");
+			}
+		}
 	}
 
 	private class WriteCapableTcpNetReceivingChannelAdapter extends TcpNetReceivingChannelAdapter {
@@ -211,7 +222,17 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 		@Override
 		protected void processMessage(NetSocketReader reader) {
 			Socket socket = reader.getSocket();
-			NetSocketWriter writer = new NetSocketWriter(socket);
+			NetSocketWriter writer = null;
+			try {
+				if (messageFormat == MessageFormats.FORMAT_CUSTOM){
+					Constructor<NetSocketWriter> ctor = customSocketWriter.getConstructor(Socket.class);
+					writer = BeanUtils.instantiateClass(ctor, socket);
+				} else {
+					writer = new NetSocketWriter(socket);
+				}
+			} catch (Exception e) {
+				throw new MessageMappingException("Error creating SocketWriter", e);
+			}
 			writer.setMessageFormat(messageFormat);
 			Message<?> message = sendAndReceiveMessage(reader);
 			try {

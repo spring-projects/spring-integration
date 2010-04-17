@@ -85,8 +85,13 @@ public class TcpNioSendingMessageHandler extends
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketWriterClassName(
 			String customSocketWriterClassName) throws ClassNotFoundException {
-		this.customSocketWriter = (Class<NioSocketWriter>) Class
-				.forName(customSocketWriterClassName);
+		if (customSocketWriterClassName != null) {
+			this.customSocketWriter = (Class<NioSocketWriter>) Class
+					.forName(customSocketWriterClassName);
+			if (!(NioSocketWriter.class.isAssignableFrom(this.customSocketWriter))) {
+				throw new IllegalArgumentException("Custom socket writer must be of type NioSocketWriter");
+			}
+		}
 	}
 
 	/**

@@ -11,6 +11,7 @@
 
 	<int:channel id="udpChannel" />
 	<int:channel id="tcpChannel" />
+	<int:channel id="replyChannel" />
 	
 	<ip:inbound-channel-adapter id="testInUdp"
 		channel="udpChannel"
@@ -173,6 +174,20 @@
 		so-traffic-class="27"
 	/>
 	
-	
+	<ip:inbound-gateway id="simpleInGateway"
+		request-channel="tcpChannel"
+		reply-channel="replyChannel"
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNetSocketReader"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"
+		message-format="crlf"
+		pool-size="23"
+		port="#{tcpIpUtils.findAvailableServerSocket(6500)}"
+		receive-buffer-size="123"
+		so-keep-alive="true"
+		so-receive-buffer-size="124"
+		so-send-buffer-size="125"
+		so-timeout="126"
+		
+		/>	
 	
 </beans>

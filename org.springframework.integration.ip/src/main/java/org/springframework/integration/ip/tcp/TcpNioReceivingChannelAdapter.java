@@ -220,6 +220,9 @@ public class TcpNioReceivingChannelAdapter extends
 			throws ClassNotFoundException {
 		this.customSocketReader = (Class<NioSocketReader>) Class
 				.forName(customSocketReaderClassName);
+		if (!(NioSocketReader.class.isAssignableFrom(this.customSocketReader))) {
+			throw new IllegalArgumentException("Custom socket reader must be of type NioSocketReader");
+		}
 	}
 
 }

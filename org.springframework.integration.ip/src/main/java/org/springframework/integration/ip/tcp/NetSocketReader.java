@@ -80,6 +80,10 @@ public class NetSocketReader extends AbstractSocketReader {
 		int n = 0;
 		int bite;
 		while ((bite = inputStream.read()) != ETX) {
+			if (bite < 0) {
+				logger.debug("Socket closed");				
+				throw new IOException("Socket Closed");
+			}
 			buffer[n++] = (byte) bite;
 			if (n >= maxMessageSize) {
 				throw new IOException("ETX not found before max message length: "
@@ -102,6 +106,10 @@ public class NetSocketReader extends AbstractSocketReader {
 		int bite;
 		while (true) {
 			bite = inputStream.read();
+			if (bite < 0) {
+				logger.debug("Socket closed");				
+				throw new IOException("Socket Closed");
+			}
 			if (n > 0 && bite == '\n' && buffer[n-1] == '\r')
 				break;
 			buffer[n++] = (byte) bite;

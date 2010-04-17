@@ -154,6 +154,9 @@ public class TcpNetReceivingChannelAdapter extends
 		if (customSocketReaderClassName != null) {
 			this.customSocketReader = (Class<NetSocketReader>) Class
 				.forName(customSocketReaderClassName);
+			if (!(NetSocketReader.class.isAssignableFrom(this.customSocketReader))) {
+				throw new IllegalArgumentException("Custom socket reader must be of type NetSocketReader");
+			}
 		}
 	}
 

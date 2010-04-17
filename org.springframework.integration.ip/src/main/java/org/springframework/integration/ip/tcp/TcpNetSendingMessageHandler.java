@@ -77,8 +77,13 @@ public class TcpNetSendingMessageHandler extends
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketWriterClassName(
 			String customSocketWriterClassName) throws ClassNotFoundException {
-		this.customSocketWriter = (Class<NetSocketWriter>) Class
-				.forName(customSocketWriterClassName);
+		if (customSocketWriterClassName != null) {
+			this.customSocketWriter = (Class<NetSocketWriter>) Class
+					.forName(customSocketWriterClassName);
+			if (!(NetSocketWriter.class.isAssignableFrom(this.customSocketWriter))) {
+				throw new IllegalArgumentException("Custom socket writer must be of type NetSocketWriter");
+			}
+		}
 	}
 
 }
