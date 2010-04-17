@@ -6,7 +6,8 @@
     Spring Integration provides Channel Adapters for receiving and sending messages over internet protocols. Both UDP 
     (User Datagram Protocol)
     and TCP (Transmission Control Protocol) adapters are provided. Each adapter provides for one-way communication 
-    over the underlying protocol. Gateways providing two-way communication may be considered in a future release.
+    over the underlying protocol.
+    In addition, a simple inbound tcp gateway is provided. 
   </para>
   <section id="ip-intro">
     <title>Introduction</title>
@@ -23,6 +24,11 @@
       but use different underlying technology for socket communication. Similarly, <classname>TcpNetReceivingChannelAdapter</classname>
       and <classname>TcpNioReceivingChannelAdapter</classname> are the equivalent inbound channel adapters.
       The choice of which to use in what circumstances is described below.
+    </para>
+    <para>
+      A simple inbound TCP gateway is provided; this allows for simple request/response processing. While
+     the gateway can support any number of connections, each connection can only process serially. The thread
+     that reads from the socket waits for, and sends, the response before reading again.
     </para>
   </section>
   <section id="udp-adapters">
@@ -188,8 +194,33 @@
     	<classname>using-direct-buffers</classname> is not relevant.
     </para>
   </section>
-  <section id="ip-adapter-reference">
-    <title>IP Adapter Attributes</title>
+  <section id="tcp-gateways">
+    <title>TCP Gateway</title>
+    <para>
+      The simple inbound TCP gateway <classname>SimpleTcpNetInboundGateway</classname> 
+      uses <classname>java.net.Socket</classname> for communications. Each connection
+      can process a single request/response at a time. 
+  	</para>
+  	<para>
+  	  This gateway delegates to a subclass of the <classname>TcpNetReceivingChannelAdapter</classname>
+  	  described above, so please read that section for more information. The difference
+  	  is that after constructing a message with the incoming payload and sending
+  	  it to the requestChannel, it waits for a response and sends the payload
+  	  from the response message by writing it to the socket, using the same
+  	  message format configured for the incoming message.
+  	</para>
+    <para>
+  	  <programlisting language="xml"><![CDATA[ 	<ip:inbound-gateway id="gatewayCrLf"
+		port="1234"
+		request-channel="someChannel"
+		message-format="crlf"
+        />]]></programlisting>
+        A simple inbound TCP gateway; it uses '/r/n' delimited data and can be
+        used by a simple client such as telnet.	  	  
+  	</para> 
+  </section>  
+  <section id="ip-endpoint-reference">
+    <title>IP Endpoint Attributes</title>
     <para>
       <table id="ip-ob-adapter-attributes">
         <title>IP Outbound Channel Adapter Attributes</title>
@@ -533,6 +564,86 @@
               <entry>so-keep-alive</entry>
               <entry>Y</entry>
               <entry>N</entry>
+              <entry>true, false</entry>
+              <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table id="tcp-ib-gateway-attributes">
+        <title>TCP Inbound Gateway Attributes</title>
+        <tgroup cols="3">
+          <colspec align="left" />
+          <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col4" colwidth="1*"/>
+          <colspec colnum="3" colname="col5" colwidth="3*"/>
+          <thead>
+            <row>
+              <entry align="center">Attribute Name</entry>
+              <entry align="left">Allowed Values</entry>
+              <entry align="center">Attribute Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>port</entry>
+              <entry></entry>
+              <entry>The port on which the gateway listens.</entry>
+            </row>
+            <row>
+              <entry>pool-size</entry>
+              <entry></entry>
+              <entry>Specifies the number of concurrent connections supported 
+                     by the gateway.</entry>
+            </row>
+            <row>
+              <entry>receive-buffer-size</entry>
+              <entry></entry>
+              <entry>The size of the
+                     buffer used to reassemble incoming messages. Effectively the maximum
+                     message size that can be received.</entry>
+            </row>
+            <row>
+              <entry>message-format</entry>
+              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>The formatting that the tcp gateway uses for demarcating
+                     incoming requests and formatting responses. Defaults to length-header.
+                     See the discussion above for details about each format.</entry>
+            </row>
+            <row>
+              <entry>custom-socket- reader-class-name</entry>
+              <entry>Subclass of TcpNetSocket- Reader</entry>
+              <entry>When message-format is 'custom' the name of the class that
+                     implements the custom format. Must be a subclass of the 
+                     TcpNetSocketReader.</entry>
+            </row>
+            <row>
+              <entry>custom-socket- writer-class-name</entry>
+              <entry>Subclass of TcpNetSocket- Writer</entry>
+              <entry>When message-format is 'custom' the name of the class that
+                     implements the custom format. Must be a subclass of the 
+                     TcpNetSocketWriter.</entry>
+            </row>
+            <row>
+              <entry>so-timeout</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname>
+                     setSoTimeout() for more information.</entry>
+            </row>
+            <row>
+              <entry>so-send-buffer-size</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname>
+                     setSendBufferSize() methods for more information.</entry>
+            </row>
+            <row>
+              <entry>so-receive-buffer- size</entry>
+              <entry></entry>
+              <entry>See <classname>java.net.Socket</classname>
+                     setReceiveBufferSize() for more information.</entry>
+            </row>
+            <row>
+              <entry>so-keep-alive</entry>
               <entry>true, false</entry>
               <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
             </row>
