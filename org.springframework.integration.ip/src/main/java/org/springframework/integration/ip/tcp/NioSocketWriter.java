@@ -102,17 +102,13 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	protected ByteBuffer getBuffer() throws InterruptedException  {
 		ByteBuffer buffer = this.buffers.poll();
 		if (buffer != null) {
+			buffer.clear();
 			return buffer;
 		}
 		synchronized (buffers) {
 			if (bufferCount < maxBuffers) {
 				bufferCount++;
 				return ByteBuffer.allocateDirect(this.sendBufferSize);
-			}
-			// another thread may have returned one while we were sync'd
-			buffer = this.buffers.poll();
-			if (buffer != null) {
-				return buffer;
 			}
 		}
 		buffer = this.buffers.take();
