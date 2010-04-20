@@ -16,15 +16,13 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.integration.core.Message;
+import org.springframework.util.Assert;
 
 /**
  * This implementation of MessageGroupProcessor will take the messages from the
@@ -32,24 +30,26 @@ import java.util.List;
  * 
  * @author Iwein Fuld
  * @author Alexander Peters
- * @since 2.0.0
+ * @author Mark Fisher
+ * @since 2.0
  */
-public class DefaultAggregatingMessageGroupProcessor implements MessageGroupProcessor {
+public class DefaultAggregatingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
 
-	public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
-		Assert.notNull(group, "MessageGroup must not be null");
-		Assert.notNull(outputChannel, "'outputChannel' must not be null");
-		List<Message<?>> messages = group.getMessages();
-		Assert.notEmpty(messages, this.getClass().getSimpleName() + " cannot process empty message groups");
-		channelTemplate.send(aggregateMessages(messages), outputChannel);
+	@Override
+	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
+		// TODO: return all non-conflicting headers
+		return new HashMap<String, Object>();
 	}
 
-	private Message<? extends Collection<?>> aggregateMessages(List<Message<?>> messages) {
+	@Override
+	protected Object aggregatePayloads(MessageGroup group) {
+		List<Message<?>> messages = group.getMessages();
+		Assert.notEmpty(messages, this.getClass().getSimpleName() + " cannot process empty message groups");
 		List<Object> payloads = new ArrayList<Object>(messages.size());
 		for (Message<?> message : messages) {
 			payloads.add(message.getPayload());
 		}
-		return MessageBuilder.withPayload(payloads).build();
+		return payloads;
 	}
 
 }
