@@ -114,10 +114,10 @@ public class DatagramPacketSendingHandlerTests {
 				}
 			}
 		});
-		Thread.sleep(1000);
+		Thread.sleep(3000);
 		String payload = "foobar";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		byte[] src = receivedPacket.getData();
 		int length = receivedPacket.getLength();
 		int offset = receivedPacket.getOffset();
@@ -218,13 +218,13 @@ public class DatagramPacketSendingHandlerTests {
 		Executor executor = Executors.newFixedThreadPool(2);
 		executor.execute(catcher);
 		executor.execute(catcher);
-		Thread.sleep(1000);
+		Thread.sleep(3000);
 		MulticastSendingMessageHandler handler = 
 			new MulticastSendingMessageHandler(multicastAddress, testPort, true, 
                     							true, "localhost", ackPort, 500000);;
 		handler.setMinAcksForSuccess(2);
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		handler.shutDown();
 	}
 	

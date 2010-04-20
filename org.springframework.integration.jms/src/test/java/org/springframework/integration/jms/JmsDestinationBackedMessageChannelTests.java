@@ -117,7 +117,7 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.subscribe(handler1);
         channel.subscribe(handler2);
         channel.start();
-        Thread.sleep(1000); // allow time for listener to subscribe
+        Thread.sleep(5000); // allow time for listener to subscribe
         channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
