@@ -54,7 +54,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
     }
 
     public final void handleMessage(Message<?> message) {
-        Assert.notNull(message == null, "Message must not be null");
+        Assert.notNull(message, "Message must not be null");
         Assert.notNull(message.getPayload(), "Message payload must not be null");
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(this + " received message: " + message);
