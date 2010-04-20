@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,34 +28,29 @@ import static org.mockito.Mockito.*;
 
 public class CorrelatingMessageHandlerIntegrationTest {
 
-	private CompletionStrategy completionStrategy;
-	private CorrelationStrategy correlationStrategy;
 	private MessageStore store = new SimpleMessageStore(100);
+
 	private MessageChannel outputChannel = mock(MessageChannel.class);
+
 	private MessageGroupProcessor processor = new PassThroughMessageGroupProcessor();
-	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(
-			store, processor);
 
-    @Before public void setupHandler(){
-        defaultHandler.setOutputChannel(outputChannel);
-        defaultHandler.setSendTimeout(-1);
-    }
+	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(store, processor);
 
-	private Message<?> correlatedMessage(Object correlationId,
-			Integer sequenceSize, Integer sequenceNumber) {
-		return MessageBuilder.withPayload("test").setCorrelationId(
-				correlationId).setSequenceNumber(sequenceNumber)
-				.setSequenceSize(sequenceSize).build();
+
+	@Before
+	public void setupHandler() {
+		defaultHandler.setOutputChannel(outputChannel);
+		defaultHandler.setSendTimeout(-1);
 	}
+
 
 	@Test
 	public void completesSingleMessage() throws Exception {
-		Message<?> message = correlatedMessage(1,
-				1, 1);
+		Message<?> message = correlatedMessage(1, 1, 1);
 		defaultHandler.handleMessage(message);
 		verify(outputChannel).send(message);
 	}
-	
+
 	@Test
 	public void completesAfterSequenceComplete() throws Exception {
 		Message<?> message1 = correlatedMessage(1, 2, 1);
@@ -66,7 +61,7 @@ public class CorrelatingMessageHandlerIntegrationTest {
 		verify(outputChannel).send(message1);
 		verify(outputChannel).send(message2);
 	}
-	
+
 	@Test
 	public void completesWithoutReleasingIncompleteCorrelations() throws Exception {
 		Message<?> message1 = correlatedMessage(1, 2, 1);
@@ -86,4 +81,14 @@ public class CorrelatingMessageHandlerIntegrationTest {
 		verify(outputChannel).send(message2);
 		verify(outputChannel).send(message2a);
 	}
+
+
+	private Message<?> correlatedMessage(Object correlationId, Integer sequenceSize, Integer sequenceNumber) {
+		return MessageBuilder.withPayload("test")
+				.setCorrelationId(correlationId)
+				.setSequenceNumber(sequenceNumber)
+				.setSequenceSize(sequenceSize)
+				.build();
+	}
+
 }
