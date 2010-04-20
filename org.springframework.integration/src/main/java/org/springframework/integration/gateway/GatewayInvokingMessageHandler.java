@@ -30,12 +30,12 @@ import org.springframework.util.Assert;
  */
 public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private GenericSendAndRecieveGateway gateway;
+	private GenericSendAndReceiveGateway gateway;
 
 	/**
 	 * @param gateway
 	 */
-	public GatewayInvokingMessageHandler(GenericSendAndRecieveGateway gateway) {
+	public GatewayInvokingMessageHandler(GenericSendAndReceiveGateway gateway) {
 		Assert.notNull(gateway, "gateway must not be null");
 		this.gateway = gateway;
 	}
@@ -49,7 +49,7 @@ public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessage
 	 * Will simply delegate to the original gateway
 	 */
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		return gateway.sendAndRecieve(requestMessage);
+		return gateway.sendAndReceive(requestMessage);
 	}
 
 }

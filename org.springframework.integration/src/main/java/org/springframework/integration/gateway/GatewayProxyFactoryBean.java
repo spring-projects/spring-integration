@@ -170,7 +170,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private Class<?> determineServiceInterface() {
 		if (this.serviceInterface == null) {
-			this.serviceInterface = GenericSendAndRecieveGateway.class;
+			this.serviceInterface = GenericSendAndReceiveGateway.class;
 		}
 		return this.serviceInterface;
 	}
