@@ -27,31 +27,29 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * This implementation of MessageGroupProcessor will take the messages from the MessageGroup and pass them on in a
- * single message with a Collection as a payload.
- *
+ * This implementation of MessageGroupProcessor will take the messages from the
+ * MessageGroup and pass them on in a single message with a Collection as a payload.
+ * 
  * @author Iwein Fuld
  * @author Alexander Peters
  * @since 2.0.0
  */
 public class DefaultAggregatingMessageGroupProcessor implements MessageGroupProcessor {
-    public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
-        Assert.notNull(group, "Message group must not be null.");
-        Assert.notNull(outputChannel, "'outputChannel' must not be null.");
 
-        List<Message<?>> messages = group.getMessages();
+	public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
+		Assert.notNull(group, "MessageGroup must not be null");
+		Assert.notNull(outputChannel, "'outputChannel' must not be null");
+		List<Message<?>> messages = group.getMessages();
+		Assert.notEmpty(messages, this.getClass().getSimpleName() + " cannot process empty message groups");
+		channelTemplate.send(aggregateMessages(messages), outputChannel);
+	}
 
-        Assert.notEmpty(messages, this.getClass().getSimpleName() + " cannot process empty message groups");
+	private Message<? extends Collection<?>> aggregateMessages(List<Message<?>> messages) {
+		List<Object> payloads = new ArrayList<Object>(messages.size());
+		for (Message<?> message : messages) {
+			payloads.add(message.getPayload());
+		}
+		return MessageBuilder.withPayload(payloads).build();
+	}
 
-        channelTemplate.send(aggregateMessages(messages), outputChannel);
-
-    }
-
-    private Message<? extends Collection> aggregateMessages(List<Message<?>> messages) {
-        List payloads = new ArrayList(messages.size());
-        for (Message<?> message : messages) {
-            payloads.add(message.getPayload());
-        }
-        return MessageBuilder.withPayload(payloads).build();
-    }
 }
