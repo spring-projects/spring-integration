@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,68 +13,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.aggregator;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * This class implements all the strategy interfaces needed for a default resequencer.
- *
+ * 
  * @author Iwein Fuld
+ * @since 2.0
  */
 public class DefaultResequencerStrategies implements CorrelationStrategy, CompletionStrategy, MessageGroupProcessor {
-    private final ConcurrentMap<Object, AtomicInteger> nextMessagesToPass = new ConcurrentHashMap<Object, AtomicInteger>();
-    private volatile DefaultResequencerStrategies.SequenceNumberComparator sequenceSizeComparator = new SequenceNumberComparator();
-    private volatile boolean releasePartialSequences;
 
-    public Object getCorrelationKey(Message<?> message) {
-        Object key = message.getHeaders().getCorrelationId();
-        nextMessagesToPass.putIfAbsent(key, new AtomicInteger(1));
-        return key;
-    }
+	private final ConcurrentMap<Object, AtomicInteger> nextMessagesToPass = new ConcurrentHashMap<Object, AtomicInteger>();
 
-    public boolean isComplete(List<? extends Message<?>> messages) {
-        return releasePartialSequences ||
-                messages.get(0).getHeaders().getSequenceSize() == messages.size();
-    }
+	private volatile SequenceNumberComparator sequenceNumberComparator = new SequenceNumberComparator();
 
-    public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
-        List<Message<?>> all = group.getMessages();
-        Object correlationKey = group.getCorrelationKey();
-        if (all.size() > 0) {
-            List<Message> sorted = new ArrayList(all);
-            Collections.sort(sorted, sequenceSizeComparator);
-            AtomicInteger nextSequence = nextMessagesToPass.get(correlationKey);
-            for (Message message : sorted) {
-                final int sequenceNumber = message.getHeaders().getSequenceNumber();
-                if (sequenceNumber <= nextSequence.get()) {
-                    channelTemplate.send(message, outputChannel);
-                    nextSequence.compareAndSet(sequenceNumber, sequenceNumber + 1);
-                    group.onProcessingOf(message);
-                }
-            }
-            MessageHeaders headers = sorted.get(0).getHeaders();
-            if (all.size() == headers.getSequenceSize()) {
-                group.onCompletion();
-            }
-        }
-    }
+	private volatile boolean releasePartialSequences;
 
-    public void setReleasePartialSequences(boolean releasePartialSequences) {
-        this.releasePartialSequences = releasePartialSequences;
-    }
 
-    private class SequenceNumberComparator implements Comparator<Message> {
-        public int compare(Message o1, Message o2) {
-            return o1.getHeaders().getSequenceNumber().compareTo(o2.getHeaders().getSequenceNumber());
-        }
-    }
+	public Object getCorrelationKey(Message<?> message) {
+		Object key = message.getHeaders().getCorrelationId();
+		nextMessagesToPass.putIfAbsent(key, new AtomicInteger(1));
+		return key;
+	}
+
+	public boolean isComplete(List<? extends Message<?>> messages) {
+		return releasePartialSequences || messages.get(0).getHeaders().getSequenceSize() == messages.size();
+	}
+
+	public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
+		List<Message<?>> all = group.getMessages();
+		Object correlationKey = group.getCorrelationKey();
+		if (all.size() > 0) {
+			List<Message<?>> sorted = new ArrayList<Message<?>>(all);
+			Collections.sort(sorted, sequenceNumberComparator);
+			AtomicInteger nextSequence = nextMessagesToPass.get(correlationKey);
+			for (Message<?> message : sorted) {
+				final int sequenceNumber = message.getHeaders().getSequenceNumber();
+				if (sequenceNumber <= nextSequence.get()) {
+					channelTemplate.send(message, outputChannel);
+					nextSequence.compareAndSet(sequenceNumber, sequenceNumber + 1);
+					group.onProcessingOf(message);
+				}
+			}
+			MessageHeaders headers = sorted.get(0).getHeaders();
+			if (all.size() == headers.getSequenceSize()) {
+				group.onCompletion();
+			}
+		}
+	}
+
+	public void setReleasePartialSequences(boolean releasePartialSequences) {
+		this.releasePartialSequences = releasePartialSequences;
+	}
+
+
+	private static class SequenceNumberComparator implements Comparator<Message<?>> {
+		public int compare(Message<?> o1, Message<?> o2) {
+			return o1.getHeaders().getSequenceNumber().compareTo(o2.getHeaders().getSequenceNumber());
+		}
+	}
+
 }
