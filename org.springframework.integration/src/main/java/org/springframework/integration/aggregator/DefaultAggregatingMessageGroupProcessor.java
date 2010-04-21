@@ -17,9 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
@@ -36,13 +34,7 @@ import org.springframework.util.Assert;
 public class DefaultAggregatingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
 
 	@Override
-	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
-		// TODO: return all non-conflicting headers
-		return new HashMap<String, Object>();
-	}
-
-	@Override
-	protected Object aggregatePayloads(MessageGroup group) {
+	protected final Object aggregatePayloads(MessageGroup group) {
 		List<Message<?>> messages = group.getMessages();
 		Assert.notEmpty(messages, this.getClass().getSimpleName() + " cannot process empty message groups");
 		List<Object> payloads = new ArrayList<Object>(messages.size());

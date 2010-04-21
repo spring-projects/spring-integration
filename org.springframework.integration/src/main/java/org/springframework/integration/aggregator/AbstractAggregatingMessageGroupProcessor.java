@@ -16,11 +16,19 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -35,6 +43,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor {
 
+	private final Log logger = LogFactory.getLog(this.getClass());
+
+
 	public final void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");
@@ -44,7 +55,44 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		channelTemplate.send(message, outputChannel);
 	}
 
-	protected abstract Map<String, Object> aggregateHeaders(MessageGroup group);
+	/**
+	 * This default implementation simply returns all headers that have no conflicts
+	 * among the group. An absent header on one or more Messages within the group is
+	 * not considered a conflict. Subclasses may override this method with more
+	 * advanced conflict-resolution strategies if necessary.
+	 */
+	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
+		Map<String, Object> aggregatedHeaders = new HashMap<String, Object>();
+		Set<String> conflictKeys = new HashSet<String>();
+		List<Message<?>> messages = group.getMessages();
+		if (messages != null) {
+			for (Message<?> message : messages) {
+				MessageHeaders currentHeaders = message.getHeaders();
+				for (String key : currentHeaders.keySet()) {
+					if (MessageHeaders.ID.equals(key) ||
+							MessageHeaders.TIMESTAMP.equals(key) ||
+							MessageHeaders.SEQUENCE_SIZE.equals(key)) {
+						continue;
+					}
+					Object value = currentHeaders.get(key);
+					if (!aggregatedHeaders.containsKey(key)) {
+						aggregatedHeaders.put(key, value);
+					}
+					else if (!value.equals(aggregatedHeaders.get(key))) {
+						conflictKeys.add(key);
+					}
+				}
+			}
+			for (String keyToRemove : conflictKeys) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) " +
+							"in MessageGroup with correlation key: " + group.getCorrelationKey());
+				}
+				aggregatedHeaders.remove(keyToRemove);
+			}
+		}
+		return aggregatedHeaders;
+	}
 
 	protected abstract Object aggregatePayloads(MessageGroup group);
 
