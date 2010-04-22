@@ -89,6 +89,16 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		this.missingValuesDoNotConflict(methodInvokingProcessor);
 	}
 
+	@Test
+	public void multipleValuesConflictUsingDefaultProcessor() {
+		this.multipleValuesConflict(defaultProcessor);
+	}
+
+	@Test
+	public void multipleValuesConflictUsingMethodInvokingProcessor() {
+		this.multipleValuesConflict(methodInvokingProcessor);
+	}
+
 
 	private void singleMessage(MessageGroupProcessor processor) {
 		Map<String, Object> headers = new HashMap<String, Object>();
@@ -104,7 +114,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		assertEquals(2, result.getHeaders().get("k2"));
 	}
 
-	public void twoMessagesWithoutConflicts(MessageGroupProcessor processor) {
+	private void twoMessagesWithoutConflicts(MessageGroupProcessor processor) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("k1", "value1");
 		headers.put("k2", new Integer(2));
@@ -119,7 +129,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		assertEquals(2, result.getHeaders().get("k2"));
 	}
 
-	public void twoMessagesWithConflicts(MessageGroupProcessor processor) {
+	private void twoMessagesWithConflicts(MessageGroupProcessor processor) {
 		Map<String, Object> headers1 = new HashMap<String, Object>();
 		headers1.put("k1", "foo");
 		headers1.put("k2", new Integer(123));
@@ -137,7 +147,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		assertEquals(123, result.getHeaders().get("k2"));
 	}
 
-	public void missingValuesDoNotConflict(MessageGroupProcessor processor) {
+	private void missingValuesDoNotConflict(MessageGroupProcessor processor) {
 		Map<String, Object> headers1 = new HashMap<String, Object>();
 		headers1.put("only1", "value1");
 		headers1.put("commonTo1And2", "foo");
@@ -173,8 +183,29 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		assertNull(result.getHeaders().get("conflictBetween2And3"));
 	}
 
+	private void multipleValuesConflict(MessageGroupProcessor processor) {
+		Map<String, Object> headers1 = new HashMap<String, Object>();
+		headers1.put("common", "valueForAll");
+		headers1.put("conflict", "valueFor1");
+		Message<?> message1 = correlatedMessage(1, 3, 1, headers1);
+		Map<String, Object> headers2 = new HashMap<String, Object>();
+		headers2.put("common", "valueForAll");
+		headers2.put("conflict", "valueFor2");
+		Message<?> message2 = correlatedMessage(1, 3, 2, headers2);
+		Map<String, Object> headers3 = new HashMap<String, Object>();
+		headers3.put("conflict", "valueFor3");
+		headers3.put("common", "valueForAll");
+		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
+		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
+		MessageGroup group = new MessageGroup(messages, new SequenceSizeCompletionStrategy(), 1);
+		processor.processAndSend(group, channelTemplate, outputChannel);
+		Message<?> result = outputChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("valueForAll", result.getHeaders().get("common"));
+		assertNull(result.getHeaders().get("conflict"));
+	}
 
-	private Message<?> correlatedMessage(Object correlationId, Integer sequenceSize,
+	private static Message<?> correlatedMessage(Object correlationId, Integer sequenceSize,
 			Integer sequenceNumber, Map<String, Object> headers) {
 		return MessageBuilder.withPayload("test")
 				.setCorrelationId(correlationId)
