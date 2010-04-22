@@ -1,0 +1,4 @@
+# Tooling related information for the integration jdbc namespace
+http\://www.springframework.org/schema/integration/jdbc@name=integration JDBC Namespace
+http\://www.springframework.org/schema/integration/jdbc@prefix=int-jdbc
+http\://www.springframework.org/schema/integration/jdbc@icon=org/springframework/integration/jdbc/config/spring-integration-jdbc.gif
