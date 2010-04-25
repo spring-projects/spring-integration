@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageChannel && shouldProxy((MessageChannel) bean,
+		if (bean instanceof MessageChannel && shouldProxy(beanName, (MessageChannel) bean,
 				(ChannelInvocationDefinitionSource) this.interceptor.obtainObjectDefinitionSource())) {
 			ProxyFactory proxyFactory = new ProxyFactory(bean);
 			proxyFactory.addAdvisor(new DefaultPointcutAdvisor(this.interceptor));
@@ -58,11 +58,10 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 		return bean;
 	}
 
-	private boolean shouldProxy(MessageChannel channel, ChannelInvocationDefinitionSource definitionSource) {
-		Assert.notNull(channel.getName(), "channel name must not be null");
+	private boolean shouldProxy(String beanName, MessageChannel channel, ChannelInvocationDefinitionSource definitionSource) {
 		Set<Pattern> patterns = ((ChannelInvocationDefinitionSource) this.interceptor.obtainObjectDefinitionSource()).getPatterns();
 		for (Pattern pattern : patterns) {
-			if (pattern.matcher(channel.getName()).matches()) {
+			if (pattern.matcher(beanName).matches()) {
 				return true;
 			}
 		}
