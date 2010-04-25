@@ -16,13 +16,9 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.integration.core.Message;
+
+import java.util.*;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain
@@ -127,5 +123,14 @@ public class MessageGroup {
 			listener.onCompletionOf(correlationKey);
 		}
 	}
+
+	/**
+	 * This method is a shorthand for signaling that all messages in the group have been
+	 * processed and that the group is completed.
+	 */
+	public void onCompleteProcessing() {
+		onProcessingOf(messages.toArray(new Message[messages.size()]));
+		onCompletion();
+    }
 
 }

@@ -16,21 +16,16 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
+
+import java.util.*;
 
 /**
  * Base class for MessageGroupProcessor implementations that aggregate the
@@ -53,6 +48,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers).build();
 		channelTemplate.send(message, outputChannel);
+		group.onCompleteProcessing();
 	}
 
 	/**
