@@ -21,6 +21,7 @@ import java.rmi.registry.Registry;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
@@ -57,8 +58,10 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 	@Override
 	public void setRequestChannel(MessageChannel requestChannel) {
 		Assert.notNull(requestChannel, "requestChannel must not be null");
-		Assert.isTrue(StringUtils.hasText(requestChannel.getName()), "RmiGateway's request channel must have a name.");
-		this.requestChannelName = requestChannel.getName();
+		Assert.isTrue(requestChannel instanceof AbstractMessageChannel &&
+				StringUtils.hasText(((AbstractMessageChannel) requestChannel).getName()),
+				"RmiGateway's request channel must have a name.");
+		this.requestChannelName = ((AbstractMessageChannel) requestChannel).getName();
 		super.setRequestChannel(requestChannel);
 	}
 
