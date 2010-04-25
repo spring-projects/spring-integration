@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.security.ConfigAttribute;
 import org.springframework.security.ConfigAttributeDefinition;
@@ -68,7 +69,9 @@ public class ChannelInvocationDefinitionSource implements ObjectDefinitionSource
 	public ConfigAttributeDefinition getAttributes(Object object) throws IllegalArgumentException {
 		Assert.isAssignable(ChannelInvocation.class, object.getClass());
 		ChannelInvocation invocation = (ChannelInvocation) object;
-		String channelName = invocation.getChannel().getName();
+		MessageChannel channel = invocation.getChannel();
+		Assert.isAssignable(AbstractMessageChannel.class, channel.getClass());
+		String channelName = ((AbstractMessageChannel) channel).getName();
 		List<ConfigAttribute> attributes = new ArrayList<ConfigAttribute>();
 		for (Map.Entry<Pattern, ChannelAccessPolicy> mapping : this.patternMappings.entrySet()) {
 			Pattern pattern = mapping.getKey();
