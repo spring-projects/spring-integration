@@ -84,8 +84,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile MessageChannel discardChannel = new NullChannel();
 
-	private volatile ChannelResolver channelResolver;
-
 	private final IdTracker tracker = new IdTracker();
 
 	private final BlockingQueue<DelayedKey> keysInBuffer = new DelayQueue<DelayedKey>();
@@ -153,7 +151,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
+		super.setChannelResolver(channelResolver);
 	}
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -192,7 +190,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 							logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 						}
 						outputProcessor.processAndSend(group, channelTemplate,
-								this.resolveReplyChannel(message, this.outputChannel, this.channelResolver));
+								this.resolveReplyChannel(message, this.outputChannel));
 					}
 				}
 				else {
@@ -292,8 +290,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 				MessageGroup group = new MessageGroup(all, completionStrategy, key, deleteOrTrackCallback());
 				if (all.size() > 0) {
 					// last chance for normal completion
-					MessageChannel outputChannel = resolveReplyChannel(
-							all.get(0), this.outputChannel, this.channelResolver);
+					MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel);
 					boolean processed = false;
 					if (group.isComplete()) {
 						outputProcessor.processAndSend(group, channelTemplate, outputChannel);

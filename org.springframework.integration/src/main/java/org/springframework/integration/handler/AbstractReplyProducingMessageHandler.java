@@ -99,7 +99,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			return;
 		}
-		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel, this.getChannelResolver());
+		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel);
 		MessageHeaders requestHeaders = message.getHeaders();
 		this.handleResult(result, requestHeaders, replyChannel);
 	}

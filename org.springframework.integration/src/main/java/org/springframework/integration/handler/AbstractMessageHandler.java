@@ -74,8 +74,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
     protected abstract void handleMessageInternal(Message<?> message) throws Exception;
 
     protected final MessageChannel resolveReplyChannel(Message<?> requestMessage,
-                                                       MessageChannel defaultOutputChannel,
-                                                       ChannelResolver channelResolver) {
+                                                       MessageChannel defaultOutputChannel) {
+    	ChannelResolver channelResolver = this.getChannelResolver();
         MessageChannel replyChannel = defaultOutputChannel;
         if (replyChannel == null) {
             Object replyChannelHeader = requestMessage.getHeaders().getReplyChannel();
