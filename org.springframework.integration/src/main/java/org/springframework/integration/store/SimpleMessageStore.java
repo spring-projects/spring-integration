@@ -17,6 +17,8 @@
 package org.springframework.integration.store;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.util.UpperBound;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -35,15 +37,31 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SimpleMessageStore implements MessageStore {
 
     private final Map<Object, Message<?>> map;
+	private final UpperBound upperBound;
 
-
-    public SimpleMessageStore(int capacity) {
-        this.map = new ConcurrentHashMap<Object, Message<?>>(capacity);
+	/**
+	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited
+	 * size if the given capacity is less than 1.
+	 */
+	public SimpleMessageStore(int capacity) {
+        this.map = new ConcurrentHashMap<Object, Message<?>>();
+		this.upperBound =  new UpperBound(capacity);
     }
 
+	/**
+	 * Creates a SimpleMessageStore with unlimited capacity
+	 */
+	public SimpleMessageStore() {
+		this(0);
+	}
 
-    @SuppressWarnings("unchecked")
+
+	@SuppressWarnings("unchecked")
     public <T> Message<T> put(Message<T> message) {
+		if (!upperBound.tryAcquire(0)){
+			throw new MessagingException(this.getClass().getSimpleName() +
+					" was out of capacity at, try constructing it with a larger capacity.");
+		}
         return (Message<T>) this.map.put(message.getHeaders().getId(), message);
     }
 
@@ -56,7 +74,11 @@ public class SimpleMessageStore implements MessageStore {
     }
 
     public Message<?> delete(Object key) {
-        return (key != null) ? this.map.remove(key) : null;
+		if (key != null) {
+			upperBound.release();
+			return this.map.remove(key);
+		}
+		else return null;
     }
 
     public int size() {

@@ -18,11 +18,10 @@ package org.springframework.integration.channel;
 
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagePriority;
+import org.springframework.integration.util.UpperBound;
 
 /**
  * A message channel that prioritizes messages based on a {@link Comparator}.
@@ -32,7 +31,7 @@ import org.springframework.integration.core.MessagePriority;
  */
 public class PriorityChannel extends QueueChannel {
 
-	private final Semaphore semaphore;
+	private final UpperBound upperBound;
 
 
 	/**
@@ -45,7 +44,7 @@ public class PriorityChannel extends QueueChannel {
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<Message<?>>(11,
 				(comparator != null) ? comparator : new MessagePriorityComparator()));
-		this.semaphore =  (capacity > 0) ? new Semaphore(capacity, true) : null;
+		this.upperBound = new UpperBound(capacity);
 	}
 
 	/**
@@ -77,7 +76,7 @@ public class PriorityChannel extends QueueChannel {
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		if (!acquirePermitIfNecessary(timeout)) {
+		if (!upperBound.tryAcquire(timeout)) {
 			return false;
 		}
 		return super.doSend(message, 0);
@@ -87,31 +86,11 @@ public class PriorityChannel extends QueueChannel {
 	protected Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
-			this.releasePermitIfNecessary();
+			upperBound.release();
 			return message;
 		}
 		return null;
 	}
-
-	private boolean acquirePermitIfNecessary(long timeoutInMilliseconds) {
-		if (this.semaphore != null) {
-			try {
-				return this.semaphore.tryAcquire(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private void releasePermitIfNecessary() {
-		if (this.semaphore != null) {
-			this.semaphore.release();
-		}
-	}
-
 
 	private static class MessagePriorityComparator implements Comparator<Message<?>> {
 

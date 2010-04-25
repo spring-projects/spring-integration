@@ -118,7 +118,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	public CorrelatingMessageHandler(MessageGroupProcessor processor) {
-		this(new SimpleMessageStore(100), new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID),
+		this(new SimpleMessageStore(0), new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID),
 				new SequenceSizeCompletionStrategy(), processor);
 	}
 

@@ -1,0 +1,69 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.util;
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Thin wrapper around a Semaphore that allows to create a potentially unlimited upper bound
+ * to by used in buffers of messages (e.g. a QueueChannel or a MessageStore).
+ *
+ * @author Mark Fisher
+ * @author Iwein Fuld
+ * @since 2.0
+ */
+public final class UpperBound {
+	public final Semaphore semaphore;
+
+	/**
+	 * Create an UpperBound with the given capacity. If the given capacity is less than 1
+	 * an infinite UpperBound is created.
+	 *
+	 * @param capacity
+	 */
+	public UpperBound(int capacity) {
+		this.semaphore = (capacity > 0) ? new Semaphore(capacity, true) : null;
+	}
+
+	/**
+	 * Acquires a lock on the underlying semaphore if this UpperBound is bounded and returns true
+	 * if it succeeds within the given timeout
+	 */
+	public boolean tryAcquire(long timeoutInMilliseconds) {
+		if (this.semaphore != null) {
+			try {
+				return this.semaphore.tryAcquire(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Releases one lock on the underlying semaphore. This is typically not done by the same Thread
+	 * that acquired the lock, but by the thread that picked up the message.
+	 */
+	public void release() {
+		if (this.semaphore != null) {
+			this.semaphore.release();
+		}
+	}
+}
