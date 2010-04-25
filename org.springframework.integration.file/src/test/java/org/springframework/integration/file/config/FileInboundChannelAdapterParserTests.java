@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,27 @@
 
 package org.springframework.integration.file.config;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.file.CompositeFileListFilter;
-import org.springframework.integration.file.DefaultDirectoryScanner;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.file.CompositeFileListFilter;
+import org.springframework.integration.file.DefaultDirectoryScanner;
+import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Iwein Fuld
@@ -51,19 +54,20 @@ public class FileInboundChannelAdapterParserTests {
 
 	private DirectFieldAccessor accessor;
 
-    @Before
+	@Before
 	public void init() {
 		accessor = new DirectFieldAccessor(source);
 	}
 
+
 	@Test
 	public void channelName() throws Exception {
-		MessageChannel channel = (MessageChannel) context.getBean("inputDirPoller");
-		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getName());		
+		AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
+		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getName());
 	}
 
 	@Test
-	public void inputDirectory() {	
+	public void inputDirectory() {
 		File expected = new File(System.getProperty("java.io.tmpdir"));
 		File actual = (File) accessor.getPropertyValue("directory");
 		assertEquals("'directory' should be set", expected, actual);
@@ -71,11 +75,11 @@ public class FileInboundChannelAdapterParserTests {
 
 	@Test
 	public void filter() throws Exception {
-        DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
-        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
-        assertTrue("'filter' should be set", scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
+		DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
+		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
+		assertTrue("'filter' should be set",
+				scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
 	}
-    
 
 	@Test
 	public void comparator() throws Exception {
@@ -86,6 +90,7 @@ public class FileInboundChannelAdapterParserTests {
 		Object actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
 		assertSame("comparator reference not set, ", expected, actual);
 	}
+
 
 	static class TestComparator implements Comparator<File> {
 

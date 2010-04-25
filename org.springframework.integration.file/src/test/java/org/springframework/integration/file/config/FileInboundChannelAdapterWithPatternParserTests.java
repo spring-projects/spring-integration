@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,31 @@
 
 package org.springframework.integration.file.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.file.*;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.file.AcceptOnceFileListFilter;
+import org.springframework.integration.file.CompositeFileListFilter;
+import org.springframework.integration.file.FileListFilter;
+import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.PatternMatchingFileListFilter;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
@@ -57,9 +65,10 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 		this.accessor = new DirectFieldAccessor(source);
 	}
 
+
 	@Test
 	public void channelName() {
-		MessageChannel channel = (MessageChannel) context.getBean("adapterWithPattern");
+		AbstractMessageChannel channel = context.getBean("adapterWithPattern", AbstractMessageChannel.class);
 		assertEquals("adapterWithPattern", channel.getName());		
 	}
 
