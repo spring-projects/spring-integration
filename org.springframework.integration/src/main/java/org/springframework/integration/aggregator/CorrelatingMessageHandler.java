@@ -16,6 +16,18 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -34,11 +46,6 @@ import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
-
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * MessageHandler that holds a buffer of correlated messages in a MessageStore.
