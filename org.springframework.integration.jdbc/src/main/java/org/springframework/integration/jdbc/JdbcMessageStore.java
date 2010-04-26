@@ -23,7 +23,6 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.util.Assert;
@@ -47,14 +46,14 @@ public class JdbcMessageStore implements MessageStore {
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where CORRELATION_KEY=?";
+	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where CORRELATION_KEY=?";
 
-	private static final String GET_MESSAGE = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
+	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE = "DELETE from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
-	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION)"
-			+ " values (?, ?, ?, ?, ?)";
+	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION)"
+			+ " values (?, ?, ?, ?)";
 
 	private static final String UPDATE_MESSAGE = "UPDATE %PREFIX%MESSAGE set CORRELATION_KEY=?, MESSAGE_BYTES=?, VERSION=? where VERSION=? and MESSAGE_ID=?";
 
@@ -78,8 +77,6 @@ public class JdbcMessageStore implements MessageStore {
 
 	private JdbcOperations jdbcTemplate;
 
-	private DataFieldMaxValueIncrementer incrementer;
-
 	private LobHandler lobHandler = new DefaultLobHandler();
 
 	/**
@@ -92,10 +89,8 @@ public class JdbcMessageStore implements MessageStore {
 	 * Create a {@link MessageStore} with all mandatory properties.
 	 * 
 	 * @param dataSource a {@link DataSource}
-	 * @param incrementer a {@link DataFieldMaxValueIncrementer}
 	 */
-	public JdbcMessageStore(DataSource dataSource, DataFieldMaxValueIncrementer incrementer) {
-		this.incrementer = incrementer;
+	public JdbcMessageStore(DataSource dataSource) {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
@@ -144,19 +139,6 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	/**
-	 * Setter for {@link DataFieldMaxValueIncrementer} to be used when
-	 * generating primary keys for {@link Message} instances. The message store
-	 * manages its own surrogate keys for messages to avoid any ambiguity. When
-	 * you put a message in the store it should come back as a new instance with
-	 * a header called {@link #ID_KEY}.
-	 * 
-	 * @param incrementer the {@link DataFieldMaxValueIncrementer}
-	 */
-	public void setIncrementer(DataFieldMaxValueIncrementer incrementer) {
-		this.incrementer = incrementer;
-	}
-
-	/**
 	 * Override the {@link LobHandler} that is used to create and unpack large
 	 * objects in SQL queries. The default is fine for almost all platforms, but
 	 * some Oracle drivers require a native implementation.
@@ -174,7 +156,6 @@ public class JdbcMessageStore implements MessageStore {
 	 */
 	public void afterPropertiesSet() throws Exception {
 		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
-		Assert.state(incrementer != null, "A DataFieldMaxValueIncrementer must be provided");
 	}
 
 	public Message<?> delete(UUID id) {
@@ -184,7 +165,8 @@ public class JdbcMessageStore implements MessageStore {
 			return null;
 		}
 
-		int updated = jdbcTemplate.update(getQuery(DELETE_MESSAGE), new Object[] { getKey(id) }, new int[] { Types.VARCHAR });
+		int updated = jdbcTemplate.update(getQuery(DELETE_MESSAGE), new Object[] { getKey(id) },
+				new int[] { Types.VARCHAR });
 
 		if (updated != 0) {
 			return message;
@@ -210,14 +192,11 @@ public class JdbcMessageStore implements MessageStore {
 
 	public <T> Message<T> put(final Message<T> message) {
 
-		final int version = message.getHeaders().containsKey(VERSION_KEY) ? (Integer) message.getHeaders().get(
+		boolean alreadySaved = message.getHeaders().containsKey(VERSION_KEY);
+		final int version = alreadySaved ? (Integer) message.getHeaders().get(
 				VERSION_KEY) : 0;
 
-		final long id;
-
-		if (message.getHeaders().containsKey(ID_KEY)) {
-
-			id = (Long) message.getHeaders().get(ID_KEY);
+		if (alreadySaved) {
 
 			final String correlationId = getKey(message.getHeaders().getCorrelationId());
 			final String messageId = getKey(message.getHeaders().getId());
@@ -225,7 +204,7 @@ public class JdbcMessageStore implements MessageStore {
 
 			int updated = jdbcTemplate.update(getQuery(UPDATE_MESSAGE), new PreparedStatementSetter() {
 				public void setValues(PreparedStatement ps) throws SQLException {
-					logger.debug("Updating message with id key=" + messageId + " and surrogate id=" + id);
+					logger.debug("Updating message with id key=" + messageId);
 					ps.setString(1, correlationId);
 					lobHandler.getLobCreator().setBlobAsBytes(ps, 2, messageBytes);
 					ps.setInt(3, version + 1);
@@ -235,7 +214,7 @@ public class JdbcMessageStore implements MessageStore {
 			});
 
 			if (updated != 1) {
-				int currentVersion = jdbcTemplate.queryForInt(getQuery(CURRENT_VERSION_MESSAGE), new Object[] { id });
+				int currentVersion = jdbcTemplate.queryForInt(getQuery(CURRENT_VERSION_MESSAGE), new Object[] { messageId });
 				throw new OptimisticLockingFailureException("Attempt to update message id="
 						+ message.getHeaders().getId() + " with wrong version (" + version
 						+ "), where current version is " + currentVersion);
@@ -244,26 +223,23 @@ public class JdbcMessageStore implements MessageStore {
 		}
 		else {
 
-			id = incrementer.nextLongValue();
-
 			final String messageId = getKey(message.getHeaders().getId());
 			final String correlationId = getKey(message.getHeaders().getCorrelationId());
 			final byte[] messageBytes = SerializationUtils.serialize(message);
 
 			jdbcTemplate.update(getQuery(CREATE_MESSAGE), new PreparedStatementSetter() {
 				public void setValues(PreparedStatement ps) throws SQLException {
-					logger.debug("Inserting message with id key=" + messageId + " and surrogate id=" + id);
-					ps.setLong(1, id);
-					ps.setString(2, messageId);
-					ps.setString(3, correlationId);
-					lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
-					ps.setInt(5, version);
+					logger.debug("Inserting message with id key=" + messageId);
+					ps.setString(1, messageId);
+					ps.setString(2, correlationId);
+					lobHandler.getLobCreator().setBlobAsBytes(ps, 3, messageBytes);
+					ps.setInt(4, version);
 				}
 			});
 
 		}
 
-		return MessageBuilder.fromMessage(message).setHeader(ID_KEY, id).setHeader(VERSION_KEY, version).build();
+		return MessageBuilder.fromMessage(message).setHeader(VERSION_KEY, version).build();
 
 	}
 
@@ -307,8 +283,7 @@ public class JdbcMessageStore implements MessageStore {
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Message<?> message = (Message<?>) SerializationUtils.deserialize(lobHandler.getBlobAsBytes(rs,
 					"MESSAGE_BYTES"));
-			return MessageBuilder.fromMessage(message).setHeader(ID_KEY, rs.getLong("STORE_ID")).setHeader(VERSION_KEY,
-					rs.getInt("VERSION")).build();
+			return MessageBuilder.fromMessage(message).setHeader(VERSION_KEY, rs.getInt("VERSION")).build();
 		}
 
 	}

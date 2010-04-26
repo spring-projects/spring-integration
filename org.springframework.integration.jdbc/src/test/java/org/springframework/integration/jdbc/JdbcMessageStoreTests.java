@@ -12,10 +12,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.jdbc.support.incrementer.DataFieldMaxValueIncrementer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,17 +24,12 @@ public class JdbcMessageStoreTests {
 	
 	@Autowired
 	private DataSource dataSource;
-
-	@Autowired
-	@Qualifier("messageIncrementer")
-	private DataFieldMaxValueIncrementer messageIncrementer;
-	
 	
 	private JdbcMessageStore messageStore;
 
 	@Before
 	public void init() {
-		messageStore = new JdbcMessageStore(dataSource, messageIncrementer);
+		messageStore = new JdbcMessageStore(dataSource);
 	}
 	
 	@Test
