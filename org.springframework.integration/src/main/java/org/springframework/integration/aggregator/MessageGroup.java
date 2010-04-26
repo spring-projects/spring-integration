@@ -16,9 +16,13 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.core.Message;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.*;
+import org.springframework.integration.core.Message;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain
