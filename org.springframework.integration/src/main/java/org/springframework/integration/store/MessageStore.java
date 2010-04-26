@@ -56,11 +56,6 @@ public interface MessageStore {
 	Message<?> delete(UUID id);
 
 	/**
-	 * Return all Messages currently in the MessageStore.
-	 */
-	List<Message<?>> list();
-
-	/**
 	 * Return all Messages currently in the MessageStore that
 	 * contain the provided correlationId header value.
 	 * @see org.springframework.integration.core.MessageHeaders#getCorrelationId()

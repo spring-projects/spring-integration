@@ -49,8 +49,6 @@ public class JdbcMessageStore implements MessageStore {
 
 	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where CORRELATION_KEY=?";
 
-	private static final String LIST_ALL_MESSAGES = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE";
-
 	private static final String GET_MESSAGE = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE = "DELETE from %PREFIX%MESSAGE where MESSAGE_ID=?";
@@ -203,10 +201,6 @@ public class JdbcMessageStore implements MessageStore {
 			return null;
 		}
 		return list.get(0);
-	}
-
-	public List<Message<?>> list() {
-		return jdbcTemplate.query(getQuery(LIST_ALL_MESSAGES), new MessageMapper());
 	}
 
 	public List<Message<?>> list(Object correlationId) {

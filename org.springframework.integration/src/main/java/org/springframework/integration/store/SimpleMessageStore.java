@@ -29,25 +29,27 @@ import org.springframework.integration.util.UpperBound;
 import org.springframework.util.Assert;
 
 /**
- * Map-based implementation of {@link MessageStore} that enforces a maximum capacity.
- *
+ * Map-based implementation of {@link MessageStore} that enforces a maximum
+ * capacity.
+ * 
  * @author Iwein Fuld
  * @author Mark Fisher
  * @since 2.0
  */
 public class SimpleMessageStore implements MessageStore {
 
-    private final Map<UUID, Message<?>> map;
+	private final Map<UUID, Message<?>> map;
+
 	private final UpperBound upperBound;
 
 	/**
-	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited
-	 * size if the given capacity is less than 1.
+	 * Creates a SimpleMessageStore with a maximum size limited by the given
+	 * capacity, or unlimited size if the given capacity is less than 1.
 	 */
 	public SimpleMessageStore(int capacity) {
-        this.map = new ConcurrentHashMap<UUID, Message<?>>();
-		this.upperBound =  new UpperBound(capacity);
-    }
+		this.map = new ConcurrentHashMap<UUID, Message<?>>();
+		this.upperBound = new UpperBound(capacity);
+	}
 
 	/**
 	 * Creates a SimpleMessageStore with unlimited capacity
@@ -56,48 +58,43 @@ public class SimpleMessageStore implements MessageStore {
 		this(0);
 	}
 
-
 	@SuppressWarnings("unchecked")
-    public <T> Message<T> put(Message<T> message) {
-		if (!upperBound.tryAcquire(0)){
-			throw new MessagingException(this.getClass().getSimpleName() +
-					" was out of capacity at, try constructing it with a larger capacity.");
+	public <T> Message<T> put(Message<T> message) {
+		if (!upperBound.tryAcquire(0)) {
+			throw new MessagingException(this.getClass().getSimpleName()
+					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-        return (Message<T>) this.map.put(message.getHeaders().getId(), message);
-    }
+		return (Message<T>) this.map.put(message.getHeaders().getId(), message);
+	}
 
-    public Message<?> get(UUID key) {
-        return (key != null) ? this.map.get(key) : null;
-    }
+	public Message<?> get(UUID key) {
+		return (key != null) ? this.map.get(key) : null;
+	}
 
-    public List<Message<?>> list() {
-        return new ArrayList<Message<?>>(this.map.values());
-    }
-
-    public Message<?> delete(UUID key) {
+	public Message<?> delete(UUID key) {
 		if (key != null) {
 			upperBound.release();
 			return this.map.remove(key);
 		}
-		else return null;
-    }
+		else
+			return null;
+	}
 
-    public int size() {
-        return this.map.size();
-    }
+	public int size() {
+		return this.map.size();
+	}
 
-
-    public List<Message<?>> list(Object correlationKey) {
-        Assert.notNull(correlationKey, "'correlationKey' must not be null");
-        List<Message<?>> matched = new ArrayList<Message<?>>();
-        Collection<Message<?>> values = map.values();
-        for (Message<?> message : values) {
-            Object correlationId = message.getHeaders().getCorrelationId();
-            if (correlationId != null && correlationId.equals(correlationKey)) {
-                matched.add(message);
-            }
-        }
-        return matched;
-    }
+	public List<Message<?>> list(Object correlationKey) {
+		Assert.notNull(correlationKey, "'correlationKey' must not be null");
+		List<Message<?>> matched = new ArrayList<Message<?>>();
+		Collection<Message<?>> values = map.values();
+		for (Message<?> message : values) {
+			Object correlationId = message.getHeaders().getCorrelationId();
+			if (correlationId != null && correlationId.equals(correlationKey)) {
+				matched.add(message);
+			}
+		}
+		return matched;
+	}
 
 }
