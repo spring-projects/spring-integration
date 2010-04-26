@@ -56,9 +56,8 @@ public class SingleChannelRouterTests {
 			}
 		};
 		QueueChannel channel = new QueueChannel();
-		channel.setBeanName("testChannel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(channel);
+		channelResolver.addChannel("testChannel", channel);
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
 		router.handleMessage(message);

@@ -44,9 +44,8 @@ public class MethodInvokingRouterTests {
 	@Test
 	public void channelNameResolutionByPayloadConfiguredByMethodReference() throws Exception {
 		QueueChannel barChannel = new QueueChannel();
-		barChannel.setBeanName("bar-channel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(barChannel);		
+		channelResolver.addChannel("bar-channel", barChannel);
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
@@ -61,9 +60,8 @@ public class MethodInvokingRouterTests {
 	@Test
 	public void channelNameResolutionByPayloadConfiguredByMethodName() {
 		QueueChannel barChannel = new QueueChannel();
-		barChannel.setBeanName("bar-channel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(barChannel);		
+		channelResolver.addChannel("bar-channel", barChannel);
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
 		router.setChannelResolver(channelResolver);
@@ -78,11 +76,9 @@ public class MethodInvokingRouterTests {
 	public void channelNameResolutionByHeader() throws Exception {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
 		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
@@ -123,11 +119,9 @@ public class MethodInvokingRouterTests {
 	private void doTestChannelNameResolutionByMessage(MethodInvokingRouter router) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -166,10 +160,8 @@ public class MethodInvokingRouterTests {
 		Message<String> badMessage = new StringMessage("bad");
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		router.handleMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
@@ -202,10 +194,8 @@ public class MethodInvokingRouterTests {
 	private void doTestChannelInstanceResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -241,10 +231,8 @@ public class MethodInvokingRouterTests {
 	private void doTestMultiChannelNameResolutionByPayload(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -286,10 +274,8 @@ public class MethodInvokingRouterTests {
 	private void doTestMultiChannelNameResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -331,10 +317,8 @@ public class MethodInvokingRouterTests {
 	private void doTestMultiChannelNameArrayResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -376,10 +360,8 @@ public class MethodInvokingRouterTests {
 	private void doTestMultiChannelListResolutionByPayload(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -421,10 +403,8 @@ public class MethodInvokingRouterTests {
 	private void doTestMultiChannelListResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
@@ -466,10 +446,8 @@ public class MethodInvokingRouterTests {
 	private void doTestMultiChannelArrayResolutionByMessage(MethodInvokingRouter router, TestChannelResolver channelResolver) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		fooChannel.setBeanName("foo-channel");
-		barChannel.setBeanName("bar-channel");
-		channelResolver.addChannel(fooChannel);
-		channelResolver.addChannel(barChannel);
+		channelResolver.addChannel("foo-channel", fooChannel);
+		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");

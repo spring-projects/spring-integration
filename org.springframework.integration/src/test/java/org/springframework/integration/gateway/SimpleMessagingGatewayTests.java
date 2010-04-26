@@ -16,7 +16,13 @@
 
 package org.springframework.integration.gateway;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -57,6 +63,8 @@ public class SimpleMessagingGatewayTests {
 		this.simpleMessagingGateway.setRequestChannel(requestChannel);
 		this.simpleMessagingGateway.setReplyChannel(replyChannel);
 		this.simpleMessagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
+		this.simpleMessagingGateway.afterPropertiesSet();
+		this.simpleMessagingGateway.start();
 		reset(allmocks);
 	}
 
@@ -139,7 +147,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendObjectAndReceiveObject() {
-		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(replyChannel.receive(0)).andReturn(messageMock);
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
 		this.simpleMessagingGateway.setReplyTimeout(0);
@@ -153,7 +161,7 @@ public class SimpleMessagingGatewayTests {
 		// setup local mocks
 		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);	
 		//set expectations
-		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(replyChannel.receive(0)).andReturn(messageMock);
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(requestChannel.send(messageMock)).andReturn(true);
 		expect(messageHeadersMock.getId()).andReturn(UUID.randomUUID());
@@ -161,6 +169,7 @@ public class SimpleMessagingGatewayTests {
 		//play scenario
 		replay(allmocks);
 		replay(messageHeadersMock);
+		this.simpleMessagingGateway.setReplyTimeout(0);
 		this.simpleMessagingGateway.sendAndReceive(messageMock);
 		verify(allmocks);
 		verify(messageHeadersMock);
@@ -168,7 +177,6 @@ public class SimpleMessagingGatewayTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sendNullAndReceiveObject() {
-		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		replay(allmocks);
 		try {
 			this.simpleMessagingGateway.sendAndReceive(null);
@@ -180,10 +188,11 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendObjectAndReceiveMessage() {
-		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(replyChannel.receive(100)).andReturn(messageMock);
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
-		this.simpleMessagingGateway.setReplyTimeout(0);
+		// TODO: commenting the next line causes the test to hang
+		this.simpleMessagingGateway.setReplyTimeout(100);
 		this.simpleMessagingGateway.sendAndReceiveMessage("test");
 		verify(allmocks);
 	}
@@ -194,7 +203,7 @@ public class SimpleMessagingGatewayTests {
 		// setup local mocks
 		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);	
 		//set expectations
-		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(replyChannel.receive(0)).andReturn(messageMock);
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(messageHeadersMock.getReplyChannel()).andReturn(replyChannel);
 		expect(requestChannel.send(messageMock)).andReturn(true);
@@ -207,7 +216,6 @@ public class SimpleMessagingGatewayTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sendNullAndReceiveMessage() {
-		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		replay(allmocks);
 		try {
 			this.simpleMessagingGateway.sendAndReceiveMessage(null);

@@ -44,11 +44,9 @@ public class MultiChannelRouterTests {
 		};
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
-		channel1.setBeanName("channel1");
-		channel2.setBeanName("channel2");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(channel1);
-		channelResolver.addChannel(channel2);
+		channelResolver.addChannel("channel1", channel1);
+		channelResolver.addChannel("channel2", channel2);
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
 		router.handleMessage(message);

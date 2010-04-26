@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class ServiceActivatorEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		channel.setBeanName("testChannel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(channel);
+		channelResolver.addChannel("testChannel", channel);
 		ServiceActivatingHandler endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
 		Message<?> message = MessageBuilder.withPayload("foo")
@@ -105,7 +105,7 @@ public class ServiceActivatorEndpointTests {
 		};
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(handler, "handle");
 		TestChannelResolver channelResolver = new TestChannelResolver();
-		channelResolver.addChannel(replyChannel2);
+		channelResolver.addChannel("replyChannel2", replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReplyChannel(replyChannel1).build();
@@ -208,6 +208,7 @@ public class ServiceActivatorEndpointTests {
 
 	private static class TestBean {
 
+		@SuppressWarnings("unused")
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload().toString().toUpperCase());
 		}
@@ -216,6 +217,7 @@ public class ServiceActivatorEndpointTests {
 
 	private static class TestNullReplyBean {
 
+		@SuppressWarnings("unused")
 		public Message<?> handle(Message<?> message) {
 			return null;
 		}

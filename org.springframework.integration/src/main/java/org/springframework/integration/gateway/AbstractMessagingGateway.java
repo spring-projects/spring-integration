@@ -46,6 +46,8 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 	private volatile MessageChannel replyChannel;
 
+	private volatile long replyTimeout = 1000;
+
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile boolean shouldThrowErrors = true;
@@ -93,6 +95,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 	 * @param replyTimeout the timeout value in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {
+		this.replyTimeout = replyTimeout;
 		this.channelTemplate.setReceiveTimeout(replyTimeout);
 	}
 
@@ -198,6 +201,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 						(PollableChannel) this.replyChannel, handler);
 				endpoint.setTrigger(new PeriodicTrigger(10));
 				endpoint.setBeanFactory(this.getBeanFactory());
+				endpoint.setReceiveTimeout(this.replyTimeout);
 				endpoint.afterPropertiesSet();
 				correlator = endpoint;
 			}

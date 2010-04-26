@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -128,12 +129,12 @@ public abstract class TestUtils {
         }
 
         public void registerChannel(String channelName, MessageChannel channel) {
-            if (channel.getName() != null) {
+            if (channel instanceof AbstractMessageChannel && ((AbstractMessageChannel) channel).getName() != null) {
                 if (channelName == null) {
-                    Assert.notNull(channel.getName(), "channel name must not be null");
-                    channelName = channel.getName();
-                } else {
-                    Assert.isTrue(channel.getName().equals(channelName),
+                    channelName = ((AbstractMessageChannel) channel).getName();
+                }
+                else {
+                    Assert.isTrue(((AbstractMessageChannel) channel).getName().equals(channelName),
                             "channel name has already been set with a conflicting value");
                 }
             }
@@ -151,6 +152,7 @@ public abstract class TestUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static MessageHandler handlerExpecting(final Matcher<Message> messageMatcher) {
         return new MessageHandler() {
             public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {

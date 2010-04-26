@@ -40,10 +40,10 @@ public class TestChannelResolver implements ChannelResolver {
 		this.channels = channels;
 	}
 
-	public void addChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		Assert.notNull(channel.getName(), "channel name must not be null");
-		this.channels.put(channel.getName(), channel);
+	public void addChannel(String name, MessageChannel channel) {
+		Assert.notNull(name, "name must not be null");
+		Assert.notNull(channel, "channel must not be null");
+		this.channels.put(name, channel);
 	}
 
 }
