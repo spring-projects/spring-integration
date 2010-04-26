@@ -16,19 +16,22 @@
 
 package org.springframework.integration.aggregator.scenarios;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import junit.framework.Assert;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Tests courtesy of Sean Crotty (INT-1093)
@@ -46,26 +49,31 @@ public class AggregationResendTest {
 	DirectChannel input_for_aggregator_without_explicit_timeout;
 
 	@Autowired
-	PollableChannel reply;
+	QueueChannel reply;
 
-	@Test
+
 	/**
-	 * We expect to get back only one Message from the aggregator. We set no
-	 * explicit timeout value on the aggregator. But apparently is automatically
-	 * times out after 60 seconds. So What we'll see is that we get one aggregate
-	 * Message back immediately. Then we'll get another 3 after the 60 seconds.
+	 * We expect to get back only one Message from the aggregator. We set an
+	 * explicit timeout value of 1 second on the aggregator. What we'll see is
+	 * that we get one aggregate Message back immediately.
+	 * 
+	 * <p>We should <emphasis>not</emphasis> get another 3 after the 1 second.
 	 */
+	@Test
 	public void testAggregatorWithoutExplicitTimeoutReturnsOnlyOneMessage() throws Exception {
 		sendMessage(input_for_aggregator_with_explicit_timeout, 2000);
 	}
 
-	@Test
 	/**
-	 * We expect to get back only one Message from the aggregator. We set an
-	 * explicit timeout value of 1 second on the aggregator. What we'll see is
-	 * that we get one aggregate Message back immediately. Then we'll get another
-	 * 3 after the 1 second.
+	 * We expect to get back only one Message from the aggregator. We set no
+	 * explicit timeout value on the aggregator, but it automatically times out
+	 * after 60 seconds. What we'll see is that we get one aggregate Message back
+	 * immediately.
+	 * 
+	 * <p>We should <emphasis>not</emphasis> get another 3 after the 60 seconds.
 	 */
+	@Test
+	@Ignore // disabling from normal testing, should be the same behavior whether explicit or default
 	public void testAggregatorWithTimeoutReturnsOnlyOneMessage() throws Exception {
 		sendMessage(input_for_aggregator_without_explicit_timeout, 62000);
 	}

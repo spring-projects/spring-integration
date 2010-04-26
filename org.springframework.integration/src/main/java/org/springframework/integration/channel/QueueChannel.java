@@ -101,12 +101,18 @@ public class QueueChannel extends AbstractPollableChannel {
 		}
 	}
 
+	/**
+	 * Remove all {@link Message Messages} from this channel.
+	 */
 	public List<Message<?>> clear() {
 		List<Message<?>> clearedMessages = new ArrayList<Message<?>>();
 		this.queue.drainTo(clearedMessages);
 		return clearedMessages;
 	}
 
+	/**
+	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
+	 */
 	public List<Message<?>> purge(MessageSelector selector) {
 		if (selector == null) {
 			return this.clear();

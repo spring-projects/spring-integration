@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 
 /**
  * A utility class for purging {@link Message Messages} from one or more
- * {@link PollableChannel PollableChannels}. Any message that does <em>not</em>
+ * {@link QueueChannel QueueChannels}. Any message that does <em>not</em>
  * match the provided {@link MessageSelector} will be removed from the channel.
  * If no {@link MessageSelector} is provided, then <em>all</em> messages will be
  * cleared from the channel.
@@ -41,16 +41,16 @@ import org.springframework.util.Assert;
  */
 public class ChannelPurger {
 
-	private final PollableChannel[] channels;
+	private final QueueChannel[] channels;
 
 	private final MessageSelector selector;
 
 
-	public ChannelPurger(PollableChannel ... channels) {
+	public ChannelPurger(QueueChannel ... channels) {
 		this(null, channels);
 	}
 
-	public ChannelPurger(MessageSelector selector, PollableChannel ... channels) {
+	public ChannelPurger(MessageSelector selector, QueueChannel ... channels) {
 		Assert.notEmpty(channels, "at least one channel is required");
 		if (channels.length == 1) {
 			Assert.notNull(channels[0], "channel must not be null");
@@ -62,7 +62,7 @@ public class ChannelPurger {
 
 	public final List<Message<?>> purge() {
 		List<Message<?>> purgedMessages = new ArrayList<Message<?>>();
-		for (PollableChannel channel : this.channels) {
+		for (QueueChannel channel : this.channels) {
 			List<Message<?>> results = (this.selector == null) ?
 					channel.clear() : channel.purge(this.selector);
 			if (results != null) {

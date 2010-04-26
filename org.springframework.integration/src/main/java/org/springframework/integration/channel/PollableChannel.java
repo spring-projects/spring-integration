@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.springframework.integration.channel;
 
-import java.util.List;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher
@@ -45,15 +42,5 @@ public interface PollableChannel extends MessageChannel {
 	 * specified timeout period elapses or the message reception is interrupted
 	 */
 	Message<?> receive(long timeout);
-
-	/**
-	 * Remove all {@link Message Messages} from this channel.
-	 */
-	List<Message<?>> clear();
-
-	/**
-	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
-	 */
-	List<Message<?>> purge(MessageSelector selector);
 
 }
