@@ -17,6 +17,7 @@
 package org.springframework.integration.store;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.integration.core.Message;
 
@@ -27,6 +28,7 @@ import org.springframework.integration.core.Message;
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Dave Syer
  * @since 2.0
  */
 public interface MessageStore {
@@ -35,11 +37,11 @@ public interface MessageStore {
 	 * Return the Message with the given id, or <i>null</i> if no
 	 * Message with that id exists in the MessageStore.
 	 */
-	Message<?> get(Object id);
+	Message<?> get(UUID id);
 
 	/**
 	 * Put the provided Message into the MessageStore. Its id will
-	 * be used as an index so that the {@link #get(Object)} and
+	 * be used as an index so that the {@link #get(UUID)} and
 	 * {@link #delete(Object)} behave properly. If available, its
 	 * correlationId header will also be stored so that the
 	 * {@link #list(Object)} method behaves properly.
@@ -51,7 +53,7 @@ public interface MessageStore {
 	 * if present, and return it. If no Message with that id is
 	 * present in the store, this will return <i>null</i>.
 	 */
-	Message<?> delete(Object id);
+	Message<?> delete(UUID id);
 
 	/**
 	 * Return all Messages currently in the MessageStore.

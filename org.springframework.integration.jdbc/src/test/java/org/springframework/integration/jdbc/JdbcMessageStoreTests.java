@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.UUID;
+
 import javax.sql.DataSource;
 
 import org.junit.Before;
@@ -45,7 +47,7 @@ public class JdbcMessageStoreTests {
 	@Test
 	@Transactional
 	public void testGetNonExistent() throws Exception {
-		Message<?> result = messageStore.get(12345);
+		Message<?> result = messageStore.get(UUID.randomUUID());
 		assertNull(result);
 	}
 
@@ -54,7 +56,7 @@ public class JdbcMessageStoreTests {
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
 		message = messageStore.put(message);
-		Message<?> result = messageStore.get(message.getHeaders().get(JdbcMessageStore.ID_KEY));
+		Message<?> result = messageStore.get(message.getHeaders().getId());
 		assertNotNull(result);
 		assertEquals(message.getPayload(), result.getPayload());
 	}
@@ -66,7 +68,7 @@ public class JdbcMessageStoreTests {
 		message = messageStore.put(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.put(message);
-		assertEquals("Y", messageStore.get(message.getHeaders().get(JdbcMessageStore.ID_KEY)).getHeaders().getCorrelationId());
+		assertEquals("Y", messageStore.get(message.getHeaders().getId()).getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -91,7 +93,7 @@ public class JdbcMessageStoreTests {
 	public void testAddAndDelete() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
 		message = messageStore.put(message);
-		assertNotNull(messageStore.delete(message.getHeaders().get(JdbcMessageStore.ID_KEY)));
+		assertNotNull(messageStore.delete(message.getHeaders().getId()));
 	}
 
 }

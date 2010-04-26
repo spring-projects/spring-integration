@@ -16,16 +16,17 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.util.UpperBound;
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.util.UpperBound;
+import org.springframework.util.Assert;
 
 /**
  * Map-based implementation of {@link MessageStore} that enforces a maximum capacity.
@@ -36,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SimpleMessageStore implements MessageStore {
 
-    private final Map<Object, Message<?>> map;
+    private final Map<UUID, Message<?>> map;
 	private final UpperBound upperBound;
 
 	/**
@@ -44,7 +45,7 @@ public class SimpleMessageStore implements MessageStore {
 	 * size if the given capacity is less than 1.
 	 */
 	public SimpleMessageStore(int capacity) {
-        this.map = new ConcurrentHashMap<Object, Message<?>>();
+        this.map = new ConcurrentHashMap<UUID, Message<?>>();
 		this.upperBound =  new UpperBound(capacity);
     }
 
@@ -65,7 +66,7 @@ public class SimpleMessageStore implements MessageStore {
         return (Message<T>) this.map.put(message.getHeaders().getId(), message);
     }
 
-    public Message<?> get(Object key) {
+    public Message<?> get(UUID key) {
         return (key != null) ? this.map.get(key) : null;
     }
 
@@ -73,7 +74,7 @@ public class SimpleMessageStore implements MessageStore {
         return new ArrayList<Message<?>>(this.map.values());
     }
 
-    public Message<?> delete(Object key) {
+    public Message<?> delete(UUID key) {
 		if (key != null) {
 			upperBound.release();
 			return this.map.remove(key);

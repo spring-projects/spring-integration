@@ -8,9 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.jdbc.util.SerializationUtils;
@@ -37,21 +40,23 @@ import org.springframework.util.StringUtils;
  */
 public class JdbcMessageStore implements MessageStore {
 
+	private static final Log logger = LogFactory.getLog(JdbcMessageStore.class);
+
 	/**
 	 * Default value for the table prefix property.
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where CORRELATION_KEY=?";
+	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where CORRELATION_KEY=?";
 
-	private static final String LIST_ALL_MESSAGES = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE";
+	private static final String LIST_ALL_MESSAGES = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE";
 
-	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
+	private static final String GET_MESSAGE = "SELECT STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE = "DELETE from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
-	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION)"
-			+ " values (?, ?, ?, ?)";
+	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(STORE_ID, MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION)"
+			+ " values (?, ?, ?, ?, ?)";
 
 	private static final String UPDATE_MESSAGE = "UPDATE %PREFIX%MESSAGE set CORRELATION_KEY=?, MESSAGE_BYTES=?, VERSION=? where VERSION=? and MESSAGE_ID=?";
 
@@ -174,14 +179,14 @@ public class JdbcMessageStore implements MessageStore {
 		Assert.state(incrementer != null, "A DataFieldMaxValueIncrementer must be provided");
 	}
 
-	public Message<?> delete(Object id) {
+	public Message<?> delete(UUID id) {
 
 		Message<?> message = get(id);
 		if (message == null) {
 			return null;
 		}
 
-		int updated = jdbcTemplate.update(getQuery(DELETE_MESSAGE), new Object[] { id }, new int[] { Types.BIGINT });
+		int updated = jdbcTemplate.update(getQuery(DELETE_MESSAGE), new Object[] { getKey(id) }, new int[] { Types.VARCHAR });
 
 		if (updated != 0) {
 			return message;
@@ -191,8 +196,9 @@ public class JdbcMessageStore implements MessageStore {
 
 	}
 
-	public Message<?> get(Object id) {
-		List<Message<?>> list = jdbcTemplate.query(getQuery(GET_MESSAGE), new Object[] { id }, new MessageMapper());
+	public Message<?> get(UUID id) {
+		List<Message<?>> list = jdbcTemplate.query(getQuery(GET_MESSAGE), new Object[] { getKey(id) },
+				new MessageMapper());
 		if (list.isEmpty()) {
 			return null;
 		}
@@ -204,8 +210,8 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	public List<Message<?>> list(Object correlationId) {
-		return jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_CORRELATION_KEY),
-				new Object[] { getCorrelationKey(correlationId) }, new MessageMapper());
+		return jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_CORRELATION_KEY), new Object[] { getKey(correlationId) },
+				new MessageMapper());
 	}
 
 	public <T> Message<T> put(final Message<T> message) {
@@ -219,23 +225,26 @@ public class JdbcMessageStore implements MessageStore {
 
 			id = (Long) message.getHeaders().get(ID_KEY);
 
-			final String correlationId = getCorrelationKey(message.getHeaders().getCorrelationId());
+			final String correlationId = getKey(message.getHeaders().getCorrelationId());
+			final String messageId = getKey(message.getHeaders().getId());
 			final byte[] messageBytes = SerializationUtils.serialize(message);
 
 			int updated = jdbcTemplate.update(getQuery(UPDATE_MESSAGE), new PreparedStatementSetter() {
 				public void setValues(PreparedStatement ps) throws SQLException {
+					logger.debug("Updating message with id key=" + messageId + " and surrogate id=" + id);
 					ps.setString(1, correlationId);
 					lobHandler.getLobCreator().setBlobAsBytes(ps, 2, messageBytes);
 					ps.setInt(3, version + 1);
 					ps.setInt(4, version);
-					ps.setLong(5, id);
+					ps.setString(5, messageId);
 				}
 			});
 
 			if (updated != 1) {
 				int currentVersion = jdbcTemplate.queryForInt(getQuery(CURRENT_VERSION_MESSAGE), new Object[] { id });
-				throw new OptimisticLockingFailureException("Attempt to update message id=" + id
-						+ " with wrong version (" + version + "), where current version is " + currentVersion);
+				throw new OptimisticLockingFailureException("Attempt to update message id="
+						+ message.getHeaders().getId() + " with wrong version (" + version
+						+ "), where current version is " + currentVersion);
 			}
 
 		}
@@ -243,15 +252,18 @@ public class JdbcMessageStore implements MessageStore {
 
 			id = incrementer.nextLongValue();
 
-			final String correlationId = getCorrelationKey(message.getHeaders().getCorrelationId());
+			final String messageId = getKey(message.getHeaders().getId());
+			final String correlationId = getKey(message.getHeaders().getCorrelationId());
 			final byte[] messageBytes = SerializationUtils.serialize(message);
 
 			jdbcTemplate.update(getQuery(CREATE_MESSAGE), new PreparedStatementSetter() {
 				public void setValues(PreparedStatement ps) throws SQLException {
+					logger.debug("Inserting message with id key=" + messageId + " and surrogate id=" + id);
 					ps.setLong(1, id);
-					ps.setString(2, correlationId);
-					lobHandler.getLobCreator().setBlobAsBytes(ps, 3, messageBytes);
-					ps.setInt(4, version);
+					ps.setString(2, messageId);
+					ps.setString(3, correlationId);
+					lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
+					ps.setInt(5, version);
 				}
 			});
 
@@ -261,10 +273,18 @@ public class JdbcMessageStore implements MessageStore {
 
 	}
 
-	private String getCorrelationKey(Object correlationId) {
+	private String getKey(Object input) {
 
-		if (correlationId == null) {
+		if (input == null) {
 			return null;
+		}
+
+		if (input instanceof UUID) {
+			return input.toString();
+		}
+
+		if (input instanceof String && ((String) input).length() < 100) {
+			return (String) input;
 		}
 
 		MessageDigest digest;
@@ -275,7 +295,7 @@ public class JdbcMessageStore implements MessageStore {
 			throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
 		}
 
-		byte[] bytes = digest.digest(SerializationUtils.serialize(correlationId));
+		byte[] bytes = digest.digest(SerializationUtils.serialize(input));
 		return String.format("%032x", new BigInteger(1, bytes));
 
 	}
@@ -293,8 +313,8 @@ public class JdbcMessageStore implements MessageStore {
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Message<?> message = (Message<?>) SerializationUtils.deserialize(lobHandler.getBlobAsBytes(rs,
 					"MESSAGE_BYTES"));
-			return MessageBuilder.fromMessage(message).setHeader(ID_KEY, rs.getLong("MESSAGE_ID")).setHeader(
-					VERSION_KEY, rs.getInt("VERSION")).build();
+			return MessageBuilder.fromMessage(message).setHeader(ID_KEY, rs.getLong("STORE_ID")).setHeader(VERSION_KEY,
+					rs.getInt("VERSION")).build();
 		}
 
 	}
