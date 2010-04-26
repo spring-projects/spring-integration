@@ -147,10 +147,11 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendObjectAndReceiveObject() {
-		expect(replyChannel.receive(0)).andReturn(messageMock);
+		expect(replyChannel.receive(100)).andReturn(messageMock);
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
-		this.simpleMessagingGateway.setReplyTimeout(0);
+		// TODO: if timeout is 0, this will fail occasionally
+		this.simpleMessagingGateway.setReplyTimeout(100);
 		this.simpleMessagingGateway.sendAndReceive("test");
 		verify(allmocks);
 	}
