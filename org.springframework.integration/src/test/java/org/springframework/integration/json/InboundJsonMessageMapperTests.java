@@ -16,7 +16,6 @@
 
 package org.springframework.integration.json;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -33,18 +32,27 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageMatcher;
 
 /**
  * @author Jeremy Grelle
  * @author Mark Fisher
+ * @author Dave Syer
  */
 public class InboundJsonMessageMapperTests {
 
-	ObjectMapper mapper = new ObjectMapper();
+	private ObjectMapper mapper = new ObjectMapper();
+	
+	@Factory
+    public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> operand) {
+        return new MessageMatcher(operand);
+    }
 
 	@Test
 	public void testToMessageWithHeadersAndStringPayload() throws Exception {
@@ -53,7 +61,7 @@ public class InboundJsonMessageMapperTests {
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
 		Message<String> result = (Message<String>) mapper.toMessage(jsonMessage);
-		assertThat(result, is(expected));
+		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 	
 	@Test
@@ -74,7 +82,7 @@ public class InboundJsonMessageMapperTests {
 		Message<TestBean> expected = MessageBuilder.withPayload(bean).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(TestBean.class);
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result);
+		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 	
 	@Test
@@ -99,7 +107,7 @@ public class InboundJsonMessageMapperTests {
 		headerTypes.put("myHeader", TestBean.class);
 		mapper.setHeaderTypes(headerTypes);
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result);
+		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 	
 	@Test 
@@ -110,7 +118,7 @@ public class InboundJsonMessageMapperTests {
 		Message<List<String>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(new TypeReference<List<String>>(){});
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result);
+		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 	
 	@Test 
@@ -123,7 +131,7 @@ public class InboundJsonMessageMapperTests {
 		Message<List<TestBean>> expected = MessageBuilder.withPayload(expectedList).setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(new TypeReference<List<TestBean>>(){});
 		Message<?> result = mapper.toMessage(jsonMessage);
-		assertEquals(expected, result);
+		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 	
 	@Test
@@ -236,6 +244,6 @@ public class InboundJsonMessageMapperTests {
 		StringWriter writer = new StringWriter();
 		mapper.writeValue(writer, bean);
 		return writer.toString();
-	}
+	};
 
 }

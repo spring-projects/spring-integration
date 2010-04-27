@@ -87,7 +87,7 @@ public final class MessageBuilder<T> {
 	 * <code>null</code>, the header will be removed.
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		if (StringUtils.hasLength(headerName)) {
+		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID) && !headerName.equals(MessageHeaders.TIMESTAMP)) {
 			this.verifyType(headerName, headerValue);
 			this.modified = true;
 			if (headerValue == null) {
@@ -115,7 +115,7 @@ public final class MessageBuilder<T> {
 	 * Remove the value for the given header name.
 	 */
 	public MessageBuilder<T> removeHeader(String headerName) {
-		if (StringUtils.hasLength(headerName)) {
+		if (StringUtils.hasLength(headerName) && !headerName.equals(MessageHeaders.ID) && !headerName.equals(MessageHeaders.TIMESTAMP)) {
 			this.modified = true;
 			this.headers.remove(headerName);
 		}

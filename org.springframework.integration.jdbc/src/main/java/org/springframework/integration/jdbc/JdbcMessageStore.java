@@ -14,7 +14,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.jdbc.util.SerializationUtils;
 import org.springframework.integration.message.MessageBuilder;
@@ -46,38 +45,30 @@ public class JdbcMessageStore implements MessageStore {
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where CORRELATION_KEY=?";
+	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE where CORRELATION_KEY=?";
 
-	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
+	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE = "DELETE from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
-	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES, VERSION)"
-			+ " values (?, ?, ?, ?)";
-
-	private static final String UPDATE_MESSAGE = "UPDATE %PREFIX%MESSAGE set CORRELATION_KEY=?, MESSAGE_BYTES=?, VERSION=? where VERSION=? and MESSAGE_ID=?";
-
-	private static final String CURRENT_VERSION_MESSAGE = "SELECT VERSION from %PREFIX%MESSAGE where MESSAGE_ID=?";
+	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES)"
+			+ " values (?, ?, ?)";
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
 	/**
-	 * The name of the message header that stores the surrogate key used by this
-	 * message store
+	 * The name of the message header that stores a flag to indicate that the
+	 * message has been saved. This is an optimization for the put method.
 	 */
-	public static final String ID_KEY = JdbcMessageStore.class.getSimpleName() + ".ID";
-
-	/**
-	 * The name of the message header that stores the version used by this
-	 * message store to implement optimistic locking
-	 */
-	public static final String VERSION_KEY = JdbcMessageStore.class.getSimpleName() + ".VERSION";
+	public static final String SAVED_KEY = JdbcMessageStore.class.getSimpleName() + ".SAVED";
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
 	private JdbcOperations jdbcTemplate;
 
 	private LobHandler lobHandler = new DefaultLobHandler();
+
+	private MessageMapper mapper = new MessageMapper();
 
 	/**
 	 * Convenient constructor for configuration use.
@@ -177,8 +168,7 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	public Message<?> get(UUID id) {
-		List<Message<?>> list = jdbcTemplate.query(getQuery(GET_MESSAGE), new Object[] { getKey(id) },
-				new MessageMapper());
+		List<Message<?>> list = jdbcTemplate.query(getQuery(GET_MESSAGE), new Object[] { getKey(id) }, mapper);
 		if (list.isEmpty()) {
 			return null;
 		}
@@ -187,59 +177,36 @@ public class JdbcMessageStore implements MessageStore {
 
 	public List<Message<?>> list(Object correlationId) {
 		return jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_CORRELATION_KEY), new Object[] { getKey(correlationId) },
-				new MessageMapper());
+				mapper);
 	}
 
 	public <T> Message<T> put(final Message<T> message) {
 
-		boolean alreadySaved = message.getHeaders().containsKey(VERSION_KEY);
-		final int version = alreadySaved ? (Integer) message.getHeaders().get(
-				VERSION_KEY) : 0;
-
-		if (alreadySaved) {
-
-			final String correlationId = getKey(message.getHeaders().getCorrelationId());
-			final String messageId = getKey(message.getHeaders().getId());
-			final byte[] messageBytes = SerializationUtils.serialize(message);
-
-			int updated = jdbcTemplate.update(getQuery(UPDATE_MESSAGE), new PreparedStatementSetter() {
-				public void setValues(PreparedStatement ps) throws SQLException {
-					logger.debug("Updating message with id key=" + messageId);
-					ps.setString(1, correlationId);
-					lobHandler.getLobCreator().setBlobAsBytes(ps, 2, messageBytes);
-					ps.setInt(3, version + 1);
-					ps.setInt(4, version);
-					ps.setString(5, messageId);
-				}
-			});
-
-			if (updated != 1) {
-				int currentVersion = jdbcTemplate.queryForInt(getQuery(CURRENT_VERSION_MESSAGE), new Object[] { messageId });
-				throw new OptimisticLockingFailureException("Attempt to update message id="
-						+ message.getHeaders().getId() + " with wrong version (" + version
-						+ "), where current version is " + currentVersion);
+		if (message.getHeaders().containsKey(SAVED_KEY)) {
+			@SuppressWarnings("unchecked")
+			Message<T> saved = (Message<T>) get(message.getHeaders().getId());
+			if (saved != null) {
+				if (saved.equals(message)) {
+					return message;
+				} // We need to save it under its own id
 			}
-
-		}
-		else {
-
-			final String messageId = getKey(message.getHeaders().getId());
-			final String correlationId = getKey(message.getHeaders().getCorrelationId());
-			final byte[] messageBytes = SerializationUtils.serialize(message);
-
-			jdbcTemplate.update(getQuery(CREATE_MESSAGE), new PreparedStatementSetter() {
-				public void setValues(PreparedStatement ps) throws SQLException {
-					logger.debug("Inserting message with id key=" + messageId);
-					ps.setString(1, messageId);
-					ps.setString(2, correlationId);
-					lobHandler.getLobCreator().setBlobAsBytes(ps, 3, messageBytes);
-					ps.setInt(4, version);
-				}
-			});
-
 		}
 
-		return MessageBuilder.fromMessage(message).setHeader(VERSION_KEY, version).build();
+		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE).build();
+		final String messageId = getKey(result.getHeaders().getId());
+		final String correlationId = getKey(result.getHeaders().getCorrelationId());
+		final byte[] messageBytes = SerializationUtils.serialize(result);
+
+		jdbcTemplate.update(getQuery(CREATE_MESSAGE), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				logger.debug("Inserting message with id key=" + messageId);
+				ps.setString(1, messageId);
+				ps.setString(2, correlationId);
+				lobHandler.getLobCreator().setBlobAsBytes(ps, 3, messageBytes);
+			}
+		});
+
+		return result;
 
 	}
 
@@ -283,7 +250,7 @@ public class JdbcMessageStore implements MessageStore {
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
 			Message<?> message = (Message<?>) SerializationUtils.deserialize(lobHandler.getBlobAsBytes(rs,
 					"MESSAGE_BYTES"));
-			return MessageBuilder.fromMessage(message).setHeader(VERSION_KEY, rs.getInt("VERSION")).build();
+			return message;
 		}
 
 	}

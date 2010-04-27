@@ -34,6 +34,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
@@ -100,7 +101,7 @@ public class DatagramPacketSendingHandlerTests {
 					mapper.setAcknowledge(true);
 					mapper.setLengthCheck(true);
 					Message<byte[]> message = mapper.toMessage(receivedPacket);
-					Object id = message.getHeaders().getId();
+					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 					byte[] ack = id.toString().getBytes();
 					DatagramPacket ackPack = new DatagramPacket(ack, ack.length, 
 							                        new InetSocketAddress("localHost", ackPort));
@@ -201,7 +202,7 @@ public class DatagramPacketSendingHandlerTests {
 					mapper.setAcknowledge(true);
 					mapper.setLengthCheck(true);
 					Message<byte[]> message = mapper.toMessage(receivedPacket);
-					Object id = message.getHeaders().getId();
+					Object id = message.getHeaders().get(IpHeaders.ACK_ID);
 					byte[] ack = id.toString().getBytes();
 					DatagramPacket ackPack = new DatagramPacket(ack, ack.length, 
 							                        new InetSocketAddress("localHost", ackPort));

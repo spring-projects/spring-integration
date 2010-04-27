@@ -19,10 +19,11 @@ package org.springframework.integration.ip;
 import org.springframework.integration.core.MessageHeaders;
 
 /**
- * Headers for Messages mapped from UDP datagram packets.
+ * Headers for Messages mapped from IP datagram packets.
  * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Dave Syer
  * @since 2.0
  */
 public abstract class IpHeaders {
@@ -40,6 +41,8 @@ public abstract class IpHeaders {
 	public static final String IP_ADDRESS = IP + "address"; 
 
 	public static final String ACK_ADDRESS = IP + "ackTo";
+
+	public static final String ACK_ID = IP + "ackId";
 
 	public static final String REMOTE_PORT = TCP + "remote_port";
 

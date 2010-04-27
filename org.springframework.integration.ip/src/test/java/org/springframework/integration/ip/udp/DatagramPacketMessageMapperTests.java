@@ -28,20 +28,34 @@ import org.junit.Test;
 
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Gary Russell
+ * @author Dave Syer
  * @since 2.0
  */
 public class DatagramPacketMessageMapperTests {
 
 	@Test
-	public void testFromToMessage() throws Exception {
+	public void testFromToMessageNoAckNoLengthCheck() throws Exception {
 		test(false, false);
+	}
+
+	@Test
+	public void testFromToMessageAckNoLengthCheck() throws Exception {
 		test(true, false);
+	}
+
+	@Test
+	public void testFromToMessageNoAckLengthCheck() throws Exception {
 		test(false, true);
+	}
+
+	@Test
+	public void testFromToMessageAckLengthCheck() throws Exception {
 		test(true, true);
 	}
 
@@ -56,8 +70,8 @@ public class DatagramPacketMessageMapperTests {
 		Message<byte[]> messageOut = mapper.toMessage(packet);
 		assertEquals(new String(message.getPayload()), new String(messageOut.getPayload()));
 		if (ack) {
-			assertEquals(message.getHeaders().getId().toString(), 
-					     messageOut.getHeaders().getId().toString());
+			assertEquals(messageOut.getHeaders().get(IpHeaders.ACK_ID).toString(), 
+					     message.getHeaders().getId().toString());
 		}
 	}
 

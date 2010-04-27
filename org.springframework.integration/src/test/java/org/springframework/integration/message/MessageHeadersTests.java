@@ -18,6 +18,7 @@ package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -42,6 +43,27 @@ public class MessageHeadersTests {
 	public void testTimestamp() {
 		MessageHeaders headers = new MessageHeaders(null);
 		assertNotNull(headers.getTimestamp());
+	}
+
+	@Test
+	public void testTimestampOverwritten() throws Exception {
+		MessageHeaders headers1 = new MessageHeaders(null);
+		Thread.sleep(50L);
+		MessageHeaders headers2 = new MessageHeaders(headers1);
+		assertNotSame(headers1.getTimestamp(), headers2.getTimestamp());
+	}
+
+	@Test
+	public void testIdOverwritten() throws Exception {
+		MessageHeaders headers1 = new MessageHeaders(null);
+		MessageHeaders headers2 = new MessageHeaders(headers1);
+		assertNotSame(headers1.getId(), headers2.getId());
+	}
+
+	@Test
+	public void testId() {
+		MessageHeaders headers = new MessageHeaders(null);
+		assertNotNull(headers.getId());
 	}
 
 	@Test

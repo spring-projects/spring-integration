@@ -2,7 +2,10 @@ package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptImmutableHeaders;
 
 import java.util.UUID;
 
@@ -43,10 +46,11 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
-		message = messageStore.put(message);
-		Message<?> result = messageStore.get(message.getHeaders().getId());
+		Message<String> saved = messageStore.put(message);
+		assertNull(messageStore.get(message.getHeaders().getId()));
+		Message<?> result = messageStore.get(saved.getHeaders().getId());
 		assertNotNull(result);
-		assertEquals(message.getPayload(), result.getPayload());
+		assertThat(saved, sameExceptImmutableHeaders(result));
 	}
 
 	@Test
@@ -57,6 +61,27 @@ public class JdbcMessageStoreTests {
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.put(message);
 		assertEquals("Y", messageStore.get(message.getHeaders().getId()).getHeaders().getCorrelationId());
+	}
+
+	@Test
+	@Transactional
+	public void testAddAndUpdateAlreadySaved() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		message = messageStore.put(message);
+		Message<String> result = messageStore.put(message);
+		assertEquals(message, result);
+	}
+
+	@Test
+	@Transactional
+	public void testAddAndUpdateAlreadySavedAndCopied() throws Exception {
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		Message<String> saved = messageStore.put(message);
+		Message<String> copy = MessageBuilder.fromMessage(saved).build();
+		Message<String> result = messageStore.put(copy);
+		assertNotSame(copy, result);
+		assertThat(saved, sameExceptImmutableHeaders(result));
+		assertNotNull(messageStore.get(saved.getHeaders().getId()));
 	}
 
 	@Test

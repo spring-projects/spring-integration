@@ -125,7 +125,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 
 	protected void sendAck(Message<byte[]> message) {
 		MessageHeaders headers = message.getHeaders();
-		Object id = headers.getId();
+		Object id = headers.get(IpHeaders.ACK_ID);
 		byte[] ack = id.toString().getBytes();
 		String ackAddress = ((String) headers.get(IpHeaders.ACK_ADDRESS)).trim();
 		Matcher mat = addressPattern.matcher(ackAddress);

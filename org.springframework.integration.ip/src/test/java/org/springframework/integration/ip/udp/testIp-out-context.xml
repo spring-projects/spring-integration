@@ -35,7 +35,7 @@
 		acknowledge="true"
 		ack-host="localhost"
 		ack-port="22222"
-		ack-timeout="10000"
+		ack-timeout="2000"
 		channel="outputChannel"/>
 
 	<beans:import resource="testIp-common-context.xml" />

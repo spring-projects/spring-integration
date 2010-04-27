@@ -34,30 +34,33 @@ import org.springframework.integration.core.Message;
 public interface MessageStore {
 
 	/**
-	 * Return the Message with the given id, or <i>null</i> if no
-	 * Message with that id exists in the MessageStore.
+	 * Return the Message with the given id, or <i>null</i> if no Message with
+	 * that id exists in the MessageStore.
 	 */
 	Message<?> get(UUID id);
 
 	/**
-	 * Put the provided Message into the MessageStore. Its id will
-	 * be used as an index so that the {@link #get(UUID)} and
-	 * {@link #delete(Object)} behave properly. If available, its
-	 * correlationId header will also be stored so that the
-	 * {@link #list(Object)} method behaves properly.
+	 * Put the provided Message into the MessageStore. The store may need to
+	 * mutate the message internally, and if it does then the return value can
+	 * be different than the input. The id of the return value will be used as
+	 * an index so that the {@link #get(UUID)} and {@link #delete(Object)}
+	 * behave properly. Since messages are immutable, putting the same message
+	 * more than once is a no-op.
+	 * 
+	 * @return the message that was stored
 	 */
 	<T> Message<T> put(Message<T> message);
 
 	/**
-	 * Remove the Message with the given id from the MessageStore,
-	 * if present, and return it. If no Message with that id is
-	 * present in the store, this will return <i>null</i>.
+	 * Remove the Message with the given id from the MessageStore, if present,
+	 * and return it. If no Message with that id is present in the store, this
+	 * will return <i>null</i>.
 	 */
 	Message<?> delete(UUID id);
 
 	/**
-	 * Return all Messages currently in the MessageStore that
-	 * contain the provided correlationId header value.
+	 * Return all Messages currently in the MessageStore that contain the
+	 * provided correlationId header value.
 	 * @see org.springframework.integration.core.MessageHeaders#getCorrelationId()
 	 */
 	List<Message<?>> list(Object correlationId);

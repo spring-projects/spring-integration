@@ -18,6 +18,7 @@ package org.springframework.integration.filter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -48,7 +49,9 @@ public class MessageFilterTests {
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
 		filter.handleMessage(message);
-		assertEquals(message, output.receive(0));
+		Message<?> received = output.receive(0);
+		assertEquals(message.getPayload(), received.getPayload());
+		assertNotSame(message.getHeaders().getId(), received.getHeaders().getId());
 	}
 
 	@Test
@@ -93,7 +96,7 @@ public class MessageFilterTests {
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
-		assertEquals(message, reply);
+		assertEquals(message.getPayload(), reply.getPayload());
 	}
 
 	@Test

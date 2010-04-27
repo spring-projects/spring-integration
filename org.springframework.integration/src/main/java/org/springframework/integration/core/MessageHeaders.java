@@ -47,9 +47,10 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	public static final String PREFIX = "$";
 
 	/**
-	 * The key for the Message ID. This is an automatically generated UUID and should
-	 * never be explicitly set in the header map <b>except</b> in the case of Message
-	 * deserialization where the serialized Message's generated UUID is being restored.
+	 * The key for the Message ID. This is an automatically generated UUID and
+	 * should never be explicitly set in the header map <b>except</b> in the
+	 * case of Message deserialization where the serialized Message's generated
+	 * UUID is being restored.
 	 */
 	public static final String ID = PREFIX + "id";
 
@@ -71,25 +72,16 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String SEQUENCE_SIZE = PREFIX + "sequenceSize";
 
-
 	private final Map<String, Object> headers;
 
-
 	public MessageHeaders(Map<String, Object> headers) {
-		this.headers = (headers != null)
-				? new HashMap<String, Object>(headers)
-				: new HashMap<String, Object>();
-		if (this.headers.get(ID) == null) {
-			this.headers.put(ID, UUID.randomUUID());
-		}
-		if (this.headers.get(TIMESTAMP) == null) {
-			this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
-		}
+		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
+		this.headers.put(ID, UUID.randomUUID());
+		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 		if (this.headers.get(HISTORY) == null) {
 			this.headers.put(HISTORY, new MessageHistory());
 		}
 	}
-
 
 	public UUID getId() {
 		return this.get(ID, UUID.class);
@@ -140,8 +132,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 			return null;
 		}
 		if (!type.isAssignableFrom(value.getClass())) {
-			throw new IllegalArgumentException("Incorrect type specified for header '" + key
-					+ "'. Expected [" + type + "] but actual type is [" + value.getClass() + "]");
+			throw new IllegalArgumentException("Incorrect type specified for header '" + key + "'. Expected [" + type
+					+ "] but actual type is [" + value.getClass() + "]");
 		}
 		return (T) value;
 	}

@@ -16,17 +16,18 @@
 
 package org.springframework.integration.handler;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -37,6 +38,11 @@ public class BridgeHandlerTests {
 
 	private BridgeHandler handler= new BridgeHandler();
 
+	@Factory
+    public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
+        return new MessageMatcher(expected);
+    }
+
 	@Test
 	public void simpleBridge() {
 		QueueChannel outputChannel = new QueueChannel();
@@ -45,7 +51,7 @@ public class BridgeHandlerTests {
 		handler.handleMessage(request);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
-		assertEquals(request, reply);
+		assertThat(reply, sameExceptImmutableHeaders(request));
 	}
 
 	@Test(expected = MessageHandlingException.class)
@@ -60,7 +66,7 @@ public class BridgeHandlerTests {
 		PollableChannel replyChannel = new QueueChannel();
 		Message request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel ).build();
 		handler.handleMessage(request );
-		assertThat(replyChannel.receive(), is(request));
+		assertThat(replyChannel.receive(), sameExceptImmutableHeaders(request));
 	}
 
 }

@@ -18,8 +18,10 @@ package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.junit.Test;
 
@@ -68,6 +70,24 @@ public class MessageBuilderTests {
 	}
 
 	@Test
+	public void testIdHeaderValues() {
+		UUID id = UUID.randomUUID();
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(MessageHeaders.ID, id)
+				.build();
+		assertNotSame(id, message.getHeaders().getId());
+	}
+
+	@Test
+	public void testTimestampHeaderValues() {
+		Long timestamp = 12345L;
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(MessageHeaders.TIMESTAMP, timestamp)
+				.build();
+		assertNotSame(timestamp, message.getHeaders().getTimestamp());
+	}
+
+	@Test
 	public void copyHeadersIfAbsent() {
 		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setHeader("foo", "bar").build();
@@ -86,6 +106,15 @@ public class MessageBuilderTests {
 		Message<String> message2 = MessageBuilder.fromMessage(message1).build();
 		assertEquals("test", message2.getPayload());
 		assertEquals("bar", message2.getHeaders().get("foo"));
+	}
+
+	@Test
+	public void createIdRegenerated() {
+		Message<String> message1 = MessageBuilder.withPayload("test")
+				.setHeader("foo", "bar").build();
+		Message<String> message2 = MessageBuilder.fromMessage(message1).build();
+		assertEquals("bar", message2.getHeaders().get("foo"));
+		assertNotSame(message1.getHeaders().getId(), message2.getHeaders().getId());
 	}
 
 	@Test

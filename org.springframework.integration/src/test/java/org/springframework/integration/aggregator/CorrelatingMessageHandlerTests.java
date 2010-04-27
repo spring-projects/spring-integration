@@ -90,8 +90,8 @@ public class CorrelatingMessageHandlerTests {
         String correlationKey = "key";
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
-        Message<?> message1 = testMessage(correlationKey, id1, 1);
-        Message<?> message2 = testMessage(correlationKey, id2, 2);
+        Message<?> message1 = testMessage(correlationKey, 1);
+        Message<?> message2 = testMessage(correlationKey, 2);
         List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         when(store.list(correlationKey)).thenReturn(storedMessages);
@@ -128,10 +128,10 @@ public class CorrelatingMessageHandlerTests {
     @Test
     public void shouldNotPruneWhileCompleting() throws Exception {
         String correlationKey = "key";
-        UUID id1 = UUID.randomUUID();
-        UUID id2 = UUID.randomUUID();
-        final Message<?> message1 = testMessage(correlationKey, id1, 1);
-        final Message<?> message2 = testMessage(correlationKey, id2, 2);
+        final Message<?> message1 = testMessage(correlationKey, 1);
+        final Message<?> message2 = testMessage(correlationKey, 2);
+        UUID id1 = message1.getHeaders().getId();
+        UUID id2 = message2.getHeaders().getId();
         final List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         final CountDownLatch bothMessagesHandled = new CountDownLatch(2);
@@ -170,10 +170,9 @@ public class CorrelatingMessageHandlerTests {
         verify(store).delete(id2);
     }
 
-    private Message<?> testMessage(String correllationKey, UUID id, int sequenceNumber) {
-        return MessageBuilder.withPayload("test" + id)
-                .setHeader(MessageHeaders.ID, id)
-                .setCorrelationId(correllationKey)
+    private Message<?> testMessage(String correlationKey, int sequenceNumber) {
+        return MessageBuilder.withPayload("test" + sequenceNumber)
+                .setCorrelationId(correlationKey)
                 .setSequenceNumber(sequenceNumber).build();
     }
 

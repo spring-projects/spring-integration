@@ -19,12 +19,14 @@ package org.springframework.integration.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
@@ -32,6 +34,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageMatcher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
@@ -42,7 +45,7 @@ import org.springframework.util.StringUtils;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ChainParserTests  {
+public class ChainParserTests {
 
 	@Autowired
 	@Qualifier("filterInput")
@@ -85,12 +88,15 @@ public class ChainParserTests  {
 	@Autowired
 	private PollableChannel numbers;
 
-
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
+	@Factory
+	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
+		return new MessageMatcher(expected);
+	}
 
 	@Test
-	public void chainWithAcceptingFilter() {	
+	public void chainWithAcceptingFilter() {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.filterInput.send(message);
 		Message<?> reply = this.output.receive(0);
@@ -143,7 +149,7 @@ public class ChainParserTests  {
 		this.beanInput.send(message);
 		Message reply = this.output.receive(3000);
 		assertNotNull(reply);
-		assertEquals(reply, successMessage);
+		assertThat(reply, sameExceptImmutableHeaders(successMessage));
 	}
 
 	@Test
@@ -170,17 +176,16 @@ public class ChainParserTests  {
 		assertEquals(123, reply2.getPayload());
 	}
 
-
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override
 		protected Object handleRequestMessage(Message<?> requestMessage) {
 			return successMessage;
 		}
-		
+
 	}
-	
+
 	public static class StubAggregator {
-		public String aggregate(List<String> strings){
+		public String aggregate(List<String> strings) {
 			return StringUtils.collectionToCommaDelimitedString(strings);
 		}
 	}

@@ -16,10 +16,11 @@
 
 package org.springframework.integration.config.xml;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
+import org.hamcrest.Factory;
+import org.hamcrest.Matcher;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
@@ -28,6 +29,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageMatcher;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -59,12 +61,17 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	@Qualifier("output2")
 	private PollableChannel output2;
 
+	@Factory
+    public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
+        return new MessageMatcher(expected);
+    }
+
 	@Test
 	public void pollableChannel() {
 		Message<?> message = new StringMessage("test1");
 		this.pollableChannel.send(message);
 		Message<?> reply = this.output1.receive(1000);
-		assertEquals(message, reply);
+		assertThat(message, sameExceptImmutableHeaders(reply));
 	}
 
 	@Test
@@ -72,7 +79,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 		Message<?> message = new StringMessage("test2");
 		this.subscribableChannel.send(message);
 		Message<?> reply = this.output2.receive(0);
-		assertEquals(message, reply);
+		assertThat(message, sameExceptImmutableHeaders(reply));
 	}
 
 	@Test
@@ -81,7 +88,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 		Message<?> message = MessageBuilder.withPayload("test3").setReplyChannel(replyChannel).build();
 		this.stopperChannel.send(message);
 		Message<?> reply = replyChannel.receive(0);
-		assertEquals(message, reply);
+		assertThat(message, sameExceptImmutableHeaders(reply));
 	}
 
 	@Test(expected = MessagingException.class)

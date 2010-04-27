@@ -15,6 +15,13 @@
  */
 package org.springframework.integration.file.locking;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
+
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -23,13 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
 /**
  * @author Iwein Fuld

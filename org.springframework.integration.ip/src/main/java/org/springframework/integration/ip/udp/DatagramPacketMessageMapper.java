@@ -53,6 +53,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Dave Syer
  * @since 2.0
  */
 public class DatagramPacketMessageMapper implements InboundMessageMapper<DatagramPacket>,
@@ -187,7 +188,7 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 					payload = new byte[length];
 					System.arraycopy(packet.getData(), offset + matcher.end(), payload, 0, length);
 					message = MessageBuilder.withPayload(payload)
-							.setHeader(MessageHeaders.ID, UUID.fromString(matcher.group(2)))
+							.setHeader(IpHeaders.ACK_ID, UUID.fromString(matcher.group(2)))
 							.setHeader(IpHeaders.ACK_ADDRESS, matcher.group(1))
 							.setHeader(IpHeaders.HOSTNAME, packet.getAddress().getHostName())
 							.setHeader(IpHeaders.IP_ADDRESS, packet.getAddress().getHostAddress())
