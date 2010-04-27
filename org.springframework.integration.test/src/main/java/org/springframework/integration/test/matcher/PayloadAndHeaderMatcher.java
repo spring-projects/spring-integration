@@ -14,7 +14,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 
 /**
- * Matcher to make assertions about message equality easier.  Usage:
+ * Matcher to make assertions about message equality easier. Usage:
  * 
  * <pre>
  * &#064;Test
@@ -29,21 +29,25 @@ import org.springframework.integration.core.MessageHeaders;
  *   return new PayloadAndHeaderMatcher(expected);
  * }
  * </pre>
- *
+ * 
  * @author Dave Syer
- *
+ * 
  */
 public class PayloadAndHeaderMatcher extends BaseMatcher<Message<?>> {
 
 	private final Object payload;
+
 	private final Map<String, Object> headers;
 
+	private final String[] ignoreKeys;
+
 	@Factory
-	public static Matcher<Message<?>> sameExceptImmutableHeaders(Message<?> expected) {
-		return new PayloadAndHeaderMatcher(expected);
+	public static Matcher<Message<?>> sameExceptIgnorableHeaders(Message<?> expected, String... ignoreKeys) {
+		return new PayloadAndHeaderMatcher(expected, ignoreKeys);
 	}
 
-	private PayloadAndHeaderMatcher(Message<?> expected) {
+	private PayloadAndHeaderMatcher(Message<?> expected, String... ignoreKeys) {
+		this.ignoreKeys = ignoreKeys;
 		this.payload = expected.getPayload();
 		this.headers = getHeaders(expected);
 	}
@@ -52,6 +56,9 @@ public class PayloadAndHeaderMatcher extends BaseMatcher<Message<?>> {
 		HashMap<String, Object> headers = new HashMap<String, Object>(operand.getHeaders());
 		headers.remove(MessageHeaders.ID);
 		headers.remove(MessageHeaders.TIMESTAMP);
+		for (String key : ignoreKeys) {
+			headers.remove(key);
+		}
 		return headers;
 	}
 
@@ -62,7 +69,8 @@ public class PayloadAndHeaderMatcher extends BaseMatcher<Message<?>> {
 	}
 
 	public void describeTo(Description description) {
-		description.appendText("a Message with Headers that match except ID and timestamp for payload: ").appendValue(payload).appendText(" and headers: ").appendValue(headers);
+		description.appendText("a Message with Headers that match except ID and timestamp for payload: ").appendValue(
+				payload).appendText(" and headers: ").appendValue(headers);
 	}
-	
+
 }

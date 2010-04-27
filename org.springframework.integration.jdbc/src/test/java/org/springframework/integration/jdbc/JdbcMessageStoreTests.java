@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptImmutableHeaders;
+import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
 import java.util.UUID;
 
@@ -50,7 +50,9 @@ public class JdbcMessageStoreTests {
 		assertNull(messageStore.get(message.getHeaders().getId()));
 		Message<?> result = messageStore.get(saved.getHeaders().getId());
 		assertNotNull(result);
-		assertThat(saved, sameExceptImmutableHeaders(result));
+		assertThat(saved, sameExceptIgnorableHeaders(result));
+		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
+		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
 	}
 
 	@Test
@@ -80,7 +82,7 @@ public class JdbcMessageStoreTests {
 		Message<String> copy = MessageBuilder.fromMessage(saved).build();
 		Message<String> result = messageStore.put(copy);
 		assertNotSame(copy, result);
-		assertThat(saved, sameExceptImmutableHeaders(result));
+		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY));
 		assertNotNull(messageStore.get(saved.getHeaders().getId()));
 	}
 

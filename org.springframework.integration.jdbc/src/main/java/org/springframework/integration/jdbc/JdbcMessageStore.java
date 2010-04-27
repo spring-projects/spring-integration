@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.List;
 import java.util.UUID;
@@ -45,14 +46,14 @@ public class JdbcMessageStore implements MessageStore {
 	 */
 	public static final String DEFAULT_TABLE_PREFIX = "INT_";
 
-	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE where CORRELATION_KEY=?";
+	private static final String LIST_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE where CORRELATION_KEY=?";
 
-	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=?";
+	private static final String GET_MESSAGE = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE = "DELETE from %PREFIX%MESSAGE where MESSAGE_ID=?";
 
-	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, CORRELATION_KEY, MESSAGE_BYTES)"
-			+ " values (?, ?, ?)";
+	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES)"
+			+ " values (?, ?, ?, ?)";
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
@@ -61,6 +62,12 @@ public class JdbcMessageStore implements MessageStore {
 	 * message has been saved. This is an optimization for the put method.
 	 */
 	public static final String SAVED_KEY = JdbcMessageStore.class.getSimpleName() + ".SAVED";
+
+	/**
+	 * The name of the message header that stores a timestamp for the time the
+	 * message was inserted.
+	 */
+	public static final String CREATED_DATE_KEY = JdbcMessageStore.class.getSimpleName() + ".CREATED_DATE";
 
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
@@ -192,7 +199,9 @@ public class JdbcMessageStore implements MessageStore {
 			}
 		}
 
-		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE).build();
+		final long createdDate = System.currentTimeMillis();
+		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE).setHeader(
+				CREATED_DATE_KEY, new Long(createdDate)).build();
 		final String messageId = getKey(result.getHeaders().getId());
 		final String correlationId = getKey(result.getHeaders().getCorrelationId());
 		final byte[] messageBytes = SerializationUtils.serialize(result);
@@ -201,8 +210,9 @@ public class JdbcMessageStore implements MessageStore {
 			public void setValues(PreparedStatement ps) throws SQLException {
 				logger.debug("Inserting message with id key=" + messageId);
 				ps.setString(1, messageId);
-				ps.setString(2, correlationId);
-				lobHandler.getLobCreator().setBlobAsBytes(ps, 3, messageBytes);
+				ps.setTimestamp(2, new Timestamp(createdDate));
+				ps.setString(3, correlationId);
+				lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
 			}
 		});
 
