@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package org.springframework.integration.channel;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.selector.MessageSelector;
 
 /**
  * A channel implementation that stores messages in a thread-bound queue. In
  * other words, send() will put a message at the tail of the queue for the
  * current thread, and receive() will retrieve a message from the head of the
- * queue.
+ * queue. Since, by definition, only one thread will interact with the queue
+ * at a time, the timeout values on send and receive have no effect. If there
+ * are no Messages in the queue, the receive operations will return a
+ * <code>null</code> value immediately, regardless of any timeout value.
  * 
  * @author Dave Syer
  * @author Mark Fisher
@@ -51,36 +51,10 @@ public class ThreadLocalChannel extends AbstractPollableChannel {
 		return messageHolder.get().add(message);
 	}
 
-	/**
-	 * Remove and return any messages that are stored for the current thread.
-	 */
-	public List<Message<?>> clear() {
-		List<Message<?>> removedMessages = new ArrayList<Message<?>>();
-		Message<?> next = messageHolder.get().poll();
-		while (next != null) {
-			removedMessages.add(next);
-			next = messageHolder.get().poll();
-		}
-		return removedMessages;
-	}
 
 	/**
-	 * Remove and return any messages that are stored for the current thread
-	 * and do not match the provided selector.
+	 * The thread-bound Queue.
 	 */
-	public List<Message<?>> purge(MessageSelector selector) {
-		List<Message<?>> removedMessages = new ArrayList<Message<?>>();
-		Object[] allMessages = messageHolder.get().toArray();
-		for (Object next : allMessages) {
-			Message<?> message = (Message<?>) next;
-			if (!selector.accept(message) && messageHolder.get().remove(message)) {
-				removedMessages.add(message);
-			}
-		}
-		return removedMessages;
-	}
-
-
 	private static class ThreadLocalMessageHolder extends ThreadLocal<Queue<Message<?>>> {
 
 		@Override

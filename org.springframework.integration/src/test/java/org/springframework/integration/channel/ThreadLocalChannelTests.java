@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
@@ -46,17 +47,19 @@ public class ThreadLocalChannelTests {
 	}
 
 	@Test
-	public void testSendAndClear() {
+	public void testSendAndReceiveMultipleMessages() {
 		ThreadLocalChannel channel = new ThreadLocalChannel();
 		StringMessage message1 = new StringMessage("test1");
 		StringMessage message2 = new StringMessage("test2");
 		assertNull(channel.receive());
 		assertTrue(channel.send(message1));
 		assertTrue(channel.send(message2));
-		List<Message<?>> clearedMessages = channel.clear();
-		assertEquals(2, clearedMessages.size());
-		assertEquals(message1, clearedMessages.get(0));
-		assertEquals(message2, clearedMessages.get(1));
+		List<Message<?>> receivedMessages = new ArrayList<Message<?>>();
+		receivedMessages.add(channel.receive(0));
+		receivedMessages.add(channel.receive(0));
+		assertEquals(2, receivedMessages.size());
+		assertEquals(message1, receivedMessages.get(0));
+		assertEquals(message2, receivedMessages.get(1));
 		assertNull(channel.receive());
 	}
 
