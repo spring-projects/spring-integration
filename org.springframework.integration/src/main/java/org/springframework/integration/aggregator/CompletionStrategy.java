@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.integration.core.Message;
 
@@ -29,6 +29,6 @@ import org.springframework.integration.core.Message;
  */
 public interface CompletionStrategy {
 
-	boolean isComplete(List<? extends Message<?>> messages);
+	boolean isComplete(Collection<? extends Message<?>> messages);
 
 }

@@ -16,39 +16,34 @@ import org.springframework.integration.message.MessageBuilder;
 /**
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Dave Syer
  */
-@RunWith(MockitoJUnitRunner.class)
 public class MessageGroupTests {
 
-    private Object key = new Object();
+	private Object key = new Object();
 
-    @Mock
-    private MessageGroupListener listener;
+	private MessageGroup group;
 
-    @Mock
-    private CompletionStrategy completionStrategy;
+	@Before
+	public void buildMessageGroup() {
+		group = new MessageGroup(Collections.<Message<?>> emptyList(), key);
+	}
 
-    private MessageGroup group;
+	@Test
+	public void shouldFindSupersedingMessages() {
+		final Message<?> message1 = MessageBuilder.withPayload("test").setSequenceNumber(1).build();
+		final Message<?> message2 = MessageBuilder.fromMessage(message1).setSequenceNumber(1).build();
+		assertThat(group.hasNoMessageSuperseding(message1), is(true));
+		group.add(message2);
+		assertThat(group.hasNoMessageSuperseding(message1), is(false));
+	}
 
-    @Before
-    public void buildMessageGroup() {
-        group = new MessageGroup(Collections.<Message<?>>emptyList(), completionStrategy, key, listener);
-    }
-
-    @Test
-    public void shouldFindSupersedingMessages() {
-        final Message<?> message1 = MessageBuilder.withPayload("test").setSequenceNumber(1).build();
-        final Message<?> message2 = MessageBuilder.fromMessage(message1).setSequenceNumber(1).build();
-        assertThat(group.hasNoMessageSuperseding(message1), is(true));
-        group.add(message2);
-        assertThat(group.hasNoMessageSuperseding(message1), is(false));
-    }
-    @Test
-    public void shouldIgnoreMessagesWithZeroSequenceNumber() {
-        final Message<?> message1 = MessageBuilder.withPayload("test").build();
-        final Message<?> message2 = MessageBuilder.fromMessage(message1).build();
-        assertThat(group.hasNoMessageSuperseding(message1), is(true));
-        group.add(message2);
-        assertThat(group.hasNoMessageSuperseding(message1), is(true));
-    }
+	@Test
+	public void shouldIgnoreMessagesWithZeroSequenceNumber() {
+		final Message<?> message1 = MessageBuilder.withPayload("test").build();
+		final Message<?> message2 = MessageBuilder.fromMessage(message1).build();
+		assertThat(group.hasNoMessageSuperseding(message1), is(true));
+		group.add(message2);
+		assertThat(group.hasNoMessageSuperseding(message1), is(true));
+	}
 }

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.integration.core.Message;
 import org.springframework.util.CollectionUtils;
@@ -31,11 +31,11 @@ import org.springframework.util.CollectionUtils;
  */
 public class SequenceSizeCompletionStrategy implements CompletionStrategy {
 
-	public boolean isComplete(List<? extends Message<?>> messages) {
+	public boolean isComplete(Collection<? extends Message<?>> messages) {
 		if (CollectionUtils.isEmpty(messages)) {
 			return false;
 		}
-		return messages.size() != 0 && (messages.size() >= messages.get(0).getHeaders().getSequenceSize());
+		return messages.size() != 0 && (messages.size() >= messages.iterator().next().getHeaders().getSequenceSize());
 	}
 
 }

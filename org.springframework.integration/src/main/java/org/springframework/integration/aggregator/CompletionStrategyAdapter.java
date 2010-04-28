@@ -17,7 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
@@ -43,7 +43,7 @@ public class CompletionStrategyAdapter extends MessageListMethodAdapter implemen
 	}
 
 
-	public boolean isComplete(List<? extends Message<?>> messages) {
+	public boolean isComplete(Collection<? extends Message<?>> messages) {
 		return ((Boolean) executeMethod(messages)).booleanValue();
 	}
 

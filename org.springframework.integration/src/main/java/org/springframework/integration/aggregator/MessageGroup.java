@@ -17,18 +17,16 @@
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import org.springframework.integration.core.Message;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain
  * {@link org.springframework.integration.store.MessageStore} and correlation
- * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it.
- * <strong>This is not thread safe and should not be used for long running aggregations</strong>.
+ * key. The group will grow during its lifetime, when messages are
+ * <code>add</code>ed to it. <strong>This is not thread safe and should not be
+ * used for long running aggregations</strong>.
  * <p/>
  * According to its
  * {@link org.springframework.integration.aggregator.CompletionStrategy} it can
@@ -39,27 +37,19 @@ import org.springframework.integration.core.Message;
  * 
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
+ * @author Dave Syer
  * @since 2.0
  */
 public class MessageGroup {
 
-	private final CompletionStrategy completionStrategy;
-
 	private final Object correlationKey;
 
-	private final ArrayList<Message<?>> messages = new ArrayList<Message<?>>();
+	private final Collection<Message<?>> messages = new ArrayList<Message<?>>();
 
-	private final List<MessageGroupListener> listeners;
-
-
-	public MessageGroup(Collection<? extends Message<?>> originalMessages, CompletionStrategy completionStrategy,
-			Object correlationKey, MessageGroupListener... listeners) {
-		this.completionStrategy = completionStrategy;
+	public MessageGroup(Collection<? extends Message<?>> originalMessages, Object correlationKey) {
 		this.correlationKey = correlationKey;
 		this.messages.addAll(originalMessages);
-		this.listeners = Collections.unmodifiableList(Arrays.asList(listeners));
 	}
-
 
 	/**
 	 * This method determines whether messages have been added to this group
@@ -88,53 +78,20 @@ public class MessageGroup {
 		messages.add(message);
 	}
 
-	public boolean isComplete() {
-		return completionStrategy.isComplete(messages);
-	}
-
 	/**
 	 * @return internal message list, modification is allowed, but not
-	 *         recommended
+	 * recommended
 	 */
-	public List<Message<?>> getMessages() {
+	public Collection<Message<?>> getMessages() {
 		return messages;
 	}
 
 	/**
 	 * @return the correlation key that links these messages together according
-	 *         to a particular CorrelationStrategy
+	 * to a particular CorrelationStrategy
 	 */
 	public Object getCorrelationKey() {
 		return correlationKey;
 	}
-
-	/**
-	 * Call this method to sign off on processing of certain messages e.g. from
-	 * a MessageProcessor. Typically this will remove these messages from the
-	 * processing backlog.
-	 */
-	public void onProcessingOf(Message<?>... messages) {
-		for (MessageGroupListener listener : listeners) {
-			listener.onProcessingOf(messages);
-		}
-	}
-
-	/**
-	 * Call this method to signal the completion of the processing of an entire group.
-	 */
-	public void onCompletion() {
-		for (MessageGroupListener listener : listeners) {
-			listener.onCompletionOf(correlationKey);
-		}
-	}
-
-	/**
-	 * This method is a shorthand for signaling that all messages in the group have been
-	 * processed and that the group is completed.
-	 */
-	public void onCompleteProcessing() {
-		onProcessingOf(messages.toArray(new Message[messages.size()]));
-		onCompletion();
-    }
 
 }

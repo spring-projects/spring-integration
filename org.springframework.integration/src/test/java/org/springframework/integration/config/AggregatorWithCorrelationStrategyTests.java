@@ -31,6 +31,7 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertThat;
@@ -109,7 +110,7 @@ public class AggregatorWithCorrelationStrategyTests {
             this.expectedSize = expectedSize;
         }
 
-        public boolean isComplete(List<? extends Message<?>> messages) {
+        public boolean isComplete(Collection<? extends Message<?>> messages) {
             return messages.size() == expectedSize;
         }
 

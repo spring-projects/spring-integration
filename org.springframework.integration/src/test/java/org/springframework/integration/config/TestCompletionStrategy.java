@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.core.Message;
@@ -26,7 +26,7 @@ import org.springframework.integration.core.Message;
  */
 public class TestCompletionStrategy implements CompletionStrategy {
 
-	public boolean isComplete(List<? extends Message<?>> messages) {
+	public boolean isComplete(Collection<? extends Message<?>> messages) {
 		throw new UnsupportedOperationException("This is not intended to be implemented, but to verify injection into an <aggregator>");
 	}
 

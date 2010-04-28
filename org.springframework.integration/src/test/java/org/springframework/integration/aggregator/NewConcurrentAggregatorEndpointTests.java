@@ -16,6 +16,15 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -32,13 +41,6 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -324,16 +326,10 @@ public class NewConcurrentAggregatorEndpointTests {
                                    MessageChannelTemplate channelTemplate, MessageChannel outputChannel
         ) {
             Integer product = 1;
-            List<Message<?>> messagesUpForProcessing = group.getMessages();
-            for (Message<?> message : messagesUpForProcessing) {
+             for (Message<?> message : group.getMessages()) {
                 product *= (Integer) message.getPayload();
             }
             channelTemplate.send(MessageBuilder.withPayload(product).build(), outputChannel);
-
-            group.onProcessingOf(
-                    messagesUpForProcessing.toArray(new Message[messagesUpForProcessing.size()])
-            );
-            group.onCompletion();
         }
     }
 

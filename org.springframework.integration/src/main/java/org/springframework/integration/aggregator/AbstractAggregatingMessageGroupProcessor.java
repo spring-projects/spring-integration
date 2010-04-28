@@ -28,8 +28,8 @@ import org.springframework.util.Assert;
 import java.util.*;
 
 /**
- * Base class for MessageGroupProcessor implementations that aggregate the
- * group of Messages into a single Message.
+ * Base class for MessageGroupProcessor implementations that aggregate the group
+ * of Messages into a single Message.
  * 
  * @author Iwein Fuld
  * @author Alexander Peters
@@ -40,52 +40,48 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-
-	public final void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
+	public final void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate,
+			MessageChannel outputChannel) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		Object payload = this.aggregatePayloads(group);
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers).build();
 		channelTemplate.send(message, outputChannel);
-		group.onCompleteProcessing();
 	}
 
 	/**
-	 * This default implementation simply returns all headers that have no conflicts
-	 * among the group. An absent header on one or more Messages within the group is
-	 * not considered a conflict. Subclasses may override this method with more
-	 * advanced conflict-resolution strategies if necessary.
+	 * This default implementation simply returns all headers that have no
+	 * conflicts among the group. An absent header on one or more Messages
+	 * within the group is not considered a conflict. Subclasses may override
+	 * this method with more advanced conflict-resolution strategies if
+	 * necessary.
 	 */
 	protected Map<String, Object> aggregateHeaders(MessageGroup group) {
 		Map<String, Object> aggregatedHeaders = new HashMap<String, Object>();
 		Set<String> conflictKeys = new HashSet<String>();
-		List<Message<?>> messages = group.getMessages();
-		if (messages != null) {
-			for (Message<?> message : messages) {
-				MessageHeaders currentHeaders = message.getHeaders();
-				for (String key : currentHeaders.keySet()) {
-					if (MessageHeaders.ID.equals(key) ||
-							MessageHeaders.TIMESTAMP.equals(key) ||
-							MessageHeaders.SEQUENCE_SIZE.equals(key)) {
-						continue;
-					}
-					Object value = currentHeaders.get(key);
-					if (!aggregatedHeaders.containsKey(key)) {
-						aggregatedHeaders.put(key, value);
-					}
-					else if (!value.equals(aggregatedHeaders.get(key))) {
-						conflictKeys.add(key);
-					}
+		for (Message<?> message : group.getMessages()) {
+			MessageHeaders currentHeaders = message.getHeaders();
+			for (String key : currentHeaders.keySet()) {
+				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
+						|| MessageHeaders.SEQUENCE_SIZE.equals(key)) {
+					continue;
+				}
+				Object value = currentHeaders.get(key);
+				if (!aggregatedHeaders.containsKey(key)) {
+					aggregatedHeaders.put(key, value);
+				}
+				else if (!value.equals(aggregatedHeaders.get(key))) {
+					conflictKeys.add(key);
 				}
 			}
-			for (String keyToRemove : conflictKeys) {
-				if (logger.isInfoEnabled()) {
-					logger.info("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) " +
-							"in MessageGroup with correlation key: " + group.getCorrelationKey());
-				}
-				aggregatedHeaders.remove(keyToRemove);
+		}
+		for (String keyToRemove : conflictKeys) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Excluding header '" + keyToRemove + "' upon aggregation due to conflict(s) "
+						+ "in MessageGroup with correlation key: " + group.getCorrelationKey());
 			}
+			aggregatedHeaders.remove(keyToRemove);
 		}
 		return aggregatedHeaders;
 	}

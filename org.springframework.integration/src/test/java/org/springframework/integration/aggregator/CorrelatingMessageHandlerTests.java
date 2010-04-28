@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
@@ -38,11 +37,9 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 
@@ -77,8 +74,7 @@ public class CorrelatingMessageHandlerTests {
         doAnswer(new Answer<Object>() {
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 MessageGroup messageGroup = (MessageGroup) invocation.getArguments()[0];
-                messageGroup.onProcessingOf(messageGroup.getMessages().toArray(new Message[2]));
-                messageGroup.onCompletion();
+                // TODO: remove this?
                 return null;
             }
         }).when(processor).processAndSend(isA(MessageGroup.class),
@@ -88,8 +84,6 @@ public class CorrelatingMessageHandlerTests {
     @Test
     public void bufferCompletesNormally() throws Exception {
         String correlationKey = "key";
-        UUID id1 = UUID.randomUUID();
-        UUID id2 = UUID.randomUUID();
         Message<?> message1 = testMessage(correlationKey, 1);
         Message<?> message2 = testMessage(correlationKey, 2);
         List<Message<?>> storedMessages = new ArrayList<Message<?>>();
@@ -130,8 +124,6 @@ public class CorrelatingMessageHandlerTests {
         String correlationKey = "key";
         final Message<?> message1 = testMessage(correlationKey, 1);
         final Message<?> message2 = testMessage(correlationKey, 2);
-        UUID id1 = message1.getHeaders().getId();
-        UUID id2 = message2.getHeaders().getId();
         final List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
         final CountDownLatch bothMessagesHandled = new CountDownLatch(2);

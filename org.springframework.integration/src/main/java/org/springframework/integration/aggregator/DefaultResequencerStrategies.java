@@ -17,6 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -30,7 +31,8 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 
 /**
- * This class implements all the strategy interfaces needed for a default resequencer.
+ * This class implements all the strategy interfaces needed for a default
+ * resequencer.
  * 
  * @author Iwein Fuld
  * @since 2.0
@@ -38,11 +40,11 @@ import org.springframework.integration.core.MessageHeaders;
 public class DefaultResequencerStrategies implements CorrelationStrategy, CompletionStrategy, MessageGroupProcessor {
 
 	private final ConcurrentMap<Object, AtomicInteger> nextMessagesToPass = new ConcurrentHashMap<Object, AtomicInteger>();
+	private final ConcurrentMap<Object, AtomicInteger> lastMessagesToPass = new ConcurrentHashMap<Object, AtomicInteger>();
 
 	private volatile SequenceNumberComparator sequenceNumberComparator = new SequenceNumberComparator();
 
 	private volatile boolean releasePartialSequences;
-
 
 	public Object getCorrelationKey(Message<?> message) {
 		Object key = message.getHeaders().getCorrelationId();
@@ -50,12 +52,13 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
 		return key;
 	}
 
-	public boolean isComplete(List<? extends Message<?>> messages) {
-		return releasePartialSequences || messages.get(0).getHeaders().getSequenceSize() == messages.size();
+	public boolean isComplete(Collection<? extends Message<?>> messages) {
+		return releasePartialSequences
+				|| (!messages.isEmpty() && messages.iterator().next().getHeaders().getSequenceSize() == messages.size());
 	}
 
 	public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
-		List<Message<?>> all = group.getMessages();
+		Collection<Message<?>> all = group.getMessages();
 		Object correlationKey = group.getCorrelationKey();
 		if (all.size() > 0) {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(all);
@@ -66,12 +69,11 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
 				if (sequenceNumber <= nextSequence.get()) {
 					channelTemplate.send(message, outputChannel);
 					nextSequence.compareAndSet(sequenceNumber, sequenceNumber + 1);
-					group.onProcessingOf(message);
 				}
 			}
 			MessageHeaders headers = sorted.get(0).getHeaders();
 			if (all.size() == headers.getSequenceSize()) {
-				group.onCompletion();
+				// TODO: it's only complete if this is true...
 			}
 		}
 	}
@@ -79,7 +81,6 @@ public class DefaultResequencerStrategies implements CorrelationStrategy, Comple
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
 	}
-
 
 	private static class SequenceNumberComparator implements Comparator<Message<?>> {
 		public int compare(Message<?> o1, Message<?> o2) {

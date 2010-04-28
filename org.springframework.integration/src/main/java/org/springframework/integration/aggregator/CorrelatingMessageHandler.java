@@ -58,8 +58,9 @@ import org.springframework.util.Assert;
  * {@link org.springframework.integration.aggregator.MessageGroupProcessor}
  * implementations as you require.
  * <p/>
- * By default the CorrelationStrategy will be a HeaderAttributeCorrelationStrategy
- * and the CompletionStrategy will be a SequenceSizeCompletionStrategy.
+ * By default the CorrelationStrategy will be a
+ * HeaderAttributeCorrelationStrategy and the CompletionStrategy will be a
+ * SequenceSizeCompletionStrategy.
  * 
  * @author Iwein Fuld
  * @since 2.0
@@ -74,13 +75,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private static final long DEFAULT_TIMEOUT = 60000L;
 
-
 	private final MessageStore store;
 
 	private final MessageGroupProcessor outputProcessor;
 
-	private volatile CorrelationStrategy correlationStrategy =
-			new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);
+	private volatile CorrelationStrategy correlationStrategy = new HeaderAttributeCorrelationStrategy(
+			MessageHeaders.CORRELATION_ID);
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
@@ -97,13 +97,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private volatile ScheduledFuture<?> reaperFutureTask;
 
 	private volatile long reaperInterval = DEFAULT_REAPER_INTERVAL;
-	
+
 	private volatile long timeout = DEFAULT_TIMEOUT;
-	
+
 	private volatile boolean sendPartialResultOnTimeout;
 
 	private final Object lifecycleMonitor = new Object();
-
 
 	public CorrelatingMessageHandler(MessageStore store, CorrelationStrategy correlationStrategy,
 			CompletionStrategy completionStrategy, MessageGroupProcessor processor) {
@@ -127,7 +126,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		this(new SimpleMessageStore(0), new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID),
 				new SequenceSizeCompletionStrategy(), processor);
 	}
-
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
 		Assert.notNull(correlationStrategy);
@@ -185,18 +183,19 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 		try {
 			if (tracker.waitForLockIfNotTracked(correlationKey)) {
-				MessageGroup group = new MessageGroup(store.list(correlationKey),
-						completionStrategy, correlationKey, deleteOrTrackCallback(correlationKey));
+				Collection<Message<?>> messages = store.list(correlationKey);
+				MessageGroup group = new MessageGroup(messages, correlationKey);
 
 				if (group.hasNoMessageSuperseding(message)) {
 					store(message, correlationKey);
 					group.add(message);
-					if (group.isComplete()) {
+					if (completionStrategy.isComplete(group.getMessages())) {
 						if (logger.isDebugEnabled()) {
 							logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 						}
-						outputProcessor.processAndSend(group, channelTemplate,
-								this.resolveReplyChannel(message, this.outputChannel));
+						outputProcessor.processAndSend(group, channelTemplate, this.resolveReplyChannel(message,
+								this.outputChannel));
+						complete(group);
 					}
 				}
 				else {
@@ -212,20 +211,15 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-	private MessageGroupListener deleteOrTrackCallback(final Object correlationKey) {
-		return new MessageGroupListener() {
-			
-			public void onProcessingOf(Message<?>... processedMessage) {
-				for (Message<?> message : processedMessage) {
-					store.delete(correlationKey, message.getHeaders().getId());
-				}
-			}
+	private void partialComplete(MessageGroup group) {
+		for (Message<?> message : group.getMessages()) {
+			store.delete(group.getCorrelationKey(), message.getHeaders().getId());
+		}
+	}
 
-			public void onCompletionOf(Object correlationKey) {
-				tracker.pushCorrelationId(correlationKey);
-				store.deleteAll(correlationKey);
-			}
-		};
+	private void complete(MessageGroup group) {
+		tracker.pushCorrelationId(group.getCorrelationKey());
+		store.deleteAll(group.getCorrelationKey());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -252,8 +246,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 				return;
 			}
 			Assert.state(this.getTaskScheduler() != null, "'taskScheduler' must not be null");
-			this.reaperFutureTask = this.getTaskScheduler().scheduleWithFixedDelay(
-					new PrunerTask(), this.reaperInterval);
+			this.reaperFutureTask = this.getTaskScheduler().scheduleWithFixedDelay(new PrunerTask(),
+					this.reaperInterval);
 		}
 	}
 
@@ -264,7 +258,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			}
 		}
 	}
-
 
 	private class PrunerTask implements Runnable {
 		public void run() {
@@ -289,38 +282,35 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-
 	protected final boolean forceComplete(Object key) {
 		try {
 			if (tracker.tryLockFor(key)) {
 				Collection<Message<?>> all = store.list(key);
-				MessageGroup group = new MessageGroup(all, completionStrategy, key, deleteOrTrackCallback(key));
+				MessageGroup group = new MessageGroup(all, key);
 				if (all.size() > 0) {
 					// last chance for normal completion
 					MessageChannel outputChannel = resolveReplyChannel(all.iterator().next(), this.outputChannel);
-					boolean processed = false;
-					if (group.isComplete()) {
+					if (completionStrategy.isComplete(all)) {
 						outputProcessor.processAndSend(group, channelTemplate, outputChannel);
-						processed = true;
-					}
-					if (!processed) {
+						complete(group);
+					} else {
 						if (sendPartialResultOnTimeout) {
 							if (logger.isInfoEnabled()) {
-								logger.info("Processing partially complete messages for key [" +
-										key + "] to: " + outputChannel);
+								logger.info("Processing partially complete messages for key [" + key + "] to: "
+										+ outputChannel);
 							}
 							outputProcessor.processAndSend(group, channelTemplate, outputChannel);
 						}
 						else {
 							if (logger.isInfoEnabled()) {
-								logger.info("Discarding partially complete messages for key [" +
-										key + "] to: " + discardChannel);
+								logger.info("Discarding partially complete messages for key [" + key + "] to: "
+										+ discardChannel);
 							}
 							for (Message<?> message : all) {
 								discardChannel.send(message);
-								store.delete(key, message.getHeaders().getId());
 							}
 						}
+						partialComplete(group);
 					}
 				}
 				return true;
@@ -333,7 +323,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			tracker.unlock(key);
 		}
 	}
-
 
 	private final class DelayedKey implements Delayed {
 
@@ -362,7 +351,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-
 	private final class IdTracker {
 
 		private final ConcurrentMap<Object, ReentrantLock> trackerLocks = new ConcurrentHashMap<Object, ReentrantLock>();
@@ -380,7 +368,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		/**
 		 * Call this method to check if an id is tracked and obtain a lock for
 		 * it. Don't forget to finally unlock afterwards.
-		 * @return false if the key was tracked, true after obtaining the lock otherwise
+		 * @return false if the key was tracked, true after obtaining the lock
+		 * otherwise
 		 */
 		private boolean waitForLockIfNotTracked(Object correlationKey) {
 			ReentrantLock lock = trackerLocks.get(correlationKey);

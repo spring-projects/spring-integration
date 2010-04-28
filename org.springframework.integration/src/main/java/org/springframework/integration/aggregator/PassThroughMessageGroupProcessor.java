@@ -17,8 +17,7 @@ public class PassThroughMessageGroupProcessor implements MessageGroupProcessor {
     public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
         for (Message<?> message : group.getMessages()) {
             channelTemplate.send(message, outputChannel);
-            group.onProcessingOf(message);
         }
-        group.onCompletion();
     }
+
 }

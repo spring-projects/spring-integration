@@ -71,8 +71,6 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	protected final Object aggregatePayloads(MessageGroup group) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
 		Object result = this.adapter.executeMethod(messagesUpForProcessing);
-		group.onCompletion();
-		group.onProcessingOf(messagesUpForProcessing.toArray(new Message[messagesUpForProcessing.size()]));
 		return result;
 	}
 

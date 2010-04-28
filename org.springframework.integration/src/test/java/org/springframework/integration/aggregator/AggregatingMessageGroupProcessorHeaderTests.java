@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -43,11 +42,10 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
-	private final MessageGroupProcessor defaultProcessor = new DefaultAggregatingMessageGroupProcessor();
+	private final DefaultAggregatingMessageGroupProcessor defaultProcessor = new DefaultAggregatingMessageGroupProcessor();
 
-	private final MessageGroupProcessor methodInvokingProcessor =
+	private final MethodInvokingMessageGroupProcessor methodInvokingProcessor =
 			new MethodInvokingMessageGroupProcessor(new TestAggregatorBean(), "aggregate");
-
 
 	@Test
 	public void singleMessageUsingDefaultProcessor() {
@@ -106,7 +104,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		headers.put("k2", new Integer(2));
 		Message<?> message = correlatedMessage(1, 1, 1, headers);
 		List<Message<?>> messages = Collections.<Message<?>>singletonList(message);
-		MessageGroup group = new MessageGroup(messages, new SequenceSizeCompletionStrategy(), 1);
+		MessageGroup group = new MessageGroup(messages, 1);
 		processor.processAndSend(group, channelTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
@@ -121,7 +119,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message1 = correlatedMessage(1, 2, 1, headers);
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
-		MessageGroup group = new MessageGroup(messages, new SequenceSizeCompletionStrategy(), 1);
+		MessageGroup group = new MessageGroup(messages, 1);
 		processor.processAndSend(group, channelTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
@@ -139,7 +137,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		headers2.put("k2", new Integer(123));		
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers2);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
-		MessageGroup group = new MessageGroup(messages, new SequenceSizeCompletionStrategy(), 1);
+		MessageGroup group = new MessageGroup(messages, 1);
 		processor.processAndSend(group, channelTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
@@ -169,7 +167,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		headers3.put("conflictBetween2And3", "valueFor3");
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
-		MessageGroup group = new MessageGroup(messages, new SequenceSizeCompletionStrategy(), 1);
+		MessageGroup group = new MessageGroup(messages, 1);
 		processor.processAndSend(group, channelTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
@@ -197,7 +195,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		headers3.put("common", "valueForAll");
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
-		MessageGroup group = new MessageGroup(messages, new SequenceSizeCompletionStrategy(), 1);
+		MessageGroup group = new MessageGroup(messages, 1);
 		processor.processAndSend(group, channelTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
