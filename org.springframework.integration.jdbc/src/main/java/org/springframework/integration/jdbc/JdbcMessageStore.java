@@ -241,14 +241,19 @@ public class JdbcMessageStore implements MessageStore {
 
 	}
 
-	public void add(Object correlationId, Message<?> message) {
+	public void put(Object correlationId, Message<?> message) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	public void add(Object correlationId, Collection<Message<?>> messages) {
+	public void put(Object correlationId, Collection<Message<?>> messages) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public Message<?> delete(Object correlationId, UUID messageId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public void deleteAll(Object correlationId) {
