@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="pojoOutput">
+		<queue/>
+	</channel>
+
+	<channel id="defaultOutput">
+		<queue/>
+	</channel>
+
+	<splitter input-channel="pojoInput" output-channel="pojoAggregator"/>
+
+	<aggregator input-channel="pojoAggregator" output-channel="pojoOutput" method="aggregate">
+		<beans:bean class="org.springframework.integration.aggregator.integration.MethodInvokingAggregatorReturningMessageTests$TestAggregator"/>
+	</aggregator>
+
+	<splitter input-channel="defaultInput" output-channel="defaultAggregator"/>
+
+	<aggregator input-channel="defaultAggregator" output-channel="defaultOutput"/>
+
+</beans:beans>

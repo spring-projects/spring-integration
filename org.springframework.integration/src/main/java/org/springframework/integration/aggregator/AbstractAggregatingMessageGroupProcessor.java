@@ -40,13 +40,17 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+	@SuppressWarnings("unchecked")
 	public final void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate,
 			MessageChannel outputChannel) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		Object payload = this.aggregatePayloads(group);
 		Map<String, Object> headers = this.aggregateHeaders(group);
-		Message<?> message = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers).build();
+		MessageBuilder<?> builder = (payload instanceof Message)
+				? MessageBuilder.fromMessage((Message<?>) payload)
+				: MessageBuilder.withPayload(payload);
+		Message<?> message = builder.copyHeadersIfAbsent(headers).build();
 		channelTemplate.send(message, outputChannel);
 	}
 
