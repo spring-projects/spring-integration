@@ -98,7 +98,7 @@ public class SimpleMessageStore implements MessageStore {
 		if (collection==null) {
 			return Collections.emptySet();
 		}
-		return Collections.unmodifiableCollection(collection);
+		return new HashSet<Message<?>>(collection);
 	}
 
 	public void put(Object correlationId, Collection<Message<?>> messages) {

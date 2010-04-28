@@ -318,7 +318,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 							}
 							for (Message<?> message : all) {
 								discardChannel.send(message);
-								store.delete(message.getHeaders().getId());
+								store.delete(key, message.getHeaders().getId());
 							}
 						}
 					}
