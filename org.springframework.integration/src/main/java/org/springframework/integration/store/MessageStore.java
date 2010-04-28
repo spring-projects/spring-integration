@@ -59,10 +59,49 @@ public interface MessageStore {
 	Message<?> delete(UUID id);
 
 	/**
-	 * Return all Messages currently in the MessageStore that contain the
-	 * provided correlationId header value.
+	 * Return all Messages currently in the MessageStore that were stored using
+	 * {@link #put(Object, Message)} or {@link #put(Object, Collection)} with
+	 * this correlation id.
+	 * 
 	 * @see org.springframework.integration.core.MessageHeaders#getCorrelationId()
 	 */
 	Collection<Message<?>> list(Object correlationId);
+
+	/**
+	 * Store a message with an association to a correlation id. This can be used
+	 * to group messages together instead of storing them just under their id.
+	 * 
+	 * @param correlationId the correlation id to store the message under
+	 * @param message a message
+	 */
+	void put(Object correlationId, Message<?> message);
+
+	/**
+	 * Store a group of message with an association to a correlation id.
+	 * 
+	 * @param correlationId the correlation id to store the message under
+	 * @param messages a collection of messages
+	 * 
+	 * @see MessageStore#put(UUID, Message)
+	 */
+	void put(Object correlationId, Collection<Message<?>> messages);
+
+	/**
+	 * Delete a message from the association with this correlation id. If the
+	 * message was stored under through {@link #put(Message)} as well, then it
+	 * is still accessible via {@link #get(UUID)}.
+	 * 
+	 * @param correlationId the correlation id to delete all messages under
+	 */
+	Message<?> delete(Object correlationId, UUID messageId);
+
+	/**
+	 * Delete all the messages from the association with this correlation id. If
+	 * the messages were stored under their id through {@link #put(Message)}
+	 * they are still accessible via {@link #get(UUID)}.
+	 * 
+	 * @param correlationId the correlation id to delete all messages under
+	 */
+	void deleteAll(Object correlationId);
 
 }

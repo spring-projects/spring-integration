@@ -120,6 +120,7 @@ public class NewResequencerTests {
         assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
         assertNotNull(reply2);
         assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+        System.err.println(reply3);
         assertNull(reply3);
         // when sending the last message, the whole sequence must have been sent
         this.resequencer.handleMessage(message4);

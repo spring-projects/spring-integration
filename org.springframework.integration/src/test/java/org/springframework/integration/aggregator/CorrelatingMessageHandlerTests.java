@@ -108,8 +108,8 @@ public class CorrelatingMessageHandlerTests {
         handler.handleMessage(message2);
         storedMessages.add(message2);
 
-        verify(store).put(message1);
-        verify(store).put(message2);
+        verify(store).put(correlationKey, message1);
+        verify(store).put(correlationKey, message2);
         verify(store, times(2)).list(correlationKey);
         verify(correlationStrategy).getCorrelationKey(message1);
         verify(correlationStrategy).getCorrelationKey(message2);
@@ -164,10 +164,9 @@ public class CorrelatingMessageHandlerTests {
         assertFalse(handler.forceComplete("key"));
 
         bothMessagesHandled.await();
-        verify(store).put(message1);
-        verify(store).put(message2);
-        verify(store).delete(id1);
-        verify(store).delete(id2);
+        verify(store).put(correlationKey, message1);
+        verify(store).put(correlationKey, message2);
+        verify(store).deleteAll(correlationKey);
     }
 
     private Message<?> testMessage(String correlationKey, int sequenceNumber) {

@@ -186,7 +186,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		try {
 			if (tracker.waitForLockIfNotTracked(correlationKey)) {
 				MessageGroup group = new MessageGroup(store.list(correlationKey),
-						completionStrategy, correlationKey, deleteOrTrackCallback());
+						completionStrategy, correlationKey, deleteOrTrackCallback(correlationKey));
 
 				if (group.hasNoMessageSuperseding(message)) {
 					store(message, correlationKey);
@@ -212,17 +212,18 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		}
 	}
 
-	private MessageGroupListener deleteOrTrackCallback() {
+	private MessageGroupListener deleteOrTrackCallback(final Object correlationKey) {
 		return new MessageGroupListener() {
-
+			
 			public void onProcessingOf(Message<?>... processedMessage) {
 				for (Message<?> message : processedMessage) {
-					store.delete(message.getHeaders().getId());
+					store.delete(correlationKey, message.getHeaders().getId());
 				}
 			}
 
 			public void onCompletionOf(Object correlationKey) {
 				tracker.pushCorrelationId(correlationKey);
+				store.deleteAll(correlationKey);
 			}
 		};
 	}
@@ -233,7 +234,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		if (!correlationKey.equals(message.getHeaders().getCorrelationId())) {
 			toStore = MessageBuilder.fromMessage(message).setCorrelationId(correlationKey).build();
 		}
-		store.put(toStore);
+		store.put(correlationKey, toStore);
 		if (!keysInBuffer.contains(correlationKey)) {
 			keysInBuffer.add(new DelayedKey(correlationKey, timeout));
 		}
@@ -293,7 +294,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		try {
 			if (tracker.tryLockFor(key)) {
 				Collection<Message<?>> all = store.list(key);
-				MessageGroup group = new MessageGroup(all, completionStrategy, key, deleteOrTrackCallback());
+				MessageGroup group = new MessageGroup(all, completionStrategy, key, deleteOrTrackCallback(key));
 				if (all.size() > 0) {
 					// last chance for normal completion
 					MessageChannel outputChannel = resolveReplyChannel(all.iterator().next(), this.outputChannel);

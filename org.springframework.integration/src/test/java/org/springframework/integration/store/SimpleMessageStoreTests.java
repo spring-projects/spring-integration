@@ -16,20 +16,25 @@
 
 package org.springframework.integration.store;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-
 /**
  * @author Iwein Fuld
+ * @author Dave Syer
  */
-public class SimpleMessageStoreTest {
+public class SimpleMessageStoreTests {
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void shouldRetainMessage() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
@@ -54,4 +59,22 @@ public class SimpleMessageStoreTest {
 		store.put(testMessage1);
 		store.put(testMessage2);
 	}
+	
+	@Test
+	public void shouldListByCorrelation() throws Exception {
+		SimpleMessageStore store = new SimpleMessageStore();
+		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+		store.put("bar", testMessage1);
+		assertEquals(1, store.list("bar").size());
+	}
+
+	@Test
+	public void shouldListByCorrelationAfterAddAll() throws Exception {
+		SimpleMessageStore store = new SimpleMessageStore();
+		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+		store.put("bar", Arrays.<Message<?>>asList(testMessage1, testMessage2));
+		assertEquals(2, store.list("bar").size());
+	}
+
 }

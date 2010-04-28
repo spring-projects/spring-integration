@@ -16,12 +16,13 @@
 
 package org.springframework.integration.store;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
@@ -38,7 +39,9 @@ import org.springframework.util.Assert;
  */
 public class SimpleMessageStore implements MessageStore {
 
-	private final Map<UUID, Message<?>> map;
+	private final ConcurrentMap<UUID, Message<?>> idToMessage;
+
+	private final ConcurrentMap<Object, Collection<Message<?>>> correlationToMessage;
 
 	private final UpperBound upperBound;
 
@@ -47,7 +50,8 @@ public class SimpleMessageStore implements MessageStore {
 	 * capacity, or unlimited size if the given capacity is less than 1.
 	 */
 	public SimpleMessageStore(int capacity) {
-		this.map = new ConcurrentHashMap<UUID, Message<?>>();
+		this.idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
+		this.correlationToMessage = new ConcurrentHashMap<Object, Collection<Message<?>>>();
 		this.upperBound = new UpperBound(capacity);
 	}
 
@@ -64,37 +68,73 @@ public class SimpleMessageStore implements MessageStore {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-		return (Message<T>) this.map.put(message.getHeaders().getId(), message);
+		Object correlationId = message.getHeaders().getCorrelationId();
+		if (correlationId!=null) {
+			getMessagesInternal(correlationId).add(message);
+		}
+		return (Message<T>) this.idToMessage.put(message.getHeaders().getId(), message);
 	}
 
 	public Message<?> get(UUID key) {
-		return (key != null) ? this.map.get(key) : null;
+		return (key != null) ? this.idToMessage.get(key) : null;
 	}
 
 	public Message<?> delete(UUID key) {
 		if (key != null) {
 			upperBound.release();
-			return this.map.remove(key);
+			return this.idToMessage.remove(key);
 		}
 		else
 			return null;
 	}
 
 	public int size() {
-		return this.map.size();
+		return this.idToMessage.size();
 	}
 
-	public List<Message<?>> list(Object correlationKey) {
-		Assert.notNull(correlationKey, "'correlationKey' must not be null");
-		List<Message<?>> matched = new ArrayList<Message<?>>();
-		Collection<Message<?>> values = map.values();
-		for (Message<?> message : values) {
-			Object correlationId = message.getHeaders().getCorrelationId();
-			if (correlationId != null && correlationId.equals(correlationKey)) {
-				matched.add(message);
+	public Collection<Message<?>> list(Object correlationId) {
+		Assert.notNull(correlationId, "'correlationKey' must not be null");
+		Collection<Message<?>> collection = correlationToMessage.get(correlationId);
+		if (collection==null) {
+			return Collections.emptySet();
+		}
+		return Collections.unmodifiableCollection(collection);
+	}
+
+	public void put(Object correlationId, Collection<Message<?>> messages) {
+		getMessagesInternal(correlationId).addAll(messages);
+	}
+
+	public void put(Object correlationId, Message<?> message) {
+		getMessagesInternal(correlationId).add(message);
+	}
+
+	public Message<?> delete(Object correlationId, UUID messageId) {
+		if (!correlationToMessage.containsKey(correlationId)) {
+			return null;
+		}
+		Collection<Message<?>> messages = getMessagesInternal(correlationId);
+		Message<?> result = null;
+		for (Iterator<Message<?>> iterator = messages.iterator(); iterator.hasNext();) {
+			Message<?> message = (Message<?>) iterator.next();
+			if (message.getHeaders().getId().equals(messageId)) {
+				iterator.remove();
+				result = message;
 			}
 		}
-		return matched;
+		return result;
+	}
+
+	public void deleteAll(Object correlationId) {
+		correlationToMessage.remove(correlationId);
+	}
+
+	private Collection<Message<?>> getMessagesInternal(Object correlationId) {
+		if (!correlationToMessage.containsKey(correlationId)) {
+			correlationToMessage.putIfAbsent(correlationId, new HashSet<Message<?>>());
+		}
+		Collection<Message<?>> collection = correlationToMessage.get(correlationId);
+		return collection;
 	}
 
 }
