@@ -16,20 +16,33 @@
 
 package org.springframework.integration.test.matcher;
 
+import static org.hamcrest.CoreMatchers.anything;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasAllHeaders;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasCorrelationId;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasExpirationDate;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeader;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasHeaderKey;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasMessageId;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasSequenceNumber;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasSequenceSize;
+import static org.springframework.integration.test.matcher.HeaderMatcher.hasTimestamp;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.matcher.HeaderMatcher.*;
 
 /**
  * @author Alex Peters
@@ -146,7 +159,7 @@ public class HeaderMatcherTests {
 
 	@Test
 	public void hasCorrelationId_() throws Exception {
-		Object correlationId = message.getHeaders().getId();
+		UUID correlationId = message.getHeaders().getId();
 		message = MessageBuilder.withPayload("blabla").setCorrelationId(correlationId).build();
 		assertThat(message, hasCorrelationId(correlationId));
 	}

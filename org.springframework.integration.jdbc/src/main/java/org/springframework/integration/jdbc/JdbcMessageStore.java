@@ -1,13 +1,11 @@
 package org.springframework.integration.jdbc;
 
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +17,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.jdbc.util.SerializationUtils;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.util.UUIDConverter;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -221,30 +220,7 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	private String getKey(Object input) {
-
-		if (input == null) {
-			return null;
-		}
-
-		if (input instanceof UUID) {
-			return input.toString();
-		}
-
-		if (input instanceof String && ((String) input).length() < 100) {
-			return (String) input;
-		}
-
-		MessageDigest digest;
-		try {
-			digest = MessageDigest.getInstance("MD5");
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException("MD5 algorithm not available.  Fatal (should be in the JDK).");
-		}
-
-		byte[] bytes = digest.digest(SerializationUtils.serialize(input));
-		return String.format("%032x", new BigInteger(1, bytes));
-
+		return input==null ? null : UUIDConverter.getUUID(input).toString();
 	}
 
 	/**
@@ -263,6 +239,21 @@ public class JdbcMessageStore implements MessageStore {
 			return message;
 		}
 
+	}
+
+	public void add(Object correlationId, Message<?> message) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void add(Object correlationId, Collection<Message<?>> messages) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void deleteAll(Object correlationId) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

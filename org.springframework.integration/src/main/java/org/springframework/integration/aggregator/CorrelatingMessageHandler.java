@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +30,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
@@ -293,11 +292,11 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	protected final boolean forceComplete(Object key) {
 		try {
 			if (tracker.tryLockFor(key)) {
-				List<Message<?>> all = store.list(key);
+				Collection<Message<?>> all = store.list(key);
 				MessageGroup group = new MessageGroup(all, completionStrategy, key, deleteOrTrackCallback());
 				if (all.size() > 0) {
 					// last chance for normal completion
-					MessageChannel outputChannel = resolveReplyChannel(all.get(0), this.outputChannel);
+					MessageChannel outputChannel = resolveReplyChannel(all.iterator().next(), this.outputChannel);
 					boolean processed = false;
 					if (group.isComplete()) {
 						outputProcessor.processAndSend(group, channelTemplate, outputChannel);

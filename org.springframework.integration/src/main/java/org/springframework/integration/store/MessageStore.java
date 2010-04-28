@@ -16,7 +16,7 @@
 
 package org.springframework.integration.store;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
 import org.springframework.integration.core.Message;
@@ -63,6 +63,6 @@ public interface MessageStore {
 	 * provided correlationId header value.
 	 * @see org.springframework.integration.core.MessageHeaders#getCorrelationId()
 	 */
-	List<Message<?>> list(Object correlationId);
+	Collection<Message<?>> list(Object correlationId);
 
 }

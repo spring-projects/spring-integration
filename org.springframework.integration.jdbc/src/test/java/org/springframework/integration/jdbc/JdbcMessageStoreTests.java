@@ -24,17 +24,17 @@ import org.springframework.transaction.annotation.Transactional;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class JdbcMessageStoreTests {
-	
+
 	@Autowired
 	private DataSource dataSource;
-	
+
 	private JdbcMessageStore messageStore;
 
 	@Before
 	public void init() {
 		messageStore = new JdbcMessageStore(dataSource);
 	}
-	
+
 	@Test
 	@Transactional
 	public void testGetNonExistent() throws Exception {
@@ -45,7 +45,7 @@ public class JdbcMessageStoreTests {
 	@Test
 	@Transactional
 	public void testAddAndGet() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
+		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<String> saved = messageStore.put(message);
 		assertNull(messageStore.get(message.getHeaders().getId()));
 		Message<?> result = messageStore.get(saved.getHeaders().getId());
@@ -58,7 +58,8 @@ public class JdbcMessageStoreTests {
 	@Test
 	@Transactional
 	public void testAddAndUpdate() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(
+				"X").build();
 		message = messageStore.put(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
 		message = messageStore.put(message);
@@ -89,15 +90,16 @@ public class JdbcMessageStoreTests {
 	@Test
 	@Transactional
 	public void testAddAndListByCorrelationId() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
+		String correlationId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
 		messageStore.put(message);
-		assertEquals(1, messageStore.list("X").size());
+		assertEquals(1, messageStore.list(correlationId).size());
 	}
 
 	@Test
 	@Transactional
 	public void testAddAndDelete() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId("X").build();
+		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.put(message);
 		assertNotNull(messageStore.delete(message.getHeaders().getId()));
 	}
