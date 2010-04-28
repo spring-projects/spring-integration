@@ -28,31 +28,42 @@ import org.springframework.util.ClassUtils;
  * Utility to help generate UUID instances from generic objects.
  * 
  * @author Dave Syer
- *
+ * 
  */
 public class UUIDConverter implements Converter<Object, UUID> {
 
 	public static final String DEFAULT_CHARSET = "UTF-8";
-	private final String charset;
-	
-	public UUIDConverter() {
-		this(DEFAULT_CHARSET);
-	}
-	
-	public UUIDConverter(String charset) {
-		this.charset = charset;
-	}
 
-
+	/**
+	 * Convert the input to a UUID using the convenience method
+	 * {@link #getUUID(Object)}.
+	 * 
+	 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
+	 */
 	public UUID convert(Object source) {
-		return getUUID(source, charset);
+		return getUUID(source);
 	}
 
+	/**
+	 * Convenient utility to convert an object to a UUID. If the input is
+	 * <ul>
+	 * <li>null: returns null</li>
+	 * <li>a UUID: returns the input unchanged</li>
+	 * <li>a String formatted as a UUID: returns the result of
+	 * {@link UUID#fromString(String)}</li>
+	 * <li>any other String: returns {@link UUID#nameUUIDFromBytes(byte[])} with
+	 * bytes generated from the input</li>
+	 * <li>a primitive or primitive wrapper: converts to a String ans then uses
+	 * the previous conversion method</li>
+	 * <li>Serializable: returns the {@link UUID#nameUUIDFromBytes(byte[])} with
+	 * the serialized bytes of the input</li>
+	 * </ul>
+	 * If none of the above applies there will be an exception trying to serialize.
+	 * 
+	 * @param input an Object
+	 * @return a UUID constructed from the input
+	 */
 	public static UUID getUUID(Object input) {
-		return getUUID(input, DEFAULT_CHARSET);
-	}
-	
-	public static UUID getUUID(Object input, String charset) {
 
 		if (input == null) {
 			return null;
@@ -66,22 +77,22 @@ public class UUIDConverter implements Converter<Object, UUID> {
 			try {
 				return UUID.fromString((String) input);
 			}
-			catch (IllegalArgumentException e) {
+			catch (Exception e) {
 				try {
-					return UUID.nameUUIDFromBytes(((String) input).getBytes(charset));
+					return UUID.nameUUIDFromBytes(((String) input).getBytes(DEFAULT_CHARSET));
 				}
 				catch (UnsupportedEncodingException ex) {
-					throw new IllegalStateException("Cannot convert String using charset=" + charset, ex);
+					throw new IllegalStateException("Cannot convert String using charset=" + DEFAULT_CHARSET, ex);
 				}
 			}
 		}
 
 		if (ClassUtils.isPrimitiveOrWrapper(input.getClass())) {
 			try {
-				return UUID.nameUUIDFromBytes(input.toString().getBytes(charset));
+				return UUID.nameUUIDFromBytes(input.toString().getBytes(DEFAULT_CHARSET));
 			}
 			catch (UnsupportedEncodingException e) {
-				throw new IllegalStateException("Cannot convert primitive using charset=" + charset, e);
+				throw new IllegalStateException("Cannot convert primitive using charset=" + DEFAULT_CHARSET, e);
 			}
 		}
 
