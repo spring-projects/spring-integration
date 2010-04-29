@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.jdbc;
 
 import java.sql.PreparedStatement;
@@ -13,6 +29,7 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.core.Message;
 import org.springframework.integration.jdbc.util.SerializationUtils;
 import org.springframework.integration.message.MessageBuilder;
@@ -34,7 +51,7 @@ import org.springframework.util.StringUtils;
  * <code>*</code> is the target database type.
  * 
  * @author Dave Syer
- * 
+ * @since 2.0
  */
 public class JdbcMessageStore implements MessageStore {
 
@@ -76,6 +93,7 @@ public class JdbcMessageStore implements MessageStore {
 
 	private MessageMapper mapper = new MessageMapper();
 
+
 	/**
 	 * Convenient constructor for configuration use.
 	 */
@@ -90,6 +108,7 @@ public class JdbcMessageStore implements MessageStore {
 	public JdbcMessageStore(DataSource dataSource) {
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
+
 
 	/**
 	 * Replace patterns in the input to produce a valid SQL query. This
@@ -126,8 +145,8 @@ public class JdbcMessageStore implements MessageStore {
 
 	/**
 	 * The {@link JdbcOperations} to use when interacting with the database.
-	 * Either this property can be set or the {@link #setDataSource(DataSource)
-	 * dataSource}.
+	 * Either this property can be set or the
+	 * {@link #setDataSource(DataSource) dataSource}.
 	 * 
 	 * @param dataSource a {@link DataSource}
 	 */
@@ -156,21 +175,16 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	public Message<?> delete(UUID id) {
-
 		Message<?> message = get(id);
 		if (message == null) {
 			return null;
 		}
-
 		int updated = jdbcTemplate.update(getQuery(DELETE_MESSAGE), new Object[] { getKey(id) },
 				new int[] { Types.VARCHAR });
-
 		if (updated != 0) {
 			return message;
 		}
-
 		return null;
-
 	}
 
 	public Message<?> get(UUID id) {
@@ -182,12 +196,11 @@ public class JdbcMessageStore implements MessageStore {
 	}
 
 	public List<Message<?>> list(Object correlationId) {
-		return jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_CORRELATION_KEY), new Object[] { getKey(correlationId) },
-				mapper);
+		return jdbcTemplate.query(getQuery(LIST_MESSAGES_BY_CORRELATION_KEY),
+				new Object[] { getKey(correlationId) }, mapper);
 	}
 
 	public <T> Message<T> put(final Message<T> message) {
-
 		if (message.getHeaders().containsKey(SAVED_KEY)) {
 			@SuppressWarnings("unchecked")
 			Message<T> saved = (Message<T>) get(message.getHeaders().getId());
@@ -214,41 +227,15 @@ public class JdbcMessageStore implements MessageStore {
 				lobHandler.getLobCreator().setBlobAsBytes(ps, 4, messageBytes);
 			}
 		});
-
 		return result;
-
-	}
-
-	private String getKey(Object input) {
-		return input==null ? null : UUIDConverter.getUUID(input).toString();
-	}
-
-	/**
-	 * Convenience class to be used to unpack a message from a result set row.
-	 * Uses column named in the result set to extract the required data, so that
-	 * select clause ordering is unimportant.
-	 * 
-	 * @author Dave Syer
-	 * 
-	 */
-	private class MessageMapper implements RowMapper<Message<?>> {
-
-		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			Message<?> message = (Message<?>) SerializationUtils.deserialize(lobHandler.getBlobAsBytes(rs,
-					"MESSAGE_BYTES"));
-			return message;
-		}
-
 	}
 
 	public void put(Object correlationId, Message<?> message) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public void put(Object correlationId, Collection<Message<?>> messages) {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	public Message<?> delete(Object correlationId, UUID messageId) {
@@ -258,7 +245,27 @@ public class JdbcMessageStore implements MessageStore {
 
 	public void deleteAll(Object correlationId) {
 		// TODO Auto-generated method stub
-		
+	}
+
+	private String getKey(Object input) {
+		return input == null ? null : UUIDConverter.getUUID(input).toString();
+	}
+
+
+	/**
+	 * Convenience class to be used to unpack a message from a result set row.
+	 * Uses column named in the result set to extract the required data, so that
+	 * select clause ordering is unimportant.
+	 * 
+	 * @author Dave Syer
+	 */
+	private class MessageMapper implements RowMapper<Message<?>> {
+
+		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Message<?> message = (Message<?>) SerializationUtils.deserialize(
+					lobHandler.getBlobAsBytes(rs, "MESSAGE_BYTES"));
+			return message;
+		}
 	}
 
 }

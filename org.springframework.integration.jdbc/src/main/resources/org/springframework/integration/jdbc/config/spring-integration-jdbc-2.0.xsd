@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/jdbc"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	targetNamespace="http://www.springframework.org/schema/integration/jdbc"
@@ -17,24 +18,22 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-				Defines an inbound Channel Adapter for polling a database.
+	Defines an inbound Channel Adapter for polling a database.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0"
-					maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
 			</xsd:sequence>
 			<xsd:attribute name="simple-jdbc-operations" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="import org.springframework.jdbc.core.simple.SimpleJdbcOperations" />
+								type="org.springframework.jdbc.core.simple.SimpleJdbcOperations" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -43,7 +42,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="import javax.sql.DataSource" />
+							<tool:expected-type type="javax.sql.DataSource" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -54,14 +53,13 @@
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-								type="import org.springframework.jdbc.core.RowMapper" />
+								type="org.springframework.jdbc.core.RowMapper" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="update" type="xsd:string" />
-			<xsd:attribute name="update-per-row" type="xsd:boolean"
-				default="false" />
+			<xsd:attribute name="update-per-row" type="xsd:boolean" default="false" />
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -74,4 +72,5 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
 </xsd:schema>

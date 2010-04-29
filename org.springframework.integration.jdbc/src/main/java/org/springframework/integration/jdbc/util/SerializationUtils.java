@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jdbc.util;
 
 import java.io.ByteArrayInputStream;
@@ -21,12 +22,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-
 /**
  * Static utility to help with serialization.
  * 
  * @author Dave Syer
- *
  */
 public class SerializationUtils {
 
@@ -37,20 +36,17 @@ public class SerializationUtils {
 	 * @return an array of bytes representing the object in a portable fashion
 	 */
 	public static byte[] serialize(Object object) {
-
-		if (object==null) {
+		if (object == null) {
 			return null;
 		}
-
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
 			new ObjectOutputStream(stream).writeObject(object);
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Could not serialize object of type: "+object.getClass(), e);
 		}
-
+		catch (IOException e) {
+			throw new IllegalArgumentException("Could not serialize object of type: " + object.getClass(), e);
+		}
 		return stream.toByteArray();
-
 	}
 
 	/**
@@ -58,11 +54,9 @@ public class SerializationUtils {
 	 * @return the result of deserializing the bytes
 	 */
 	public static Object deserialize(byte[] bytes) {
-
-		if (bytes==null) {
+		if (bytes == null) {
 			return null;
 		}
-
 		try {
 			return new ObjectInputStream(new ByteArrayInputStream(bytes)).readObject();
 		}
@@ -72,7 +66,6 @@ public class SerializationUtils {
 		catch (ClassNotFoundException e) {
 			throw new IllegalStateException("Could not deserialize object type", e);
 		}
-
 	}
 
 }
