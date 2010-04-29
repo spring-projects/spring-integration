@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
@@ -33,6 +34,16 @@ import org.springframework.integration.message.StringMessage;
  * @author Mark Fisher
  */
 public class ThreadLocalChannelTests {
+
+	@Before
+	public void clearThreadLocalQueue() {
+		ThreadLocalChannel channel = new ThreadLocalChannel();
+		Message<?> result = null;
+		do {
+			result = channel.receive(0);
+		} while (result != null);
+	}
+
 
 	@Test
 	public void testSendAndReceive() {
