@@ -13,14 +13,10 @@
 	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
 	<channel id="orders"/>
-	<splitter input-channel="orders" method="split" output-channel="drinks">
-		<beans:bean class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
-	</splitter>
+	<splitter input-channel="orders" expression="payload.items" output-channel="drinks"/>
 
 	<channel id="drinks"/>
-	<router input-channel="drinks"  method="resolveOrderItemChannel">
-		<beans:bean class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
-	</router>
+	<router input-channel="drinks"  expression="payload.iced ? 'coldDrinks' : 'hotDrinks'"/>
 
 	<channel id="coldDrinks">
 		<queue capacity="10"/>
