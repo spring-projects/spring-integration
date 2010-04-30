@@ -42,7 +42,7 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	 */
     public MessageHistoryEvent addEvent(ComponentMetadata metadata) {
         if (metadata != null && metadata.getComponentName() != null) {
-            MessageHistoryEvent event = new MessageHistoryEvent(metadata);
+            MessageHistoryEvent event = new MessageHistoryEvent(metadata.getComponentType(), metadata.getComponentName());
             this.events.add(event);
             return event;
         }

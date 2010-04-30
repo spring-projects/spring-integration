@@ -16,7 +16,7 @@
 
 package org.springframework.integration.history;
 
-import org.springframework.integration.support.ComponentMetadata;
+import java.io.Serializable;
 
 /**
  * Metadata about a historically relevant messaging event along
@@ -25,25 +25,50 @@ import org.springframework.integration.support.ComponentMetadata;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MessageHistoryEvent extends ComponentMetadata {
+public class MessageHistoryEvent implements Serializable {
 
-	public static final String TIMESTAMP = "timestamp";
+	private final String type;
+
+	private final String name;
+
+	private final long timestamp;
 
 
 	/**
 	 * Create a MessageHistoryEvent with the metadata of the source component.
 	 */
-	public MessageHistoryEvent(ComponentMetadata metadata) {
-		super(metadata);
-		this.setAttribute(TIMESTAMP, System.currentTimeMillis());
+	public MessageHistoryEvent(String type, String name) {
+		this.type = type;
+		this.name = name;
+		this.timestamp = System.currentTimeMillis();
 	}
 
+
+	public String getType() {
+		return this.type;
+	}
+
+	public String getName() {
+		return this.name;
+	}
 
 	/**
 	 * Returns the timestamp generated when this event was created.
 	 */
 	public long getTimestamp() {
-		return this.getAttribute(TIMESTAMP, long.class);
+		return this.timestamp;
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (this.type != null) {
+			sb.append(type + ":");
+		}
+		if (this.name != null) {
+			sb.append(name);
+			//sb.append("[" + timestamp + "]");
+		}
+		return sb.toString();
 	}
 
 }
