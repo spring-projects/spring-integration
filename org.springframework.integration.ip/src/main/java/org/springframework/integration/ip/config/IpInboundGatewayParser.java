@@ -13,49 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.config;
+
+import org.w3c.dom.Element;
+
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.Conventions;
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
+import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.ip.tcp.SimpleTcpNetInboundGateway;
-import org.w3c.dom.Element;
-
-import sun.print.IPPPrintService;
 
 /**
  * @author Gary Russell
- *
+ * @since 2.0
  */
-public class IpInboundGatewayParser extends AbstractRemotingGatewayParser {
+public class IpInboundGatewayParser extends AbstractInboundGatewayParser {
 
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser#getBeanClass(org.w3c.dom.Element)
-	 */
 	@Override
-	protected Class getBeanClass(Element element) {
+	protected Class<?> getBeanClass(Element element) {
 		return SimpleTcpNetInboundGateway.class;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.adapter.config.AbstractRemotingGatewayParser#isEligibleAttribute(java.lang.String)
-	 */
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !attributeName.equals(IpAdapterParserUtils.MESSAGE_FORMAT)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.adapter.config.AbstractRemotingGatewayParser#doPostProcess(org.springframework.beans.factory.support.BeanDefinitionBuilder, org.w3c.dom.Element)
-	 */
 	@Override
 	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 		builder.addPropertyValue(
 				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
 				IpAdapterParserUtils.getMessageFormat(element));
 	}
-
 
 }

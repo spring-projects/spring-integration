@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.httpinvoker.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
+import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 
 /**
  * Parser for the &lt;httpinvoker-gateway/&gt; element. 
@@ -28,7 +28,7 @@ import org.springframework.integration.adapter.config.AbstractRemotingGatewayPar
  * @deprecated as of 2.0.x. We recommend using the REST-based HTTP adapters instead.
  */
 @Deprecated
-public class HttpInvokerInboundGatewayParser extends AbstractRemotingGatewayParser {
+public class HttpInvokerInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {

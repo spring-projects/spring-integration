@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,25 +15,27 @@
  */
 package org.springframework.integration.ws.config;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
+import org.springframework.util.StringUtils;
+
 /**
- * 
  * @author Iwein Fuld
- * 
  */
-public class WebServiceInboundGatewayParser extends
-		AbstractRemotingGatewayParser {
+public class WebServiceInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		String simpleClassName = (StringUtils.hasText(element
-				.getAttribute("marshaller"))) ? "MarshallingWebServiceInboundGateway"
-				: "SimpleWebServiceInboundGateway";
+		String simpleClassName = (StringUtils.hasText(element.getAttribute("marshaller"))) ?
+				"MarshallingWebServiceInboundGateway" : "SimpleWebServiceInboundGateway";
 		return "org.springframework.integration.ws." + simpleClassName;
+	}
+
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !(attributeName.endsWith("marshaller")) && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
@@ -47,8 +49,5 @@ public class WebServiceInboundGatewayParser extends
 			}
 		}
 	}
-	@Override
-	protected boolean isEligibleAttribute(String attributeName) {
-		return !(attributeName.endsWith("marshaller")) && super.isEligibleAttribute(attributeName);
-	}
+
 }

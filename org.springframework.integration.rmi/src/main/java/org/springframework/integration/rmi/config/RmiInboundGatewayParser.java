@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.rmi.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
+import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.util.StringUtils;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RmiInboundGatewayParser extends AbstractRemotingGatewayParser {
+public class RmiInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	private static final String REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE = "remote-invocation-executor";
 
