@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -22,15 +22,14 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for url-based remoting outbound gateway parsers. 
+ * Base class for url-based outbound gateway parsers. 
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingOutboundGatewayParser extends AbstractConsumerEndpointParser {
+public abstract class AbstractOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	protected abstract String getGatewayClassName(Element element);
 
