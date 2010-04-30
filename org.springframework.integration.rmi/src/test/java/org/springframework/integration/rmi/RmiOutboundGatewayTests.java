@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import java.rmi.RemoteException;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -54,8 +54,8 @@ public class RmiOutboundGatewayTests {
 	@Before
 	public void createExporter() throws RemoteException {
 		RmiServiceExporter exporter = new RmiServiceExporter();
-		exporter.setService(new TestHandler());
-		exporter.setServiceInterface(RemoteMessageHandler.class);
+		exporter.setService(new TestExchanger());
+		exporter.setServiceInterface(RequestReplyExchanger.class);
 		exporter.setServiceName("testRemoteHandler");
 		exporter.afterPropertiesSet();
 	}
@@ -139,9 +139,9 @@ public class RmiOutboundGatewayTests {
 	}
 
 
-	private static class TestHandler implements RemoteMessageHandler {
+	private static class TestExchanger implements RequestReplyExchanger {
 
-		public Message<?> handle(Message<?> message) {
+		public Message<?> exchange(Message<?> message) {
 			return new GenericMessage<String>(message.getPayload().toString().toUpperCase(), message.getHeaders());
 		}
 	}

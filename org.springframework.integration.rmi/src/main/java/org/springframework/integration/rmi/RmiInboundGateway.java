@@ -19,10 +19,10 @@ package org.springframework.integration.rmi;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.RemoteMessageHandler;
-import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.gateway.RemotingInboundGatewaySupport;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
 import org.springframework.util.Assert;
@@ -91,7 +91,7 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 					exporter.setRemoteInvocationExecutor(this.remoteInvocationExecutor);
 				}
 				exporter.setService(this);
-				exporter.setServiceInterface(RemoteMessageHandler.class);
+				exporter.setServiceInterface(RequestReplyExchanger.class);
 				exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
 				exporter.afterPropertiesSet();
 				this.exporter = exporter;

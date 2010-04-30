@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.gateway;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.gateway.SimpleMessagingGateway;
 
 /**
  * Support class for inbound Messaging Gateways.
  * 
  * @author Mark Fisher
  */
-public abstract class RemotingInboundGatewaySupport extends SimpleMessagingGateway implements RemoteMessageHandler {
+public abstract class RemotingInboundGatewaySupport extends SimpleMessagingGateway implements RequestReplyExchanger {
 
 	private volatile boolean expectReply = true;
 
@@ -37,7 +36,7 @@ public abstract class RemotingInboundGatewaySupport extends SimpleMessagingGatew
 		this.expectReply = expectReply;
 	}
 
-	public Message<?> handle(Message<?> message) {
+	public Message<?> exchange(Message<?> message) {
 		if (this.expectReply) {
 			return this.sendAndReceiveMessage(message);
 		}

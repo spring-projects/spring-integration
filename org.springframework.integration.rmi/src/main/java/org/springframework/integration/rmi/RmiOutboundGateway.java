@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.rmi;
 
-import org.springframework.integration.adapter.AbstractRemotingOutboundGateway;
-import org.springframework.integration.adapter.RemoteMessageHandler;
+import org.springframework.integration.gateway.AbstractRemotingOutboundGateway;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
@@ -33,14 +33,14 @@ public class RmiOutboundGateway extends AbstractRemotingOutboundGateway {
 
 
 	@Override
-	public RemoteMessageHandler createHandlerProxy(String url) {
+	public RequestReplyExchanger createProxy(String url) {
 		RmiProxyFactoryBean proxyFactory = new RmiProxyFactoryBean();
-		proxyFactory.setServiceInterface(RemoteMessageHandler.class);
+		proxyFactory.setServiceInterface(RequestReplyExchanger.class);
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.setLookupStubOnStartup(false);
 		proxyFactory.setRefreshStubOnConnectFailure(true);
 		proxyFactory.afterPropertiesSet();
-		return (RemoteMessageHandler) proxyFactory.getObject();
+		return (RequestReplyExchanger) proxyFactory.getObject();
 	}
 
 }

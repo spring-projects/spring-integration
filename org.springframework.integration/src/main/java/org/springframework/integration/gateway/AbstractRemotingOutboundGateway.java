@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.gateway;
 
 import java.io.Serializable;
 
@@ -26,17 +26,17 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
 
 /**
- * A base class for outbound Messaging Gateways that use url-based remoting.
+ * A base class for outbound URL-based Messaging Gateways.
  * 
  * @author Mark Fisher
  */
 public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private final RemoteMessageHandler handlerProxy;
+	private final RequestReplyExchanger proxy;
 
 
 	public AbstractRemotingOutboundGateway(String url) {
-		this.handlerProxy = this.createHandlerProxy(url);
+		this.proxy = this.createProxy(url);
 	}
 
 
@@ -47,7 +47,7 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 	/**
 	 * Subclasses must implement this method. It will be invoked from the constructor.
 	 */
-	protected abstract RemoteMessageHandler createHandlerProxy(String url);
+	protected abstract RequestReplyExchanger createProxy(String url);
 
 
 	@Override
@@ -59,10 +59,10 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 		}
 		Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
-			return this.handlerProxy.handle(requestMessage);
+			return this.proxy.exchange(requestMessage);
 		}
 		catch (RemoteAccessException e) {
-			throw new MessageHandlingException(message, "unable to handle message remotely", e);
+			throw new MessageHandlingException(message, "remote failure in Messaging Gateway", e);
 		}
 	}
 

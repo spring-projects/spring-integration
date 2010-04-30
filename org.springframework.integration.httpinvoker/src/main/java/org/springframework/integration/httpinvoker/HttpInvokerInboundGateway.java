@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.integration.adapter.RemoteMessageHandler;
-import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.gateway.RemotingInboundGatewaySupport;
+import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.web.HttpRequestHandler;
 
@@ -74,7 +74,7 @@ public class HttpInvokerInboundGateway extends RemotingInboundGatewaySupport imp
 			if (this.exporter == null) {
 				HttpInvokerServiceExporter exporter = new HttpInvokerServiceExporter();
 				exporter.setService(this);
-				exporter.setServiceInterface(RemoteMessageHandler.class);
+				exporter.setServiceInterface(RequestReplyExchanger.class);
 				exporter.afterPropertiesSet();
 				this.exporter = exporter;
 			}

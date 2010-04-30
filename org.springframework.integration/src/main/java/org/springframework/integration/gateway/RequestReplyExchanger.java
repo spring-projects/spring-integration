@@ -26,8 +26,8 @@ import org.springframework.integration.core.Message;
  * @author Mark Fisher
  * @since 2.0
  */
-interface RequestReplyExchanger {
+public interface RequestReplyExchanger {
 
-	public Message<?> exchange(Message<?> request);
+	Message<?> exchange(Message<?> request);
 
 }
