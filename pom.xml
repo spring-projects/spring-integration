@@ -10,7 +10,6 @@
 	<modules>
 		<module>spring-integration-parent</module>
 		<module>org.springframework.integration</module>
-		<module>org.springframework.integration.adapter</module>
 		<module>org.springframework.integration.test</module>
 		<module>org.springframework.integration.event</module>
 		<module>org.springframework.integration.file</module>

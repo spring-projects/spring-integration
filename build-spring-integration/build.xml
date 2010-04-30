@@ -5,7 +5,6 @@
 		<pathelement location="${basedir}/../spring-integration-parent"/>
 		<pathelement location="${basedir}/../org.springframework.integration"/>
 		<pathelement location="${basedir}/../org.springframework.integration.security"/>
-		<pathelement location="${basedir}/../org.springframework.integration.adapter"/>
 		<pathelement location="${basedir}/../org.springframework.integration.xml"/>
 		<pathelement location="${basedir}/../org.springframework.integration.event"/>
 		<pathelement location="${basedir}/../org.springframework.integration.file"/>

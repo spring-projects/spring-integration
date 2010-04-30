@@ -20,7 +20,6 @@
       <module>../spring-integration-parent</module>
       <module>../org.springframework.integration</module>
       <module>../org.springframework.integration.security</module>
-      <module>../org.springframework.integration.adapter</module>
       <module>../org.springframework.integration.event</module>
       <module>../org.springframework.integration.file</module>
       <module>../org.springframework.integration.http</module>
@@ -40,9 +39,9 @@
     <url>http://www.springsource.com</url>
   </organization>
   <scm>
-    <url>https://fisheye.springframework.org/browse/spring-integration</url>
-    <connection>scm:svn:https://src.springframework.org/svn/spring-integration</connection>
-    <developerConnection>scm:svn:https://src.springframework.org/svn/spring-integration/trunk</developerConnection>
+    <url>https://fisheye.springsource.org/browse/spring-integration</url>
+    <connection>scm:svn:https://src.springsource.org/svn/spring-integration</connection>
+    <developerConnection>scm:svn:https://src.springsource.org/svn/spring-integration/trunk</developerConnection>
   </scm>
   <issueManagement>
     <system>JIRA</system>
@@ -52,13 +51,13 @@
     <mailingList>
       <name>        Spring Integration Forum
       </name>
-      <post>http://forum.springframework.org/forumdisplay.php?f=42</post>
-      <archive>http://forum.springframework.org/forumdisplay.php?f=42</archive>
+      <post>http://forum.springsource.org/forumdisplay.php?f=42</post>
+      <archive>http://forum.springsource.org/forumdisplay.php?f=42</archive>
     </mailingList>
   </mailingLists>
   <ciManagement>
     <system>Bamboo</system>
-    <url>https://build.springframework.org/browse/INT</url>
+    <url>https://build.springsource.org/browse/INT</url>
   </ciManagement>
   <licenses>
     <license>
