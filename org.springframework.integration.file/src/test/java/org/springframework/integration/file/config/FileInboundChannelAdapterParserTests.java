@@ -63,7 +63,7 @@ public class FileInboundChannelAdapterParserTests {
 	@Test
 	public void channelName() throws Exception {
 		AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
-		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getName());
+		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
 	}
 
 	@Test

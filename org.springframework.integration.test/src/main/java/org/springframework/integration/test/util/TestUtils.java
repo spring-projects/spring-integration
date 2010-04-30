@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -129,12 +129,12 @@ public abstract class TestUtils {
         }
 
         public void registerChannel(String channelName, MessageChannel channel) {
-            if (channel instanceof AbstractMessageChannel && ((AbstractMessageChannel) channel).getName() != null) {
+            if (channel instanceof NamedComponent && ((NamedComponent) channel).getComponentName() != null) {
                 if (channelName == null) {
-                    channelName = ((AbstractMessageChannel) channel).getName();
+                    channelName = ((NamedComponent) channel).getComponentName();
                 }
                 else {
-                    Assert.isTrue(((AbstractMessageChannel) channel).getName().equals(channelName),
+                    Assert.isTrue(((NamedComponent) channel).getComponentName().equals(channelName),
                             "channel name has already been set with a conflicting value");
                 }
             }

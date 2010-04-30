@@ -50,7 +50,7 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 	protected void doStart() {
 		synchronized (this.initializationMonitor) {
 			if (this.handlerInvocationChain == null) {
-				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getBeanName());
+				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getComponentName());
 			}
 		}
 		this.inputChannel.subscribe(this.handlerInvocationChain);

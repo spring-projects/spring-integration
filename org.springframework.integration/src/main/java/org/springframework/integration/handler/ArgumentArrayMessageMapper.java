@@ -122,15 +122,11 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private final List<MethodParameter> parameterList;
 
-	private final String gatewayName;
 
-
-	public ArgumentArrayMessageMapper(Method method, String gatewayName) {
+	public ArgumentArrayMessageMapper(Method method) {
 		Assert.notNull(method, "method must not be null");
-		Assert.notNull(gatewayName, "gatewayName must not be null");
 		this.method = method;
 		this.parameterList = this.getMethodParameterList(method);
-		this.gatewayName = gatewayName;
 	}
 
 	public Message<?> toMessage(Object[] arguments) {
@@ -140,11 +136,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 			throw new IllegalArgumentException(prefix + " parameters provided for method [" + method +
 					"], expected " + this.parameterList.size() + " but received " + arguments.length + ".");
 		}
-		Message<?> message = this.mapArgumentsToMessage(arguments);
-		if (message != null) {
-			message.getHeaders().getHistory().addEvent(this.gatewayName, "gateway");
-		}
-		return message;
+		return this.mapArgumentsToMessage(arguments);
 	}
 
 	@SuppressWarnings("unchecked")

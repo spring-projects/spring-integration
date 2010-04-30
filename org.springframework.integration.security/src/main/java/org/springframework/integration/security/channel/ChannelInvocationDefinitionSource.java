@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.security.ConfigAttribute;
 import org.springframework.security.ConfigAttributeDefinition;
@@ -70,8 +70,8 @@ public class ChannelInvocationDefinitionSource implements ObjectDefinitionSource
 		Assert.isAssignable(ChannelInvocation.class, object.getClass());
 		ChannelInvocation invocation = (ChannelInvocation) object;
 		MessageChannel channel = invocation.getChannel();
-		Assert.isAssignable(AbstractMessageChannel.class, channel.getClass());
-		String channelName = ((AbstractMessageChannel) channel).getName();
+		Assert.isAssignable(NamedComponent.class, channel.getClass());
+		String channelName = ((NamedComponent) channel).getComponentName();
 		List<ConfigAttribute> attributes = new ArrayList<ConfigAttribute>();
 		for (Map.Entry<Pattern, ChannelAccessPolicy> mapping : this.patternMappings.entrySet()) {
 			Pattern pattern = mapping.getKey();

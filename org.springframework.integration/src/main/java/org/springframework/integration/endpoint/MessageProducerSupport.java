@@ -50,7 +50,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	protected boolean sendMessage(Message<?> message) {
 		if (message != null) {
-			message.getHeaders().getHistory().addEvent(this.getBeanName(), this.getComponentType());
+			message.getHeaders().getHistory().addEvent(this);
 		}
 		return this.channelTemplate.send(message, this.outputChannel);
 	}

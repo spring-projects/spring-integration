@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 
@@ -33,16 +34,15 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 
 	private final MessageHandler handler;
 
-	private final String endpointName;
-
-	private final String handlerType;
+	private final EndpointNamedComponent namedComponent;
 
 
 	public HandlerInvocationChain(MessageHandler handler, String endpointName) {
 		this.handler = handler;
-		this.endpointName = endpointName;
-		this.handlerType = (handler instanceof IntegrationObjectSupport) ?
+		String handlerType = (handler instanceof IntegrationObjectSupport) ?
 				((IntegrationObjectSupport) this.handler).getComponentType() : null;
+		this.namedComponent = (endpointName != null) ?
+				new EndpointNamedComponent(endpointName, handlerType) : null;
 	}
 
 
@@ -52,10 +52,31 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 	}
 
 	public void handleMessage(Message<?> message) {
-		if (message != null && this.endpointName != null) {
-			message.getHeaders().getHistory().addEvent(this.endpointName, this.handlerType);
+		if (message != null && this.namedComponent != null) {
+			message.getHeaders().getHistory().addEvent(this.namedComponent);
 		}
 		this.handler.handleMessage(message);
+	}
+
+
+	private static class EndpointNamedComponent implements NamedComponent {
+
+		private final String componentName;
+
+		private final String componentType;
+
+		private EndpointNamedComponent(String componentName, String componentType) {
+			this.componentName = componentName;
+			this.componentType = componentType;
+		}
+
+		public String getComponentName() {
+			return this.componentName;
+		}
+
+		public String getComponentType() {
+			return this.componentType;
+		}
 	}
 
 }

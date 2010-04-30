@@ -69,7 +69,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void channelName() {
 		AbstractMessageChannel channel = context.getBean("adapterWithPattern", AbstractMessageChannel.class);
-		assertEquals("adapterWithPattern", channel.getName());		
+		assertEquals("adapterWithPattern", channel.getComponentName());		
 	}
 
 	@Test

@@ -253,10 +253,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private SimpleMessagingGateway createGatewayForMethod(Method method) {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
-				new ArgumentArrayMessageMapper(method, this.getBeanName()), new SimpleMessageMapper());
+				new ArgumentArrayMessageMapper(method), new SimpleMessageMapper());
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}
+		gateway.setBeanName(this.getComponentName());
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
 		MessageChannel replyChannel = this.defaultReplyChannel;

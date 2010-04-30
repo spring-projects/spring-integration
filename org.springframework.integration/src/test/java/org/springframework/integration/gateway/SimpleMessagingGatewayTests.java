@@ -73,6 +73,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendMessage() {
+		expect(messageMock.getHeaders()).andReturn(new MessageHeaders(null));
 		expect(requestChannel.send(messageMock)).andReturn(true);
 		replay(allmocks);
 		this.simpleMessagingGateway.send(messageMock);
@@ -81,6 +82,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test(expected=MessageDeliveryException.class)
 	public void sendMessage_failure() {
+		expect(messageMock.getHeaders()).andReturn(new MessageHeaders(null));
 		expect(requestChannel.send(messageMock)).andReturn(false);
 		replay(allmocks);
 		this.simpleMessagingGateway.send(messageMock);

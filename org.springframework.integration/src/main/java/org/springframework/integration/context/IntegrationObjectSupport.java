@@ -24,7 +24,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.NamedBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
@@ -42,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class IntegrationObjectSupport implements BeanNameAware, NamedBean, BeanFactoryAware, InitializingBean {
+public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent, BeanFactoryAware, InitializingBean {
 
 	/** Logger that is available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
@@ -62,7 +61,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedBe
 		this.beanName = beanName;
 	}
 
-	public final String getBeanName() {
+
+	public final String getComponentName() {
 		return this.beanName;
 	}
 
@@ -129,7 +129,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedBe
 			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
 			if (this.conversionService == null && logger.isDebugEnabled()) {
 				logger.debug("Unable to attempt conversion of Message payload types. Component '" +
-						this.getBeanName() + "' has no explicit ConversionService reference, " +
+						this.getComponentName() + "' has no explicit ConversionService reference, " +
 						"and there is no 'integrationConversionService' bean within the context.");
 			}
 		}

@@ -56,13 +56,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
 
-	/**
-	 * Return the name of this channel.
-	 */
-	public String getName() {
-		return this.getBeanName();
-	}
-
 	@Override
 	public String getComponentType() {
 		return "channel";
@@ -169,7 +162,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);
-		message.getHeaders().getHistory().addEvent(this.getBeanName(), this.getComponentType());
+		message.getHeaders().getHistory().addEvent(this);
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;
@@ -188,7 +181,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 				throw (MessagingException) e;
 			}
 			throw new MessageDeliveryException(message,
-					"failed to send Message to channel '" + this.getName() + "'", e);
+					"failed to send Message to channel '" + this.getComponentName() + "'", e);
 		}
 	}
 
@@ -209,7 +202,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 				}
 			}
 		}
-		throw new MessageDeliveryException(message, "Channel '" + this.getName() +
+		throw new MessageDeliveryException(message, "Channel '" + this.getComponentName() +
 				"' expected one of the following datataypes [" + 
 				StringUtils.arrayToCommaDelimitedString(this.datatypes) + 
 				"], but received [" + message.getPayload().getClass() + "]");

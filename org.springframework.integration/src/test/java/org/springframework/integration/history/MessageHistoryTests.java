@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.integration.context.NamedComponent;
+
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -36,11 +38,19 @@ public class MessageHistoryTests {
 	public void testConcurrentModificationsOnObjectMethods() throws Exception{
 		final MessageHistory history = new MessageHistory();
 		final MessageHistory otherHistory = new MessageHistory();
+		final NamedComponent component = new NamedComponent() {
+			public String getComponentType() {
+				return "testType";
+			}
+			public String getComponentName() {
+				return "testName";
+			}
+		};
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
-					history.addEvent("testName", "testType");
-                    otherHistory.addEvent("testName", "testType");
+					history.addEvent(component);
+                    otherHistory.addEvent(component);
 				}
 			}
 		});

@@ -58,7 +58,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (!this.initialized) {
-				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getBeanName());
+				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getComponentName());
 			}
 			this.initialized = true;
 		}
