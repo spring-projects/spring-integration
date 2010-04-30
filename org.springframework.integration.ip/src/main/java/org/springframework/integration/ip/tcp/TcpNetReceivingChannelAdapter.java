@@ -23,8 +23,8 @@ import java.net.Socket;
 import javax.net.ServerSocketFactory;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageMappingException;
 
 /**
  * Tcp Receiving Channel adapter that uses a {@link java.net.Socket}. Each

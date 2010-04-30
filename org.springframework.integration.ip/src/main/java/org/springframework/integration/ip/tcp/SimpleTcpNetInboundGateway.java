@@ -20,9 +20,9 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.message.MessageMappingException;
 
 /**
  * Simple implementation of a TCP/IP inbound gateway; uses {@link java.net.Socket}

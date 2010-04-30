@@ -29,8 +29,8 @@ import javax.jms.JMSException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.MessageMappingException;
 import org.springframework.util.StringUtils;
 
 /**

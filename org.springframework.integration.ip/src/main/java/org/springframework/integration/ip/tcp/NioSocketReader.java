@@ -23,7 +23,8 @@ import java.nio.channels.SocketChannel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.adapter.MessageMappingException;
+
+import org.springframework.integration.message.MessageMappingException;
 
 /**
  * A non-blocking SocketReader that reads from a {@link java.nio.channels.SocketChannel}.

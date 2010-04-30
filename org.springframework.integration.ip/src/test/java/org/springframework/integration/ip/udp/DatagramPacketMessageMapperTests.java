@@ -26,11 +26,11 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageMappingException;
 
 /**
  * @author Gary Russell
