@@ -32,7 +32,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,6 +61,11 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 */
 	public String getName() {
 		return this.getBeanName();
+	}
+
+	@Override
+	public String getComponentType() {
+		return "channel";
 	}
 
 	/**
@@ -133,11 +137,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		return this.interceptors;
 	}
 
-	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("channel");
-	}
-
 	/**
 	 * Send a message on this channel. If the channel is at capacity, this
 	 * method will block until either space becomes available or the sending
@@ -170,7 +169,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);
-		message.getHeaders().getHistory().addEvent(this.getComponentMetadata());
+		message.getHeaders().getHistory().addEvent(this.getBeanName(), this.getComponentType());
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;

@@ -20,7 +20,6 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -32,8 +31,6 @@ import org.springframework.util.Assert;
 public abstract class MessageProducerSupport extends AbstractEndpoint implements MessageProducer {
 
 	private volatile MessageChannel outputChannel;
-
-	private final ComponentMetadata componentMetadata = new ComponentMetadata();
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
@@ -53,7 +50,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	protected boolean sendMessage(Message<?> message) {
 		if (message != null) {
-			message.getHeaders().getHistory().addEvent(this.componentMetadata);
+			message.getHeaders().getHistory().addEvent(this.getBeanName(), this.getComponentType());
 		}
 		return this.channelTemplate.send(message, this.outputChannel);
 	}

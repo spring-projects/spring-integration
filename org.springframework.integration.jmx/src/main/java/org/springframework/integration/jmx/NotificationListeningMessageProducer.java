@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -104,9 +103,9 @@ public class NotificationListeningMessageProducer extends MessageProducerSupport
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("notification-listener");
-		metadata.setAttribute("transport", "jmx");
+	public String getComponentType() {
+		// TODO: provide header: ("transport", "jmx");
+		return "notification-listener";
 	}
 
 	/**

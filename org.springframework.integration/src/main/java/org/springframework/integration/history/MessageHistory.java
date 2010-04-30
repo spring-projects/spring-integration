@@ -16,8 +16,6 @@
 
 package org.springframework.integration.history;
 
-import org.springframework.integration.support.ComponentMetadata;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -40,9 +38,9 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	/**
 	 * Add a new event with the provided component metadata.
 	 */
-    public MessageHistoryEvent addEvent(ComponentMetadata metadata) {
-        if (metadata != null && metadata.getComponentName() != null) {
-            MessageHistoryEvent event = new MessageHistoryEvent(metadata.getComponentType(), metadata.getComponentName());
+    public MessageHistoryEvent addEvent(String name, String type) {
+        if (name != null) {
+            MessageHistoryEvent event = new MessageHistoryEvent(name, type);
             this.events.add(event);
             return event;
         }

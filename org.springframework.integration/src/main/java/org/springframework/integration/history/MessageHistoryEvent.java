@@ -27,9 +27,9 @@ import java.io.Serializable;
  */
 public class MessageHistoryEvent implements Serializable {
 
-	private final String type;
-
 	private final String name;
+
+	private final String type;
 
 	private final long timestamp;
 
@@ -37,9 +37,9 @@ public class MessageHistoryEvent implements Serializable {
 	/**
 	 * Create a MessageHistoryEvent with the metadata of the source component.
 	 */
-	public MessageHistoryEvent(String type, String name) {
-		this.type = type;
+	public MessageHistoryEvent(String name, String type) {
 		this.name = name;
+		this.type = type;
 		this.timestamp = System.currentTimeMillis();
 	}
 

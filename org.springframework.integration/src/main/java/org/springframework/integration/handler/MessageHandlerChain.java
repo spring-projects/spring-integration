@@ -26,7 +26,6 @@ import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -91,8 +90,8 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("chain");
+	public String getComponentType() {
+		return "chain";
 	}
 
 	private void initialize() {
@@ -128,9 +127,6 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 						nextHandler.handleMessage(message);
 						return true;
 					}
-					public String getName() {
-						return null;
-					}
 				};
 				((MessageProducer) handler).setOutputChannel(nextChannel);
 			}
@@ -149,10 +145,6 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 
 	private class ReplyForwardingMessageChannel implements MessageChannel {
-
-		public String getName() {
-			return MessageHandlerChain.this.getBeanName();
-		}
 
 		public boolean send(Message<?> message) {
 			return this.send(message, -1);

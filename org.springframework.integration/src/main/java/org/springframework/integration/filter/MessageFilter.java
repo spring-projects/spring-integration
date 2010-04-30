@@ -22,7 +22,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.selector.MessageSelector;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -83,8 +82,8 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("filter");
+	public String getComponentType() {
+		return "filter";
 	}
 
 	@Override

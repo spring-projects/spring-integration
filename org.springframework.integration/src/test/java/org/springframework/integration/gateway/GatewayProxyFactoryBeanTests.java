@@ -283,13 +283,12 @@ public class GatewayProxyFactoryBeanTests {
 		MessageHistoryEvent event1 = historyIterator.next();
 		MessageHistoryEvent event2 = historyIterator.next();
 		MessageHistoryEvent event3 = historyIterator.next();
-		// assertEquals("echo", event1.getAttribute("method", String.class));
+		//assertEquals("echo", event1.getAttribute("method", String.class));
 		assertEquals("testGateway", event1.getName());
 		assertEquals("channel", event2.getType());
 		assertEquals("testChannel", event2.getName());
 		assertEquals("bridge", event3.getType());
 		assertEquals("testBridge", event3.getName());
-		System.out.println(message);
 	}
 
 	@Test

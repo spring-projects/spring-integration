@@ -26,7 +26,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * Base class for Message-splitting handlers.
@@ -92,8 +91,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("splitter");
+	public String getComponentType() {
+		return "splitter";
 	}
 
 	/**

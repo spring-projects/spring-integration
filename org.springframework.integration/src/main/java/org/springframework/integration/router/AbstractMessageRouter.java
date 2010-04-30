@@ -26,7 +26,6 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * Base class for Message Routers.
@@ -97,8 +96,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("router");
+	public String getComponentType() {
+		return "router";
 	}
 
 	@Override

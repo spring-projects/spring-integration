@@ -27,7 +27,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.selector.MessageSelector;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -89,8 +88,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
     }
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("recipient-list-router");
+	public String getComponentType() {
+		return "recipient-list-router";
 	}
 
     @Override

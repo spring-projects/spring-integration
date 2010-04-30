@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,41 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.history;
 
-import org.junit.Test;
-import org.springframework.integration.support.ComponentMetadata;
+package org.springframework.integration.history;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import org.junit.Test;
 
 /**
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MessageHistoryTests {
+
 	private long times = 1000;
+
 	private ExecutorService executor = Executors.newCachedThreadPool();
 
 	@Test
 	public void testConcurrentModificationsOnObjectMethods() throws Exception{
 		final MessageHistory history = new MessageHistory();
 		final MessageHistory otherHistory = new MessageHistory();
-
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
-					ComponentMetadata event = new ComponentMetadata();
-					event.setAttribute("foo", "foo");
-					event.setAttribute("bar", "bar");
-					event.setComponentName("MessageHistoryTests");
-					history.addEvent(event);
-                    otherHistory.addEvent(event);
+					history.addEvent("testName", "testType");
+                    otherHistory.addEvent("testName", "testType");
 				}
 			}
 		});
-
 		executor.execute(new Runnable() {
 			public void run() {
 				for (int i = 0; i < times; i++) {
@@ -72,4 +68,5 @@ public class MessageHistoryTests {
 		executor.shutdown();
 		executor.awaitTermination(3, TimeUnit.SECONDS);
 	}
+
 }

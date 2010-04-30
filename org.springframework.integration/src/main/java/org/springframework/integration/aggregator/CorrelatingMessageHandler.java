@@ -42,7 +42,6 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -171,8 +170,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("aggregator");
+	public String getComponentType() {
+		return "aggregator";
 	}
 
 	@Override

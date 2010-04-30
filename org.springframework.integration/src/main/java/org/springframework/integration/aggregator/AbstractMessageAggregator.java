@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -61,8 +60,8 @@ public abstract class AbstractMessageAggregator extends
 	}
 
     @Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-    	metadata.setComponentType("aggregator");
+    public String getComponentType() {
+    	return "aggregator";
 	}
 
 	@Override

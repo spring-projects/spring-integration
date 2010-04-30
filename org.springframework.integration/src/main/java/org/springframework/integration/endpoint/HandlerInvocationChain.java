@@ -17,10 +17,9 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.core.Ordered;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.support.ComponentMetadata;
-import org.springframework.integration.support.ComponentMetadataProvider;
 
 /**
  * A {@link MessageHandler} implementation that delegates to a target
@@ -34,15 +33,16 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 
 	private final MessageHandler handler;
 
-	private final ComponentMetadata metadata;
+	private final String endpointName;
+
+	private final String handlerType;
 
 
 	public HandlerInvocationChain(MessageHandler handler, String endpointName) {
 		this.handler = handler;
-		this.metadata = (this.handler instanceof ComponentMetadataProvider)
-				? ((ComponentMetadataProvider) this.handler).getComponentMetadata()
-				: new ComponentMetadata();
-		this.metadata.setComponentName(endpointName);
+		this.endpointName = endpointName;
+		this.handlerType = (handler instanceof IntegrationObjectSupport) ?
+				((IntegrationObjectSupport) this.handler).getComponentType() : null;
 	}
 
 
@@ -52,8 +52,8 @@ class HandlerInvocationChain implements MessageHandler, Ordered {
 	}
 
 	public void handleMessage(Message<?> message) {
-		if (message != null) {
-			message.getHeaders().getHistory().addEvent(this.metadata);
+		if (message != null && this.endpointName != null) {
+			message.getHeaders().getHistory().addEvent(this.endpointName, this.handlerType);
 		}
 		this.handler.handleMessage(message);
 	}

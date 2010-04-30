@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.support.ComponentMetadata;
 
 /**
  * @author Mark Fisher
@@ -45,8 +44,8 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("service-activator");
+	public String getComponentType() {
+		return "service-activator";
 	}
 
 	@Override

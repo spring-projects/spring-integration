@@ -24,11 +24,10 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NamedBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.support.ComponentMetadata;
-import org.springframework.integration.support.ComponentMetadataProvider;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
@@ -43,7 +42,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class IntegrationObjectSupport implements ComponentMetadataProvider, BeanNameAware, BeanFactoryAware, InitializingBean {
+public abstract class IntegrationObjectSupport implements BeanNameAware, NamedBean, BeanFactoryAware, InitializingBean {
 
 	/** Logger that is available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
@@ -58,19 +57,20 @@ public abstract class IntegrationObjectSupport implements ComponentMetadataProvi
 
 	private volatile ConversionService conversionService;
 
-	private final ComponentMetadata componentMetadata = new ComponentMetadata();
-
 
 	public final void setBeanName(String beanName) {
 		this.beanName = beanName;
 	}
 
-	protected String getBeanName() {
+	public final String getBeanName() {
 		return this.beanName;
 	}
 
-	public ComponentMetadata getComponentMetadata() {
-		return this.componentMetadata;
+	/**
+	 * Subclasses may implement this method to provide component type information.
+	 */
+	public String getComponentType() {
+		return null;
 	}
 
 	public final void setBeanFactory(BeanFactory beanFactory) {
@@ -79,8 +79,6 @@ public abstract class IntegrationObjectSupport implements ComponentMetadataProvi
 	}
 
 	public final void afterPropertiesSet() {
-		this.componentMetadata.setComponentName(this.beanName);
-		this.populateComponentMetadata(this.componentMetadata);
 		try {
 			this.onInit();
 		}
@@ -140,12 +138,6 @@ public abstract class IntegrationObjectSupport implements ComponentMetadataProvi
 
 	protected void setConversionService(ConversionService conversionService) {
 		this.conversionService = conversionService;
-	}
-
-	/**
-	 * Subclasses may override this to add attributes to the {@link ComponentMetadata}.
-	 */
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
 	}
 
 	@Override

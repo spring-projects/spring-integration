@@ -20,7 +20,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,8 +65,8 @@ public class LoggingHandler extends AbstractMessageHandler {
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("logging-channel-adapter");
+	public String getComponentType() {
+		return "logging-channel-adapter";
 	}
 
 	@Override

@@ -23,7 +23,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -64,8 +63,8 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedSet<Message
 	}
 
 	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-    	metadata.setComponentType("resequencer");
+	public String getComponentType() {
+    	return "resequencer";
 	}
 
 	@Override
