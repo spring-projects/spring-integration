@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.gateway.GatewayInvokingMessageHandler;
 
 /**
  * Parser for the &lt;chain&gt; element.
@@ -49,12 +48,13 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE && !"poller".equals(child.getLocalName())) {
 				String childBeanName = this.parseChild((Element) child, parserContext, builder.getBeanDefinition());
-				// INT-911 will create Gateway invoking MessageHandler, allowing 'gateway' to be included in the chain
 				if ("gateway".equals(child.getLocalName())){
-					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayInvokingMessageHandler.class);
+					BeanDefinitionBuilder gwBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+							IntegrationNamespaceUtils.BASE_PACKAGE + ".gateway.RequestReplyMessageHandlerAdapter");
 					gwBuilder.addConstructorArgValue(new RuntimeBeanReference(childBeanName));
 					handlerList.add(gwBuilder.getBeanDefinition());
-				} else {
+				}
+				else {
 					handlerList.add(new RuntimeBeanReference(childBeanName));
 				}		
 			}

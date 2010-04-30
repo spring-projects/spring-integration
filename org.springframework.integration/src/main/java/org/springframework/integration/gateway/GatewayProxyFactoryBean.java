@@ -65,7 +65,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private volatile Object serviceProxy;
 
-	private final Map<Method, MessagingGateway> gatewayMap = new HashMap<Method, MessagingGateway>();
+	private final Map<Method, SimpleMessagingGateway> gatewayMap = new HashMap<Method, SimpleMessagingGateway>();
 
 	private volatile boolean initialized;
 
@@ -77,7 +77,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	/**
 	 * Create a Factory whose service interface type can be configured by setter injection.
 	 * If none is set, it will fall back to the default service interface type,
-	 * {@link GenericSendAndRecieveGateway}, upon initialization.
+	 * {@link RequestReplyExchanger}, upon initialization.
 	 */
 	public GatewayProxyFactoryBean() {
 		// serviceInterface will be determined on demand later
@@ -159,7 +159,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			Class<?> proxyInterface = this.determineServiceInterface();
 			Method[] methods = proxyInterface.getDeclaredMethods();
 			for (Method method : methods) {
-				MessagingGateway gateway = this.createGatewayForMethod(method);
+				SimpleMessagingGateway gateway = this.createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
 			this.serviceProxy = new ProxyFactory(proxyInterface, this).getProxy(this.beanClassLoader);
@@ -170,7 +170,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private Class<?> determineServiceInterface() {
 		if (this.serviceInterface == null) {
-			this.serviceInterface = GenericSendAndReceiveGateway.class;
+			this.serviceInterface = RequestReplyExchanger.class;
 		}
 		return this.serviceInterface;
 	}
@@ -212,7 +212,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			this.afterPropertiesSet();
 		}
 		Method method = invocation.getMethod();
-		MessagingGateway gateway = this.gatewayMap.get(method);
+		SimpleMessagingGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
 		boolean isReturnTypeMessage = Message.class.isAssignableFrom(returnType);
 		boolean shouldReply = returnType != void.class;
@@ -251,7 +251,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		throw originalException;
 	}
 
-	private MessagingGateway createGatewayForMethod(Method method) {
+	private SimpleMessagingGateway createGatewayForMethod(Method method) {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
 				new ArgumentArrayMessageMapper(method, this.getBeanName()), new SimpleMessageMapper());
 		if (this.getTaskScheduler() != null) {
@@ -270,10 +270,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			replyChannel = this.resolveChannel(replyChannel, replyChannelName);
 			requestTimeout = gatewayAnnotation.requestTimeout();
 			replyTimeout = gatewayAnnotation.replyTimeout();
-		} else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {
+		}
+		else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {
 			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());
-			if (gatewayDefinition != null){
+			if (gatewayDefinition != null) {
 				String requestChannelName = gatewayDefinition.getRequestChannelName();
 				requestChannel = this.resolveChannel(requestChannel, requestChannelName);
 				String replyChannelName = gatewayDefinition.getReplyChannelName();
@@ -310,7 +311,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		for (MessagingGateway gateway : this.gatewayMap.values()) {
+		for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
 			if (gateway instanceof Lifecycle) {
 				((Lifecycle) gateway).start();
 			}
@@ -319,7 +320,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		for (MessagingGateway gateway : this.gatewayMap.values()) {
+		for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
 			if (gateway instanceof Lifecycle) {
 				((Lifecycle) gateway).stop();
 			}

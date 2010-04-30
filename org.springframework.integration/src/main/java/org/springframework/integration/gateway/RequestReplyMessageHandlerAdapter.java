@@ -19,37 +19,32 @@ package org.springframework.integration.gateway;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.support.ComponentMetadata;
 import org.springframework.util.Assert;
 
 /**
- * Will decorate 'gateway' as {@link MessageHandler} so it could be included in the chain.
+ * Adapts a {@link RequestReplyExchanger} to the {@link MessageHandler} interface.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class GatewayInvokingMessageHandler extends AbstractReplyProducingMessageHandler {
+class RequestReplyMessageHandlerAdapter extends AbstractReplyProducingMessageHandler {
 
-	private GenericSendAndReceiveGateway gateway;
+	private RequestReplyExchanger exchanger;
 
 	/**
-	 * @param gateway
+	 * @param exchanger
 	 */
-	public GatewayInvokingMessageHandler(GenericSendAndReceiveGateway gateway) {
-		Assert.notNull(gateway, "gateway must not be null");
-		this.gateway = gateway;
-	}
-
-	@Override
-	protected void populateComponentMetadata(ComponentMetadata metadata) {
-		metadata.setComponentType("gateway");
+	public RequestReplyMessageHandlerAdapter(RequestReplyExchanger exchanger) {
+		Assert.notNull(exchanger, "exchanger must not be null");
+		this.exchanger = exchanger;
 	}
 
 	/**
-	 * Will simply delegate to the original gateway
+	 * Delegates to the exchanger.
 	 */
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		return gateway.sendAndReceive(requestMessage);
+		return exchanger.exchange(requestMessage);
 	}
 
 }

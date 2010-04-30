@@ -19,14 +19,15 @@ package org.springframework.integration.gateway;
 import org.springframework.integration.core.Message;
 
 /**
- * Generic definition of the 'gateway' which will be used by {@link GatewayProxyFactoryBean}
- * if 'service-interface' property is not provided
+ * Interface for a request/reply Message exchange. This will be used as a default
+ * by {@link GatewayProxyFactoryBean} if no 'service-interface' property has been provided.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-interface GenericSendAndReceiveGateway {
+interface RequestReplyExchanger {
 
-	public Message<?> sendAndReceive(Message<?> message);
+	public Message<?> exchange(Message<?> request);
 
 }
