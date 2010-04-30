@@ -62,9 +62,12 @@ public class MessageHistoryEvent implements Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		if (this.type != null) {
-			sb.append(type + ":");
+			sb.append(type);
 		}
 		if (this.name != null) {
+			if (this.type != null) {
+				sb.append(':');
+			}
 			sb.append(name);
 			//sb.append("[" + timestamp + "]");
 		}

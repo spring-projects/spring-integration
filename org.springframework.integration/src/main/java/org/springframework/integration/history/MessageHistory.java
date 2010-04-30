@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.springframework.util.StringUtils;
+
 /**
  * Threadsafe Iterable list of {@link MessageHistoryEvent} instances.
  *
@@ -39,7 +41,7 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	 * Add a new event with the provided component metadata.
 	 */
     public MessageHistoryEvent addEvent(String name, String type) {
-        if (name != null) {
+        if (name != null && !StringUtils.startsWithIgnoreCase(name, "org.springframework")) {
             MessageHistoryEvent event = new MessageHistoryEvent(name, type);
             this.events.add(event);
             return event;
