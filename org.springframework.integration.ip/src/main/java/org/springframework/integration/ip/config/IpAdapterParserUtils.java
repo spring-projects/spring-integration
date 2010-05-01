@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Conventions;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.tcp.MessageFormats;
 import org.springframework.util.StringUtils;
@@ -103,6 +104,23 @@ public abstract class IpAdapterParserUtils {
 		if (StringUtils.hasText(attributeValue)) {
 			builder.addConstructorArgValue(attributeValue);
 		}
+	}
+
+	/**
+	 * @param element
+	 * @param builder
+	 * @param parserContext 
+	 */
+	public static void addHostAndPortToConstructor(Element element,
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String host = element.getAttribute(IpAdapterParserUtils.HOST);
+		if (!StringUtils.hasText(host)) {
+			parserContext.getReaderContext().error(IpAdapterParserUtils.HOST
+					+ " is required for IP outbound channel adapters", element);
+		}
+		builder.addConstructorArgValue(host);
+		String port = IpAdapterParserUtils.getPort(element, parserContext);
+		builder.addConstructorArgValue(port);
 	}
 
 	/**
@@ -191,6 +209,29 @@ public abstract class IpAdapterParserUtils {
 			return MessageFormats.FORMAT_CUSTOM;
 		}
 		return MessageFormats.FORMAT_LENGTH_HEADER;
+	}
+
+	/**
+	 * @param element
+	 * @param builder
+	 */
+	public static void addOutboundTcpAttributes(Element element,
+			BeanDefinitionBuilder builder) {
+		builder.addPropertyValue(
+				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
+				IpAdapterParserUtils.getMessageFormat(element));
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.CUSTOM_SOCKET_WRITER_CLASS_NAME); 
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_KEEP_ALIVE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_LINGER);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_TCP_NODELAY);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.SO_TRAFFIC_CLASS);
 	}
 
 	/**

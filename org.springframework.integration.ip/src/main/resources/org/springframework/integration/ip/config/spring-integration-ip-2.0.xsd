@@ -79,14 +79,44 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 	<xsd:element name="inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound Gateway for receiving and replying to incoming IP packets.
+	Defines an inbound Gateway for receiving and replying to incoming tcp messages.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 					<xsd:attribute name="pool-size" type="xsd:string" />
-					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
+					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
+						<xsd:annotation>
+							<xsd:documentation>
+If message-format = 'custom' you must provide a sub class of the appropriate type to implement
+the custom message format. See java docs for TcpNetReceivingChannelAdapter and TcpNioReceivingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>	
+					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+If message-format = 'custom' you must provide a sub class of the appropriate type to implement
+the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an outbound Gateway for sending and receiving responses over TCP.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="gatewayType">
+					<xsd:attribute name="host" type="xsd:string" />
 					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
 						<xsd:annotation>
 							<xsd:documentation>
@@ -125,7 +155,7 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="protocol">
+				<xsd:attribute name="protocol" use="required">
 					<xsd:simpleType>
 						<xsd:restriction base="xsd:NMTOKEN">
 							<xsd:enumeration value="tcp" />
@@ -133,6 +163,8 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 						</xsd:restriction>
 					</xsd:simpleType>
 				</xsd:attribute>
+				<xsd:attribute name="using-nio" type="xsd:string" />
+				<xsd:attribute name="using-direct-buffers" type="xsd:string" />
 				<xsd:attribute name="check-length" type="xsd:string" />
 				<xsd:attribute name="multicast" type="xsd:string" />
 			</xsd:extension>
@@ -169,6 +201,7 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 				<xsd:attribute name="request-timeout" type="xsd:string"/>
 				<xsd:attribute name="reply-timeout" type="xsd:string"/>
 				<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+				<xsd:attribute name="receive-buffer-size" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -179,7 +212,6 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-timeout" type="xsd:string" />
-		<xsd:attribute name="using-nio" type="xsd:string" />
 		<xsd:attribute name="message-format">
 			<xsd:simpleType>
 				<xsd:restriction base="xsd:NMTOKEN">
@@ -190,7 +222,6 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="using-direct-buffers" type="xsd:string" />
 		<xsd:attribute name="so-keep-alive" type="xsd:string" />
 	</xsd:complexType>
 

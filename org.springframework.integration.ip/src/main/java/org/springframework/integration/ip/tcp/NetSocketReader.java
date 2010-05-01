@@ -59,9 +59,9 @@ public class NetSocketReader extends AbstractSocketReader {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Message length is " + messageLength);
 		}	
-		if (messageLength > maxMessageSize) {
+		if (messageLength > this.maxMessageSize) {
 			throw new IOException("Message length " + messageLength + 
-					" exceeds max message length: " + maxMessageSize);
+					" exceeds max message length: " + this.maxMessageSize);
 		}
 		byte[] messagePart = new byte[messageLength];
 		read(messagePart);
@@ -77,7 +77,7 @@ public class NetSocketReader extends AbstractSocketReader {
 		InputStream inputStream = socket.getInputStream();
 		if (inputStream.read() != STX)
 			throw new MessageMappingException("Expected STX to begin message");
-		byte[] buffer = new byte[maxMessageSize];
+		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		int bite;
 		while ((bite = inputStream.read()) != ETX) {
@@ -86,9 +86,9 @@ public class NetSocketReader extends AbstractSocketReader {
 				throw new IOException("Socket Closed");
 			}
 			buffer[n++] = (byte) bite;
-			if (n >= maxMessageSize) {
+			if (n >= this.maxMessageSize) {
 				throw new IOException("ETX not found before max message length: "
-						+ maxMessageSize);
+						+ this.maxMessageSize);
 			}
 		}
 		assembledData = new byte[n];
@@ -102,7 +102,7 @@ public class NetSocketReader extends AbstractSocketReader {
 	@Override
 	protected boolean assembleDataCrLfFormat() throws IOException {
 		InputStream inputStream = socket.getInputStream();
-		byte[] buffer = new byte[maxMessageSize];
+		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		int bite;
 		while (true) {
@@ -114,9 +114,9 @@ public class NetSocketReader extends AbstractSocketReader {
 			if (n > 0 && bite == '\n' && buffer[n-1] == '\r')
 				break;
 			buffer[n++] = (byte) bite;
-			if (n >= maxMessageSize) {
+			if (n >= this.maxMessageSize) {
 				throw new IOException("CRLF not found before max message length: "
-						+ maxMessageSize);
+						+ this.maxMessageSize);
 			}
 		};
 		assembledData = new byte[n-1];

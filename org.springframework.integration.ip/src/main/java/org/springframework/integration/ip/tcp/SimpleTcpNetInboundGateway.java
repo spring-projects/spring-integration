@@ -15,13 +15,12 @@
  */
 package org.springframework.integration.ip.tcp;
 
-import java.lang.reflect.Constructor;
 import java.net.Socket;
 import java.net.SocketException;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.ip.util.SocketIoUtils;
 import org.springframework.integration.message.MessageMappingException;
 
 /**
@@ -39,88 +38,71 @@ import org.springframework.integration.message.MessageMappingException;
  */
 public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	
-	private SocketMessageMapper mapper = new SocketMessageMapper();
+	protected SocketMessageMapper mapper = new SocketMessageMapper();
 
-	private WriteCapableTcpNetReceivingChannelAdapter delegate;
+	protected WriteCapableTcpNetReceivingChannelAdapter delegate;
 
-	private int port;
+	protected int port;
 
-	private int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
+	protected int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
 
-	private int poolSize = 2;
+	protected int poolSize = 2;
 
-	private int receiveBufferSize = 2048;
+	protected int receiveBufferSize = 2048;
 
-	private boolean soKeepAlive;
+	protected boolean soKeepAlive;
 
-	private int soReceiveBufferSize = -1;
+	protected int soReceiveBufferSize = -1;
 
-	private int soSendBufferSize = -1;
+	protected int soSendBufferSize = -1;
 
-	private int soTimeout = 0;
+	protected int soTimeout = 0;
 
-	private String customSocketReaderClassName;
+	protected String customSocketReaderClassName;
 	
-	private Class<NetSocketWriter> customSocketWriter;
+	protected Class<NetSocketWriter> customSocketWriterClass;
 	
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#doStart()
-	 */
 	@Override
 	protected void doStart() {
 		super.doStart();
-		delegate.start();
+		this.delegate.start();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#doStop()
-	 */
 	@Override
 	protected void doStop() {
 		super.doStop();
-		delegate.stop();
+		this.delegate.stop();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#onInit()
-	 */
 	@Override
 	protected void onInit() throws Exception {
-		delegate = new WriteCapableTcpNetReceivingChannelAdapter(port);
-		delegate.setMessageFormat(messageFormat);
-		delegate.setPoolSize(poolSize);
-		delegate.setReceiveBufferSize(receiveBufferSize);
-		delegate.setSoKeepAlive(soKeepAlive);
-		delegate.setSoReceiveBufferSize(soReceiveBufferSize);
-		delegate.setSoSendBufferSize(soSendBufferSize);
-		delegate.setSoTimeout(soTimeout);
-		delegate.setTaskScheduler(getTaskScheduler());
-		delegate.setCustomSocketReaderClassName(customSocketReaderClassName);
+		this.delegate = new WriteCapableTcpNetReceivingChannelAdapter(port);
+		this.delegate.setMessageFormat(messageFormat);
+		this.delegate.setPoolSize(poolSize);
+		this.delegate.setReceiveBufferSize(receiveBufferSize);
+		this.delegate.setSoKeepAlive(soKeepAlive);
+		this.delegate.setSoReceiveBufferSize(soReceiveBufferSize);
+		this.delegate.setSoSendBufferSize(soSendBufferSize);
+		this.delegate.setSoTimeout(soTimeout);
+		this.delegate.setTaskScheduler(getTaskScheduler());
+		this.delegate.setCustomSocketReaderClassName(customSocketReaderClassName);
 		super.onInit();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#fromMessage(org.springframework.integration.core.Message)
-	 */
 	@Override
 	protected Object fromMessage(Message<?> message) {
 		throw new MessageMappingException("Cannot map a message to an object in this gateway");
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#toMessage(java.lang.Object)
-	 */
 	@Override
 	protected Message<?> toMessage(Object object) {
 		try {
-			return mapper.toMessage((SocketReader) object);
+			return this.mapper.toMessage((SocketReader) object);
 		} catch (Exception e) {
 			throw new MessageMappingException("Failed to map message", e);
 		}
 	}
 	
-
 	/**
 	 * @param port the port to set
 	 */
@@ -160,7 +142,7 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	 * @return the port
 	 */
 	public int getPort() {
-		return port;
+		return this.port;
 	}
 
 	/**
@@ -192,16 +174,16 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	}
 
 	/**
-	 * @param customSocketWriter the customSocketWriter to set
+	 * @param customSocketWriterClassName the customSocketWriterClassName to set
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketWriterClassName(
 			String customSocketWriterClassName) throws ClassNotFoundException {
 		if (customSocketWriterClassName != null) {
-			this.customSocketWriter = (Class<NetSocketWriter>) Class
+			this.customSocketWriterClass = (Class<NetSocketWriter>) Class
 				.forName(customSocketWriterClassName);
-			if (!(NetSocketWriter.class.isAssignableFrom(this.customSocketWriter))) {
+			if (!(NetSocketWriter.class.isAssignableFrom(this.customSocketWriterClass))) {
 				throw new IllegalArgumentException("Custom socket writer must be of type NetSocketWriter");
 			}
 		}
@@ -216,43 +198,24 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 			super(port);
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter#processMessage(org.springframework.integration.core.Message)
-		 */
 		@Override
 		protected void processMessage(NetSocketReader reader) {
 			Socket socket = reader.getSocket();
-			NetSocketWriter writer = null;
-			try {
-				if (messageFormat == MessageFormats.FORMAT_CUSTOM){
-					Constructor<NetSocketWriter> ctor = customSocketWriter.getConstructor(Socket.class);
-					writer = BeanUtils.instantiateClass(ctor, socket);
-				} else {
-					writer = new NetSocketWriter(socket);
-				}
-			} catch (Exception e) {
-				throw new MessageMappingException("Error creating SocketWriter", e);
-			}
-			writer.setMessageFormat(messageFormat);
 			Message<?> message = sendAndReceiveMessage(reader);
+			NetSocketWriter writer = SocketIoUtils.createNetWriter(this.messageFormat, 
+					customSocketWriterClass, socket);
 			try {
-				writer.write(mapper.fromMessage(message));
+				writer.write(this.mapper.fromMessage(message));
 			} catch (Exception e) {
 				throw new MessageMappingException("Failed to map and send response", e);
 			}
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter#doStart()
-		 */
 		@Override
 		protected void doStart() {
 ;			super.doStart();
 		}
 
-		/* (non-Javadoc)
-		 * @see org.springframework.integration.ip.tcp.AbstractTcpReceivingChannelAdapter#setSocketOptions(java.net.Socket)
-		 */
 		@Override
 		protected void setSocketOptions(Socket socket) throws SocketException {
 			super.setSocketOptions(socket);

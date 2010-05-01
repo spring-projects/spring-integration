@@ -15,12 +15,11 @@
  */
 package org.springframework.integration.ip.tcp;
 
-import java.lang.reflect.Constructor;
 import java.net.Socket;
 
 import javax.net.SocketFactory;
 
-import org.springframework.beans.BeanUtils;
+import org.springframework.integration.ip.util.SocketIoUtils;
 
 
 /**
@@ -31,7 +30,7 @@ import org.springframework.beans.BeanUtils;
 public class TcpNetSendingMessageHandler extends
 		AbstractTcpSendingMessageHandler {
 
-	protected Class<NetSocketWriter> customSocketWriter;
+	protected Class<NetSocketWriter> customSocketWriterClass;
 
 	/**
 	 * Constructs a TcpNetSendingMessageHandler that sends data to the 
@@ -46,22 +45,22 @@ public class TcpNetSendingMessageHandler extends
 	protected volatile Socket socket;
 	
 	/**
-	 * if
+	 * @return the socket
+	 */
+	protected Socket getSocket() {
+		return socket;
+	}
+
+	/**
 	 * @return the writer
 	 */
 	protected synchronized SocketWriter getWriter() {
-		if (writer == null) {
+		if (this.writer == null) {
 			try {
 				this.socket = SocketFactory.getDefault().createSocket(this.host, this.port);
 				this.setSocketAttributes(socket);
-				NetSocketWriter writer;
-				if (messageFormat == MessageFormats.FORMAT_CUSTOM){
-					Constructor<NetSocketWriter> ctor = customSocketWriter.getConstructor(Socket.class);
-					writer = BeanUtils.instantiateClass(ctor, socket);
-				} else {
-					writer = new NetSocketWriter(socket);
-				}
-				writer.setMessageFormat(messageFormat);
+				NetSocketWriter writer = SocketIoUtils.createNetWriter(messageFormat,
+						customSocketWriterClass, socket);
 				this.writer = writer;
 			} catch (Exception e) {
 				logger.error("Error creating SocketWriter", e);
@@ -71,16 +70,16 @@ public class TcpNetSendingMessageHandler extends
 	}
 
 	/**
-	 * @param customSocketWriter the customSocketWriter to set
+	 * @param customSocketWriterClassName the customSocketWriterClassName to set
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketWriterClassName(
 			String customSocketWriterClassName) throws ClassNotFoundException {
 		if (customSocketWriterClassName != null) {
-			this.customSocketWriter = (Class<NetSocketWriter>) Class
+			this.customSocketWriterClass = (Class<NetSocketWriter>) Class
 					.forName(customSocketWriterClassName);
-			if (!(NetSocketWriter.class.isAssignableFrom(this.customSocketWriter))) {
+			if (!(NetSocketWriter.class.isAssignableFrom(this.customSocketWriterClass))) {
 				throw new IllegalArgumentException("Custom socket writer must be of type NetSocketWriter");
 			}
 		}

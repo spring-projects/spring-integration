@@ -111,7 +111,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 			}
 			writer.write(bytes);
 		} catch (Exception e) {
-			writer = null;
+			this.writer = null;
 			if (e instanceof MessageMappingException) {
 				throw (MessageMappingException) e;
 			}

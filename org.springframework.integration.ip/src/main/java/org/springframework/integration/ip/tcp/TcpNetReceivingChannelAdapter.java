@@ -16,15 +16,13 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import javax.net.ServerSocketFactory;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageMappingException;
+import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
  * Tcp Receiving Channel adapter that uses a {@link java.net.Socket}. Each
@@ -38,7 +36,7 @@ public class TcpNetReceivingChannelAdapter extends
 		AbstractTcpReceivingChannelAdapter {
 
 	protected ServerSocket serverSocket;
-	protected Class<NetSocketReader> customSocketReader;
+	protected Class<NetSocketReader> customSocketReaderClass;
 	/**
 	 * Constructs a TcpNetReceivingChannelAdapter that listens on the port.
 	 * @param port The port.
@@ -93,21 +91,9 @@ public class TcpNetReceivingChannelAdapter extends
 	 * @param socket
 	 */
 	protected void handleSocket(Socket socket) {
-		NetSocketReader reader = null;
-		if (messageFormat == MessageFormats.FORMAT_CUSTOM) {
-			try {
-				Constructor<NetSocketReader> ctor = 
-					customSocketReader.getConstructor(Socket.class);
-				reader = BeanUtils.instantiateClass(ctor, socket);
-			} catch (Exception e) {
-				throw new MessageMappingException("Failed to instantiate custom reader", e);
-			}
-		}
-		else {
-			reader = new NetSocketReader(socket);
-		}
-		reader.setMessageFormat(messageFormat);
-		reader.setMaxMessageSize(receiveBufferSize);
+		NetSocketReader reader = SocketIoUtils.createNetReader(messageFormat, 
+				customSocketReaderClass, socket, this.receiveBufferSize,
+				this.soReceiveBufferSize);
 		while (true) {
 			try {
 				if (reader.assembleData()) {
@@ -145,16 +131,16 @@ public class TcpNetReceivingChannelAdapter extends
 	}
 
 	/**
-	 * @param customSocketReader the customSocketReader to set
+	 * @param customSocketReaderClass the customSocketReader to set
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketReaderClassName(
 			String customSocketReaderClassName) throws ClassNotFoundException {
 		if (customSocketReaderClassName != null) {
-			this.customSocketReader = (Class<NetSocketReader>) Class
+			this.customSocketReaderClass = (Class<NetSocketReader>) Class
 				.forName(customSocketReaderClassName);
-			if (!(NetSocketReader.class.isAssignableFrom(this.customSocketReader))) {
+			if (!(NetSocketReader.class.isAssignableFrom(this.customSocketReaderClass))) {
 				throw new IllegalArgumentException("Custom socket reader must be of type NetSocketReader");
 			}
 		}

@@ -23,12 +23,15 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.ip.tcp.CustomNetSocketReader;
 import org.springframework.integration.ip.tcp.CustomNetSocketWriter;
 import org.springframework.integration.ip.tcp.CustomNioSocketReader;
 import org.springframework.integration.ip.tcp.CustomNioSocketWriter;
 import org.springframework.integration.ip.tcp.MessageFormats;
 import org.springframework.integration.ip.tcp.SimpleTcpNetInboundGateway;
+import org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway;
+import org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGatewayTests;
 import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
@@ -50,6 +53,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ParserUnitTests {
 
+	@Autowired
+	ApplicationContext ctx;
+	
 	@Autowired
 	@Qualifier(value="testInUdp")
 	UnicastReceivingChannelAdapter udpIn;
@@ -92,6 +98,10 @@ public class ParserUnitTests {
 
 	@Autowired
 	SimpleTcpNetInboundGateway simpleTcpNetInboundGateway;
+
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway#0")
+	SimpleTcpNetOutboundGateway simpleTcpNetOutboundGateway;
 	
 	@Test
 	public void testInUdp() {
@@ -120,7 +130,7 @@ public class ParserUnitTests {
 	public void testInTcpNio() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInNio);
 		assertTrue(tcpInNio.getPort() >= 5200);
-		assertEquals(CustomNioSocketReader.class, dfa.getPropertyValue("customSocketReader"));
+		assertEquals(CustomNioSocketReader.class, dfa.getPropertyValue("customSocketReaderClass"));
 		assertEquals(false, dfa.getPropertyValue("usingDirectBuffers"));
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
 		assertEquals(27, dfa.getPropertyValue("poolSize"));
@@ -134,7 +144,7 @@ public class ParserUnitTests {
 	public void testInTcpNioDirect() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInNioDirect);
 		assertTrue(tcpInNioDirect.getPort() >= 5300);
-		assertEquals(CustomNioSocketReader.class, dfa.getPropertyValue("customSocketReader"));
+		assertEquals(CustomNioSocketReader.class, dfa.getPropertyValue("customSocketReaderClass"));
 		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
 		assertEquals(27, dfa.getPropertyValue("poolSize"));
@@ -148,7 +158,7 @@ public class ParserUnitTests {
 	public void testInTcpNet() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInNet);
 		assertTrue(tcpInNet.getPort() >= 5400);
-		assertEquals(CustomNetSocketReader.class, dfa.getPropertyValue("customSocketReader"));
+		assertEquals(CustomNetSocketReader.class, dfa.getPropertyValue("customSocketReaderClass"));
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
 		assertEquals(27, dfa.getPropertyValue("poolSize"));
 		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
@@ -201,7 +211,7 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutNio);
 		assertTrue(tcpOutNio.getPort() >= 6200);
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
-		assertEquals(CustomNioSocketWriter.class, dfa.getPropertyValue("customSocketWriter"));
+		assertEquals(CustomNioSocketWriter.class, dfa.getPropertyValue("customSocketWriterClass"));
 		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
 		assertEquals(3, dfa.getPropertyValue("soLinger"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
@@ -217,7 +227,7 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutNioDirect);
 		assertTrue(tcpOutNioDirect.getPort() >= 6300);
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
-		assertEquals(CustomNioSocketWriter.class, dfa.getPropertyValue("customSocketWriter"));
+		assertEquals(CustomNioSocketWriter.class, dfa.getPropertyValue("customSocketWriterClass"));
 		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
 		assertEquals(3, dfa.getPropertyValue("soLinger"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
@@ -233,7 +243,7 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutNet);
 		assertTrue(tcpOutNet.getPort() >= 6400);
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
-		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriter"));
+		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriterClass"));
 		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
 		assertEquals(3, dfa.getPropertyValue("soLinger"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
@@ -251,8 +261,8 @@ public class ParserUnitTests {
 		TcpNetReceivingChannelAdapter delegate = (TcpNetReceivingChannelAdapter) dfa
 				.getPropertyValue("delegate");
 		DirectFieldAccessor delegateDfa = new DirectFieldAccessor(delegate);
-		assertEquals(CustomNetSocketReader.class, delegateDfa.getPropertyValue("customSocketReader"));
-		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriter"));
+		assertEquals(CustomNetSocketReader.class, delegateDfa.getPropertyValue("customSocketReaderClass"));
+		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriterClass"));
 		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
 		assertEquals(123, dfa.getPropertyValue("receiveBufferSize"));
 		assertEquals(124, dfa.getPropertyValue("soReceiveBufferSize"));
@@ -260,5 +270,28 @@ public class ParserUnitTests {
 		assertEquals(126, dfa.getPropertyValue("soTimeout"));
 		assertEquals(23, dfa.getPropertyValue("poolSize"));
 
-	}	
+	}
+
+	@Test
+	public void testOutGateway() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(simpleTcpNetOutboundGateway);
+		assertTrue(simpleTcpNetOutboundGateway.getPort() >= 6500);
+		assertEquals(MessageFormats.FORMAT_CRLF, dfa.getPropertyValue("messageFormat"));
+		TcpNetSendingMessageHandler handler = (TcpNetSendingMessageHandler) dfa
+				.getPropertyValue("handler");
+		DirectFieldAccessor delegateDfa = new DirectFieldAccessor(handler);
+		assertEquals(CustomNetSocketReader.class, dfa.getPropertyValue("customSocketReaderClass"));
+		assertEquals(CustomNetSocketWriter.class, delegateDfa.getPropertyValue("customSocketWriterClass"));
+		assertEquals(true, delegateDfa.getPropertyValue("soKeepAlive"));
+		assertEquals(224, dfa.getPropertyValue("soReceiveBufferSize"));
+		assertEquals(225, delegateDfa.getPropertyValue("soSendBufferSize"));
+		assertEquals(226, delegateDfa.getPropertyValue("soTimeout"));
+	}
+
+	@Test
+	public void test() {
+		String[] beanDefinitionNames = ctx.getBeanDefinitionNames();
+		for (String x : beanDefinitionNames)
+			System.out.println(x);
+	}
 }

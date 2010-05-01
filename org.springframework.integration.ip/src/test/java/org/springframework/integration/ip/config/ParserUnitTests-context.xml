@@ -189,5 +189,21 @@
 		so-timeout="126"
 		
 		/>	
+
+	<ip:outbound-gateway id="simpleOutGateway"
+		request-channel="tcpChannel"
+		reply-channel="replyChannel"
+		custom-socket-reader-class-name="org.springframework.integration.ip.tcp.CustomNetSocketReader"
+		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"
+		message-format="crlf"
+		host="localhost"
+		port="#{tcpIpUtils.findAvailableServerSocket(6500)}"
+		receive-buffer-size="223"
+		so-keep-alive="true"
+		so-receive-buffer-size="224"
+		so-send-buffer-size="225"
+		so-timeout="226"
+		
+		/>		
 	
 </beans>

@@ -104,7 +104,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 			// tell the receiver to we're done
 			doneProcessing.countDown();
 		}
-		assertTrue(firstReceived.await(2, TimeUnit.SECONDS));
+		assertTrue(firstReceived.await(5, TimeUnit.SECONDS));
 		assertEquals(testingIpText, new String(finalMessage.getPayload()));
 	}
 

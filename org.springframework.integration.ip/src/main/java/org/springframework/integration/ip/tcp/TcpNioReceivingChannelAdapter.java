@@ -17,7 +17,6 @@ package org.springframework.integration.ip.tcp;
 
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -29,8 +28,8 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
  * Tcp Receiving Channel adapter that uses a {@link java.nio.channels.SocketChannel}.
@@ -46,7 +45,7 @@ public class TcpNioReceivingChannelAdapter extends
 
 	protected ServerSocketChannel serverChannel;
 	protected boolean usingDirectBuffers;
-	protected Class<NioSocketReader> customSocketReader;
+	protected Class<NioSocketReader> customSocketReaderClass;
 	
 	/**
 	 * Constructs a TcpNioReceivingChannelAdapter to listen on the port.
@@ -152,22 +151,10 @@ public class TcpNioReceivingChannelAdapter extends
 	 * @return The NioSocketReader.
 	 */
 	private NioSocketReader createSocketReader(final SelectionKey key) {
-		NioSocketReader reader = null;
 		SocketChannel channel = (SocketChannel) key.channel();
-		if (messageFormat == MessageFormats.FORMAT_CUSTOM) {
-			try {
-				Constructor<NioSocketReader> ctor = customSocketReader
-						.getConstructor(SocketChannel.class);
-				reader = BeanUtils.instantiateClass(ctor, channel);
-			} catch (Exception e) {
-				logger.error("Error creating SocketReader", e);
-			}
-		} else {
-			reader = new NioSocketReader(channel);
-		}
-		reader.setUsingDirectBuffers(usingDirectBuffers);
-		reader.setMessageFormat(messageFormat);
-		reader.setMaxMessageSize(receiveBufferSize);
+		NioSocketReader reader = SocketIoUtils.createNioReader(messageFormat,
+				this.customSocketReaderClass, channel, this.receiveBufferSize,
+				this.receiveBufferSize,	this.usingDirectBuffers);
 		return reader;
 	}
 
@@ -212,15 +199,15 @@ public class TcpNioReceivingChannelAdapter extends
 	}
 
 	/**
-	 * @param customSocketReader the customSocketReader to set
+	 * @param customSocketReaderClassName the customSocketReaderClassName to set
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketReaderClassName(String customSocketReaderClassName)
 			throws ClassNotFoundException {
-		this.customSocketReader = (Class<NioSocketReader>) Class
+		this.customSocketReaderClass = (Class<NioSocketReader>) Class
 				.forName(customSocketReaderClassName);
-		if (!(NioSocketReader.class.isAssignableFrom(this.customSocketReader))) {
+		if (!(NioSocketReader.class.isAssignableFrom(this.customSocketReaderClass))) {
 			throw new IllegalArgumentException("Custom socket reader must be of type NioSocketReader");
 		}
 	}

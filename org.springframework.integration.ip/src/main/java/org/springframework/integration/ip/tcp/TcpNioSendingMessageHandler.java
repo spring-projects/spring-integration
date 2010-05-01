@@ -15,10 +15,9 @@
  */
 package org.springframework.integration.ip.tcp;
 
-import java.lang.reflect.Constructor;
 import java.nio.channels.SocketChannel;
 
-import org.springframework.beans.BeanUtils;
+import org.springframework.integration.ip.util.SocketIoUtils;
 
 
 /**
@@ -32,7 +31,7 @@ public class TcpNioSendingMessageHandler extends
 
 	protected boolean usingDirectBuffers;
 
-	protected Class<NioSocketWriter> customSocketWriter;
+	protected Class<NioSocketWriter> customSocketWriterClass;
 
 	protected int buffsPerConnection = 5;
 	
@@ -48,20 +47,13 @@ public class TcpNioSendingMessageHandler extends
 	 * @return the socket
 	 */
 	protected synchronized SocketWriter getWriter() {
-		if (socketChannel == null) {
+		if (this.socketChannel == null) {
 			try {
-				socketChannel = SocketChannel.open(this.destinationAddress);
+				this.socketChannel = SocketChannel.open(this.destinationAddress);
 				this.setSocketAttributes(socketChannel.socket());
-				NioSocketWriter writer;
-				if (messageFormat == MessageFormats.FORMAT_CUSTOM){
-					Constructor<NioSocketWriter> ctor = customSocketWriter
-							.getConstructor(SocketChannel.class, int.class, int.class);
-					writer = BeanUtils.instantiateClass(ctor, socketChannel, buffsPerConnection, soSendBufferSize);
-				} else {
-					writer = new NioSocketWriter(socketChannel, buffsPerConnection, soSendBufferSize);
-				}
-				writer.setMessageFormat(messageFormat);
-				writer.setUsingDirectBuffers(usingDirectBuffers);
+				NioSocketWriter writer = SocketIoUtils.createNioWriter(messageFormat, 
+						customSocketWriterClass, socketChannel, 
+						buffsPerConnection, soSendBufferSize, usingDirectBuffers);
 				this.writer = writer;
 			} catch (Exception e) {
 				logger.error("Error creating SocketWriter", e);
@@ -79,16 +71,16 @@ public class TcpNioSendingMessageHandler extends
 	}
 
 	/**
-	 * @param customSocketWriter the customSocketWriter to set
+	 * @param customSocketWriterClassName the customSocketWriterClassName to set
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketWriterClassName(
 			String customSocketWriterClassName) throws ClassNotFoundException {
 		if (customSocketWriterClassName != null) {
-			this.customSocketWriter = (Class<NioSocketWriter>) Class
+			this.customSocketWriterClass = (Class<NioSocketWriter>) Class
 					.forName(customSocketWriterClassName);
-			if (!(NioSocketWriter.class.isAssignableFrom(this.customSocketWriter))) {
+			if (!(NioSocketWriter.class.isAssignableFrom(this.customSocketWriterClass))) {
 				throw new IllegalArgumentException("Custom socket writer must be of type NioSocketWriter");
 			}
 		}

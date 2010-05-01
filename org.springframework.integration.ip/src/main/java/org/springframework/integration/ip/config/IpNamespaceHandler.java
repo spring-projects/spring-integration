@@ -30,6 +30,7 @@ public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new IpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new IpOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("inbound-gateway", new IpInboundGatewayParser());
+		this.registerBeanDefinitionParser("outbound-gateway", new IpOutboundGatewayParser());
 	}
 
 }

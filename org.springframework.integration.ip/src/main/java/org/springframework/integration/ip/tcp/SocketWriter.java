@@ -35,4 +35,9 @@ public interface SocketWriter {
 	 */
 	void write(byte[] bytes) throws IOException;
 
+	/**
+	 * @param messageFormat the messageFormat to set
+	 */
+	public void setMessageFormat(int messageFormat);
+
 }
