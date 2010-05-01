@@ -18,28 +18,24 @@ package org.springframework.integration.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -101,34 +97,23 @@ import org.springframework.util.StringUtils;
  */
 public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]> {
 
-	private static ConversionService conversionService;
-
-	static { // see INT-829
-		conversionService = ConversionServiceFactory.createDefaultConversionService();
-		ConverterRegistry registry = (ConverterRegistry) conversionService;
-		registry.removeConvertible(Object.class, Map.class);
-		registry.removeConvertible(Map.class, Object.class);
-		registry.removeConvertible(Object.class, String.class);
-		registry.addConverter(new Converter<Number, String>() {
-			public String convert(Number source) { return source.toString(); }
-		});
-		registry.addConverter(new Converter<Date, String>() {
-			public String convert(Date source) { return source.toString(); }
-		});
-	}
-
+	private Map<String, Object> staticHeaders;
 
 	private final Method method;
 
 	private final List<MethodParameter> parameterList;
 
-
 	public ArgumentArrayMessageMapper(Method method) {
+		this(method, null);
+	}
+	
+	public ArgumentArrayMessageMapper(Method method, Map<String, Object> staticHeaders) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
+		this.staticHeaders = staticHeaders;
 		this.parameterList = this.getMethodParameterList(method);
 	}
-
+	
 	public Message<?> toMessage(Object[] arguments) {
 		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length != this.parameterList.size()) {
@@ -163,6 +148,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				else if (annotation.annotationType().equals(Header.class)) {
 					Header headerAnnotation = (Header) annotation;
 					String headerName = this.determineHeaderName(headerAnnotation, methodParameter);
+					if (headerName.startsWith(MessageHeaders.PREFIX)){
+						throw new IllegalArgumentException("Attempting to set header: " + headerName + ". Prefix: '" 
+								+ MessageHeaders.PREFIX + "' is reservered for SI internal use");
+					}
 					if (headerAnnotation.required() && argumentValue == null) {
 						throw new IllegalArgumentException("Received null argument value for required header: '" + headerName + "'");
 					}
@@ -201,6 +190,9 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				? MessageBuilder.fromMessage((Message<?>) messageOrPayload)
 				: MessageBuilder.withPayload(messageOrPayload);
 		builder.copyHeadersIfAbsent(headers);
+		if (!CollectionUtils.isEmpty(staticHeaders)){
+			builder.copyHeaders(staticHeaders);
+		}
 		return builder.build();
 	}
 
@@ -259,27 +251,4 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		}
 		return parameterList;
 	}
-
-	@SuppressWarnings("unchecked")
-	public void validateMessageMapppings(Message<?> message) {
-		// Validate against a Map with no annotations
-		if (message.getPayload() instanceof Map) {
-			boolean foundOneMatch = false;
-			for (MethodParameter parameter : this.parameterList) {
-				String name = parameter.getParameterName();
-				Class<?> type = parameter.getParameterType();
-				if (parameter.getParameterAnnotations().length == 0 &&
-						!(name.equals("payload") || name.equals("headers")) &&
-						(type.isAssignableFrom(Properties.class) || type.isAssignableFrom(Map.class))) {
-					if (foundOneMatch) {
-						throw new IllegalArgumentException("Ambiguous parameters. " +
-								"Cannot determine parameter mappings between Method: [" + method + "] and Message: " + message +
-								". Try annotating individual parameters with @Payload, @Header, or @Headers");
-					}
-					foundOneMatch = true;
-				}
-			}
-		}
-	}
-
 }

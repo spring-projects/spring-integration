@@ -311,6 +311,14 @@
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="header" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType> 
+									<xsd:attribute name="name" type="xsd:string" use="required"/>
+									<xsd:attribute name="value" type="xsd:string" use="required"/>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
 						<xsd:attribute name="name" type="xsd:string">
 							<xsd:annotation>
 								<xsd:appinfo>

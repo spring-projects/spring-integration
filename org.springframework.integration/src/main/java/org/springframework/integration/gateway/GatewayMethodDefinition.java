@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.gateway;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Represents the definition of Gateway methods, when using multiple methos per
  * Gateway interface <br>
@@ -29,6 +32,13 @@ public class GatewayMethodDefinition {
 	private String replyChannelName;
 	private String requestTimeout;
 	private String replyTimeout;
+	private Map<String, Object> staticHeaders = new HashMap<String, Object>();
+	public Map<String, Object> getStaticHeaders() {
+		return staticHeaders;
+	}
+	public void setStaticHeaders(Map<String, Object> staticHeaders) {
+		this.staticHeaders = staticHeaders;
+	}
 	public String getRequestChannelName() {
 		return requestChannelName;
 	}

@@ -252,17 +252,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	}
 
 	private SimpleMessagingGateway createGatewayForMethod(Method method) {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
-				new ArgumentArrayMessageMapper(method), new SimpleMessageMapper());
-		if (this.getTaskScheduler() != null) {
-			gateway.setTaskScheduler(this.getTaskScheduler());
-		}
-		gateway.setBeanName(this.getComponentName());
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
 		MessageChannel replyChannel = this.defaultReplyChannel;
 		long requestTimeout = this.defaultRequestTimeout;
 		long replyTimeout = this.defaultReplyTimeout;
+		Map<String, Object> staticHeaders = null;
 		if (gatewayAnnotation != null) {
 			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			String requestChannelName = gatewayAnnotation.requestChannel();
@@ -272,10 +267,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			requestTimeout = gatewayAnnotation.requestTimeout();
 			replyTimeout = gatewayAnnotation.replyTimeout();
 		}
-		else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {
+		else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {	
 			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
-			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());
+			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());	
 			if (gatewayDefinition != null) {
+				staticHeaders = gatewayDefinition.getStaticHeaders();
 				String requestChannelName = gatewayDefinition.getRequestChannelName();
 				requestChannel = this.resolveChannel(requestChannel, requestChannelName);
 				String replyChannelName = gatewayDefinition.getReplyChannelName();
@@ -290,6 +286,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 				}
 			}
 		}
+		ArgumentArrayMessageMapper messageMapper = new ArgumentArrayMessageMapper(method, staticHeaders);
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway(messageMapper, new SimpleMessageMapper());
+		if (this.getTaskScheduler() != null) {
+			gateway.setTaskScheduler(this.getTaskScheduler());
+		}
+		gateway.setBeanName(this.getComponentName());
 		gateway.setRequestChannel(requestChannel);
 		gateway.setReplyChannel(replyChannel);
 		gateway.setRequestTimeout(requestTimeout);

@@ -17,11 +17,15 @@
 package org.springframework.integration.config.xml;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.gateway.GatewayMethodDefinition;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -30,6 +34,7 @@ import org.w3c.dom.Element;
  * Parser for the &lt;gateway/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
@@ -76,20 +81,40 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}
 		List<Element> elements = DomUtils.getChildElementsByTagName(element, "method");
-		ManagedMap<String, GatewayMethodDefinition> methodToChannelMap = null;
+		
+		ManagedMap<String, BeanDefinition> methodToChannelMap = null;
 		if (elements != null && elements.size() > 0){
-			methodToChannelMap = new ManagedMap<String, GatewayMethodDefinition>();
+			methodToChannelMap = new ManagedMap<String, BeanDefinition>();
 		}
 		for (Element methodElement : elements) {
 			String methodName = methodElement.getAttribute("name");
-			GatewayMethodDefinition gatewayDefinition = new GatewayMethodDefinition();
-			gatewayDefinition.setRequestChannelName(methodElement.getAttribute("request-channel"));
-			gatewayDefinition.setReplyChannelName(methodElement.getAttribute("reply-channel"));
-			gatewayDefinition.setRequestTimeout(methodElement.getAttribute("request-timeout"));
-			gatewayDefinition.setReplyTimeout(methodElement.getAttribute("reply-timeout"));	
-			methodToChannelMap.put(methodName, gatewayDefinition);
+			BeanDefinitionBuilder gatewayDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodDefinition.class);
+			gatewayDefinitionBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
+			gatewayDefinitionBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
+			gatewayDefinitionBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
+			gatewayDefinitionBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
+			List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
+			if (!CollectionUtils.isEmpty(invocationHeaders)){
+				this.setMethodInvocationHeaders(gatewayDefinitionBuilder, invocationHeaders);
+			}
+			methodToChannelMap.put(methodName, gatewayDefinitionBuilder.getBeanDefinition());
 		}
 		builder.addPropertyValue("methodToChannelMap", methodToChannelMap);
 	}
-
+	/*
+	 * 
+	 */
+	private void setMethodInvocationHeaders(BeanDefinitionBuilder gatewayDefinitionBuilder, List<Element> invocationHeaders){
+		Map<String, Object> methodInvocationHeaders = new ManagedMap<String, Object>();
+		for (Element headerElement : invocationHeaders) {
+			String name = headerElement.getAttribute("name");
+			if (name.startsWith(MessageHeaders.PREFIX)){
+				throw new IllegalArgumentException("Attempting to set header: " + name + ". Prefix: '" 
+						+ MessageHeaders.PREFIX + "' is reservered for SI internal use");
+			} else {
+				methodInvocationHeaders.put(name, headerElement.getAttribute("value"));
+			}
+		}
+		gatewayDefinitionBuilder.addPropertyValue("staticHeaders", methodInvocationHeaders);
+	}
 }

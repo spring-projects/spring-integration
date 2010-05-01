@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.ArgumentArrayMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 
@@ -189,6 +190,26 @@ public class ArgumentArrayMessageMapperToMessageTests {
 		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
 		mapper.toMessage(new Object[] { "abc", "def" });
 	}
+	
+	@Test
+	public void toMessageWithPayloadAndStaticHeaders() throws Exception {
+		Method method = TestService.class.getMethod("sendPayload", String.class);
+		Map<String, Object> headers = new HashMap<String, Object>();
+		headers.put("foo", "foo");
+		headers.put("bar", "bar");
+		headers.put(MessageHeaders.PREFIX + "baz", "hello");
+		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method, headers);
+		Message<?> message = mapper.toMessage(new Object[] { "test" });
+		assertEquals("test", message.getPayload());
+		assertEquals("foo", message.getHeaders().get("foo"));
+		assertEquals("bar", message.getHeaders().get("bar"));
+	}
+	@Test(expected=IllegalArgumentException.class)
+	public void toMessageWithPayloadAndIllegalHeader() throws Exception {
+		Method method = TestService.class.getMethod("sendPayloadAndIllegalHeader", String.class, String.class);
+		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		Message<?> message = mapper.toMessage(new Object[] { "test", "foo"});
+	}
 
 
 	private static interface TestService {
@@ -196,6 +217,8 @@ public class ArgumentArrayMessageMapperToMessageTests {
 		void sendPayload(String payload);
 
 		void sendPayloadAndHeader(String payload, @Header("foo") String foo);
+		
+		void sendPayloadAndIllegalHeader(String payload, @Header(MessageHeaders.PREFIX + "foo") String foo);
 
 		void sendPayloadAndOptionalHeader(String payload, @Header(value="foo", required=false) String foo);
 
