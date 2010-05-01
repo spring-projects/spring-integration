@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,10 @@
 
 package org.springframework.integration.channel;
 
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.selector.MessageSelector;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".
@@ -33,27 +29,20 @@ import org.springframework.integration.selector.MessageSelector;
  * 
  * @author Mark Fisher
  */
-public class NullChannel implements PollableChannel, BeanNameAware {
+public class NullChannel implements PollableChannel {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile String beanName;
 
-
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
+	public boolean send(Message<?> message) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("message sent to null channel: " + message);
+		}
+		return true;
 	}
 
-	public String getName() {
-		return this.beanName;
-	}
-
-	public List<Message<?>> clear() {
-		return null;
-	}
-
-	public List<Message<?>> purge(MessageSelector selector) {
-		return null;
+	public boolean send(Message<?> message, long timeout) {
+		return this.send(message);
 	}
 
 	public Message<?> receive() {
@@ -65,17 +54,6 @@ public class NullChannel implements PollableChannel, BeanNameAware {
 
 	public Message<?> receive(long timeout) {
 		return this.receive();
-	}
-
-	public boolean send(Message<?> message) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("message sent to null channel: " + message);
-		}
-		return true;
-	}
-
-	public boolean send(Message<?> message, long timeout) {
-		return this.send(message);
 	}
 
 }
