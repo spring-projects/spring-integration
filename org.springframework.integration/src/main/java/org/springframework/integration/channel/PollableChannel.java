@@ -20,6 +20,8 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 
 /**
+ * Interface for Message Channels from which Messages may be actively received through polling.
+ * 
  * @author Mark Fisher
  */
 public interface PollableChannel extends MessageChannel {
@@ -27,8 +29,7 @@ public interface PollableChannel extends MessageChannel {
 	/**
 	 * Receive a message from this channel, blocking indefinitely if necessary.
 	 * 
-	 * @return the next available {@link Message} or <code>null</code> if
-	 * interrupted
+	 * @return the next available {@link Message} or <code>null</code> if interrupted
 	 */
 	Message<?> receive();
 
