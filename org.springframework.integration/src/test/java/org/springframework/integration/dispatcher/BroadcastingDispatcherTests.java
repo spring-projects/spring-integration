@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,12 +36,15 @@ import org.junit.Test;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class BroadcastingDispatcherTests {
 
@@ -277,6 +281,47 @@ public class BroadcastingDispatcherTests {
 		assertEquals(originalId, messages.get(2).getHeaders().getCorrelationId());
 	}
 
+	/**
+	 * Verifies that the dispatcher adds the message to the exception if it
+	 * was not attached by the handler.
+	 */
+	@Test
+	public void testExceptionEnhancement() {
+		dispatcher = new BroadcastingDispatcher();
+		dispatcher.addHandler(targetMock1);
+		targetMock1.handleMessage(messageMock);
+		expectLastCall().andThrow(new MessagingException("Mock Exception"));
+		replay(globalMocks);
+		try {
+			dispatcher.dispatch(messageMock);
+			fail("Expected Exception");
+		} catch (MessagingException e) {
+			assertEquals(messageMock, e.getFailedMessage());
+		}
+		verify(globalMocks);
+	}
+
+	/**
+	 * Verifies that the dispatcher does not add the message to the exception if it
+	 * was attached by the handler.
+	 */
+	@Test
+	public void testNoExceptionEnhancement() {
+		dispatcher = new BroadcastingDispatcher();
+		dispatcher.addHandler(targetMock1);
+		targetMock1.handleMessage(messageMock);
+		Message<String> dontReplaceThisMessage = MessageBuilder.withPayload("x").build();
+		expectLastCall().andThrow(new MessagingException(dontReplaceThisMessage, 
+				"Mock Exception"));
+		replay(globalMocks);
+		try {
+			dispatcher.dispatch(messageMock);
+			fail("Expected Exception");
+		} catch (MessagingException e) {
+			assertEquals(dontReplaceThisMessage, e.getFailedMessage());
+		}
+		verify(globalMocks);
+	}
 
 	private void defaultTaskExecutorMock() {
 		taskExecutorMock.execute(isA(Runnable.class));

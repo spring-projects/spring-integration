@@ -107,7 +107,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 			byte[] bytes = mapper.fromMessage(message);
 			SocketWriter writer = this.getWriter();
 			if (writer == null) {
-				throw new MessageMappingException("Failed to create SocketWriter");
+				throw new MessageMappingException(message, "Failed to create SocketWriter");
 			}
 			writer.write(bytes);
 		} catch (Exception e) {
@@ -115,7 +115,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 			if (e instanceof MessageMappingException) {
 				throw (MessageMappingException) e;
 			}
-			throw new MessageMappingException("Failed to map message", e);
+			throw new MessageMappingException(message, "Failed to map message", e);
 		}
 	}
 

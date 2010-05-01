@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -41,6 +42,7 @@ import org.springframework.util.Assert;
  * 
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 1.0.2
  */
 public class UnicastingDispatcher extends AbstractDispatcher {
@@ -108,6 +110,10 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 						? (RuntimeException) e
 						: new MessageDeliveryException(message,
 								"Dispatcher failed to deliver Message.", e);
+				if (e instanceof MessagingException &&
+						((MessagingException) e).getFailedMessage() == null) {
+					((MessagingException) e).setFailedMessage(message);
+				}
 				exceptions.add(runtimeException);
 				this.handleExceptions(exceptions, message, !handlerIterator.hasNext());
 			}

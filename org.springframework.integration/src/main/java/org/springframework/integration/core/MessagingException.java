@@ -20,11 +20,12 @@ package org.springframework.integration.core;
  * The base exception for any failures within the messaging system.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @SuppressWarnings("serial")
 public class MessagingException extends RuntimeException {
 
-	private final Message<?> failedMessage;
+	private Message<?> failedMessage;
 
 
 	public MessagingException(Message<?> message) {
@@ -57,9 +58,12 @@ public class MessagingException extends RuntimeException {
 		this.failedMessage = message;
 	}
 
-
 	public Message<?> getFailedMessage() {
 		return this.failedMessage;
+	}
+	
+	public void setFailedMessage(Message<?> message) {
+		this.failedMessage = message;
 	}
 
 }

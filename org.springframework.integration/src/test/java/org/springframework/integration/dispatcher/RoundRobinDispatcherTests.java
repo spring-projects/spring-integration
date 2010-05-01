@@ -19,9 +19,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +37,7 @@ import static org.mockito.Mockito.*;
 /**
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Gary Russell
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RoundRobinDispatcherTests {
@@ -93,4 +100,38 @@ public class RoundRobinDispatcherTests {
 		verify(differentHandler, atLeast(18)).handleMessage(message);
 	}
 
+	/**
+	 * Verifies that the dispatcher adds the message to the exception if it
+	 * was not attached by the handler.
+	 */
+	@Test
+	public void testExceptionEnhancement() {
+		dispatcher.addHandler(handler);
+		doThrow(new MessagingException("Mock Exception")).
+			when(handler).handleMessage(message);
+		try {
+			dispatcher.dispatch(message);
+			fail("Expected Exception");
+		} catch (MessagingException e) {
+			assertEquals(message, e.getFailedMessage());
+		}
+	}
+
+	/**
+	 * Verifies that the dispatcher does not add the message to the exception if it
+	 * was attached by the handler.
+	 */
+	@Test
+	public void testNoExceptionEnhancement() {
+		dispatcher.addHandler(handler);
+		Message<String> dontReplaceThisMessage = MessageBuilder.withPayload("x").build();
+		doThrow(new MessagingException(dontReplaceThisMessage, "Mock Exception")).
+			when(handler).handleMessage(message);
+		try {
+			dispatcher.dispatch(message);
+			fail("Expected Exception");
+		} catch (MessagingException e) {
+			assertEquals(dontReplaceThisMessage, e.getFailedMessage());
+		}
+	}
 }

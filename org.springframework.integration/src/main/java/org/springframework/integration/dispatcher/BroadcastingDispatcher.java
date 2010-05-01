@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
@@ -41,6 +42,7 @@ import org.springframework.integration.message.MessageHandler;
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Gary Russell
  */
 public class BroadcastingDispatcher extends AbstractDispatcher {
 
@@ -121,6 +123,10 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		}
 		catch (RuntimeException e) {
 			if (!this.ignoreFailures) {
+				if (e instanceof MessagingException &&
+						((MessagingException) e).getFailedMessage() == null) {
+					((MessagingException) e).setFailedMessage(message);
+				}
 				throw e;
 			}
 			else if (this.logger.isWarnEnabled()) {
