@@ -39,16 +39,16 @@ public class ThreadLocalChannel extends AbstractPollableChannel {
 
 
 	@Override
-	protected Message<?> doReceive(long timeout) {
-		return messageHolder.get().poll();
-	}
-
-	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (message == null) {
 			return false;
 		}
 		return messageHolder.get().add(message);
+	}
+
+	@Override
+	protected Message<?> doReceive(long timeout) {
+		return messageHolder.get().poll();
 	}
 
 
