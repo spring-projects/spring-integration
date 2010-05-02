@@ -53,7 +53,7 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "ReleaseStrategy") instanceof SequenceSizeReleaseStrategy);
+		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
 		assertNull(getPropertyValue(aggregator, "outputChannel"));
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
 		assertEquals(CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT,
@@ -67,7 +67,7 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "ReleaseStrategy")
+		assertTrue(getPropertyValue(aggregator, "releaseStrategy")
 				instanceof SequenceSizeReleaseStrategy);
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
 		assertEquals(channelResolver.resolveChannelName("outputChannel"),
@@ -84,7 +84,7 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		Object ReleaseStrategy = getPropertyValue(aggregator, "ReleaseStrategy");
+		Object ReleaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
 		Assert.assertTrue(ReleaseStrategy instanceof ReleaseStrategyAdapter);
 		ReleaseStrategyAdapter ReleaseStrategyAdapter = (ReleaseStrategyAdapter) ReleaseStrategy;
 		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(

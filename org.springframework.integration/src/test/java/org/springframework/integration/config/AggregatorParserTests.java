@@ -89,7 +89,7 @@ public class AggregatorParserTests {
                 expectedMethod, ((MessageListMethodAdapter) new DirectFieldAccessor(accessor.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
         assertEquals(
                 "The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
-                ReleaseStrategy, accessor.getPropertyValue("ReleaseStrategy"));
+                ReleaseStrategy, accessor.getPropertyValue("releaseStrategy"));
         assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
                 correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
@@ -136,7 +136,7 @@ public class AggregatorParserTests {
         EventDrivenConsumer endpoint =
                 (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
         ReleaseStrategy ReleaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(
-                new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("ReleaseStrategy");
+                new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("releaseStrategy");
         Assert.assertTrue(ReleaseStrategy instanceof ReleaseStrategyAdapter);
         DirectFieldAccessor ReleaseStrategyAccessor = new DirectFieldAccessor(ReleaseStrategy);
         MethodInvoker invoker = (MethodInvoker) ReleaseStrategyAccessor.getPropertyValue("invoker");
