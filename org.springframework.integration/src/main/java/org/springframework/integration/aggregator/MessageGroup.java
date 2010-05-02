@@ -92,8 +92,8 @@ public class MessageGroup {
 			return true;
 		}
 		int sequenceSize = getSequenceSize();
-		// If there is no sequence then it must be complete....
-		return sequenceSize == 0 || sequenceSize == size();
+		// If there is no sequence then it must be incomplete....
+		return sequenceSize > 0 && sequenceSize == size();
 	}
 
 	public int getSequenceSize() {

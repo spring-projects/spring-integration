@@ -173,7 +173,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 					}
 					outputProcessor.processAndSend(group, channelTemplate, this.resolveReplyChannel(message,
 							this.outputChannel));
-					if (group.isComplete()) {
+					if (group.isComplete() || group.getSequenceSize()==0) {
 						complete(group);
 					}
 					else {

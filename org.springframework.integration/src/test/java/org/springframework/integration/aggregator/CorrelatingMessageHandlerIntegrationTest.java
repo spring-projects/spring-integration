@@ -16,6 +16,10 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
@@ -23,8 +27,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
-
-import static org.mockito.Mockito.*;
 
 public class CorrelatingMessageHandlerIntegrationTest {
 
@@ -62,6 +64,20 @@ public class CorrelatingMessageHandlerIntegrationTest {
 		defaultHandler.handleMessage(message2);
 		verify(outputChannel, never()).send(message2);
 		verify(discardChannel).send(message2);
+	}
+
+	@Test
+	public void completesIfNoSequence() throws Exception {
+		defaultHandler.setReleaseStrategy(new MessageCountReleaseStrategy(2));
+		Message<?> message1 = MessageBuilder.withPayload(1).setCorrelationId("foo").build();
+		Message<?> message2 = MessageBuilder.withPayload(2).setCorrelationId("foo").build();
+		Message<?> message3 = MessageBuilder.withPayload(3).setCorrelationId("foo").build();
+		defaultHandler.handleMessage(message1);
+		verify(outputChannel, never()).send(message3);
+		defaultHandler.handleMessage(message2);
+		verify(outputChannel).send(message2);
+		defaultHandler.handleMessage(message3);
+		verify(outputChannel, never()).send(message3);
 	}
 
 	@Test

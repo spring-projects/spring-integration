@@ -63,24 +63,15 @@ public class AggregatorWithCorrelationStrategyTests {
 
 	@Test
 	public void testCorrelationAndCompletion() {
-		inputChannel.send(MessageBuilder.withPayload("A1").setSequenceNumber(0).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("B2").setSequenceNumber(0).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("C3").setSequenceNumber(0).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("A4").setSequenceNumber(1).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("B5").setSequenceNumber(1).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("C6").setSequenceNumber(1).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("A7").setSequenceNumber(2).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("B8").setSequenceNumber(2).setSequenceSize(3)
-				.build());
-		inputChannel.send(MessageBuilder.withPayload("C9").setSequenceNumber(2).setSequenceSize(3)
-				.build());
+		inputChannel.send(MessageBuilder.withPayload("A1").build());
+		inputChannel.send(MessageBuilder.withPayload("B2").build());
+		inputChannel.send(MessageBuilder.withPayload("C3").build());
+		inputChannel.send(MessageBuilder.withPayload("A4").build());
+		inputChannel.send(MessageBuilder.withPayload("B5").build());
+		inputChannel.send(MessageBuilder.withPayload("C6").build());
+		inputChannel.send(MessageBuilder.withPayload("A7").build());
+		inputChannel.send(MessageBuilder.withPayload("B8").build());
+		inputChannel.send(MessageBuilder.withPayload("C9").build());
 		receiveAndCompare(outputChannel, "A1", "A4", "A7");
 		receiveAndCompare(outputChannel, "B2", "B5", "B8");
 		receiveAndCompare(outputChannel, "C3", "C6", "C9");
@@ -91,34 +82,25 @@ public class AggregatorWithCorrelationStrategyTests {
 		// the test verifies how a pojo strategy is applied
 		// Strings are correlated by their first letter, integers are correlated
 		// by the last digit
-		pojoInputChannel.send(MessageBuilder.withPayload("X1")
-				.setSequenceNumber(0).setSequenceSize(3).build());
-		pojoInputChannel.send(MessageBuilder.withPayload(93).setSequenceNumber(
-				0).setSequenceSize(3).build());
-		pojoInputChannel.send(MessageBuilder.withPayload("X4")
-				.setSequenceNumber(1).setSequenceSize(3).build());
-		pojoInputChannel.send(MessageBuilder.withPayload(113)
-				.setSequenceNumber(1).setSequenceSize(3).build());
-		pojoInputChannel.send(MessageBuilder.withPayload("X7")
-				.setSequenceNumber(2).setSequenceSize(3).build());
-		pojoInputChannel.send(MessageBuilder.withPayload(213)
-				.setSequenceNumber(2).setSequenceSize(3).build());
+		pojoInputChannel.send(MessageBuilder.withPayload("X1").build());
+		pojoInputChannel.send(MessageBuilder.withPayload(93).build());
+		pojoInputChannel.send(MessageBuilder.withPayload("X4").build());
+		pojoInputChannel.send(MessageBuilder.withPayload(113).build());
+		pojoInputChannel.send(MessageBuilder.withPayload("X7").build());
+		pojoInputChannel.send(MessageBuilder.withPayload(213).build());
 		receiveAndCompare(pojoOutputChannel, "X1", "X4", "X7");
 		receiveAndCompare(pojoOutputChannel, "93", "113", "213");
 	}
 
-	private void receiveAndCompare(PollableChannel outputChannel,
-			String... expectedValues) {
+	private void receiveAndCompare(PollableChannel outputChannel, String... expectedValues) {
 		Message<?> message = outputChannel.receive(500);
 		Assert.assertNotNull(message);
 		for (String expectedValue : expectedValues) {
-			assertThat((String) message.getPayload(),
-					containsString(expectedValue));
+			assertThat((String) message.getPayload(), containsString(expectedValue));
 		}
 	}
 
-	public static class MessageCountReleaseStrategy implements
-			ReleaseStrategy {
+	public static class MessageCountReleaseStrategy implements ReleaseStrategy {
 
 		private final int expectedSize;
 
@@ -132,8 +114,7 @@ public class AggregatorWithCorrelationStrategyTests {
 
 	}
 
-	public static class FirstLetterCorrelationStrategy implements
-			CorrelationStrategy {
+	public static class FirstLetterCorrelationStrategy implements CorrelationStrategy {
 
 		public Object getCorrelationKey(Message<?> message) {
 			return message.getPayload().toString().subSequence(0, 1);
