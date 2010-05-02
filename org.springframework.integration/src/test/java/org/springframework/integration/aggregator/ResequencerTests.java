@@ -48,7 +48,7 @@ public class ResequencerTests {
 
 	@Before
 	public void configureResequencer() {
-		this.resequencer = new CorrelatingMessageHandler(store, processor, processor, processor);
+		this.resequencer = new CorrelatingMessageHandler(processor, store, processor, processor);
 	}
 
 	@Test

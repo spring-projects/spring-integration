@@ -16,14 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the <em>aggregator</em> element of the integration namespace. Registers the annotation-driven
@@ -79,6 +77,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
                     IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultAggregatingMessageGroupProcessor").getBeanDefinition());
         }
 
+		// TODO: expose message store as an XML attribute
+
         if (innerHandlerDefinition != null) {
             processorBuilder.addConstructorArgValue(innerHandlerDefinition);
         } else {
@@ -101,7 +101,6 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
                 SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
         IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
                 REAPER_INTERVAL_ATTRIBUTE);
-//        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
         IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
         IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
         this.injectPropertyWithBean(RELEASE_STRATEGY_REF_ATTRIBUTE,

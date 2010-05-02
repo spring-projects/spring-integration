@@ -36,7 +36,7 @@ public class CorrelatingMessageHandlerIntegrationTest {
 
 	private MessageGroupProcessor processor = new PassThroughMessageGroupProcessor();
 
-	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(store, processor);
+	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(processor, store);
 
 	@Before
 	public void setupHandler() {

@@ -218,6 +218,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		testBean = (GreetingService) proxyFactory.getProxy();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(testBean);
 		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(aggregator);
+		handler.setReleaseStrategy(new MessageCountReleaseStrategy());
 		handler.setOutputChannel(output);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
 		endpoint.start();
@@ -236,6 +237,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		testBean = (GreetingService) proxyFactory.getProxy();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(testBean);
 		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(aggregator);
+		handler.setReleaseStrategy(new MessageCountReleaseStrategy());
 		handler.setOutputChannel(output);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
 		endpoint.start();

@@ -31,27 +31,35 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.CorrelatingMessageHandler");
 		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.Resequencer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(processorBuilder, element, "release-partial-sequences");
-		// TODO: expose message store as an XML attribute
-		builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".store.SimpleMessageStore").getBeanDefinition());
-		String correlationStrategyRef = getCorrelationStrategyRef(element, parserContext);
+
 		String processorRef = BeanDefinitionReaderUtils.registerWithGeneratedName(processorBuilder
 				.getBeanDefinition(), parserContext.getRegistry());
+
+		// Message group processor
+		builder.addConstructorArgReference(processorRef);
+
+		// TODO: expose message store as an XML attribute
+		// Message store
+		builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".store.SimpleMessageStore").getBeanDefinition());
+
+		String correlationStrategyRef = getCorrelationStrategyRef(element, parserContext);
 		if (correlationStrategyRef != null) {
 			builder.addConstructorArgReference(correlationStrategyRef);
 		}
 		else {
+			// Correlation strategy
 			builder.addConstructorArgReference(processorRef);
 		}
 		// Completion strategy
 		builder.addConstructorArgReference(processorRef);
-		// Message group processor
-		builder.addConstructorArgReference(processorRef);
+
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-partial-result-on-timeout");

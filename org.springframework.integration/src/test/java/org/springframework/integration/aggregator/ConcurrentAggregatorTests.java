@@ -54,8 +54,8 @@ public class ConcurrentAggregatorTests {
 	@Before
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
-		this.aggregator = new CorrelatingMessageHandler(new SimpleMessageStore(
-				50), new MultiplyingProcessor());
+		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), new SimpleMessageStore(
+						50));
 	}
 
 	@Test
@@ -269,8 +269,8 @@ public class ConcurrentAggregatorTests {
 
 	@Test
 	public void testNullReturningAggregator() throws InterruptedException {
-		this.aggregator = new CorrelatingMessageHandler(new SimpleMessageStore(
-				50), new NullReturningMessageProcessor());
+		this.aggregator = new CorrelatingMessageHandler(new NullReturningMessageProcessor(), new SimpleMessageStore(
+						50));
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);

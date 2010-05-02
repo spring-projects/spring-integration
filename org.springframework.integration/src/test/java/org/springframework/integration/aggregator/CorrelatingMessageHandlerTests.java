@@ -65,8 +65,8 @@ public class CorrelatingMessageHandlerTests {
 
 	@Before
 	public void initializeSubject() {
-		handler = new CorrelatingMessageHandler(new SimpleMessageStore(), correlationStrategy, ReleaseStrategy,
-				processor);
+		handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy,
+				ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
 		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(MessageGroup.class),
 				isA(MessageChannelTemplate.class), eq(outputChannel));

@@ -53,7 +53,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method.getName());
 		ReleaseStrategyAdapter ReleaseStrategy = getReleaseStrategy(bean);
 		CorrelationStrategyAdapter correlationStrategy = getCorrelationStrategy(bean);
-		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(new SimpleMessageStore(), correlationStrategy, ReleaseStrategy, processor);
+		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, ReleaseStrategy);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.channelResolver.resolveChannelName(discardChannelName);
