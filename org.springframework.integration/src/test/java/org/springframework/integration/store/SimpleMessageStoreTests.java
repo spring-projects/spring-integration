@@ -20,8 +20,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
@@ -66,15 +64,6 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.put("bar", testMessage1);
 		assertEquals(1, store.list("bar").size());
-	}
-
-	@Test
-	public void shouldListByCorrelationAfterAddAll() throws Exception {
-		SimpleMessageStore store = new SimpleMessageStore();
-		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
-		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
-		store.put("bar", Arrays.<Message<?>>asList(testMessage1, testMessage2));
-		assertEquals(2, store.list("bar").size());
 	}
 
 }

@@ -36,7 +36,7 @@ public class DefaultAggregatingMessageGroupProcessor extends AbstractAggregating
 
 	@Override
 	protected final Object aggregatePayloads(MessageGroup group) {
-		Collection<Message<?>> messages = group.getMessages();
+		Collection<Message<?>> messages = group.getUnmarked();
 		Assert.notEmpty(messages, this.getClass().getSimpleName() + " cannot process empty message groups");
 		List<Object> payloads = new ArrayList<Object>(messages.size());
 		for (Message<?> message : messages) {

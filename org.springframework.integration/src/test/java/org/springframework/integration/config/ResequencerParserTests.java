@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 import java.util.ArrayList;
@@ -26,12 +27,12 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
-import org.springframework.integration.aggregator.Resequencer;
+import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -79,21 +80,15 @@ public class ResequencerParserTests {
 	@Test
 	public void testDefaultResequencerProperties() {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultResequencer");
-		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
+		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler", CorrelatingMessageHandler.class);
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
-		assertNull(getPropertyValue(resequencer, "discardChannel"));
+		assertTrue(getPropertyValue(resequencer, "discardChannel") instanceof NullChannel);
 		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
 				1000l, getPropertyValue(resequencer, "channelTemplate.sendTimeout"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				false, getPropertyValue(resequencer, "sendPartialResultOnTimeout"));
-		assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
-				1000l, getPropertyValue(resequencer, "reaperInterval"));
-		assertEquals("The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
-				1000, getPropertyValue(resequencer, "trackedCorrelationIdCapacity"));
-		assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
-				60000l, getPropertyValue(resequencer, "timeout"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				true, getPropertyValue(resequencer, "releasePartialSequences"));		
+				false, getPropertyValue(getPropertyValue(resequencer, "outputProcessor"), "releasePartialSequences"));		
 	}
 
 	@Test
@@ -101,7 +96,7 @@ public class ResequencerParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
+		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler", CorrelatingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
 				outputChannel, getPropertyValue(resequencer, "outputChannel"));
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",
@@ -110,20 +105,14 @@ public class ResequencerParserTests {
 				86420000l, getPropertyValue(resequencer, "channelTemplate.sendTimeout"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, getPropertyValue(resequencer, "sendPartialResultOnTimeout"));
-		assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
-				135l, getPropertyValue(resequencer, "reaperInterval"));
-		assertEquals("The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
-				99, getPropertyValue(resequencer, "trackedCorrelationIdCapacity"));
-		assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
-				42l, getPropertyValue(resequencer, "timeout"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				false, getPropertyValue(resequencer, "releasePartialSequences"));
+				false, getPropertyValue(getPropertyValue(resequencer, "outputProcessor"), "releasePartialSequences"));		
 	}
 
 	@Test
 	public void testCorrelationStrategyRefOnly() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithCorrelationStrategyRefOnly");
-		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
+		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler", CorrelatingMessageHandler.class);
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate CorrelationStrategy",
 				context.getBean("testCorrelationStrategy"), getPropertyValue(resequencer, "correlationStrategy"));
 	}
@@ -131,7 +120,7 @@ public class ResequencerParserTests {
 	@Test
 	public void testCorrelationStrategyRefAndMethod() throws Exception {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithCorrelationStrategyRefAndMethod");
-		Resequencer resequencer = TestUtils.getPropertyValue(endpoint, "handler", Resequencer.class);
+		CorrelatingMessageHandler resequencer = TestUtils.getPropertyValue(endpoint, "handler", CorrelatingMessageHandler.class);
 		Object correlationStrategy = getPropertyValue(resequencer, "correlationStrategy");
 		assertEquals("The ResequencerEndpoint is not configured with a CorrelationStrategy adapter",
 				CorrelationStrategyAdapter.class, correlationStrategy.getClass());

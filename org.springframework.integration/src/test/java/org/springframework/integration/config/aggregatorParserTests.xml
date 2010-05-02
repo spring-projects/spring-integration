@@ -24,7 +24,7 @@
 		output-channel="outputChannel"
 		discard-channel="discardChannel"
 		ref="aggregatorBean" 
-		completion-strategy="completionStrategy"
+		release-strategy="releaseStrategy"
         correlation-strategy="correlationStrategy"
 		send-timeout="86420000"
 		send-partial-result-on-timeout="true"
@@ -39,14 +39,14 @@
 		input-channel="aggregatorWithReferenceAndMethodInput"
 		output-channel="outputChannel"/>
 
-	<channel id="aggregatorWithPojoCompletionStrategyInput"/>
-	<aggregator id="aggregatorWithPojoCompletionStrategy"
-		input-channel="aggregatorWithPojoCompletionStrategyInput"
+	<channel id="aggregatorWithPojoReleaseStrategyInput"/>
+	<aggregator id="aggregatorWithPojoReleaseStrategy"
+		input-channel="aggregatorWithPojoReleaseStrategyInput"
 		output-channel="outputChannel"
 		ref="adderBean"
 		method="add"
-		completion-strategy="pojoCompletionStrategy"
-		completion-strategy-method="checkCompleteness"/>
+		release-strategy="pojoReleaseStrategy"
+		release-strategy-method="checkCompleteness"/>
 
 	<beans:bean id="aggregatorBean"
 		class="org.springframework.integration.config.TestAggregatorBean" />
@@ -54,13 +54,13 @@
 	<beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />
 
-	<beans:bean id="completionStrategy"
-		class="org.springframework.integration.config.TestCompletionStrategy" />
+	<beans:bean id="releaseStrategy"
+		class="org.springframework.integration.config.TestReleaseStrategy" />
 
     <beans:bean id="correlationStrategy" class="org.springframework.integration.config.TestCorrelationStrategy"/>
 
-	<beans:bean id="pojoCompletionStrategy"
-		class="org.springframework.integration.config.MaxValueCompletionStrategy">
+	<beans:bean id="pojoReleaseStrategy"
+		class="org.springframework.integration.config.MaxValueReleaseStrategy">
 		<beans:constructor-arg value="10" />
 	</beans:bean>
 

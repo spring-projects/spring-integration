@@ -17,36 +17,34 @@
 package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 
-import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 
 /**
  * Adapter for methods annotated with
- * {@link org.springframework.integration.annotation.CompletionStrategy @CompletionStrategy}
- * and for '<code>completion-strategy</code>' elements that include a '<code>method</code>'
- * attribute (e.g. &lt;completion-strategy ref="beanReference" method="methodName"/&gt;).
+ * {@link org.springframework.integration.annotation.ReleaseStrategy @ReleaseStrategy}
+ * and for '<code>release-strategy</code>' elements that include a '<code>method</code>'
+ * attribute (e.g. &lt;release-strategy ref="beanReference" method="methodName"/&gt;).
  * 
  * @author Marius Bogoevici
  */
-public class CompletionStrategyAdapter extends MessageListMethodAdapter implements CompletionStrategy {
+public class ReleaseStrategyAdapter extends MessageListMethodAdapter implements ReleaseStrategy {
 
-	public CompletionStrategyAdapter(Object object, Method method) {
+	public ReleaseStrategyAdapter(Object object, Method method) {
 		super(object, method);
 		this.assertMethodReturnsBoolean();
 	}
 
-	public CompletionStrategyAdapter(Object object, String methodName) {
+	public ReleaseStrategyAdapter(Object object, String methodName) {
 		super(object, methodName);
 		this.assertMethodReturnsBoolean();
 	}
 
 
-	public boolean isComplete(Collection<? extends Message<?>> messages) {
-		return ((Boolean) executeMethod(messages)).booleanValue();
+	public boolean canRelease(MessageGroup messages) {
+		return ((Boolean) executeMethod(messages.getUnmarked())).booleanValue() && messages.getMarked().isEmpty();
 	}
-
+	
 	private void assertMethodReturnsBoolean() {
 		Assert.isTrue(Boolean.class.equals(this.getMethod().getReturnType())
 				|| boolean.class.equals(this.getMethod().getReturnType()),

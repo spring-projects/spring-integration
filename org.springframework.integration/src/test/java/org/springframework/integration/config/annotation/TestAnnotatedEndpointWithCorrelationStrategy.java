@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.annotation.CorrelationStrategy;
 
 /**
@@ -38,7 +38,7 @@ public class TestAnnotatedEndpointWithCorrelationStrategy {
         return buffer.toString();
     }
 
-    @CompletionStrategy
+    @ReleaseStrategy
     public boolean isComplete(List<String> payloads) {
         return payloads.size() == 3;
     }

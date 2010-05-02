@@ -16,26 +16,17 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.Collection;
 
-import org.springframework.integration.core.Message;
-import org.springframework.util.CollectionUtils;
 
 /**
- * An implementation of {@link CompletionStrategy} that simply compares the
- * current size of the message list to the expected 'sequenceSize' according to
- * the first {@link Message} in the list.
+ * Strategy for determining when a group of messages reaches a state of
+ * completion (i.e. can trip a barrier).
  * 
  * @author Mark Fisher
- * @author Marius Bogoevici
+ * @author Dave Syer
  */
-public class SequenceSizeCompletionStrategy implements CompletionStrategy {
+public interface ReleaseStrategy {
 
-	public boolean isComplete(Collection<? extends Message<?>> messages) {
-		if (CollectionUtils.isEmpty(messages)) {
-			return false;
-		}
-		return messages.size() != 0 && (messages.size() >= messages.iterator().next().getHeaders().getSequenceSize());
-	}
+	boolean canRelease(MessageGroup group);
 
 }

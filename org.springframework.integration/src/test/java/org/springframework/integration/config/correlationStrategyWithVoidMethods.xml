@@ -8,7 +8,7 @@
 
     <beans:bean id="correlationStrategy" class="org.springframework.integration.config.CorrelationStrategyInvalidConfigurationTests$VoidReturningCorrelationStrategy"/>
 
-    <beans:bean id="completionStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$MessageCountCompletionStrategy">
+    <beans:bean id="releaseStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$MessageCountReleaseStrategy">
         <beans:constructor-arg value="3"/>
     </beans:bean>
 
@@ -21,8 +21,8 @@
     </channel>
 
     <aggregator ref="aggregator"
-                completion-strategy="completionStrategy"
-                correlation-strategy="correlationStrategy" completion-strategy-method="invalidCorrelationMethod"
+                release-strategy="releaseStrategy"  release-strategy-method="invalidCorrelationMethod"
+                correlation-strategy="correlationStrategy"
                 input-channel="inputChannel"
                 output-channel="outputChannel"/>
     

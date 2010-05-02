@@ -7,12 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<aggregator id="aggregatorWithPojoCompletionStrategy"
-		completion-strategy="completionStrategy"
+	<aggregator id="aggregatorWithPojoReleaseStrategy"
 		ref="adderBean" method="add"
 		input-channel="inputChannel"
 		output-channel="replyChannel"
-		completion-strategy-method="invalidMethodName"/>
+		release-strategy="releaseStrategy"
+		release-strategy-method="invalidMethodName"/>
 
 	<channel id="inputChannel"/>
 	<channel id="replyChannel"/>
@@ -20,11 +20,11 @@
 	<beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />
 
-	<beans:bean id="completionStrategy"
-		class="org.springframework.integration.config.TestCompletionStrategy" />
+	<beans:bean id="releaseStrategy"
+		class="org.springframework.integration.config.TestReleaseStrategy" />
 
-	<beans:bean id="pojoCompletionStrategy"
-		class="org.springframework.integration.config.MaxValueCompletionStrategy">
+	<beans:bean id="pojoReleaseStrategy"
+		class="org.springframework.integration.config.MaxValueReleaseStrategy">
 		<beans:constructor-arg value="10" />
 	</beans:bean>
 

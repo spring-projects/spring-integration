@@ -16,17 +16,16 @@
 
 package org.springframework.integration.config;
 
-import java.util.Collection;
 
-import org.springframework.integration.aggregator.CompletionStrategy;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.aggregator.MessageGroup;
+import org.springframework.integration.aggregator.ReleaseStrategy;
 
 /**
  * @author Marius Bogoevici
  */
-public class TestCompletionStrategy implements CompletionStrategy {
+public class TestReleaseStrategy implements ReleaseStrategy {
 
-	public boolean isComplete(Collection<? extends Message<?>> messages) {
+	public boolean canRelease(MessageGroup messages) {
 		throw new UnsupportedOperationException("This is not intended to be implemented, but to verify injection into an <aggregator>");
 	}
 

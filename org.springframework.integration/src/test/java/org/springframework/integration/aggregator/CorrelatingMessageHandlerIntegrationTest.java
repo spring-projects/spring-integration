@@ -36,7 +36,6 @@ public class CorrelatingMessageHandlerIntegrationTest {
 
 	private CorrelatingMessageHandler defaultHandler = new CorrelatingMessageHandler(store, processor);
 
-
 	@Before
 	public void setupHandler() {
 		defaultHandler.setOutputChannel(outputChannel);
@@ -52,14 +51,17 @@ public class CorrelatingMessageHandlerIntegrationTest {
 	}
 
 	@Test
-	public void completesAfterSequenceComplete() throws Exception {
+	public void completesAfterThreshold() throws Exception {
+		defaultHandler.setReleaseStrategy(new MessageCountReleaseStrategy());
+		MessageChannel discardChannel = mock(MessageChannel.class);
+		defaultHandler.setDiscardChannel(discardChannel);
 		Message<?> message1 = correlatedMessage(1, 2, 1);
 		Message<?> message2 = correlatedMessage(1, 2, 2);
 		defaultHandler.handleMessage(message1);
-		verify(outputChannel, never()).send(message1);
-		defaultHandler.handleMessage(message2);
 		verify(outputChannel).send(message1);
-		verify(outputChannel).send(message2);
+		defaultHandler.handleMessage(message2);
+		verify(outputChannel, never()).send(message2);
+		verify(discardChannel).send(message2);
 	}
 
 	@Test
@@ -80,6 +82,17 @@ public class CorrelatingMessageHandlerIntegrationTest {
 		defaultHandler.handleMessage(message2a);
 		verify(outputChannel).send(message2);
 		verify(outputChannel).send(message2a);
+	}
+
+	@Test
+	public void completesAfterSequenceComplete() throws Exception {
+		Message<?> message1 = correlatedMessage(1, 2, 1);
+		Message<?> message2 = correlatedMessage(1, 2, 2);
+		defaultHandler.handleMessage(message1);
+		verify(outputChannel, never()).send(message1);
+		defaultHandler.handleMessage(message2);
+		verify(outputChannel).send(message1);
+		verify(outputChannel).send(message2);
 	}
 
 

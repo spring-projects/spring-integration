@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.springframework.integration.aggregator;
 
 /**
- * Indicates that a method is capable of asserting if a list of messages or
- * payload objects is complete.
+ * An implementation of {@link ReleaseStrategy} that simply compares the
+ * current size of the message list to the expected 'sequenceSize'.
  * 
+ * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Dave Syer
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Documented
-public @interface CompletionStrategy {
+public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
+
+	public boolean canRelease(MessageGroup messages) {
+		return messages.isComplete();
+	}
 
 }

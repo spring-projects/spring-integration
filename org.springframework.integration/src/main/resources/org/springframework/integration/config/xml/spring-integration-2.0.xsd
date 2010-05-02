@@ -1422,7 +1422,7 @@
 			</xsd:annotation> 
 			<xsd:complexContent>
 				<xsd:extension base="innerEndpointDefinitionAware">
-					<xsd:attribute name="completion-strategy" type="xsd:string">
+					<xsd:attribute name="release-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -1431,11 +1431,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="completion-strategy-method" type="xsd:string">
+					<xsd:attribute name="release-strategy-method" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation>
-									<tool:expected-method type-ref="@completion-strategy"/>
+									<tool:expected-method type-ref="@release-strategy"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

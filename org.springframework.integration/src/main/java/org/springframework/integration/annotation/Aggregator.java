@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.integration.aggregator.AbstractMessageAggregator;
+import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 
 /**
  * Indicates that a method is capable of aggregating messages. 
@@ -56,12 +56,12 @@ public @interface Aggregator {
 	/**
 	 * timeout for sending results to the reply target (in milliseconds)
 	 */
-	long sendTimeout() default AbstractMessageAggregator.DEFAULT_SEND_TIMEOUT;
+	long sendTimeout() default CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
 
 	/**
 	 * maximum time to wait for completion (in milliseconds) 
 	 */
-	long timeout() default AbstractMessageAggregator.DEFAULT_TIMEOUT;
+	long timeout() default CorrelatingMessageHandler.DEFAULT_TIMEOUT;
 
 	/**
 	 * indicates whether to send an incomplete aggregate on timeout
@@ -71,13 +71,14 @@ public @interface Aggregator {
 	/**
 	 * interval for the task that checks for timed-out aggregates
 	 */
-	long reaperInterval() default AbstractMessageAggregator.DEFAULT_REAPER_INTERVAL;
+	long reaperInterval() default CorrelatingMessageHandler.DEFAULT_REAPER_INTERVAL;
 
 	/**
 	 * maximum number of correlation IDs to maintain so that received messages
 	 * may be recognized as belonging to an aggregate that has already completed
 	 * or timed out
 	 */
-	int trackedCorrelationIdCapacity() default AbstractMessageAggregator.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY; 
+	// TODO: remove / deal with tracked id capacity
+	int trackedCorrelationIdCapacity() default 42; 
 
 }

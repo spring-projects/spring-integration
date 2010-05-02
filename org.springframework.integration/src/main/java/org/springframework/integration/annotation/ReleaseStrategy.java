@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.config;
 
-import java.util.List;
+package org.springframework.integration.annotation;
 
-public class MaxValueCompletionStrategy {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-	private long maxValue;
-	
-	
-	public MaxValueCompletionStrategy(long maxValue){
-		this.maxValue = maxValue;
-	}
-	
-	public boolean checkCompleteness(List<Long> numbers) {
-		int sum = 0;
-		for (long number: numbers) {
-			sum += number;
-		}
-		return sum >= maxValue;
-	}
-	
+/**
+ * Indicates that a method is capable of asserting if a list of messages or
+ * payload objects is complete.
+ * 
+ * @author Marius Bogoevici
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+public @interface ReleaseStrategy {
+
 }

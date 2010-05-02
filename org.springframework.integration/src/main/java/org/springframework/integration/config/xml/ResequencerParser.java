@@ -16,12 +16,11 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;resequencer&gt; element.
@@ -32,38 +31,57 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.CorrelatingMessageHandler");
+		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.Resequencer");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(processorBuilder, element, "release-partial-sequences");
+		// TODO: expose message store as an XML attribute
+		builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".store.SimpleMessageStore").getBeanDefinition());
+		String correlationStrategyRef = getCorrelationStrategyRef(element, parserContext);
+		String processorRef = BeanDefinitionReaderUtils.registerWithGeneratedName(processorBuilder
+				.getBeanDefinition(), parserContext.getRegistry());
+		if (correlationStrategyRef != null) {
+			builder.addConstructorArgReference(correlationStrategyRef);
+		}
+		else {
+			builder.addConstructorArgReference(processorRef);
+		}
+		// Completion strategy
+		builder.addConstructorArgReference(processorRef);
+		// Message group processor
+		builder.addConstructorArgReference(processorRef);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
-		this.configureCorrelationStrategy(builder, element, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "release-partial-sequences");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-partial-result-on-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reaper-interval");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "tracked-correlation-id-capacity");
+		// IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "tracked-correlation-id-capacity");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder;
 	}
 
-	private void configureCorrelationStrategy(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	private String getCorrelationStrategyRef(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute("correlation-strategy");
 		String method = element.getAttribute("correlation-strategy-method");
-		String correlationStrategyProperty = "correlationStrategy";
 		if (StringUtils.hasText(ref)) {
 			if (StringUtils.hasText(method)) {
-				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.CorrelationStrategyAdapter");
+				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+						.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
+								+ ".aggregator.CorrelationStrategyAdapter");
 				adapterBuilder.addConstructorArgReference(ref);
-				adapterBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
-				String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-						adapterBuilder.getBeanDefinition(), parserContext.getRegistry());
-				builder.addPropertyReference(correlationStrategyProperty, adapterBeanName);
+				adapterBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method,
+						"java.lang.String");
+				String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(adapterBuilder
+						.getBeanDefinition(), parserContext.getRegistry());
+				return adapterBeanName;
 			}
 			else {
-				builder.addPropertyReference(correlationStrategyProperty, ref);
+				return ref;
 			}
 		}
+		return null;
 	}
 
 }

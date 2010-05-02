@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
-import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +42,7 @@ import org.springframework.integration.store.SimpleMessageStore;
  * @author Marius Bogoevici
  * @author Iwein Fuld
  */
-public class NewAggregatorEndpointTests {
+public class AggregatorTests {
 
     private CorrelatingMessageHandler aggregator;
 
@@ -115,34 +114,20 @@ public class NewAggregatorEndpointTests {
         aggregator.handleMessage(message6);
         aggregator.handleMessage(message4);
         aggregator.handleMessage(message2);
+        @SuppressWarnings("unchecked")
         Message<Integer> reply1 = (Message<Integer>) replyChannel1.receive(500);
         assertNotNull(reply1);
         assertThat(reply1.getPayload(), is(105));
+        @SuppressWarnings("unchecked")
         Message<Integer> reply2 = (Message<Integer>) replyChannel2.receive(500);
         assertNotNull(reply2);
         assertThat(reply2.getPayload(), is(2431));
     }
 
     @Test
-    public void testDiscardChannelForTrackedCorrelationId() {
-        QueueChannel replyChannel = new QueueChannel();
-        QueueChannel discardChannel = new QueueChannel();
-        this.aggregator.setDiscardChannel(discardChannel);
-        this.aggregator.handleMessage(createMessage(1, "tracked", 1, 1, replyChannel, null));
-        Message<?> received1 = replyChannel.receive(0);
-        assertEquals(1, received1.getPayload());
-        assertNotNull("Expected aggregated message, but got null", received1);
-        this.aggregator.handleMessage(createMessage(2, "tracked", 1, 1, replyChannel, null));
-        Message<?> received2 = discardChannel.receive(0);
-        assertNotNull("Expected discarded message, but got null", received2);
-        assertEquals(2, received2.getPayload());
-    }
-
-    @Test
     @Ignore
     //dropped backwards compatibility for setting capacity limit (it's always Integer.MAX_VALUE)
     public void testTrackedCorrelationIdsCapacityAtLimit() {
-        this.aggregator.start();
         QueueChannel replyChannel = new QueueChannel();
         QueueChannel discardChannel = new QueueChannel();
         //this.aggregator.setTrackedCorrelationIdCapacity(3);
@@ -162,7 +147,6 @@ public class NewAggregatorEndpointTests {
     @Ignore
     //dropped backwards compatibility for setting capacity limit (it's always Integer.MAX_VALUE)
     public void testTrackedCorrelationIdsCapacityPassesLimit() {
-        this.aggregator.start();
         QueueChannel replyChannel = new QueueChannel();
         QueueChannel discardChannel = new QueueChannel();
         //this.aggregator.setTrackedCorrelationIdCapacity(3);
@@ -258,7 +242,7 @@ public class NewAggregatorEndpointTests {
                                    MessageChannelTemplate channelTemplate, MessageChannel outputChannel
         ) {
             Integer product = 1;
-            for (Message<?> message : group.getMessages()) {
+            for (Message<?> message : group.getUnmarked()) {
                 product *= (Integer) message.getPayload();
             }
             channelTemplate.send(MessageBuilder.withPayload(product).build(), outputChannel);

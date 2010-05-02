@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.springframework.integration.aggregator;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,178 +23,157 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Marius Bogoevici
  */
-public class CompletionStrategyAdapterTests {
+public class ReleaseStrategyAdapterTests {
 
-	private SimpleCompletionStrategy simpleCompletionStrategy;
-
+	private SimpleReleaseStrategy simpleReleaseStrategy;
 
 	@Before
 	public void setUp() {
-		simpleCompletionStrategy = new SimpleCompletionStrategy();
+		simpleReleaseStrategy = new SimpleReleaseStrategy();
 	}
-
 
 	@Test
 	public void testTrueConvertedProperly() {
-		CompletionStrategyAdapter adapter = new CompletionStrategyAdapter(new AlwaysTrueCompletionStrategy(),
+		ReleaseStrategyAdapter adapter = new ReleaseStrategyAdapter(new AlwaysTrueReleaseStrategy(),
 				"checkCompleteness");
-		Assert.assertTrue(adapter.isComplete(new ArrayList<Message<?>>()));
+		Assert.assertTrue(adapter.canRelease(createListOfMessages(0)));
 	}
 
 	@Test
 	public void testFalseConvertedProperly() {
-		CompletionStrategyAdapter adapter = new CompletionStrategyAdapter(new AlwaysFalseCompletionStrategy(),
+		ReleaseStrategyAdapter adapter = new ReleaseStrategyAdapter(new AlwaysFalseReleaseStrategy(),
 				"checkCompleteness");
-		Assert.assertTrue(!adapter.isComplete(new ArrayList<Message<?>>()));
+		Assert.assertTrue(!adapter.canRelease(createListOfMessages(0)));
 	}
 
 	@Test
 	public void testAdapterWithNonParameterizedMessageListBasedMethod() {
-		CompletionStrategy adapter = new CompletionStrategyAdapter(simpleCompletionStrategy,
+		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy,
 				"checkCompletenessOnNonParameterizedListOfMessages");
-		List<Message<?>> messages = createListOfMessages();
-		Assert.assertTrue(adapter.isComplete(messages));
+		MessageGroup messages = createListOfMessages(3);
+		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test
 	public void testAdapterWithWildcardParametrizedMessageBasedMethod() {
-		CompletionStrategy adapter = new CompletionStrategyAdapter(simpleCompletionStrategy,
+		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy,
 				"checkCompletenessOnListOfMessagesParametrizedWithWildcard");
-		List<Message<?>> messages = createListOfMessages();
-		Assert.assertTrue(adapter.isComplete(messages));
+		MessageGroup messages = createListOfMessages(3);
+		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test
 	public void testAdapterWithTypeParametrizedMessageBasedMethod() {
-		CompletionStrategy adapter = new CompletionStrategyAdapter(simpleCompletionStrategy,
+		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy,
 				"checkCompletenessOnListOfMessagesParametrizedWithString");
-		List<Message<?>> messages = createListOfMessages();
-		Assert.assertTrue(adapter.isComplete(messages));
+		MessageGroup messages = createListOfMessages(3);
+		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test
 	public void testAdapterWithPojoBasedMethod() {
-		CompletionStrategy adapter = new CompletionStrategyAdapter(simpleCompletionStrategy,
-				"checkCompletenessOnListOfStrings");
-		List<Message<?>> messages = createListOfMessages();
-		Assert.assertTrue(adapter.isComplete(messages));
+		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy, "checkCompletenessOnListOfStrings");
+		MessageGroup messages = createListOfMessages(3);
+		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test
 	public void testAdapterWithPojoBasedMethodReturningObject() {
-		CompletionStrategy adapter = new CompletionStrategyAdapter(simpleCompletionStrategy,
-				"checkCompletenessOnListOfStrings");
-		List<Message<?>> messages = createListOfMessages();
-		Assert.assertTrue(adapter.isComplete(messages));
+		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy, "checkCompletenessOnListOfStrings");
+		MessageGroup messages = createListOfMessages(3);
+		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testAdapterWithWrongMethodName() {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, "methodThatDoesNotExist");
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, "methodThatDoesNotExist");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, "invalidParameterType");
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, "invalidParameterType");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testTooManyParametersUsingMethodName() {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, "tooManyParameters");
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, "tooManyParameters");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNotEnoughParametersUsingMethodName() {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, "notEnoughParameters");
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, "notEnoughParameters");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testListSubclassParameterUsingMethodName() {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, "ListSubclassParameter");
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, "ListSubclassParameter");
 	}
-	
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongReturnType() throws SecurityException, NoSuchMethodError {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, "wrongReturnType");
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new MethodInvokingAggregator(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
-				"invalidParameterType", String.class));
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, "wrongReturnType");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
 				"tooManyParameters", List.class, List.class));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
 				"notEnoughParameters", new Class[] {}));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testListSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
 				"ListSubclassParameter", new Class[] { LinkedList.class }));
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongReturnTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
-				"wrongReturnType", new Class[] { List.class }));
+		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod("wrongReturnType",
+				new Class[] { List.class }));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testNullObject() {
-		new MethodInvokingAggregator(null, "doesNotMatter");
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testNullMethodName() {
-		String methodName = null;
-		new MethodInvokingAggregator(simpleCompletionStrategy, methodName);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testNullMethodObject() {
-		Method method = null;
-		new MethodInvokingAggregator(simpleCompletionStrategy, method);
-	}
-
-
-	private static List<Message<?>> createListOfMessages() {
+	private static MessageGroup createListOfMessages(int size) {
 		List<Message<?>> messages = new ArrayList<Message<?>>();
-		messages.add(new GenericMessage<String>("123"));
-		messages.add(new GenericMessage<String>("456"));
-		messages.add(new GenericMessage<String>("789"));
-		return messages;
+		if (size > 0) {
+			messages.add(new GenericMessage<String>("123"));
+		}
+		if (size > 1) {
+			messages.add(new GenericMessage<String>("456"));
+		}
+		if (size > 2) {
+			messages.add(new GenericMessage<String>("789"));
+		}
+		return new MessageGroup(messages, "ABC");
 	}
 
-	private static class AlwaysTrueCompletionStrategy {
+	@SuppressWarnings("unused")
+	private static class AlwaysTrueReleaseStrategy {
 		public boolean checkCompleteness(List<Message<?>> messages) {
 			return true;
 		}
 	}
 
-	private static class AlwaysFalseCompletionStrategy {
+	@SuppressWarnings("unused")
+	private static class AlwaysFalseReleaseStrategy {
 		public boolean checkCompleteness(List<Message<?>> messages) {
 			return false;
 		}
 	}
 
-	private static class SimpleCompletionStrategy {
+	@SuppressWarnings("unused")
+	private static class SimpleReleaseStrategy {
 
 		public boolean checkCompletenessOnNonParameterizedListOfMessages(List<Message<?>> messages) {
 			Assert.assertTrue(messages.size() > 0);
@@ -207,13 +185,13 @@ public class CompletionStrategyAdapterTests {
 			return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
 		}
 
-		public boolean checkCompletenessOnListOfMessagesParametrizedWithString(
-				List<Message<String>> messages) {
+		public boolean checkCompletenessOnListOfMessagesParametrizedWithString(List<Message<String>> messages) {
 			Assert.assertTrue(messages.size() > 0);
 			return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
 		}
 
-		// Example for the case when completeness is checked on the structure of the data
+		// Example for the case when completeness is checked on the structure of
+		// the data
 		public boolean checkCompletenessOnListOfStrings(List<String> messages) {
 			StringBuffer buffer = new StringBuffer();
 			for (String content : messages) {

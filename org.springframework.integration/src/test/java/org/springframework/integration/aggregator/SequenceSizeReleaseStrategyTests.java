@@ -19,28 +19,23 @@ package org.springframework.integration.aggregator;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
-
-import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Mark Fisher
  */
-public class SequenceSizeCompletionStrategyTests {
+public class SequenceSizeReleaseStrategyTests {
 
 	@Test
 	public void testIncompleteList() {
 		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		MessageGroup messages = new MessageGroup("FOO");
 		messages.add(message);
-		SequenceSizeCompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
-		assertFalse(completionStrategy.isComplete(messages));
+		SequenceSizeReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
+		assertFalse(ReleaseStrategy.canRelease(messages));
 	}
 
 	@Test
@@ -49,23 +44,17 @@ public class SequenceSizeCompletionStrategyTests {
 				.setSequenceSize(2).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceSize(2).build();
-		List<Message<?>> messages = new ArrayList<Message<?>>();
+		MessageGroup messages = new MessageGroup("FOO");
 		messages.add(message1);
 		messages.add(message2);
-		SequenceSizeCompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
-		assertTrue(completionStrategy.isComplete(messages));
+		SequenceSizeReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
+		assertTrue(ReleaseStrategy.canRelease(messages));
 	}
 
 	@Test
 	public void testEmptyList() {
-		SequenceSizeCompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
-		assertFalse(completionStrategy.isComplete(new ArrayList<Message<?>>()));
-	}
-
-	@Test
-	public void testNullList() {
-		SequenceSizeCompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
-		assertFalse(completionStrategy.isComplete(null));
+		SequenceSizeReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
+		assertTrue(ReleaseStrategy.canRelease(new MessageGroup("FOO")));
 	}
 
 }

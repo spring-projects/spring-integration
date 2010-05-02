@@ -18,17 +18,19 @@ package org.springframework.integration.aggregator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.springframework.aop.support.AopUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * MessageGroupProcessor that serves as an adapter for the invocation of a POJO method.
@@ -41,23 +43,20 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 
 	private final MessageListMethodAdapter adapter;
 
-
 	/**
-	 * Creates a wrapper around the target passed in. This constructor will
-	 * choose the best fitting method and throw an exception when methods are
-	 * ambiguous or no fitting methods can be found.
+	 * Creates a wrapper around the target passed in. This constructor will choose the best fitting method and throw an
+	 * exception when methods are ambiguous or no fitting methods can be found.
 	 * 
 	 * @param target the object to wrap
 	 * @throws IllegalStateException when no single method can be found unambiguously
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target) {
-		this.adapter = new MessageListMethodAdapter(target, this.selectMethodFrom(target));
+		this.adapter = new MessageListMethodAdapter(target, this.findAggregatorMethod(target));
 	}
 
 	/**
-	 * Creates a wrapper around the object passed in. This constructor will look
-	 * for a named method specifically and fail when it cannot find a method
-	 * with the given name.
+	 * Creates a wrapper around the object passed in. This constructor will look for a named method specifically and
+	 * fail when it cannot find a method with the given name.
 	 * 
 	 * @param target the object to wrap
 	 * @param method the name of the method to look for
@@ -66,34 +65,54 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 		this.adapter = new MessageListMethodAdapter(target, method);
 	}
 
-
 	@Override
 	protected final Object aggregatePayloads(MessageGroup group) {
-		final Collection<Message<?>> messagesUpForProcessing = group.getMessages();
+		final Collection<Message<?>> messagesUpForProcessing = group.getUnmarked();
 		Object result = this.adapter.executeMethod(messagesUpForProcessing);
 		return result;
 	}
 
-	private Method selectMethodFrom(Object target) {
-		Method[] methods = target.getClass().getMethods();
-		Set<Method> candidates = new HashSet<Method>(Arrays.asList(methods));
-
-		removeObjectMethodsFrom(candidates);
-		removeVoidMethodsFrom(candidates);
-		removeListIncompatibleMethodsFrom(candidates);
-		Set<Method> notAnnotatedCandidates = new HashSet<Method>();
-		if (candidates.size() > 1) {
-			notAnnotatedCandidates.addAll(removeNotAnnotatedFrom(candidates));
+	private Method findAggregatorMethod(Object candidate) {
+		Class<?> targetClass = AopUtils.getTargetClass(candidate);
+		if (targetClass == null) {
+			targetClass = candidate.getClass();
 		}
-
-		// if no methods are annotated we need to look in more detail in the unannotated methods
-		if (candidates.size() < 1) {
-			candidates = notAnnotatedCandidates;
-			removeUnfittingFrom(candidates);
+		Method method = this.findAnnotatedMethod(targetClass);
+		if (method == null) {
+			method = this.findSinglePublicMethod(targetClass);
 		}
-		Assert.state(candidates.size() == 1,
-				"Method selection failed, there should be exactly one candidate, found [" + candidates + "]");
-		return candidates.iterator().next();
+		return method;
+	}
+
+	private Method findAnnotatedMethod(final Class<?> targetClass) {
+		final AtomicReference<Method> annotatedMethod = new AtomicReference<Method>();
+		ReflectionUtils.doWithMethods(targetClass, new ReflectionUtils.MethodCallback() {
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation annotation = AnnotationUtils.findAnnotation(method, Aggregator.class);
+				if (annotation != null) {
+					Assert.isNull(annotatedMethod.get(), "found more than one method on target class [" + targetClass
+							+ "] with the annotation type [" + Aggregator.class.getName() + "]");
+					annotatedMethod.set(method);
+				}
+			}
+		});
+		return annotatedMethod.get();
+	}
+
+	private Method findSinglePublicMethod(Class<?> targetClass) {
+		Set<Method> methods = new HashSet<Method>();
+		for (Method method : targetClass.getMethods()) {
+			if (!method.getDeclaringClass().equals(Object.class)) {
+				methods.add(method);
+			}
+		}
+		removeListIncompatibleMethodsFrom(methods);
+		removeVoidMethodsFrom(methods);
+		removeUnfittingFrom(methods);
+		if (methods.size() > 1) {
+			throw new IllegalArgumentException("Class [" + targetClass + "] contains more than one public Method.");
+		}
+		return methods.isEmpty() ? null : methods.iterator().next();
 	}
 
 	private void removeListIncompatibleMethodsFrom(Set<Method> candidates) {
@@ -101,7 +120,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 			public boolean select(Method method) {
 				int found = 0;
 				for (Class<?> parameterClass : method.getParameterTypes()) {
-					if (parameterClass.isAssignableFrom(List.class)) {
+					if (Collection.class.isAssignableFrom(parameterClass)) {
 						found++;
 					}
 				}
@@ -114,15 +133,6 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 		removeMethodsMatchingSelector(candidates, new MethodSelector() {
 			public boolean select(Method method) {
 				return method.getReturnType().getName().equals("void");
-			}
-		});
-	}
-
-	private Set<Method> removeNotAnnotatedFrom(Set<Method> candidates) {
-		return removeMethodsMatchingSelector(candidates, new MethodSelector() {
-			public boolean select(Method method) {
-				Aggregator annotation = method.getAnnotation(Aggregator.class);
-				return (annotation == null);
 			}
 		});
 	}
@@ -141,7 +151,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 		int candidateParametersFound = 0;
 		for (int i = 0; i < parameterTypes.length; i++) {
 			Class<?> parameterType = parameterTypes[i];
-			if (parameterType.isAssignableFrom(List.class)) {
+			if (Collection.class.isAssignableFrom(parameterType)) {
 				boolean headerAnnotationFound = false;
 				for (Annotation annotation : parameterAnnotations[i]) {
 					if (annotation instanceof Header) {
@@ -154,14 +164,6 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 			}
 		}
 		return candidateParametersFound == 1;
-	}
-
-	private void removeObjectMethodsFrom(Set<Method> candidates) {
-		removeMethodsMatchingSelector(candidates, new MethodSelector() {
-			public boolean select(Method method) {
-				return method.getDeclaringClass().equals(Object.class);
-			}
-		});
 	}
 
 	private Set<Method> removeMethodsMatchingSelector(Set<Method> candidates, MethodSelector selector) {

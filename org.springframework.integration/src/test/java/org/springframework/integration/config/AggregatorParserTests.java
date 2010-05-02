@@ -77,7 +77,7 @@ public class AggregatorParserTests {
     public void testPropertyAssignment() throws Exception {
         EventDrivenConsumer endpoint =
                 (EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
-        CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
+        ReleaseStrategy ReleaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
         CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
         MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
         MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
@@ -88,8 +88,8 @@ public class AggregatorParserTests {
         assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method",
                 expectedMethod, ((MessageListMethodAdapter) new DirectFieldAccessor(accessor.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
         assertEquals(
-                "The AggregatorEndpoint is not injected with the appropriate CompletionStrategy instance",
-                completionStrategy, accessor.getPropertyValue("completionStrategy"));
+                "The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
+                ReleaseStrategy, accessor.getPropertyValue("ReleaseStrategy"));
         assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
                 correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
@@ -101,10 +101,6 @@ public class AggregatorParserTests {
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals("The AggregatorEndpoint is not configured with the appropriate reaper interval",
-				135l, accessor.getPropertyValue("reaperInterval"));
-		Assert.assertEquals("The AggregatorEndpoint is not configured with the appropriate timeout",
-				42l, accessor.getPropertyValue("timeout"));
 	}
 
 	@Test
@@ -119,7 +115,7 @@ public class AggregatorParserTests {
 			input.send(message);
 		}
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		Message<?> response = outputChannel.receive();
+		Message<?> response = outputChannel.receive(10);
 		Assert.assertEquals(6l, response.getPayload());
 	}
 
@@ -129,38 +125,38 @@ public class AggregatorParserTests {
 	}
 
 	@Test(expected=BeanCreationException.class)
-	public void testDuplicateCompletionStrategyDefinition() {
+	public void testDuplicateReleaseStrategyDefinition() {
 		context = new ClassPathXmlApplicationContext(
-				"completionStrategyMethodWithMissingReference.xml", this.getClass());		
+				"ReleaseStrategyMethodWithMissingReference.xml", this.getClass());		
 	}
 
     @Test
-    public void testAggregatorWithPojoCompletionStrategy() {
-        MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoCompletionStrategyInput");
+    public void testAggregatorWithPojoReleaseStrategy() {
+        MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInput");
         EventDrivenConsumer endpoint =
-                (EventDrivenConsumer) context.getBean("aggregatorWithPojoCompletionStrategy");
-        CompletionStrategy completionStrategy = (CompletionStrategy) new DirectFieldAccessor(
-                new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("completionStrategy");
-        Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
-        DirectFieldAccessor completionStrategyAccessor = new DirectFieldAccessor(completionStrategy);
-        MethodInvoker invoker = (MethodInvoker) completionStrategyAccessor.getPropertyValue("invoker");
-        Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueCompletionStrategy);
-        Assert.assertTrue(((Method) completionStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
-        input.send(createMessage(1l, "correllationId", 0, 0, null));
-        input.send(createMessage(2l, "correllationId", 0, 1, null));
-        input.send(createMessage(3l, "correllationId", 0, 2, null));
+                (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
+        ReleaseStrategy ReleaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(
+                new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("ReleaseStrategy");
+        Assert.assertTrue(ReleaseStrategy instanceof ReleaseStrategyAdapter);
+        DirectFieldAccessor ReleaseStrategyAccessor = new DirectFieldAccessor(ReleaseStrategy);
+        MethodInvoker invoker = (MethodInvoker) ReleaseStrategyAccessor.getPropertyValue("invoker");
+        Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueReleaseStrategy);
+        Assert.assertTrue(((Method) ReleaseStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
+        input.send(createMessage(1l, "correllationId", 4, 0, null));
+        input.send(createMessage(2l, "correllationId", 4, 1, null));
+        input.send(createMessage(3l, "correllationId", 4, 2, null));
         PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
         Message<?> reply = outputChannel.receive(0);
         Assert.assertNull(reply);
-        input.send(createMessage(5l, "correllationId", 0, 3, null));
+        input.send(createMessage(5l, "correllationId", 4, 3, null));
         reply = outputChannel.receive(0);
         Assert.assertNotNull(reply);
         assertEquals(11l, reply.getPayload());
     }
 
     @Test(expected = BeanCreationException.class)
-    public void testAggregatorWithInvalidCompletionStrategyMethod() {
-        context = new ClassPathXmlApplicationContext("invalidCompletionStrategyMethod.xml", this.getClass());
+    public void testAggregatorWithInvalidReleaseStrategyMethod() {
+        context = new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass());
     }
 
 

@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.config;
 
-package org.springframework.integration.aggregator;
+import java.util.List;
 
-import java.util.Collection;
+public class MaxValueReleaseStrategy {
 
-import org.springframework.integration.core.Message;
-
-/**
- * Strategy for determining when a group of messages reaches a state of
- * completion (i.e. can trip a barrier).
- * 
- * @author Mark Fisher
- * @see AbstractMessageAggregator
- */
-public interface CompletionStrategy {
-
-	boolean isComplete(Collection<? extends Message<?>> messages);
-
+	private long maxValue;
+	
+	
+	public MaxValueReleaseStrategy(long maxValue){
+		this.maxValue = maxValue;
+	}
+	
+	public boolean checkCompleteness(List<Long> numbers) {
+		int sum = 0;
+		for (long number: numbers) {
+			sum += number;
+		}
+		return sum >= maxValue;
+	}
+	
 }

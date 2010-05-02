@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.util.UpperBound;
 import org.springframework.util.Assert;
 
@@ -101,15 +102,11 @@ public class SimpleMessageStore implements MessageStore {
 		return new HashSet<Message<?>>(collection);
 	}
 
-	public void put(Object correlationId, Collection<Message<?>> messages) {
-		getMessagesInternal(correlationId).addAll(messages);
-	}
-
 	public void put(Object correlationId, Message<?> message) {
 		getMessagesInternal(correlationId).add(message);
 	}
 
-	public Message<?> delete(Object correlationId, UUID messageId) {
+	public Message<?> mark(Object correlationId, UUID messageId) {
 		if (!correlationToMessage.containsKey(correlationId)) {
 			return null;
 		}
@@ -119,9 +116,10 @@ public class SimpleMessageStore implements MessageStore {
 			Message<?> message = (Message<?>) iterator.next();
 			if (message.getHeaders().getId().equals(messageId)) {
 				iterator.remove();
-				result = message;
+				result = MessageBuilder.fromMessage(message).setHeader(PROCESSED, true).build();
 			}
 		}
+		messages.add(result);
 		return result;
 	}
 

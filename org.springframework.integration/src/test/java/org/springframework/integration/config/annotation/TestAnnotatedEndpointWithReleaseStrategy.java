@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
@@ -32,8 +32,8 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint("endpointWithDefaultAnnotationAndCustomCompletionStrategy")
-public class TestAnnotatedEndpointWithCompletionStrategy {
+@MessageEndpoint("endpointWithDefaultAnnotationAndCustomReleaseStrategy")
+public class TestAnnotatedEndpointWithReleaseStrategy {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
@@ -54,7 +54,7 @@ public class TestAnnotatedEndpointWithCompletionStrategy {
 		return returnedMessage;
 	}
 
-	@CompletionStrategy
+	@ReleaseStrategy
 	public boolean completionChecker(List<Message<?>> messages) {
 		return true;
 	}

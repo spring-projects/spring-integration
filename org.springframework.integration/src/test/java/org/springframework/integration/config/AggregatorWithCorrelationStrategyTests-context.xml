@@ -12,7 +12,7 @@
     <beans:bean id="pojoCorrelationStrategy"
                 class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$PojoCorrelationStrategy"/>
 
-    <beans:bean id="completionStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$MessageCountCompletionStrategy">
+    <beans:bean id="releaseStrategy" class="org.springframework.integration.config.AggregatorWithCorrelationStrategyTests$MessageCountReleaseStrategy">
         <beans:constructor-arg value="3"/>
     </beans:bean>
 
@@ -31,13 +31,13 @@
     </channel>
 
     <aggregator ref="aggregator"
-                completion-strategy="completionStrategy"
+                release-strategy="releaseStrategy"
                 correlation-strategy="correlationStrategy"
                 input-channel="inputChannel"
                 output-channel="outputChannel"/>
     
     <aggregator ref="aggregator"
-                completion-strategy="completionStrategy"
+                release-strategy="releaseStrategy"
                 correlation-strategy="pojoCorrelationStrategy" correlation-strategy-method="correlate"
                 input-channel="pojoInputChannel"
                 output-channel="pojoOutputChannel"/>
