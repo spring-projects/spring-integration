@@ -238,7 +238,7 @@ public class JdbcMessageStore implements MessageStore {
 		// TODO Auto-generated method stub
 	}
 	
-	public Message<?> delete(Object correlationId, UUID messageId) {
+	public Message<?> mark(Object correlationId, UUID messageId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
