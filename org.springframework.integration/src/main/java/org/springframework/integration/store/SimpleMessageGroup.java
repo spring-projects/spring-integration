@@ -11,18 +11,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package org.springframework.integration.aggregator;
+package org.springframework.integration.store;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.store.MessageStore;
 
 /**
- * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and correlation
- * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it. <strong>This is not thread
- * safe and should not be used for long running aggregations</strong>.
+ * Represents a mutable group of correlated messages that is bound to a certain
+ * {@link MessageStore} and correlation key. The group will grow during its
+ * lifetime, when messages are <code>add</code>ed to it. <strong>This is not
+ * thread safe and should not be used for long running aggregations</strong>.
  * 
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -30,59 +30,48 @@ import org.springframework.integration.store.MessageStore;
  * 
  * @since 2.0
  */
-public class MessageGroup {
+public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object correlationKey;
 
-	private final Collection<Message<?>> marked = new HashSet<Message<?>>();
+	public final Collection<Message<?>> marked = new HashSet<Message<?>>();
 
-	private final Collection<Message<?>> unmarked = new HashSet<Message<?>>();
+	public final Collection<Message<?>> unmarked = new HashSet<Message<?>>();
 
-	public MessageGroup(Object correlationKey) {
+	public SimpleMessageGroup(Object correlationKey) {
 		this.correlationKey = correlationKey;
 	}
 
-	public MessageGroup(Collection<? extends Message<?>> originalMessages, Object correlationKey) {
+	public SimpleMessageGroup(MessageGroup template) {
+		this.correlationKey = template.getCorrelationKey();
+		this.marked.addAll(template.getMarked());
+		this.unmarked.addAll(template.getUnmarked());
+	}
+
+	public SimpleMessageGroup(Collection<? extends Message<?>> originalMessages,
+			Object correlationKey) {
 		this(correlationKey);
 		for (Message<?> message : originalMessages) {
 			add(message);
 		}
 	}
 
-	/**
-	 * Add a message to the internal list. This is needed to avoid hitting the underlying store or copying the internal
-	 * list. Use with care.
-	 */
 	public boolean add(Message<?> message) {
 		if (isMember(message)) {
 			return false;
 		}
-		if (message.getHeaders().containsKey(MessageStore.PROCESSED)
-				&& message.getHeaders().get(MessageStore.PROCESSED, Boolean.class)) {
-			this.marked.add(message);
-		} else {
-			this.unmarked.add(message);
-		}
+		this.unmarked.add(message);
 		return true;
 	}
 
-	/**
-	 * @return internal message list, modification is allowed, but not recommended
-	 */
 	public Collection<Message<?>> getUnmarked() {
 		return unmarked;
 	}
 
-	/**
-	 * @return internal message list, modification is allowed, but not recommended
-	 */
 	public Collection<Message<?>> getMarked() {
 		return marked;
 	}
 
-	/**
-	 * @return the correlation key that links these messages together according to a particular CorrelationStrategy
-	 */
 	public Object getCorrelationKey() {
 		return correlationKey;
 	}
@@ -103,26 +92,35 @@ public class MessageGroup {
 		return getOne().getHeaders().getSequenceSize();
 	}
 
-	private Message<?> getOne() {
-		return unmarked.isEmpty() ? (marked.isEmpty() ? null : marked.iterator().next()) : unmarked.iterator().next();
+	public void mark() {
+		marked.addAll(unmarked);
+		unmarked.clear();
 	}
 
 	public int size() {
 		return marked.size() + unmarked.size();
 	}
 
+	public Message<?> getOne() {
+		return unmarked.isEmpty() ? (marked.isEmpty() ? null : marked
+				.iterator().next()) : unmarked.iterator().next();
+	}
+
 	/**
-	 * This method determines whether messages have been added to this group that supersede the given message based on
-	 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
-	 * or sequences that are missing certain sequence numbers.
+	 * This method determines whether messages have been added to this group
+	 * that supersede the given message based on its sequence id. This can be
+	 * helpful to avoid ending up with sequences larger than their required
+	 * sequence size or sequences that are missing certain sequence numbers.
 	 */
 	private boolean isMember(Message<?> message) {
 		if (size() == 0) {
 			return false;
 		}
-		Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
+		Integer messageSequenceNumber = message.getHeaders()
+				.getSequenceNumber();
 		if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
+			Integer messageSequenceSize = message.getHeaders()
+					.getSequenceSize();
 			if (!messageSequenceSize.equals(getSequenceSize())
 					|| containsSequenceNumber(unmarked, messageSequenceNumber)
 					|| containsSequenceNumber(marked, messageSequenceNumber)) {
@@ -132,9 +130,11 @@ public class MessageGroup {
 		return false;
 	}
 
-	private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
+	private boolean containsSequenceNumber(Collection<Message<?>> messages,
+			Integer messageSequenceNumber) {
 		for (Message<?> member : messages) {
-			Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
+			Integer memberSequenceNumber = member.getHeaders()
+					.getSequenceNumber();
 			if (messageSequenceNumber.equals(memberSequenceNumber)) {
 				return true;
 			}

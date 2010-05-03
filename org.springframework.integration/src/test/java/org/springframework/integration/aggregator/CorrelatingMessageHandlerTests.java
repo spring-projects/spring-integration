@@ -40,6 +40,7 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -68,7 +69,7 @@ public class CorrelatingMessageHandlerTests {
 		handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy,
 				ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
-		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(MessageGroup.class),
+		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(SimpleMessageGroup.class),
 				isA(MessageChannelTemplate.class), eq(outputChannel));
 	}
 
@@ -91,7 +92,7 @@ public class CorrelatingMessageHandlerTests {
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor).processAndSend(isA(MessageGroup.class), isA(MessageChannelTemplate.class), eq(outputChannel));
+		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessageChannelTemplate.class), eq(outputChannel));
 	}
 
 	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {

@@ -13,6 +13,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.springframework.integration.store.MessageGroup;
+
 /**
  * A {@link ReleaseStrategy} that releases only the first <code>n</code> messages, where <code>n</code> is a threshold.
  * 

@@ -29,6 +29,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 

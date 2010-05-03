@@ -38,7 +38,7 @@ public class JdbcMessageStoreTests {
 	@Test
 	@Transactional
 	public void testGetNonExistent() throws Exception {
-		Message<?> result = messageStore.get(UUID.randomUUID());
+		Message<?> result = messageStore.getMessage(UUID.randomUUID());
 		assertNull(result);
 	}
 
@@ -46,9 +46,9 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testAddAndGet() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		Message<String> saved = messageStore.put(message);
-		assertNull(messageStore.get(message.getHeaders().getId()));
-		Message<?> result = messageStore.get(saved.getHeaders().getId());
+		Message<String> saved = messageStore.addMessage(message);
+		assertNull(messageStore.getMessage(message.getHeaders().getId()));
+		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
 		assertNotNull(result);
 		assertThat(saved, sameExceptIgnorableHeaders(result));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
@@ -60,18 +60,18 @@ public class JdbcMessageStoreTests {
 	public void testAddAndUpdate() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(
 				"X").build();
-		message = messageStore.put(message);
+		message = messageStore.addMessage(message);
 		message = MessageBuilder.fromMessage(message).setCorrelationId("Y").build();
-		message = messageStore.put(message);
-		assertEquals("Y", messageStore.get(message.getHeaders().getId()).getHeaders().getCorrelationId());
+		message = messageStore.addMessage(message);
+		assertEquals("Y", messageStore.getMessage(message.getHeaders().getId()).getHeaders().getCorrelationId());
 	}
 
 	@Test
 	@Transactional
 	public void testAddAndUpdateAlreadySaved() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		message = messageStore.put(message);
-		Message<String> result = messageStore.put(message);
+		message = messageStore.addMessage(message);
+		Message<String> result = messageStore.addMessage(message);
 		assertEquals(message, result);
 	}
 
@@ -79,12 +79,12 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testAddAndUpdateAlreadySavedAndCopied() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		Message<String> saved = messageStore.put(message);
+		Message<String> saved = messageStore.addMessage(message);
 		Message<String> copy = MessageBuilder.fromMessage(saved).build();
-		Message<String> result = messageStore.put(copy);
+		Message<String> result = messageStore.addMessage(copy);
 		assertNotSame(copy, result);
 		assertThat(saved, sameExceptIgnorableHeaders(result, JdbcMessageStore.CREATED_DATE_KEY));
-		assertNotNull(messageStore.get(saved.getHeaders().getId()));
+		assertNotNull(messageStore.getMessage(saved.getHeaders().getId()));
 	}
 
 	@Test
@@ -92,7 +92,7 @@ public class JdbcMessageStoreTests {
 	public void testAddAndListByCorrelationId() throws Exception {
 		String correlationId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
-		messageStore.put(message);
+		messageStore.addMessage(message);
 		assertEquals(1, messageStore.list(correlationId).size());
 	}
 
@@ -100,8 +100,8 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testAddAndDelete() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
-		message = messageStore.put(message);
-		assertNotNull(messageStore.delete(message.getHeaders().getId()));
+		message = messageStore.addMessage(message);
+		assertNotNull(messageStore.removeMessage(message.getHeaders().getId()));
 	}
 
 }

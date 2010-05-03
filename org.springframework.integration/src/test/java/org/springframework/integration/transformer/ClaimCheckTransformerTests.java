@@ -47,7 +47,7 @@ public class ClaimCheckTransformerTests {
 		MessageStore store = new SimpleMessageStore(10);
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		UUID storedId = message.getHeaders().getId();
-		store.put(message);
+		store.addMessage(message);
 		ClaimCheckTransformer transformer = new ClaimCheckTransformer(store);
 		Message<?> input = MessageBuilder.withPayload(storedId).build();
 		Message<?> output = transformer.transform(input);

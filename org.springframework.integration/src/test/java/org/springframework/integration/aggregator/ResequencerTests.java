@@ -19,7 +19,6 @@ package org.springframework.integration.aggregator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,12 +30,13 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 
 /**
  * @author Marius Bogoevici
  * @author Alex Peters
+ * @author Dave Syer
  */
 public class ResequencerTests {
 
@@ -44,7 +44,7 @@ public class ResequencerTests {
 
 	private Resequencer processor = new Resequencer();
 
-	private MessageStore store = new SimpleMessageStore();
+	private MessageGroupStore store = new SimpleMessageStore();
 
 	@Before
 	public void configureResequencer() {
@@ -230,7 +230,7 @@ public class ResequencerTests {
 		String correlationId = "ABC";
 		Message<?> message1 = createMessage("123", correlationId, 1, 1, replyChannel);
 		resequencer.handleMessage(message1);
-		assertTrue(store.list(correlationId).isEmpty());
+		assertEquals(0, store.getMessageGroup(correlationId).size());
 	}
 
 	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,

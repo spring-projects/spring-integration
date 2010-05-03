@@ -22,6 +22,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.SimpleMessageGroup;
 
 /**
  * @author Mark Fisher
@@ -32,7 +34,7 @@ public class SequenceSizeReleaseStrategyTests {
 	public void testIncompleteList() {
 		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new MessageGroup("FOO");
+		MessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		SequenceSizeReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
 		assertFalse(ReleaseStrategy.canRelease(messages));
@@ -44,7 +46,7 @@ public class SequenceSizeReleaseStrategyTests {
 				.setSequenceSize(2).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new MessageGroup("FOO");
+		MessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message1);
 		messages.add(message2);
 		SequenceSizeReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
@@ -54,7 +56,7 @@ public class SequenceSizeReleaseStrategyTests {
 	@Test
 	public void testEmptyList() {
 		SequenceSizeReleaseStrategy ReleaseStrategy = new SequenceSizeReleaseStrategy();
-		assertTrue(ReleaseStrategy.canRelease(new MessageGroup("FOO")));
+		assertTrue(ReleaseStrategy.canRelease(new SimpleMessageGroup("FOO")));
 	}
 
 }

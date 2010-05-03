@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.util.Assert;
 
 /**

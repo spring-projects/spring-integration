@@ -21,7 +21,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +28,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.jdbc.util.SerializationUtils;
 import org.springframework.integration.message.MessageBuilder;
@@ -174,8 +172,8 @@ public class JdbcMessageStore implements MessageStore {
 		Assert.state(jdbcTemplate != null, "A DataSource or JdbcTemplate must be provided");
 	}
 
-	public Message<?> delete(UUID id) {
-		Message<?> message = get(id);
+	public Message<?> removeMessage(UUID id) {
+		Message<?> message = getMessage(id);
 		if (message == null) {
 			return null;
 		}
@@ -187,7 +185,7 @@ public class JdbcMessageStore implements MessageStore {
 		return null;
 	}
 
-	public Message<?> get(UUID id) {
+	public Message<?> getMessage(UUID id) {
 		List<Message<?>> list = jdbcTemplate.query(getQuery(GET_MESSAGE), new Object[] { getKey(id) }, mapper);
 		if (list.isEmpty()) {
 			return null;
@@ -200,10 +198,10 @@ public class JdbcMessageStore implements MessageStore {
 				new Object[] { getKey(correlationId) }, mapper);
 	}
 
-	public <T> Message<T> put(final Message<T> message) {
+	public <T> Message<T> addMessage(final Message<T> message) {
 		if (message.getHeaders().containsKey(SAVED_KEY)) {
 			@SuppressWarnings("unchecked")
-			Message<T> saved = (Message<T>) get(message.getHeaders().getId());
+			Message<T> saved = (Message<T>) getMessage(message.getHeaders().getId());
 			if (saved != null) {
 				if (saved.equals(message)) {
 					return message;
@@ -228,23 +226,6 @@ public class JdbcMessageStore implements MessageStore {
 			}
 		});
 		return result;
-	}
-
-	public void put(Object correlationId, Message<?> message) {
-		// TODO Auto-generated method stub
-	}
-
-	public void put(Object correlationId, Collection<Message<?>> messages) {
-		// TODO Auto-generated method stub
-	}
-	
-	public Message<?> mark(Object correlationId, UUID messageId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public void deleteAll(Object correlationId) {
-		// TODO Auto-generated method stub
 	}
 
 	private String getKey(Object input) {

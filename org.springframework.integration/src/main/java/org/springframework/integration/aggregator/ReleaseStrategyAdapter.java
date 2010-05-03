@@ -18,6 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.util.Assert;
 
 /**

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aggregator;
 
+import org.springframework.integration.store.MessageGroup;
+
 /**
  * An implementation of {@link ReleaseStrategy} that simply compares the
  * current size of the message list to the expected 'sequenceSize'.

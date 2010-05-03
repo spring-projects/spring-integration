@@ -25,6 +25,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.SimpleMessageGroup;
 
 /**
  * @author Marius Bogoevici
@@ -155,7 +157,7 @@ public class ReleaseStrategyAdapterTests {
 		if (size > 2) {
 			messages.add(new GenericMessage<String>("789"));
 		}
-		return new MessageGroup(messages, "ABC");
+		return new SimpleMessageGroup(messages, "ABC");
 	}
 
 	@SuppressWarnings("unused")

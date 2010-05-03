@@ -13,7 +13,6 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -28,6 +27,8 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.TaskScheduler;
@@ -58,7 +59,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	public static final long DEFAULT_TIMEOUT = 60000L;
 
-	private final MessageStore store;
+	private final MessageGroupStore store;
 
 	private final MessageGroupProcessor outputProcessor;
 
@@ -76,7 +77,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
-	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageStore store,
+	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(store);
 		Assert.notNull(processor);
@@ -88,7 +89,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
-	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageStore store) {
+	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store) {
 		this(processor, store, null, null);
 	}
 
@@ -160,8 +161,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 
-			Collection<Message<?>> messages = store.list(correlationKey);
-			MessageGroup group = new MessageGroup(messages, correlationKey);
+			MessageGroup group = store.getMessageGroup(correlationKey);
 
 			if (group.add(message)) {
 
@@ -209,12 +209,11 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 
-			Collection<Message<?>> all = store.list(correlationKey);
-			MessageGroup group = new MessageGroup(all, correlationKey);
-			if (all.size() > 0) {
+			MessageGroup group = store.getMessageGroup(correlationKey);
+			if (group.size() > 0) {
 				// last chance for normal completion
 				if (releaseStrategy.canRelease(group)) {
-					outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(all.iterator().next(),
+					outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
 							this.outputChannel));
 					remove(group);
 				}
@@ -224,15 +223,15 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 							logger.info("Processing partially complete messages for key [" + correlationKey + "] to: "
 									+ outputChannel);
 						}
-						outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(all.iterator()
-								.next(), this.outputChannel));
+						outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
+								this.outputChannel));
 					}
 					else {
 						if (logger.isInfoEnabled()) {
 							logger.info("Discarding partially complete messages for key [" + correlationKey + "] to: "
 									+ discardChannel);
 						}
-						for (Message<?> message : all) {
+						for (Message<?> message : group.getUnmarked()) {
 							discardChannel.send(message);
 						}
 					}
@@ -250,19 +249,17 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private void mark(MessageGroup group) {
-		for (Message<?> message : group.getUnmarked()) {
-			store.mark(group.getCorrelationKey(), message.getHeaders().getId());
-		}
+		store.mark(group);
 	}
 
 	private void remove(MessageGroup group) {
 		Object correlationKey = group.getCorrelationKey();
-		store.deleteAll(correlationKey);
+		store.deleteMessageGroup(correlationKey);
 		locks.remove(correlationKey);
 	}
 
 	private void store(Object correlationKey, Message<?> message) {
-		store.put(correlationKey, message);
+		store.addMessageToGroup(correlationKey, message);
 	}
 
 }

@@ -59,13 +59,13 @@ public class ClaimCheckTransformer extends AbstractTransformer {
 
 
 	private Message<?> retrieveMessage(UUID id) {
-		Message<?> result = this.messageStore.get(id);
+		Message<?> result = this.messageStore.getMessage(id);
 		Assert.notNull(result, "unable to locate Message for claim check ID: " + id);
 		return result;
 	}
 
 	private void storeMessage(Message<?> message) {
-		this.messageStore.put(message);
+		this.messageStore.addMessage(message);
 	}
 
 }

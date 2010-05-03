@@ -2,6 +2,7 @@ package org.springframework.integration.aggregator;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.store.MessageGroup;
 
 /**
  * A processor for <i>correlated</i> groups of messages. When a message group is <i>complete</i> it is passed to the

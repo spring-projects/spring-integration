@@ -18,6 +18,7 @@ package org.springframework.integration.store;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
@@ -36,8 +37,8 @@ public class SimpleMessageStoreTests {
 	public void shouldRetainMessage() {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
-		store.put(testMessage1);
-		assertThat((Message<String>) store.get(testMessage1.getHeaders().getId()), is(testMessage1));
+		store.addMessage(testMessage1);
+		assertThat((Message<String>) store.getMessage(testMessage1.getHeaders().getId()), is(testMessage1));
 	}
 
 	@Test(expected = MessagingException.class)
@@ -45,8 +46,8 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store = new SimpleMessageStore(1);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
-		store.put(testMessage1);
-		store.put(testMessage2);
+		store.addMessage(testMessage1);
+		store.addMessage(testMessage2);
 	}
 
 	@Test
@@ -54,16 +55,24 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store = new SimpleMessageStore(2);
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
-		store.put(testMessage1);
-		store.put(testMessage2);
+		store.addMessage(testMessage1);
+		store.addMessage(testMessage2);
 	}
 	
 	@Test
 	public void shouldListByCorrelation() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
-		store.put("bar", testMessage1);
-		assertEquals(1, store.list("bar").size());
+		store.addMessageToGroup("bar", testMessage1);
+		assertEquals(1, store.getMessageGroup("bar").size());
+	}
+
+	@Test
+	public void shouldCopyMessageGroup() throws Exception {
+		SimpleMessageStore store = new SimpleMessageStore();
+		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+		store.addMessageToGroup("bar", testMessage1);
+		assertNotSame(store.getMessageGroup("bar"), store.getMessageGroup("bar"));
 	}
 
 }

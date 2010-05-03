@@ -25,6 +25,7 @@ import java.util.List;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.store.MessageGroup;
 
 /**
  * This class implements all the strategy interfaces needed for a default

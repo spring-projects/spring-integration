@@ -25,12 +25,12 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 
 public class CorrelatingMessageHandlerIntegrationTest {
 
-	private MessageStore store = new SimpleMessageStore(100);
+	private MessageGroupStore store = new SimpleMessageStore(100);
 
 	private MessageChannel outputChannel = mock(MessageChannel.class);
 

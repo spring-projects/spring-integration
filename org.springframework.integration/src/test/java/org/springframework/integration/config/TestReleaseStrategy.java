@@ -17,8 +17,8 @@
 package org.springframework.integration.config;
 
 
-import org.springframework.integration.aggregator.MessageGroup;
 import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.store.MessageGroup;
 
 /**
  * @author Marius Bogoevici

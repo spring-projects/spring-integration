@@ -1,4 +1,4 @@
-package org.springframework.integration.aggregator;
+package org.springframework.integration.store;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -9,13 +9,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.store.SimpleMessageGroup;
 
 /**
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Dave Syer
  */
-public class MessageGroupTests {
+public class SimpleMessageGroupTests {
 
 	private Object key = new Object();
 
@@ -23,7 +24,7 @@ public class MessageGroupTests {
 
 	@Before
 	public void buildMessageGroup() {
-		group = new MessageGroup(Collections.<Message<?>> emptyList(), key);
+		group = new SimpleMessageGroup(Collections.<Message<?>> emptyList(), key);
 	}
 
 	@Test
