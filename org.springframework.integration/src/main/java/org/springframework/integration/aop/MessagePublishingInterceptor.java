@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
-	private final ExpressionSource expressionSource;
+	private volatile ExpressionSource expressionSource;
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -66,6 +66,11 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 
+	public void setExpressionSource(ExpressionSource expressionSource) {
+		Assert.notNull(expressionSource, "expressionSource must not be null");
+		this.expressionSource = expressionSource;
+	}
+
 	public void setDefaultChannel(MessageChannel defaultChannel) {
 		this.channelTemplate.setDefaultChannel(defaultChannel);
 	}
@@ -75,6 +80,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
+		Assert.notNull(this.expressionSource, "ExpressionSource is required.");
 		final StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
