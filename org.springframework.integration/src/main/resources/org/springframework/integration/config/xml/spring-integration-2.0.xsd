@@ -34,6 +34,13 @@
 			</xsd:annotation>
 			<xsd:attribute name="task-executor" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages 
+	to this channel's subscribers. Also, when using a TaskExecutor. 
+	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the 
+ 	TaskExecutor dispatches to the handler on a separate Thread.
+	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
+				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.core.task.TaskExecutor" />
@@ -128,7 +135,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 						Capacity for this queue. Default capacity is 0 which means 
-						this queue will accumulate as many messages as memory allows. 
+						this queue will accumulate as many messages as memory allows.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -446,13 +453,25 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
-						<xsd:attribute name="request-timeout" type="xsd:string"/>
+						<xsd:attribute name="request-timeout" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>	
+										<![CDATA[  
+								Provides the amount of time dispatcher would wait to send a message.
+								This timeout would only apply if there is a potential to block in the send call. 
+								For example if this gateway is hooked up to a Queue channel. 
+								Value is specified in milliseconds.
+										]]>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
 						<xsd:attribute name="reply-timeout" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>	
 										<![CDATA[  
 								Allows you to specify how long this gateway will wait for the reply message 
-								before throwing an exception. By default it will wait indefinitely. Value is specified in milliseconds
+								before throwing an exception. By default it will wait indefinitely. 
+								Value is specified in milliseconds
 										]]>
 								</xsd:documentation>
 							</xsd:annotation>
@@ -506,14 +525,26 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="default-request-timeout" type="xsd:string" />
+			<xsd:attribute name="default-request-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>	
+							<![CDATA[  
+					Provides the amount of time dispatcher would wait to send a message.
+					This timeout would only apply if there is a potential to block in the send call. 
+					For example if this gateway is hooked up to a Queue channel. 
+					Value is specified in milliseconds.
+							]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="default-reply-timeout" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>	
-										<![CDATA[  
-								Allows you to specify how long this gateway will wait for the reply message 
-								before throwing an exception. By default it will wait indefinitely. Value is specified in milliseconds.
-										]]>
+							<![CDATA[  
+					Allows you to specify how long this gateway will wait for the reply message 
+					before throwing an exception. By default it will wait indefinitely. 
+					Value is specified in milliseconds.
+							]]>
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -528,6 +559,11 @@
 		</xsd:annotation>
 		<xsd:attribute name="request-channel" type="xsd:string">
 			<xsd:annotation>
+				<xsd:documentation>	
+						<![CDATA[  
+				Identifies channel the message will be sent to upon invocation of methods of this gateway
+						]]>
+				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
@@ -536,18 +572,18 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="reply-channel" type="xsd:string">
+		<xsd:attribute name="request-timeout" type="xsd:string">
 			<xsd:annotation>
-				<xsd:appinfo>
-					<tool:annotation kind="ref">
-						<tool:expected-type
-								type="org.springframework.integration.core.MessageChannel" />
-					</tool:annotation>
-				</xsd:appinfo>
+					<xsd:documentation>	
+							<![CDATA[  
+					Provides the amount of time dispatcher would wait to send a message.
+					This timeout would only apply if there is a potential to block in the send call. 
+					For example if this gateway is hooked up to a Queue channel. 
+					Value is specified in milliseconds.
+							]]>
+					</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="request-timeout" type="xsd:string" />
-		<xsd:attribute name="reply-timeout" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">

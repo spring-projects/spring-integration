@@ -54,7 +54,7 @@ public class GatewayInvokingMessageHandlerTests {
 	public void validateGatewayInTheChainViaChannel() {
 		output.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) {
-				Assert.assertEquals("echo:echo:hello", message.getPayload());
+				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
 				Assert.assertEquals("foo", message.getHeaders().get("foo"));
 				Assert.assertEquals("oleg", message.getHeaders().get("name"));
 			}
@@ -66,13 +66,13 @@ public class GatewayInvokingMessageHandlerTests {
 	public void validateGatewayInTheChainViaAnotherGateway() {	
 		output.subscribe(new MessageHandler() {
 			public void handleMessage(Message<?> message) {
-				Assert.assertEquals("echo:echo:hello", message.getPayload());
+				Assert.assertEquals("echo:echo:echo:hello", message.getPayload());
 				Assert.assertEquals("foo", message.getHeaders().get("foo"));
 				Assert.assertEquals("oleg", message.getHeaders().get("name"));
 			}
 		});
 		String result = gateway.sendRecieve("hello");
-		Assert.assertEquals("echo:echo:hello", result);
+		Assert.assertEquals("echo:echo:echo:hello", result);
 	}
 
 	public static interface SimpleGateway {

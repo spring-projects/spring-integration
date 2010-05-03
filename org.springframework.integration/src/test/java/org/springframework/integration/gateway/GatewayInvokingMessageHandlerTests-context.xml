@@ -30,6 +30,16 @@
 		<si:header-enricher>
 			<si:header name="name" value="oleg" />
 		</si:header-enricher>
+		<si:gateway request-channel="inputD"/> 
+		<si:service-activator>
+			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+		</si:service-activator>
+	</si:chain>
+	
+	<si:chain id="FOO" input-channel="inputD">
+		<si:header-enricher>
+			<si:header name="name" value="oleg" />
+		</si:header-enricher>
 		<si:service-activator>
 			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
