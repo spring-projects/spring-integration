@@ -76,6 +76,28 @@
     	<si:method name="echoViaDefault"/>
 </si:gateway>]]></programlisting> 
     </para>
+    <para>
+    	You can also provide individual headers per method invocation via XML. 
+    	This could be very useful if headers you want to set are static in nature and you don't want 
+    	to embed them in the gateway's method signature via <classname>@Header</classname> annotation. 
+    	For example; in the Loan Broker example we want to influence how aggregation of the Loan quotes 
+    	will be done based on what type of request was initiated (single quote or all quotes). Determining the 
+    	type of the request by evaluating what gateway's method was invoked, although possible would 
+    	violate the separation of concerns paradigm (method is a java artifact),  but expressing your 
+    	intention (meta information) via Message headers is natural to Messaging architecture.
+    	
+    	<programlisting language="xml"><![CDATA[<int:gateway id="loanBrokerGateway" 
+    	   service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway">
+	<int:method name="getLoanQuote" request-channel="loanBrokerPreProcessingChannel">
+		<int:header name="RESPONSE_TYPE" value="BEST"/>
+	</int:method>
+	<int:method name="getAllLoanQuotes" request-channel="loanBrokerPreProcessingChannel">
+		<int:header name="RESPONSE_TYPE" value="ALL"/>
+	</int:method>
+</int:gateway>]]></programlisting> 
+	In the above case you can clearly see how a different header value will be set for the 'RESPONSE_TYPE' 
+	header based on the gateway's method.
+    </para>
   </section>
 
 </chapter>
