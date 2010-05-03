@@ -60,8 +60,21 @@
 				<xsd:extension base="channelType">
 					<xsd:sequence>
 						<xsd:choice minOccurs="0" maxOccurs="1">
-							<xsd:element name="queue" type="queueType" />
-							<xsd:element name="priority-queue" type="priorityQueueType" />
+							<xsd:element name="queue" type="queueType">
+								<xsd:annotation>
+									<xsd:documentation>
+										Identifies this channel as a Queue style channel
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="priority-queue" type="priorityQueueType">
+								<xsd:annotation>
+									<xsd:documentation>
+										Identifies this channel as a Queue style channel where messages could be prioritized 
+										based on custom logic
+									</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
 							<xsd:element name="rendezvous-queue" type="rendezvousQueueType" />
 							<xsd:element name="dispatcher" type="dispatcherType" />
 						</xsd:choice>
@@ -86,7 +99,14 @@
 	A custom Queue implementation can be injected using the 'ref' attribute.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="capacity" type="xsd:string" />
+		<xsd:attribute name="capacity" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+						Capacity for this queue. Default capacity is 0 which means 
+						this queue will accumulate as many messages as memory allows. 
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="ref" type="xsd:string">
 			<xsd:annotation>
 				<xsd:appinfo>
@@ -104,8 +124,24 @@
 	Defines a queue with priority-ordering for message reception.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="capacity" type="xsd:string" />
-		<xsd:attribute name="comparator" type="xsd:string" />
+		<xsd:attribute name="capacity" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+						Capacity for this queue. Default capacity is 0 which means 
+						this queue will accumulate as many messages as memory allows. 
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="comparator" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					<![CDATA[
+	Allows you to specify the reference to the bean which implements java.util.Comparator&lt;Message&lt;?&gt;&gt;
+	interface and provides logic based on which Messages will be prioritized. 
+					]]>
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="rendezvousQueueType">
@@ -135,7 +171,7 @@
 					<xsd:enumeration value="round-robin">
 						<xsd:annotation>
 							<xsd:documentation>
-	[DEFAULT] Defines a Round Robin dispatching strategy which allows for 
+	[DEFAULT] Defines a Round Robin dispatching strategy which allows  
 	load balancing of messages between multiple Message Handlers. Which message 
 	handler receives the message first is determined by the 'order' attribute 
 	of such Message Handler.
@@ -169,10 +205,11 @@
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	Provide a TaskExecutor to use when dispatching Messages to this channel's subscribers. This is
-	mutually exclusive with any of the queue sub-elements. Also, when using a TaskExecutor, keep in
-	mind that any transaction active for the sender will NOT propagate to the handler invocation
-	since the TaskExecutor dispatches to the handler on a separate Thread.
+	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages 
+	to this channel's subscribers. Also, when using a TaskExecutor. 
+	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the 
+ 	TaskExecutor dispatches to the handler on a separate Thread.
+	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
 				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -211,6 +248,15 @@
 					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
+							<xsd:documentation>
+								<![CDATA[
+	Provides reference to bean that implements org.springframework.core.task.TaskExecutor to use when dispatching Messages 
+	to this channel's subscribers. Also, when using a TaskExecutor. 
+	Keep in mind that any transaction active for the sender will NOT propagate to the handler invocation since the 
+ 	TaskExecutor dispatches to the handler on a separate Thread.
+	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
+								]]>
+							</xsd:documentation>			
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
@@ -221,10 +267,17 @@
 					</xsd:attribute>
 					<xsd:attribute name="error-handler" type="xsd:string">
 						<xsd:annotation>
+							<xsd:documentation>	
+						       <![CDATA[  
+	Provides reference to bean that implements org.springframework.util.ErrorHandler and provides a strategy for handling errors. 
+	This is especially useful for handling errors that occur during asynchronous execution 
+	of tasks that have been submitted to a TaskScheduler where it may not be possible to throw the error to the original caller
+								]]>
+							</xsd:documentation>		
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-										type="org.springframework.integration.util.ErrorHandler" />
+										type="org.springframework.util.ErrorHandler" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -279,7 +332,17 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
-		<xsd:attribute name="datatype" type="xsd:string" />
+		<xsd:attribute name="datatype" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>	
+					<![CDATA[  
+	Allows you to identify this channel as Datatype channel and specify the type of the Message 
+	payload this channel accepts (e.g., datatype="java.lang.String"). Datatype channel 
+	is a channel that accepts messages cotaining payload of certain type.
+					]]>
+				</xsd:documentation>
+			</xsd:annotation>	
+		</xsd:attribute>
 		<xsd:attribute name="dispatcher">
 			<xsd:simpleType>
 				<xsd:annotation>
@@ -310,17 +373,53 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>	
+							<![CDATA[  
+	Provides mechanism to define method per channel mappings for this gateway
+							]]>
+						</xsd:documentation>
+					</xsd:annotation>
 					<xsd:complexType>
 						<xsd:sequence>
 							<xsd:element name="header" minOccurs="0" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>	
+										<![CDATA[  
+				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
+				the generated message will be enriched with these headers. 
+										]]>
+									</xsd:documentation>
+								</xsd:annotation>
 								<xsd:complexType> 
-									<xsd:attribute name="name" type="xsd:string" use="required"/>
-									<xsd:attribute name="value" type="xsd:string" use="required"/>
+									<xsd:attribute name="name" type="xsd:string" use="required">
+										<xsd:annotation>
+											<xsd:documentation>	
+													<![CDATA[  
+											The name of the header
+													]]>
+											</xsd:documentation>
+										</xsd:annotation>
+									</xsd:attribute>
+									<xsd:attribute name="value" type="xsd:string" use="required">
+										<xsd:annotation>
+											<xsd:documentation>	
+													<![CDATA[  
+											The value of the header
+													]]>
+											</xsd:documentation>
+										</xsd:annotation>
+									</xsd:attribute>
 								</xsd:complexType>
 							</xsd:element>
 						</xsd:sequence>
 						<xsd:attribute name="name" type="xsd:string">
 							<xsd:annotation>
+								<xsd:documentation>	
+										<![CDATA[  
+											The name of the method
+										]]>
+								</xsd:documentation>
 								<xsd:appinfo>
 									<tool:annotation>
 										<tool:expected-method type="../@service-interface"/>
@@ -328,16 +427,47 @@
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:attribute>
-						<xsd:attribute name="request-channel" type="xsd:string" />
-						<xsd:attribute name="reply-channel" type="xsd:string" />
-						<xsd:attribute name="request-timeout" type="xsd:string" />
-						<xsd:attribute name="reply-timeout" type="xsd:string" />
+						<xsd:attribute name="request-channel" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>	
+										<![CDATA[  
+								Identifies channel the message will be sent to upon invocation of this method
+										]]>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="reply-channel" type="xsd:string" >
+							<xsd:annotation>
+								<xsd:documentation>	
+										<![CDATA[  
+								Identifies channel this gateway will subscribe to to recieve reply Message. 
+								The reply Message which will then be converted to the return type of the method signature.
+										]]>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="request-timeout" type="xsd:string"/>
+						<xsd:attribute name="reply-timeout" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>	
+										<![CDATA[  
+								Allows you to specify how long this gateway will wait for the reply message 
+								before throwing an exception. By default it will wait indefinitely. Value is specified in milliseconds
+										]]>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
 					</xsd:complexType>
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="optional" />
 			<xsd:attribute name="service-interface" type="xsd:string" use="optional">
 				<xsd:annotation>
+					<xsd:documentation>	
+										<![CDATA[  
+								The name of the interface which will be exposed by this gateway. 
+										]]>
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
 							<tool:expected-type type="java.lang.Class" />
@@ -347,6 +477,11 @@
 			</xsd:attribute>
 			<xsd:attribute name="default-request-channel" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>	
+										<![CDATA[  
+								Identifies default channel the messages will be sent to upon invocation of methods of this gateway
+										]]>
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
@@ -357,6 +492,12 @@
 			</xsd:attribute>
 			<xsd:attribute name="default-reply-channel" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>	
+										<![CDATA[  
+								Identifies default channel this gateway will subscribe to to recieve reply Messages, which will then be 
+								converted to the return type of the method signature.
+										]]>
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
@@ -366,7 +507,16 @@
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="default-request-timeout" type="xsd:string" />
-			<xsd:attribute name="default-reply-timeout" type="xsd:string" />
+			<xsd:attribute name="default-reply-timeout" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>	
+										<![CDATA[  
+								Allows you to specify how long this gateway will wait for the reply message 
+								before throwing an exception. By default it will wait indefinitely. Value is specified in milliseconds.
+										]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
