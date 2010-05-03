@@ -25,9 +25,5 @@
 		<constructor-arg value="foo"/>
 	</bean>
 	
-	<bean id="foo" class="org.springframework.integration.gateway.HeaderEnrichedGatewayTests$Foo">
-		<property name="bar" value="#{stringValue}"/>
-	</bean>
-	
 	<int:channel id="input"/>
 </beans>

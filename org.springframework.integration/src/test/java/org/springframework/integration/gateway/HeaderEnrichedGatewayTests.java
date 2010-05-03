@@ -74,19 +74,6 @@ public class HeaderEnrichedGatewayTests {
 	public void validateFailedGatewayHeaders() throws Exception {
 		new ClassPathXmlApplicationContext("HeaderEnrichedGatewayTests-failed-context.xml", HeaderEnrichedGatewayTests.class);
 	}
-	
-	public static class Foo{
-		private String bar;
-
-		public String getBar() {
-			return bar;
-		}
-
-		public void setBar(String bar) {
-			this.bar = bar;
-		}
-	}
-	
 	/*
 	 * 
 	 */
