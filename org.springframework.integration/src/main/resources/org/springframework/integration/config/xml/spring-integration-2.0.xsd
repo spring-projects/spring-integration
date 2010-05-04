@@ -1383,7 +1383,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="channelResolvingRouterType">
+				<xsd:extension base="channelNameResolvingRouterType">
 					<xsd:sequence>
 						<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
 							<xsd:complexType>
@@ -1438,8 +1438,6 @@
 							</xsd:complexType>
 						</xsd:element>
 					</xsd:sequence>
-					<xsd:attribute name="ignore-send-failures" type="xsd:string" />
-					<xsd:attribute name="apply-sequence" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1486,7 +1484,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="channelResolvingRouterType">
+				<xsd:extension base="channelNameResolvingRouterType">
 					<xsd:all>   
 						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 	                	<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />                
@@ -1530,6 +1528,20 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:complexType name="channelNameResolvingRouterType">
+		<xsd:complexContent>
+			<xsd:extension base="channelResolvingRouterType">
+				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether a failure to resolve a channel name returned by this router should be ignored.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
 	<xsd:complexType name="channelResolvingRouterType">
 		<xsd:complexContent>
 			<xsd:extension base="baseRouterType">
@@ -1540,6 +1552,12 @@
 								<tool:expected-type
 									type="org.springframework.integration.core.MessageChannel" />
 							</tool:annotation>
+							<xsd:documentation>
+	Reference to the default channel where Messages should be sent if channel
+	resolution fails to return any channels. If no default channel is
+	provided, the router will either drop the Message or throw an Exception
+	depending on the value of the "resolution-required" attribute.  
+							</xsd:documentation>
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1547,28 +1565,6 @@
 					<xsd:annotation>
 						<xsd:documentation>
 	Specify whether this router should always be required to return at least one channel or name.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>
-	Specify whether a failure to resolve a channel name returned by this router should be ignored.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="ignore-send-failures" type="xsd:string">
-					<xsd:annotation>
-						<xsd:documentation>
-	Specify whether a failure to send to a single channel should be ignored.
-	Otherwise MessageDeliveryExceptions will be thrown.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="apply-sequence" type="xsd:string" >
-					<xsd:annotation>
-						<xsd:documentation>
-	Specify whether sequence number and size headers should be added to each Message.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1584,6 +1580,21 @@
 						<xsd:documentation>
 	Specify the maximum amount of time in milliseconds to wait when sending Messages
 	to the target MessageChannels. By default the send will block indefinitely.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="ignore-send-failures" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether a failure to send to a single channel should be ignored.
+	Otherwise MessageDeliveryExceptions will be thrown.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="apply-sequence" type="xsd:string" >
+					<xsd:annotation>
+						<xsd:documentation>
+	Specify whether sequence number and size headers should be added to each Message.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>

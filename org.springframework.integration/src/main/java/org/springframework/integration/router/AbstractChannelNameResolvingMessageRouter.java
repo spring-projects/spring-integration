@@ -47,18 +47,32 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	private volatile boolean ignoreChannelNameResolutionFailures;
 
 
+	/**
+	 * Specify the {@link ChannelResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		super.setChannelResolver(channelResolver);
 	}
 
+	/**
+	 * Specify a prefix to be added to each channel name prior to resolution.
+	 */
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}
 
+	/**
+	 * Specify a suffix to be added to each channel name prior to resolution.
+	 */
 	public void setSuffix(String suffix) {
 		this.suffix = suffix;
 	}
 
+	/**
+	 * Specify whether this router should ignore any failure to resolve a channel name to
+	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
+	 */
 	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
@@ -69,7 +83,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 				"either a ChannelResolver or BeanFactory is required");
 	}
 
-	protected MessageChannel resolveChannelForName(String channelName, Message<?> message) {
+	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
 		Assert.state(this.getChannelResolver() != null,
 				"unable to resolve channel names, no ChannelResolver available");
 
@@ -98,8 +112,8 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		return channels;
 	}
 
-
-	protected void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
+	@SuppressWarnings("unchecked")
+	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
 		if (channelIndicators == null) {
 			return;
 		}
@@ -135,7 +149,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		}
 	}
 
-	protected void addChannelFromString(Collection<MessageChannel> channels, String channelName, Message<?> message) {
+	private void addChannelFromString(Collection<MessageChannel> channels, String channelName, Message<?> message) {
 		if (channelName.indexOf(',') != -1) {
 			for (String name : StringUtils.commaDelimitedListToStringArray(channelName)) {
 				addChannelFromString(channels, name, message);

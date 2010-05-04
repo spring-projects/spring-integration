@@ -35,9 +35,9 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "resolution-required");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-send-failures");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
 		this.parseRouter(element, builder, parserContext);
 		return builder;
 	}
