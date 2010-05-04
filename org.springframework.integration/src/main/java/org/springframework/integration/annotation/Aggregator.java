@@ -78,7 +78,7 @@ public @interface Aggregator {
 	 * may be recognized as belonging to an aggregate that has already completed
 	 * or timed out
 	 */
-	// TODO: remove / deal with tracked id capacity
+	// TODO: INT-958 - remove / deal with tracked id capacity
 	int trackedCorrelationIdCapacity() default 42; 
 
 }

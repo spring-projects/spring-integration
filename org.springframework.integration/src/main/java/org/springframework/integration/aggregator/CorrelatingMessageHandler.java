@@ -26,7 +26,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
@@ -111,7 +110,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		super.setTaskScheduler(taskScheduler);
 	}
 
-	// TODO: remove unused property setters
+	// TODO: INT-958 - remove unused property setters
 	public void setTimeout(long timeout) {
 	}
 
@@ -152,12 +151,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			logger.debug("Handling message with correlationKey [" + correlationKey + "]: " + message);
 		}
 
-		if (!correlationKey.equals(message.getHeaders().getCorrelationId())) {
-			// TODO: strategise the treatment of overwritten correlation
-			message = MessageBuilder.fromMessage(message).setCorrelationId(correlationKey).build();
-		}
-
-		// TODO: make the lock global?
+		// TODO: INT-1117 - make the lock global?
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 
@@ -203,7 +197,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	}
 
-	// TODO: arrange for this to be called if user desires, e.g. periodically
+	// TODO: INT-958 - arrange for this to be called if user desires, e.g. periodically
 	public final boolean forceComplete(Object correlationKey) {
 
 		Object lock = getLock(correlationKey);

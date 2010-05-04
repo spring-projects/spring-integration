@@ -77,8 +77,6 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
                     IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultAggregatingMessageGroupProcessor").getBeanDefinition());
         }
 
-		// TODO: expose message store as an XML attribute
-
         if (innerHandlerDefinition != null) {
             processorBuilder.addConstructorArgValue(innerHandlerDefinition);
         } else {

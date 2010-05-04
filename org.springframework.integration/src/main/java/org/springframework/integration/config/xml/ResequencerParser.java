@@ -44,7 +44,6 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		// Message group processor
 		builder.addConstructorArgReference(processorRef);
 
-		// TODO: expose message store as an XML attribute
 		// Message store
 		builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".store.SimpleMessageStore").getBeanDefinition());
@@ -55,9 +54,9 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		}
 		else {
 			// Correlation strategy
-			builder.addConstructorArgReference(processorRef);
+			builder.addConstructorArgValue(null);
 		}
-		// Completion strategy
+		// Release strategy
 		builder.addConstructorArgReference(processorRef);
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");

@@ -28,23 +28,27 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.store.MessageGroup;
 
 /**
- * This class implements all the strategy interfaces needed for a default
- * resequencer.
+ * This class implements all the strategy interfaces needed for a default resequencer.
  * 
  * @author Iwein Fuld
  * @author Dave Syer
+ * 
  * @since 2.0
  */
-public class Resequencer implements CorrelationStrategy, ReleaseStrategy, MessageGroupProcessor {
+public class Resequencer implements ReleaseStrategy, MessageGroupProcessor {
 
 	private volatile SequenceNumberComparator sequenceNumberComparator = new SequenceNumberComparator();
 
 	private volatile boolean releasePartialSequences;
 
-	public Object getCorrelationKey(Message<?> message) {
-		// TODO: remove this (as its duplicating the default)
-		Object correlationKey = message.getHeaders().getCorrelationId();
-		return correlationKey;
+	/**
+	 * Flag that determines if partial sequences are allowed. If true then as soon as enough messages arrive that can be
+	 * ordered they will be released, provided they all have sequence numbers greater than those already released.
+	 * 
+	 * @param releasePartialSequences
+	 */
+	public void setReleasePartialSequences(boolean releasePartialSequences) {
+		this.releasePartialSequences = releasePartialSequences;
 	}
 
 	public boolean canRelease(MessageGroup messages) {
@@ -69,14 +73,10 @@ public class Resequencer implements CorrelationStrategy, ReleaseStrategy, Messag
 		}
 	}
 
-	public void setReleasePartialSequences(boolean releasePartialSequences) {
-		this.releasePartialSequences = releasePartialSequences;
-	}
-
 	private static class SequenceNumberComparator implements Comparator<Message<?>> {
 		public int compare(Message<?> o1, Message<?> o2) {
 			return o1.getHeaders().getSequenceNumber().compareTo(o2.getHeaders().getSequenceNumber());
 		}
 	}
-	
+
 }
