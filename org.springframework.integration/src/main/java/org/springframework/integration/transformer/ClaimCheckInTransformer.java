@@ -16,23 +16,27 @@
 
 package org.springframework.integration.transformer;
 
-import java.util.UUID;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 
 /**
+ * Transformer that stores a Message and returns a new Message whose payload
+ * is the id of the stored Message.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
-public class ClaimCheckTransformer extends AbstractTransformer {
+public class ClaimCheckInTransformer extends AbstractTransformer {
 
 	private final MessageStore messageStore;
 
 
-	public ClaimCheckTransformer(MessageStore messageStore) {
+	/**
+	 * Create a claim check-in transformer that will delegate to the provided MessageStore.
+	 */
+	public ClaimCheckInTransformer(MessageStore messageStore) {
 		Assert.notNull(messageStore, "MessageStore must not be null");
 		this.messageStore = messageStore;
 	}
@@ -43,29 +47,11 @@ public class ClaimCheckTransformer extends AbstractTransformer {
 		Assert.notNull(message, "message must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "payload must not be null");
-		MessageBuilder<?> responseBuilder = null;
-		if (payload instanceof UUID) {
-			Message<?> original = this.retrieveMessage((UUID) payload);
-			responseBuilder = MessageBuilder.fromMessage(original);
-		}
-		else {
-			this.storeMessage(message);
-			responseBuilder = MessageBuilder.withPayload(message.getHeaders().getId());
-		}
+		Message<?> storedMessage = this.messageStore.addMessage(message);
+		MessageBuilder<?> responseBuilder = MessageBuilder.withPayload(storedMessage.getHeaders().getId());
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
 		return responseBuilder.build();
-	}
-
-
-	private Message<?> retrieveMessage(UUID id) {
-		Message<?> result = this.messageStore.getMessage(id);
-		Assert.notNull(result, "unable to locate Message for claim check ID: " + id);
-		return result;
-	}
-
-	private void storeMessage(Message<?> message) {
-		this.messageStore.addMessage(message);
 	}
 
 }

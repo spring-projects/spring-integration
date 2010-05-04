@@ -36,7 +36,7 @@ public class ClaimCheckTransformerTests {
 	@Test
 	public void store() {
 		MessageStore store = new SimpleMessageStore(10);
-		ClaimCheckTransformer transformer = new ClaimCheckTransformer(store);
+		ClaimCheckInTransformer transformer = new ClaimCheckInTransformer(store);
 		Message<?> input = MessageBuilder.withPayload("test").build();
 		Message<?> output = transformer.transform(input);
 		assertEquals(input.getHeaders().getId(), output.getPayload());
@@ -48,7 +48,7 @@ public class ClaimCheckTransformerTests {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		UUID storedId = message.getHeaders().getId();
 		store.addMessage(message);
-		ClaimCheckTransformer transformer = new ClaimCheckTransformer(store);
+		ClaimCheckOutTransformer transformer = new ClaimCheckOutTransformer(store);
 		Message<?> input = MessageBuilder.withPayload(storedId).build();
 		Message<?> output = transformer.transform(input);
 		assertEquals("test", output.getPayload());
@@ -57,7 +57,7 @@ public class ClaimCheckTransformerTests {
 	@Test(expected = MessageTransformationException.class)
 	public void unknown() {
 		MessageStore store = new SimpleMessageStore(10);
-		ClaimCheckTransformer transformer = new ClaimCheckTransformer(store);
+		ClaimCheckOutTransformer transformer = new ClaimCheckOutTransformer(store);
 		transformer.transform(MessageBuilder.withPayload(UUID.randomUUID()).build());
 	}
 
