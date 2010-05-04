@@ -19,6 +19,11 @@ package org.springframework.integration.handler;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.util.StringUtils;
 
@@ -35,10 +40,13 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	private static enum Level { FATAL, ERROR, WARN, INFO, DEBUG, TRACE }
 
+	private static final SpelExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
-	private boolean shouldLogFullMessage;
+	private volatile Expression expression;
 
 	private final Level level;
+
+	private final EvaluationContext evaluationContext;
 
 
 	/**
@@ -53,15 +61,24 @@ public class LoggingHandler extends AbstractMessageHandler {
 			throw new IllegalArgumentException("Invalid log level '" + level +
 					"'. The (case-insensitive) supported values are: " + StringUtils.arrayToCommaDelimitedString(Level.values()));
 		}
+		StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+		evaluationContext.addPropertyAccessor(new MapAccessor());
+		this.evaluationContext = evaluationContext;
+		this.expression = EXPRESSION_PARSER.parseExpression("payload");
 	}
 
+
+	public void setExpression(String expressionString) {
+		this.expression = EXPRESSION_PARSER.parseExpression(expressionString);
+	}
 
 	/**
 	 * Specify whether to log the full Message. Otherwise, only the payload
 	 * will be logged. This value is <code>false</code> by default.
 	 */
 	public void setShouldLogFullMessage(boolean shouldLogFullMessage) {
-		this.shouldLogFullMessage = shouldLogFullMessage;
+		this.expression = (shouldLogFullMessage) ? EXPRESSION_PARSER.parseExpression("#root")
+				: EXPRESSION_PARSER.parseExpression("payload");
 	}
 
 	@Override
@@ -71,7 +88,7 @@ public class LoggingHandler extends AbstractMessageHandler {
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-		Object logMessage = (this.shouldLogFullMessage) ? message : message.getPayload();
+		Object logMessage = this.expression.getValue(this.evaluationContext, message);
 		if (logMessage instanceof Throwable) {
 			StringWriter stringWriter = new StringWriter();
 			((Throwable) logMessage).printStackTrace(new PrintWriter(stringWriter, true));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,20 @@ public class LoggingChannelAdapterParser extends AbstractOutboundChannelAdapterP
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.LoggingHandler");
 		builder.addConstructorArgValue(element.getAttribute("level"));
+		String expression = element.getAttribute("expression");
 		String logFullMessage = element.getAttribute("log-full-message");
 		if (StringUtils.hasText(logFullMessage)) {
+			if (StringUtils.hasText(expression)) {
+				parserContext.getReaderContext().error(
+						"The 'expression' and 'log-full-message' attributes are mutually exclusive.", source);
+			}
 			builder.addPropertyValue("shouldLogFullMessage", logFullMessage);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expression");
 		return builder.getBeanDefinition();
 	}
 
