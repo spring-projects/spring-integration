@@ -197,7 +197,20 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="resolution-required" type="xsd:boolean" use="optional"/>
+			<xsd:attribute name="resolution-required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify whether this router should always be required to return at least one channel or name.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specify whether a failure to resolve a channel name returned by this router should be ignored.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="default-output-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>

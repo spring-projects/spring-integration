@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.config;
 
 public class TestXmlApplicationContextHelper {
@@ -34,11 +35,11 @@ public class TestXmlApplicationContextHelper {
 			+ "'http://www.springframework.org/schema/beans "
 			+ "http://www.springframework.org/schema/beans/spring-beans.xsd "
 			+ "http://www.springframework.org/schema/integration "
-			+ "http://www.springframework.org/schema/integration/spring-integration-1.0.xsd "
+			+ "http://www.springframework.org/schema/integration/spring-integration.xsd "
 			+ "http://www.springframework.org/schema/integration/xml "
-			+ "http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd "
+			+ "http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd "
 			+ "http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd " +
-			  "http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd' >" +
+			  "http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd' >" +
 			  "<context:annotation-config/>";
 
 	private final static String footer = "</beans>";

@@ -36,6 +36,7 @@ import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 @ContextConfiguration
 public class XPathRouterParserTests {
@@ -155,7 +156,32 @@ public class XPathRouterParserTests {
 		assertEquals("Resolution required not set to true ", true, resolutionRequired);
 	}
 	
+	@Test
+	public void testIgnoreChannelNameResolutionFailuresFalse() throws Exception {
+		StringBuffer contextBuffer = new StringBuffer(
+				"<si-xml:xpath-router id='router' ignore-channel-name-resolution-failures='false' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
+		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Object handler = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(handler);
+		Object ignoreChannelNameResolutionFailures = accessor.getPropertyValue("ignoreChannelNameResolutionFailures");
+		assertEquals("ignoreChannelNameResolutionFailures not set to false", false, ignoreChannelNameResolutionFailures);
+	}
 	
+	@Test
+	public void testIgnoreChannelNameResolutionFailuresTrue() throws Exception {
+		StringBuffer contextBuffer = new StringBuffer(
+				"<si-xml:xpath-router id='router' ignore-channel-name-resolution-failures='true' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
+		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Object handler = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(handler);
+		Object ignoreChannelNameResolutionFailures = accessor.getPropertyValue("ignoreChannelNameResolutionFailures");
+		assertEquals("ignoreChannelNameResolutionFailures not set to true ", true, ignoreChannelNameResolutionFailures);
+	}
+
 	@Test
 	public void testSetDefaultOutputChannel() throws Exception {
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' default-output-channel='defaultOutput' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
