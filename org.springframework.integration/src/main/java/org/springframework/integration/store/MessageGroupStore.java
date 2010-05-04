@@ -34,19 +34,17 @@ public interface MessageGroupStore {
 	 * {@link #addMessageToGroup(Object, Collection)} with this correlation id.
 	 * 
 	 * @return a group of messages, empty if none exists for this key
-	 * 
-	 * @see org.springframework.integration.core.MessageHeaders#getCorrelationId()
 	 */
-	MessageGroup getMessageGroup(Object correlationId);
+	MessageGroup getMessageGroup(Object correlationKey);
 
 	/**
-	 * Store a message with an association to a correlation id. This can be used to group messages together instead of
+	 * Store a message with an association to a correlation key. This can be used to group messages together instead of
 	 * storing them just under their id.
 	 * 
-	 * @param correlationId the correlation id to store the message under
+	 * @param correlationKey the correlation id to store the message under
 	 * @param message a message
 	 */
-	void addMessageToGroup(Object correlationId, Message<?> message);
+	void addMessageToGroup(Object correlationKey, Message<?> message);
 
 	/**
 	 * Persist the mark on all the messages from the group. The group is modified in the process as all its unmarked
@@ -54,13 +52,13 @@ public interface MessageGroupStore {
 	 * 
 	 * @param group a MessageGroup with no unmarked messages
 	 */
-	void mark(MessageGroup group);
+	void markMessageGroup(MessageGroup group);
 
 	/**
-	 * Delete all the messages from the association with this correlation id.
+	 * Remove the message group with this correlation key.
 	 * 
-	 * @param correlationId the correlation id to remove
+	 * @param correlationKey the correlation id to remove
 	 */
-	void deleteMessageGroup(Object correlationId);
+	void removeMessageGroup(Object correlationKey);
 
 }

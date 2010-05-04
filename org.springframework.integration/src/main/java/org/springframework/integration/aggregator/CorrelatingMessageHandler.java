@@ -249,12 +249,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private void mark(MessageGroup group) {
-		store.mark(group);
+		store.markMessageGroup(group);
 	}
 
 	private void remove(MessageGroup group) {
 		Object correlationKey = group.getCorrelationKey();
-		store.deleteMessageGroup(correlationKey);
+		store.removeMessageGroup(correlationKey);
 		locks.remove(correlationKey);
 	}
 

@@ -60,17 +60,13 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 		this(0);
 	}
 
-	@SuppressWarnings("unchecked")
 	public <T> Message<T> addMessage(Message<T> message) {
 		if (!upperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-		Object correlationId = message.getHeaders().getCorrelationId();
-		if (correlationId != null) {
-			getMessageGroupInternal(correlationId).add(message);
-		}
-		return (Message<T>) this.idToMessage.put(message.getHeaders().getId(), message);
+		this.idToMessage.put(message.getHeaders().getId(), message);
+		return message;
 	}
 
 	public Message<?> getMessage(UUID key) {
@@ -86,10 +82,6 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 			return null;
 	}
 
-	public int size() {
-		return this.idToMessage.size();
-	}
-
 	public MessageGroup getMessageGroup(Object correlationId) {
 		Assert.notNull(correlationId, "'correlationKey' must not be null");
 		MessageGroup collection = correlationToMessageGroup.get(correlationId);
@@ -103,14 +95,14 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 		getMessageGroupInternal(correlationId).add(message);
 	}
 	
-	public void mark(MessageGroup group) {		
+	public void markMessageGroup(MessageGroup group) {		
 		Object correlationId = group.getCorrelationKey();
 		MessageGroup internal = getMessageGroupInternal(correlationId);
 		internal.mark();
 		group.mark();	
 	}
 
-	public void deleteMessageGroup(Object correlationId) {
+	public void removeMessageGroup(Object correlationId) {
 		correlationToMessageGroup.remove(correlationId);
 	}
 
