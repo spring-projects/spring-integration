@@ -1308,6 +1308,46 @@
         </xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="claim-check-in" type="claimCheckTransformerType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Transformer that stores a Message and returns a new Message whose
+	payload is the id of the stored Message.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="claim-check-out" type="claimCheckTransformerType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Transformer that accepts a Message whose payload is a UUID and retrieves
+	the Message associated with that id from a MessageStore if available (else null).
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:complexType name="claimCheckTransformerType">
+		<xsd:complexContent>
+			<xsd:extension base="inputOutputEndpointType">
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element ref="poller"/>
+				</xsd:sequence>
+				<xsd:attribute name="message-store" use="required">
+					<xsd:annotation>
+						<xsd:documentation>
+	Reference to the MessageStore to be used by this Claim Check transformer.
+						</xsd:documentation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.store.MessageStore"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
 	<xsd:element name="payload-serializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
