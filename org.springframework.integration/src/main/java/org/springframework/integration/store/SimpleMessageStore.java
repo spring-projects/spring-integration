@@ -13,14 +13,12 @@
 
 package org.springframework.integration.store;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.util.UpperBound;
@@ -36,19 +34,15 @@ import org.springframework.util.Assert;
  * 
  * @since 2.0
  */
-public class SimpleMessageStore implements MessageStore, MessageGroupStore {
-
-	private static final Log logger = LogFactory.getLog(SimpleMessageStore.class);
+public class SimpleMessageStore extends AbstractMessageGroupStore implements MessageStore, MessageGroupStore {
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage;
 
-	private final ConcurrentMap<Object, SimpleMessageGroup> correlationToMessageGroup;
+	final ConcurrentMap<Object, SimpleMessageGroup> correlationToMessageGroup;
 
 	private final UpperBound individualUpperBound;
 
 	private final UpperBound groupUpperBound;
-
-	private Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
 
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
@@ -76,18 +70,6 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 	 */
 	public SimpleMessageStore() {
 		this(0);
-	}
-
-	/**
-	 * Convenient injection point for expiry callbacks in the message store. Each of the callbacks provided will simply
-	 * be registered with the store using {@link #registerExpiryCallback(MessageGroupCallback)}.
-	 * 
-	 * @param expiryCallbacks the expiry callbacks to add
-	 */
-	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
-		for (MessageGroupCallback callback : expiryCallbacks) {
-			registerExpiryCallback(callback);
-		}
 	}
 
 	public <T> Message<T> addMessage(Message<T> message) {
@@ -140,42 +122,9 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 		correlationToMessageGroup.remove(correlationId);
 	}
 
-	public void registerExpiryCallback(MessageGroupCallback callback) {
-		expiryCallbacks.add(callback);
-	}
-
-	public int expireMessageGroups(long timeout) {
-		int count = 0;
-		long threshold = System.currentTimeMillis() - timeout;
-		for (MessageGroup group : correlationToMessageGroup.values()) {
-			if (group.getTimestamp() < threshold) {
-				count++;
-				expire(group);
-				removeMessageGroup(group.getCorrelationKey());
-			}
-		}
-		return count;
-	}
-
-	private void expire(MessageGroup group) {
-
-		RuntimeException exception = null;
-
-		for (MessageGroupCallback callback : expiryCallbacks) {
-			try {
-				callback.execute(group);
-			} catch (RuntimeException e) {
-				if (exception == null) {
-					exception = e;
-				}
-				logger.error("Exception in expiry callback", e);
-			}
-		}
-
-		if (exception != null) {
-			throw exception;
-		}
-
+	@Override
+	public Iterator<MessageGroup> iterator() {
+		return new HashSet<MessageGroup>(correlationToMessageGroup.values()).iterator();
 	}
 
 	private SimpleMessageGroup getMessageGroupInternal(Object correlationId) {

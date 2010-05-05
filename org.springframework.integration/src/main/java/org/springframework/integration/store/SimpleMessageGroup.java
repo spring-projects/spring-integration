@@ -14,15 +14,15 @@
 package org.springframework.integration.store;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.springframework.integration.core.Message;
 
 /**
- * Represents a mutable group of correlated messages that is bound to a certain
- * {@link MessageStore} and correlation key. The group will grow during its
- * lifetime, when messages are <code>add</code>ed to it. <strong>This is not
- * thread safe and should not be used for long running aggregations</strong>.
+ * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and correlation
+ * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it. <strong>This is not thread
+ * safe and should not be used for long running aggregations</strong>.
  * 
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -41,18 +41,24 @@ public class SimpleMessageGroup implements MessageGroup {
 	private final long timestamp;
 
 	public SimpleMessageGroup(Object correlationKey) {
-		this.correlationKey = correlationKey;
-		this.timestamp = System.currentTimeMillis();
+		this(Collections.<Message<?>>emptyList(), Collections.<Message<?>>emptyList(), correlationKey, System.currentTimeMillis());
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> originalMessages,
-			Object correlationKey) {
-		this(correlationKey);
-		for (Message<?> message : originalMessages) {
-			add(message);
+	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object correlationKey) {
+		this(unmarked, Collections.<Message<?>>emptyList(), correlationKey, System.currentTimeMillis());
+	}
+
+	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked, Object correlationKey, long timestamp) {
+		this.correlationKey = correlationKey;
+		this.timestamp = timestamp;
+		for (Message<?> message : unmarked) {
+			addUnmarked(message);
+		}
+		for (Message<?> message : marked) {
+			addMarked(message);
 		}
 	}
-	
+
 	public SimpleMessageGroup(MessageGroup template) {
 		this.correlationKey = template.getCorrelationKey();
 		this.marked.addAll(template.getMarked());
@@ -65,10 +71,22 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public boolean add(Message<?> message) {
+		return addUnmarked(message);
+	}
+
+	private boolean addUnmarked(Message<?> message) {
 		if (isMember(message)) {
 			return false;
 		}
 		this.unmarked.add(message);
+		return true;
+	}
+
+	private boolean addMarked(Message<?> message) {
+		if (isMember(message)) {
+			return false;
+		}
+		this.marked.add(message);
 		return true;
 	}
 
@@ -110,25 +128,21 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public Message<?> getOne() {
-		return unmarked.isEmpty() ? (marked.isEmpty() ? null : marked
-				.iterator().next()) : unmarked.iterator().next();
+		return unmarked.isEmpty() ? (marked.isEmpty() ? null : marked.iterator().next()) : unmarked.iterator().next();
 	}
 
 	/**
-	 * This method determines whether messages have been added to this group
-	 * that supersede the given message based on its sequence id. This can be
-	 * helpful to avoid ending up with sequences larger than their required
-	 * sequence size or sequences that are missing certain sequence numbers.
+	 * This method determines whether messages have been added to this group that supersede the given message based on
+	 * its sequence id. This can be helpful to avoid ending up with sequences larger than their required sequence size
+	 * or sequences that are missing certain sequence numbers.
 	 */
 	private boolean isMember(Message<?> message) {
 		if (size() == 0) {
 			return false;
 		}
-		Integer messageSequenceNumber = message.getHeaders()
-				.getSequenceNumber();
+		Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
 		if (messageSequenceNumber != null && messageSequenceNumber > 0) {
-			Integer messageSequenceSize = message.getHeaders()
-					.getSequenceSize();
+			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
 			if (!messageSequenceSize.equals(getSequenceSize())
 					|| containsSequenceNumber(unmarked, messageSequenceNumber)
 					|| containsSequenceNumber(marked, messageSequenceNumber)) {
@@ -138,11 +152,9 @@ public class SimpleMessageGroup implements MessageGroup {
 		return false;
 	}
 
-	private boolean containsSequenceNumber(Collection<Message<?>> messages,
-			Integer messageSequenceNumber) {
+	private boolean containsSequenceNumber(Collection<Message<?>> messages, Integer messageSequenceNumber) {
 		for (Message<?> member : messages) {
-			Integer memberSequenceNumber = member.getHeaders()
-					.getSequenceNumber();
+			Integer memberSequenceNumber = member.getHeaders().getSequenceNumber();
 			if (messageSequenceNumber.equals(memberSequenceNumber)) {
 				return true;
 			}
