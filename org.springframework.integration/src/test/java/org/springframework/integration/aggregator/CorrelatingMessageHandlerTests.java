@@ -129,7 +129,7 @@ public class CorrelatingMessageHandlerTests {
 		});
 
 		Thread.sleep(20);
-		assertEquals(0, store.expireMessageGroups(System.currentTimeMillis()+10000));
+		assertEquals(0, store.expireMessageGroups(10000));
 
 		bothMessagesHandled.await();
 

@@ -75,7 +75,7 @@ public class AggregatorTests {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
 		this.aggregator.handleMessage(message);
-		this.store.expireMessageGroups(System.currentTimeMillis() + 10000);
+		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(100);
 		assertNull("No message should have been sent normally", reply);
 		Message<?> discardedMessage = discardChannel.receive(1000);
@@ -91,7 +91,7 @@ public class AggregatorTests {
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);
 		this.aggregator.handleMessage(message1);
 		this.aggregator.handleMessage(message2);
-		this.store.expireMessageGroups(System.currentTimeMillis() + 10000);
+		this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(0);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());

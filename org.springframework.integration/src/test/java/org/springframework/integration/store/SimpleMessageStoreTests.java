@@ -93,7 +93,7 @@ public class SimpleMessageStoreTests {
 		store.addMessageToGroup("bar", testMessage1);
 		assertEquals(1, store.getMessageGroup("bar").size());
 
-		store.expireMessageGroups(System.currentTimeMillis()+10000);
+		store.expireMessageGroups(-10000);
 		assertEquals("[foo]", list.toString());
 		assertEquals(0, store.getMessageGroup("bar").size());
 

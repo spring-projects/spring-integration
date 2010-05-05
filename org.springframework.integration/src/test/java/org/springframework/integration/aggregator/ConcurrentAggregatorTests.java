@@ -120,7 +120,7 @@ public class ConcurrentAggregatorTests {
 				.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNull("No message should have been sent normally", reply);
-        this.store.expireMessageGroups(System.currentTimeMillis()+10000);
+        this.store.expireMessageGroups(-10000);
 		Message<?> discardedMessage = discardChannel.receive(100);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
@@ -143,7 +143,7 @@ public class ConcurrentAggregatorTests {
 		latch.await(300, TimeUnit.MILLISECONDS);
 		assertEquals("handlers should have been invoked within time limit", 0,
 				latch.getCount());
-        this.store.expireMessageGroups(System.currentTimeMillis()+10000);
+        this.store.expireMessageGroups(-10000);
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());

@@ -114,10 +114,11 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 		expiryCallbacks.add(callback);
 	}
 
-	public int expireMessageGroups(long timestamp) {
+	public int expireMessageGroups(long timeout) {
 		int count = 0;
+		long threshold = System.currentTimeMillis() - timeout;
 		for (MessageGroup group : correlationToMessageGroup.values()) {
-			if (group.getTimestamp() < timestamp) {
+			if (group.getTimestamp() < threshold) {
 				count++;
 				expire(group);
 				removeMessageGroup(group.getCorrelationKey());

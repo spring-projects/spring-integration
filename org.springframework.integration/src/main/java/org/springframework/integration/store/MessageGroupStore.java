@@ -66,14 +66,16 @@ public interface MessageGroupStore {
 	void registerExpiryCallback(MessageGroupCallback callback);
 
 	/**
-	 * Extract all expired groups (those whose timestamp is less than the threshold provided) and call each of the
-	 * registered callbacks on them in turn.
+	 * Extract all expired groups (whose timestamp is older than the current time less the threshold provided) and call
+	 * each of the registered callbacks on them in turn. For example: call with a timeout of 100 to expire all groups
+	 * that were created more than 100 milliseconds ago, and are not yet complete. Use a timeout of 0 (or negative to be
+	 * on the safe side) to expire all message groups.
 	 * 
-	 * @param timestamp the timestamp threshold to use
+	 * @param timeout the timeout threshold to use
 	 * @return the number of message groups expired
 	 * 
 	 * @see #registerExpiryCallback(MessageGroupCallback)
 	 */
-	int expireMessageGroups(long timestamp);
+	int expireMessageGroups(long timeout);
 
 }
