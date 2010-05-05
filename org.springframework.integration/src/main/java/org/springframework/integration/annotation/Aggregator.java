@@ -59,26 +59,8 @@ public @interface Aggregator {
 	long sendTimeout() default CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
 
 	/**
-	 * maximum time to wait for completion (in milliseconds) 
-	 */
-	long timeout() default CorrelatingMessageHandler.DEFAULT_TIMEOUT;
-
-	/**
 	 * indicates whether to send an incomplete aggregate on timeout
 	 */
 	boolean sendPartialResultsOnTimeout() default false;
-
-	/**
-	 * interval for the task that checks for timed-out aggregates
-	 */
-	long reaperInterval() default CorrelatingMessageHandler.DEFAULT_REAPER_INTERVAL;
-
-	/**
-	 * maximum number of correlation IDs to maintain so that received messages
-	 * may be recognized as belonging to an aggregate that has already completed
-	 * or timed out
-	 */
-	// TODO: INT-958 - remove / deal with tracked id capacity
-	int trackedCorrelationIdCapacity() default 42; 
 
 }
