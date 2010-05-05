@@ -38,14 +38,11 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public final Collection<Message<?>> unmarked = new HashSet<Message<?>>();
 
+	private final long timestamp;
+
 	public SimpleMessageGroup(Object correlationKey) {
 		this.correlationKey = correlationKey;
-	}
-
-	public SimpleMessageGroup(MessageGroup template) {
-		this.correlationKey = template.getCorrelationKey();
-		this.marked.addAll(template.getMarked());
-		this.unmarked.addAll(template.getUnmarked());
+		this.timestamp = System.currentTimeMillis();
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> originalMessages,
@@ -54,6 +51,17 @@ public class SimpleMessageGroup implements MessageGroup {
 		for (Message<?> message : originalMessages) {
 			add(message);
 		}
+	}
+	
+	public SimpleMessageGroup(MessageGroup template) {
+		this.correlationKey = template.getCorrelationKey();
+		this.marked.addAll(template.getMarked());
+		this.unmarked.addAll(template.getUnmarked());
+		this.timestamp = template.getTimestamp();
+	}
+
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	public boolean add(Message<?> message) {

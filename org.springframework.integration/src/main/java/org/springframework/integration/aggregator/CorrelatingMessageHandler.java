@@ -27,6 +27,7 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -81,6 +82,11 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Assert.notNull(store);
 		Assert.notNull(processor);
 		this.store = store;
+		store.registerExpiryCallback(new MessageGroupCallback() {
+			public void execute(MessageGroup group) {
+				forceComplete(group);
+			}
+		});
 		this.outputProcessor = processor;
 		this.correlationStrategy = correlationStrategy == null ? new HeaderAttributeCorrelationStrategy(
 				MessageHeaders.CORRELATION_ID) : correlationStrategy;
@@ -198,12 +204,12 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	// TODO: INT-958 - arrange for this to be called if user desires, e.g. periodically
-	public final boolean forceComplete(Object correlationKey) {
+	private final boolean forceComplete(MessageGroup group) {
 
+		Object correlationKey = group.getCorrelationKey();
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 
-			MessageGroup group = store.getMessageGroup(correlationKey);
 			if (group.size() > 0) {
 				// last chance for normal completion
 				if (releaseStrategy.canRelease(group)) {
@@ -234,7 +240,9 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 				return true;
 			}
 			return false;
+
 		}
+
 	}
 
 	private Object getLock(Object correlationKey) {

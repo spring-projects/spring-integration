@@ -21,6 +21,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
@@ -73,6 +76,27 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
 		assertNotSame(store.getMessageGroup("bar"), store.getMessageGroup("bar"));
+	}
+
+	@Test
+	public void shouldExpireMessageGroup() throws Exception {
+
+		SimpleMessageStore store = new SimpleMessageStore();
+		final List<String> list = new ArrayList<String>();
+		store.registerExpiryCallback(new MessageGroupCallback() {
+			public void execute(MessageGroup group) {
+				list.add(group.getOne().getPayload().toString());
+			}
+		});
+
+		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+		store.addMessageToGroup("bar", testMessage1);
+		assertEquals(1, store.getMessageGroup("bar").size());
+
+		store.expireMessageGroups(System.currentTimeMillis()+10000);
+		assertEquals("[foo]", list.toString());
+		assertEquals(0, store.getMessageGroup("bar").size());
+
 	}
 
 }

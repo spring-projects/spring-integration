@@ -136,8 +136,7 @@ public class ResequencerTests {
 		this.resequencer.setTimeout(90000);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
-		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
-		this.resequencer.forceComplete("ABC");
+		assertEquals(1, store.expireMessageGroups(System.currentTimeMillis()+10000));
 		Message<?> reply1 = discardChannel.receive(0);
 		Message<?> reply2 = discardChannel.receive(0);
 		Message<?> reply3 = discardChannel.receive(0);

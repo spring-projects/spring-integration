@@ -39,6 +39,7 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 
 /**
@@ -52,11 +53,12 @@ public class ConcurrentAggregatorTests {
 
 	private CorrelatingMessageHandler aggregator;
 
+	private MessageGroupStore store = new SimpleMessageStore();
+
 	@Before
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
-		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), new SimpleMessageStore(
-						50));
+		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), store);
 	}
 
 	@Test
@@ -118,7 +120,7 @@ public class ConcurrentAggregatorTests {
 				.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNull("No message should have been sent normally", reply);
-		aggregator.forceComplete("ABC");
+        this.store.expireMessageGroups(System.currentTimeMillis()+10000);
 		Message<?> discardedMessage = discardChannel.receive(100);
 		assertNotNull("A message should have been discarded", discardedMessage);
 		assertEquals(message, discardedMessage);
@@ -141,7 +143,7 @@ public class ConcurrentAggregatorTests {
 		latch.await(300, TimeUnit.MILLISECONDS);
 		assertEquals("handlers should have been invoked within time limit", 0,
 				latch.getCount());
-		this.aggregator.forceComplete("ABC");
+        this.store.expireMessageGroups(System.currentTimeMillis()+10000);
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull("A reply message should have been received", reply);
 		assertEquals(15, reply.getPayload());

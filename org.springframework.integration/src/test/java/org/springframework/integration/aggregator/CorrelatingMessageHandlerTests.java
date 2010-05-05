@@ -17,7 +17,6 @@
 package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
@@ -40,6 +39,7 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -64,9 +64,11 @@ public class CorrelatingMessageHandlerTests {
 	@Mock
 	private MessageChannel outputChannel;
 
+	private MessageGroupStore store = new SimpleMessageStore();
+
 	@Before
 	public void initializeSubject() {
-		handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy,
+		handler = new CorrelatingMessageHandler(processor, store, correlationStrategy,
 				ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
 		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(SimpleMessageGroup.class),
@@ -127,7 +129,7 @@ public class CorrelatingMessageHandlerTests {
 		});
 
 		Thread.sleep(20);
-		assertFalse(handler.forceComplete("key"));
+		assertEquals(0, store.expireMessageGroups(System.currentTimeMillis()+10000));
 
 		bothMessagesHandled.await();
 

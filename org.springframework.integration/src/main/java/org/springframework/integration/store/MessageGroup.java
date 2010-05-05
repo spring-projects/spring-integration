@@ -38,6 +38,8 @@ public interface MessageGroup {
 
 	void mark();
 
-	public Message<?> getOne();
+	Message<?> getOne();
+	
+	long getTimestamp();
 
 }
