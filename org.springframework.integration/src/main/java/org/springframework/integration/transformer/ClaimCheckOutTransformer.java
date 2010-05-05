@@ -24,8 +24,9 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 
 /**
- * Transformer that accepts a Message whose payload is a UUID and retrieves the
- * Message associated with that id from a MessageStore if available (else null).
+ * Transformer that accepts a Message whose payload is a UUID and retrieves the Message associated
+ * with that id from a MessageStore if available. An Exception will be thrown if no Message with
+ * that ID can be retrieved from the given MessageStore.
  * 
  * @author Mark Fisher
  * @since 2.0
@@ -50,7 +51,8 @@ public class ClaimCheckOutTransformer extends AbstractTransformer {
 		Assert.isTrue(message.getPayload() instanceof UUID, "payload must be a UUID");
 		UUID id = (UUID) message.getPayload();
 		Message<?> retrievedMessage = this.messageStore.getMessage(id);
-		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id);
+		Assert.notNull(retrievedMessage, "unable to locate Message for ID: " + id
+				+ " within MessageStore [" + this.messageStore + "]");
 		MessageBuilder<?> responseBuilder = MessageBuilder.fromMessage(retrievedMessage);
 		// headers on the 'current' message take precedence
 		responseBuilder.copyHeaders(message.getHeaders());
