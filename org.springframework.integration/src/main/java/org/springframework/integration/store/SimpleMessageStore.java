@@ -44,18 +44,31 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 
 	private final ConcurrentMap<Object, SimpleMessageGroup> correlationToMessageGroup;
 
-	private final UpperBound upperBound;
+	private final UpperBound individualUpperBound;
+
+	private final UpperBound groupUpperBound;
 
 	private Collection<MessageGroupCallback> expiryCallbacks = new LinkedHashSet<MessageGroupCallback>();
 
 	/**
 	 * Creates a SimpleMessageStore with a maximum size limited by the given capacity, or unlimited size if the given
-	 * capacity is less than 1.
+	 * capacity is less than 1. The capacities are applied independently to messages stored via
+	 * {@link #addMessage(Message)} and to those stored via {@link #addMessageToGroup(Object, Message)}. In both cases
+	 * the capacity applies to the number of messages that can be stored, and once that limit is reached attempting to
+	 * store another will result in an exception.
 	 */
-	public SimpleMessageStore(int capacity) {
+	public SimpleMessageStore(int individualCapacity, int groupCapacity) {
 		this.idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
 		this.correlationToMessageGroup = new ConcurrentHashMap<Object, SimpleMessageGroup>();
-		this.upperBound = new UpperBound(capacity);
+		this.individualUpperBound = new UpperBound(individualCapacity);
+		this.groupUpperBound = new UpperBound(groupCapacity);
+	}
+
+	/**
+	 * Creates a SimpleMessageStore with the same capacity for individual and grouped messages.
+	 */
+	public SimpleMessageStore(int capacity) {
+		this(capacity, capacity);
 	}
 
 	/**
@@ -78,7 +91,7 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 	}
 
 	public <T> Message<T> addMessage(Message<T> message) {
-		if (!upperBound.tryAcquire(0)) {
+		if (!individualUpperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
@@ -92,7 +105,7 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 
 	public Message<?> removeMessage(UUID key) {
 		if (key != null) {
-			upperBound.release();
+			individualUpperBound.release();
 			return this.idToMessage.remove(key);
 		} else
 			return null;
@@ -108,6 +121,10 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 	}
 
 	public void addMessageToGroup(Object correlationId, Message<?> message) {
+		if (!groupUpperBound.tryAcquire(0)) {
+			throw new MessagingException(this.getClass().getSimpleName()
+					+ " was out of capacity at, try constructing it with a larger capacity.");
+		}
 		getMessageGroupInternal(correlationId).add(message);
 	}
 
@@ -119,6 +136,7 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 	}
 
 	public void removeMessageGroup(Object correlationId) {
+		groupUpperBound.release();
 		correlationToMessageGroup.remove(correlationId);
 	}
 

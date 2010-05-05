@@ -56,6 +56,15 @@ public class SimpleMessageStoreTests {
 		store.addMessage(testMessage2);
 	}
 
+	@Test(expected = MessagingException.class)
+	public void shouldNotHoldMoreThanGroupCapacity() {
+		SimpleMessageStore store = new SimpleMessageStore(0, 1);
+		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+		Message<String> testMessage2 = MessageBuilder.withPayload("bar").build();
+		store.addMessageToGroup("foo", testMessage1);
+		store.addMessageToGroup("foo", testMessage2);
+	}
+
 	@Test
 	public void shouldHoldCapacityExactly() {
 		SimpleMessageStore store = new SimpleMessageStore(2);
