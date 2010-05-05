@@ -31,7 +31,6 @@ import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -110,17 +109,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	public void setReleaseStrategy(ReleaseStrategy releaseStrategy) {
 		Assert.notNull(releaseStrategy);
 		this.releaseStrategy = releaseStrategy;
-	}
-
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		super.setTaskScheduler(taskScheduler);
-	}
-
-	// TODO: INT-958 - remove unused property setters
-	public void setTimeout(long timeout) {
-	}
-
-	public void setReaperInterval(long reaperInterval) {
 	}
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -203,7 +191,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	}
 
-	// TODO: INT-958 - arrange for this to be called if user desires, e.g. periodically
 	private final boolean forceComplete(MessageGroup group) {
 
 		Object correlationKey = group.getCorrelationKey();

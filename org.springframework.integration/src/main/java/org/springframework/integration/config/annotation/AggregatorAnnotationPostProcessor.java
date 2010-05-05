@@ -22,13 +22,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
+import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.annotation.CorrelationStrategy;
+import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -66,9 +66,6 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		}
 		handler.setSendTimeout(annotation.sendTimeout());
 		handler.setSendPartialResultOnTimeout(annotation.sendPartialResultsOnTimeout());
-		handler.setReaperInterval(annotation.reaperInterval());
-		handler.setTimeout(annotation.timeout());
-		// handler.setTrackedCorrelationIdCapacity(annotation.trackedCorrelationIdCapacity());
 		handler.setBeanFactory(this.beanFactory);
 		handler.afterPropertiesSet();
 		return handler;

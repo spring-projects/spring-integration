@@ -40,8 +40,8 @@ public class TestAnnotatedEndpointWithCustomizedAggregator {
 			inputChannel = "inputChannel",
 			outputChannel = "outputChannel",
 			discardChannel = "discardChannel", 
-			reaperInterval = 1234, sendPartialResultsOnTimeout = true, 
-			sendTimeout = 98765432, timeout = 4567890, trackedCorrelationIdCapacity = 42)
+			sendPartialResultsOnTimeout = true, 
+			sendTimeout = 98765432)
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());

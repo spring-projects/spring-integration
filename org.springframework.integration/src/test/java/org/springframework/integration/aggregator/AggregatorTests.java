@@ -69,8 +69,6 @@ public class AggregatorTests {
 	@Test
 	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
 		QueueChannel discardChannel = new QueueChannel();
-		this.aggregator.setTimeout(50);
-		this.aggregator.setReaperInterval(10);
 		this.aggregator.setDiscardChannel(discardChannel);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = createMessage(3, "ABC", 2, 1, replyChannel, null);
