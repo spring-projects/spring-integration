@@ -26,9 +26,9 @@ import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 
 /**
- * @author Mark Fisher
+ * @author Dave Syer
  */
-public class SequenceSizeReleaseStrategyTests {
+public class TimeoutCountSequenceSizeReleaseStrategyTests {
 
 	@Test
 	public void testIncompleteList() {
@@ -36,8 +36,28 @@ public class SequenceSizeReleaseStrategyTests {
 				.setSequenceSize(2).build();
 		MessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
-		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
+		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy();
 		assertFalse(releaseStrategy.canRelease(messages));
+	}
+
+	@Test
+	public void testIncompleteListWithTimeout() {
+		Message<String> message = MessageBuilder.withPayload("test1")
+				.setSequenceSize(2).build();
+		MessageGroup messages = new SimpleMessageGroup("FOO");
+		messages.add(message);
+		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy(TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_THRESHOLD, -100);
+		assertTrue(releaseStrategy.canRelease(messages));
+	}
+
+	@Test
+	public void testIncompleteListWithCount() {
+		Message<String> message = MessageBuilder.withPayload("test1")
+				.setSequenceSize(2).build();
+		MessageGroup messages = new SimpleMessageGroup("FOO");
+		messages.add(message);
+		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy(1, TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_TIMEOUT);
+		assertTrue(releaseStrategy.canRelease(messages));
 	}
 
 	@Test
