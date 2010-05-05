@@ -63,15 +63,18 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 		try {
 			Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
-			if (jmsCorrelationId != null && (jmsCorrelationId instanceof String)) {
+			if (jmsCorrelationId instanceof Number) {
+				jmsCorrelationId = ((Number) jmsCorrelationId).toString();
+			}
+			if (jmsCorrelationId instanceof String) {
 				jmsMessage.setJMSCorrelationID((String) jmsCorrelationId);
 			}
 			Object jmsReplyTo = headers.get(JmsHeaders.REPLY_TO);
-			if (jmsReplyTo != null && (jmsReplyTo instanceof Destination)) {
+			if (jmsReplyTo instanceof Destination) {
 				jmsMessage.setJMSReplyTo((Destination) jmsReplyTo);
 			}
 			Object jmsType = headers.get(JmsHeaders.TYPE);
-			if (jmsType != null && (jmsType instanceof String)) {
+			if (jmsType instanceof String) {
 				jmsMessage.setJMSType((String) jmsType);
 			}
 			Set<String> attributeNames = headers.keySet();

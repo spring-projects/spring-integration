@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class JmsHeaderEnricherTests {
 
 	@Autowired
-	private MessageChannel input;
+	private MessageChannel valueTestInput;
+
+	@Autowired
+	private MessageChannel expressionTestInput;
 
 	@Autowired
 	private PollableChannel output;
@@ -51,8 +54,8 @@ public class JmsHeaderEnricherTests {
 	private Destination testDestination;
 
 	@Test // INT-804
-	public void verifyReplyTo() throws Exception {
-		input.send(new StringMessage("test"));
+	public void verifyReplyToValue() throws Exception {
+		valueTestInput.send(new StringMessage("test"));
 		Message<?> result = output.receive(0);
 		assertEquals(testDestination, result.getHeaders().get(JmsHeaders.REPLY_TO));
 		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
@@ -61,13 +64,23 @@ public class JmsHeaderEnricherTests {
 	}
 
 	@Test
-	public void verifyCorrelationId() throws Exception {
-		input.send(new StringMessage("test"));
+	public void verifyCorrelationIdValue() throws Exception {
+		valueTestInput.send(new StringMessage("test"));
 		Message<?> result = output.receive(0);
 		assertEquals("ABC", result.getHeaders().get(JmsHeaders.CORRELATION_ID));
 		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
 		javax.jms.Message jmsMessage = converter.toMessage(result, new StubSession("foo"));
 		assertEquals("ABC", jmsMessage.getJMSCorrelationID());
+	}
+
+	@Test // see INT-1122 and INT-1123
+	public void verifyCorrelationIdExpression() throws Exception {
+		expressionTestInput.send(new StringMessage("test"));
+		Message<?> result = output.receive(0);
+		assertEquals(123, result.getHeaders().get(JmsHeaders.CORRELATION_ID));
+		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
+		javax.jms.Message jmsMessage = converter.toMessage(result, new StubSession("foo"));
+		assertEquals("123", jmsMessage.getJMSCorrelationID());
 	}
 
 }

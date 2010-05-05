@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
+import java.util.Date;
 import java.util.Map;
 
 import javax.jms.Destination;
@@ -73,9 +74,19 @@ public class DefaultJmsHeaderMapperTests {
 	}
 
 	@Test
-	public void testJmsCorrelationIdIgnoredIfIncorrectType() throws JMSException {
+	public void testJmsCorrelationIdNumberConvertsToString() throws JMSException {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader(JmsHeaders.CORRELATION_ID, new Integer(123)).build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage();
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertEquals("123", jmsMessage.getJMSCorrelationID());
+	}
+
+	@Test
+	public void testJmsCorrelationIdIgnoredIfIncorrectType() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(JmsHeaders.CORRELATION_ID, new Date()).build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);

@@ -10,9 +10,13 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
-	<jms:header-enricher input-channel="input" output-channel="output">
+	<jms:header-enricher input-channel="valueTestInput" output-channel="output">
 		<jms:reply-to ref="testDestination"/>
 		<jms:correlation-id value="ABC"/>
+	</jms:header-enricher>
+
+	<jms:header-enricher input-channel="expressionTestInput" output-channel="output">
+		<jms:correlation-id expression="100 + (10 * 2) + 3"/>
 	</jms:header-enricher>
 
 	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
