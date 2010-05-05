@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,38 +43,36 @@ import org.springframework.util.Assert;
  */
 public class HeaderEnricher implements Transformer {
 
-	private final Map<String, Object> headersToAdd;
+	private final Map<String, ValueHolder> headersToAdd;
 
-	private volatile boolean overwrite;
+	private volatile boolean defaultOverwrite = false;
 
 
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
 	 */
-	public HeaderEnricher(Map<String, Object> headersToAdd) {
+	public HeaderEnricher(Map<String, ValueHolder> headersToAdd) {
 		Assert.notNull(headersToAdd, "headersToAdd must not be null");
 		this.headersToAdd = headersToAdd;
 	}
 
 
-	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
+	public void setDefaultOverwrite(boolean defaultOverwrite) {
+		this.defaultOverwrite = defaultOverwrite;
 	}
 
 	public Message<?> transform(Message<?> message) {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
-			for (Map.Entry<String, Object> entry : this.headersToAdd.entrySet()) {
+			for (Map.Entry<String, ValueHolder> entry : this.headersToAdd.entrySet()) {
 				String key = entry.getKey();
-				if (this.overwrite || headerMap.get(key) == null) {
-					Object value = entry.getValue();
-					if (value instanceof ExpressionHolder) {
-						value = ((ExpressionHolder) value).evaluate(message);
-					}
-					else if (value instanceof MethodExpressionHolder) {
-						value = ((MethodExpressionHolder) value).evaluate(message);
-					}
-					headerMap.put(key, value);
+				ValueHolder valueHolder = entry.getValue();
+				Boolean shouldOverwrite = valueHolder.isOverwrite();
+				if (shouldOverwrite == null) {
+					shouldOverwrite = this.defaultOverwrite;
+				}
+				if (shouldOverwrite || headerMap.get(key) == null) {
+					headerMap.put(key, valueHolder.evaluate(message));
 				}
 			}
 	        return MessageBuilder.withPayload(message.getPayload()).copyHeaders(headerMap).build();
@@ -85,7 +83,46 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	static class ExpressionHolder {
+	public static interface ValueHolder {
+
+		Object evaluate(Message<?> message);
+
+		Boolean isOverwrite();
+
+	}
+
+
+	static abstract class AbstractValueHolder implements ValueHolder {
+
+		// null indicates no explicit setting; use header-enricher's 'default-overwrite' value
+		private volatile Boolean overwrite = null;
+
+		public void setOverwrite(Boolean overwrite) {
+			this.overwrite = overwrite;
+		}
+
+		public Boolean isOverwrite() {
+			return this.overwrite;
+		}
+
+	}
+
+
+	static class StaticValueHolder extends AbstractValueHolder {
+
+		private final Object value;
+
+		public StaticValueHolder(Object value) {
+			this.value = value;
+		}
+
+		public Object evaluate(Message<?> message) {
+			return this.value;
+		}
+	}
+
+
+	static class ExpressionHolder extends AbstractValueHolder {
 
 		private static final ExpressionParser parser = new SpelExpressionParser();
 
@@ -109,7 +146,7 @@ public class HeaderEnricher implements Transformer {
 		}
 
 
-		private Object evaluate(Message<?> message) throws ParseException, EvaluationException {
+		public Object evaluate(Message<?> message) throws ParseException, EvaluationException {
 			return (this.expectedType != null)
 					? this.expression.getValue(this.evaluationContext, message, this.expectedType)
 					: this.expression.getValue(this.evaluationContext, message);
@@ -117,7 +154,7 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	static class MethodExpressionHolder {
+	static class MethodExpressionHolder extends AbstractValueHolder  {
 
 		private final MethodInvokingMessageProcessor processor;
 
@@ -125,7 +162,7 @@ public class HeaderEnricher implements Transformer {
 			this.processor = new MethodInvokingMessageProcessor(targetObject, method);
 		}
 
-		private Object evaluate(Message<?> message) {
+		public Object evaluate(Message<?> message) {
 			return this.processor.processMessage(message);
 		}
 	}

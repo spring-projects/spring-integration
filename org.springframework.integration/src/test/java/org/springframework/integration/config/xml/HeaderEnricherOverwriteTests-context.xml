@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<transformer input-channel="fail" expression="payload.thisWillCauseAnException"/>
+
+	<transformer input-channel="echo" expression="payload.toUpperCase()"/>
+
+	<header-enricher input-channel="replyChannelExplicitOverwriteTrueInput" output-channel="echo"> 
+		<reply-channel ref="replyChannelExplicitOverwriteTrueOutput" overwrite="true"/>
+	</header-enricher>
+
+	<channel id="replyChannelExplicitOverwriteTrueOutput">
+		<queue/>
+	</channel>
+
+	<header-enricher input-channel="replyChannelExplicitOverwriteFalseInput" output-channel="echo"> 
+		<reply-channel ref="fail" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="replyChannelDefaultOverwriteTrueButExplicitOverwriteFalseInput" output-channel="echo" default-overwrite="true"> 
+		<reply-channel ref="fail" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="replyChannelExplicitOverwriteFalseButNoExistingHeaderInput" output-channel="echo"> 
+		<reply-channel ref="replyChannelExplicitOverwriteFalseButNoExistingHeaderOutput" overwrite="false"/>
+	</header-enricher>
+
+	<channel id="replyChannelExplicitOverwriteFalseButNoExistingHeaderOutput">
+		<queue/>
+	</channel>
+
+	<header-enricher input-channel="replyChannelDefaultOverwriteTrueInput" output-channel="echo" default-overwrite="true"> 
+		<reply-channel ref="replyChannelDefaultOverwriteTrueOutput"/>
+	</header-enricher>
+
+	<channel id="replyChannelDefaultOverwriteTrueOutput">
+		<queue/>
+	</channel>
+
+	<header-enricher input-channel="replyChannelDefaultOverwriteFalseInput" output-channel="echo" default-overwrite="false"> 
+		<reply-channel ref="fail"/>
+	</header-enricher>
+
+	<header-enricher input-channel="replyChannelDefaultOverwriteFalseButNoExistingHeaderInput" output-channel="echo" default-overwrite="false"> 
+		<reply-channel ref="replyChannelDefaultOverwriteFalseButNoExistingHeaderOutput"/>
+	</header-enricher>
+
+	<channel id="replyChannelDefaultOverwriteFalseButNoExistingHeaderOutput">
+		<queue/>
+	</channel>
+
+	<header-enricher input-channel="priorityExplicitOverwriteTrueInput" output-channel="echo"> 
+		<priority value="HIGH" overwrite="true"/>
+	</header-enricher>
+
+	<header-enricher input-channel="priorityExplicitOverwriteFalseInput" output-channel="echo"> 
+		<priority value="LOW" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="customExplicitOverwriteTrueInput" output-channel="echo"> 
+		<header name="foo" value="zzz" overwrite="true"/>
+	</header-enricher>
+
+	<header-enricher input-channel="customExplicitOverwriteFalseInput" output-channel="echo"> 
+		<header name="foo" value="zzz" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="customExplicitOverwriteFalseButNoExistingHeaderInput" output-channel="echo"> 
+		<header name="foo" value="zzz" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="expressionExplicitOverwriteTrueInput" output-channel="echo"> 
+		<header name="foo" expression="'123'" overwrite="true"/>
+	</header-enricher>
+
+	<header-enricher input-channel="expressionExplicitOverwriteFalseInput" output-channel="echo"> 
+		<header name="foo" expression="'123'" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="expressionExplicitOverwriteFalseButNoExistingHeaderInput" output-channel="echo"> 
+		<header name="foo" expression="'123'" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="beanExplicitOverwriteTrueInput" output-channel="echo"> 
+		<header name="foo" ref="testBean" method="text" overwrite="true"/>
+	</header-enricher>
+
+	<header-enricher input-channel="beanExplicitOverwriteFalseInput" output-channel="echo"> 
+		<header name="foo" ref="testBean" method="text" overwrite="false"/>
+	</header-enricher>
+
+	<header-enricher input-channel="beanExplicitOverwriteFalseButNoExistingHeaderInput" output-channel="echo"> 
+		<header name="foo" ref="testBean" method="text" overwrite="false"/>
+	</header-enricher>
+
+	<beans:bean id="testBean" class="org.springframework.integration.config.xml.HeaderEnricherOverwriteTests$TestBean">
+		<beans:constructor-arg value="ABC"/>
+	</beans:bean>
+
+</beans:beans>

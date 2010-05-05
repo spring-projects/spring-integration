@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.config.TypedStringValue;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
@@ -49,10 +48,6 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		return IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher";
 	}
 
-	protected boolean shouldOverwrite(Element element) {
-		return "true".equals(element.getAttribute("overwrite").toLowerCase());
-	}
-
 	protected final void addElementToHeaderMapping(String elementName, String headerName) {
 		this.addElementToHeaderMapping(elementName, headerName, null);
 	}
@@ -70,7 +65,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		ManagedMap headers = new ManagedMap();
 		this.processHeaders(element, headers, parserContext);
 		builder.addConstructorArgValue(headers);
-		builder.addPropertyValue("overwrite", this.shouldOverwrite(element)); // TODO: should be a per-header config setting
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-overwrite");
 	}
 
 	protected void processHeaders(Element element, ManagedMap<String, Object> headers, ParserContext parserContext) {
@@ -123,25 +118,28 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						parserContext.getReaderContext().error(
 								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
 					}
+					Object headerSource = parserContext.extractSource(headerElement);
+					BeanDefinitionBuilder valueHolderBuilder = null;
 					if (isValue) {
 						if (hasMethod) {
 							parserContext.getReaderContext().error(
 									"The 'method' attribute cannot be used with the 'value' attribute.", element);
 						}
 						Object headerValue = (headerType != null) ?
-							new TypedStringValue(value, headerType) : value;
-						headers.put(headerName, headerValue);
+								new TypedStringValue(value, headerType) : value;
+						valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticValueHolder");
+						valueHolderBuilder.addConstructorArgValue(headerValue);
 					}
 					else if (isExpression) {
 						if (hasMethod) {
 							parserContext.getReaderContext().error(
 									"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 						}
-						BeanDefinitionBuilder expressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+						valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionHolder");
-						expressionBuilder.addConstructorArgValue(expression);
-						expressionBuilder.addConstructorArgValue(headerType);
-						headers.put(headerName, expressionBuilder.getBeanDefinition());
+						valueHolderBuilder.addConstructorArgValue(expression);
+						valueHolderBuilder.addConstructorArgValue(headerType);
 					}
 					else {
 						if (StringUtils.hasText(headerElement.getAttribute("type"))) {
@@ -149,16 +147,22 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 									"The 'type' attribute cannot be used with the 'ref' attribute.", element);
 						}
 						if (hasMethod) {
-							BeanDefinitionBuilder methodExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+							valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodExpressionHolder");
-							methodExpressionBuilder.addConstructorArgReference(ref);
-							methodExpressionBuilder.addConstructorArgValue(method);
-							headers.put(headerName, methodExpressionBuilder.getBeanDefinition());
+							valueHolderBuilder.addConstructorArgReference(ref);
+							valueHolderBuilder.addConstructorArgValue(method);
 						}
 						else {
-							headers.put(headerName, new RuntimeBeanReference(ref));
+							valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticValueHolder");
+							valueHolderBuilder.addConstructorArgReference(ref);
 						}
 					}
+					if (valueHolderBuilder == null) {
+						parserContext.getReaderContext().error("failed to parse header sub-element", headerSource);
+					}
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueHolderBuilder, headerElement, "overwrite");
+					headers.put(headerName, valueHolderBuilder.getBeanDefinition());
 				}
 			}
 		}

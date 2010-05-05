@@ -1185,6 +1185,16 @@
 										<xsd:union memberTypes="priorityEnumeration xsd:string"/>
 									</xsd:simpleType>
 								</xsd:attribute>
+								<xsd:attribute name="overwrite">
+									<xsd:annotation>
+										<xsd:documentation>
+	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+										</xsd:documentation>
+									</xsd:annotation>
+									<xsd:simpleType>
+										<xsd:union memberTypes="xsd:boolean xsd:string"/>
+									</xsd:simpleType>
+								</xsd:attribute>
 							</xsd:complexType>
 						</xsd:element>
 						<xsd:element name="header" type="userDefinedHeaderType">
@@ -1196,7 +1206,18 @@
 						</xsd:element>
 						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
-					<xsd:attribute name="overwrite" type="xsd:string" />
+					<xsd:attribute name="default-overwrite">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
+	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
+	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType> 
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1290,6 +1311,16 @@
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="overwrite">
+			<xsd:annotation>
+				<xsd:documentation>
+	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
 	
