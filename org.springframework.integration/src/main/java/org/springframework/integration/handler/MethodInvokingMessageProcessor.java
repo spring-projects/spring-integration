@@ -364,14 +364,7 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 					}
 					else if (annotationType.equals(Header.class)) {
 						Header headerAnnotation = (Header) mappingAnnotation;
-						String headerName = this.determineHeaderName(headerAnnotation, new MethodParameter(method, i));
-						String headerExpression = "headers." + headerName;
-						if (headerAnnotation.required()) {
-							sb.append(headerExpression);
-						}
-						else {
-							sb.append("headers[" + headerName + "] != null ? " + headerExpression + " : null");
-						}
+						sb.append(this.determineHeaderExpression(headerAnnotation, new MethodParameter(method, i)));
 					}
 				}
 				else if (Message.class.isAssignableFrom(parameterType)) {
@@ -428,13 +421,35 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 			return match;
 		}
 
-		private String determineHeaderName(Header headerAnnotation, MethodParameter methodParameter) {
+		private String determineHeaderExpression(Header headerAnnotation, MethodParameter methodParameter) {
 			methodParameter.initParameterNameDiscovery(PARAMETER_NAME_DISCOVERER);
+			String headerName = null;
+			String relativeExpression = "";
 			String valueAttribute = headerAnnotation.value();
-			String headerName = StringUtils.hasText(valueAttribute) ? valueAttribute : methodParameter.getParameterName();
+			if (!StringUtils.hasText(valueAttribute)) {
+				headerName = methodParameter.getParameterName();
+			}
+			else if (valueAttribute.indexOf('.') != -1) {
+				String tokens[] = valueAttribute.split("\\.", 2);
+				headerName = tokens[0];
+				if (StringUtils.hasText(tokens[1])) {
+					relativeExpression = "." + tokens[1];
+				}
+			}
+			else {
+				headerName = valueAttribute;
+			}
 			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is " +
 					"disabled or header name is not explicitly provided via @Header annotation.");
-			return headerName;
+			if (headerName.startsWith("$")) {
+				// rely on access to getSomeValue for $someValue
+				headerName = headerName.substring(1);
+			}
+			String headerExpression = "headers." + headerName + relativeExpression;
+			if (headerAnnotation.required()) {
+				return headerExpression;
+			}
+			return "headers['" + headerName + "'] != null ? " + headerExpression + " : null";
 		}
 
 		private synchronized void setExclusiveTargetParameterType(Class<?> targetParameterType) {
@@ -443,21 +458,26 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 			this.targetParameterType = targetParameterType;
 		}
 	}
+
+
 	/**
 	 * @author Oleg Zhurakousky
 	 * @since 2.0
 	 */
-	private class UniqueMethodFilter implements MethodFilter {
+	private static class UniqueMethodFilter implements MethodFilter {
+
 		private List<Method> uniqueMethods = new ArrayList<Method>();
-		
-		public UniqueMethodFilter(Class<?> targetClass){
+
+		public UniqueMethodFilter(Class<?> targetClass) {
 			ArrayList<Method> allMethods = new ArrayList<Method>(Arrays.asList(targetClass.getMethods()));
 			for (Method method : allMethods) {
 				uniqueMethods.add(org.springframework.util.ClassUtils.getMostSpecificMethod(method, targetClass));
 			}
 		}
+
 		public boolean matches(Method method) {
 			return uniqueMethods.contains(method);
 		}
 	}
+
 }
