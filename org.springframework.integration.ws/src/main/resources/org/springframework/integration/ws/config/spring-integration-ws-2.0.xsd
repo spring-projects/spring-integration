@@ -235,6 +235,18 @@
 					<xsd:choice minOccurs="1" maxOccurs="1">
 						<xsd:element name="soap-action" type="headerType"/>
 					</xsd:choice>
+					<xsd:attribute name="default-overwrite">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
+	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
+	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string"/>
+						</xsd:simpleType> 
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -244,6 +256,16 @@
 		<xsd:attribute name="value" type="xsd:string" />
 		<xsd:attribute name="ref" type="xsd:string" />
 		<xsd:attribute name="expression" type="xsd:string" />
+		<xsd:attribute name="overwrite">
+			<xsd:annotation>
+				<xsd:documentation>
+	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+			</xsd:simpleType>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
