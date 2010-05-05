@@ -65,6 +65,18 @@ public class SimpleMessageStore implements MessageStore, MessageGroupStore {
 		this(0);
 	}
 
+	/**
+	 * Convenient injection point for expiry callbacks in the message store. Each of the callbacks provided will simply
+	 * be registered with the store using {@link #registerExpiryCallback(MessageGroupCallback)}.
+	 * 
+	 * @param expiryCallbacks the expiry callbacks to add
+	 */
+	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
+		for (MessageGroupCallback callback : expiryCallbacks) {
+			registerExpiryCallback(callback);
+		}
+	}
+
 	public <T> Message<T> addMessage(Message<T> message) {
 		if (!upperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()

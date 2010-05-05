@@ -22,12 +22,15 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Iwein Fuld
@@ -76,6 +79,16 @@ public class SimpleMessageStoreTests {
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
 		store.addMessageToGroup("bar", testMessage1);
 		assertNotSame(store.getMessageGroup("bar"), store.getMessageGroup("bar"));
+	}
+
+	@Test
+	public void shouldRegisterCallbacks() throws Exception {
+		SimpleMessageStore store = new SimpleMessageStore();
+		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList(new MessageGroupCallback() {
+			public void execute(MessageGroup group) {
+			}
+		}));
+		assertEquals(1, ((Collection<?>)ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
 	}
 
 	@Test
