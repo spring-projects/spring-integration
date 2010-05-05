@@ -133,6 +133,7 @@ public class ResequencerTests {
 		this.resequencer.setSendPartialResultOnTimeout(false);
 		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
+		this.resequencer.setTimeout(90000);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		assertEquals(1, store.expireMessageGroups(-10000));
@@ -161,6 +162,7 @@ public class ResequencerTests {
 		this.resequencer.setSendPartialResultOnTimeout(false);
 		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
+		this.resequencer.setTimeout(90000);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
@@ -179,6 +181,7 @@ public class ResequencerTests {
 		this.resequencer.setSendPartialResultOnTimeout(false);
 		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
+		this.resequencer.setTimeout(90000);
 		this.resequencer.handleMessage(message1);
 		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
 		Message<?> reply1 = discardChannel.receive(0);

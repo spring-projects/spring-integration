@@ -31,6 +31,9 @@
 		discard-channel="discardChannel"
 		send-timeout="86420000" 
 		send-partial-result-on-timeout="true"
+		reaper-interval="135" 
+		tracked-correlation-id-capacity="99"
+		timeout="42" 
 		release-partial-sequences="false"/>
 
 	<resequencer id="resequencerWithCorrelationStrategyRefOnly"

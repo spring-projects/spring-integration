@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
  * @author Marius Bogoevici
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- * @author Dave Syer
  */
 public class AggregatorParser extends AbstractConsumerEndpointParser {
 
@@ -49,6 +48,10 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
     private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
 
     private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-timeout";
+
+    private static final String REAPER_INTERVAL_ATTRIBUTE = "reaper-interval";
+
+    private static final String TIMEOUT_ATTRIBUTE = "timeout";
 
     private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
 
@@ -94,7 +97,10 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
                 SEND_TIMEOUT_ATTRIBUTE);
         IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
                 SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
+        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
+                REAPER_INTERVAL_ATTRIBUTE);
         IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
+        IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
         this.injectPropertyWithBean(RELEASE_STRATEGY_REF_ATTRIBUTE,
                 RELEASE_STRATEGY_METHOD_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY,
                 "ReleaseStrategyAdapter", element, builder, parserContext);
