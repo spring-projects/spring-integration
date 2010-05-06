@@ -19,6 +19,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -30,7 +32,7 @@ import static org.junit.Assert.assertEquals;
  * @author Gary Russell
  *
  */
-@ContextConfiguration(locations="SimpleTcpNetInboundGatewayTests-context.xml")
+@ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SimpleTcpNetOutboundGatewayTests {
 
@@ -49,6 +51,14 @@ public class SimpleTcpNetOutboundGatewayTests {
 	@Autowired
 	@Qualifier("gatewayCustom")
 	private SimpleTcpNetInboundGateway inboundGatewayCustom;
+	
+	@Autowired
+	@Qualifier("requestChannel")
+	SubscribableChannel requestChannel;
+
+	@Autowired
+	@Qualifier("replyChannel")
+	PollableChannel replyChannel;
 
 	@Test
 	public void testOutboundCrLf() throws Exception {
@@ -89,6 +99,14 @@ public class SimpleTcpNetOutboundGatewayTests {
 		gateway.setCustomSocketWriterClassName("org.springframework.integration.ip.tcp.CustomNetSocketWriter");
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
+		assertEquals("echo:test", new String(bytes).trim());
+	}
+	
+	@Test
+	public void testOutboundUsingConfig() {
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		requestChannel.send(message);
+		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
 		assertEquals("echo:test", new String(bytes).trim());
 	}
 }
