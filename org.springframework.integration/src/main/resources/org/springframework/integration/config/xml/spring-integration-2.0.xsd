@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	targetNamespace="http://www.springframework.org/schema/integration"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
@@ -18,7 +17,7 @@
 	<xsd:element name="annotation-config">
 		<xsd:annotation>
 			<xsd:documentation>
-	Enables annotation support for Message Endpoints.
+				Enables annotation support for Message Endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -27,9 +26,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines the ApplicationEventMulticaster to use for this ApplicationContext.
-	The "task-executor" reference is optional. If not provided, an instance of
-	ThreadPoolTaskExecutor will be created by default.
+					Defines the ApplicationEventMulticaster to use for this
+					ApplicationContext.
+					The "task-executor" reference is optional. If not provided, an
+					instance of
+					ThreadPoolTaskExecutor will be created by default.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="task-executor" type="xsd:string">
@@ -54,7 +55,7 @@
 	<xsd:element name="channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Point-to-Point MessageChannel.
+				Defines a Point-to-Point MessageChannel.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -70,14 +71,16 @@
 							<xsd:element name="queue" type="queueType">
 								<xsd:annotation>
 									<xsd:documentation>
-										Identifies this channel as a Queue style channel
+										Identifies this channel as a Queue style
+										channel
 									</xsd:documentation>
 								</xsd:annotation>
 							</xsd:element>
 							<xsd:element name="priority-queue" type="priorityQueueType">
 								<xsd:annotation>
 									<xsd:documentation>
-										Identifies this channel as a Queue style channel where messages could be prioritized 
+										Identifies this channel as a Queue style
+										channel where messages could be prioritized
 										based on custom logic
 									</xsd:documentation>
 								</xsd:annotation>
@@ -102,15 +105,17 @@
 	<xsd:complexType name="queueType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a queue for messages. If 'capacity' is specified, it will be a bounded queue.
-	A custom Queue implementation can be injected using the 'ref' attribute.
+				Defines a queue for messages. If 'capacity' is specified, it will be a
+				bounded queue.
+				A custom Queue implementation can be injected using the 'ref'
+				attribute.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="capacity" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-						Capacity for this queue. Default capacity is 0 which means 
-						this queue will accumulate as many messages as memory allows. 
+					Capacity for this queue. Default capacity is 0 which means
+					this queue will accumulate as many messages as memory allows.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -128,14 +133,14 @@
 	<xsd:complexType name="priorityQueueType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a queue with priority-ordering for message reception.
+				Defines a queue with priority-ordering for message reception.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="capacity" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-						Capacity for this queue. Default capacity is 0 which means 
-						this queue will accumulate as many messages as memory allows.
+					Capacity for this queue. Default capacity is 0 which means
+					this queue will accumulate as many messages as memory allows.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -154,7 +159,8 @@
 	<xsd:complexType name="rendezvousQueueType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a rendezvous queue where a sender will block until the receiver arrives or vice-versa.
+				Defines a rendezvous queue where a sender will block until the receiver
+				arrives or vice-versa.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:complexType>
@@ -162,33 +168,35 @@
 	<xsd:complexType name="dispatcherType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines the dispatching configuration for a non-buffering channel
-	(i.e. one without a queue).
+				Defines the dispatching configuration for a non-buffering channel
+				(i.e. one without a queue).
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="load-balancer">
 			<xsd:simpleType>
 				<xsd:annotation>
 					<xsd:documentation>
-	Defines a load-balancing strategy for the channel's dispatcher.
-	The default is a round-robin load balancer.
+						Defines a load-balancing strategy for the channel's dispatcher.
+						The default is a round-robin load balancer.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="round-robin">
 						<xsd:annotation>
 							<xsd:documentation>
-	[DEFAULT] Defines a Round Robin dispatching strategy which allows  
-	load balancing of messages between multiple Message Handlers. Which message 
-	handler receives the message first is determined by the 'order' attribute 
-	of such Message Handler.
+								[DEFAULT] Defines a Round Robin dispatching strategy which allows
+								load balancing of messages between multiple Message Handlers. Which
+								message
+								handler receives the message first is determined by the 'order'
+								attribute
+								of such Message Handler.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:enumeration>
 					<xsd:enumeration value="none">
 						<xsd:annotation>
 							<xsd:documentation>
-	No LoadBalancingStrategy will be used.
+								No LoadBalancingStrategy will be used.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:enumeration>
@@ -198,14 +206,18 @@
 		<xsd:attribute name="failover" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	Specifies whether this dispatcher has failover enabled. By default,
-	failover will be enabled. Set this to 'false' to disable it.
-	When enabled and message delivery to the primary Message Handler fails,
-	an  attempt will be made to deliver the message to the next handler and so on...
-	Primary, secondary etc... is determined by the load-balancing strategy in use
-	(e.g. round-robin). If no load-balancer strategy is configured, the order will
-	be fixed in a sequence determined by the 'order' attribute on the Message Handlers
-	(or the @Ordered annotation on adapted methods).
+					Specifies whether this dispatcher has failover enabled. By default,
+					failover will be enabled. Set this to 'false' to disable it.
+					When enabled and message delivery to the primary Message Handler fails,
+					an attempt will be made to deliver the message to the next handler
+					and so on...
+					Primary, secondary etc... is determined by the load-balancing strategy in
+					use
+					(e.g. round-robin). If no load-balancer strategy is configured, the
+					order will
+					be fixed in a sequence determined by the 'order' attribute on the
+					Message Handlers
+					(or the @Ordered annotation on adapted methods).
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -230,7 +242,8 @@
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Publish-Subscribe channel that broadcasts messages to its subscribers.
+				Defines a Publish-Subscribe channel that broadcasts messages to its
+				subscribers.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -263,7 +276,7 @@
  	TaskExecutor dispatches to the handler on a separate Thread.
 	Usually configured using 'task' namespace support provided by Spring (e.g., &lt;task:executor/&gt;)
 								]]>
-							</xsd:documentation>			
+							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
@@ -280,27 +293,30 @@
 	This is especially useful for handling errors that occur during asynchronous execution 
 	of tasks that have been submitted to a TaskScheduler where it may not be possible to throw the error to the original caller
 								]]>
-							</xsd:documentation>		
+							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type
-										type="org.springframework.util.ErrorHandler" />
+									<tool:expected-type type="org.springframework.util.ErrorHandler" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="ignore-failures" type="xsd:string" default="false">
+					<xsd:attribute name="ignore-failures" type="xsd:string"
+						default="false">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify whether Exceptions thrown by any subscribed handler should be ignored (only logged).
+								Specify whether Exceptions thrown by any subscribed handler should be
+								ignored (only logged).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="apply-sequence" type="xsd:string" default="false">
+					<xsd:attribute name="apply-sequence" type="xsd:string"
+						default="false">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify whether the sequence size, sequence number, and correlation id headers should be set on
-	Messages that are sent through this channel.
+								Specify whether the sequence size, sequence number, and correlation id
+								headers should be set on
+								Messages that are sent through this channel.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -312,7 +328,7 @@
 	<xsd:element name="thread-local-channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a channel that maintains its Messages on a thread-bound queue.
+				Defines a channel that maintains its Messages on a thread-bound queue.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
@@ -335,7 +351,7 @@
 	<xsd:complexType name="channelType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a message channel.
+				Defines a message channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
@@ -348,21 +364,22 @@
 	is a channel that accepts messages cotaining payload of certain type.
 					]]>
 				</xsd:documentation>
-			</xsd:annotation>	
+			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="dispatcher">
 			<xsd:simpleType>
 				<xsd:annotation>
 					<xsd:documentation>
-	This attribute is DEPRECATED. Please use the dispatcher sub-element instead.
+						This attribute is DEPRECATED. Please use the dispatcher sub-element
+						instead.
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="failover">
 						<xsd:annotation>
 							<xsd:documentation>
-	Enables failover, but disables load-balancing.
-	See the dispatcher sub-element for more information.
+								Enables failover, but disables load-balancing.
+								See the dispatcher sub-element for more information.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:enumeration>
@@ -375,7 +392,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Messaging Gateway.
+					Defines a Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -398,7 +415,7 @@
 										]]>
 									</xsd:documentation>
 								</xsd:annotation>
-								<xsd:complexType> 
+								<xsd:complexType>
 									<xsd:attribute name="name" type="xsd:string" use="required">
 										<xsd:annotation>
 											<xsd:documentation>	
@@ -408,7 +425,8 @@
 											</xsd:documentation>
 										</xsd:annotation>
 									</xsd:attribute>
-									<xsd:attribute name="value" type="xsd:string" use="required">
+									<xsd:attribute name="value" type="xsd:string"
+										use="required">
 										<xsd:annotation>
 											<xsd:documentation>	
 													<![CDATA[  
@@ -429,7 +447,7 @@
 								</xsd:documentation>
 								<xsd:appinfo>
 									<tool:annotation>
-										<tool:expected-method type="../@service-interface"/>
+										<tool:expected-method type="../@service-interface" />
 									</tool:annotation>
 								</xsd:appinfo>
 							</xsd:annotation>
@@ -443,7 +461,7 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>
-						<xsd:attribute name="reply-channel" type="xsd:string" >
+						<xsd:attribute name="reply-channel" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>	
 										<![CDATA[  
@@ -480,7 +498,8 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="optional" />
-			<xsd:attribute name="service-interface" type="xsd:string" use="optional">
+			<xsd:attribute name="service-interface" type="xsd:string"
+				use="optional">
 				<xsd:annotation>
 					<xsd:documentation>	
 										<![CDATA[  
@@ -554,7 +573,7 @@
 	<xsd:complexType name="innerGatewayType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Messaging Gateway to be used within a chain.
+				Defines a Messaging Gateway to be used within a chain.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="request-channel" type="xsd:string">
@@ -567,21 +586,21 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-								type="org.springframework.integration.core.MessageChannel" />
+							type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="request-timeout" type="xsd:string">
 			<xsd:annotation>
-					<xsd:documentation>	
+				<xsd:documentation>	
 							<![CDATA[  
 					Provides the amount of time dispatcher would wait to send a message.
 					This timeout would only apply if there is a potential to block in the send call. 
 					For example if this gateway is hooked up to a Queue channel. 
 					Value is specified in milliseconds.
 							]]>
-					</xsd:documentation>
+				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
@@ -589,7 +608,8 @@
 	<xsd:element name="inbound-channel-adapter" type="methodInvokingChannelAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Channel Adapter that receives from a MessageSource and sends to a MessageChannel.
+				Defines a Channel Adapter that receives from a MessageSource and sends to a
+				MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -597,8 +617,8 @@
 	<xsd:element name="outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Channel Adapter that receives from a MessageChannel and passes to
-	a method-invoking MessageHandler.
+				Defines a Channel Adapter that receives from a MessageChannel and passes to
+				a method-invoking MessageHandler.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -607,8 +627,8 @@
 					<xsd:attribute name="order">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specifies the order for invocation when this endpoint is connected as a
-	subscriber to a SubscribableChannel.
+								Specifies the order for invocation when this endpoint is connected as a
+								subscriber to a SubscribableChannel.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -680,7 +700,7 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation>
-								<tool:expected-method type-ref="@ref"/>
+								<tool:expected-method type-ref="@ref" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -693,7 +713,7 @@
 		<xsd:all>
 			<xsd:element name="poller" type="innerPollerType"
 				minOccurs="0" maxOccurs="1" />
-			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />   
+			<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
 		</xsd:all>
 		<xsd:attribute name="id" type="xsd:ID" />
 		<xsd:attribute name="channel" type="xsd:string">
@@ -713,12 +733,12 @@
 	<xsd:element name="service-activator" type="innerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an endpoint for exposing any bean reference as a service that
-	receives request Messages from an 'input-channel' and may send reply
-	Messages to an 'output-channel'. The 'ref' may point to an instance
-	that has either a single public method or a method with the
-	@ServiceActivator annotation. Otherwise, the 'method' attribute
-	should be provided along with 'ref'.
+				Defines an endpoint for exposing any bean reference as a service that
+				receives request Messages from an 'input-channel' and may send reply
+				Messages to an 'output-channel'. The 'ref' may point to an instance
+				that has either a single public method or a method with the
+				@ServiceActivator annotation. Otherwise, the 'method' attribute
+				should be provided along with 'ref'.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -726,7 +746,7 @@
 	<xsd:complexType name="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message-handling endpoints.
+				Base type for Message-handling endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -743,8 +763,10 @@
 				<xsd:attribute name="send-timeout" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Specify the maximum amount of time in milliseconds to wait when sending a reply
-	Message to the output channel. By default the send will block for one second. 
+							Specify the maximum amount of time in milliseconds to wait when sending
+							a reply
+							Message to the output channel. By default the send will block for one
+							second. 
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -752,7 +774,7 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation>
-								<tool:expected-method type-ref="@ref"/>
+								<tool:expected-method type-ref="@ref" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -764,8 +786,9 @@
 	<xsd:complexType name="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for Message Endpoint elements that accept Messages from an
-	input-channel and also may produce reply Messages to be sent to an output-channel.
+				Base type for Message Endpoint elements that accept Messages from an
+				input-channel and also may produce reply Messages to be sent to an
+				output-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -787,7 +810,8 @@
 	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Base type for Message Endpoint elements that accept Messages from an
+				Base type for Message Endpoint elements that
+				accept Messages from an
 				input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -839,7 +863,7 @@
 					<xsd:annotation>
 						<xsd:appinfo>
 							<tool:annotation>
-								<tool:expected-method type-ref="@ref"/>
+								<tool:expected-method type-ref="@ref" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -851,8 +875,10 @@
 	<xsd:element name="delayer">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an endpoint that passes a Message to the output-channel after a delay. The delay may
-	be retrieved from a Message header or else fallback to the 'default-delay' of this endpoint.
+				Defines an endpoint that passes a Message to the output-channel after a
+				delay. The delay may
+				be retrieved from a Message header or else fallback to the
+				'default-delay' of this endpoint.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -860,37 +886,44 @@
 				<xsd:extension base="inputOutputEndpointType">
 					<xsd:sequence>
 						<xsd:element name="poller" type="innerPollerType"
-								minOccurs="0" maxOccurs="1" />
+							minOccurs="0" maxOccurs="1" />
 					</xsd:sequence>
-					<xsd:attribute name="default-delay" type="xsd:string" use="required">
+					<xsd:attribute name="default-delay" type="xsd:string"
+						use="required">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify the default delay in milliseconds. This value can be set to 0 if the only Messages
-	that should be delayed are those with a particular header (in that case, be sure to provide
-	a value for the 'delay-header-name' attribute).
+								Specify the default delay in milliseconds. This value can be set to 0
+								if the only Messages
+								that should be delayed are those with a particular header (in that
+								case, be sure to provide
+								a value for the 'delay-header-name' attribute).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="delay-header-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify the name of the header that should contain the delay value. This value can either
-	represent the number of milliseconds to delay counting from the current time or it can be an
-	absolute Date until which the Message should be delayed.
+								Specify the name of the header that should contain the delay value.
+								This value can either
+								represent the number of milliseconds to delay counting from the current
+								time or it can be an
+								absolute Date until which the Message should be delayed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="scheduler" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Provide a reference to the ScheduledExecutorService instance to which this endpoint should
-	delegate when scheduling the sending of delayed Messages. If not provided, the default
-	will use a thread pool of size 1.
+								Provide a reference to the ScheduledExecutorService instance to which
+								this endpoint should
+								delegate when scheduling the sending of delayed Messages. If not
+								provided, the default
+								will use a thread pool of size 1.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-											type="java.util.concurrent.ScheduledExecutorService" />
+										type="java.util.concurrent.ScheduledExecutorService" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -898,15 +931,19 @@
 					<xsd:attribute name="send-timeout" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify the maximum amount of time in milliseconds to wait when sending the released
-	Messages (after delay) to the output channel. By default the send will block indefinitely. 
+								Specify the maximum amount of time in milliseconds to wait when sending
+								the released
+								Messages (after delay) to the output channel. By default the send will
+								block indefinitely. 
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="wait-for-tasks-to-complete-on-shutdown" type="xsd:string">
+					<xsd:attribute name="wait-for-tasks-to-complete-on-shutdown"
+						type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify whether tasks should be able to complete on shutdown. By default this is 'false'. 
+								Specify whether tasks should be able to complete on shutdown. By
+								default this is 'false'. 
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -1101,7 +1138,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a MessageSelector chain.
+					Defines a MessageSelector chain.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -1140,8 +1177,9 @@
 	<xsd:complexType name="selectorType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Provides a MessageSelector reference. If a method attribute is set the
-	referred bean doesn't need to implement the MessageSelector interface.
+				Provides a MessageSelector reference. If a method attribute is set the
+				referred bean doesn't need to implement the MessageSelector
+				interface.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="ref" type="xsd:string" use="required">
@@ -1157,7 +1195,7 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation>
-						<tool:expected-method type-ref="@ref"/>
+						<tool:expected-method type-ref="@ref" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -1167,32 +1205,33 @@
 	<xsd:element name="header-enricher">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a HeaderEnricher endpoint for values defined in the MessageHeader.
+				Defines a HeaderEnricher endpoint for values defined in the MessageHeader.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
-						<xsd:element name="reply-channel" type="referenceHeaderType"/>
-						<xsd:element name="error-channel" type="referenceHeaderType"/>
-						<xsd:element name="correlation-id" type="referenceOrValueHeaderType"/>
-						<xsd:element name="expiration-date" type="referenceOrValueHeaderType"/>
+						<xsd:element name="reply-channel" type="referenceHeaderType" />
+						<xsd:element name="error-channel" type="referenceHeaderType" />
+						<xsd:element name="correlation-id" type="referenceOrValueHeaderType" />
+						<xsd:element name="expiration-date" type="referenceOrValueHeaderType" />
 						<xsd:element name="priority">
 							<xsd:complexType>
 								<xsd:attribute name="value">
 									<xsd:simpleType>
-										<xsd:union memberTypes="priorityEnumeration xsd:string"/>
+										<xsd:union memberTypes="priorityEnumeration xsd:string" />
 									</xsd:simpleType>
 								</xsd:attribute>
 								<xsd:attribute name="overwrite">
 									<xsd:annotation>
 										<xsd:documentation>
-	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+											Boolean value to indicate whether this header value should overwrite
+											an existing header value for the same name.
 										</xsd:documentation>
 									</xsd:annotation>
 									<xsd:simpleType>
-										<xsd:union memberTypes="xsd:boolean xsd:string"/>
+										<xsd:union memberTypes="xsd:boolean xsd:string" />
 									</xsd:simpleType>
 								</xsd:attribute>
 							</xsd:complexType>
@@ -1200,23 +1239,27 @@
 						<xsd:element name="header" type="userDefinedHeaderType">
 							<xsd:annotation>
 								<xsd:documentation>
-	Element that accepts any user-defined header name/value pair.
+									Element that accepts any user-defined header name/value pair.
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
-						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="poller" type="innerPollerType"
+							minOccurs="0" maxOccurs="1" />
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
-	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
-	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+								Specify the default boolean value for whether to overwrite existing
+								header values. This will only take effect for
+								sub-elements that do not provide their own 'overwrite' attribute. If the
+								'default-overwrite' attribute is not
+								provided, then the specified header values will NOT overwrite any
+								existing ones with the same header names. 
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
-							<xsd:union memberTypes="xsd:boolean xsd:string"/>
-						</xsd:simpleType> 
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -1225,18 +1268,18 @@
 
 	<xsd:simpleType name="priorityEnumeration">
 		<xsd:restriction base="xsd:token">
-			<xsd:enumeration value="HIGHEST"/>
-			<xsd:enumeration value="HIGH"/>
-			<xsd:enumeration value="NORMAL"/>
-			<xsd:enumeration value="LOW"/>
-			<xsd:enumeration value="LOWEST"/>
+			<xsd:enumeration value="HIGHEST" />
+			<xsd:enumeration value="HIGH" />
+			<xsd:enumeration value="NORMAL" />
+			<xsd:enumeration value="LOW" />
+			<xsd:enumeration value="LOWEST" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
 	<xsd:complexType name="userDefinedHeaderType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Message Header with a literal value or object reference.
+				Defines a Message Header with a literal value or object reference.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -1244,7 +1287,7 @@
 				<xsd:attribute name="name" use="required" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Name of the header to be added.
+							Name of the header to be added.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1255,10 +1298,10 @@
 	<xsd:complexType name="referenceOrValueHeaderType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Provides a header value for the given header name. Requires
-	exactly one of the 'ref', 'value', or 'expression' attributes.
-	The 'type' attribute allows for the specification of the expected
-	type when using a 'value' or 'expression', but it is optional.
+				Provides a header value for the given header name. Requires
+				exactly one of the 'ref', 'value', or 'expression' attributes.
+				The 'type' attribute allows for the specification of the expected
+				type when using a 'value' or 'expression', but it is optional.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -1266,15 +1309,16 @@
 				<xsd:attribute name="value" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Literal value to be associated with the given header name.
+							Literal value to be associated with the given header name.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="expression" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Expression to be evaulated at runtime to determine the header value.
-	The EvaluationContext will include variables for 'payload' and 'headers'.
+							Expression to be evaulated at runtime to determine the header value.
+							The EvaluationContext will include variables for 'payload' and
+							'headers'.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1293,21 +1337,21 @@
 		<xsd:attribute name="ref" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	Reference to be associated with the given header name.
+					Reference to be associated with the given header name.
 				</xsd:documentation>
 				<xsd:appinfo>
-					<tool:annotation kind="ref"/>
+					<tool:annotation kind="ref" />
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="method" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>
-	Name of a method to be invoked on the referenced target object.
+					Name of a method to be invoked on the referenced target object.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation>
-						<tool:expected-method type-ref="@ref"/>
+						<tool:expected-method type-ref="@ref" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -1315,19 +1359,21 @@
 		<xsd:attribute name="overwrite">
 			<xsd:annotation>
 				<xsd:documentation>
-	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+					Boolean value to indicate whether this header value should overwrite an
+					existing header value for the same name.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>
-				<xsd:union memberTypes="xsd:boolean xsd:string"/>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
-	
-	<xsd:element name="transformer" type="expressionOrInnerEndpointDefinitionAware">
+
+	<xsd:element name="transformer"
+		type="expressionOrInnerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer.
+				Defines a Transformer.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -1335,28 +1381,28 @@
 	<xsd:element name="object-to-string-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that converts any Object payload to a String by
-	invoking its toString() method.
+				Defines a Transformer that converts any Object payload to a String by
+				invoking its toString() method.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-            <xsd:complexContent>
-                <xsd:extension base="inputOutputEndpointType">
-                    <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                        <xsd:any processContents="strict" namespace="##other"
-                            minOccurs="0" maxOccurs="unbounded" />
-                        <xsd:element ref="poller" />
-                    </xsd:choice>
-                </xsd:extension>
-            </xsd:complexContent>
-        </xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:any processContents="strict" namespace="##other"
+							minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element ref="poller" />
+					</xsd:choice>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="claim-check-in" type="claimCheckTransformerType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that stores a Message and returns a new Message whose
-	payload is the id of the stored Message.
+				Defines a Transformer that stores a Message and returns a new Message whose
+				payload is the id of the stored Message.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -1364,8 +1410,10 @@
 	<xsd:element name="claim-check-out" type="claimCheckTransformerType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that accepts a Message whose payload is a UUID and retrieves
-	the Message associated with that id from a MessageStore if available (else null).
+				Defines a Transformer that accepts a Message whose payload is a UUID and
+				retrieves
+				the Message associated with that id from a MessageStore if available
+				(else null).
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -1374,16 +1422,17 @@
 		<xsd:complexContent>
 			<xsd:extension base="inputOutputEndpointType">
 				<xsd:sequence minOccurs="0" maxOccurs="1">
-					<xsd:element ref="poller"/>
+					<xsd:element ref="poller" />
 				</xsd:sequence>
 				<xsd:attribute name="message-store" use="required">
 					<xsd:annotation>
 						<xsd:documentation>
-	Reference to the MessageStore to be used by this Claim Check transformer.
+							Reference to the MessageStore to be used by this Claim Check transformer.
 						</xsd:documentation>
 						<xsd:appinfo>
 							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.store.MessageStore"/>
+								<tool:expected-type
+									type="org.springframework.integration.store.MessageStore" />
 							</tool:annotation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -1395,46 +1444,47 @@
 	<xsd:element name="payload-serializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that serializes any Object payload that implements
-	Serializable into a byte array.
+				Defines a Transformer that serializes any Object payload that implements
+				Serializable into a byte array.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-            <xsd:complexContent>
-                <xsd:extension base="inputOutputEndpointType">
-                    <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                        <xsd:any processContents="strict" namespace="##other"
-                            minOccurs="0" maxOccurs="unbounded" />
-                        <xsd:element ref="poller" />
-                    </xsd:choice>
-                </xsd:extension>
-            </xsd:complexContent>
-        </xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:any processContents="strict" namespace="##other"
+							minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element ref="poller" />
+					</xsd:choice>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="payload-deserializing-transformer">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Transformer that deserializes a byte array payload into an Object.
+				Defines a Transformer that deserializes a byte array payload into an
+				Object.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-            <xsd:complexContent>
-                <xsd:extension base="inputOutputEndpointType">
-                    <xsd:choice minOccurs="1" maxOccurs="unbounded">
-                        <xsd:any processContents="strict" namespace="##other"
-                            minOccurs="0" maxOccurs="unbounded" />
-                        <xsd:element ref="poller" />
-                    </xsd:choice>
-                </xsd:extension>
-            </xsd:complexContent>
-        </xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:choice minOccurs="1" maxOccurs="unbounded">
+						<xsd:any processContents="strict" namespace="##other"
+							minOccurs="0" maxOccurs="unbounded" />
+						<xsd:element ref="poller" />
+					</xsd:choice>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Filter.
+				Defines a Filter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -1445,12 +1495,13 @@
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-											type="org.springframework.integration.core.MessageChannel" />
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
-						</xsd:annotation>				
+						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false" />
+					<xsd:attribute name="throw-exception-on-rejection"
+						type="xsd:string" default="false" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1477,7 +1528,7 @@
 										<xsd:appinfo>
 											<tool:annotation kind="ref">
 												<tool:expected-type
-														type="org.springframework.integration.core.MessageChannel" />
+													type="org.springframework.integration.core.MessageChannel" />
 											</tool:annotation>
 										</xsd:appinfo>
 									</xsd:annotation>
@@ -1514,7 +1565,7 @@
 										<xsd:appinfo>
 											<tool:annotation kind="ref">
 												<tool:expected-type
-														type="org.springframework.integration.core.MessageChannel" />
+													type="org.springframework.integration.core.MessageChannel" />
 											</tool:annotation>
 										</xsd:appinfo>
 									</xsd:annotation>
@@ -1546,7 +1597,7 @@
 										<xsd:appinfo>
 											<tool:annotation kind="ref">
 												<tool:expected-type
-														type="org.springframework.integration.core.MessageChannel" />
+													type="org.springframework.integration.core.MessageChannel" />
 											</tool:annotation>
 										</xsd:appinfo>
 									</xsd:annotation>
@@ -1569,10 +1620,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="channelNameResolvingRouterType">
-					<xsd:all>   
-						<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
-	                	<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />                
-	                </xsd:all>
+					<xsd:all>
+						<xsd:element name="poller" type="innerPollerType"
+							minOccurs="0" maxOccurs="1" />
+						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					</xsd:all>
 					<xsd:attribute name="ref" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1586,12 +1638,12 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation>
-									<tool:expected-method type-ref="@ref"/>
+									<tool:expected-method type-ref="@ref" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="expression" type="xsd:string"/>
+					<xsd:attribute name="expression" type="xsd:string" />
 					<xsd:attribute name="channel-resolver" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -1615,10 +1667,12 @@
 	<xsd:complexType name="channelNameResolvingRouterType">
 		<xsd:complexContent>
 			<xsd:extension base="channelResolvingRouterType">
-				<xsd:attribute name="ignore-channel-name-resolution-failures" type="xsd:string">
+				<xsd:attribute name="ignore-channel-name-resolution-failures"
+					type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Specify whether a failure to resolve a channel name returned by this router should be ignored.
+							Specify whether a failure to resolve a channel name returned by this
+							router should be ignored.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1637,10 +1691,11 @@
 									type="org.springframework.integration.core.MessageChannel" />
 							</tool:annotation>
 							<xsd:documentation>
-	Reference to the default channel where Messages should be sent if channel
-	resolution fails to return any channels. If no default channel is
-	provided, the router will either drop the Message or throw an Exception
-	depending on the value of the "resolution-required" attribute.  
+								Reference to the default channel where Messages should be sent if channel
+								resolution fails to return any channels. If no default channel
+								is
+								provided, the router will either drop the Message or throw an Exception
+								depending on the value of the "resolution-required" attribute.
 							</xsd:documentation>
 						</xsd:appinfo>
 					</xsd:annotation>
@@ -1648,7 +1703,8 @@
 				<xsd:attribute name="resolution-required" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Specify whether this router should always be required to return at least one channel or name.
+							Specify whether this router should always be required to return at least
+							one channel or name.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1662,23 +1718,26 @@
 				<xsd:attribute name="timeout" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Specify the maximum amount of time in milliseconds to wait when sending Messages
-	to the target MessageChannels. By default the send will block indefinitely.
+							Specify the maximum amount of time in milliseconds to wait when sending
+							Messages
+							to the target MessageChannels. By default the send will block
+							indefinitely.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
 				<xsd:attribute name="ignore-send-failures" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Specify whether a failure to send to a single channel should be ignored.
-	Otherwise MessageDeliveryExceptions will be thrown.
+							Specify whether a failure to send to a single channel should be ignored.
+							Otherwise MessageDeliveryExceptions will be thrown.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="apply-sequence" type="xsd:string" >
+				<xsd:attribute name="apply-sequence" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
-	Specify whether sequence number and size headers should be added to each Message.
+							Specify whether sequence number and size headers should be added to each
+							Message.
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:attribute>
@@ -1686,7 +1745,8 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="splitter" type="expressionOrInnerEndpointDefinitionAware">
+	<xsd:element name="splitter"
+		type="expressionOrInnerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a Splitter.
@@ -1700,7 +1760,7 @@
 				<xsd:documentation>
 					Defines an aggregating message endpoint.
 				</xsd:documentation>
-			</xsd:annotation> 
+			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="innerEndpointDefinitionAware">
 					<xsd:attribute name="release-strategy" type="xsd:string">
@@ -1716,7 +1776,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation>
-									<tool:expected-method type-ref="@release-strategy"/>
+									<tool:expected-method type-ref="@release-strategy" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -1730,11 +1790,12 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="correlation-strategy-method" type="xsd:string">
+					<xsd:attribute name="correlation-strategy-method"
+						type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation>
-									<tool:expected-method type-ref="@correlation-strategy"/>
+									<tool:expected-method type-ref="@correlation-strategy" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -1752,9 +1813,13 @@
 					<xsd:attribute name="message-store" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								Reference to a MessageGroupStore for holding state in between message processing.  The default
-								is to use a volatile in-memory store, which means that unprocessed messages will be lost if the 
-								JVM exits.  To customize the expiry of incomplete message groups configure the message store.
+								Reference to a MessageGroupStore for holding
+								state in between message processing. The default
+								is to use a
+								volatile in-memory store, which means that unprocessed messages
+								will be lost if the
+								JVM exits. To customize the expiry of incomplete message groups
+								configure the message store.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -1764,7 +1829,8 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string" />
+					<xsd:attribute name="send-partial-result-on-expiry"
+						type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1774,7 +1840,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a resequencing message endpoint.
+					Defines a resequencing message endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -1788,11 +1854,37 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="correlation-strategy-method" type="xsd:string">
+					<xsd:attribute name="correlation-strategy-method"
+						type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation>
-									<tool:expected-method type-ref="@correlation-strategy"/>
+									<tool:expected-method type-ref="@correlation-strategy" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="release-strategy" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								The release strategy to use to decide when
+								messages can be processed.  Defaults to a SequenceSizeReleaseStrategy,
+								releasing all messages once the sequence is complete.
+								This is mutually exclusive with the release-partial-sequences
+								attribute (either or none can be specified , but not both).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.lang.Object" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="release-strategy-method" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation>
+									<tool:expected-method type-ref="@release-strategy" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -1810,9 +1902,13 @@
 					<xsd:attribute name="message-store" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-								Reference to a MessageGroupStore for holding state in between message processing.  The default
-								is to use a volatile in-memory store, which means that unprocessed messages will be lost if the 
-								JVM exits.  To customize the expiry of incomplete message groups configure the message store.
+								Reference to a MessageGroupStore for holding
+								state in between message processing. The default
+								is to use a
+								volatile in-memory store, which means that unprocessed messages
+								will be lost if the
+								JVM exits. To customize the expiry of incomplete message groups
+								configure the message store.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
@@ -1831,8 +1927,19 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="release-partial-sequences" type="xsd:string" />
-					<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string" />
+					<xsd:attribute name="release-partial-sequences" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Flag to say that partial sequences can be released (e.g. 1-4 of 10).
+								Defaults to true, so the sequence has to be complete before any messages
+								are released.
+								This is mutually exclusive with the release-strategy
+								attribute (either or none can be specified , but not both).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="send-partial-result-on-expiry"
+						type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1841,7 +1948,8 @@
 	<xsd:complexType name="channelInterceptorsType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a list of interceptors. Each element may be a ChannelInterceptor, ref, or inner-bean.
+				Defines a list of interceptors. Each element may be a ChannelInterceptor,
+				ref, or inner-bean.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -1870,7 +1978,7 @@
 	<xsd:complexType name="wireTapType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Wire Tap Channel Interceptor.
+				Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="channel" type="xsd:string" use="required">
@@ -1888,7 +1996,8 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="transactionalType">
-		<xsd:attribute name="transaction-manager" type="xsd:string" default="transactionManager">
+		<xsd:attribute name="transaction-manager" type="xsd:string"
+			default="transactionManager">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	The bean name of the PlatformTransactionManager to use.
@@ -1896,7 +2005,7 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type
-								type="org.springframework.transaction.PlatformTransactionManager" />
+							type="org.springframework.transaction.PlatformTransactionManager" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -1944,7 +2053,8 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="read-only" type="xsd:string" default="false">
+		<xsd:attribute name="read-only" type="xsd:string"
+			default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Is this transaction read-only?
@@ -1956,7 +2066,7 @@
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="innerEndpointDefinitionAware">
-				<xsd:attribute name="expression" type="xsd:string"/>
+				<xsd:attribute name="expression" type="xsd:string" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -1964,22 +2074,23 @@
 	<xsd:complexType name="innerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="handlerEndpointType">
-				<xsd:all>     			    
-                    <xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-                    <xsd:element name="poller" type="innerPollerType"
-						minOccurs="0" maxOccurs="1" />    
-                </xsd:all>
+				<xsd:all>
+					<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="poller" type="innerPollerType"
+						minOccurs="0" maxOccurs="1" />
+				</xsd:all>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:element name="publisher">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a MessagePublishingInterceptor which allows you to generate messages
-	as a by-product of method invocations on Spring configured components.
+				Defines a MessagePublishingInterceptor which allows you to generate
+				messages
+				as a by-product of method invocations on Spring configured components.
 			</xsd:documentation>
-		</xsd:annotation> 
+		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
@@ -1992,7 +2103,7 @@
 								<xsd:appinfo>
 									<tool:annotation kind="ref">
 										<tool:expected-type
-												type="org.springframework.integration.core.MessageChannel" />
+											type="org.springframework.integration.core.MessageChannel" />
 									</tool:annotation>
 								</xsd:appinfo>
 							</xsd:annotation>
@@ -2001,55 +2112,59 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="required" />
-			<xsd:attribute name="default-channel" type="xsd:string" default="nullChannel">
-				<xsd:annotation> 
+			<xsd:attribute name="default-channel" type="xsd:string"
+				default="nullChannel">
+				<xsd:annotation>
 					<xsd:documentation><![CDATA[
 	Specifies default-channel to publish messages
 					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type
-									type="org.springframework.integration.core.MessageChannel" />
+								type="org.springframework.integration.core.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="channel-interceptor-chain">
 		<xsd:annotation>
 			<xsd:documentation>
-	Allows you to define channel interceptors to be applied globally.
+				Allows you to define channel interceptors to be applied globally.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-	    	<xsd:sequence>
-	     		<xsd:choice minOccurs="0" maxOccurs="unbounded">
-	     			<xsd:element ref="beans:ref"/> 
-	     			<xsd:element ref="beans:bean"/> 
-	     		</xsd:choice>
-	    	</xsd:sequence>
-	    	<xsd:attribute name="channel-name-pattern" type="xsd:string" use="required">
+			<xsd:sequence>
+				<xsd:choice minOccurs="0" maxOccurs="unbounded">
+					<xsd:element ref="beans:ref" />
+					<xsd:element ref="beans:bean" />
+				</xsd:choice>
+			</xsd:sequence>
+			<xsd:attribute name="channel-name-pattern" type="xsd:string"
+				use="required">
 				<xsd:annotation>
 					<xsd:documentation>
-	[REQUIRED] Channel name(s) or patterns. To specify more than one channel use ',' 
-	(e.g., channel-name-pattern="input*, foo, bar")
+						[REQUIRED] Channel name(s) or patterns. To specify more than one channel use
+						',' 
+						(e.g., channel-name-pattern="input*, foo, bar")
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="order" type="xsd:integer" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
-	[OPTIONAL] Specifies the order in which these interceptors will be 
-	added to the existing channel interceptors (if any). 
-	Negative value (e.g., -2) will signify AFTER, but BEFORE the 
-	the chain that might specify -1 (if any). Positive value (e.g., 2) 
-	will signify BEFORE, but AFTER the chain that might specify 1 (if any).
+						[OPTIONAL] Specifies the order in which these interceptors will be
+						added to the existing channel interceptors (if any).
+						Negative value (e.g., -2) will signify AFTER, but BEFORE the
+						the chain that might specify -1 (if any). Positive value (e.g., 2)
+						will signify BEFORE, but AFTER the chain that might specify 1 (if
+						any).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-	  	</xsd:complexType>
+		</xsd:complexType>
 	</xsd:element>
 
 </xsd:schema>

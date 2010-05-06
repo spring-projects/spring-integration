@@ -32,11 +32,9 @@ import org.springframework.integration.store.MessageGroup;
  * 
  * @since 2.0
  */
-public class Resequencer implements ReleaseStrategy, MessageGroupProcessor {
+public class ResequencingMessageGroupProcessor implements MessageGroupProcessor {
 
 	private volatile Comparator<Message<?>> comparator = new SequenceNumberComparator();
-
-	private volatile boolean releasePartialSequences;
 
 	/**
 	 * A comparator to use to order messages before processing. The default is to order by sequence number.
@@ -47,27 +45,6 @@ public class Resequencer implements ReleaseStrategy, MessageGroupProcessor {
 		this.comparator = comparator;
 	}
 
-	/**
-	 * Flag that determines if partial sequences are allowed. If true then as soon as enough messages arrive that can be
-	 * ordered they will be released, provided they all have sequence numbers greater than those already released.
-	 * 
-	 * @param releasePartialSequences
-	 */
-	public void setReleasePartialSequences(boolean releasePartialSequences) {
-		this.releasePartialSequences = releasePartialSequences;
-	}
-
-	public boolean canRelease(MessageGroup messages) {
-		if (releasePartialSequences) {
-			List<Message<?>> sorted = new ArrayList<Message<?>>(messages.getUnmarked());
-			Collections.sort(sorted, comparator);
-			int head = sorted.get(sorted.size() - 1).getHeaders().getSequenceNumber();
-			int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
-			return tail == messages.getMarked().size() && head - tail == sorted.size();
-		}
-		return messages.isComplete();
-	}
-
 	public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
 		Collection<Message<?>> messages = group.getUnmarked();
 		if (messages.size() > 0) {
@@ -76,12 +53,6 @@ public class Resequencer implements ReleaseStrategy, MessageGroupProcessor {
 			for (Message<?> message : sorted) {
 				channelTemplate.send(message, outputChannel);
 			}
-		}
-	}
-
-	private static class SequenceNumberComparator implements Comparator<Message<?>> {
-		public int compare(Message<?> o1, Message<?> o2) {
-			return o1.getHeaders().getSequenceNumber().compareTo(o2.getHeaders().getSequenceNumber());
 		}
 	}
 

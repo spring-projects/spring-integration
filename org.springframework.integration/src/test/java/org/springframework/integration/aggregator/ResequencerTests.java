@@ -43,18 +43,17 @@ public class ResequencerTests {
 
 	private CorrelatingMessageHandler resequencer;
 
-	private Resequencer processor = new Resequencer();
+	private ResequencingMessageGroupProcessor processor = new ResequencingMessageGroupProcessor();
 
 	private MessageGroupStore store = new SimpleMessageStore();
 
 	@Before
 	public void configureResequencer() {
-		this.resequencer = new CorrelatingMessageHandler(processor, store, null, processor);
+		this.resequencer = new CorrelatingMessageHandler(processor, store, null, null);
 	}
 
 	@Test
 	public void testBasicResequencing() throws InterruptedException {
-		this.processor.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
@@ -75,7 +74,6 @@ public class ResequencerTests {
 
 	@Test
 	public void testBasicResequencingWithCustomComparator() throws InterruptedException {
-		this.processor.setReleasePartialSequences(false);
 		this.processor.setComparator(new Comparator<Message<?>>() {			
 			@SuppressWarnings("unchecked")
 			public int compare(Message<?> o1, Message<?> o2) {
@@ -102,7 +100,6 @@ public class ResequencerTests {
 
 	@Test
 	public void testResequencingWithDuplicateMessages() {
-		this.processor.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
@@ -124,12 +121,47 @@ public class ResequencerTests {
 
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
-		this.processor.setReleasePartialSequences(true);
+		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message2);
+		this.resequencer.handleMessage(message3);
+		Message<?> reply1 = replyChannel.receive(0);
+		Message<?> reply2 = replyChannel.receive(0);
+		Message<?> reply3 = replyChannel.receive(0);
+		// only messages 1 and 2 should have been received by now
+		assertNotNull(reply1);
+		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertNotNull(reply2);
+		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertNull(reply3);
+		// when sending the last message, the whole sequence must have been sent
+		this.resequencer.handleMessage(message4);
+		reply3 = replyChannel.receive(0);		Message<?> reply4 = replyChannel.receive(0);
+		assertNotNull(reply3);
+		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+		assertNotNull(reply4);
+		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
+	}
+
+	@Test
+	public void testResequencingWithPartialSequenceAndComparator() throws InterruptedException {
+		this.resequencer.setReleaseStrategy(new SequenceSizeReleaseStrategy(true));
+		this.processor.setComparator(new Comparator<Message<?>>() {			
+			@SuppressWarnings("unchecked")
+			public int compare(Message<?> o1, Message<?> o2) {
+				return ((Comparable)o1.getPayload()).compareTo(o2.getPayload());
+			}
+		});
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("456", "ABC", 4, 2, replyChannel);
+		Message<?> message2 = createMessage("123", "ABC", 4, 1, replyChannel);
+		Message<?> message3 = createMessage("XYZ", "ABC", 4, 4, replyChannel);
+		Message<?> message4 = createMessage("789", "ABC", 4, 3, replyChannel);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
 		this.resequencer.handleMessage(message3);
@@ -159,7 +191,6 @@ public class ResequencerTests {
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, null);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, null);
 		this.resequencer.setSendPartialResultOnExpiry(false);
-		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
@@ -187,7 +218,6 @@ public class ResequencerTests {
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, null);
 		Message<?> message2 = createMessage("456", "ABC", 5, 1, null);
 		this.resequencer.setSendPartialResultOnExpiry(false);
-		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);
 		this.resequencer.handleMessage(message2);
@@ -205,7 +235,6 @@ public class ResequencerTests {
 		QueueChannel discardChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 2, 4, null);
 		this.resequencer.setSendPartialResultOnExpiry(false);
-		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);
 		// this.resequencer.discardBarrier(this.resequencer.barriers.get("ABC"));
@@ -216,7 +245,6 @@ public class ResequencerTests {
 
 	@Test
 	public void testResequencingWithCompleteSequenceRelease() throws InterruptedException {
-		this.processor.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);

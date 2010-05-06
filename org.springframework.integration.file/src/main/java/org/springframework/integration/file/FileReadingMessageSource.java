@@ -19,7 +19,7 @@ package org.springframework.integration.file;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.aggregator.Resequencer;
+import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.file.locking.FileLocker;
@@ -43,7 +43,7 @@ import java.util.concurrent.PriorityBlockingQueue;
  * this. See {@link org.springframework.integration.file.CompositeFileListFilter} for a way to do this.
  * <p/>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in a {@link PriorityBlockingQueue}. This
- * does not provide the same guarantees as a {@link Resequencer}, but in cases where writing files and failure
+ * does not provide the same guarantees as a {@link ResequencingMessageGroupProcessor}, but in cases where writing files and failure
  * downstream are rare it might be sufficient.
  * <p/>
  * FileReadingMessageSource is fully thread-safe under concurrent <code>receive()</code> invocations and message

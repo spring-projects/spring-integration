@@ -30,7 +30,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
-import org.springframework.integration.aggregator.Resequencer;
+import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
+import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
@@ -88,7 +89,7 @@ public class ResequencerParserTests {
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				false, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				false, getPropertyValue(getPropertyValue(resequencer, "outputProcessor"), "releasePartialSequences"));
+				false, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
 	}
 
 	@Test
@@ -108,7 +109,7 @@ public class ResequencerParserTests {
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				false, getPropertyValue(getPropertyValue(resequencer, "outputProcessor"), "releasePartialSequences"));
+				false, getPropertyValue(getPropertyValue(resequencer, "releaseStrategy"), "releasePartialSequences"));
 	}
 
 	@Test
@@ -139,9 +140,20 @@ public class ResequencerParserTests {
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithComparator");
 		CorrelatingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
 				CorrelatingMessageHandler.class);
-		Resequencer resequencer = TestUtils.getPropertyValue(handler, "outputProcessor", Resequencer.class);
+		ResequencingMessageGroupProcessor resequencer = TestUtils.getPropertyValue(handler, "outputProcessor",
+				ResequencingMessageGroupProcessor.class);
 		Object comparator = getPropertyValue(resequencer, "comparator");
 		assertEquals("The Resequencer is not configured with a TestComparator", TestComparator.class, comparator
+				.getClass());
+	}
+
+	@Test
+	public void testReleaseStrategy() throws Exception {
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("resequencerWithReleaseStrategy");
+		CorrelatingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
+				CorrelatingMessageHandler.class);
+		Object releaseStrategy = getPropertyValue(handler, "releaseStrategy");
+		assertEquals("The Resequencer is not configured with an adapter", ReleaseStrategyAdapter.class, releaseStrategy
 				.getClass());
 	}
 

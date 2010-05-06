@@ -16,6 +16,12 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.integration.core.Message;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -28,7 +34,36 @@ import org.springframework.integration.store.MessageGroup;
  */
 public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 
+	private volatile Comparator<Message<?>> comparator = new SequenceNumberComparator();
+
+	private volatile boolean releasePartialSequences;
+	
+	public SequenceSizeReleaseStrategy() {
+		this(false);
+	}
+
+	public SequenceSizeReleaseStrategy(boolean releasePartialSequences) {
+		this.releasePartialSequences = releasePartialSequences;
+	}
+
+	/**
+	 * Flag that determines if partial sequences are allowed. If true then as soon as enough messages arrive that can be
+	 * ordered they will be released, provided they all have sequence numbers greater than those already released.
+	 * 
+	 * @param releasePartialSequences
+	 */
+	public void setReleasePartialSequences(boolean releasePartialSequences) {
+		this.releasePartialSequences = releasePartialSequences;
+	}
+
 	public boolean canRelease(MessageGroup messages) {
+		if (releasePartialSequences) {
+			List<Message<?>> sorted = new ArrayList<Message<?>>(messages.getUnmarked());
+			Collections.sort(sorted, comparator);
+			int head = sorted.get(sorted.size() - 1).getHeaders().getSequenceNumber();
+			int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
+			return tail == messages.getMarked().size() && head - tail == sorted.size();
+		}
 		return messages.isComplete();
 	}
 
