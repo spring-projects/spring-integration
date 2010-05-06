@@ -25,8 +25,14 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hamcrest.Description;
+import org.junit.Rule;
 import org.junit.Test;
-
+import org.junit.internal.matchers.TypeSafeMatcher;
+import org.junit.rules.ExpectedException;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
@@ -39,8 +45,14 @@ import org.springframework.integration.message.StringMessage;
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Oleg Zhurakousky
+ * @author Dave Syer
  */
 public class MethodInvokingMessageProcessorTests {
+
+	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);
+	
+	@Rule
+	public ExpectedException expected = ExpectedException.none();
 
 	@Test
 	public void testHandlerInheritanceMethodImplInSuper() {
@@ -247,6 +259,33 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
+	public void testProcessMessageBadExpression() throws Exception {
+		expected.expect(new ExceptionCauseMatcher(ConversionFailedException.class));
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("integerMethod", Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+	}
+
+	@Test
+	public void testProcessMessageRuntimeException() throws Exception {
+		expected.expect(new ExceptionCauseMatcher(UnsupportedOperationException.class));
+		TestErrorService service = new TestErrorService();
+		Method method = service.getClass().getMethod("error", String.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+	}
+
+	@Test
+	public void testProcessMessageCheckedException() throws Exception {
+		expected.expect(new ExceptionCauseMatcher(CheckedException.class));
+		TestErrorService service = new TestErrorService();
+		Method method = service.getClass().getMethod("checked", String.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
+		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+	}
+
+	@Test
 	public void messageAndHeaderWithAnnotatedMethod() throws Exception {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
@@ -289,7 +328,40 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals("true", bean.lastArg);
 	}
 	
+	
+	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
+		private Throwable cause;
+		private Class<? extends Exception> type;
+		public ExceptionCauseMatcher(Class<? extends Exception> type) {
+			this.type = type;
+		}
+		@Override
+		public boolean matchesSafely(Exception item) {
+			logger.debug(item);
+			cause = item.getCause();
+			assertNotNull("There is no cause for "+item, cause);
+			return type.isAssignableFrom(cause.getClass());
+		}
+		public void describeTo(Description description) {
+			description.appendText("cause to be ").appendValue(type).appendText("but was ").appendValue(cause);
+		}
+	}
 
+	@SuppressWarnings("unused")
+	private static class TestErrorService {
+		public String error(String input) {
+			throw new UnsupportedOperationException("Expected test exception");
+		}
+		public String checked(String input) throws Exception {
+			throw new CheckedException("Expected test exception");
+		}
+	}
+	
+	public static final class CheckedException extends Exception {
+		public CheckedException(String string) {
+			super(string);
+		}
+	}
 
 	@SuppressWarnings("unused")
 	private static class TestBean {

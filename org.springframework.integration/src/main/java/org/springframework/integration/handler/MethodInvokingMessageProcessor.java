@@ -31,14 +31,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -156,7 +154,7 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 	}
 
 	public Object processMessage(Message<?> message) {
-		EvaluationException evaluationException = null;
+		Throwable evaluationException = null;
 		List<HandlerMethod> candidates = this.findHandlerMethodsForMessage(message);
 		for (HandlerMethod candidate : candidates) {
 			try {
@@ -169,16 +167,12 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 				}
 				return result;
 			}
-			catch (EvaluationException e) {
+			catch (MessageHandlingException e) {
 				if (evaluationException == null) {
 					// keep the first exception
-					evaluationException = e;
+					evaluationException = e.getCause();
 				}
 			}
-		}
-		if (evaluationException == null) {
-			throw new MessageHandlingException(message, "Failed to find a suitable Message-handling " +
-					"method on target of type [" + targetObject.getClass() + "].");
 		}
 		throw new MessageHandlingException(message, "Failed to process Message.", evaluationException);
 	}
