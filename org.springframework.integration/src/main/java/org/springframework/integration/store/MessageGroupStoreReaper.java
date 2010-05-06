@@ -22,8 +22,8 @@ import org.springframework.util.Assert;
 
 /**
  * Convenient configurable component to allow explicit timed expiry of {@link MessageGroup} instances in a
- * {@link MessageGroupStore}. This component provides a no-args {@link #run()} method that is useful for remote or
- * timed execution and a {@link #destroy()} method that can optionally be called on shutdown.
+ * {@link MessageGroupStore}. This component provides a no-args {@link #run()} method that is useful for remote or timed
+ * execution and a {@link #destroy()} method that can optionally be called on shutdown.
  * 
  * @author Dave Syer
  * 
@@ -54,6 +54,9 @@ public class MessageGroupStoreReaper implements Runnable, DisposableBean, Initia
 	}
 
 	/**
+	 * Timeout in milliseconds (default -1). If negative then no groups ever time out. If greater than zero then all
+	 * groups older than that value are expired when this component is {@link #run()}.
+	 * 
 	 * @param timeout the timeout to set
 	 */
 	public void setTimeout(long timeout) {
