@@ -41,17 +41,17 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 
 	/**
 	 * Convenient injection point for expiry callbacks in the message store. Each of the callbacks provided will simply
-	 * be registered with the store using {@link #registerExpiryCallback(MessageGroupCallback)}.
+	 * be registered with the store using {@link #registerMessageGroupExpiryCallback(MessageGroupCallback)}.
 	 * 
 	 * @param expiryCallbacks the expiry callbacks to add
 	 */
 	public void setExpiryCallbacks(Collection<MessageGroupCallback> expiryCallbacks) {
 		for (MessageGroupCallback callback : expiryCallbacks) {
-			registerExpiryCallback(callback);
+			registerMessageGroupExpiryCallback(callback);
 		}
 	}
 
-	public void registerExpiryCallback(MessageGroupCallback callback) {
+	public void registerMessageGroupExpiryCallback(MessageGroupCallback callback) {
 		expiryCallbacks.add(callback);
 	}
 

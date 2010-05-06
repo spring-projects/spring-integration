@@ -81,7 +81,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Assert.notNull(store);
 		Assert.notNull(processor);
 		this.messageStore = store;
-		store.registerExpiryCallback(new MessageGroupCallback() {
+		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroup group) {
 				forceComplete(group);
 			}

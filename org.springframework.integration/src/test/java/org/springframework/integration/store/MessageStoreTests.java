@@ -50,7 +50,7 @@ public class MessageStoreTests {
 
 		TestMessageStore store = new TestMessageStore();
 		final List<String> list = new ArrayList<String>();
-		store.registerExpiryCallback(new MessageGroupCallback() {
+		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroup group) {
 				list.add(group.getOne().getPayload().toString());
 			}

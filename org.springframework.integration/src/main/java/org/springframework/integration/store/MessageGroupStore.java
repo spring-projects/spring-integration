@@ -63,7 +63,7 @@ public interface MessageGroupStore {
 	 * 
 	 * @param callback a callback to execute when a message group is cleaned up
 	 */
-	void registerExpiryCallback(MessageGroupCallback callback);
+	void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
 
 	/**
 	 * Extract all expired groups (whose timestamp is older than the current time less the threshold provided) and call
@@ -74,7 +74,7 @@ public interface MessageGroupStore {
 	 * @param timeout the timeout threshold to use
 	 * @return the number of message groups expired
 	 * 
-	 * @see #registerExpiryCallback(MessageGroupCallback)
+	 * @see #registerMessageGroupExpiryCallback(MessageGroupCallback)
 	 */
 	int expireMessageGroups(long timeout);
 
