@@ -1749,6 +1749,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="message-store" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a MessageGroupStore for holding state in between message processing.  The default
+								is to use a volatile in-memory store, which means that unprocessed messages will be lost if the 
+								JVM exits.  To customize the expiry of incomplete message groups configure the message store.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.store.MessageGroupStore" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -1788,6 +1803,21 @@
 								<tool:annotation kind="ref">
 									<tool:expected-type
 										type="org.springframework.integration.core.MessageChannel" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="message-store" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a MessageGroupStore for holding state in between message processing.  The default
+								is to use a volatile in-memory store, which means that unprocessed messages will be lost if the 
+								JVM exits.  To customize the expiry of incomplete message groups configure the message store.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.store.MessageGroupStore" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

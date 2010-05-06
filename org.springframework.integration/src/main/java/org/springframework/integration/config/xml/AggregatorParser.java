@@ -42,6 +42,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
     private static final String CORRELATION_STRATEGY_METHOD_ATTRIBUTE = "correlation-strategy-method";
 
+    private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
+
     private static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
     private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
@@ -86,6 +88,8 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
             processorBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
         }
 
+        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
+                MESSAGE_STORE_ATTRIBUTE);
         IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,
                 DISCARD_CHANNEL_ATTRIBUTE);
         IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,

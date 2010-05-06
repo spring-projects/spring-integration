@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
  * Parser for the &lt;resequencer&gt; element.
  * 
  * @author Marius Bogoevici
+ * @author Dave Syer
  */
 public class ResequencerParser extends AbstractConsumerEndpointParser {
 
@@ -60,6 +61,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		// Release strategy
 		builder.addConstructorArgReference(processorRef);
 
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-store");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "discard-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-partial-result-on-timeout");

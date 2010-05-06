@@ -58,7 +58,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	public static final long DEFAULT_TIMEOUT = 60000L;
 
-	private final MessageGroupStore store;
+	private MessageGroupStore messageStore;
 
 	private final MessageGroupProcessor outputProcessor;
 
@@ -80,7 +80,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
 		Assert.notNull(store);
 		Assert.notNull(processor);
-		this.store = store;
+		this.messageStore = store;
 		store.registerExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroup group) {
 				forceComplete(group);
@@ -99,6 +99,10 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	public CorrelatingMessageHandler(MessageGroupProcessor processor) {
 		this(processor, new SimpleMessageStore(0), null, null);
+	}
+	
+	public void setMessageStore(MessageGroupStore messageStore) {
+		this.messageStore = messageStore;
 	}
 
 	public void setCorrelationStrategy(CorrelationStrategy correlationStrategy) {
@@ -149,7 +153,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 
-			MessageGroup group = store.getMessageGroup(correlationKey);
+			MessageGroup group = messageStore.getMessageGroup(correlationKey);
 
 			if (group.add(message)) {
 
@@ -238,17 +242,17 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private void mark(MessageGroup group) {
-		store.markMessageGroup(group);
+		messageStore.markMessageGroup(group);
 	}
 
 	private void remove(MessageGroup group) {
 		Object correlationKey = group.getCorrelationKey();
-		store.removeMessageGroup(correlationKey);
+		messageStore.removeMessageGroup(correlationKey);
 		locks.remove(correlationKey);
 	}
 
 	private void store(Object correlationKey, Message<?> message) {
-		store.addMessageToGroup(correlationKey, message);
+		messageStore.addMessageToGroup(correlationKey, message);
 	}
 
 }
