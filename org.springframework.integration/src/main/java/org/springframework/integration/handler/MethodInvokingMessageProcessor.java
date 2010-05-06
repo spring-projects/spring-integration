@@ -161,8 +161,6 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 				Expression expression = candidate.getExpression();
 				Object result = this.evaluateExpression(expression, message);
 				if (this.requiresReply) {
-					// TODO: remove this if SpEL is modified to throw an EvaluationException instead
-					// e.g. we can invoke getValue(this.evaluationContext, message, candidate.getReturnType);
 					Assert.notNull(result, "Expression evaluation result was null, but this processor requires a reply.");
 				}
 				return result;
