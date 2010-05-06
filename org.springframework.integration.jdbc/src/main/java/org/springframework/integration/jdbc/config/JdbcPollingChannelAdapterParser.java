@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jdbc.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -25,6 +23,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for {@link org.springframework.integration.jdbc.JdbcPollingChannelAdapter}.
@@ -48,7 +47,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition("org.springframework.integration.jdbc.JdbcPollingChannelAdapter");
 		String dataSourceRef = element.getAttribute("data-source");
-		String simpleJdbcOperationsRef = element.getAttribute("simple-jdbc-operations");
+		String simpleJdbcOperationsRef = element.getAttribute("jdbc-operations");
 		boolean refToDataSourceSet = StringUtils.hasText(dataSourceRef);
 		boolean refToSimpleJdbcOperaitonsSet = StringUtils.hasText(simpleJdbcOperationsRef);
 		if ((refToDataSourceSet && refToSimpleJdbcOperaitonsSet)

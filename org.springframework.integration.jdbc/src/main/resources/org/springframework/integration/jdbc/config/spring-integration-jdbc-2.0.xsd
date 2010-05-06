@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/jdbc"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	targetNamespace="http://www.springframework.org/schema/integration/jdbc"
@@ -14,21 +13,102 @@
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
-	Defines the configuration elements for Spring Integration's JDBC adapters.
+	Defines the configuration elements for Spring Integration's JDBC components.
 		]]></xsd:documentation>
 	</xsd:annotation>
+
+	<xsd:element name="message-store">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a MessageStore (and MessageGroupStore)
+				backed by a database.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="data-source" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to a data source to use to access
+								the database. Either this or the simple-jdbc-operations must be
+								specified (but not both).
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="javax.sql.DataSource" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="jdbc-operations" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a JdbcOperations. Either
+									this or the data-source must be
+									specified (but not both).
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.jdbc.core.simple.SimpleJdbcOperations" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="region" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Unique string to use as a partition for the
+								data in this store, so that
+								multiple instances can share the same
+								database tables. The default
+								is "DEFAULT".
+					</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="table-prefix" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Prefix for the table names in the database
+								(e.g. so that a schema can be specified, or to avoid a clash
+								with
+								other tables). The default is "INT_".
+					</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="lob-handler" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+							Reference to a lob handler (optional).  Only override if using Oracle and
+							the database type is not being detected for some reason.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.jdbc.support.lob.LobHandler" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound Channel Adapter for polling a database.
+				Defines an inbound Channel Adapter for polling a
+				database.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0"
+					maxOccurs="1" />
 			</xsd:sequence>
-			<xsd:attribute name="simple-jdbc-operations" type="xsd:string">
+			<xsd:attribute name="jdbc-operations" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
@@ -52,14 +132,14 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.jdbc.core.RowMapper" />
+							<tool:expected-type type="org.springframework.jdbc.core.RowMapper" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
 			<xsd:attribute name="update" type="xsd:string" />
-			<xsd:attribute name="update-per-row" type="xsd:boolean" default="false" />
+			<xsd:attribute name="update-per-row" type="xsd:boolean"
+				default="false" />
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>

@@ -22,12 +22,14 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
  * Namespace handler for the integration JDBC schema.
  * 
  * @author Jonas Partner
+ * @author Dave Syer
  * @since 2.0
  */
 public class JdbcNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new JdbcPollingChannelAdapterParser());
+		registerBeanDefinitionParser("message-store", new JdbcMessageStoreParser());
 	}
 
 }

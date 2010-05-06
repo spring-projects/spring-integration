@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcOperations;
@@ -66,14 +67,14 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	}
 
 	/**
-	 * Constructor taking {@link SimpleJdbcOperations} instance to use for query
+	 * Constructor taking {@link JdbcOperations} instance to use for query
 	 * execution and the select query to execute to retrieve new rows.
 	 * 
 	 * @param jdbcOperations instance to use for query execution
 	 * @param selectQuery query to execute
 	 */
-	public JdbcPollingChannelAdapter(SimpleJdbcOperations jdbcOperations, String selectQuery) {
-		this.jdbcOperations = jdbcOperations;
+	public JdbcPollingChannelAdapter(JdbcOperations jdbcOperations, String selectQuery) {
+		this.jdbcOperations = new SimpleJdbcTemplate(jdbcOperations);
 		this.selectQuery = selectQuery;
 	}
 

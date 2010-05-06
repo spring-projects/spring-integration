@@ -11,7 +11,7 @@
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
 	<inbound-channel-adapter query="select * from item where status=2" channel="target" 
-		data-source="dataSource" update="update item set status =10 where id in (:idList)" />
+		data-source="dataSource" update="update item set status=10 where id in (:idList)" />
 
 	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />
 

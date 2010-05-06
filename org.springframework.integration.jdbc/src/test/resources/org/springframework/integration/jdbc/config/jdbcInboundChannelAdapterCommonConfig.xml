@@ -12,7 +12,7 @@
 		<si:queue />
 	</si:channel>
 
-	<jdbc:embedded-database type="DERBY" id="dataSource">
+	<jdbc:embedded-database type="HSQL" id="dataSource">
 		<jdbc:script location="org/springframework/integration/jdbc/config/inboundSchema.sql" />
 	</jdbc:embedded-database>
 	
