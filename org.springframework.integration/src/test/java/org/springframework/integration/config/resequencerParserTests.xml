@@ -25,6 +25,8 @@
 
 	<channel id="inputChannel4"/>
 
+	<channel id="inputChannel5"/>
+
 	<resequencer id="completelyDefinedResequencer" 
 		input-channel="inputChannel2"
 		output-channel="outputChannel" 
@@ -41,6 +43,13 @@
 		input-channel="inputChannel4"
 		correlation-strategy="testCorrelationStrategyPojo"
 		correlation-strategy-method="foo"/>
+
+	<resequencer id="resequencerWithComparator"
+		input-channel="inputChannel5"
+		comparator="testComparator"/>
+
+	<beans:bean id="testComparator"
+		class="org.springframework.integration.config.ResequencerParserTests$TestComparator"/>
 
 	<beans:bean id="testCorrelationStrategy"
 		class="org.springframework.integration.config.ResequencerParserTests$TestCorrelationStrategy"/>

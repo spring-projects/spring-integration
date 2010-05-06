@@ -1792,6 +1792,15 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="comparator" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.util.Comparator" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="release-partial-sequences" type="xsd:string" />
 					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string" />
 				</xsd:extension>

@@ -37,6 +37,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.Resequencer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(processorBuilder, element, "release-partial-sequences");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(processorBuilder, element, "comparator");
 
 		String processorRef = BeanDefinitionReaderUtils.registerWithGeneratedName(processorBuilder
 				.getBeanDefinition(), parserContext.getRegistry());
