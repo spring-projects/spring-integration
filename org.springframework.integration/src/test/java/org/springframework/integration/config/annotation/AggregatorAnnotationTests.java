@@ -58,7 +58,7 @@ public class AggregatorAnnotationTests {
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
 		assertEquals(CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT,
 				getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
-		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnTimeout"));
+		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class AggregatorAnnotationTests {
 		assertEquals(channelResolver.resolveChannelName("discardChannel"),
 				getPropertyValue(aggregator, "discardChannel"));
 		assertEquals(98765432l, getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
-		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnTimeout"));
+		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 
 	@Test

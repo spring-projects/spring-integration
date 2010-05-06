@@ -59,8 +59,8 @@ public @interface Aggregator {
 	long sendTimeout() default CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT;
 
 	/**
-	 * indicates whether to send an incomplete aggregate on timeout
+	 * indicates whether to send an incomplete aggregate on expiry of the message group
 	 */
-	boolean sendPartialResultsOnTimeout() default false;
+	boolean sendPartialResultsOnExpiry() default false;
 
 }

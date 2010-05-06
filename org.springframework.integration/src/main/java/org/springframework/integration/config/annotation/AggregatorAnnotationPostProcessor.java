@@ -65,7 +65,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 			handler.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
 		}
 		handler.setSendTimeout(annotation.sendTimeout());
-		handler.setSendPartialResultOnTimeout(annotation.sendPartialResultsOnTimeout());
+		handler.setSendPartialResultOnExpiry(annotation.sendPartialResultsOnExpiry());
 		handler.setBeanFactory(this.beanFactory);
 		handler.afterPropertiesSet();
 		return handler;

@@ -129,7 +129,7 @@ public class ConcurrentAggregatorTests {
 	@Test
 	public void testShouldSendPartialResultOnTimeoutTrue()
 			throws InterruptedException {
-		this.aggregator.setSendPartialResultOnTimeout(true);
+		this.aggregator.setSendPartialResultOnExpiry(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage(3, "ABC", 3, 1, replyChannel, null);
 		Message<?> message2 = createMessage(5, "ABC", 3, 2, replyChannel, null);

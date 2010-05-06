@@ -86,7 +86,7 @@ public class ResequencerParserTests {
 				resequencer, "channelTemplate.sendTimeout"));
 		assertEquals(
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
-				false, getPropertyValue(resequencer, "sendPartialResultOnTimeout"));
+				false, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
 				false, getPropertyValue(getPropertyValue(resequencer, "outputProcessor"), "releasePartialSequences"));
 	}
@@ -106,7 +106,7 @@ public class ResequencerParserTests {
 				getPropertyValue(resequencer, "channelTemplate.sendTimeout"));
 		assertEquals(
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
-				true, getPropertyValue(resequencer, "sendPartialResultOnTimeout"));
+				true, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
 		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
 				false, getPropertyValue(getPropertyValue(resequencer, "outputProcessor"), "releasePartialSequences"));
 	}

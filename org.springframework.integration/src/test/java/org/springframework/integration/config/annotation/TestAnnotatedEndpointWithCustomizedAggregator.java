@@ -40,7 +40,7 @@ public class TestAnnotatedEndpointWithCustomizedAggregator {
 			inputChannel = "inputChannel",
 			outputChannel = "outputChannel",
 			discardChannel = "discardChannel", 
-			sendPartialResultsOnTimeout = true, 
+			sendPartialResultsOnExpiry = true, 
 			sendTimeout = 98765432)
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);

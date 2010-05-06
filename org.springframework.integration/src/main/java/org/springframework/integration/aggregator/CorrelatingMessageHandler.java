@@ -72,7 +72,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private volatile MessageChannel discardChannel = new NullChannel();
 
-	private boolean sendPartialResultOnTimeout = false;
+	private boolean sendPartialResultOnExpiry = false;
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
 
@@ -132,8 +132,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
 
-	public void setSendPartialResultOnTimeout(boolean sendPartialResultOnTimeout) {
-		this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
+	public void setSendPartialResultOnExpiry(boolean sendPartialResultOnExpiry) {
+		this.sendPartialResultOnExpiry = sendPartialResultOnExpiry;
 	}
 
 	@Override
@@ -209,7 +209,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 					remove(group);
 				}
 				else {
-					if (sendPartialResultOnTimeout) {
+					if (sendPartialResultOnExpiry) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Processing partially complete messages for key [" + correlationKey + "] to: "
 									+ outputChannel);

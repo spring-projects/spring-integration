@@ -50,7 +50,7 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
     private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
 
-    private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-timeout";
+    private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-expiry";
 
     private static final String RELEASE_STRATEGY_PROPERTY = "releaseStrategy";
 

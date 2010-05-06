@@ -1764,7 +1764,7 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string" />
+					<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -1832,7 +1832,7 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="release-partial-sequences" type="xsd:string" />
-					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string" />
+					<xsd:attribute name="send-partial-result-on-expiry" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

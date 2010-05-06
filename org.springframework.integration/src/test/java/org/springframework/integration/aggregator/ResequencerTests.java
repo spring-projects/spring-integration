@@ -158,7 +158,7 @@ public class ResequencerTests {
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, null);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, null);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, null);
-		this.resequencer.setSendPartialResultOnTimeout(false);
+		this.resequencer.setSendPartialResultOnExpiry(false);
 		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);
@@ -186,7 +186,7 @@ public class ResequencerTests {
 		QueueChannel discardChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, null);
 		Message<?> message2 = createMessage("456", "ABC", 5, 1, null);
-		this.resequencer.setSendPartialResultOnTimeout(false);
+		this.resequencer.setSendPartialResultOnExpiry(false);
 		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);
@@ -204,7 +204,7 @@ public class ResequencerTests {
 	public void testResequencingWithWrongSequenceSizeAndNumber() throws InterruptedException {
 		QueueChannel discardChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 2, 4, null);
-		this.resequencer.setSendPartialResultOnTimeout(false);
+		this.resequencer.setSendPartialResultOnExpiry(false);
 		this.processor.setReleasePartialSequences(false);
 		this.resequencer.setDiscardChannel(discardChannel);
 		this.resequencer.handleMessage(message1);

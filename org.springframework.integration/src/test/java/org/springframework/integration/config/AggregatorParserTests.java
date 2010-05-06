@@ -100,7 +100,7 @@ public class AggregatorParserTests {
 				86420000l, TestUtils.getPropertyValue(consumer, "channelTemplate.sendTimeout"));
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
-				true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
+				true, accessor.getPropertyValue("sendPartialResultOnExpiry"));
 	}
 
 	@Test
