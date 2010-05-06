@@ -14,10 +14,7 @@
 
     <para>Technically, the Aggregator is more complex than a Splitter, because
     it is required to maintain state (the Messages to-be-aggregated), to
-    decide when the complete group of Messages is available, and to timeout if
-    necessary. Furthermore, in case of a timeout, the Aggregator needs to know
-    whether to send the partial results or to discard them to a separate
-    channel.</para>
+    decide when the complete group of Messages is available.</para>
   </section>
 
   <section id="aggregator-functionality">
@@ -28,12 +25,7 @@
     Aggregator will create a single message by processing the whole group, and
     will send that aggregated message as output.</para>
 
-    <para>As messages might arrive with a certain delay (or certain messages
-    from the group might not arrive at all), the Aggregator can specify a
-    timeout (counted from the moment when the first message in the group has
-    arrived), and whether, in the case of a timeout, the group should be
-    discarded, or the Aggregator should merely attempt to create a single
-    message out of what has arrived so far. An important aspect of
+    <para>An important aspect of
     implementing an Aggregator is providing the logic that has to be executed
     when the aggregation (creation of a single message out of many) takes
     place.</para>
@@ -45,9 +37,9 @@
     specifying how the messages should be grouped together, by using a
     CorrelationStrategy (see below).</para>
 
-    <para>An important concern with respect to the timeout is, what happens if
+    <para>Another important concern is, what happens if
     late messages arrive after the aggregation has taken place? In this case,
-    a configuration option allows the user to decide whether they should be
+    the user needs to be able to decide whether they should be
     discarded or not.</para>
   </section>
 
@@ -58,13 +50,14 @@
 
     <itemizedlist>
       <listitem>
-        <para>The base class <code>AbstractMessageAggregator </code>and its
-        subclass <code>MethodInvokingMessageAggregator</code></para>
+        <para>The interface <code>MessageGroupProcessor</code> and related 
+        base class <code>AbstractAggregatingMessageGroupProcessor</code> and its
+        subclass <code>MethodInvokingAggregatingMessageGroupProcessor</code></para>
       </listitem>
 
       <listitem>
-        <para>The <code>CompletionStrategy</code> interface and its default
-        implementation <code>SequenceSizeCompletionStrategy</code></para>
+        <para>The <code>ReleaseStrategy</code> interface and its default
+        implementation <code>SequenceSizeReleaseStrategy</code></para>
       </listitem>
 
       <listitem>
@@ -74,11 +67,11 @@
     </itemizedlist>
 
     <section>
-      <title>AbstractMessageAggregator</title>
+      <title>CorrelatingMessageHandler</title>
 
-      <para>The <code>AbstractMessageAggregator</code> is a
+      <para>The <code>CorrelatingMessageHandler</code> is a
       <code>MessageHandler</code> implementation, encapsulating the common
-      functionalities of an Aggregator, which are:
+      functionalities of an Aggregator (and other correlating use cases), which are:
       <itemizedlist>
         <listitem>
           <para>correlating messages into a group to be aggregated</para>
@@ -93,34 +86,35 @@
           <para>processing the completed group into a single aggregated message</para>
         </listitem>
         <listitem>
-          <para>recognizing and responding to a timed-out completion attempt</para>
+          <para>recognizing and responding to an expired group</para>
         </listitem>
       </itemizedlist>
       The responsibility of deciding how the messages should be grouped together
       is delegated to a <code>CorrelationStrategy</code> instance. The responsibility
-      of deciding whether the message group is complete is delegated to a
-      <code>CompletionStrategy</code> instance.</para>
+      of deciding whether the message group can be released is delegated to a
+      <code>ReleaseStrategy</code> instance.</para>
 
       <para>Here is a brief highlight of the base
-      <code>AbstractMessageAggregator</code> (the responsibility of
+      <code>AbstractAggregatingMessageGroupProcessor</code> (the responsibility of
       implementing the aggregateMessages method is left to the
       developer):</para>
 
-      <programlisting language="java">public abstract class AbstractMessageAggregator 
-              extends AbstractMessageBarrierHandler {
+      <programlisting language="java">public abstract class AbstractAggregatingMessageGroupProcessor
+              implements MessageGroupProcessor {
 
-  private volatile CompletionStrategy completionStrategy
-                            = new SequenceSizeCompletionStrategy();
+    protected Map&lt;String, Object&gt; aggregateHeaders(MessageGroup group) {
   ....
+    }
 
-  protected abstract Message&lt;?&gt; aggregateMessages(List&lt;Message&lt;?&gt;&gt; messages);
+  	protected abstract Object aggregatePayloads(MessageGroup group);
 
 }</programlisting>
-      It also inherits the following default CorrelationStrategy:
+      The CorrelationStrategy is owned by the <code>CorrelatingMessageHandler</code> and it has
+      a default value based on the correlation ID message header:
       <programlisting language="java">private volatile CorrelationStrategy correlationStrategy =
           new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);</programlisting>
 
-      <para>When appropriate, the simplest option is the <code>DefaultMessageAggregator</code>.
+      <para>When appropriate, the simplest option is the <code>DefaultAggregatingMessageGroupProcessor</code>.
       It creates a single Message whose payload is a List of the payloads received
       for a given group. It uses the default <code>CorrelationStrategy</code> and
       <code>CompletionStrategy</code> as shown above. This works well for simple
@@ -138,8 +132,8 @@
       </note>
 	
       <para>When implementing a specific aggregator object for an application,
-      a developer can extend <code>AbstractMessageAggregator </code>and
-      implement the <code>aggregateMessages</code> method. However, there are
+      a developer can extend <code>AbstractAggregatingMessageGroupProcessor</code> and
+      implement the <code>aggregatePayloads</code> method. However, there are
       better suited (which reads, less coupled to the API) solutions for
       implementing the aggregation logic, which can be configured easily
       either through XML or through annotations.</para>
@@ -180,14 +174,14 @@
     </section>
 
     <section>
-      <title>CompletionStrategy</title>
+      <title>ReleaseStrategy</title>
 
-      <para>The <code>CompletionStrategy</code> interface is defined as
+      <para>The <code>ReleaseStrategy</code> interface is defined as
       follows:</para>
 
-      <programlisting language="java">public interface CompletionStrategy {
+      <programlisting language="java">public interface ReleaseStrategy {
 
-  boolean isComplete(List&lt;Message&lt;?&gt;&gt; messages);
+  boolean canRelease(MessageGroup messages);
 
 }</programlisting>
 
@@ -212,17 +206,27 @@
         </listitem>
 
         <listitem>
-          <para>the method must return true if the message group is complete
-          and ready for aggregation, and false otherwise.</para>
+          <para>the method must return true if the message group is ready
+          for aggregation, and false otherwise.</para>
         </listitem>
       </itemizedlist>
 
+      <para>When the group is released for aggregation, all its
+      unmarked messages are processed and then marked so they will not
+      be processed again.  If the group is also complete (i.e. if all
+      messages from a sequence have arrived or if there is no sequence
+      defined) then the group is removed from the message store.
+      Partial sequences can be released, in which case the next time
+      the <code>ReleaseStrategy</code> is called it will be presented
+      with a group containing marked messages (already processed) and
+      unmarked messages (a potential new partial sequence)</para>
+
       <para>Spring Integration provides an out-of-the box implementation for
-      <code>CompletionStrategy</code>, the
-      <code>SequenceSizeCompletionStrategy</code>. This implementation uses
+      <code>ReleaseStrategy</code>, the
+      <code>SequenceSizerReleaseStrategy</code>. This implementation uses
       the SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for
       deciding when a message group is complete and ready to be
-      aggregated. As shown above, it is also the default strategy.</para>
+      aggregated.  As shown above, it is also the default strategy.</para>
     </section>
 
     <section>
@@ -274,23 +278,21 @@
     discard-channel="discardChannel"  <co id="aggxml4" />
     ref="aggregatorBean" <co id="aggxml5" />
     method="add" <co id="aggxml6" />
-    completion-strategy="completionStrategyBean"  <co id="aggxml7" />
-    completion-strategy-method="checkCompleteness" <co id="aggxml8" />
+    release-strategy="releaseStrategyBean"  <co id="aggxml7" />
+    release-strategy-method="canRelease" <co id="aggxml8" />
     correlation-strategy="correlationStrategyBean" <co
         id="aggxmlCorrelationStrategy" />
     correlation-strategy-method="groupNumbersByLastDigit" <co
         id="aggxmlCorrelationStrategyMethod" />
-    timeout="42" <co id="aggxml9" />
-    send-partial-result-on-timeout="true" <co id="aggxml10" />
-    reaper-interval="135" <co id="aggxml11" />
-    tracked-correlation-id-capacity="99" <co id="aggxml12" />
-    send-timeout="86420000" <co id="aggxml13" /> /&gt; 
+    message-store="messageStore" <co id="aggxml11-co" linkends="aggxml11"/>
+    send-partial-result-on-expiry="true" <co id="aggxml9" />
+    send-timeout="86420000" <co id="aggxml10" /> /&gt; 
 
 &lt;channel id="outputChannel"/&gt;
 
 &lt;bean id="aggregatorBean" class="sample.PojoAggregator"/&gt;
 
-&lt;bean id="completionStrategyBean" class="sample.PojoCompletionStrategy"/&gt;
+&lt;bean id="releaseStrategyBean" class="sample.PojoReleaseStrategy"/&gt;
 
 &lt;bean id="correlationStrategyBean" class="sample.PojoCorrelationStrategy"/&gt;</programlisting>
 
@@ -341,7 +343,7 @@
 
       <callout arearefs="aggxml8">
         <para>A method defined on the bean referenced by
-        <code>completion-strategy</code>, <emphasis>that implements the
+        <code>release-strategy</code>, <emphasis>that implements the
         completion decision algorithm.</emphasis> <emphasis>Optional, with
         restrictions (requires <code>completion-strategy</code> to be
         present).</emphasis></para>
@@ -364,34 +366,21 @@
         present).</emphasis></para>
       </callout>
 
-      <callout arearefs="aggxml9">
-        <para>The timeout (in milliseconds) for aggregating messages (counted
-        from the arrival of the first message). <emphasis>Optional</emphasis>.
-        </para>
-      </callout>
+        <callout arearefs="aggxml11-co" id="aggxml11">
+          <para>A reference to a <code>MessageGroupStore</code> that
+          can be used to store groups of messages under their
+          correlation key until they are
+          complete. <emphasis>Optional</emphasis> with default a
+          volatile in-memory store.</para>
+        </callout>
 
-      <callout arch="" arearefs="aggxml10">
-        <para>Whether upon the expiration of the timeout, the aggregator shall
+      <callout arch="" arearefs="aggxml9">
+        <para>Whether upon the expiration of the message group, the aggregator will
         try to aggregate the messages that have already arrived. <emphasis>Optional
         (false by default)</emphasis>.</para>
       </callout>
 
-      <callout arearefs="aggxml11" condition="">
-        <para>The interval (in milliseconds) at which a reaper task is
-        executed, checking if there are any timed out groups.
-        <emphasis>Optional</emphasis>.</para>
-      </callout>
-
-      <callout arearefs="aggxml12">
-        <para>The capacity of the correlation id tracker. Remembers the
-        already processed correlation ids, preventing the formation of new
-        groups for messages that arrive after their group has been already
-        processed (aggregated or discarded). Set this value to 0 if you
-        do not want the messages to be discarded in such a scenario.
-        <emphasis>Optional</emphasis>.</para>
-      </callout>
-
-      <callout arearefs="aggxml13">
+      <callout arearefs="aggxml10">
         <para>The timeout for sending the aggregated messages to the
         output or reply channel. <emphasis>Optional</emphasis>.</para>
       </callout>
@@ -432,9 +421,9 @@
     <para>An implementation of the completion strategy bean for the example
     above may be as follows:</para>
 
-    <para><programlisting language="java">public class PojoCompletionStrategy {
+    <para><programlisting language="java">public class PojoReleaseStrategy {
 ...
-  public boolean checkCompleteness(List&lt;Long&gt; numbers) {
+  public boolean canRelease(List&lt;Long&gt; numbers) {
     int sum = 0;
     for (long number: numbers) {
       sum += number;
@@ -444,7 +433,7 @@
 }</programlisting>
 
       <note>
-        <para>Wherever it makes sense, the completion strategy method and
+        <para>Wherever it makes sense, the release strategy method and
         the aggregator method can be combined in a single bean.</para>
       </note>
     </para>
@@ -465,7 +454,7 @@
     certain value.</para>
 
     <note>
-      <para>Wherever it makes sense, the completion strategy method, correlation
+      <para>Wherever it makes sense, the release strategy method, correlation
       strategy method and the aggregator method can be combined in a single bean
       (all of them or any two).</para>
     </note>
@@ -485,8 +474,8 @@
     ...
   }
 
-  @CompletionStrategy <co id="agganncs" />
-  public boolean completionChecker(List&lt;Message&lt;?&gt;&gt; messages) {
+  @ReleaseStrategy <co id="agganncs" />
+  public boolean releaseChecker(List&lt;Message&lt;?&gt;&gt; messages) {
     ...
   }
 
@@ -506,7 +495,7 @@
 
       <callout arearefs="agganncs">
         <para id="aggann2">An annotation indicating that this method shall be
-        used as the completion strategy of an aggregator. If not present on
+        used as the release strategy of an aggregator. If not present on
         any method, the aggregator will use the
         SequenceSizeCompletionStrategy.</para>
       </callout>

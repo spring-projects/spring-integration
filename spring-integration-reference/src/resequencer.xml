@@ -22,10 +22,7 @@
 
     <para>With respect to that, the user might opt to release all messages at
     once (after the whole sequence, according to the SEQUENCE_SIZE, has been
-    released), or as soon as a valid sequence is available. Another option is
-    to set a timeout, deciding whether to drop the whole sequence if the
-    timeout has expired, and not all messages have arrived, or to release the
-    messages accumulated so far, in the appropriate order.</para>
+    released), or as soon as a valid sequence is available.</para>
   </section>
 
   <section>
@@ -45,10 +42,8 @@
   output-channel="outputChannel" <co id="resxml3-co" linkends="resxml3"/>
   discard-channel="discardChannel" <co id="resxml4-co" linkends="resxml4"/>
   release-partial-sequences="true" <co id="resxml5-co" linkends="resxml5"/>
-  timeout="42" <co id="resxml6-co" linkends="resxml6"/>
-  send-partial-result-on-timeout="true" <co id="resxml7-co" linkends="resxml7"/>
-  reaper-interval="135" <co id="resxml8-co" linkends="resxml8"/>
-  tracked-correlation-id-capacity="99" <co id="resxml9-co" linkends="resxml9"/>
+  message-store="messageStore" <co id="resxml5-co" linkends="resxml6"/>
+  send-partial-result-on-expiry="true" <co id="resxml7-co" linkends="resxml7"/>
   send-timeout="86420000" <co id="resxml10-co" linkends="resxml10"/> /&gt; </programlisting>
 
     <para><calloutlist>
@@ -76,32 +71,29 @@
         <callout arearefs="resxml5-co" id="resxml5">
           <para>Whether to send out ordered sequences as soon as they are
           available, or only after the whole message group arrives.
-          <emphasis>Optional (true by default)</emphasis>.</para>
+          <emphasis>Optional (false by default)</emphasis>.</para>  If this
+          flag is not specified (so a complete sequence is defined by the sequence
+          headers) then it can make sense to provide a custom <code>Comparator</code>
+          to be used to order the messages when sending
+          (use the XML attribute <literal>comparator</literal> to point to a bean
+          definition).  If <literal>release-partial-sequences</literal> is true then
+          there is no way with a custom comparator to define a partial sequence.  To 
+          do that you would have to provide a <literal>release-strategy</literal> (also
+          a reference to another bean definition, either a POJO or a <code>ReleaseStrategy</code>).
         </callout>
 
         <callout arearefs="resxml6-co" id="resxml6">
-          <para>The timeout (in milliseconds) for reordering message sequences (counted from the
-          arrival of the first message). <emphasis>Optional</emphasis>.</para>
+          <para>A reference to a <code>MessageGroupStore</code> that
+          can be used to store groups of messages under their
+          correlation key until they are
+          complete. <emphasis>Optional</emphasis> with default a
+          volatile in-memory store.</para>
         </callout>
 
         <callout arearefs="resxml7-co" id="resxml7">
-          <para>Whether, upon the expiration of the timeout, the ordered group
-          shall be sent out (even if some of the messages are missing).
+          <para>Whether, upon the expiration of the group, the ordered group
+          should be sent out (even if some of the messages are missing).
           <emphasis>Optional (false by default)</emphasis>.</para>
-        </callout>
-
-        <callout arearefs="resxml8-co" id="resxml8">
-          <para>The interval (in milliseconds) at which a reaper task is
-          executed, checking if there are any timed out groups.
-          <emphasis>Optional</emphasis>.</para>
-        </callout>
-
-        <callout arearefs="resxml9-co" id="resxml9">
-          <para>The capacity of the correlation id tracker. Remembers the
-          already processed correlation ids, preventing the formation of new
-          groups for messages that arrive after their group has been already
-          processed (reordered or discarded).
-          <emphasis>Optional</emphasis>.</para>
         </callout>
 
         <callout arearefs="resxml10-co" id="resxml10">
