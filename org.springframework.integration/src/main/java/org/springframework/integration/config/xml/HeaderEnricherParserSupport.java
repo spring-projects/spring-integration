@@ -66,6 +66,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		this.processHeaders(element, headers, parserContext);
 		builder.addConstructorArgValue(headers);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-overwrite");
+		this.postProcessHeaderEnricher(builder, element, parserContext);
 	}
 
 	protected void processHeaders(Element element, ManagedMap<String, Object> headers, ParserContext parserContext) {
@@ -166,6 +167,12 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				}
 			}
 		}
+	}
+
+	/**
+	 * Subclasses may override this method to provide any additional processing.
+	 */
+	protected void postProcessHeaderEnricher(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 	}
 
 }

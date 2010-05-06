@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagePriority;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;header-enricher&gt; element within the core integration
@@ -36,6 +41,25 @@ public class StandardHeaderEnricherParser extends HeaderEnricherParserSupport {
 		this.addElementToHeaderMapping("correlation-id", MessageHeaders.CORRELATION_ID);
 		this.addElementToHeaderMapping("expiration-date", MessageHeaders.EXPIRATION_DATE, Long.class);
 		this.addElementToHeaderMapping("priority", MessageHeaders.PRIORITY, MessagePriority.class);
+	}
+
+	@Override
+	protected void postProcessHeaderEnricher(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		String ref = element.getAttribute("ref");
+		String method = element.getAttribute("method");
+		if (StringUtils.hasText(ref) || StringUtils.hasText(method)) {
+			if (!StringUtils.hasText(ref) || !StringUtils.hasText(method)) {
+				parserContext.getReaderContext().error(
+						"If either 'ref' or 'method' is provided, then they are both required.",
+						parserContext.extractSource(element));
+				return;
+			}
+			BeanDefinitionBuilder processorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.MethodInvokingMessageProcessor");
+			processorBuilder.addConstructorArgReference(ref);
+			processorBuilder.addConstructorArgValue(method);
+			builder.addPropertyValue("messageProcessor", processorBuilder.getBeanDefinition());
+		}
 	}
 
 }

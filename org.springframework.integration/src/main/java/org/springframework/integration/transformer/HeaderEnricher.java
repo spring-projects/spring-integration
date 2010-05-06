@@ -19,6 +19,9 @@ package org.springframework.integration.transformer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
@@ -29,9 +32,9 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.util.Assert;
 
 /**
  * A Transformer that adds statically configured header values to a Message.
@@ -43,19 +46,31 @@ import org.springframework.util.Assert;
  */
 public class HeaderEnricher implements Transformer {
 
+	private static final Log logger = LogFactory.getLog(HeaderEnricher.class);
+
+
 	private final Map<String, ValueHolder> headersToAdd;
+
+	private volatile MessageProcessor messageProcessor;
 
 	private volatile boolean defaultOverwrite = false;
 
+
+	public HeaderEnricher() {
+		this(null);
+	}
 
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
 	 */
 	public HeaderEnricher(Map<String, ValueHolder> headersToAdd) {
-		Assert.notNull(headersToAdd, "headersToAdd must not be null");
-		this.headersToAdd = headersToAdd;
+		this.headersToAdd = (headersToAdd != null) ? headersToAdd : new HashMap<String, ValueHolder>();
 	}
 
+
+	public void setMessageProcessor(MessageProcessor messageProcessor) {
+		this.messageProcessor = messageProcessor;
+	}
 
 	public void setDefaultOverwrite(boolean defaultOverwrite) {
 		this.defaultOverwrite = defaultOverwrite;
@@ -64,6 +79,7 @@ public class HeaderEnricher implements Transformer {
 	public Message<?> transform(Message<?> message) {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
+			this.addHeadersFromMessageProcessor(message, headerMap);
 			for (Map.Entry<String, ValueHolder> entry : this.headersToAdd.entrySet()) {
 				String key = entry.getKey();
 				ValueHolder valueHolder = entry.getValue();
@@ -82,6 +98,28 @@ public class HeaderEnricher implements Transformer {
         }
 	}
 
+	@SuppressWarnings("unchecked")
+	private void addHeadersFromMessageProcessor(Message<?> message, Map<String, Object> headerMap) {
+		if (this.messageProcessor != null) {
+			Object result = this.messageProcessor.processMessage(message);
+			if (result instanceof Map) {
+				Map resultMap = (Map) result;
+				for (Object key : resultMap.keySet()) {
+					if (key instanceof String) {
+						if (this.defaultOverwrite || headerMap.get(key) == null) {
+							headerMap.put((String) key, resultMap.get(key));
+						}
+					}
+					else if (logger.isDebugEnabled()) {
+						logger.debug("ignoring value for non-String key: " + key);
+					}
+				}
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug("expected a Map result from processor, but received: " + result);
+			}
+		}
+	}
 
 	public static interface ValueHolder {
 

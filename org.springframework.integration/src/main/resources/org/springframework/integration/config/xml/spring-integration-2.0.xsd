@@ -1261,6 +1261,28 @@
 							<xsd:union memberTypes="xsd:boolean xsd:string" />
 						</xsd:simpleType>
 					</xsd:attribute>
+					<xsd:attribute name="ref" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to an Object to be invoked for header values.
+								The 'method' attribute is required along with this.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="method" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Method to be invoked on the referenced Object as specified by the
+								'ref' attribute. The method should return a Map with String-typed keys.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref"/>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
