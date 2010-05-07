@@ -182,11 +182,14 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 				} else if (group.isComplete()) {
 
-					// If not releasing any messages the group might still be complete
-					for (Message<?> discard : group.getUnmarked()) {
-						discardChannel.send(discard);
+					try {
+						// If not releasing any messages the group might still be complete
+						for (Message<?> discard : group.getUnmarked()) {
+							discardChannel.send(discard);
+						}
+					} finally {
+						remove(group);
 					}
-					remove(group);
 
 				}
 
@@ -206,27 +209,29 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 			if (group.size() > 0) {
 				// last chance for normal completion
-				if (releaseStrategy.canRelease(group)) {
-					outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
-							this.outputChannel));
-					remove(group);
-				} else {
-					if (sendPartialResultOnExpiry) {
-						if (logger.isInfoEnabled()) {
-							logger.info("Processing partially complete messages for key [" + correlationKey + "] to: "
-									+ outputChannel);
-						}
+				try {
+					if (releaseStrategy.canRelease(group)) {
 						outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
 								this.outputChannel));
 					} else {
-						if (logger.isInfoEnabled()) {
-							logger.info("Discarding partially complete messages for key [" + correlationKey + "] to: "
-									+ discardChannel);
-						}
-						for (Message<?> message : group.getUnmarked()) {
-							discardChannel.send(message);
+						if (sendPartialResultOnExpiry) {
+							if (logger.isInfoEnabled()) {
+								logger.info("Processing partially complete messages for key [" + correlationKey
+										+ "] to: " + outputChannel);
+							}
+							outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
+									this.outputChannel));
+						} else {
+							if (logger.isInfoEnabled()) {
+								logger.info("Discarding partially complete messages for key [" + correlationKey
+										+ "] to: " + discardChannel);
+							}
+							for (Message<?> message : group.getUnmarked()) {
+								discardChannel.send(message);
+							}
 						}
 					}
+				} finally {
 					remove(group);
 				}
 				return true;
