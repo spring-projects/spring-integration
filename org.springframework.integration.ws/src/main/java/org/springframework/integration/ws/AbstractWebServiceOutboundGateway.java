@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.client.support.destination.DestinationProvider;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
 import org.springframework.ws.transport.WebServiceMessageSender;
@@ -88,6 +89,10 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 	public void setMessageSenders(WebServiceMessageSender[] messageSenders) {
 		this.webServiceTemplate.setMessageSenders(messageSenders);
+	}
+
+	public void setInterceptors(ClientInterceptor[] interceptors) {
+		this.webServiceTemplate.setInterceptors(interceptors);
 	}
 
 	protected WebServiceTemplate getWebServiceTemplate() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.springframework.integration.ws.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
@@ -73,6 +75,7 @@ public class WebServiceOutboundGatewayParser extends AbstractRemotingOutboundGat
     }
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 		String marshallerRef = element.getAttribute("marshaller");
 		if (StringUtils.hasText(marshallerRef)) {
@@ -114,6 +117,20 @@ public class WebServiceOutboundGatewayParser extends AbstractRemotingOutboundGat
 		}
 		if (StringUtils.hasText(messageSenderListRef)) {
 			builder.addPropertyReference("messageSenders", messageSenderListRef);
+		}
+		String interceptorRef = element.getAttribute("interceptor");
+		String interceptorListRef = element.getAttribute("interceptors");
+		if (StringUtils.hasText(interceptorRef) && StringUtils.hasText(interceptorListRef)) {
+			parserContext.getReaderContext().error(
+					"Only one of interceptor or interceptors should be specified.", element);
+		}
+		if (StringUtils.hasText(interceptorRef)) {
+			ManagedList interceptors = new ManagedList();
+			interceptors.add(new RuntimeBeanReference(interceptorRef));
+			builder.addPropertyValue("interceptors", interceptors);
+		}
+		if (StringUtils.hasText(interceptorListRef)) {
+			builder.addPropertyReference("interceptors", interceptorListRef);
 		}
 	}
 

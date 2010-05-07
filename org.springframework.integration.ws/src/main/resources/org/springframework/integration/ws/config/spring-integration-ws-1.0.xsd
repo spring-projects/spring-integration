@@ -162,6 +162,9 @@
 			</xsd:attribute>
 			<xsd:attribute name="message-sender" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the bean definition of a WebServiceMessageSender.
+					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.ws.transport.WebServiceMessageSender"/>
@@ -169,7 +172,32 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="message-senders" type="xsd:string"/>
+			<xsd:attribute name="message-senders" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the bean definition for a list or array of WebServiceMessageSenders.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="interceptor" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the bean definition of a ClientInterceptor.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.ws.client.support.interceptor.ClientInterceptor"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="interceptors" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the bean definition for a list or array of ClientInterceptors.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="order" type="xsd:string"/>
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>

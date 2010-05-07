@@ -72,6 +72,16 @@
 	                     request-channel="inputChannel"
 	                     uri="http://example.org"
 	                     message-senders="messageSenders"/>
+
+	<ws:outbound-gateway id="gatewayWithCustomInterceptor"
+	                     request-channel="inputChannel"
+	                     uri="http://example.org"
+	                     interceptor="interceptor"/>
+	                      
+	<ws:outbound-gateway id="gatewayWithCustomInterceptorList"
+	                     request-channel="inputChannel"
+	                     uri="http://example.org"
+	                     interceptors="interceptors"/>
 	                      
 	<ws:outbound-gateway id="gatewayWithPoller"
 		                 request-channel="pollableInputChannel"
@@ -106,6 +116,12 @@
 		<bean class="org.springframework.integration.ws.config.StubMessageSender"/>
 	</util:list>
 
+	<bean id="interceptor" class="org.springframework.integration.ws.config.StubClientInterceptor"/>
+
+	<util:list id="interceptors">
+		<ref bean="interceptor"/>
+		<bean class="org.springframework.integration.ws.config.StubClientInterceptor"/>
+	</util:list>
 
     <bean id="destinationProvider" class="org.springframework.integration.ws.config.StubDestinationProvider"/>
 
