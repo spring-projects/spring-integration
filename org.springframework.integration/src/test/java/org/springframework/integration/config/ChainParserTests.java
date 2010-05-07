@@ -143,11 +143,10 @@ public class ChainParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void chainHandlerBean() throws Exception {
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		this.beanInput.send(message);
-		Message reply = this.output.receive(3000);
+		Message<?> reply = this.output.receive(3000);
 		assertNotNull(reply);
 		assertThat(reply, sameExceptImmutableHeaders(successMessage));
 	}
