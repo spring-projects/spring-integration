@@ -19,7 +19,9 @@ package org.springframework.integration.ws.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundGatewayParser;
@@ -114,6 +116,20 @@ public class WebServiceOutboundGatewayParser extends AbstractOutboundGatewayPars
 		}
 		if (StringUtils.hasText(messageSenderListRef)) {
 			builder.addPropertyReference("messageSenders", messageSenderListRef);
+		}
+		String interceptorRef = element.getAttribute("interceptor");
+		String interceptorListRef = element.getAttribute("interceptors");
+		if (StringUtils.hasText(interceptorRef) && StringUtils.hasText(interceptorListRef)) {
+			parserContext.getReaderContext().error(
+					"Only one of interceptor or interceptors should be specified.", element);
+		}
+		if (StringUtils.hasText(interceptorRef)) {
+			ManagedList<RuntimeBeanReference> interceptors = new ManagedList<RuntimeBeanReference>();
+			interceptors.add(new RuntimeBeanReference(interceptorRef));
+			builder.addPropertyValue("interceptors", interceptors);
+		}
+		if (StringUtils.hasText(interceptorListRef)) {
+			builder.addPropertyReference("interceptors", interceptorListRef);
 		}
 	}
 

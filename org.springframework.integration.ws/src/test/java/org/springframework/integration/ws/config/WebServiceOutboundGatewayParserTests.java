@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
@@ -190,6 +191,35 @@ public class WebServiceOutboundGatewayParserTests {
 		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
 		assertEquals("Wrong number of message senders ",
 				2 , ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders")).length);
+	}
+
+	@Test
+	public void simpleGatewayWithCustomInterceptor() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomInterceptor");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);		
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		ClientInterceptor interceptor = context.getBean("interceptor", ClientInterceptor.class);
+		assertEquals(interceptor, ((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]);
+	}
+	@Test
+	public void simpleGatewayWithCustomInterceptorList() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomInterceptorList");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		ClientInterceptor interceptor = context.getBean("interceptor", ClientInterceptor.class);
+		assertEquals(interceptor, ((ClientInterceptor[]) accessor.getPropertyValue("interceptors"))[0]);
+		assertEquals("Wrong number of interceptors ",
+				2 , ((ClientInterceptor[]) accessor.getPropertyValue("interceptors")).length);
 	}
 
 	@Test
