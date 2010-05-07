@@ -12,21 +12,6 @@
 	<inbound-channel-adapter query="select * from item where status=2"
 		channel="target" jdbc-operations="jdbcTemplate" />
 
-	<si:channel id="target">
-		<si:queue />
-	</si:channel>
-
-	<jdbc:embedded-database type="HSQL" id="dataSource">
-		<jdbc:script
-			location="org/springframework/integration/jdbc/config/inboundSchema.sql" />
-	</jdbc:embedded-database>
-
-	<beans:bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-		<beans:constructor-arg ref="dataSource" />
-	</beans:bean>
-
-	<si:poller default="true">
-		<si:interval-trigger interval="100" />
-	</si:poller>
+	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />
 
 </beans:beans>
