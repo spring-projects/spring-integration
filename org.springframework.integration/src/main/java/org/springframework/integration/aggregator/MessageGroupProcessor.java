@@ -5,21 +5,18 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.store.MessageGroup;
 
 /**
- * A processor for <i>correlated</i> groups of messages. When a message group is <i>complete</i> it is passed to the
- * processor by e.g. the CorrelatingMessageHandler.
- *
+ * A processor for <i>correlated</i> groups of messages.
+ * 
  * @author Iwein Fuld
  * @see org.springframework.integration.aggregator.CorrelatingMessageHandler
  */
 public interface MessageGroupProcessor {
 
-    /**
-     * Processed the given group and sends the resulting message(s) to the output channel using the channelTemplate.
-     * Implementations are free to send as little or as many messages based on the invocation as needed. For example the
-     * DefaultAggregatingMessageGroupProcessor will send only a single message containing a collection of all messages
-     * in the group, where the resequencing equivalent strategy will send all messages in the group individually.
-     */
-    void processAndSend(MessageGroup group,
-                        MessageChannelTemplate channelTemplate, MessageChannel outputChannel
-    );
+	/**
+	 * Process the given group and send the resulting message(s) to the output channel using the channel template.
+	 * Implementations are free to send as little or as many messages based on the invocation as needed. For example an
+	 * aggregating processor will send only a single message representing the group, where a resequencing strategy will
+	 * send all messages in the group individually.
+	 */
+	void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel);
 }

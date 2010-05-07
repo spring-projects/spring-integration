@@ -17,6 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
@@ -34,11 +35,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.DoesNothing;
+import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -80,16 +83,13 @@ public class CorrelatingMessageHandlerTests {
 		String correlationKey = "key";
 		Message<?> message1 = testMessage(correlationKey, 1, 2);
 		Message<?> message2 = testMessage(correlationKey, 2, 2);
-		List<Message<?>> storedMessages = new ArrayList<Message<?>>();
 
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
 		handler.handleMessage(message1);
-		storedMessages.add(message1);
 		verifyLocks(handler, 1);
 
 		handler.handleMessage(message2);
-		storedMessages.add(message2);
 		verifyLocks(handler, 0); // lock is removed when group is complete
 
 		verify(correlationStrategy).getCorrelationKey(message1);
@@ -99,6 +99,32 @@ public class CorrelatingMessageHandlerTests {
 
 	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
 		assertEquals(lockCount, ((Map<?, ?>) ReflectionTestUtils.getField(handler, "locks")).size());
+	}
+
+	@Test
+	public void bufferCompletesWithException() throws Exception {
+
+		doAnswer(new ThrowsException(new RuntimeException("Planned test exception"))).when(processor).processAndSend(isA(SimpleMessageGroup.class),
+				isA(MessageChannelTemplate.class), eq(outputChannel));
+
+		String correlationKey = "key";
+		Message<?> message1 = testMessage(correlationKey, 1, 2);
+		Message<?> message2 = testMessage(correlationKey, 2, 2);
+
+		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
+
+		handler.handleMessage(message1);
+		
+		try {
+			handler.handleMessage(message2);
+			fail("Expected MessageHandlingException");
+		} catch (MessageHandlingException e) {
+			assertEquals(0, store.getMessageGroup(correlationKey).size());
+		}
+
+		verify(correlationStrategy).getCorrelationKey(message1);
+		verify(correlationStrategy).getCorrelationKey(message2);
+		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessageChannelTemplate.class), eq(outputChannel));
 	}
 
 	/*

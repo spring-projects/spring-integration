@@ -28,7 +28,7 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 
-public class CorrelatingMessageHandlerIntegrationTest {
+public class CorrelatingMessageHandlerIntegrationTests {
 
 	private MessageGroupStore store = new SimpleMessageStore(100);
 

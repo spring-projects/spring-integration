@@ -100,7 +100,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	public CorrelatingMessageHandler(MessageGroupProcessor processor) {
 		this(processor, new SimpleMessageStore(0), null, null);
 	}
-	
+
 	public void setMessageStore(MessageGroupStore messageStore) {
 		this.messageStore = messageStore;
 	}
@@ -164,19 +164,23 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 					if (logger.isDebugEnabled()) {
 						logger.debug("Completing group with correlationKey [" + correlationKey + "]");
 					}
-					outputProcessor.processAndSend(group, channelTemplate, this.resolveReplyChannel(message,
-							this.outputChannel));
-					if (group.isComplete() || group.getSequenceSize() == 0) {
-						// The group is complete or else there is no sequence so there is no more state to track
-						remove(group);
-					}
-					else {
-						// Mark these messages as processed, but do not remove the group from store
-						mark(group);
+					try {
+						outputProcessor.processAndSend(group, channelTemplate, this.resolveReplyChannel(message,
+								this.outputChannel));
+					} finally {
+
+						// Always clean up even if there was an exception processing messages
+						if (group.isComplete() || group.getSequenceSize() == 0) {
+							// The group is complete or else there is no sequence so there is no more state to track
+							remove(group);
+						} else {
+							// Mark these messages as processed, but do not remove the group from store
+							mark(group);
+						}
+
 					}
 
-				}
-				else if (group.isComplete()) {
+				} else if (group.isComplete()) {
 
 					// If not releasing any messages the group might still be complete
 					for (Message<?> discard : group.getUnmarked()) {
@@ -186,8 +190,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 				}
 
-			}
-			else {
+			} else {
 				discardChannel.send(message);
 			}
 
@@ -207,8 +210,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 					outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
 							this.outputChannel));
 					remove(group);
-				}
-				else {
+				} else {
 					if (sendPartialResultOnExpiry) {
 						if (logger.isInfoEnabled()) {
 							logger.info("Processing partially complete messages for key [" + correlationKey + "] to: "
@@ -216,8 +218,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 						}
 						outputProcessor.processAndSend(group, channelTemplate, resolveReplyChannel(group.getOne(),
 								this.outputChannel));
-					}
-					else {
+					} else {
 						if (logger.isInfoEnabled()) {
 							logger.info("Discarding partially complete messages for key [" + correlationKey + "] to: "
 									+ discardChannel);
