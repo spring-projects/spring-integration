@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,15 +63,18 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 		try {
 			Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
-			if (jmsCorrelationId != null && (jmsCorrelationId instanceof String)) {
+			if (jmsCorrelationId instanceof Number) {
+				jmsCorrelationId = ((Number) jmsCorrelationId).toString();
+			}
+			if (jmsCorrelationId instanceof String) {
 				jmsMessage.setJMSCorrelationID((String) jmsCorrelationId);
 			}
 			Object jmsReplyTo = headers.get(JmsHeaders.REPLY_TO);
-			if (jmsReplyTo != null && (jmsReplyTo instanceof Destination)) {
+			if (jmsReplyTo instanceof Destination) {
 				jmsMessage.setJMSReplyTo((Destination) jmsReplyTo);
 			}
 			Object jmsType = headers.get(JmsHeaders.TYPE);
-			if (jmsType != null && (jmsType instanceof String)) {
+			if (jmsType instanceof String) {
 				jmsMessage.setJMSType((String) jmsType);
 			}
 			Set<String> attributeNames = headers.keySet();
@@ -84,7 +87,13 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 								jmsMessage.setObjectProperty(attributeName, value);
 							}
 							catch (Exception e) {
-								if (logger.isWarnEnabled()) {
+								if (attributeName.startsWith("JMSX")) {
+									if (logger.isTraceEnabled()) {
+										logger.trace("skipping reserved header, it cannot be set by client: "
+												+ attributeName);
+									}
+								}
+								else if (logger.isWarnEnabled()) {
 									logger.warn("failed to map Message header '"
 											+ attributeName + "' to JMS property", e);
 								}
