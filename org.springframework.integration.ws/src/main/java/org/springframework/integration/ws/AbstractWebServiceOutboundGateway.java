@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -115,24 +116,33 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 
 
 	private WebServiceMessageCallback getRequestCallback(Message<?> requestMessage) {
-		if (this.requestCallback != null) {
-			return this.requestCallback;
-		}
 		String soapAction = requestMessage.getHeaders().get(WebServiceHeaders.SOAP_ACTION, String.class);
-		return (soapAction != null) ? new TypeCheckingSoapActionCallback(soapAction) : null;
+		return (soapAction != null) ?
+				new TypeCheckingSoapActionCallback(soapAction, this.requestCallback) : this.requestCallback;
 	}
 
 
 	private static class TypeCheckingSoapActionCallback extends SoapActionCallback {
 
-		TypeCheckingSoapActionCallback(String soapAction) {
+		private final WebServiceMessageCallback callbackDelegate;
+
+		TypeCheckingSoapActionCallback(String soapAction, WebServiceMessageCallback callbackDelegate) {
 			super(soapAction);
+			this.callbackDelegate = callbackDelegate;
 		}
 
 		@Override
 		public void doWithMessage(WebServiceMessage message) throws IOException {
 			if (message instanceof SoapMessage) {
 				super.doWithMessage(message);
+			}
+			if (this.callbackDelegate != null) {
+				try {
+					this.callbackDelegate.doWithMessage(message);
+				}
+				catch (Exception e) {
+					throw new MessagingException("error occurred in WebServiceMessageCallback", e);
+				}
 			}
 		}
 	}
