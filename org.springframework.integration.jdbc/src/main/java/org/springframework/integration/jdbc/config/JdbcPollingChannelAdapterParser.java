@@ -47,11 +47,11 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder
 				.genericBeanDefinition("org.springframework.integration.jdbc.JdbcPollingChannelAdapter");
 		String dataSourceRef = element.getAttribute("data-source");
-		String simpleJdbcOperationsRef = element.getAttribute("jdbc-operations");
+		String jdbcOperationsRef = element.getAttribute("jdbc-operations");
 		boolean refToDataSourceSet = StringUtils.hasText(dataSourceRef);
-		boolean refToSimpleJdbcOperaitonsSet = StringUtils.hasText(simpleJdbcOperationsRef);
-		if ((refToDataSourceSet && refToSimpleJdbcOperaitonsSet)
-				|| (!refToDataSourceSet && !refToSimpleJdbcOperaitonsSet)) {
+		boolean refToJdbcOperationsSet = StringUtils.hasText(jdbcOperationsRef);
+		if ((refToDataSourceSet && refToJdbcOperationsSet)
+				|| (!refToDataSourceSet && !refToJdbcOperationsSet)) {
 			parserContext.getReaderContext().error("Exactly one of the attributes data-source or " +
 					"simple-jdbc-operations should be set for the JDBC inbound-channel-adapter", source);
 		}
@@ -63,7 +63,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 			builder.addConstructorArgReference(dataSourceRef);
 		}
 		else {
-			builder.addConstructorArgReference(simpleJdbcOperationsRef);
+			builder.addConstructorArgReference(jdbcOperationsRef);
 		}
 		builder.addConstructorArgValue(query);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");

@@ -31,7 +31,7 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Reference to a data source to use to access
-								the database. Either this or the simple-jdbc-operations must be
+								the database. Either this or the jdbc-operations must be
 								specified (but not both).
 							</xsd:documentation>
 							<xsd:appinfo>
@@ -46,12 +46,13 @@
 							<xsd:appinfo>
 								<xsd:documentation>
 									Reference to a JdbcOperations. Either
-									this or the data-source must be
+									this or
+									the data-source must be
 									specified (but not both).
 								</xsd:documentation>
 								<tool:annotation kind="ref">
 									<tool:expected-type
-										type="org.springframework.jdbc.core.simple.SimpleJdbcOperations" />
+										type="org.springframework.jdbc.core.JdbcOperations" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -108,21 +109,33 @@
 				<xsd:element ref="integration:poller" minOccurs="0"
 					maxOccurs="1" />
 			</xsd:sequence>
-			<xsd:attribute name="jdbc-operations" type="xsd:string">
+			<xsd:attribute name="data-source" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a data source to use to access
+						the
+						database. Either this or the simple-jdbc-operations must be
+						specified (but not both).
+							</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type
-								type="org.springframework.jdbc.core.simple.SimpleJdbcOperations" />
+							<tool:expected-type type="javax.sql.DataSource" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="data-source" type="xsd:string">
+			<xsd:attribute name="jdbc-operations" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to a JdbcOperations. Either
+							this or
+							the data-source must be
+							specified (but not both).
+						</xsd:documentation>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="javax.sql.DataSource" />
+							<tool:expected-type
+								type="org.springframework.jdbc.core.JdbcOperations" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -140,6 +153,69 @@
 			<xsd:attribute name="update" type="xsd:string" />
 			<xsd:attribute name="update-per-row" type="xsd:boolean"
 				default="false" />
+			<xsd:attribute name="channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.integration.core.MessageChannel" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines an outbound Channel Adapter for updating a
+				database.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="data-source" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a data source to use to access
+						the
+						database. Either this or the simple-jdbc-operations must be
+						specified (but not both).
+							</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="javax.sql.DataSource" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="jdbc-operations" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							Reference to a JdbcOperations. Either
+							this or
+							the data-source must be
+							specified (but not both).
+						</xsd:documentation>
+						<tool:annotation kind="ref">
+							<tool:expected-type
+								type="org.springframework.jdbc.core.JdbcOperations" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="query" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xsd:documentation>
+							An SQL update query to execute (INSERT, UPDATE
+							or DELETE). Bean properties of the outgoing message can be
+							referenced in named parameters, e.g. "INSERT into FOOS (ID, NAME) values (:headers[business.key], :payload)" 
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>

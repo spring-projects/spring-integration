@@ -1,6 +1,8 @@
 package org.springframework.integration.jdbc;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,7 +15,6 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
@@ -21,11 +22,11 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 /**
  * @author Jonas Partner
  */
-public class JdbcPollingChannelAdapterIntegrationTest {
+public class JdbcPollingChannelAdapterIntegrationTests {
 
-	EmbeddedDatabase embeddedDatabase;
+	private EmbeddedDatabase embeddedDatabase;
 
-	SimpleJdbcTemplate jdbcTemplate;
+	private SimpleJdbcTemplate jdbcTemplate;
 
 	
 	@Before
@@ -51,11 +52,11 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 		this.jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
-		assertTrue("Wrong payload type", payload instanceof List);
-		List rows = (List) payload;
+		assertTrue("Wrong payload type", payload instanceof List<?>);
+		List<?> rows = (List<?>) payload;
 		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Returned row not a map", rows.get(0) instanceof Map);
-		Map<String, Object> row = (Map<String, Object>) rows.get(0);
+		assertTrue("Returned row not a map", rows.get(0) instanceof Map<?,?>);
+		Map<?, ?> row = (Map<?, ?>) rows.get(0);
 		assertEquals("Wrong id", 1, row.get("id"));
 		assertEquals("Wrong status", 2, row.get("status"));
 
@@ -69,7 +70,7 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 		this.jdbcTemplate.update("insert into item values(1,2)");
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
-		List rows = (List) payload;
+		List<?> rows = (List<?>) payload;
 		assertEquals("Wrong number of elements", 1, rows.size());
 		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
 		Item item = (Item) rows.get(0);
@@ -91,7 +92,7 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
-		List rows = (List) payload;
+		List<?> rows = (List<?>) payload;
 		assertEquals("Wrong number of elements", 2, rows.size());
 		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
 		Item item = (Item) rows.get(0);
@@ -125,7 +126,7 @@ public class JdbcPollingChannelAdapterIntegrationTest {
 
 		Message<Object> message = adapter.receive();
 		Object payload = message.getPayload();
-		List rows = (List) payload;
+		List<?> rows = (List<?>) payload;
 		assertEquals("Wrong number of elements", 2, rows.size());
 		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
 		Item item = (Item) rows.get(0);
