@@ -16,9 +16,6 @@
 
 package org.springframework.integration.transformer;
 
-import java.util.Map;
-import java.util.Properties;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
@@ -27,7 +24,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -60,27 +56,6 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		}
 		if (result instanceof Message<?>) {
 			return (Message<?>) result;
-		}
-		if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
-			Properties propertiesToSet = (Properties) result;
-			MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
-			for (Object keyObject : propertiesToSet.keySet()) {
-				String key = (String) keyObject;
-				builder.setHeader(key, propertiesToSet.getProperty(key));
-			}
-			return builder.build();
-		}
-		if (result instanceof Map<?, ?> && !(message.getPayload() instanceof Map<?, ?>)) {
-			Map<?, ?> attributesToSet = (Map <?, ?>) result;
-			MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
-			for (Object key : attributesToSet.keySet()) {
-				if (!(key instanceof String)) {
-					throw new MessageHandlingException(message,
-							"Map returned from a Transformer method must have String-typed keys");
-				}
-				builder.setHeader((String) key, attributesToSet.get(key));
-			}
-			return builder.build();
 		}
 		return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
 	}

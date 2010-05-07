@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -144,35 +145,6 @@ public class MethodInvokingTransformerTests {
 	}
 
 	@Test
-	public void headerEnricherConfiguredWithMethodReference() throws Exception {
-		TestBean testBean = new TestBean();
-		Method testMethod = testBean.getClass().getMethod("propertyEnricherTest", String.class);
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("prop1", "bad")
-				.setHeader("prop3", "baz").build();
-		Message<?> result = transformer.transform(message);
-		assertEquals("test", result.getPayload());
-		assertEquals("foo", result.getHeaders().get("prop1"));
-		assertEquals("bar", result.getHeaders().get("prop2"));
-		assertEquals("baz", result.getHeaders().get("prop3"));
-	}
-
-	@Test
-	public void headerEnricherConfiguredWithMethodName() throws Exception {
-		TestBean testBean = new TestBean();
-		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "propertyEnricherTest");
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader("prop1", "bad")
-				.setHeader("prop3", "baz").build();
-		Message<?> result = transformer.transform(message);
-		assertEquals("test", result.getPayload());
-		assertEquals("foo", result.getHeaders().get("prop1"));
-		assertEquals("bar", result.getHeaders().get("prop2"));
-		assertEquals("baz", result.getHeaders().get("prop3"));
-	}
-
-	@Test
 	public void messageReturnValueConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("messageReturnValueTest", Message.class);
@@ -239,6 +211,41 @@ public class MethodInvokingTransformerTests {
 		StringMessage message = new StringMessage("test");
 		Message<?> result = transformer.transform(message);
 		assertNull(result);
+	}
+
+	@Test // this changed in 2.0 see INT-785 and INT-1130
+	public void headerEnricherConfiguredWithMethodReference() throws Exception {
+		TestBean testBean = new TestBean();
+		Method testMethod = testBean.getClass().getMethod("propertyEnricherTest", String.class);
+		HeaderEnricher transformer = new HeaderEnricher();
+		transformer.setDefaultOverwrite(true);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, testMethod);
+		transformer.setMessageProcessor(processor);
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader("prop1", "bad")
+				.setHeader("prop3", "baz").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("test", result.getPayload());
+		assertEquals("foo", result.getHeaders().get("prop1"));
+		assertEquals("bar", result.getHeaders().get("prop2"));
+		assertEquals("baz", result.getHeaders().get("prop3"));
+	}
+
+	@Test // this changed in 2.0 see INT-785 and INT-1130
+	public void headerEnricherConfiguredWithMethodName() throws Exception {
+		TestBean testBean = new TestBean();
+		HeaderEnricher transformer = new HeaderEnricher();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testBean, "propertyEnricherTest");
+		transformer.setMessageProcessor(processor);
+		transformer.setDefaultOverwrite(true);
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader("prop1", "bad")
+				.setHeader("prop3", "baz").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("test", result.getPayload());
+		assertEquals("foo", result.getHeaders().get("prop1"));
+		assertEquals("bar", result.getHeaders().get("prop2"));
+		assertEquals("baz", result.getHeaders().get("prop3"));
 	}
 
 
