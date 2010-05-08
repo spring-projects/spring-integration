@@ -31,6 +31,7 @@
 		<!-- test dependencies -->
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="${junit.version}" conf="test->runtime"/>	
 		<dependency org="org.mockito" name="com.springsource.org.mockito" rev="${mockito.version}" conf="test->runtime"/>
+		<dependency org="javax.activation" name="com.springsource.javax.activation" rev="1.1.1" conf="test->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.test" rev="${spring.version}" conf="test->runtime"/>
 	</dependencies>
 
