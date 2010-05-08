@@ -1013,6 +1013,7 @@
 							minOccurs="0" maxOccurs="unbounded" />
 						<xsd:element ref="service-activator" />
 						<xsd:element ref="header-enricher" />
+						<xsd:element ref="header-filter" />
 						<xsd:element ref="transformer" />
 						<xsd:element ref="payload-serializing-transformer" />
 						<xsd:element ref="payload-deserializing-transformer" />
@@ -1404,6 +1405,28 @@
 			</xsd:simpleType>
 		</xsd:attribute>
 	</xsd:complexType>
+
+	<xsd:element name="header-filter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a HeaderFilter endpoint to remove values defined in the MessageHeaders.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:attribute name="header-names" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specify one or more header names (as a comma separated list) to
+								be removed from the MessageHeaders of the Message being handled.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="transformer"
 		type="expressionOrInnerEndpointDefinitionAware">
