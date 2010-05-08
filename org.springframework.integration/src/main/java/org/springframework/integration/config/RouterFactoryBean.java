@@ -99,13 +99,14 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName))
 				? new MethodInvokingRouter(targetObject, targetMethodName)
 				: new MethodInvokingRouter(targetObject);
-		if (this.channelResolver != null) {
-			router.setChannelResolver(this.channelResolver);
-		}
 		return router;
 	}
 
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
+		if (this.channelResolver != null &&
+				router instanceof AbstractChannelNameResolvingMessageRouter) {
+			((AbstractChannelNameResolvingMessageRouter) router).setChannelResolver(this.channelResolver);
+		}
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
 		}

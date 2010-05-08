@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="fooChannelForExpression">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="barChannelForExpression">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="defaultChannelForExpression">
+		<queue capacity="1" />
+	</channel>
+
+	<router input-channel="expressionRouter" expression="payload.name"
+			default-output-channel="defaultChannelForExpression"
+			ignore-channel-name-resolution-failures="true">
+		<mapping value="foo" channel="fooChannelForExpression"/>
+		<mapping value="bar" channel="barChannelForExpression"/>
+	</router>
+
+	<channel id="fooChannelForPojo">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="barChannelForPojo">
+		<queue capacity="1" />
+	</channel>
+
+	<channel id="defaultChannelForPojo">
+		<queue capacity="1" />
+	</channel>
+
+	<router input-channel="pojoRouter" ref="testBean"
+			default-output-channel="defaultChannelForPojo"
+			ignore-channel-name-resolution-failures="true">
+		<mapping value="foo" channel="fooChannelForPojo"/>
+		<mapping value="bar" channel="barChannelForPojo"/>
+	</router>
+
+	<beans:bean id="testBean" class="org.springframework.integration.router.config.RouterWithMappingTests$TestRouter"/>
+
+</beans:beans>

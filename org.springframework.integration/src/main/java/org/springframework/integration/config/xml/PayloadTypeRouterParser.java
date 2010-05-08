@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
@@ -39,7 +40,7 @@ public class PayloadTypeRouterParser extends AbstractRouterParser {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void parseRouter(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext) {
+	protected BeanDefinition parseRouter(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder payloadTypeRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
@@ -56,7 +57,7 @@ public class PayloadTypeRouterParser extends AbstractRouterParser {
 			channelMap.put(typeName, new RuntimeBeanReference(childElement.getAttribute("channel")));
 		}
 		payloadTypeRouterBuilder.addPropertyValue("payloadTypeChannelMap", channelMap);
-		rootBuilder.addPropertyValue("targetObject", payloadTypeRouterBuilder.getBeanDefinition());
+		return payloadTypeRouterBuilder.getBeanDefinition();
 	}
 
 }

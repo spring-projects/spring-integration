@@ -1578,23 +1578,6 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="channelNameResolvingRouterType">
-					<xsd:sequence>
-						<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
-							<xsd:complexType>
-								<xsd:attribute name="value" type="xsd:string" />
-								<xsd:attribute name="channel" type="xsd:string">
-									<xsd:annotation>
-										<xsd:appinfo>
-											<tool:annotation kind="ref">
-												<tool:expected-type
-													type="org.springframework.integration.core.MessageChannel" />
-											</tool:annotation>
-										</xsd:appinfo>
-									</xsd:annotation>
-								</xsd:attribute>
-							</xsd:complexType>
-						</xsd:element>
-					</xsd:sequence>
 					<xsd:attribute name="header-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
@@ -1679,11 +1662,11 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="channelNameResolvingRouterType">
-					<xsd:all>
+					<xsd:sequence>
 						<xsd:element name="poller" type="innerPollerType"
 							minOccurs="0" maxOccurs="1" />
 						<xsd:element ref="beans:bean" minOccurs="0" maxOccurs="1" />
-					</xsd:all>
+					</xsd:sequence>
 					<xsd:attribute name="ref" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1726,6 +1709,23 @@
 	<xsd:complexType name="channelNameResolvingRouterType">
 		<xsd:complexContent>
 			<xsd:extension base="channelResolvingRouterType">
+				<xsd:sequence>
+					<xsd:element name="mapping" minOccurs="0" maxOccurs="unbounded">
+						<xsd:complexType>
+							<xsd:attribute name="value" type="xsd:string" />
+							<xsd:attribute name="channel" type="xsd:string">
+								<xsd:annotation>
+									<xsd:appinfo>
+										<tool:annotation kind="ref">
+											<tool:expected-type
+												type="org.springframework.integration.core.MessageChannel" />
+										</tool:annotation>
+									</xsd:appinfo>
+								</xsd:annotation>
+							</xsd:attribute>
+						</xsd:complexType>
+					</xsd:element>
+				</xsd:sequence>
 				<xsd:attribute name="ignore-channel-name-resolution-failures"
 					type="xsd:string">
 					<xsd:annotation>

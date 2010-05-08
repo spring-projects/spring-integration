@@ -18,6 +18,7 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 
@@ -38,10 +39,11 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-send-failures");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "ignore-channel-name-resolution-failures");
-		this.parseRouter(element, builder, parserContext);
+		BeanDefinition targetRouterBeanDefinition = this.parseRouter(element, parserContext);
+		builder.addPropertyValue("targetObject", targetRouterBeanDefinition);
 		return builder;
 	}
 
-	protected abstract void parseRouter(Element element, BeanDefinitionBuilder rootBuilder, ParserContext parserContext);
+	protected abstract BeanDefinition parseRouter(Element element, ParserContext parserContext);
 
 }
