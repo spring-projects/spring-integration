@@ -31,6 +31,14 @@
 			 default-delay="0"
 			 scheduler="testScheduler"/>
 
+	<delayer id="delayerWithCustomMessageStore"
+			 input-channel="input"
+			 output-channel="output"
+			 default-delay="0"
+			 message-store="testMessageStore"/>
+
 	<task:scheduler id="testScheduler" pool-size="7"/>
+
+	<beans:bean id="testMessageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
 </beans:beans>

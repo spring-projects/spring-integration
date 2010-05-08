@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,6 +39,8 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.store.MessageStore;
+import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ExecutorConfigurationSupport;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -84,6 +87,8 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 
 	private volatile ChannelResolver channelResolver;
 
+	private volatile MessageStore messageStore;
+
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
@@ -125,6 +130,14 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	 */
 	public void setDelayHeaderName(String delayHeaderName) {
 		this.delayHeaderName = delayHeaderName;
+	}
+
+	/**
+	 * Specify the {@link MessageStore} that should be used to store Messages
+	 * while awaiting the delay.
+	 */
+	public void setMessageStore(MessageStore messageStore) {
+		this.messageStore = messageStore;
 	}
 
 	/**
@@ -173,7 +186,11 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
+
 	public void afterPropertiesSet() throws Exception {
+		if (this.messageStore == null) {
+			this.messageStore = new SimpleMessageStore();
+		}
 		if (this.taskScheduler instanceof InitializingBean) {
 			((InitializingBean) this.taskScheduler).afterPropertiesSet();
 		}
@@ -185,8 +202,8 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 			this.releaseMessageAfterDelay(message, delay);
 		}
 		else {
-			// no delay, release directly
-			this.releaseMessage(message);
+			// no delay, send directly
+			this.sendMessageToReplyChannel(message);
 		}
 	}
 
@@ -213,10 +230,12 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 	}
 
 	private void releaseMessageAfterDelay(final Message<?> message, long delay) {
+		Assert.state(this.messageStore != null, "MessageStore must not be null");
+		final Message<?> storedMessage = this.messageStore.addMessage(message);
 		this.taskScheduler.schedule(new Runnable() {
 			public void run() {
 				try {
-					releaseMessage(message);
+					releaseMessage(storedMessage.getHeaders().getId());
 				}
 				catch (Exception e) {
 					Exception exception = new MessageHandlingException(message, "Failed to deliver Message after delay.", e);
@@ -236,7 +255,14 @@ public class DelayHandler implements MessageHandler, Ordered, BeanFactoryAware, 
 		}, new Date(System.currentTimeMillis() + delay));
 	}
 
-	private void releaseMessage(Message<?> message) {
+	private void releaseMessage(UUID id) {
+		Assert.state(this.messageStore != null, "MessageStore must not be null");
+		Message<?> message = this.messageStore.removeMessage(id);
+		Assert.notNull(message, "Message with id: " + id + " no longer exists in MessageStore.");
+		this.sendMessageToReplyChannel(message);
+	}
+
+	private void sendMessageToReplyChannel(Message<?> message) {
 		MessageChannel replyChannel = this.resolveReplyChannel(message);
 		this.channelTemplate.send(message, replyChannel);
 	}

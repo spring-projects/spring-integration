@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public class DelayerParser extends AbstractConsumerEndpointParser {
 		if (StringUtils.hasText(scheduler)) {
 			builder.addConstructorArgReference(scheduler);
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-store");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delay-header-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "wait-for-tasks-to-complete-on-shutdown");

@@ -61,7 +61,6 @@ public class DelayerParserTests {
 				accessor.getPropertyValue("taskScheduler")).getPropertyValue("waitForTasksToCompleteOnShutdown"));
 	}
 
-
 	@Test
 	public void customScheduler() {
 		Object endpoint = context.getBean("delayerWithCustomScheduler");
@@ -74,6 +73,17 @@ public class DelayerParserTests {
 		assertEquals(context.getBean("output"), accessor.getPropertyValue("outputChannel"));
 		assertEquals(new Long(0), accessor.getPropertyValue("defaultDelay"));
 		assertEquals(context.getBean("testScheduler"), accessor.getPropertyValue("taskScheduler"));
+	}
+
+	@Test
+	public void customMessageStore() {
+		Object endpoint = context.getBean("delayerWithCustomMessageStore");
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
+		Object handler = TestUtils.getPropertyValue(endpoint, "handler");
+		assertEquals(DelayHandler.class, handler.getClass());
+		DelayHandler delayHandler = (DelayHandler) handler;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(delayHandler);
+		assertEquals(context.getBean("testMessageStore"), accessor.getPropertyValue("messageStore"));
 	}
 
 }

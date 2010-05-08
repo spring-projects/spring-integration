@@ -928,6 +928,20 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="message-store" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Provide a reference to the MessageStore instance that should be used
+								to store Messages while awaiting the delay.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.integration.store.MessageStore" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="send-timeout" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
