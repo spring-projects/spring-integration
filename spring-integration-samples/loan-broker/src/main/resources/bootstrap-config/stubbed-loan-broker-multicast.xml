@@ -7,4 +7,5 @@
 	<import resource="classpath:loan-broker-config.xml" />
 	<import resource="classpath:bank-channel-mappings-config.xml" />
 	<import resource="classpath:shark-detector-config.xml"/>
+
 </beans>

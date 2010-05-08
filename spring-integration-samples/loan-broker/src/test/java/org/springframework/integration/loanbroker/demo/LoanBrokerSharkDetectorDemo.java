@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.loanbroker.demo;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.loanbroker.LoanBrokerGateway;
@@ -28,18 +30,16 @@ import org.springframework.integration.loanbroker.domain.LoanRequest;
 
 /**
  * @author Gary Russell
- * 
  */
 public class LoanBrokerSharkDetectorDemo {
 	private static Logger logger = Logger.getLogger(LoanBrokerSharkDetectorDemo.class);
 
 	@Test
 	public void testUdpMulticast() {
+		ConfigurableApplicationContext context = 
+				new ClassPathXmlApplicationContext("bootstrap-config/stubbed-loan-broker-multicast.xml");
+		LoanBrokerGateway broker = context.getBean("loanBrokerGateway", LoanBrokerGateway.class);
 
-		ConfigurableApplicationContext ac = 
-						new ClassPathXmlApplicationContext("bootstrap-config/stubbed-loan-broker-multicast.xml");
-
-		LoanBrokerGateway broker = ac.getBean("loanBrokerGateway", LoanBrokerGateway.class);
 		LoanRequest loanRequest = new LoanRequest();
 		loanRequest.setCustomer(new Customer());
 
@@ -51,8 +51,7 @@ public class LoanBrokerSharkDetectorDemo {
 		for (LoanQuote loanQuote : loanQuotes) {
 			logger.info(loanQuote);
 		}
-
-		ac.close();
+		context.close();
 	}
 	
 }

@@ -1,49 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:util="http://www.springframework.org/schema/util">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<int:gateway id="loanBrokerGateway"
-		default-request-channel="loanBrokerPreProcessingChannel"
-		service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway"/>
+	<gateway id="loanBrokerGateway"
+			default-request-channel="loanBrokerPreProcessingChannel"
+			service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway">
+		<method name="getLoanQuote">
+			<header name="RESPONSE_TYPE" value="BEST"/>
+		</method>
+		<method name="getAllLoanQuotes">
+			<header name="RESPONSE_TYPE" value="ALL"/>
+		</method>
+	</gateway>
 
-	<int:chain input-channel="loanBrokerPreProcessingChannel" output-channel="banksDistributionChannel">
-		<int:header-enricher>
-			<int:header name="RESPONSE_TYPE"
-				expression="headers.history.iterator().next().attributes['method'].equals('getLoanQuote') ? 'BEST' : 'ALL'" />
-		</int:header-enricher>
-		<int:header-enricher>
-				<int:header name="CREDIT_SCORE" ref="creditBureau" method="getCreditScore"/>
-		</int:header-enricher>
-		<int:header-enricher>
-			<int:header name="BANKS" ref="bankSelector" method="selectBankChannels"/>
-		</int:header-enricher>
-	</int:chain>
+	<chain input-channel="loanBrokerPreProcessingChannel" output-channel="banksDistributionChannel">
+		<header-enricher>
+			<header name="CREDIT_SCORE" ref="creditBureau" method="getCreditScore"/>
+		</header-enricher>
+		<header-enricher>
+			<header name="BANKS" ref="bankSelector" method="selectBankChannels"/>
+		</header-enricher>
+	</chain>
 
-	<int:router id="bankRecipientListRouter" input-channel="banksDistributionChannel" 
-											 expression="headers['BANKS']" 
-											 apply-sequence="true"/>
+	<router id="bankRecipientListRouter" input-channel="banksDistributionChannel" 
+			expression="headers['BANKS']" apply-sequence="true"/>
 
-	<!-- Messages are sent to the banks via bank channels and will be recieved and processed by aggregator-->
-		
-	<int:aggregator input-channel="quotesAggregationChannel" method="aggregateQuotes">
-		<bean class="org.springframework.integration.loanbroker.LoanQuoteAggregator"/>
-	</int:aggregator>
+	<!-- Messages are sent to the banks via bank channels and will be received and processed by an aggregator -->
 	
-	<bean id="bankSelector" class="org.springframework.integration.loanbroker.BanksChannelSelector">
-		<constructor-arg ref="banks"/>
-		<property name="routingExpression">
+	<aggregator input-channel="quotesAggregationChannel" method="aggregateQuotes">
+		<beans:bean class="org.springframework.integration.loanbroker.LoanQuoteAggregator"/>
+	</aggregator>
+	
+	<beans:bean id="bankSelector" class="org.springframework.integration.loanbroker.BanksChannelSelector">
+		<beans:constructor-arg ref="banks"/>
+		<beans:property name="routingExpression">
 			<!-- This expression also demonstrates 'Collection Selection' concept of SpEL 
 			(see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e11961)
 			-->
-			<value>
+			<beans:value>
 				headers['CREDIT_SCORE'].score > 780 ? #banks.?[value.equals('premier')].keySet()
 													: #banks.?[value.equals('secondary')].keySet()
-			</value>	
-		</property>
-	</bean>
-</beans>
+			</beans:value>	
+		</beans:property>
+	</beans:bean>
+
+</beans:beans>
