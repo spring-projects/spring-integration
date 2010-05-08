@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.springframework.expression.EvaluationContext;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -37,27 +37,32 @@ import org.springframework.integration.core.Message;
  * channels if customer's credit score (retrieved from message header 'CREDIT_SCORE') is above 780. 
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  */
 public class BanksChannelSelector {
 
 	private static Logger logger = Logger.getLogger(BanksChannelSelector.class);
 
-	private Map<String, String> bankChannelPool;
+	private static final ExpressionParser parser = new SpelExpressionParser();
 
-	private String routingExpression;
+
+	private volatile Expression routingExpression;
+
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
 
 	/**
 	 * @param bankChannelPool
 	 */
 	public BanksChannelSelector(Map<String, String> bankChannelPool) {
-		this.bankChannelPool = bankChannelPool;
+		this.evaluationContext.setVariable("banks", bankChannelPool);
 	}
 
 	/**
 	 * @param routingExpression
 	 */
 	public void setRoutingExpression(String routingExpression) {
-		this.routingExpression = routingExpression;
+		this.routingExpression = parser.parseExpression(routingExpression);
 	}
 
 	/**
@@ -66,11 +71,7 @@ public class BanksChannelSelector {
 	 */
 	@SuppressWarnings("unchecked")
 	public Set<String> selectBankChannels(Message<?> message) {
-		EvaluationContext context = new StandardEvaluationContext(message);
-		context.setVariable("banks", bankChannelPool);
-		ExpressionParser parser = new SpelExpressionParser();
-		Expression expression = parser.parseExpression(routingExpression);
-		Set<String> bankChannels = (Set<String>) expression.getValue(context);
+		Set<String> bankChannels = (Set<String>) routingExpression.getValue(this.evaluationContext, message);
 		logger.debug("selected bank channels: " + bankChannels);
 		return bankChannels;
 	}

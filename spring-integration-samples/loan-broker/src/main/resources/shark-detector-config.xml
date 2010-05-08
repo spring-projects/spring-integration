@@ -22,11 +22,9 @@
 
 	<channel id="loanSharkChannel" />
 
-	<transformer ref="udpTransformer" 
-			input-channel="loanSharkChannel"
+	<transformer input-channel="loanSharkChannel"
+			expression="payload.lender + ',' + payload.rate"
 			output-channel="sharkOutChannel"/>
-
-	<beans:bean id="udpTransformer" class="org.springframework.integration.loanbroker.Transformer"/>
 
 	<channel id="sharkOutChannel" />
 
