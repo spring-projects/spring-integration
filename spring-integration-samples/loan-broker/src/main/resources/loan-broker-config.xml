@@ -30,8 +30,7 @@
 		</header-enricher>
 	</chain>
 
-	<router id="bankRecipientListRouter" input-channel="banksDistributionChannel" 
-			expression="headers['BANKS']" apply-sequence="true"/>
+	<header-value-router input-channel="banksDistributionChannel" header-name="BANKS" apply-sequence="true"/>
 
 	<!-- Messages are sent to the banks via bank channels and will be received and processed by an aggregator -->
 	
