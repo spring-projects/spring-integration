@@ -70,6 +70,46 @@
 		values. You could obtain the same result by implementing a MessageHandler that did the header modifications
 		and wiring that as a bean.
 	</para>
+	
+	<para>
+	Some time you need to make a nested call to another chain from within the chain and then come 
+	back and continue execution within the original chain.
+    To accomplish this you can utilize Messaging Gateway by including light-configuration via &lt;gateway&gt; element.
+    For example:
+    <programlisting language="xml"><![CDATA[ 	<si:chain id="main-chain" input-channel="inputA" output-channel="inputB">
+		<si:header-enricher>
+			<si:header name="name" value="Many" />
+		</si:header-enricher>
+		<si:service-activator>
+			<bean class="org.foo.SampleService" />
+		</si:service-activator>
+		<si:gateway request-channel="inputC"/>  
+	</si:chain>
+	<si:chain id="nested-chain-a" input-channel="inputC">
+		<si:header-enricher>
+			<si:header name="name" value="Moe" />
+		</si:header-enricher>
+		<si:gateway request-channel="inputD"/> 
+		<si:service-activator>
+			<bean class="org.foo.SampleService" />
+		</si:service-activator>
+	</si:chain>	
+	<si:chain id="nested-chain-b" input-channel="inputD">
+		<si:header-enricher>
+			<si:header name="name" value="Jack" />
+		</si:header-enricher>
+		<si:service-activator>
+			<bean class="org.foo.SampleService" />
+		</si:service-activator>
+	</si:chain>]]></programlisting>
+
+In the above example the <emphasis>nested-chain-a</emphasis> will be called at the end of <emphasis>main-chain</emphasis> processing by the 'gateway' element 
+configured there. While in <emphasis>nested-chain-a</emphasis> a call to a <emphasis>nested-chain-b</emphasis> will be made after header enrichment and then it will 
+come back to finish execution in <emphasis>nested-chain-b</emphasis> finally getting back to the <emphasis>main-chain</emphasis>.
+When light version of &lt;gateway&gt; element is defined in the chain SI will construct an instance <classname>SimpleMessagingGateway</classname>
+ (no need to provide 'service-interface' configuration) which will take the message in its current state and will place it on the channel defined via 'request-channel' attribute. 
+ Upon processing <classname>Message</classname> will be returned to the gateway and continue its journey within the current chain.
+	</para>
   </section>
 
 </chapter>
