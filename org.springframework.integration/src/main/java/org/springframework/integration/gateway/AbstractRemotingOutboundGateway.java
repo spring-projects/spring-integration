@@ -59,7 +59,11 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 		}
 		Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
-			return this.proxy.exchange(requestMessage);
+			Message<?> reply = this.proxy.exchange(requestMessage);
+			if (reply != null) {
+				reply = MessageBuilder.fromMessage(reply).copyHeadersIfAbsent(message.getHeaders()).build();
+			}
+			return reply;
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "remote failure in Messaging Gateway", e);

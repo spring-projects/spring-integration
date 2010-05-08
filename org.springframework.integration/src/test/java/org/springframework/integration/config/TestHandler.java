@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -48,10 +47,10 @@ public class TestHandler {
 	}
 
 	@ServiceActivator
-	public Message<?> handle(Message<?> message) {
+	public String handle(Message<?> message) {
 		this.messageString = message.getPayload().toString();
 		this.latch.countDown();
-		return (this.replyMessageText != null) ? new StringMessage(this.replyMessageText) : null;
+		return (this.replyMessageText != null) ? this.replyMessageText : null;
 	}
 
 	public String getMessageString() {
