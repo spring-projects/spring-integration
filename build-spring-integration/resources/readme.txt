@@ -1,7 +1,7 @@
-SPRING INTEGRATION 2.0.0 Milestone 3 (Mar 12, 2010)
----------------------------------------------------
+SPRING INTEGRATION 2.0.0 Milestone 4 (May 8, 2010)
+--------------------------------------------------
 
-To find out what has changed since version 1.0.3 or 2.0 M2, see 'changelog.txt'
+To find out what has changed since version 1.0.4 or 2.0 M3, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release  and also visit the official Spring Integration home at:
@@ -25,17 +25,5 @@ An expanded version is also available in "build-spring-integration/target/packag
 To build the JavaDoc, run 'ant javadoc-api' from within 'build-spring-integration'. The
 result will be available in "build-spring-integration/target/javadoc-api".
 
-To run the code within Eclipse, do the following:
-
-   Import... > General > Existing Projects into Workspace
-   Browse to the directory where you checked out the project
-   Select each module that begins with "org.springframework.integration"
-   Define a Classpath Variable named IVY_CACHE under "Preferences > Java > Build Path"
-   Its value should be: <checkout-dir>/ivy-cache/repository
-
-To run the code within Idea, do the following:
-
-   Import the existing Eclipse projects:
-         (File > New Project... > Import project from external model > Eclipse)
-   Define a Path Variable named IVY_CACHE (IDE Settings > Path Variables)
-   Its value should be: <checkout-dir>/ivy-cache/repository
+The projects are Maven enabled, so you should be able to import them into any IDE that
+has support for Maven (2.0.9 or greater).
