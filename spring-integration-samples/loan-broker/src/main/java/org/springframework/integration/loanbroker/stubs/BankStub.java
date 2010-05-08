@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.loanbroker.stubs;
 
 import java.util.Calendar;
@@ -23,14 +24,12 @@ import org.springframework.integration.loanbroker.domain.LoanRequest;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class BankStub {
-	
+
 	/**
-	 * 
-	 * @param loanRequest
-	 * @return
+	 * @param loanRequest the loan request
+	 * @return a LoanQuote for the given request
 	 */
 	public LoanQuote quote(LoanRequest loanRequest){
 		Calendar calendar = Calendar.getInstance();
@@ -45,4 +44,5 @@ public class BankStub {
 		loanQuote.setLender("StubBank-" + random.nextInt(30));
 		return loanQuote;
 	}
+
 }

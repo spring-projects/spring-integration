@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.loanbroker.stubs;
 
 import java.util.Random;
 
 import org.apache.log4j.Logger;
+
 import org.springframework.integration.loanbroker.domain.CreditScore;
 import org.springframework.integration.loanbroker.domain.LoanRequest;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class CreditBureauStub {
+
 	private static Logger logger = Logger.getLogger(CreditBureauStub.class);
+
 	/**
-	 * 
-	 * @param loanRequest
-	 * @return
+	 * @param loanRequest the loan request
+	 * @return the CreditScore for the given loan request
 	 */
 	public CreditScore getCreditScore(LoanRequest loanRequest){
 		Random random =  new Random();
@@ -38,4 +40,5 @@ public class CreditBureauStub {
 		logger.info("Credit Score: " + creditScore);
 		return new CreditScore(creditScore);
 	}
+
 }
