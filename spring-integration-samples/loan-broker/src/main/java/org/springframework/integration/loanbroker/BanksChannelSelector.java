@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.loanbroker;
 
 import java.util.Map;
@@ -36,39 +37,42 @@ import org.springframework.integration.core.Message;
  * channels if customer's credit score (retrieved from message header 'CREDIT_SCORE') is above 780. 
  * 
  * @author Oleg Zhurakousky
- *
  */
 public class BanksChannelSelector {
+
 	private static Logger logger = Logger.getLogger(BanksChannelSelector.class);
+
 	private Map<String, String> bankChannelPool;
+
 	private String routingExpression;
+
 	/**
-	 * 
 	 * @param bankChannelPool
 	 */
-	public BanksChannelSelector(Map<String, String> bankChannelPool){
+	public BanksChannelSelector(Map<String, String> bankChannelPool) {
 		this.bankChannelPool = bankChannelPool;
 	}
-	/**
-	 * 
-	 * @param message
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	public Set<String> selectBankChannels(Message<?> message) {
-		EvaluationContext context = new StandardEvaluationContext(message);
-		
-		context.setVariable("banks", bankChannelPool);
-		ExpressionParser parser = new SpelExpressionParser();
-		Expression expression = parser.parseExpression(routingExpression);
-		Set<String> bankChannels = (Set<String>) expression.getValue(context);
-		logger.debug("Selected bank channels: " + bankChannels);
-		return bankChannels;
-	}
+
 	/**
 	 * @param routingExpression
 	 */
 	public void setRoutingExpression(String routingExpression) {
 		this.routingExpression = routingExpression;
 	}
+
+	/**
+	 * @param message
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Set<String> selectBankChannels(Message<?> message) {
+		EvaluationContext context = new StandardEvaluationContext(message);
+		context.setVariable("banks", bankChannelPool);
+		ExpressionParser parser = new SpelExpressionParser();
+		Expression expression = parser.parseExpression(routingExpression);
+		Set<String> bankChannels = (Set<String>) expression.getValue(context);
+		logger.debug("selected bank channels: " + bankChannels);
+		return bankChannels;
+	}
+
 }

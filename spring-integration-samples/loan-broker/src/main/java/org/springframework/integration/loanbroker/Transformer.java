@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.loanbroker;
 
 import org.springframework.integration.loanbroker.domain.LoanQuote;
 
 /**
  * @author Gary Russell
- *
  */
 public class Transformer {
 
