@@ -11,6 +11,7 @@
 			<fileset dir="${package.lib.dir}">
 				<present targetdir="${package.dist.dir}"/>
 			</fileset>
+			<fileset dir="${package.lib.dir}" includes="*.jackson.*"/>
 		</delete>
 		<mkdir dir="${package.output.dir}/samples" />
 		<copy todir="${package.output.dir}/samples">
