@@ -4,3 +4,4 @@ ivy-cache
 spring-build
 bin
 .springBeans
+.settings
