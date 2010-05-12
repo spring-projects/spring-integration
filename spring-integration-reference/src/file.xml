@@ -83,7 +83,7 @@
 			Within this namespace you can reduce the FileReadingMessageSource and wrap
 			it in an inbound Channel Adapter like this:
 			<programlisting language="xml"><![CDATA[ <file:inbound-channel-adapter id="filesIn"
-       directory="file:${input.directory}"/>
+       directory="file:${input.directory}" prevent-duplicates="true"/>
  					
  <file:inbound-channel-adapter id="filesIn"
         directory="file:${input.directory}" 
@@ -96,6 +96,9 @@
 			duplication, the second is using a custom filter, and the third is using the
 			<emphasis>filename-pattern</emphasis> attribute to add a <classname>Pattern</classname>
 			based filter to the <classname>FileReadingMessageSource</classname>.
+      The <emphasis>file-name-pattern</emphasis> and <emphasis>filter</emphasis> attributes are mutually exclusive, but
+      you can use a <classname>CompositeFileListFilter</classname> to use any combination of filters, including a
+      pattern based filter to fit your particular needs.
 		</para>
 	</section>
 
@@ -140,7 +143,7 @@
 			the <code>outbound-gateway</code> instead. It plays a very similar role as the
 			<code>outbound-channel-adapter</code>. However after writing the File, it will also send it
 			to the reply channel as the payload of a Message.
-		<programlisting language="xml"><![CDATA[ <file:outbound-gateway id="mover" request-channel="moveInput" 
+		<programlisting language="xml"><![CDATA[ <file:outbound-gateway id="mover" request-channel="moveInput"
             reply-channel="output"
             directory="${output.directory}" 
             delete-source-files="true"/>]]></programlisting>
