@@ -10,16 +10,16 @@
     the build process. </description>
 	<packaging>pom</packaging>
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
 		<junit.version>4.7</junit.version>
 		<spring.version>3.0.2.RELEASE</spring.version>
-		<maven.test.failure.ignore>true</maven.test.failure.ignore>
 	</properties>
 	<profiles>
 		<profile>
-			<id>strict</id>
+			<id>non-strict</id>
 			<properties>
-				<maven.test.failure.ignore>false</maven.test.failure.ignore>
+				<maven.test.failure.ignore>true</maven.test.failure.ignore>
 			</properties>
 		</profile>
 		<profile>
@@ -129,7 +129,6 @@
 			</testResource>
 		</testResources>
 		<plugins>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -138,7 +137,6 @@
 					<target>1.5</target>
 				</configuration>
 			</plugin>
-
 			<!--
 				<plugin> <groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -260,4 +258,13 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+	<dependencies>
+		<!-- including log4j to quell respect src/test log4j.xml settings -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

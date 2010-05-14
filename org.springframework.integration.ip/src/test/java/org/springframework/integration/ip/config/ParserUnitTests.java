@@ -31,7 +31,6 @@ import org.springframework.integration.ip.tcp.CustomNioSocketWriter;
 import org.springframework.integration.ip.tcp.MessageFormats;
 import org.springframework.integration.ip.tcp.SimpleTcpNetInboundGateway;
 import org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway;
-import org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGatewayTests;
 import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
@@ -47,7 +46,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
- *
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -288,10 +286,4 @@ public class ParserUnitTests {
 		assertEquals(226, delegateDfa.getPropertyValue("soTimeout"));
 	}
 
-	@Test
-	public void test() {
-		String[] beanDefinitionNames = ctx.getBeanDefinitionNames();
-		for (String x : beanDefinitionNames)
-			System.out.println(x);
-	}
 }

@@ -297,7 +297,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	private static class TestService {
 
 		public Map<?,?> mapOnly(Map<?,?> map) {
-			System.out.println(map);
 			return map;
 		}
 
