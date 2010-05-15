@@ -49,7 +49,6 @@ import org.easymock.IAnswer;
 import org.easymock.classextension.ConstructorArgs;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;

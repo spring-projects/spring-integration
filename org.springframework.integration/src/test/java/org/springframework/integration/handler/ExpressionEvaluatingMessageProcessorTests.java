@@ -18,6 +18,7 @@ import static org.junit.Assert.assertEquals;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
@@ -42,6 +43,21 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	public void testProcessMessage() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload");
 		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+	}
+
+	@Test
+	public void testProcessMessageWithDollar() {
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers['$id']");
+		StringMessage message = new StringMessage("foo");
+		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
+	}
+
+	@Test
+	@Ignore // This doesn't work because the context root for the expression evaluated as the map key is the headers (seems like a bug)
+	public void testProcessMessageWithStaticKey() {
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers[T(org.springframework.integration.core.MessageHeaders).ID]");
+		StringMessage message = new StringMessage("foo");
+		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
 	@Test

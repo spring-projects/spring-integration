@@ -16,6 +16,7 @@
 package org.springframework.integration.http;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.io.ByteArrayOutputStream;
@@ -25,8 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
-
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.LinkedMultiValueMap;
@@ -109,6 +110,18 @@ public class DefaultInboundRequestMapperTests {
 		FileCopyUtils.copy(new FileInputStream(tmpFile), baos);
 		assertThat(baos.toString(), is("foo"));
 		tmpFile.deleteOnExit();
+	}
+
+	@Test
+	public void testProcessMessageWithDollar() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setContentType("text");
+		request.setCharacterEncoding("utf-8");
+		byte[] bytes = SIMPLE_STRING.getBytes("utf-8");
+		request.setContent(bytes);
+		Message<String> message = (Message<String>) mapper.toMessage(request);
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers['$http_requestUrl']");
+		assertEquals(message.getHeaders().get(HttpHeaders.REQUEST_URL), processor.processMessage(message));
 	}
 
 }
