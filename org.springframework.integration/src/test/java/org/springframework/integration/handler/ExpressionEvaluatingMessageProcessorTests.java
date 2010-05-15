@@ -18,7 +18,6 @@ import static org.junit.Assert.assertEquals;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hamcrest.Description;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
@@ -53,9 +52,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	@Ignore // This doesn't work because the context root for the expression evaluated as the map key is the headers (seems like a bug)
 	public void testProcessMessageWithStaticKey() {
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers[T(org.springframework.integration.core.MessageHeaders).ID]");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers[headers.ID]");
 		StringMessage message = new StringMessage("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
