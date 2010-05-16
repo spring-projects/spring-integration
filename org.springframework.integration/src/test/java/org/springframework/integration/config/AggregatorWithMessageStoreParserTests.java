@@ -65,6 +65,22 @@ public class AggregatorWithMessageStoreParserTests {
     }
 
 
+    @Test
+    public void testExpiry() {
+ 
+        input.send(createMessage("123", "id1", 3, 1, null));
+        assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
+        input.send(createMessage("456", "id1", 3, 2, null));
+        assertEquals(2, messageGroupStore.getMessageGroup("id1").size());
+        messageGroupStore.expireMessageGroups(-10000);
+        assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
+                .getAggregatedMessages().size());
+        Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
+        assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage
+                .getPayload());
+    }
+
+
     private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
                                                 MessageChannel outputChannel) {
         return MessageBuilder.withPayload(payload)
