@@ -9,6 +9,7 @@
 	<groupId>jms</groupId>
 	<artifactId>jms</artifactId>
 	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<name>Spring Integration JMS Sample</name>
 	<dependencies>
 		<dependency>
 			<groupId>javax.jms</groupId>

@@ -5,3 +5,4 @@ spring-build
 bin
 .springBeans
 .settings
+spring-integration-samples/loanshark/application.log*

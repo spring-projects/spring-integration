@@ -11,11 +11,12 @@
 	<artifactId>ws-inbound-gateway</artifactId>
 	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>war</packaging>
+	<name>Spring Integration WS Inbound Gateway Sample</name>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.framework.version}</version>
+			<version>${org.springframework.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -26,7 +27,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.7</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

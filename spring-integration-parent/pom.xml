@@ -4,16 +4,23 @@
 	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration-parent</artifactId>
 	<version>2.0.0.BUILD-SNAPSHOT</version>
-	<name> Spring Integration Parent </name>
+	<name>Spring Integration Parent</name>
 	<url>http://www.springsource.org/spring-integration</url>
 	<description> Spring Integration parent project. Defines dependencies and common configuration for
     the build process. </description>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
+		<!-- versions for commonly-used dependencies -->
+		<cglib.version>2.2</cglib.version>
 		<junit.version>4.7</junit.version>
-		<spring.version>3.0.2.RELEASE</spring.version>
+		<log4j.version>1.2.12</log4j.version>
+		<org.aspectj.version>1.6.5</org.aspectj.version>
+		<org.easymock.version>2.3</org.easymock.version>
+		<org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
+		<org.mockito.version>1.8.4</org.mockito.version>
+		<org.slf4j.version>1.5.10</org.slf4j.version>
+		<org.springframework.version>3.0.2.RELEASE</org.springframework.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -263,7 +270,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.12</version>
+			<version>${log4j.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

@@ -63,13 +63,13 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
+			<version>${org.springframework.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
+			<version>${org.springframework.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -81,7 +81,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-oxm</artifactId>
-			<version>${spring.version}</version>
+			<version>${org.springframework.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

@@ -9,8 +9,12 @@
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- versions for commonly-used dependencies -->
 		<release.version>2.0.0.BUILD-SNAPSHOT</release.version>
-		<spring.framework.version>3.0.2.RELEASE</spring.framework.version>
+		<junit.version>4.7</junit.version>
+		<log4j.version>1.2.12</log4j.version>
+		<org.springframework.version>3.0.2.RELEASE</org.springframework.version>
 	</properties>
 	<modules>
 		<module>cafe</module>
@@ -20,10 +24,10 @@
 		<module>jms</module>
 		<module>oddeven</module>
 		<module>quote</module>
+		<module>ws-inbound-gateway</module>
 		<module>ws-outbound-gateway</module>
 		<module>xml</module>
 	</modules>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
@@ -86,9 +90,9 @@
 			<version>${release.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.log4j</groupId>
-			<artifactId>com.springsource.org.apache.log4j</artifactId>
-			<version>1.2.15</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -115,6 +119,20 @@
 				<configuration>
 					<source>1.5</source>
 					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<useFile>false</useFile>
+					<includes>
+						<include>**/*Tests.java</include>
+					</includes>
+					<excludes>
+						<exclude>**/Abstract*.java</exclude>
+					</excludes>
+					<junitArtifactName>junit:junit</junitArtifactName>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -147,7 +165,6 @@
 			</build>
 		</profile>
 	</profiles>
-
 	<repositories>
 		<repository>
 			<id>com.springsource.repository.bundles.release</id>
@@ -170,5 +187,4 @@
 			<url>http://repository.springsource.com/maven/bundles/snapshot</url>
 		</repository>
 	</repositories>
-
 </project>

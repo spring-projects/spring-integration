@@ -3,9 +3,7 @@
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <bookinfo>
     <title>Spring Integration Reference Manual</title>
-	<titleabbrev>Spring Integration 2.0.0 M4</titleabbrev>
-
-
+    <titleabbrev>Spring Integration 2.0.0 M4</titleabbrev>
     <productname>Spring Integration</productname>
     <releaseinfo>2.0.0 Milestone 4</releaseinfo>
 

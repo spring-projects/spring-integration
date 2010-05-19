@@ -4,6 +4,7 @@
 	<groupId>org.springframework.integration.samples</groupId>
 	<artifactId>loan-broker</artifactId>
 	<version>1.0</version>
+	<name>Spring Integration Loan Broker Sample</name>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
@@ -19,12 +20,12 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>org.springframework.spring-library</artifactId>
 			<type>libd</type>
-			<version>3.0.2.RELEASE</version>
+			<version>${org.springframework.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.junit</groupId>
-			<artifactId>com.springsource.org.junit</artifactId>
-			<version>4.7.0</version>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -33,16 +34,15 @@
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
-			<artifactId>com.springsource.org.mockito</artifactId>
-			<version>1.8.0</version>
+			<artifactId>mockito-all</artifactId>
+			<version>${org.mockito.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.log4j</groupId>
-			<artifactId>com.springsource.org.apache.log4j</artifactId>
-			<version>1.2.15</version>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
 	</dependencies>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -72,8 +72,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
 	<repositories>
 		<repository>
 			<id>com.springsource.repository.bundles.release</id>
@@ -110,7 +108,6 @@
 			<name>SpringSource Enterprise Bundle Repository - SpringSource Library Releases</name>
 			<url>http://repository.springsource.com/maven/libraries/release</url>
 		</repository>
-
 		<repository>
 			<id>com.springsource.repository.libraries.external</id>
 			<name>SpringSource Enterprise Bundle Repository - External Library Releases</name>
