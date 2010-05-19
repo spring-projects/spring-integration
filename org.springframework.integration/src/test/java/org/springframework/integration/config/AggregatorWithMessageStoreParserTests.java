@@ -18,9 +18,6 @@ package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +26,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageGroupStore;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,6 +48,7 @@ public class AggregatorWithMessageStoreParserTests {
 	private MessageGroupStore messageGroupStore;
 
     @Test
+    @DirtiesContext
     public void testAggregation() {
  
         input.send(createMessage("123", "id1", 3, 1, null));
@@ -66,6 +65,7 @@ public class AggregatorWithMessageStoreParserTests {
 
 
     @Test
+    @DirtiesContext
     public void testExpiry() {
  
         input.send(createMessage("123", "id1", 3, 1, null));
@@ -76,7 +76,7 @@ public class AggregatorWithMessageStoreParserTests {
         assertEquals("One and only one message should have been aggregated", 1, aggregatorBean
                 .getAggregatedMessages().size());
         Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
-        assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage
+        assertEquals("The aggregated message payload is not correct", "123456", aggregatedMessage
                 .getPayload());
     }
 

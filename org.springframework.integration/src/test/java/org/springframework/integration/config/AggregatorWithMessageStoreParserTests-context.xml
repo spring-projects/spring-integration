@@ -13,7 +13,7 @@
 	<channel id="input" />
 
 	<aggregator id="aggregator" ref="aggregatorBean"
-		input-channel="input" output-channel="output" message-store="messageStore"/>
+		input-channel="input" output-channel="output" message-store="messageStore" send-partial-result-on-expiry="true"/>
 		
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore"/>
 
