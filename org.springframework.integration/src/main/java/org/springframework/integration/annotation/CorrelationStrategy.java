@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * Indicates that a given method is capable of determining the correlation key
  * of a message sent as parameter.
  * 
- * @author: Marius Bogoevici
+ * @author Marius Bogoevici
  */
 @Retention (RetentionPolicy.RUNTIME)
 @Target (ElementType.METHOD)

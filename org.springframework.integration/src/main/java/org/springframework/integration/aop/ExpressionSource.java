@@ -63,7 +63,7 @@ interface ExpressionSource {
 	/**
 	 * Returns the variable name to use in the evaluation context for the Map
 	 * of arguments. The keys in this map will be determined by the result of
-	 * the {@link #getArgumentNames(Method)} method.
+	 * the {@link #getArgumentVariableNames(Method)} method.
 	 */
 	String getArgumentMapVariableName(Method method);
 

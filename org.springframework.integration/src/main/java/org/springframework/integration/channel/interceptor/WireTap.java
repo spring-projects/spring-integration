@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,9 +69,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
 
 	/**
-	 * Specify the timeout value for sending to the intercepting target. Note
-	 * that this value will only apply if the target is a {@link BlockingTarget}.
-	 * The default value is 0.
+	 * Specify the timeout value for sending to the intercepting target.
 	 * 
 	 * @param timeout the timeout in milliseconds
 	 */

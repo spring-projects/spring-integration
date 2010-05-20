@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 /**
  * {@link CorrelationStrategy} implementation that works as an adapter to another bean.
  *
- * @author: Marius Bogoevici
+ * @author Marius Bogoevici
  */
 public class CorrelationStrategyAdapter implements CorrelationStrategy {
 

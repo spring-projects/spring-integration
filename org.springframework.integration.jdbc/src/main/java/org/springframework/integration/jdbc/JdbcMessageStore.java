@@ -165,7 +165,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * The {@link JdbcOperations} to use when interacting with the database. Either this property can be set or the
 	 * {@link #setDataSource(DataSource) dataSource}.
 	 * 
-	 * @param dataSource a {@link DataSource}
+	 * @param jdbcTemplate a {@link JdbcOperations}
 	 */
 	public void setJdbcTemplate(JdbcOperations jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;

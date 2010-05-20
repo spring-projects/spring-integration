@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
@@ -22,46 +23,45 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * A {@link SocketWriter} that writes to a {@link java.nio.channels.SocketChannel}. The 
+ * A {@link SocketWriter} that writes to a {@link SocketChannel}. The
  * data is wrapped in a wire protocol based on the messageFormat property.
  *
  * @author Gary Russell
- *
  */
 public class NioSocketWriter extends AbstractSocketWriter {
 
 	protected SocketChannel channel;
-	
+
 	/**
-	 * If true, direct buffers are used. 
-	 * @see {@link ByteBuffer} for more information.
+	 * If true, direct buffers are used.
+	 * @see ByteBuffer for more information
 	 */
 	protected boolean usingDirectBuffers;
-	
+
 	/**
-	 * A buffer containing the length part when the messageFormat is 
+	 * A buffer containing the length part when the messageFormat is
 	 * {@link MessageFormats#FORMAT_LENGTH_HEADER}.
 	 */
 	protected ByteBuffer lengthPart;
-	
+
 	/**
-	 * A buffer containing the STX for when the messageFormat is 
+	 * A buffer containing the STX for when the messageFormat is
 	 * {@link MessageFormats#FORMAT_STX_ETX}.
 	 */
 	protected ByteBuffer stxPart;
-	
+
 	/**
-	 * A buffer containing the ETX for when the messageFormat is 
+	 * A buffer containing the ETX for when the messageFormat is
 	 * {@link MessageFormats#FORMAT_STX_ETX}.
 	 */
 	protected ByteBuffer etxPart;
-	
+
 	/**
-	 * A buffer containing the CRLF for when the messageFormat is 
+	 * A buffer containing the CRLF for when the messageFormat is
 	 * {@link MessageFormats#FORMAT_CRLF}.
 	 */
 	protected ByteBuffer crLfPart;
-	
+
 	/**
 	 * If we are using direct buffers, we don't want to churn them using
 	 * normal heap management. But, 
@@ -70,19 +70,16 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	 * We handle this with a blocking queue.
 	 */
 	protected BlockingQueue<ByteBuffer> buffers;
-	
+
 	protected int maxBuffers = 2;
-	
+
 	protected int bufferCount = 0;
 
 	private int sendBufferSize;
-	
-	/**
-	 * @param socket
-	 */
-	public NioSocketWriter(SocketChannel channel, 
-							      int maxBuffers, 
-							      int sendBufferSize) {
+
+	public NioSocketWriter(SocketChannel channel,
+	                       int maxBuffers,
+	                       int sendBufferSize) {
 		this.channel = channel;
 		this.maxBuffers = maxBuffers;
 		if (sendBufferSize <= 0) {
@@ -91,9 +88,9 @@ public class NioSocketWriter extends AbstractSocketWriter {
 		this.sendBufferSize = sendBufferSize;
 		buffers = new LinkedBlockingQueue<ByteBuffer>(maxBuffers);
 	}
-	
+
 	/**
-	 * @param usingDirectBuffers the usingDirectBuffers to set
+	 * @param usingDirectBuffers whether direct buffers are to be used
 	 */
 	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
 		this.usingDirectBuffers = usingDirectBuffers;
@@ -115,13 +112,13 @@ public class NioSocketWriter extends AbstractSocketWriter {
 		buffer.clear();
 		return buffer;
 	}
-	
+
 	protected void returnBuffer(ByteBuffer buffer) {
 		if (buffer != null) {
 			buffers.offer(buffer);
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketWriter#writeCrLfFormat(byte[])
 	 */
@@ -218,7 +215,6 @@ public class NioSocketWriter extends AbstractSocketWriter {
 			} finally {
 				returnBuffer(buffer);
 			}
-			
 		}
 		synchronized (channel) {
 			if (stxPart == null) {
@@ -257,5 +253,4 @@ public class NioSocketWriter extends AbstractSocketWriter {
 		} catch (IOException e) {}
 	}
 
-	
 }

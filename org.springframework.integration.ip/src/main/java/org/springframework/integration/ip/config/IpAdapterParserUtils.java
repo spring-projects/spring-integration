@@ -89,11 +89,11 @@ public abstract class IpAdapterParserUtils {
 
 
 	/**
-	 * Adds a constructor-arg to the bean definition with the value
-	 * of the attribute whose name is provided if that attribute is
-	 * defined in the given element.
+	 * Adds a constructor-arg to the provided bean definition builder 
+	 * with the value of the attribute whose name is provided if that
+	 * attribute is defined in the given element.
 	 * 
-	 * @param beanDefinition the bean definition to be configured
+	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be
 	 * used to populate the property

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Socket;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,11 +43,11 @@ import org.springframework.util.Assert;
 /**
  * A {@link MessageHandler} implementation that maps a Message into
  * a UDP datagram packet and sends that to the specified host and port.
- * 
+ *
  * Messages can be basic, with no support for reliability, can be prefixed
- * by a length so the receiving end can detect truncation, and can require 
+ * by a length so the receiving end can detect truncation, and can require
  * a UDP acknowledgment to confirm delivery.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -103,42 +104,42 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * Add an acknowledgment request to packets. 
+	 * Add an acknowledgment request to packets.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
 	 * @param acknowledge If true, packets will request acknowledgment.
 	 * @param ackHost The host to which acks should be sent. Required if ack true.
-	 * @param ackPort The port to which acks should be sent. 
+	 * @param ackPort The port to which acks should be sent.
 	 * @param ackTimeout How long we will wait (milliseconds) for the ack.
 	 */
-	public UnicastSendingMessageHandler(String host, 
-			                            int port, 
-			                            boolean acknowledge, 
-			                            String ackHost,
-			                            int ackPort,
-			                            int ackTimeout) {
+	public UnicastSendingMessageHandler(String host,
+	                                    int port,
+	                                    boolean acknowledge,
+	                                    String ackHost,
+	                                    int ackPort,
+	                                    int ackTimeout) {
 		super(host, port);
 		setReliabilityAttributes(false, acknowledge, ackHost, ackPort,
 				ackTimeout);
 	}
 
 	/**
-	 * Add a length and/or acknowledgment request to packets. 
+	 * Add a length and/or acknowledgment request to packets.
 	 * @param host Destination Host.
 	 * @param port Destination Port.
 	 * @param lengthCheck If true, packets will contain a length.
 	 * @param acknowledge If true, packets will request acknowledgment.
 	 * @param ackHost The host to which acks should be sent. Required if ack true.
-	 * @param ackPort The port to which acks should be sent. 
+	 * @param ackPort The port to which acks should be sent.
 	 * @param ackTimeout How long we will wait (milliseconds) for the ack.
 	 */
-	public UnicastSendingMessageHandler(String host, 
-			                            int port, 
-			                            boolean lengthCheck, 
-			                            boolean acknowledge, 
-			                            String ackHost,
-			                            int ackPort,
-			                            int ackTimeout) {
+	public UnicastSendingMessageHandler(String host,
+	                                    int port,
+	                                    boolean lengthCheck,
+	                                    boolean acknowledge,
+	                                    String ackHost,
+	                                    int ackPort,
+	                                    int ackTimeout) {
 		super(host, port);
 		setReliabilityAttributes(lengthCheck, acknowledge, ackHost, ackPort,
 				ackTimeout);
@@ -158,7 +159,7 @@ public class UnicastSendingMessageHandler extends
 			Assert.hasLength(ackHost);
 			this.executorService = Executors
 					.newSingleThreadExecutor(new ThreadFactory() {
-						private AtomicInteger n = new AtomicInteger(); 
+						private AtomicInteger n = new AtomicInteger();
 						public Thread newThread(Runnable runner) {
 							Thread thread = new Thread(runner);
 							thread.setName("UDP-Ack-Handler-" + n.getAndIncrement());
@@ -203,7 +204,7 @@ public class UnicastSendingMessageHandler extends
 			catch (Exception e1) { }
 			socket = null;
 			throw new MessageHandlingException(message, "failed to send UDP packet", e);
-		} 
+		}
 		finally {
 			if (countdownLatch != null)
 				this.ackControl.remove(messageId);
@@ -278,7 +279,7 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * If exposed as an MBean, can be used to restart the ack thread if a fatal 
+	 * If exposed as an MBean, can be used to restart the ack thread if a fatal
 	 * (bind) error occurred, without bouncing the JVM.
 	 */
 	public void restartAckThread() {
@@ -298,8 +299,8 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	/**
-	 * @see {@link Socket#setReceiveBufferSize(int)} and {@link DatagramSocket#setReceiveBufferSize(int)}
-	 * @param size
+	 * @see Socket#setReceiveBufferSize(int)
+	 * @see DatagramSocket#setReceiveBufferSize(int)
 	 */
 	public void setSoReceiveBufferSize(int size) {
 		this.soReceiveBufferSize = size;

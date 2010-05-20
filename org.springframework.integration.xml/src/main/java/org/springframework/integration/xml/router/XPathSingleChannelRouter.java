@@ -40,28 +40,28 @@ import org.w3c.dom.Node;
 public class XPathSingleChannelRouter extends AbstractXPathRouter  {
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String, Map)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(String, Map)
 	 */
 	public XPathSingleChannelRouter(String expression, Map<String, String> namespaces) {
 		super(expression, namespaces);
 	}
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String, String, String)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(String, String, String)
 	 */
 	public XPathSingleChannelRouter(String expression, String prefix, String namespace) {
 		super(expression, prefix, namespace);
 	}
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(String)
 	 */
 	public XPathSingleChannelRouter(String expression) {
 		super(expression);
 	}
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(XPathExpression)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(XPathExpression)
 	 */
 	public XPathSingleChannelRouter(XPathExpression expression) {
 		super(expression);

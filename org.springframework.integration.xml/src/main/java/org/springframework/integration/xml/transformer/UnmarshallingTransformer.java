@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.w3c.dom.Document;
 
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.oxm.Unmarshaller;
@@ -34,7 +35,7 @@ import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * An implementation of {@link PayloadTransformer} that delegates to an OXM
+ * An implementation of {@link Transformer} that delegates to an OXM
  * {@link Unmarshaller}. Expects the payload to be of type {@link Document},
  * {@link String}, {@link File}, {@link Source} or to have an instance of
  * {@link SourceFactory} that can convert to a {@link Source}. If

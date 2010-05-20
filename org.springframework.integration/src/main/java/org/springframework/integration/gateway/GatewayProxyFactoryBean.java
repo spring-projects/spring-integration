@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean, MethodInterceptor, BeanClassLoaderAware {
+public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
 	private volatile Class<?> serviceInterface;
 
@@ -102,7 +102,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	/**
 	 * Set the default request channel.
 	 * 
-	 * @param defaulRequestChannel the channel to which request messages will
+	 * @param defaultRequestChannel the channel to which request messages will
 	 * be sent if no request channel has been configured with an annotation
 	 */
 	public void setDefaultRequestChannel(MessageChannel defaultRequestChannel) {
@@ -114,7 +114,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	 * and no reply channel is configured with annotations, an anonymous,
 	 * temporary channel will be used for handling replies.
 	 * 
-	 * @param replyChannel the channel from which reply messages will be
+	 * @param defaultReplyChannel the channel from which reply messages will be
 	 * received if no reply channel has been configured with an annotation
 	 */
 	public void setDefaultReplyChannel(MessageChannel defaultReplyChannel) {

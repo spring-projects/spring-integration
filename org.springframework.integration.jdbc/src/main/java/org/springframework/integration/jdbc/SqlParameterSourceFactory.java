@@ -30,7 +30,7 @@ public interface SqlParameterSourceFactory {
 
 	/**
 	 * Return a new {@link SqlParameterSource}.
-	 * @param pollResult the result of the preceding poll operation
+	 * @param resultOfSelect the result of the preceding poll operation
 	 */
 	public SqlParameterSource createParameterSource(Object resultOfSelect);
 

@@ -255,7 +255,7 @@ public class NioSocketReader extends AbstractSocketReader {
 	
 	/**
 	 * Reads data into the rawBuffer for non-deterministic algorithms.
-	 * @return true If data is available.
+	 * @return true if data is available.
 	 * @throws IOException
 	 */
 	protected boolean readChannelNonDeterministic() throws IOException {
@@ -287,8 +287,6 @@ public class NioSocketReader extends AbstractSocketReader {
 	/**
 	 * Allocates a ByteBuffer of the requested length using normal or
 	 * direct buffers, depending on the usingDirectBuffers field.
-	 * @param length 
-	 * @return
 	 */
 	protected ByteBuffer allocate(int length) {
 		ByteBuffer buffer;
@@ -319,9 +317,6 @@ public class NioSocketReader extends AbstractSocketReader {
 		return this.channel.socket().getInetAddress();
 	}
 	
-	/**
-	 * @return the usingeDirectBuffers
-	 */
 	public boolean isUsingDirectBuffers() {
 		return usingDirectBuffers;
 	}

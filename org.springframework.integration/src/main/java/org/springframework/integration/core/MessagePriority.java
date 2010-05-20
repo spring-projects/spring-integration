@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.integration.message.MessageBuilder;
+
 /**
  * An enumeration of the possible values for a message's priority. 
  * 
  * @author Mark Fisher
- * @see MessageHeader#getPriority()
- * @see MessageHeader#setPriority(MessagePriority)
+ * @see MessageHeaders#getPriority()
+ * @see MessageBuilder#setPriority(MessagePriority)
  */
 public enum MessagePriority {
 

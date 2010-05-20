@@ -33,14 +33,6 @@ import org.springframework.integration.message.MessageMappingException;
  */
 public class SocketIoUtils {
 
-	/**
-	 * @param messageFormat 
-	 * @param customSocketReaderClass 
-	 * @param socket 
-	 * @param receiveBufferSize 
-	 * @param soReceiveBufferSize 
-	 * @return
-	 */
 	public static NetSocketReader createNetReader(int messageFormat, 
 				Class<NetSocketReader> customSocketReaderClass, 
 				Socket socket,
@@ -67,12 +59,6 @@ public class SocketIoUtils {
 		return reader;
 	}
 
-	/**
-	 * @param messageFormat
-	 * @param socket
-	 * @param customSocketWriterClass 
-	 * @return
-	 */
 	public static NetSocketWriter createNetWriter(int messageFormat, 
 			Class<NetSocketWriter> customSocketWriterClass, Socket socket) {
 		NetSocketWriter writer;
@@ -90,15 +76,6 @@ public class SocketIoUtils {
 		return writer;
 	}
 
-	/**
-	 * @param messageFormat 
-	 * @param customSocketReaderClass 
-	 * @param socket 
-	 * @param receiveBufferSize 
-	 * @param usingDirectBuffers 
-	 * @param soReceiveBufferSize 
-	 * @return
-	 */
 	public static NioSocketReader createNioReader(int messageFormat, 
 				Class<NioSocketReader> customSocketReaderClass, 
 				SocketChannel channel,
@@ -127,15 +104,6 @@ public class SocketIoUtils {
 		return reader;
 	}
 
-	/**
-	 * @param messageFormat
-	 * @param socket
-	 * @param customSocketWriter 
-	 * @param maxBuffers 
-	 * @param sendBufferSize 
-	 * @param usingDirectBuffers 
-	 * @return
-	 */
 	public static NioSocketWriter createNioWriter(int messageFormat, 
 			Class<NioSocketWriter> customSocketWriterClass, 
 			SocketChannel channel, 

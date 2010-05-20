@@ -18,12 +18,9 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
@@ -32,6 +29,8 @@ import org.springframework.core.Conventions;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+
+import org.w3c.dom.Element;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -51,11 +50,11 @@ public abstract class IntegrationNamespaceUtils {
 
 
 	/**
-	 * Populates the specified bean definition property with the value
-	 * of the attribute whose name is provided if that attribute is
-	 * defined in the given element.
+	 * Configures the provided bean definition builder with a property
+	 * value corresponding to the attribute whose name is provided if
+	 * that attribute is defined in the given element.
 	 * 
-	 * @param beanDefinition the bean definition to be configured
+	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be
 	 * used to populate the property
@@ -70,9 +69,9 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Populates the bean definition property corresponding to the specified
-	 * attributeName with the value of that attribute if it is defined in the
-	 * given element.
+	 * Configures the provided bean definition builder with a property
+	 * value corresponding to the attribute whose name is provided if
+	 * that attribute is defined in the given element.
 	 * 
 	 * <p>The property name will be the camel-case equivalent of the lower
 	 * case hyphen separated attribute (e.g. the "foo-bar" attribute would
@@ -80,7 +79,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * 
 	 * @see Conventions#attributeNameToPropertyName(String)
 	 * 
-	 * @param beanDefinition - the bean definition to be configured
+	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be set
 	 * on the property
@@ -92,12 +91,12 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Populates the specified bean definition property with the reference
-	 * to a bean. The bean reference is identified by the value from the
-	 * attribute whose name is provided if that attribute is defined in
-	 * the given element.
+	 * Configures the provided bean definition builder with a property
+	 * reference to a bean. The bean reference is identified by the value
+	 * from the attribute whose name is provided if that attribute is
+	 * defined in the given element.
 	 * 
-	 * @param beanDefinition the bean definition to be configured
+	 * @param builder the bean definition builder to be configured
 	 * @param element the XML element where the attribute should be defined
 	 * @param attributeName the name of the attribute whose value will be
 	 * used as a bean reference to populate the property
@@ -112,9 +111,10 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Populates the bean definition property corresponding to the specified
-	 * attributeName with the reference to a bean identified by the value of
-	 * that attribute if the attribute is defined in the given element.
+	 * Configures the provided bean definition builder with a property
+	 * reference to a bean. The bean reference is identified by the value
+	 * from the attribute whose name is provided if that attribute is
+	 * defined in the given element.
 	 * 
 	 * <p>The property name will be the camel-case equivalent of the lower
 	 * case hyphen separated attribute (e.g. the "foo-bar" attribute would
@@ -122,7 +122,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * 
 	 * @see Conventions#attributeNameToPropertyName(String)
 	 * 
-	 * @param beanDefinition - the bean definition to be configured
+	 * @param builder the bean definition builder to be configured
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be
 	 * used as a bean reference to populate the property

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public final class MessageBuilder<T> {
 	 * all of the headers copied from the provided message. The payload of the
 	 * provided Message will also be used as the payload for the new message.
 	 * 
-	 * @param messageToCopy the Message from which the payload and all headers
+	 * @param message the Message from which the payload and all headers
 	 * will be copied
 	 */
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {

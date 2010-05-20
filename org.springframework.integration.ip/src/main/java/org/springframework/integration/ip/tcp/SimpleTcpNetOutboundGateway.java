@@ -84,25 +84,24 @@ public class SimpleTcpNetOutboundGateway extends
 	}
 
 	/**
-	 * @param obj
-	 * @return
-	 * @see java.lang.Object#equals(java.lang.Object)
+	 * @see java.lang.Object#equals(Object)
+	 * @return whether the MessageHandler delegate for this Gateway is equal to the provided object
 	 */
 	public boolean equals(Object obj) {
 		return handler.equals(obj);
 	}
 
 	/**
-	 * @return
 	 * @see org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler#getPort()
+	 * @return the port number of the MessageHandler delegate for this Gateway
 	 */
 	public int getPort() {
 		return handler.getPort();
 	}
 
 	/**
-	 * @return
 	 * @see java.lang.Object#hashCode()
+	 * @return hashcode value of the MessageHandler delegate for this Gateway
 	 */
 	public int hashCode() {
 		return handler.hashCode();
@@ -184,7 +183,7 @@ public class SimpleTcpNetOutboundGateway extends
 	}
 
 	/**
-	 * @param customSocketReaderClass the customSocketReader to set
+	 * @param customSocketReaderClassName the {@link NetSocketReader} class to use
 	 * @throws ClassNotFoundException 
 	 */
 	@SuppressWarnings("unchecked")

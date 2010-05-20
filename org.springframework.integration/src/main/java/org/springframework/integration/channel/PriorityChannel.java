@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.util.UpperBound;
 
@@ -39,7 +40,7 @@ public class PriorityChannel extends QueueChannel {
 	 * is a non-positive value, the queue will be unbounded. Message priority
 	 * will be determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link MessageHeader#getPriority()}.
+	 * {@link MessageHeaders#getPriority()}.
 	 */
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
 		super(new PriorityBlockingQueue<Message<?>>(11,
@@ -49,7 +50,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with the specified queue capacity. Message priority
-	 * will be based upon the value of {@link MessageHeader#getPriority()}.
+	 * will be based upon the value of {@link MessageHeaders#getPriority()}.
 	 */
 	public PriorityChannel(int capacity) {
 		this(capacity, null);
@@ -59,7 +60,7 @@ public class PriorityChannel extends QueueChannel {
 	 * Create a channel with an unbounded queue. Message priority will be
 	 * determined by the provided {@link Comparator}. If the comparator
 	 * is <code>null</code>, the priority will be based upon the value of
-	 * {@link MessageHeader#getPriority()}.
+	 * {@link MessageHeaders#getPriority()}.
 	 */
 	public PriorityChannel(Comparator<Message<?>> comparator) {
 		this(0, comparator);
@@ -67,7 +68,7 @@ public class PriorityChannel extends QueueChannel {
 
 	/**
 	 * Create a channel with an unbounded queue. Message priority will be
-	 * based on the value of {@link MessageHeader#getPriority()}.
+	 * based on the value of {@link MessageHeaders#getPriority()}.
 	 */
 	public PriorityChannel() {
 		this(0, null);

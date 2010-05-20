@@ -104,7 +104,7 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	/**
 	 * Set the underlying {@link MulticastSocket} time to live property.
-	 * @param timeToLive {@see MulticastSocket#setTimeToLive(int)}
+	 * @param timeToLive {@link MulticastSocket#setTimeToLive(int)}
 	 */
 	public void setTimeToLive(int timeToLive) {
 		this.timeToLive = timeToLive;

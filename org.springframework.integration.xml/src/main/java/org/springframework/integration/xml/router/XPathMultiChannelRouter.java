@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,28 +42,28 @@ public class XPathMultiChannelRouter extends AbstractXPathRouter {
 
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String, Map)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(String, Map)
 	 */
 	public XPathMultiChannelRouter(String expression, Map<String, String> namespaces) {
 		super(expression, namespaces);
 	}
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String, String, String)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(String, String, String)
 	 */
 	public XPathMultiChannelRouter(String expression, String prefix, String namespace) {
 		super(expression, prefix, namespace);
 	}
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(String)
 	 */
 	public XPathMultiChannelRouter(String expression) {
 		super(expression);
 	}
 
 	/**
-	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(XPathExpression)
+	 * @see AbstractXPathRouter#AbstractXPathRouter(XPathExpression)
 	 */
 	public XPathMultiChannelRouter(XPathExpression expression) {
 		super(expression);

@@ -25,7 +25,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
- * Tcp Receiving Channel adapter that uses a {@link java.net.Socket}. Each
+ * Tcp Receiving Channel adapter that uses a {@link Socket}. Each
  * connected socket uses a dedicated thread so the pool size must be set
  * accordingly.
  * 
@@ -38,8 +38,8 @@ public class TcpNetReceivingChannelAdapter extends
 	protected ServerSocket serverSocket;
 	protected Class<NetSocketReader> customSocketReaderClass;
 	/**
-	 * Constructs a TcpNetReceivingChannelAdapter that listens on the port.
-	 * @param port The port.
+	 * Constructs a TcpNetReceivingChannelAdapter that listens on the provided port.
+	 * @param port the port on which to listen
 	 */
 	public TcpNetReceivingChannelAdapter(int port) {
 		super(port);
@@ -87,8 +87,6 @@ public class TcpNetReceivingChannelAdapter extends
 	 * Constructs a {@link NetSocketReader} and calls its {@link NetSocketReader#assembledData}
 	 * method repeatedly; for each assembled message, calls {@link #sendMessage(Message)} with
 	 * the mapped message.
-	 * 
-	 * @param socket
 	 */
 	protected void handleSocket(Socket socket) {
 		NetSocketReader reader = SocketIoUtils.createNetReader(messageFormat, 
@@ -106,11 +104,6 @@ public class TcpNetReceivingChannelAdapter extends
 		}
 	}
 
-	/**
-	 * @param reader
-	 * @return
-	 * @throws Exception
-	 */
 	protected void processMessage(NetSocketReader reader)
 			throws Exception {
 		Message<byte[]> message = mapper.toMessage(reader);
@@ -131,8 +124,8 @@ public class TcpNetReceivingChannelAdapter extends
 	}
 
 	/**
-	 * @param customSocketReaderClass the customSocketReader to set
-	 * @throws ClassNotFoundException 
+	 * @param customSocketReaderClassName the {@link NetSocketReader} class to use
+	 * @throws ClassNotFoundException if the named class cannot be loaded
 	 */
 	@SuppressWarnings("unchecked")
 	public void setCustomSocketReaderClassName(

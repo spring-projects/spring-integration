@@ -16,7 +16,9 @@
 
 package org.springframework.integration.ip;
 
+import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutorService;
 
@@ -27,7 +29,7 @@ import org.springframework.util.Assert;
 
 /**
  * Base class for all TCP/UDP MessageHandlers.
- * 
+ *
  * @author Gary Russell
  * @since 2.0
  */
@@ -36,9 +38,9 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	protected final SocketAddress destinationAddress;
-	
+
 	protected final String host;
-	
+
 	protected final int port;
 
 	protected volatile int soSendBufferSize = -1;
@@ -57,7 +59,8 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 
 
 	/**
-	 * @see {@link Socket#setSoTimeout(int)} and {@link DatagramSocket#setSoTimeout(int)}
+	 * @see Socket#setSoTimeout(int)
+	 * @see DatagramSocket#setSoTimeout(int)
 	 * @param timeout
 	 */
 	public void setSoTimeout(int timeout) {
@@ -65,20 +68,21 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 	}
 
 	/**
-	 * @see {@link Socket#setReceiveBufferSize(int)} and {@link DatagramSocket#setReceiveBufferSize(int)}
+	 * @see Socket#setReceiveBufferSize(int)
+	 * @see DatagramSocket#setReceiveBufferSize(int)
 	 * @param size
 	 */
 	public void setSoReceiveBufferSize(int size) {
 	}
 
 	/**
-	 * @see {@link Socket#setSendBufferSize(int)} and {@link DatagramSocket#setSendBufferSize(int)}
+	 * @see Socket#setSendBufferSize(int)
+	 * @see DatagramSocket#setSendBufferSize(int)
 	 * @param size
 	 */
 	public void setSoSendBufferSize(int size) {
 		this.soSendBufferSize = size;
 	}
-
 
 	/**
 	 * @return the port

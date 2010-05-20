@@ -25,13 +25,14 @@ import java.nio.ByteBuffer;
  * data is wrapped in a wire protocol based on the messageFormat property.
  * 
  * @author Gary Russell
- *
  */
 public class NetSocketWriter extends AbstractSocketWriter {
 
 	protected Socket socket;
+
 	/**
 	 * Constructs a NetSocketWriter for the Socket.
+	 *
 	 * @param socket The socket.
 	 */
 	public NetSocketWriter(Socket socket) {

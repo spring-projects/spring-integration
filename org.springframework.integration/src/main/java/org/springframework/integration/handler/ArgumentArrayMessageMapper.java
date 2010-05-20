@@ -62,8 +62,8 @@ import org.springframework.util.StringUtils;
  * will be passed. These parameters can be labeled explicitly with the
  * {@link Headers @Headers} annotation, or matched implicitly by using a non-
  * ambiguous method signature. There can be as many parameters annotated with
- * @Header as necessary, but typically there should be only one parameter
- * expecting multiple headers (with or without the @Headers annotation).
+ * {@code @Header} as necessary, but typically there should be only one parameter
+ * expecting multiple headers (with or without the {@code @Headers} annotation).
  * <p/>
  * If a Map or Properties object is expected, and the payload is not itself
  * assignable to that type or capable of being converted to that type, then
@@ -73,7 +73,7 @@ import org.springframework.util.StringUtils;
  * parameters are legal. If, however, the actual payload type is a Map or
  * Properties instance, then this ambiguity cannot be resolved. For that
  * reason, it is highly recommended to use the explicit
- * {@link Headers @Headers} annotation whenever possible.
+ * {@code Headers @Headers} annotation whenever possible.
  * <p/>
  * Some examples of legal method signatures:<br/>
  * <tt>public void dealWith(Object payload);</tt><br/>

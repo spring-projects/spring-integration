@@ -100,7 +100,7 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	}
 
 	/**
-	 * @see {@link Socket#setKeepAlive(boolean)}.
+	 * @see Socket#setKeepAlive(boolean)
 	 * @param soKeepAlive the soKeepAlive to set
 	 */
 	public void setSoKeepAlive(boolean soKeepAlive) {
@@ -108,7 +108,7 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	}
 
 	/**
-	 * @See {@link MessageFormats}
+	 * @see MessageFormats
 	 * @param messageFormat the messageFormat to set
 	 */
 	public void setMessageFormat(int messageFormat) {

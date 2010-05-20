@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -184,7 +184,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	 * every {@link javax.mail.FetchProfile.Item}.
 	 * 
 	 * @param messages the messages to fetch
-	 * @throws MessagingException in case of JavMail errors
+	 * @throws MessagingException in case of JavaMail errors
 	 */
 	protected void fetchMessages(Message[] messages) throws MessagingException {
 		FetchProfile contentsProfile = new FetchProfile();
@@ -195,8 +195,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	}
 
 	/**
-	 * Deletes the given messages from this receiver's folder. Only invoked when
-	 * {@link #setDeleteMessages(boolean)} is <code>true</code>.
+	 * Deletes the given messages from this receiver's folder.
 	 * 
 	 * @param messages the messages to delete
 	 * @throws MessagingException in case of JavaMail errors
