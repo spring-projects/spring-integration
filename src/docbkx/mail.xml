@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="mail">
+  <title>Mail Support</title>
+
+  <section id="mail-outbound">
+    <title>Mail-Sending Channel Adapter</title>
+    <para>
+      Spring Integration provides support for outbound email with the
+      <classname>MailSendingMessageHandler</classname>. It delegates to a configured instance of Spring's
+      <interfacename>JavaMailSender</interfacename>:
+      <programlisting language="java"> JavaMailSender mailSender = (JavaMailSender) context.getBean("mailSender");
+
+ MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);</programlisting>
+      <classname>MailSendingMessageHandler</classname> has various mapping strategies that use Spring's
+      <interfacename>MailMessage</interfacename> abstraction. If the received Message's payload is already
+      a <classname>MailMessage</classname> instance, it will be sent directly. 
+      Therefore, it is generally recommended to precede this
+      consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple
+      Message mapping strategies are supported out-of-the-box. For example, if the message payload is a byte array,
+      then that will be mapped to an attachment. For simple text-based emails, you can provide a String-based
+      Message payload. In that case, a MailMessage will be created with that String as the text content. If you
+      are working with a Message payload type whose toString() method returns appropriate mail text content, then
+      consider adding Spring Integration's <emphasis>ObjectToStringTransformer</emphasis> prior to the outbound 
+      Mail adapter (see the example within <xref linkend="transformer-namespace"/> for more detail).
+    </para>
+    <para>
+      The outbound MailMessage may also be configured with certain values from the
+      <classname>MessageHeaders</classname>. If available, values will be mapped to the outbound mail's
+      properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject. The header names are
+      defined by the following constants:
+      <programlisting language="java"> MailHeaders.SUBJECT
+ MailHeaders.TO
+ MailHeaders.CC
+ MailHeaders.BCC
+ MailHeaders.FROM
+ MailHeaders.REPLY_TO</programlisting>
+    </para>
+    <note>
+    	<classname>MailHeaders</classname>  also allows you to override corresponding <classname>MailMessage</classname> values. 
+    	For example: If <classname>MailMessage.to</classname> is set to 'foo@bar.com' and <classname>MailHeaders.TO</classname>  
+    	Message header is provided it will take precedence and override the corresponding value in <classname>MailMessage</classname> 
+    </note>
+  </section>
+
+  <section id="mail-inbound">
+    <title>Mail-Receiving Channel Adapter</title>
+    <para>
+      Spring Integration also provides support for inbound email with the
+      <classname>MailReceivingMessageSource</classname>. It delegates to a configured instance of Spring
+      Integration's own <interfacename>MailReceiver</interfacename> interface, and there are two implementations:
+      <classname>Pop3MailReceiver</classname> and <classname>ImapMailReceiver</classname>. The easiest way to
+      instantiate either of these is by passing the 'uri' for a Mail store to the receiver's constructor. For example:
+      <programlisting language="java"><![CDATA[ MailReceiver receiver = new Pop3MailReceiver("pop3://usr:pwd@localhost/INBOX");
+]]></programlisting>
+    </para>
+    <para>
+      Another option for receiving mail is the IMAP "idle" command (if supported by the mail server you are using).
+      Spring Integration provides the <classname>ImapIdleChannelAdapter</classname> which is itself a Message-producing
+      endpoint. It delegates to an instance of the <classname>ImapMailReceiver</classname> but enables asynchronous
+      reception of Mail Messages. There are examples in the next section of configuring both types of inbound Channel
+      Adapter with Spring Integration's namespace support in the 'mail' schema.
+    </para>
+  </section>
+
+  <section id="mail-namespace">
+    <title>Mail Namespace Support</title>
+    <para>
+      Spring Integration provides a namespace for mail-related configuration. To use it, configure the following schema
+      locations.<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mail="http://www.springframework.org/schema/integration/mail"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/integration/mail
+            http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">]]></programlisting>
+    </para>
+    <para>
+      To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:
+      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+                              mail-sender="mailSender"/>]]></programlisting>
+      Alternatively, provide the host, username, and password:
+      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+                              host="somehost" username="someuser" password="somepassword"/>]]></programlisting>
+      <note>
+        Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a PollableChannel, a
+        &lt;poller&gt; sub-element should be provided with either an interval-trigger or cron-trigger.
+      </note>
+    </para>
+    <para>
+      To configure an inbound Channel Adapter, you have the choice between polling or event-driven (assuming your
+      mail server supports IMAP IDLE - if not, then polling is the only option). A polling Channel Adapter simply
+      requires the store URI and the channel to send inbound Messages to. The URI may begin with "pop3" or "imap":
+      <programlisting language="xml"><![CDATA[ <mail:inbound-channel-adapter channel="mailIn"
+                               store-uri="imap://usr:pwd@imap.example.com/INBOX">
+     <poller max-messages-per-poll="3">
+         <interval-trigger interval="30" time-unit="SECONDS"/>
+     </poller>
+ </mail:inbound-channel-adapter>]]></programlisting>
+      If you do have IMAP idle support, then you may want to configure the "imap-idle-channel-adapter" element instead.
+      Since the "idle" command enables event-driven notifications, no poller is necessary for this adapter. It will
+      send a Message to the specified channel as soon as it receives the notification that new mail is available:
+      <programlisting language="xml"><![CDATA[ <mail:imap-idle-channel-adapter channel="mailIn"
+                                 store-uri="imaps://usr:pwd@imap.example.com:993/INBOX"/>]]></programlisting>
+    </para>
+    <para>
+      When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
+      This simplifies the application of the headers mentioned above to any Message prior to sending to the
+      Mail-sending Channel Adapter.
+      <programlisting language="xml"><![CDATA[<mail:header-enricher subject="Example Mail"
+                     to="to@example.org"
+                     cc="cc@example.org"
+                     bcc="bcc@example.org"
+                     from="from@example.org"
+                     reply-to="replyTo@example.org"
+                     overwrite="false"/>]]></programlisting>
+    </para>
+  </section>
+
+</chapter>

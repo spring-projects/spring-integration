@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="gateway">
+  <title>Inbound Messaging Gateways</title>
+
+  <section id="gateway-simple">
+    <title>SimpleMessagingGateway</title>
+    <para>
+      Even though the <classname>MessageChannelTemplate</classname> is fairly straightforward, it does not hide the
+      details of messaging from your application code. To support working with plain Objects instead of messages,
+      Spring Integration provides <classname>SimpleMessagingGateway</classname> with the following methods:
+      <programlisting language="java"><![CDATA[ public void send(Object object) { ... }
+
+ public Object receive() { ... }
+
+ public Object sendAndReceive(Object object) { ... }
+
+ Message<?> sendAndReceiveMessage(Object object);]]></programlisting>
+      It enables configuration of a request and/or reply channel and delegates to instances of the
+      <interfacename>InboundMessageMapper</interfacename> and <interfacename>OutboundMessageMapper</interfacename>
+      strategy interfaces.
+      <programlisting language="java"> SimpleMessagingGateway gateway = new SimpleMessagingGateway(inboundMapper, outboundMapper);
+ gateway.setRequestChannel(requestChannel);
+ gateway.setReplyChannel(replyChannel);
+ Object result = gateway.sendAndReceive("test");</programlisting>
+    </para>
+  </section>
+
+  <section id="gateway-proxy">
+    <title>GatewayProxyFactoryBean</title>
+    <para>
+      Working with Objects instead of Messages is an improvement. However, it would be even better to have no
+      dependency on the Spring Integration API at all - including the gateway class. For that reason, Spring
+      Integration also provides a <classname>GatewayProxyFactoryBean</classname> that generates a proxy for
+      any interface and internally invokes the gateway methods shown above. Namespace support is also
+      provided as demonstrated by the following example.
+      <programlisting language="xml"><![CDATA[<gateway id="fooService"
+         service-interface="org.example.FooService"
+         default-request-channel="requestChannel"
+         default-reply-channel="replyChannel"/>]]></programlisting>
+      Then, the "fooService" can be injected into other beans, and the code that invokes the methods on that
+      proxied instance of the FooService interface has no awareness of the Spring Integration API. The general
+      approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.). See the "Samples" Appendix for
+      an example that uses this "gateway" element (in the Cafe demo).
+	</para>
+    <para>
+      The reason that the attributes on the 'gateway' element are named 'default-request-channel' and
+      'default-reply-channel' is that you may also provide per-method channel references by using the
+      @Gateway annotation.
+      <programlisting language="java"><![CDATA[ public interface Cafe {
+
+     @Gateway(requestChannel="orders")
+     void placeOrder(Order order);
+
+ }]]></programlisting>
+    </para>
+    <para>
+      It is also possible to pass values to be interpreted as Message headers on the Message
+      that is created and sent to the request channel by using the @Header annotation:
+	  <programlisting language="java"><![CDATA[ public interface FileWriter {
+
+     @Gateway(requestChannel="filesOut")
+     void write(byte[] content, @Header(FileHeaders.FILENAME) String filename);
+
+ }]]></programlisting>
+    </para>
+    
+    <para>
+    If you prefer XML way of configuring Gateway methods, you can provide <emphasis>method</emphasis> sub-elements 
+    to the gateway configuration (see below) 
+     <programlisting language="xml"><![CDATA[<si:gateway id="myGateway" service-interface="org.foo.bar.TestGateway"
+			default-request-channel="inputC">
+	<si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/>
+    	<si:method name="echoUpperCase" request-channel="inputB"/>
+    	<si:method name="echoViaDefault"/>
+</si:gateway>]]></programlisting> 
+    </para>
+    <para>
+    	You can also provide individual headers per method invocation via XML. 
+    	This could be very useful if headers you want to set are static in nature and you don't want 
+    	to embed them in the gateway's method signature via <classname>@Header</classname> annotation. 
+    	For example; in the Loan Broker example we want to influence how aggregation of the Loan quotes 
+    	will be done based on what type of request was initiated (single quote or all quotes). Determining the 
+    	type of the request by evaluating what gateway's method was invoked, although possible would 
+    	violate the separation of concerns paradigm (method is a java artifact),  but expressing your 
+    	intention (meta information) via Message headers is natural to Messaging architecture.
+    	
+    	<programlisting language="xml"><![CDATA[<int:gateway id="loanBrokerGateway" 
+    	   service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway">
+	<int:method name="getLoanQuote" request-channel="loanBrokerPreProcessingChannel">
+		<int:header name="RESPONSE_TYPE" value="BEST"/>
+	</int:method>
+	<int:method name="getAllLoanQuotes" request-channel="loanBrokerPreProcessingChannel">
+		<int:header name="RESPONSE_TYPE" value="ALL"/>
+	</int:method>
+</int:gateway>]]></programlisting> 
+	In the above case you can clearly see how a different header value will be set for the 'RESPONSE_TYPE' 
+	header based on the gateway's method.
+    </para>
+  </section>
+
+</chapter>

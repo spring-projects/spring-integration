@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="aggregator">
+  <title>Aggregator</title>
+
+  <section id="aggregator-introduction">
+    <title>Introduction</title>
+
+    <para>Basically a mirror-image of the Splitter, the Aggregator is a type
+    of Message Handler that receives multiple Messages and combines them into
+    a single Message. In fact, Aggregators are often downstream consumers in a
+    pipeline that includes a Splitter.</para>
+
+    <para>Technically, the Aggregator is more complex than a Splitter, because
+    it is required to maintain state (the Messages to-be-aggregated), to
+    decide when the complete group of Messages is available.</para>
+  </section>
+
+  <section id="aggregator-functionality">
+    <title>Functionality</title>
+
+    <para>The Aggregator combines a group of related messages, by correlating
+    and storing them, until the group is deemed complete. At that point, the
+    Aggregator will create a single message by processing the whole group, and
+    will send that aggregated message as output.</para>
+
+    <para>An important aspect of
+    implementing an Aggregator is providing the logic that has to be executed
+    when the aggregation (creation of a single message out of many) takes
+    place.</para>
+
+    <para>In Spring Integration, the grouping of the messages for aggregation
+    is done by default based on their CORRELATION_ID message header (i.e. the
+    messages with the same CORRELATION_ID will be grouped together). However,
+    this can be customized, and the users can opt for other ways of
+    specifying how the messages should be grouped together, by using a
+    CorrelationStrategy (see below).</para>
+
+    <para>Another important concern is, what happens if
+    late messages arrive after the aggregation has taken place? In this case,
+    the user needs to be able to decide whether they should be
+    discarded or not.</para>
+  </section>
+
+  <section id="aggregator-api">
+    <title>Programming model</title>
+
+    <para>The Aggregation API consists of a number of classes:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>The interface <code>MessageGroupProcessor</code> and related 
+        base class <code>AbstractAggregatingMessageGroupProcessor</code> and its
+        subclass <code>MethodInvokingAggregatingMessageGroupProcessor</code></para>
+      </listitem>
+
+      <listitem>
+        <para>The <code>ReleaseStrategy</code> interface and its default
+        implementation <code>SequenceSizeReleaseStrategy</code></para>
+      </listitem>
+
+      <listitem>
+        <para>The <code>CorrelationStrategy</code> interface and its default
+        implementation <code>HeaderAttributeCorrelationStrategy</code></para>
+      </listitem>
+    </itemizedlist>
+
+    <section>
+      <title>CorrelatingMessageHandler</title>
+
+      <para>The <code>CorrelatingMessageHandler</code> is a
+      <code>MessageHandler</code> implementation, encapsulating the common
+      functionalities of an Aggregator (and other correlating use cases), which are:
+      <itemizedlist>
+        <listitem>
+          <para>correlating messages into a group to be aggregated</para>
+        </listitem>
+        <listitem>
+          <para>maintaining those messages until the group is complete</para>
+        </listitem>
+        <listitem>
+          <para>deciding when the group is in fact complete</para>
+        </listitem>
+        <listitem>
+          <para>processing the completed group into a single aggregated message</para>
+        </listitem>
+        <listitem>
+          <para>recognizing and responding to an expired group</para>
+        </listitem>
+      </itemizedlist>
+      The responsibility of deciding how the messages should be grouped together
+      is delegated to a <code>CorrelationStrategy</code> instance. The responsibility
+      of deciding whether the message group can be released is delegated to a
+      <code>ReleaseStrategy</code> instance.</para>
+
+      <para>Here is a brief highlight of the base
+      <code>AbstractAggregatingMessageGroupProcessor</code> (the responsibility of
+      implementing the aggregateMessages method is left to the
+      developer):</para>
+
+      <programlisting language="java">public abstract class AbstractAggregatingMessageGroupProcessor
+              implements MessageGroupProcessor {
+
+    protected Map&lt;String, Object&gt; aggregateHeaders(MessageGroup group) {
+  ....
+    }
+
+  	protected abstract Object aggregatePayloads(MessageGroup group);
+
+}</programlisting>
+      The CorrelationStrategy is owned by the <code>CorrelatingMessageHandler</code> and it has
+      a default value based on the correlation ID message header:
+      <programlisting language="java">private volatile CorrelationStrategy correlationStrategy =
+          new HeaderAttributeCorrelationStrategy(MessageHeaders.CORRELATION_ID);</programlisting>
+
+      <para>When appropriate, the simplest option is the <code>DefaultAggregatingMessageGroupProcessor</code>.
+      It creates a single Message whose payload is a List of the payloads received
+      for a given group. It uses the default <code>CorrelationStrategy</code> and
+      <code>CompletionStrategy</code> as shown above. This works well for simple
+      Scatter Gather implementations with either a Splitter, Publish Subscribe Channel,
+      or Recipient List Router upstream.</para>
+
+      <note>
+	    <para>When using a Publish Subscribe Channel or Recipient List Router in this
+        type of scenario, be sure to enable the flag to <emphasis>apply sequence</emphasis>.
+        That will add the necessary headers (correlation id, sequence number and sequence
+        size). That behavior is enabled by default for Splitters in Spring Integration,
+        but it is not enabled for the Publish Subscribe Channel or Recipient List
+        Router because those components may be used in a variety of contexts where
+        those headers are not necessary.</para>
+      </note>
+	
+      <para>When implementing a specific aggregator object for an application,
+      a developer can extend <code>AbstractAggregatingMessageGroupProcessor</code> and
+      implement the <code>aggregatePayloads</code> method. However, there are
+      better suited (which reads, less coupled to the API) solutions for
+      implementing the aggregation logic, which can be configured easily
+      either through XML or through annotations.</para>
+
+      <para>In general, any ordinary Java class (i.e. POJO) can implement the
+      aggregation algorithm. For doing so, it must provide a method that
+      accepts as an argument a single java.util.List (parametrized lists are
+      supported as well). This method will be invoked for aggregating
+      messages, as follows:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>if the argument is a parametrized java.util.List, and the
+          parameter type is assignable to Message, then the whole list of
+          messages accumulated for aggregation will be sent to the
+          aggregator</para>
+        </listitem>
+
+        <listitem>
+          <para>if the argument is a non-parametrized java.util.List or the
+          parameter type is not assignable to Message, then the method will
+          receive the payloads of the accumulated messages</para>
+        </listitem>
+
+        <listitem>
+          <para>if the return type is not assignable to Message, then it will
+          be treated as the payload for a Message that will be created
+          automatically by the framework.</para>
+        </listitem>
+      </itemizedlist>
+
+      <note>
+        <para>In the interest of code simplicity, and promoting best practices
+        such as low coupling, testability, etc., the preferred way of
+        implementing the aggregation logic is through a POJO, and using the
+        XML or annotation support for setting it up in the application.</para>
+      </note>
+    </section>
+
+    <section>
+      <title>ReleaseStrategy</title>
+
+      <para>The <code>ReleaseStrategy</code> interface is defined as
+      follows:</para>
+
+      <programlisting language="java">public interface ReleaseStrategy {
+
+  boolean canRelease(MessageGroup messages);
+
+}</programlisting>
+
+      <para>In general, any ordinary Java class (i.e. POJO) can implement the
+      completion decision mechanism. For doing so, it must provide a method
+      that accepts as an argument a single java.util.List (parametrized lists
+      are supported as well), and returns a boolean value. This method will be
+      invoked after the arrival of a new message, to decide whether the group
+      is complete or not, as follows:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>if the argument is a parametrized java.util.List, and the
+          parameter type is assignable to Message, then the whole list of
+          messages accumulated in the group will be sent to the method</para>
+        </listitem>
+
+        <listitem>
+          <para>if the argument is a non-parametrized java.util.List or the
+          parameter type is not assignable to Message, then the method will
+          receive the payloads of the accumulated messages</para>
+        </listitem>
+
+        <listitem>
+          <para>the method must return true if the message group is ready
+          for aggregation, and false otherwise.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>When the group is released for aggregation, all its
+      unmarked messages are processed and then marked so they will not
+      be processed again.  If the group is also complete (i.e. if all
+      messages from a sequence have arrived or if there is no sequence
+      defined) then the group is removed from the message store.
+      Partial sequences can be released, in which case the next time
+      the <code>ReleaseStrategy</code> is called it will be presented
+      with a group containing marked messages (already processed) and
+      unmarked messages (a potential new partial sequence)</para>
+
+      <para>Spring Integration provides an out-of-the box implementation for
+      <code>ReleaseStrategy</code>, the
+      <code>SequenceSizerReleaseStrategy</code>. This implementation uses
+      the SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for
+      deciding when a message group is complete and ready to be
+      aggregated.  As shown above, it is also the default strategy.</para>
+    </section>
+
+    <section>
+      <title>CorrelationStrategy</title>
+
+      <para>The <code>CorrelationStrategy</code> interface is defined as
+      follows:</para>
+
+      <programlisting language="java">public interface CorrelationStrategy {
+
+  Object getCorrelationKey(Message&lt;?&gt; message);
+
+}</programlisting>
+
+      <para>The method shall return an Object which represents the correlation
+      key used for grouping messages together. The key must satisfy the
+      criteria used for a key in a Map with respect to the implementation of
+      equals() and hashCode().</para>
+
+      <para>In general, any ordinary Java class (i.e. POJO) can implement the
+      correlation decision mechanism, and the rules for mapping a message to
+      a method's argument (or arguments) are the same as for a
+      <code>ServiceActivator</code> (including support for @Header
+      annotations). The method must return a value, and the value must not be
+      <code>null</code>.</para>
+
+      <para>Spring Integration provides an out-of-the box implementation for
+      <code>CorrelationStrategy</code>, the
+      <code>HeaderAttributeCorrelationStrategy</code>. This implementation
+      returns the value of one of the message headers (whose name is specified
+      by a constructor argument) as the correlation key. By default, the
+      correlation strategy is a HeaderAttributeCorrelationStrategy returning
+      the value of the CORRELATION_ID header attribute.</para>
+    </section>
+  </section>
+
+  <section id="aggregator-xml">
+    <title>Configuring an Aggregator with XML</title>
+
+    <para>Spring Integration supports the configuration of an aggregator via
+	XML through the &lt;aggregator/&gt; element. Below you can see an example of 
+	an aggregator with all optional parameters defined.</para>
+
+    <programlisting lang="xml">&lt;channel id="inputChannel"/&gt;
+
+&lt;aggregator id="completelyDefinedAggregator" <co id="aggxml1" />
+    input-channel="inputChannel" <co id="aggxml2" />
+    output-channel="outputChannel"  <co id="aggxml3" />
+    discard-channel="discardChannel"  <co id="aggxml4" />
+    ref="aggregatorBean" <co id="aggxml5" />
+    method="add" <co id="aggxml6" />
+    release-strategy="releaseStrategyBean"  <co id="aggxml7" />
+    release-strategy-method="canRelease" <co id="aggxml8" />
+    correlation-strategy="correlationStrategyBean" <co
+        id="aggxmlCorrelationStrategy" />
+    correlation-strategy-method="groupNumbersByLastDigit" <co
+        id="aggxmlCorrelationStrategyMethod" />
+    message-store="messageStore" <co id="aggxml11-co" linkends="aggxml11"/>
+    send-partial-result-on-expiry="true" <co id="aggxml9" />
+    send-timeout="86420000" <co id="aggxml10" /> /&gt; 
+
+&lt;channel id="outputChannel"/&gt;
+
+&lt;bean id="aggregatorBean" class="sample.PojoAggregator"/&gt;
+
+&lt;bean id="releaseStrategyBean" class="sample.PojoReleaseStrategy"/&gt;
+
+&lt;bean id="correlationStrategyBean" class="sample.PojoCorrelationStrategy"/&gt;</programlisting>
+
+    <calloutlist>
+      <callout arearefs="aggxml1">
+        <para>The id of the aggregator is
+        <emphasis>optional</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml2">
+        <para>The input channel of the aggregator.
+        <emphasis>Required</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml3">
+        <para>The channel where the aggregator will send the aggregation
+        results. <emphasis>Optional (because incoming messages can specify a
+        reply channel themselves)</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml4">
+        <para>The channel where the aggregator will send the messages that
+        timed out (if <code>send-partial-results-on-timeout</code> is
+        <emphasis>false</emphasis>). <emphasis>Optional</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml5">
+        <para>A reference to a bean defined in the application context. The
+        bean must implement the aggregation logic as described above.
+        <emphasis>Required</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml6">
+        <para>A method defined on the bean referenced by <code>ref</code>,
+        <emphasis>that implements the message aggregation
+        algorithm.</emphasis> <emphasis>Optional, with restrictions (see
+        above).</emphasis></para>
+      </callout>
+
+      <callout arearefs="aggxml7">
+        <para>A reference to a bean that implements the decision algorithm as
+        to whether a given message group is complete. The bean can be an
+        implementation of the CompletionStrategy interface or a POJO. In the
+        latter case the completion-strategy-method attribute must be defined
+        as well. <emphasis>Optional (by default, the aggregator will use
+        sequence size) </emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml8">
+        <para>A method defined on the bean referenced by
+        <code>release-strategy</code>, <emphasis>that implements the
+        completion decision algorithm.</emphasis> <emphasis>Optional, with
+        restrictions (requires <code>completion-strategy</code> to be
+        present).</emphasis></para>
+      </callout>
+
+      <callout arearefs="aggxmlCorrelationStrategy">
+        <para>A reference to a bean that implements the correlation strategy.
+        The bean can be an implementation of the CorrelationStrategy interface
+        or a POJO. In the latter case the correlation-strategy-method
+        attribute must be defined as well. <emphasis>Optional (by default, the
+        aggregator will use the correlation id header attribute)
+        </emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxmlCorrelationStrategyMethod">
+        <para>A method defined on the bean referenced by
+        <code>correlation-strategy</code>, <emphasis>that implements the
+        correlation key algorithm.</emphasis> <emphasis>Optional, with
+        restrictions (requires <code>correlation-strategy</code> to be
+        present).</emphasis></para>
+      </callout>
+
+        <callout arearefs="aggxml11-co" id="aggxml11">
+          <para>A reference to a <code>MessageGroupStore</code> that
+          can be used to store groups of messages under their
+          correlation key until they are
+          complete. <emphasis>Optional</emphasis> with default a
+          volatile in-memory store.</para>
+        </callout>
+
+      <callout arch="" arearefs="aggxml9">
+        <para>Whether upon the expiration of the message group, the aggregator will
+        try to aggregate the messages that have already arrived. <emphasis>Optional
+        (false by default)</emphasis>.</para>
+      </callout>
+
+      <callout arearefs="aggxml10">
+        <para>The timeout for sending the aggregated messages to the
+        output or reply channel. <emphasis>Optional</emphasis>.</para>
+      </callout>
+    </calloutlist>
+
+    <para>Using a "ref" attribute is generally recommended if a custom aggregator handler
+    implementation can be reused in other <code>&lt;aggregator&gt;</code> definitions.
+    However if a custom aggregator handler implementation should be scoped to a concrete
+    definition of the <code>&lt;aggregator&gt;</code>, you can use an inner bean definition
+    (starting with version 1.0.3) for custom aggregator handlers within the
+    <code>&lt;aggregator&gt;</code> element:
+<programlisting language="xml"><![CDATA[<aggregator input-channel="input" method="sum" output-channel="output">
+    <beans:bean class="org.foo.ExampleAggregator"/>
+</aggregator>]]></programlisting>
+    </para>
+
+    <note>
+      <para>Using both a "ref" attribute and an inner bean definition in the same
+      <code>&lt;aggregator&gt;</code> configuration is not allowed, as it creates an
+      ambiguous condition. In such cases, an Exception will be thrown.
+      </para>
+    </note>
+
+    <para>An example implementation of the aggregator bean looks as follows:</para>
+
+    <programlisting language="java">public class PojoAggregator {
+
+  public Long add(List&lt;Long&gt; results) {
+    long total = 0l;
+    for (long partialResult: results) {
+      total += partialResult;
+    }
+    return total;
+  }
+
+}</programlisting>
+
+    <para>An implementation of the completion strategy bean for the example
+    above may be as follows:</para>
+
+    <para><programlisting language="java">public class PojoReleaseStrategy {
+...
+  public boolean canRelease(List&lt;Long&gt; numbers) {
+    int sum = 0;
+    for (long number: numbers) {
+      sum += number;
+    }
+    return sum &gt;= maxValue;
+  }
+}</programlisting>
+
+      <note>
+        <para>Wherever it makes sense, the release strategy method and
+        the aggregator method can be combined in a single bean.</para>
+      </note>
+    </para>
+
+    <para>An implementation of the correlation strategy bean for the example
+    above may be as follows:</para>
+
+    <para><programlisting language="java">public class PojoCorrelationStrategy {
+...
+  public Long groupNumbersByLastDigit(Long number) {
+    return number % 10;
+  }
+}</programlisting></para>
+
+    <para>For example, this aggregator would group numbers by some criterion
+    (in our case the remainder after dividing by 10) and will hold the group
+    until the sum of the numbers which represents the payload exceeds a
+    certain value.</para>
+
+    <note>
+      <para>Wherever it makes sense, the release strategy method, correlation
+      strategy method and the aggregator method can be combined in a single bean
+      (all of them or any two).</para>
+    </note>
+  </section>
+
+  <section id="aggregator-annotations">
+    <title>Configuring an Aggregator with Annotations</title>
+
+    <para>An aggregator configured using annotations can look like
+    this.</para>
+
+    <programlisting language="java">public class Waiter {
+  ... 
+
+  @Aggregator <co id="aggann" /> 
+  public Delivery aggregatingMethod(List&lt;OrderItem&gt; items) {
+    ...
+  }
+
+  @ReleaseStrategy <co id="agganncs" />
+  public boolean releaseChecker(List&lt;Message&lt;?&gt;&gt; messages) {
+    ...
+  }
+
+  @CorrelationStrategy <co id="agganncorrs" />
+  public String correlateBy(OrderItem item) {
+    ...
+  }
+
+}</programlisting>
+
+    <calloutlist>
+      <callout arearefs="aggann">
+        <para>An annotation indicating that this method shall be used as an
+        aggregator. Must be specified if this class will be used as an
+        aggregator.</para>
+      </callout>
+
+      <callout arearefs="agganncs">
+        <para id="aggann2">An annotation indicating that this method shall be
+        used as the release strategy of an aggregator. If not present on
+        any method, the aggregator will use the
+        SequenceSizeCompletionStrategy.</para>
+      </callout>
+
+      <callout arearefs="agganncorrs">
+        <para id="agann3">An annotation indicating that this method shall be
+        used as the correlation strategy of an aggregator. If no correlation
+        strategy is indicated, the aggregator will use the
+        HeaderAttributeCorrelationStrategy based on CORRELATION_ID.</para>
+      </callout>
+    </calloutlist>
+
+    <para>All of the configuration options provided by the xml element are also
+    available for the @Aggregator annotation.</para>
+
+    <para>The aggregator can be either referenced explicitly from XML or, if
+    the @MessageEndpoint is defined on the class, detected automatically
+    through classpath scanning.</para>
+
+  </section>
+</chapter>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="message">
+  <title>Message Construction</title>
+  <para>
+    The Spring Integration <interfacename>Message</interfacename> is a generic container for data. Any object can
+    be provided as the payload, and each <interfacename>Message</interfacename> also includes headers containing
+    user-extensible properties as key-value pairs.
+  </para>
+
+  <section id="message-interface">
+    <title>The Message Interface</title>
+    <para>Here is the definition of the <interfacename>Message</interfacename> interface:
+      <programlisting language="java">public interface Message&lt;T&gt; {
+
+    T getPayload();
+
+    MessageHeaders getHeaders();
+
+}</programlisting>
+    </para>
+    <para>
+      The <interfacename>Message</interfacename> is obviously a very important part of the API. By encapsulating the
+      data in a generic wrapper, the messaging system can pass it around without any knowledge of the data's type. As
+      an application evolves to support new types, or when the types themselves are modified and/or extended, the
+      messaging system will not be affected by such changes. On the other hand, when some component in the messaging
+      system <emphasis>does</emphasis> require access to information about the <interfacename>Message</interfacename>,
+      such metadata can typically be stored to and retrieved from the metadata in the Message Headers.
+    </para>
+  </section>
+
+  <section id="message-headers">
+    <title>Message Headers</title>
+	<para>
+      Just as Spring Integration allows any Object to be used as the payload of a Message, it also supports any Object
+      types as header values. In fact, the <classname>MessageHeaders</classname> class implements the
+      <emphasis>java.util.Map</emphasis> interface:
+      <programlisting language="java">public final class MessageHeaders implements Map&lt;String, Object&gt;, Serializable {
+	...
+}</programlisting>
+      <note>
+        Even though the MessageHeaders implements Map, it is effectively a read-only implementation. Any attempt to
+        <emphasis>put</emphasis> a value in the Map will result in an <classname>UnsupportedOperationException</classname>.
+        The same applies for <emphasis>remove</emphasis> and <emphasis>clear</emphasis>. Since Messages may be passed to
+        multiple consumers, the structure of the Map cannot be modified. Likewise, the Message's payload Object can not
+        be <emphasis>set</emphasis> after the initial creation. However, the mutability of the header values themselves
+        (or the payload Object) is intentionally left as a decision for the framework user.
+      </note>
+    </para>
+    <para>
+      As an implementation of Map, the headers can obviously be retrieved by calling <methodname>get(..)</methodname>
+      with the name of the header. Alternatively, you can provide the expected <emphasis>Class</emphasis> as an
+      additional parameter. Even better, when retrieving one of the pre-defined values, convenient getters are
+      available. Here is an example of each of these three options:
+      <programlisting language="java"> Object someValue = message.getHeaders().get("someKey");
+
+ CustomerId customerId = message.getHeaders().get("customerId", CustomerId.class);
+
+ Long timestamp = message.getHeaders().getTimestamp();
+ </programlisting>
+    </para>
+    <para>
+      The following Message headers are pre-defined:
+      <table id="message-headers-table">
+        <title>Pre-defined Message Headers</title>
+        <tgroup cols="2">
+          <colspec align="left" />
+          <thead>
+            <row>
+              <entry align="center">Header Name</entry>
+              <entry align="center">Header Type</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>ID</entry>
+              <entry>java.util.UUID</entry>
+            </row>
+            <row>
+              <entry>TIMESTAMP</entry>
+              <entry>java.lang.Long</entry>
+            </row>
+            <row>
+              <entry>EXPIRATION_DATE</entry>
+              <entry>java.lang.Long</entry>
+            </row>
+            <row>
+              <entry>CORRELATION_ID</entry>
+              <entry>java.lang.Object</entry>
+            </row>
+            <row>
+              <entry>REPLY_CHANNEL</entry>
+              <entry>java.lang.Object (can be a String or MessageChannel)</entry>
+            </row>
+            <row>
+              <entry>ERROR_CHANNEL</entry>
+              <entry>java.lang.Object (can be a String or MessageChannel)</entry>
+            </row>
+            <row>
+              <entry>SEQUENCE_NUMBER</entry>
+              <entry>java.lang.Integer</entry>
+            </row>
+            <row>
+              <entry>SEQUENCE_SIZE</entry>
+              <entry>java.lang.Integer</entry>
+            </row>
+            <row>
+              <entry>PRIORITY</entry>
+              <entry>MessagePriority (an <emphasis>enum</emphasis>)</entry>
+            </row>
+          </tbody>
+       </tgroup>
+      </table>
+    </para>
+    <para>
+      Many inbound and outbound adapter implementations will also provide and/or expect certain headers, and additional
+      user-defined headers can also be configured.
+    </para>
+  </section>
+
+  <section id="message-implementations">
+	<title>Message Implementations</title>
+    <para>
+      The base implementation of the <interfacename>Message</interfacename> interface is
+      <classname>GenericMessage&lt;T&gt;</classname>, and it provides two constructors:
+      <programlisting language="java">new GenericMessage&lt;T&gt;(T payload);
+
+new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</programlisting>
+      When a Message is created, a random unique id will be generated. The constructor that accepts a Map of headers
+      will copy the provided headers to the newly created Message.
+    </para>
+    <para>
+	  There are also two convenient subclasses available: <classname>StringMessage</classname> and
+      <classname>ErrorMessage</classname>. The former accepts a String as its payload:
+      <programlisting language="java">StringMessage message = new StringMessage("hello world");
+
+String s = message.getPayload();</programlisting>
+      And, the latter accepts any <classname>Throwable</classname> object as its payload:
+      <programlisting language="java">ErrorMessage message = new ErrorMessage(someThrowable);
+
+Throwable t = message.getPayload();</programlisting>
+      Notice that these implementations take advantage of the fact that the <classname>GenericMessage</classname>
+      base class is parameterized. Therefore, as shown in both examples, no casting is necessary when retrieving
+      the Message payload Object.
+    </para>
+  </section>
+
+  <section id="message-builder">
+    <title>The MessageBuilder Helper Class</title>
+    <para>
+      You may notice that the Message interface defines retrieval methods for its payload and headers but no setters.
+      The reason for this is that a Message cannot be modified after its initial creation. Therefore, when a Message
+      instance is sent to multiple consumers (e.g. through a Publish Subscribe Channel), if one of those consumers
+      needs to send a reply with a different payload type, it will need to create a new Message. As a result, the
+      other consumers are not affected by those changes. Keep in mind, that multiple consumers may access the same
+      payload instance or header value, and whether such an instance is itself immutable is a decision left to the
+      developer. In other words, the contract for Messages is similar to that of an
+      <emphasis>unmodifiable Collection</emphasis>, and the MessageHeaders' map further exemplifies that; even though
+      the MessageHeaders class implements <interfacename>java.util.Map</interfacename>, any attempt to invoke a
+      <emphasis>put</emphasis> operation (or 'remove' or 'clear') on the MessageHeaders will result in an
+      <classname>UnsupportedOperationException</classname>.
+    </para>
+    <para>
+      Rather than requiring the creation and population of a Map to pass into the GenericMessage constructor, Spring
+      Integration does provide a far more convenient way to construct Messages: <classname>MessageBuilder</classname>.
+      The MessageBuilder provides two factory methods for creating Messages from either an existing Message or with a
+      payload Object. When building from an existing Message, the headers <emphasis>and payload</emphasis> of that
+      Message will be copied to the new Message:
+      <programlisting language="java">Message&lt;String&gt; message1 = MessageBuilder.withPayload("test")
+        .setHeader("foo", "bar")
+        .build();
+
+Message&lt;String&gt; message2 = MessageBuilder.fromMessage(message1).build();
+
+assertEquals("test", message2.getPayload());
+assertEquals("bar", message2.getHeaders().get("foo"));</programlisting>
+    </para>
+    <para>
+      If you need to create a Message with a new payload but still want to copy the
+      headers from an existing Message, you can use one of the 'copy' methods.
+      <programlisting language="java">Message&lt;String&gt; message3 = MessageBuilder.withPayload("test3")
+        .copyHeaders(message1.getHeaders())
+        .build();
+
+Message&lt;String&gt; message4 = MessageBuilder.withPayload("test4")
+        .setHeader("foo", 123)
+        .copyHeadersIfAbsent(message1.getHeaders())
+        .build();
+
+assertEquals("bar", message3.getHeaders().get("foo"));
+assertEquals(123, message4.getHeaders().get("foo"));</programlisting>
+      Notice that the <methodname>copyHeadersIfAbsent</methodname> does not overwrite existing values. Also, in the
+      second example above, you can see how to set any user-defined header with <methodname>setHeader</methodname>.
+      Finally, there are set methods available for the predefined headers as well as a non-destructive method for
+      setting any header (MessageHeaders also defines constants for the pre-defined header names).
+      <programlisting language="java">Message&lt;Integer&gt; importantMessage = MessageBuilder.withPayload(99)
+        .setPriority(MessagePriority.HIGHEST)
+        .build();
+
+assertEquals(MessagePriority.HIGHEST, importantMessage.getHeaders().getPriority());
+
+Message&lt;Integer&gt; anotherMessage = MessageBuilder.fromMessage(importantMessage)
+        .setHeaderIfAbsent(MessageHeaders.PRIORITY, MessagePriority.LOW)
+        .build();
+
+assertEquals(MessagePriority.HIGHEST, anotherMessage.getHeaders().getPriority());
+</programlisting>
+    </para>
+    <para>
+      The <classname>MessagePriority</classname> is only considered when using a <classname>PriorityChannel</classname>
+      (as described in the next chapter). It is defined as an <emphasis>enum</emphasis> with five possible values:
+      <programlisting language="java">public enum MessagePriority {
+    HIGHEST,
+    HIGH,
+    NORMAL,
+    LOW,
+    LOWEST
+}</programlisting>
+    </para>
+  </section>
+
+</chapter>

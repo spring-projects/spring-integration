@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="transformer">
+  <title>Transformer</title>
+
+  <section id="transformer-introduction">
+    <title>Introduction</title>
+    <para>
+      Message Transformers play a very important role in enabling the loose-coupling of Message Producers and Message
+      Consumers. Rather than requiring every Message-producing component to know what type is expected by the next
+      consumer, Transformers can be added between those components. Generic transformers, such as one that converts a
+      String to an XML Document, are also highly reusable.
+    </para>
+    <para>
+      For some systems, it may be best to provide a
+      <ulink url="http://www.eaipatterns.com/CanonicalDataModel.html">Canonical Data Model</ulink>, but Spring
+      Integration's general philosophy is not to require any particular format. Rather, for maximum flexibility, Spring
+      Integration aims to provide the simplest possible model for extension. As with the other endpoint types, the use
+      of declarative configuration in XML and/or Annotations enables simple POJOs to be adapted for the role of Message
+      Transformers. These configuration options will be described below.
+      <note>
+        For the same reason of maximizing flexibility, Spring does not require XML-based Message payloads.
+        Nevertheless, the framework does provide some convenient Transformers for dealing with XML-based payloads if
+        that is indeed the right choice for your application. For more information on those transformers, see
+        <xref linkend="xml"/>.
+      </note>
+    </para>
+  </section>
+
+  <section id="transformer-namespace">
+    <title>The &lt;transformer&gt; Element</title>
+    <para>
+	  The &lt;transformer&gt; element is used to create a Message-transforming endpoint. In addition to "input-channel"
+      and "output-channel" attributes, it requires a "ref". The "ref" may either point to an Object that contains the
+      @Transformer annotation on a single method (see below) or it may be combined with an explicit method name value
+      provided via the "method" attribute.
+      <programlisting language="xml"><![CDATA[<transformer id="testTransformer" ref="testTransformerBean" input-channel="inChannel" 
+					   method="transform" output-channel="outChannel"/>
+<beans:bean id="testTransformerBean" class="org.foo.TestTransformer" />]]></programlisting>
+    </para>
+    <para>
+      Using a "ref" attribute is generally recommended if the custom transformer handler implementation can be reused in
+      other <code>&lt;transformer&gt;</code> definitions. However if the custom transformer handler implementation should
+      be scoped to a single definition of the <code>&lt;transformer&gt;</code>, you can define an inner bean definition:
+<programlisting language="xml"><![CDATA[<transformer id="testTransformer" input-channel="inChannel" method="transform"
+								output-channel="outChannel">
+	<beans:bean class="org.foo.TestTransformer"/>
+</transformer>]]></programlisting>
+    </para>
+    <note>
+      <para>
+        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;transformer&gt;</code>
+        configuration is not allowed, as it creates an ambiguous condition and will result in an Exception being thrown.
+      </para>
+    </note>
+    <para>
+      The method that is used for transformation may expect either the <interfacename>Message</interfacename> type or
+      the payload type of inbound Messages. It may also accept Message header values either individually or as a full
+      map by using the @Header and @Headers parameter annotations respectively. The return value of the method can be
+      any type. If the return value is itself a <interfacename>Message</interfacename>, that will be passed along to
+      the transformer's output channel. If the return type is a Map, and the original Message payload was
+      <emphasis>not</emphasis> a Map, the entries in that Map will be added to the Message headers of the original
+      Message (the keys must be Strings). If the return value is <emphasis>null</emphasis>, then no reply Message will
+      be sent (effectively the same behavior as a Message Filter returning false). Otherwise, the return value will be
+      sent as the payload of an outbound reply Message.
+    </para>
+	<para>
+		There are a also a few Transformer implementations available out of the box. Because, it is fairly common
+		to use the <methodname>toString()</methodname> representation of an Object, Spring Integration provides an
+		<classname>ObjectToStringTransformer</classname> whose output is a Message with a String payload. That String
+		is the result of invoking the toString operation on the inbound Message's payload.
+		<programlisting language="xml"><![CDATA[ <object-to-string-transformer input-channel="in" output-channel="out"/>]]></programlisting>
+		A potential example for this would be sending some arbitrary object to the 'outbound-channel-adapter' in the
+		<emphasis>file</emphasis> namespace. Whereas that Channel Adapter only supports String, byte-array, or
+		<classname>java.io.File</classname> payloads by default, adding this transformer immediately before the
+		adapter will handle the necessary conversion. Of course, that works fine as long as the result of the
+		<methodname>toString()</methodname> call is what you want to be written to the File. Otherwise, you can
+		just provide a custom POJO-based Transformer via the generic 'transformer' element shown previously.
+		<tip>
+			When debugging, this transformer is not typically necessary since the 'logging-channel-adapter' is capable
+			of logging the Message payload. Refer to <xref linkend="channel-wiretap"/> for more detail.
+		</tip>
+	</para>
+	<para>
+		If you need to serialize an Object to a byte array or deserialize a byte array back into an Object,
+		Spring Integration provides symmetrical serialization transformers.
+			<programlisting language="xml"><![CDATA[ <payload-serializing-transformer input-channel="objectsIn" output-channel="bytesOut"/>
+
+ <payload-deserializing-transformer input-channel="bytesIn" output-channel="objectsOut"/>]]></programlisting>
+	</para>
+	<para>
+		If you only need to add headers to a Message, and they are not dynamically determined by Message content,
+		then referencing a custom implementation may be overkill. For that reason, Spring Integration provides the
+		'header-enricher' element. 	<programlisting language="xml"><![CDATA[ <header-enricher input-channel="in" output-channel="out">
+     <header name="foo" value="123"/>
+     <header name="bar" ref="someBean"/>
+ </header-enricher>]]></programlisting>
+    </para>
+  </section>
+
+  <section id="transformer-annotation">
+    <title>The @Transformer Annotation</title>
+    <para>
+      The <interfacename>@Transformer</interfacename> annotation can also be added to methods that expect either the
+      <interfacename>Message</interfacename> type or the message payload type. The return value will be handled in the
+      exact same way as described above in the section describing the &lt;transformer&gt; element.
+      <programlisting language="java">@Transformer
+Order generateOrder(String productId) {
+    return new Order(productId);
+}</programlisting>
+    </para>
+    <para>
+      Transformer methods may also accept the @Header and @Headers annotations that is documented in <xref linkend="annotations"/>
+	      <programlisting language="java">@Transformer
+Order generateOrder(String productId, @Header("customerName") String customer) {
+    return new Order(productId, customer);
+}</programlisting>
+    </para>
+  </section>
+
+</chapter>

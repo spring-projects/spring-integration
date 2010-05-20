@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="channel">
+  <title>Message Channels</title>
+  <para>
+    While the <interfacename>Message</interfacename> plays the crucial role of encapsulating data, it is the
+    <interfacename>MessageChannel</interfacename> that decouples message producers from message consumers.
+  </para>
+
+  <section id="channel-interfaces">
+    <title>The MessageChannel Interface</title>
+    <para>
+      Spring Integration's top-level <interfacename>MessageChannel</interfacename> interface is defined as follows.
+      <programlisting language="java"><![CDATA[public interface MessageChannel {
+
+    String getName();
+
+    boolean send(Message message);
+
+    boolean send(Message message, long timeout);
+}]]></programlisting>
+      When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
+      If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>.
+    </para>
+
+    <section id="channel-interfaces-pollablechannel">
+      <title>PollableChannel</title>
+      <para>
+        Since Message Channels may or may not buffer Messages (as discussed in the overview), there are two
+        sub-interfaces defining the buffering (pollable) and non-buffering (subscribable) channel behavior. Here is the
+        definition of <interfacename>PollableChannel</interfacename>.
+        <programlisting language="java">public interface PollableChannel extends MessageChannel {
+
+    Message&lt;?&gt; receive();
+
+    Message&lt;?&gt; receive(long timeout);
+
+    List&lt;Message&lt;?&gt;&gt; clear();
+
+    List&lt;Message&lt;?&gt;&gt; purge(MessageSelector selector);
+
+}</programlisting>
+        Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
+        case of a timeout or interrupt.
+      </para>
+    </section>
+
+    <section id="channel-interfaces-subscribablechannel">
+      <title>SubscribableChannel</title>
+      <para>
+        The <interfacename>SubscribableChannel</interfacename> base interface is implemented by channels that send
+        Messages directly to their subscribed <interfacename>MessageHandler</interfacename>s. Therefore, they do not
+        provide receive methods for polling, but instead define methods for managing those subscribers:
+        <programlisting language="java">public interface SubscribableChannel extends MessageChannel {
+
+    boolean subscribe(MessageHandler handler);
+
+    boolean unsubscribe(MessageHandler handler);
+
+}</programlisting>
+      </para>
+    </section>
+  </section>
+
+  <section id="channel-implementations">
+    <title>Message Channel Implementations</title>
+    <para>
+      Spring Integration provides several different Message Channel implementations. Each is briefly described in the
+      sections below.
+    </para>
+    <section id="channel-implementations-publishsubscribechannel">
+      <title>PublishSubscribeChannel</title>
+      <para>
+        The <classname>PublishSubscribeChannel</classname> implementation broadcasts any Message
+        sent to it to all of its subscribed handlers. This is most often used for sending
+        <emphasis>Event Messages</emphasis> whose primary role is notification as opposed to
+        <emphasis>Document Messages</emphasis> which are generally intended to be processed by
+        a single handler. Note that the <classname>PublishSubscribeChannel</classname> is
+        intended for sending only. Since it broadcasts to its subscribers directly when its
+        <methodname>send(Message)</methodname> method is invoked, consumers cannot poll for
+        Messages (it does not implement <interfacename>PollableChannel</interfacename> and
+        therefore has no <methodname>receive()</methodname> method). Instead, any subscriber
+        must be a <interfacename>MessageHandler</interfacename> itself, and the subscriber's
+        <methodname>handleMessage(Message)</methodname> method will be invoked in turn.
+      </para>
+    </section>
+    <section id="channel-implementations-queuechannel">
+      <title>QueueChannel</title>
+      <para>
+        The <classname>QueueChannel</classname> implementation wraps a queue. Unlike the
+        <classname>PublishSubscribeChannel</classname>, the <classname>QueueChannel</classname> has point-to-point
+        semantics. In other words, even if the channel has multiple consumers, only one of them should receive any
+        Message sent to that channel. It provides a default no-argument constructor (providing an essentially unbounded
+        capacity of <code>Integer.MAX_VALUE</code>) as well as a constructor that accepts the queue capacity:
+        <programlisting language="java">public QueueChannel(int capacity)</programlisting>
+        A channel that has not reached its capacity limit will store messages in its internal queue, and the
+        <methodname>send()</methodname> method will return immediately even if no receiver is ready to handle the
+        message. If the queue has reached capacity, then the sender will block until room is available. Or, if using
+        the send call that accepts a timeout, it will block until either room is available or the timeout period
+        elapses, whichever occurs first. Likewise, a receive call will return immediately if a message is available
+        on the queue, but if the queue is empty, then a receive call may block until either a message is available
+        or the timeout elapses. In either case, it is possible to force an immediate return regardless of the
+        queue's state by passing a timeout value of 0. Note however, that calls to the no-arg versions of
+        <methodname>send()</methodname> and <methodname>receive()</methodname> will block indefinitely.
+      </para>
+    </section>
+    <section id="channel-implementations-prioritychannel">
+      <title>PriorityChannel</title>
+      <para>
+        Whereas the <classname>QueueChannel</classname> enforces first-in/first-out (FIFO) ordering, the
+        <classname>PriorityChannel</classname> is an alternative implementation that allows for messages
+        to be ordered within the channel based upon a priority. By default the priority is determined by the
+        '<literal>priority</literal>' header within each message. However, for custom priority determination
+        logic, a comparator of type <classname>Comparator&lt;Message&lt;?&gt;&gt;</classname> can be provided
+        to the <classname>PriorityChannel</classname>'s constructor.
+      </para>
+    </section>
+    <section id="channel-implementations-rendezvouschannel">
+      <title>RendezvousChannel</title>
+      <para>
+        The <classname>RendezvousChannel</classname> enables a "direct-handoff" scenario where a sender will block
+        until another party invokes the channel's <methodname>receive()</methodname> method or vice-versa. Internally,
+        this implementation is quite similar to the <classname>QueueChannel</classname> except that it uses a
+        <classname>SynchronousQueue</classname> (a zero-capacity implementation of
+        <interfacename>BlockingQueue</interfacename>). This works well in situations where the sender and receiver are
+        operating in different threads but simply dropping the message in a queue asynchronously is not appropriate.
+        In other words, with a <classname>RendezvousChannel</classname> at least the sender knows that some receiver
+        has accepted the message, whereas with a <classname>QueueChannel</classname>, the message would have been
+        stored to the internal queue and potentially never received.
+      </para>
+      <tip>
+        <para>
+          Keep in mind that all of these queue-based channels are storing messages in-memory only. When persistence
+          is required, you can either invoke a database operation within a handler or use Spring Integration's
+          support for JMS-based Channel Adapters. The latter option allows you to take advantage of any JMS provider's
+          implementation for message persistence, and it will be discussed in <xref linkend="jms"/>. However, when
+          buffering in a queue is not necessary, the simplest approach is to rely upon the
+          <classname>DirectChannel</classname> discussed next.
+        </para>
+      </tip>
+      <para>
+        The <classname>RendezvousChannel</classname> is also useful for implementing request-reply
+        operations. The sender can create a temporary, anonymous instance of <classname>RendezvousChannel</classname>
+        which it then sets as the 'replyChannel' header when building a Message. After sending that Message, the sender
+        can immediately call receive (optionally providing a timeout value) in order to block while waiting for a reply
+        Message. This is very similar to the implementation used internally by many of Spring Integration's
+        request-reply components.
+      </para>
+    </section>
+    <section id="channel-implementations-directchannel">
+      <title>DirectChannel</title>
+      <para>
+        The <classname>DirectChannel</classname> has point-to-point semantics but otherwise is more similar to the
+        <classname>PublishSubscribeChannel</classname> than any of the queue-based channel implementations described
+        above. It implements the <interfacename>SubscribableChannel</interfacename> interface instead of the
+        <interfacename>PollableChannel</interfacename> interface, so it dispatches Messages directly to a subscriber.
+        As a point-to-point channel, however, it differs from the <classname>PublishSubscribeChannel</classname> in
+        that it will only send each Message to a <emphasis>single</emphasis> subscribed
+        <classname>MessageHandler</classname>.
+      </para>
+      <para>
+        In addition to being the simplest point-to-point channel option, one of its most important features is that
+        it enables a single thread to perform the operations on "both sides" of the channel. For example, if a handler
+        is subscribed to a <classname>DirectChannel</classname>, then sending a Message to that channel will trigger
+        invocation of that handler's <methodname>handleMessage(Message)</methodname> method <emphasis>directly in the
+        sender's thread</emphasis>, before the send() method invocation can return.
+      </para>
+      <para>
+        The key motivation for providing a channel implementation with this behavior is to support transactions that
+        must span across the channel while still benefiting from the abstraction and loose coupling that the channel
+        provides. If the send call is invoked within the scope of a transaction, then the outcome of the handler's
+        invocation (e.g. updating a database record) will play a role in determining the ultimate result of that
+        transaction (commit or rollback).
+        <note>
+          Since the <classname>DirectChannel</classname> is the simplest option and does not add any additional
+          overhead that would be required for scheduling and managing the threads of a poller, it is the default
+          channel type within Spring Integration. The general idea is to define the channels for an application and
+          then to consider which of those need to provide buffering or to throttle input, and then modify those to
+          be queue-based <interfacename>PollableChannels</interfacename>. Likewise, if a channel needs to broadcast
+          messages, it should not be a <classname>DirectChannel</classname> but rather a
+          <classname>PublishSubscribeChannel</classname>. Below you will see how each of these can be configured.
+        </note>
+      </para>
+      <para>
+        The <classname>DirectChannel</classname> internally delegates to a Message Dispatcher to invoke its
+        subscribed Message Handlers, and that dispatcher can have a load-balancing strategy. The load-balancer
+        determines how invocations will be ordered in the case that there are multiple handlers subscribed to the
+        same channel. When using the namespace support described below, the default strategy is
+        "round-robin" which essentially load-balances across the handlers in rotation.
+        <note>
+          The "round-robin" strategy is currently the only implementation available out-of-the-box in Spring
+          Integration. Other strategy implementations may be added in future versions.
+        </note>
+      </para>
+      <para>
+        The load-balancer also works in combination with a boolean <emphasis>failover</emphasis> property.
+        If the "failover" value is true (the default), then the dispatcher will fall back to any subsequent
+        handlers as necessary when preceding handlers throw Exceptions. The order is determined by an optional
+        order value defined on the handlers themselves or, if no such value exists, the order in which the
+        handlers are subscribed.
+      </para>
+      <para>
+        If a certain situation requires that the dispatcher always try to invoke the first handler, then
+        fallback in the same fixed order sequence every time an error occurs, no load-balancing strategy should
+        be provided. In other words, the dispatcher still supports the failover boolean property even when no
+        load-balancing is enabled. Without load-balancing, however, the invocation of handlers will always begin
+        with the first according to their order. For example, this approach works well when there is a clear
+        definition of primary, secondary, tertiary, and so on. When using the namespace support, the "order"
+        attribute on any endpoint will determine that order.
+      </para>
+      <note>
+          Keep in mind that load-balancing and failover only apply when a channel has more than one
+          subscribed Message Handler. When using the namespace support, this means that more than one
+          endpoint shares the same channel reference in the "input-channel" attribute.
+       </note>
+    </section>
+    <section id="executor-channel">
+      <title>ExecutorChannel</title>
+      <para>
+        The <classname>ExecutorChannel</classname> is a point-to-point channel that supports
+        the same dispatcher configuration as <classname>DirectChannel</classname> (load-balancing strategy
+        and the failover boolean property). The key difference between these two dispatching channel types
+        is that the <classname>ExecutorChannel</classname> delegates to an instance of
+        <interfacename>TaskExecutor</interfacename> to perform the dispatch. This means that the send method
+        typically will not block, but it also means that the handler invocation may not occur in the sender's
+        thread. It therefore <emphasis>does not support transactions spanning the sender and receiving
+        handler</emphasis>.
+        <tip>
+	      Note that there are occasions where the sender may block. For example, when using a
+	      TaskExecutor with a rejection-policy that throttles back on the client (such as the
+          <code>ThreadPoolExecutor.CallerRunsPolicy</code>), the sender's thread will execute
+          the method directly anytime the thread pool is at its maximum capacity and the
+          executor's work queue is full. Since that situation would only occur in a non-predictable
+          way, that obviously cannot be relied upon for transactions.
+        </tip>
+      </para>
+    </section>
+    <section id="channel-implementations-threadlocalchannel">
+      <title>ThreadLocalChannel</title>
+      <para>
+        The final channel implementation type is <classname>ThreadLocalChannel</classname>. This channel also delegates
+        to a queue internally, but the queue is bound to the current thread. That way the thread that sends to the
+        channel will later be able to receive those same Messages, but no other thread would be able to access them.
+        While probably the least common type of channel, this is useful for situations where
+        <classname>DirectChannels</classname> are being used to enforce a single thread of operation but any reply
+        Messages should be sent to a "terminal" channel. If that terminal channel is a
+        <classname>ThreadLocalChannel</classname>, the original sending thread can collect its replies from it.
+      </para>
+    </section>
+  </section>
+
+  <section id="channel-interceptors">
+    <title>Channel Interceptors</title>
+    <para>
+      One of the advantages of a messaging architecture is the ability to provide common behavior and capture
+      meaningful information about the messages passing through the system in a non-invasive way. Since the
+      <interfacename>Messages</interfacename> are being sent to and received from
+      <interfacename>MessageChannels</interfacename>, those channels provide an opportunity for intercepting
+      the send and receive operations. The <interfacename>ChannelInterceptor</interfacename> strategy interface
+      provides methods for each of those operations:
+      <programlisting language="java"><![CDATA[public interface ChannelInterceptor {
+
+    Message<?> preSend(Message<?> message, MessageChannel channel);
+
+    void postSend(Message<?> message, MessageChannel channel, boolean sent);
+
+    boolean preReceive(MessageChannel channel);
+
+    Message<?> postReceive(Message<?> message, MessageChannel channel);
+}]]></programlisting>
+      After implementing the interface, registering the interceptor with a channel is just a matter of calling:
+      <programlisting language="java">channel.addInterceptor(someChannelInterceptor);</programlisting>
+      The methods that return a Message instance can be used for transforming the Message or can return 'null'
+      to prevent further processing (of course, any of the methods can throw a RuntimeException). Also, the
+      <methodname>preReceive</methodname> method can return '<literal>false</literal>' to prevent the receive
+      operation from proceeding.
+      <note>
+        Keep in mind that <methodname>receive()</methodname> calls are only relevant for
+        <interfacename>PollableChannels</interfacename>. In fact the
+        <interfacename>SubscribableChannel</interfacename> interface does not even define a
+        <methodname>receive()</methodname> method. The reason for this is that when a Message is sent to a
+        <interfacename>SubscribableChannel</interfacename> it will be sent directly to one or more subscribers
+        depending on the type of channel (e.g. a PublishSubscribeChannel sends to all of its subscribers). Therefore,
+        the <methodname>preReceive(..)</methodname> and <methodname>postReceive(..)</methodname> interceptor methods
+        are only invoked when the interceptor is applied to a <interfacename>PollableChannel</interfacename>.
+      </note>
+      Spring Integration also provides an implementation of the
+      <ulink url="http://eaipatterns.com/WireTap.html">Wire Tap</ulink> pattern.
+      It is a simple interceptor that sends the Message to another channel without otherwise altering the
+      existing flow. It can be very useful for debugging and monitoring. An example is shown in
+      <xref linkend="channel-wiretap"/>.
+    </para>
+    <para>
+      Because it is rarely necessary to implement all of the interceptor methods, a
+      <classname>ChannelInterceptorAdapter</classname> class is also available for sub-classing. It provides no-op
+      methods (the <literal>void</literal> method is empty, the <classname>Message</classname> returning methods
+      return the Message as-is, and the <literal>boolean</literal> method returns <literal>true</literal>).
+      Therefore, it is often easiest to extend that class and just implement the method(s) that you need as in the
+      following example.
+      <programlisting language="java"><![CDATA[public class CountingChannelInterceptor extends ChannelInterceptorAdapter {
+
+    private final AtomicInteger sendCount = new AtomicInteger();
+
+    @Override
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        sendCount.incrementAndGet();
+        return message;
+    }
+}]]></programlisting>
+      <tip>
+        The order of invocation for the interceptor methods depends on the type of channel. As described above,
+        the queue-based channels are the only ones where the receive method is intercepted in the first place.
+        Additionally, the relationship between send and receive interception depends on the timing of separate
+        sender and receiver threads. For example, if a receiver is already blocked while waiting for a message
+        the order could be: preSend, preReceive, postReceive, postSend. However, if a receiver polls after the
+        sender has placed a message on the channel and already returned, the order would be: preSend, postSend,
+        (some-time-elapses) preReceive, postReceive. The time that elapses in such a case depends on a number
+        of factors and is therefore generally unpredictable (in fact, the receive may never happen!).
+        Obviously, the type of queue also plays a role (e.g. rendezvous vs. priority). The bottom line is that
+        you cannot rely on the order beyond the fact that preSend will precede postSend and preReceive will
+        precede postReceive.
+      </tip>
+    </para>
+  </section>
+
+  <section id="channel-template">
+    <title>MessageChannelTemplate</title>
+    <para>
+      As you will see when the endpoints and their various configuration options are introduced, Spring Integration
+      provides a foundation for messaging components that enables non-invasive invocation of your application code
+      <emphasis>from the messaging system</emphasis>. However, sometimes it is necessary to invoke the messaging system
+      <emphasis>from your application code</emphasis>. For convenience when implementing such use-cases, Spring
+      Integration provides a <classname>MessageChannelTemplate</classname> that supports a variety of operations across
+      the Message Channels, including request/reply scenarios. For example, it is possible to send a request
+      and wait for a reply.
+      <programlisting language="java">MessageChannelTemplate template = new MessageChannelTemplate();
+
+Message reply = template.sendAndReceive(new StringMessage("test"), someChannel);</programlisting>
+      In that example, a temporary anonymous channel would be created internally by the template. The
+      'sendTimeout' and 'receiveTimeout' properties may also be set on the template, and other exchange
+      types are also supported.
+      <programlisting language="java"><![CDATA[public boolean send(final Message<?> message, final MessageChannel channel) { ... }
+
+public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) { .. }
+
+public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programlisting>
+    </para>
+    <note>
+      <para>
+        A less invasive approach that allows you to invoke simple interfaces with payload and/or header
+        values instead of Message instances is described in <xref linkend="gateway-proxy"/>.
+      </para>
+    </note>
+  </section>
+
+  <section id="channel-configuration">
+    <title>Configuring Message Channels</title>
+    <para>
+      To create a Message Channel instance, you can use the 'channel' element:
+      <programlisting language="xml">&lt;channel id="exampleChannel"/&gt;</programlisting>
+    </para>
+    <para>
+      The default channel type is <emphasis>Point to Point</emphasis>. To create a
+      <emphasis>Publish Subscribe</emphasis> channel, use the "publish-subscribe-channel" element:
+      <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
+    </para>
+    <para>
+      To create a <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> that only
+      accepts messages containing a certain payload type, provide the fully-qualified class name in the
+      channel element's <literal>datatype</literal> attribute:
+      <programlisting language="xml"><![CDATA[<channel id="numberChannel" datatype="java.lang.Number"/>]]></programlisting>
+      Note that the type check passes for any type that is <emphasis>assignable</emphasis> to the channel's
+      datatype. In other words, the "numberChannel" above would accept messages whose payload is
+      <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
+      provided as a comma-delimited list:
+      <programlisting language="xml"><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting> 
+    </para>
+    <para>
+      When using the "channel" element without any sub-elements, it will create a <classname>DirectChannel</classname>
+      instance (a <interfacename>SubscribableChannel</interfacename>).
+    </para>
+    <para>
+      However, you can alternatively provide a variety of "queue" sub-elements to create any of
+      the pollable channel types (as described in
+      <xref linkend="channel-implementations"/>). Examples of each are shown below.
+    </para>
+    <section id="channel-configuration-directchannel">
+      <title>DirectChannel Configuration</title>
+      <para>
+        As mentioned above, <classname>DirectChannel</classname> is the default type.
+        <programlisting language="xml"><![CDATA[<channel id="directChannel"/>]]></programlisting>
+      </para>
+      <para>
+        A default channel will have a <emphasis>round-robin</emphasis> load-balancer and will also have
+        failover enabled (See the discussion in <xref linkend="channel-implementations-directchannel"/>
+        for more detail). To disable one or both of these, add a &lt;dispatcher/&gt; sub-element and
+        configure the attributes:
+        <programlisting language="xml"><![CDATA[<channel id="failFastChannel">
+    <dispatcher failover="false"/>
+</channel>
+
+<channel id="channelWithFixedOrderSequenceFailover">
+    <dispatcher load-balancer="none"/>
+</channel>
+]]></programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-queuechannel">
+      <title>QueueChannel Configuration</title>
+      <para>
+        To create a <classname>QueueChannel</classname>, use the "queue" sub-element.
+        You may specify the channel's capacity:
+        <programlisting language="xml">&lt;channel id="queueChannel"&gt;
+    &lt;queue capacity="25"/&gt;
+&lt;/channel&gt;</programlisting>
+        <note>
+          If you do not provide a value for the 'capacity' attribute on this &lt;queue/&gt; sub-element,
+          the resulting queue will be unbounded. To avoid issues such as OutOfMemoryErrors, it is highly
+          recommended to set an explicit value for a bounded queue.
+        </note>
+      </para>
+    </section>
+    <section id="channel-configuration-pubsubchannel">
+      <title>PublishSubscribeChannel Configuration</title>
+      <para>
+        To create a <classname>PublishSubscribeChannel</classname>, use the "publish-subscribe-channel" element.
+        When using this element, you can also specify the "task-executor" used for publishing
+        Messages (if none is specified it simply publishes in the sender's thread): 
+        <programlisting language="xml">&lt;publish-subscribe-channel id="pubsubChannel" task-executor="someExecutor"/&gt;</programlisting>
+        If you are providing a <emphasis>Resequencer</emphasis> or <emphasis>Aggregator</emphasis> downstream
+        from a <classname>PublishSubscribeChannel</classname>, then you can set the 'apply-sequence' property
+        on the channel to <code>true</code>. That will indicate that the channel should set the sequence-size
+        and sequence-number Message headers as well as the correlation id prior to passing the Messages along.
+        For example, if there are 5 subscribers, the sequence-size would be set to 5, and the Messages would
+        have sequence-number header values ranging from 1 to 5.
+        <programlisting language="xml">&lt;publish-subscribe-channel id="pubsubChannel" apply-sequence="true"/&gt;</programlisting>
+        <note>
+          The 'apply-sequence' value is <code>false</code> by default so that a Publish Subscribe Channel
+          can send the exact same Message instances to multiple outbound channels. Since Spring Integration
+          enforces immutability of the payload and header references, the channel creates new Message
+          instances with the same payload reference but different header values when the flag is set to
+          <code>true</code>. 
+        </note>
+      </para>
+    </section>
+    <section id="channel-configuration-executorchannel">
+      <title>ExecutorChannel</title>
+      <para>
+        To create an <classname>ExecutorChannel</classname>, add the &lt;dispatcher&gt; sub-element along
+        with a 'task-executor' attribute. Its value can reference any <interfacename>TaskExecutor</interfacename>
+        within the context. For example, this enables configuration of a thread-pool for dispatching messages
+        to subscribed handlers. As mentioned above, this does break the "single-threaded" execution context
+        between sender and receiver so that any active transaction context will not be shared by the invocation
+        of the handler (i.e. the handler may throw an Exception, but the send invocation has already returned
+        successfully).
+        <programlisting language="xml"><![CDATA[<channel id="executorChannel">
+    <dispatcher task-executor="someExecutor"/>
+</channel>]]></programlisting>
+      </para>
+      <note>
+        The "load-balancer" and "failover" options are also both available on the dispatcher sub-element
+        as described above in <xref linkend="channel-configuration-directchannel"/>. The same defaults
+        apply as well. So, the channel will have a round-robin load-balancing strategy with failover
+        enabled unless explicit configuration is provided for one or both of those attributes.
+        <programlisting language="xml"><![CDATA[<channel id="executorChannelWithoutFailover">
+    <dispatcher task-executor="someExecutor" failover="false"/>
+</channel>]]></programlisting>
+      </note>
+    </section>
+    <section id="channel-configuration-prioritychannel">
+      <title>PriorityChannel Configuration</title>
+      <para>
+        To create a <classname>PriorityChannel</classname>, use the "priority-queue" sub-element:
+        <programlisting language="xml"><![CDATA[<channel id="priorityChannel">
+    <priority-queue capacity="20"/>
+</channel>]]></programlisting>
+        By default, the channel will consult the <classname>MessagePriority</classname> header of the 
+        message. However, a custom <interfacename>Comparator</interfacename> reference may be
+        provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
+        does support the "datatype" attribute. As with the QueueChannel, it also supports a "capacity" attribute.
+        The following example demonstrates all of these:
+        <programlisting language="xml"><![CDATA[<channel id="priorityChannel" datatype="example.Widget">
+    <priority-queue comparator="widgetComparator"
+                    capacity="10"/>
+</channel>
+]]></programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-rendezvouschannel">
+      <title>RendezvousChannel Configuration</title>
+      <para>
+        A <classname>RendezvousChannel</classname> is created when the queue sub-element is
+        a &lt;rendezvous-queue&gt;. It does not provide any additional configuration options to
+        those described above, and its queue does not accept any capacity value since it is a
+        0-capacity direct handoff queue.
+        <programlisting language="xml"><![CDATA[<channel id="rendezvousChannel"/>
+    <rendezvous-queue/>
+</channel>
+]]></programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-threadlocalchannel">
+      <title>ThreadLocalChannel Configuration</title>
+      <para>
+        The <classname>ThreadLocalChannel</classname> does not provide any additional configuration options.
+        <programlisting language="xml"><![CDATA[<thread-local-channel id="threadLocalChannel"/>]]></programlisting>
+      </para>
+    </section>
+
+    <section id="channel-configuration-interceptors">
+	  <title>Channel Interceptor Configuration</title>
+      <para>
+        Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. The
+        &lt;interceptors&gt; sub-element can be added within &lt;channel&gt; (or the more specific element
+        types). Provide the "ref" attribute to reference any Spring-managed object that implements the
+        <interfacename>ChannelInterceptor</interfacename> interface:
+        <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
+    ]]><emphasis><![CDATA[<interceptors>
+        <ref bean="trafficMonitoringInterceptor"/>
+    </interceptors>]]></emphasis><![CDATA[
+</channel>]]></programlisting>
+        In general, it is a good idea to define the interceptor implementations in a separate location since they
+        usually provide common behavior that can be reused across multiple channels.
+      </para>
+    </section>
+    
+    <section id="global-channel-configuration-interceptors">
+	  <title>Global Channel Interceptor Configuration</title>
+      <para>
+        Channel Interceptors allow you for a clean and concise way of applying cross-cutting behavior per individual channel. 
+        But what if the same behavior should be applied on multiple channels, configuring the same set of interceptors for 
+        each channel <emphasis>would not be</emphasis> the most efficient way. The better way would be to configure interceptors globally and apply 
+        them on multiple channels in one shot. Spring Integration provides capabilities to configure <emphasis>Global Interceptor Chains</emphasis> 
+        and apply them on multiple channels.
+		Look at the example below:
+        <programlisting language="xml"><![CDATA[<int:channel-interceptor-chain channel-name-pattern="input*, bar*, foo" order="3">
+    <bean class="foo.barSampleInterceptor"/>
+    <ref bean="someOtherInterceptor"/>
+</int:channel-interceptor-chain>]]></programlisting>
+        &lt;channel-interceptor-chain&gt; element will assemble the chain of interceptors and will apply them on all the 
+        channels defined in the &lt;channel-name-patter&gt; attribute. In the above case the two interceptors that are defined 
+        within the chain are going to be applied on 'foo' channel and all other channels that begin with 'bar' and 'input'. 
+        The &lt;order&gt; attribute allows you to manage the place where this interceptor chain will be injected. 
+        For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
+        <programlisting language="xml"><![CDATA[<int:channel id="inputChannel"> 
+	<int:interceptors>
+		<int:wire-tap channel="logger"/> 
+	</int:interceptors>
+</int:channel>]]></programlisting>
+	The reasonable question would be where interceptors defined by <emphasis>channel-interceptor-cahin</emphasis> should be injected
+	in relation to the existing one(s) (configured locally or through other global chains)? Current implementation provides 
+	a very simple and clever mechanism of handling this. Positive number in the <emphasis>order</emphasis> attribute will ensure interceptor injection 
+	after existing interceptors and negative number will ensure that such interceptors injected before. 
+	This means that in the above example interceptors configured in global interceptor chain would be injected after 
+	'wire-tap' interceptor configured locally. If there was another global chain with matching <emphasis>channel-name-pattern</emphasis> the 
+	order between the interceptors defined in two chains would be determined based on who's got the higher or lower 
+	value in <emphasis>order</emphasis> attribute.
+      </para>
+    </section>
+
+    <section id="channel-wiretap">
+	  <title>Wire Tap</title>
+      <para>
+		As mentioned above, Spring Integration provides a simple <emphasis>Wire Tap</emphasis> interceptor out of
+		the box. You can configure a <emphasis>Wire Tap</emphasis> on any channel within an 'interceptors' element.
+        This is especially useful for debugging, and can be used in conjunction with Spring Integration's logging
+		Channel Adapter as follows: <programlisting language="xml"><![CDATA[ <channel id="in">
+     <interceptors>
+         <wire-tap channel="logger"/>
+     </interceptors>
+ </channel>
+
+ <logging-channel-adapter id="logger" level="DEBUG"/>]]></programlisting>
+        <tip>
+			The 'logging-channel-adapter' also accepts a boolean attribute: <emphasis>'log-full-message'</emphasis>.
+			That is <emphasis>false</emphasis> by default so that only the payload is logged. Setting that to
+			<emphasis>true</emphasis> enables logging of all headers in addition to the payload.
+	    </tip>
+      </para>
+	</section>
+
+    <note>
+      <para>
+        If namespace support is enabled, there are also two special channels defined within the context by default:
+        <code>errorChannel</code> and <code>nullChannel</code>. The 'nullChannel' acts like <code>/dev/null</code>,
+        simply logging any Message sent to it at DEBUG level and returning immediately. Any time you face channel
+        resolution errors for a reply that you don't care about, you can set the affected component's 'output-channel'
+        to reference 'nullChannel' (the name 'nullChannel' is reserved within the context). The 'errorChannel' is
+        used internally for sending error messages, and it can be overridden with a custom configuration. It is
+        discussed in greater detail in <xref linkend="namespace-errorhandler"/>.
+      </para>
+    </note>
+  </section>
+
+</chapter>

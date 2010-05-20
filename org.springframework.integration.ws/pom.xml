@@ -3,16 +3,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.integration</groupId>
+		<artifactId>spring-integration</artifactId>
+		<version>2.0.0.BUILD-SNAPSHOT</version>
+	</parent>
 	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration-ws</artifactId>
 	<packaging>jar</packaging>
 	<name>Spring Integration Web Services Support</name>
-	<parent>
-		<groupId>org.springframework.integration</groupId>
-		<artifactId>spring-integration-parent</artifactId>
-		<version>2.0.0.BUILD-SNAPSHOT</version>
-		<relativePath>../spring-integration-parent</relativePath>
-	</parent>
 	<dependencies>
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>

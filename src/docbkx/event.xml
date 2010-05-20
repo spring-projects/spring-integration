@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="applicationevent">
+
+  <title>Spring ApplicationEvent Support</title>
+
+  <para>
+    Spring Integration provides support for inbound and outbound <classname>ApplicationEvents</classname>
+    as defined by the underlying Spring Framework. For more information about the events and listeners,
+    refer to the  <ulink url="http://static.springsource.org/spring/docs/2.5.x/reference/beans.html#context-functionality-events">Spring Reference Manual</ulink>.
+  </para>
+
+  <section id="applicationevent-inbound">
+    <title>Receiving Spring ApplicationEvents</title>
+	<para>
+		To receive events and send them to a channel, simply define an instance of Spring Integration's
+		<classname>ApplicationEventListeningChannelAdapter</classname>. This class is an implementation of
+		Spring's <interfacename>ApplicationListener</interfacename> interface. By default it will pass all
+		received events as Spring Integration Messages. To limit based on the type of event, configure the
+		list of event types that you want to receive with the 'eventTypes' property.
+	</para>
+  </section>
+
+  <section id="applicationevent-outbound">
+	<title>Sending Spring ApplicationEvents</title>
+	<para>
+		To send Spring <classname>ApplicationEvents</classname>, create an instance of the
+		<classname>ApplicationEventPublishingMessageHandler</classname> and register it within an endpoint.
+		This implementation of the <interfacename>MessageHandler</interfacename> interface also implements
+		Spring's <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a
+		bridge between Spring Integration Messages and <classname>ApplicationEvents</classname>.
+	</para>
+  </section>
+
+</chapter>
