@@ -251,6 +251,19 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>com.springsource.bundlor</groupId>
+					<artifactId>com.springsource.bundlor.maven</artifactId>
+					<version>1.0.0.RELEASE</version>
+					<executions>
+						<execution>
+							<id>bundlor</id>
+							<goals>
+								<goal>bundlor</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-antrun-plugin</artifactId>
 					<dependencies>
@@ -319,6 +332,11 @@
 		</repository>
 	</repositories>
 	<pluginRepositories>
+		<pluginRepository>
+			<id>com.springsource.repository.bundles.release</id>
+			<name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
+			<url>http://repository.springsource.com/maven/bundles/release/</url>
+		</pluginRepository>
 		<pluginRepository>
 			<id>com.springsource.repository.bundles.milestone</id>
 			<name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Milestones</name>
