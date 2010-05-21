@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="http">
+  <title>HTTP Support</title>
+
+  <section id="http-intro">
+    <title>Introduction</title>
+    <para>
+      The HTTP support allows for the making of HTTP requests and the processing of inbound Http requests.  Because interaction over HTTP is always synchronous, even if all that is returned is a 200 status code the Http support consists of two gateway implementations
+ 	<classname>HttpInboundEndpoint</classname> and <classname>HttpOutboundEndpoint</classname>.
+    </para>
+   </section>
+
+  <section id="http-inbound">
+    <title>Http Inbound Gateway</title>
+    <para>
+		To receive messages over http you need to use an <classname>HttpInboundEndpoint</classname>.  In common with the HttpInvoker 
+	support the Http Inbound Gateway needs to be deployed within a servlet container.  The easiest way to do this is to provide a servlet 
+	definition in <emphasis>web.xml</emphasis>, see 
+	<xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple <classname>HttpInboundEndpoint</classname>	
+		<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
+	<property name="requestChannel" ref="httpRequestChannel" />
+	<property name="replyChannel" ref="httpReplyChannel" />	
+</bean>]]></programlisting>
+	The <classname>HttpInboundEndpoint</classname> accepts an instance of <interfacename>InboundRequestMapper</interfacename> which allows 
+	customisation of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>.  If none is 
+	provided an instance of <classname>DefaultInboundRequestMapper</classname> will be used.  This encapsulates a simple strategy, which for
+	example will create a String message for a <emphasis>POST</emphasis> request where the content type starts with "text", see the Javadoc for 
+	full details.   		
+      </para>
+      <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a
+	  <emphasis>MultipartHttpServletRequest</emphasis>, then the 'content type' can be checked. If it is known, and
+	  begins with "text", then the <emphasis>MultipartFile</emphasis> will be copied to a String in the parameter
+	  map. If the content type does not begin with "text", then the <emphasis>MultipartFile</emphasis> will be copied
+	  to a byte array within the parameter map instead.
+	  <note>
+		The HttpInboundEndpoint will locate a MultipartResolver in the context if one exists with the bean name
+		"multipartResolver" (the same name expected by Spring's DispatcherServlet). If it does in fact locate that
+		bean, then the support for MultipartFiles will be enabled on the inbound request mapper. Otherwise, it will
+		fail when trying to map a multipart-file request to a Spring Integration Message. For more on Spring's
+		support for MultipartResolvers, refer to the <ulink url="http://static.springsource.org/spring/docs/2.5.x/reference/mvc.html#mvc-multipart">Spring Reference Manual</ulink>.
+      </note>
+      </para>
+      <para>
+		In sending a response to the client there are a number of ways to customise the behaviour of the gateway.  By default the gateway will 
+	simply acknowledge that the request was received by sending a 200 status code back.  It is possible to customise this response by providing an 
+	implementation of the Spring MVC <interfacename>View</interfacename> which will be invoked with the created <interfacename>Message</interfacename>.  
+        In the case that the gateway should expect a reply to the <interfacename>Message</interfacename> then setting the <property>expectReply</property> flag will cause 
+	the gateway to wait for a response <interfacename>Message</interfacename> before creating an Http response.  Below is an example of a gateway 
+	configured to use a custom view and to wait for a response.  It also shows how to customise the Http methods accepted by the gateway, which 
+	are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.    
+	<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
+	<property name="requestChannel" ref="httpRequestChannel" />
+	<property name="replyChannel" ref="httpReplyChannel" />
+	<property name="view" ref="jsonView" />
+	<property name="supportedMethods" >
+		<list>
+			<value>GET</value>
+			<value>DELETE</value>
+		</list>
+	</property>
+	<property name="expectReply" value="true" />
+	<property name="requestMapper" ref="customRequestMapper" />
+</bean>]]></programlisting>
+	The message created from the request will be available in the Model map. The key that is used
+	for that map entry by default is 'requestMessage', but this can be overridden by setting the
+	'requestKey' property on the endpoint's configuration.
+     </para>
+  </section>	
+
+  <section id="http-outbound">
+    <title>Http Outbound Gateway</title>
+
+	<para>
+		To configure the <classname>HttpOutboundEndpoint</classname> write a bean definition like this:
+		<programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpOutboundEndpoint" >
+	<property name="outputChannel" ref="responseChannel" />
+</bean>]]></programlisting>
+		This bean definition will execute Http requests by first converting the message to the Http request using an instance of 
+		<classname>DefaultOutboundRequestMapper</classname>.  This will expect to find the request URL in the message header under 
+		the key <emphasis>HttpHeaders.REQUEST_URL</emphasis>.  It is also possible to set a default target URL as a constructor argument 
+		along with other options as shown below.
+		<programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpOutboundEndpoint" >
+	<constructor-arg value="http://localhost:8080/example" />
+	<property name="outputChannel" ref="responseChannel" />
+	<property name="sendTimeout" value="5000" />
+	<property name="requestMapper" ref="customRequestMapper" />
+</bean>]]></programlisting>
+By default the Http request will be made using an instance of <classname>SimpleHttpRequestExecutor</classname> which uses the JDK 
+	<classname>HttpURLConnection</classname>.  Use of the Apache Commons Http Client is also supported through the provided 
+	<classname>CommonsHttpRequestExecutor</classname> which can be injected into the outbound gateway.   	
+    </para>
+  </section>
+
+  <section id="http-namespace">
+    <title>Http Namespace Support</title>
+	<para>
+		Spring Integration provides an "http" namespace and schema definition. To include it in your
+		configuration, simply provide the following URI within a namespace declaration:
+		'http://www.springframework.org/schema/integration/http'. The schema location should then map to
+		'http://www.springframework.org/schema/integration/http/spring-integration-http-1.0.xsd'.
+	</para>
+    <para>
+		To configure an inbound http channel adapter which is an instance of <classname>HttpInboundEndpoint</classname> configured 
+		not to expect a response.
+		<programlisting language="xml"><![CDATA[ <http:inbound-channel-adapter id="httpChannelAdapter" channel="requests" supported-methods="PUT, DELETE"/>]]></programlisting>
+    </para>
+    <para>
+		To configure an inbound http gateway which expects a response.
+		<programlisting language="xml"><![CDATA[ <http:inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>]]></programlisting>
+    </para>
+    <para>
+		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway.
+		<programlisting language="xml"><![CDATA[<http:outbound-gateway id="fullConfigWithoutMapper"
+		request-channel="requests"
+		default-url="http://localhost/test"
+		extract-request-payload="false"
+		charset="UTF-8"
+		request-executor="executor"
+		request-timeout="1234"
+		reply-channel="replies"/>]]></programlisting>
+		If you want to provide a custom OutboundRequestMapper, then a reference may be supplied to the
+		'request-mapper' attribute. In that case however you will not be allowed to set the default URL,
+		charset, and 'extract-request-payload' properties since those are all properties of the default
+		mapper (see the JavaDoc for DefaultOutboundRequestMapper for more information).
+    </para>
+  </section>
+</chapter>

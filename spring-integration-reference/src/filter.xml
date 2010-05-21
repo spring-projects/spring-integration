@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="filter">
+  <title>Filter</title>
+
+  <section id="filter-introduction">
+    <title>Introduction</title>
+    <para>
+      Message Filters are used to decide whether a Message should be passed along or dropped based on some criteria
+      such as a Message Header value or even content within the Message itself. Therefore, a Message Filter is similar
+      to a router, except that for each Message received from the filter's input channel, that same Message may or may
+      not be sent to the filter's output channel. Unlike the router, it makes no decision regarding
+      <emphasis>which</emphasis> Message Channel to send to but only decides <emphasis>whether</emphasis> to send.
+      <note>
+        As you will see momentarily, the Filter does also support a discard channel, so in certain cases it
+        <emphasis>can</emphasis> play the role of a very simple router (or "switch") based on a boolean condition.
+      </note>
+    </para>
+    <para>
+      In Spring Integration, a Message Filter may be configured as a Message Endpoint that delegates to some
+      implementation of the <interfacename>MessageSelector</interfacename> interface. That interface is itself quite
+      simple: <programlisting language="java"><![CDATA[ public interface MessageSelector {
+
+     boolean accept(Message<?> message);
+
+ }]]></programlisting>
+      The <classname>MessageFilter</classname> constructor accepts a selector instance:
+      <programlisting language="java"><![CDATA[ MessageFilter filter = new MessageFilter(someSelector);]]></programlisting>
+    </para>
+  </section>
+
+  <section id="filter-namespace">
+    <title>The &lt;filter&gt; Element</title>
+    <para>
+	  The &lt;filter&gt; element is used to create a Message-selecting endpoint. In addition to "input-channel"
+      and "output-channel" attributes, it requires a "ref". The "ref" may point to a MessageSelector implementation:
+      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector" output-channel="output"/>
+
+ <bean id="selector" class="example.MessageSelectorImpl"/>]]></programlisting>
+    </para>
+    <para>
+      Alternatively, the "method" attribute can be added at which point the "ref" may refer to any object.
+      The referenced method may expect either the <interfacename>Message</interfacename> type or the payload type of
+      inbound Messages. The return value of the method must be a boolean value. Any time the method returns 'true',
+      the Message <emphasis>will</emphasis> be passed along to the output-channel.
+      <programlisting language="xml"><![CDATA[ <filter input-channel="input" output-channel="output"
+         ref="exampleObject" method="someBooleanReturningMethod"/>
+
+ <bean id="exampleObject" class="example.SomeObject"/>]]></programlisting>
+    </para>
+    <para>
+      If the selector or adapted POJO method returns <code>false</code>, there are a few settings that control the
+      fate of the rejected Message. By default (if configured like the example above), the rejected Messages will
+      be silently dropped. If rejection should instead indicate an error condition, then set the
+      'throw-exception-on-rejection' flag to <code>true</code>:
+      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
+      output-channel="output" throw-exception-on-rejection="true"/> ]]></programlisting>
+	  If you want the rejected messages to go to a specific channel, provide that reference as the 'discard-channel':
+      <programlisting language="xml"><![CDATA[ <filter input-channel="input" ref="selector"
+      output-channel="output" discard-channel="rejectedMessages"/> ]]></programlisting>
+    </para>
+    <note>
+      A common usage for Message Filters is in conjunction with a Publish Subscribe Channel. Many filter endpoints may
+      be subscribed to the same channel, and they decide whether or not to pass the Message for the next endpoint which
+      could be any of the supported types (e.g. Service Activator). This provides a <emphasis>reactive</emphasis>
+      alternative to the more <emphasis>proactive</emphasis> approach of using a Message Router with a single
+      Point-to-Point input channel and multiple output channels.
+    </note>
+	<para>
+      Using a "ref" attribute is generally recommended if the custom filter implementation can be reused in other
+      <code>&lt;filter&gt;</code> definitions. However if the custom filter implementation should be scoped to a
+      single <code>&lt;filter&gt;</code> element, provide an inner bean definition:
+<programlisting language="xml"><![CDATA[<filter method="someMethod" input-channel="inChannel" output-channel="outChannel">
+	<beans:bean class="org.foo.MyCustomFilter"/>
+</filter>]]></programlisting>
+    </para>
+    <note>
+      <para>
+        Using both the "ref" attribute and an inner handler definition in the same <code>&lt;filter&gt;</code> configuration
+        is not allowed, as it creates an ambiguous condition, and it will therefore result in an Exception being thrown.
+      </para>
+    </note>
+  </section>
+
+</chapter>
