@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.xml;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class PNamespaceTest {
+public class PNamespaceTests {
 
 	@Autowired
 	@Qualifier("sa")
@@ -57,32 +57,29 @@ public class PNamespaceTest {
 	@Test
 	public void testPNamespaceServiceActivator() {	
 		TestBean bean =  prepare(serviceActivator);
-		Assert.assertEquals("paris", bean.getFname());
-		Assert.assertEquals("hilton", bean.getLname());
+		assertEquals("paris", bean.getFname());
+		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
 	public void testPNamespaceSplitter() {		
 		TestBean bean =  prepare(splitter);
-
-		Assert.assertEquals("paris", bean.getFname());
-		Assert.assertEquals("hilton", bean.getLname());
+		assertEquals("paris", bean.getFname());
+		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
 	public void testPNamespaceRouter() {
 		TestBean bean =  prepare(router);
-
-		Assert.assertEquals("paris", bean.getFname());
-		Assert.assertEquals("hilton", bean.getLname());
+		assertEquals("paris", bean.getFname());
+		assertEquals("hilton", bean.getLname());
 	}
 
 	@Test
 	public void testPNamespaceTransformer() {		
 		TestBean bean =  prepare(transformer);
-
-		Assert.assertEquals("paris", bean.getFname());
-		Assert.assertEquals("hilton", bean.getLname());
+		assertEquals("paris", bean.getFname());
+		assertEquals("hilton", bean.getLname());
 	}
 
 
