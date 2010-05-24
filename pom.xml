@@ -290,9 +290,11 @@
 					<header>Spring Integration</header>
 					<source>1.5</source>
 					<quiet>true</quiet>
-					<!-- TODO: update stylesheet to s2 green L&F -->
-					<stylesheetfile>${basedir}/src/main/javadoc/javadoc.css</stylesheetfile>
+					<javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
 					<overview>${basedir}/src/main/javadoc/overview.html</overview>
+					<stylesheetfile>${basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+					<!-- copies doc-files subdirectory which contains image resources -->
+					<docfilessubdirs>true</docfilessubdirs>
 					<groups>
 						<group>
 							<title>Spring Integration</title>
@@ -300,7 +302,6 @@
 						</group>
 						<!-- TODO: fill in other groups -->
 					</groups>
-					<javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
 					<excludePackageNames>org.springframework.integration.samples</excludePackageNames>
 					<links>
 						<!-- TODO: examine JavaDoc warnings and see what other api links are needed -->
