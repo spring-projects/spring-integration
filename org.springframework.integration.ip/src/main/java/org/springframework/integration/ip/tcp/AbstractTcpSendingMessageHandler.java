@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -95,7 +96,16 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	 */
 	public void handleMessage(final Message<?> message) throws MessageRejectedException,
 			MessageHandlingException, MessageDeliveryException {
-		doWrite(message);
+		try {
+			doWrite(message);
+		} catch (MessageMappingException e) {
+			// retry - socket may have closed
+			if (e.getCause() instanceof IOException) {
+				doWrite(message);
+			} else {
+				throw e;
+			}
+		}
 	}
 
 	/**

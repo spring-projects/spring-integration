@@ -67,7 +67,8 @@ public class SimpleTcpNetOutboundGateway extends
 	@Override
 	protected synchronized Object handleRequestMessage(Message<?> requestMessage) {
 		this.handler.handleMessage(requestMessage);
-		if (this.reader == null) {
+		if (this.reader == null ||
+			this.reader.getSocket() != handler.getSocket()) {
 			Socket socket = this.handler.getSocket();
 			this.reader = SocketIoUtils.createNetReader(this.messageFormat,
 				this.customSocketReaderClass, socket, this.maxMessageSize,

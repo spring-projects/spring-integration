@@ -15,6 +15,13 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.net.ServerSocketFactory;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +29,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -109,4 +117,37 @@ public class SimpleTcpNetOutboundGatewayTests {
 		byte[] bytes = (byte[]) replyChannel.receive().getPayload();
 		assertEquals("echo:test", new String(bytes).trim());
 	}
+	
+	@Test
+	public void testOutboundClose() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					while (true) {
+						Socket s = ss.accept();
+						byte[] b = new byte[1024];
+						s.getInputStream().read(b);
+						s.getOutputStream().write("OK\r\n".getBytes());
+						s.close();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}});
+		t.start();
+		latch.await(2000, TimeUnit.MILLISECONDS);
+		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
+			("localhost", port);
+		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
+		assertEquals("OK", new String(bytes));
+		bytes = (byte[]) gateway.handleRequestMessage(message);
+		assertEquals("OK", new String(bytes));
+	}
+	
 }
