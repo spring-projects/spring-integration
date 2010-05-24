@@ -171,7 +171,6 @@
 					</includes>
 					<excludes>
 						<exclude>**/Abstract*.java</exclude>
-						<exclude>**/PropertyPlaceholderTests.java</exclude>
 					</excludes>
 					<junitArtifactName>junit:junit</junitArtifactName>
 				</configuration>
