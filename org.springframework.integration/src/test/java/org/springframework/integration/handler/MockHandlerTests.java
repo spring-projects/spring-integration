@@ -38,7 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MockHandlerTest {
+public class MockHandlerTests {
 
 	@Autowired
 	@Qualifier("input")

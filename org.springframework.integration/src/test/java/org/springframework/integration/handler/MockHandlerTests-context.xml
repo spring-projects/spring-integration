@@ -10,7 +10,7 @@
 	<si:service-activator input-channel="input" ref="mock" method="test" />
 
 	<bean id="mock" class="org.mockito.Mockito" factory-method="mock">
-		<constructor-arg value="org.springframework.integration.handler.MockHandlerTest$TestInterface" />
+		<constructor-arg value="org.springframework.integration.handler.MockHandlerTests$TestInterface" />
 	</bean>
 
 </beans>
