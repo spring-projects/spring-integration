@@ -121,31 +121,34 @@ public class SimpleTcpNetOutboundGatewayTests {
 	@Test
 	public void testOutboundClose() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
-		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
 					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port);
-					latch.countDown();
+					latch1.countDown();
 					while (true) {
 						Socket s = ss.accept();
 						byte[] b = new byte[1024];
 						s.getInputStream().read(b);
 						s.getOutputStream().write("OK\r\n".getBytes());
 						s.close();
+						latch2.countDown();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}});
 		t.start();
-		latch.await(2000, TimeUnit.MILLISECONDS);
+		latch1.await(2000, TimeUnit.MILLISECONDS);
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", port);
 		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
+		latch2.await(2000, TimeUnit.MILLISECONDS);
 		bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
 	}
