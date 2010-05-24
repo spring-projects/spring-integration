@@ -23,6 +23,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -72,6 +76,43 @@ public class ThreadLocalChannelTests {
 		assertEquals(message1, receivedMessages.get(0));
 		assertEquals(message2, receivedMessages.get(1));
 		assertNull(channel.receive());
+	}
+
+	@Test
+	public void multipleThreadLocalChannels() throws Exception {
+		final ThreadLocalChannel channel1 = new ThreadLocalChannel();
+		final ThreadLocalChannel channel2 = new ThreadLocalChannel();
+		channel1.send(new StringMessage("test-1.1"));
+		channel1.send(new StringMessage("test-1.2"));
+		channel1.send(new StringMessage("test-1.3"));
+		channel2.send(new StringMessage("test-2.1"));
+		channel2.send(new StringMessage("test-2.2"));
+		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
+		final List<Object> otherThreadResults = new ArrayList<Object>();
+		final CountDownLatch latch = new CountDownLatch(2);
+		otherThreadExecutor.execute(new Runnable() {
+			public void run() {
+				otherThreadResults.add(channel1.receive(0));
+				latch.countDown();
+			}
+		});
+		otherThreadExecutor.execute(new Runnable() {
+			public void run() {
+				otherThreadResults.add(channel2.receive(0));
+				latch.countDown();
+			}
+		});
+		latch.await(1, TimeUnit.SECONDS);
+		assertEquals(2, otherThreadResults.size());
+		assertNull(otherThreadResults.get(0));
+		assertNull(otherThreadResults.get(1));
+		assertEquals("test-1.1", channel1.receive(0).getPayload());
+		assertEquals("test-1.2", channel1.receive(0).getPayload());
+		assertEquals("test-1.3", channel1.receive(0).getPayload());
+		assertNull(channel1.receive(0));
+		assertEquals("test-2.1", channel2.receive(0).getPayload());
+		assertEquals("test-2.2", channel2.receive(0).getPayload());
+		assertNull(channel2.receive(0));
 	}
 
 }
