@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.handler;
+
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.junit.matchers.JUnitMatchers;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.when;
+
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
@@ -31,7 +34,7 @@ import org.springframework.integration.message.MessageBuilder;
  * @author Iwein Fuld
  */
 @RunWith(org.mockito.runners.MockitoJUnitRunner.class)
-public class AbstractReplyProducingMessageHandlerTest {
+public class AbstractReplyProducingMessageHandlerTests {
 
 	private AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 		@Override
@@ -39,9 +42,12 @@ public class AbstractReplyProducingMessageHandlerTest {
 			return requestMessage;
 		}
 	};
+
 	private Message<?> message = MessageBuilder.withPayload("test").build();
+
 	@Mock
 	private MessageChannel channel = null;
+
 
 	@Test
 	public void errorMessageShouldContainChannelName() {
@@ -51,8 +57,10 @@ public class AbstractReplyProducingMessageHandlerTest {
 		try {
 			handler.handleMessage(message);
 			fail("Expected a MessagingException");
-		} catch (MessagingException e) {
+		}
+		catch (MessagingException e) {
 			assertThat(e.getMessage(), JUnitMatchers.containsString("'testChannel'"));
 		}
 	}
+
 }
