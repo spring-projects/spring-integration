@@ -20,14 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.springframework.integration.ip.util.RegexUtils.escapeRegExSpecials;
 
 import org.junit.Test;
+
 import org.springframework.integration.core.MessageHeaders;
 
 /**
- * 
  * @author Gary Russell
- *
  */
-public class RegexUtilsTest {
+public class RegexUtilsTests {
+
 	/**
 	 * Verify that we properly escape all special characters for matching regex
 	 */
