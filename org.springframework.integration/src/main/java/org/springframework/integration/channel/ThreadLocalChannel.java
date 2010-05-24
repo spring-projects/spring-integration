@@ -35,7 +35,7 @@ import org.springframework.integration.core.Message;
  */
 public class ThreadLocalChannel extends AbstractPollableChannel {
 
-	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
+	private final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
 
 
 	@Override
