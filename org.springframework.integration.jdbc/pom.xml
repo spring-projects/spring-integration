@@ -9,7 +9,7 @@
 	</parent>
 	<artifactId>spring-integration-jdbc</artifactId>
 	<packaging>jar</packaging>
-	<name>Spring Integration JDBC</name>
+	<name>Spring Integration JDBC Support</name>
 	<dependencies>
 		<dependency>
 			<groupId>cglib</groupId>
