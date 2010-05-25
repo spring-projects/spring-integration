@@ -9,22 +9,22 @@
 	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
-		<module>org.springframework.integration</module>
-		<module>org.springframework.integration.test</module>
-		<module>org.springframework.integration.event</module>
-		<module>org.springframework.integration.file</module>
-		<module>org.springframework.integration.http</module>
-		<module>org.springframework.integration.httpinvoker</module>
-		<module>org.springframework.integration.ip</module>
-		<module>org.springframework.integration.jdbc</module>
-		<module>org.springframework.integration.jms</module>
-		<module>org.springframework.integration.jmx</module>
-		<module>org.springframework.integration.mail</module>
-		<module>org.springframework.integration.rmi</module>
-		<module>org.springframework.integration.security</module>
-		<module>org.springframework.integration.stream</module>
-		<module>org.springframework.integration.ws</module>
-		<module>org.springframework.integration.xml</module>
+		<module>spring-integration-core</module>
+		<module>spring-integration-test</module>
+		<module>spring-integration-event</module>
+		<module>spring-integration-file</module>
+		<module>spring-integration-http</module>
+		<module>spring-integration-httpinvoker</module>
+		<module>spring-integration-ip</module>
+		<module>spring-integration-jdbc</module>
+		<module>spring-integration-jms</module>
+		<module>spring-integration-jmx</module>
+		<module>spring-integration-mail</module>
+		<module>spring-integration-rmi</module>
+		<module>spring-integration-security</module>
+		<module>spring-integration-stream</module>
+		<module>spring-integration-ws</module>
+		<module>spring-integration-xml</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

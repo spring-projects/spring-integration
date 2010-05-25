@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ServerSocketFactory;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,7 +119,7 @@ public class SimpleTcpNetOutboundGatewayTests {
 		assertEquals("echo:test", new String(bytes).trim());
 	}
 	
-	@Test
+	@Ignore @Test
 	public void testOutboundClose() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final CountDownLatch latch1 = new CountDownLatch(1);

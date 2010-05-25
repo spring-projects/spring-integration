@@ -11,12 +11,6 @@
 	<packaging>jar</packaging>
 	<name>Spring Integration Core</name>
 	<dependencies>
-		<!--
-			dependency> <groupId>org.springframework.integration</groupId>
-			<artifactId>spring-integration-api</artifactId>
-			<version>${project.version}</version> <scope>provided</scope>
-			</dependency
-		-->
 		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib-nodep</artifactId>
