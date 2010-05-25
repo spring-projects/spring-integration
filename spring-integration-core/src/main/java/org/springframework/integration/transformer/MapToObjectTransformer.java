@@ -73,14 +73,13 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
 	 */
-	@SuppressWarnings("unchecked")
 	protected Object transformPayload(Map<?,?> payload) throws Exception {
 		Object target = (this.targetClass != null)
 				? BeanUtils.instantiate(this.targetClass)
 				: this.beanFactory.getBean(this.targetBeanName);
 		DataBinder binder = new DataBinder(target);	
 		binder.setConversionService(this.beanFactory.getConversionService());
-		binder.bind(new MutablePropertyValues((Map) payload));
+		binder.bind(new MutablePropertyValues(payload));
 		return target;
 	}
 

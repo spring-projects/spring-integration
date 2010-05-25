@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.junit.Test;
-
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -69,7 +66,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		factoryBean.setPollerMetadata(pollerMetadata);
 		factoryBean.setAutoStartup(true);
 		factoryBean.afterPropertiesSet();
-		context.registerEndpoint("testPollingEndpoint", (AbstractEndpoint) factoryBean.getObject());
+		context.registerEndpoint("testPollingEndpoint", factoryBean.getObject());
 		context.refresh();
 		Message<?> message = outputChannel.receive(30000);
 		assertEquals("test", message.getPayload());

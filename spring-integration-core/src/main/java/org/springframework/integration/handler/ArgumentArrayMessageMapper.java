@@ -131,7 +131,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		Map<String, Object> headers = new HashMap<String, Object>();
 		for (int i = 0; i < this.parameterList.size(); i++) {
 			Object argumentValue = arguments[i];		
-			MethodParameter methodParameter = (MethodParameter) this.parameterList.get(i);
+			MethodParameter methodParameter = this.parameterList.get(i);
 			Annotation annotation = this.findMappingAnnotation(methodParameter.getParameterAnnotations());
 			if (annotation != null) {
 				if (annotation.annotationType().equals(Payload.class)) {

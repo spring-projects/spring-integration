@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class ConsumerEndpointFactoryBean
-		implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean, SmartLifecycle {
+		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, InitializingBean, SmartLifecycle {
 
 	private volatile MessageHandler handler;
 
@@ -100,7 +100,7 @@ public class ConsumerEndpointFactoryBean
 		return true;
 	}
 
-	public Object getObject() throws Exception {
+	public AbstractEndpoint getObject() throws Exception {
 		if (!this.initialized) {
 			this.initializeEndpoint();
 		}
@@ -122,8 +122,7 @@ public class ConsumerEndpointFactoryBean
 			Assert.hasText(this.inputChannelName, "inputChannelName is required");
 			Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
 					"no such input channel '" + this.inputChannelName + "' for endpoint '" + this.beanName + "'");
-			MessageChannel channel = (MessageChannel)
-					this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
+			MessageChannel channel = this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
 			if (channel instanceof SubscribableChannel) {
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + this.inputChannelName + "' is a SubscribableChannel (not pollable).");

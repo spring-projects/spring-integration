@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.integration.file.PatternMatchingFileListFilter;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class FileListFilterFactoryBean implements FactoryBean {
+public class FileListFilterFactoryBean implements FactoryBean<FileListFilter> {
 
 	private volatile FileListFilter fileListFilter;
 
@@ -55,7 +55,7 @@ public class FileListFilterFactoryBean implements FactoryBean {
 		this.preventDuplicates = preventDuplicates;
 	}
 
-	public Object getObject() throws Exception {
+	public FileListFilter getObject() throws Exception {
 		if (this.fileListFilter == null) {
 			synchronized (this.monitor) {
 				this.intializeFileListFilter();

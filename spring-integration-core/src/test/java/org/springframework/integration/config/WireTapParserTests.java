@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,11 +79,10 @@ public class WireTapParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void wireTapTimeouts() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"wireTapParserTests.xml", this.getClass());
-		Map<String, WireTap> beans = (Map<String, WireTap>) context.getBeansOfType(WireTap.class);
+		Map<String, WireTap> beans = context.getBeansOfType(WireTap.class);
 		int defaultTimeoutCount = 0;
 		int expectedTimeoutCount = 0;
 		int otherTimeoutCount = 0;

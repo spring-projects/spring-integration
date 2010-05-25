@@ -60,7 +60,7 @@ public class InboundJsonMessageMapperTests {
 		String jsonMessage = "{\"headers\":{\"$timestamp\":1,\"$id\":\"" + id + "\"},\"payload\":\"myPayloadStuff\"}";
 		Message<String> expected = MessageBuilder.withPayload("myPayloadStuff").setHeader(MessageHeaders.TIMESTAMP, new Long(1)).setHeader(MessageHeaders.ID, id).build();
 		InboundJsonMessageMapper mapper = new InboundJsonMessageMapper(String.class);
-		Message<String> result = (Message<String>) mapper.toMessage(jsonMessage);
+		Message<?> result = mapper.toMessage(jsonMessage);
 		assertThat(result, sameExceptImmutableHeaders(expected));
 	}
 	

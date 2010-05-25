@@ -13,6 +13,11 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.channel.MessageChannelTemplate;
@@ -22,8 +27,6 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.util.Assert;
-
-import java.util.*;
 
 /**
  * Base class for MessageGroupProcessor implementations that aggregate the group of Messages into a single Message.

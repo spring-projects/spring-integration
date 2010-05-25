@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,7 +112,7 @@ public class MailSendingMessageHandlerTests {
 	@Test
 	public void simpleMailMessageOverrideWithHeaders() {
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
-		String[] toHeaders = mailMessage.getTo();
+		mailMessage.getTo();
 		this.handler.handleMessage(MessageBuilder.withPayload(mailMessage).setHeader(MailHeaders.TO, new String[]{"foo@bar.bam"}).build());
 		assertEquals("only one simple message must be sent",
 				1, mailSender.getSentSimpleMailMessages().size());

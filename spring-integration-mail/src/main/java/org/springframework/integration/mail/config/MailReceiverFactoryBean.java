@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class MailReceiverFactoryBean implements FactoryBean, DisposableBean {
+public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean {
 
 	private volatile String storeUri;
 
@@ -53,7 +53,7 @@ public class MailReceiverFactoryBean implements FactoryBean, DisposableBean {
 		this.maxFetchSize = maxFetchSize;
 	}
 
-	public Object getObject() throws Exception {
+	public MailReceiver getObject() throws Exception {
 		if (this.receiver == null) {
 			this.receiver = this.createReceiver();
 		}

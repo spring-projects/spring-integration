@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,9 +164,10 @@ public class ChannelInterceptorTests {
 		DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
 		Object iList = cAccessor.getPropertyValue("interceptors");
 		DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
-		List<PreSendReturnsMessageInterceptor> interceptoList = 
+		@SuppressWarnings("unchecked")
+		List<PreSendReturnsMessageInterceptor> interceptorList =
 					(List<PreSendReturnsMessageInterceptor>) iAccessor.getPropertyValue("interceptors");
-		String foo = interceptoList.get(0).getFoo();
+		String foo = interceptorList.get(0).getFoo();
 		assertTrue(StringUtils.hasText(foo));
 		assertEquals("foo", foo);
 	}

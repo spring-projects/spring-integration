@@ -19,7 +19,6 @@ package org.springframework.integration.transformer;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +62,6 @@ public class MapToObjectTransformerTests {
 		assertEquals("Case", person.getLname());
 		assertNull(person.getSsn());
 		assertNotNull(person.getAddress());
-		assertTrue(person.getAddress() instanceof Address);
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 
@@ -108,7 +106,6 @@ public class MapToObjectTransformerTests {
 		assertEquals("Case", person.getLname());
 		assertNull(person.getSsn());
 		assertNotNull(person.getAddress());
-		assertTrue(person.getAddress() instanceof Address);
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 
@@ -133,7 +130,6 @@ public class MapToObjectTransformerTests {
 		assertEquals("Justin", person.getFname());
 		assertEquals("Case", person.getLname());
 		assertNotNull(person.getAddress());
-		assertTrue(person.getAddress() instanceof Address);
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
 	

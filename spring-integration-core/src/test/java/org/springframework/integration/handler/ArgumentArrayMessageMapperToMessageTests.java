@@ -208,7 +208,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndIllegalHeader() throws Exception {
 		Method method = TestService.class.getMethod("sendPayloadAndIllegalHeader", String.class, String.class);
 		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
-		Message<?> message = mapper.toMessage(new Object[] { "test", "foo"});
+		mapper.toMessage(new Object[] { "test", "foo"});
 	}
 
 

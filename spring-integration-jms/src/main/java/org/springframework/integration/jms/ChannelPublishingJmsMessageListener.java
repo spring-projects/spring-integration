@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Juergen Hoeller
  */
-public class ChannelPublishingJmsMessageListener implements SessionAwareMessageListener, InitializingBean {
+public class ChannelPublishingJmsMessageListener implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
 
 	private volatile boolean expectReply;
 
@@ -238,7 +238,7 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object object = this.messageConverter.fromMessage(jmsMessage);
-		Message<?> requestMessage = (object instanceof Message) ?
+		Message<?> requestMessage = (object instanceof Message<?>) ?
 				(Message<?>) object : MessageBuilder.withPayload(object).build();
 		if (!this.expectReply) {
 			boolean sent = this.channelTemplate.send(requestMessage);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -46,24 +45,22 @@ public class DelayerUsageTests {
 	private MessageChannel inputB;
 	@Autowired @Qualifier("outputB1")
 	private PollableChannel outputB1;
-	@Autowired
-	private SampleService sampleHandler;
 	
 	@Test
 	public void testDelayWithDefaultScheduler(){
 		long start = System.currentTimeMillis();
 		inputA.send(new StringMessage("Hello"));
-		Message<String> msg = (Message<String>) outputA.receive();
+		outputA.receive();
 		assertTrue((System.currentTimeMillis() - start) >= 1000);
 	}
 	@Test
 	public void testDelayWithDefaultSchedulerCustomDelayHeader(){
-		MessageBuilder builder = MessageBuilder.withPayload("Hello");
+		MessageBuilder<String> builder = MessageBuilder.withPayload("Hello");
 		// set custom delay header
 		builder.setHeader("foo", 2000);
 		long start = System.currentTimeMillis();
 		inputA.send(builder.build());		
-		Message<String> msg = (Message<String>) outputA.receive();
+		outputA.receive();
 		assertTrue((System.currentTimeMillis() - start) >= 2000);
 	}
 	@Test
@@ -76,13 +73,13 @@ public class DelayerUsageTests {
 		inputB.send(new StringMessage("5"));
 		inputB.send(new StringMessage("6"));
 		inputB.send(new StringMessage("7"));
-		Message<String> msg = (Message<String>) outputB1.receive();
-		msg = (Message<String>) outputB1.receive();
-		msg = (Message<String>) outputB1.receive();
-		msg = (Message<String>) outputB1.receive();
-		msg = (Message<String>) outputB1.receive();
-		msg = (Message<String>) outputB1.receive();
-		msg = (Message<String>) outputB1.receive();
+		outputB1.receive();
+		outputB1.receive();
+		outputB1.receive();
+		outputB1.receive();
+		outputB1.receive();
+		outputB1.receive();
+		outputB1.receive();
 	
 		// must execute under 3 seconds, since threadPool is set too 5.
 		// first batch is 5 concurrent invocations on SA, then 2 more

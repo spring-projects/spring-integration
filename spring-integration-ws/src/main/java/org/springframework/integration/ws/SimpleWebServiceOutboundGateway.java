@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundG
 			DOMResult result = new DOMResult();
 			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
 					new DOMSource((Document) requestPayload), requestCallback, result);
-			return (Document)result.getNode();
+			return result.getNode();
 		}
 		throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
 				"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" + Source.class.getName() +

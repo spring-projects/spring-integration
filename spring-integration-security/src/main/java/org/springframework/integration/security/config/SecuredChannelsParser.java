@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 	private String parseObjectDefinitionSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE_NAME + ".channel.ChannelInvocationDefinitionSource");
-		List<Element> accessPolicyElements = (List<Element>) DomUtils.getChildElementsByTagName(element, "access-policy");
+		List<Element> accessPolicyElements = DomUtils.getChildElementsByTagName(element, "access-policy");
 		ManagedMap patternMappings = new ManagedMap();
 		for (Element accessPolicyElement : accessPolicyElements) {
 			Pattern pattern = Pattern.compile(accessPolicyElement.getAttribute("pattern"));

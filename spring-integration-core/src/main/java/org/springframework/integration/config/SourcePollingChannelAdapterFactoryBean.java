@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,8 +36,8 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware,
-		BeanClassLoaderAware, InitializingBean, SmartLifecycle {
+public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
+		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
 
 	private volatile MessageSource<?> source;
 
@@ -94,7 +94,7 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean, Bean
 		this.initializeAdapter();
 	}
 
-	public Object getObject() throws Exception {
+	public SourcePollingChannelAdapter getObject() throws Exception {
 		if (this.adapter == null) {
 			this.initializeAdapter();
 		}

@@ -357,6 +357,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	public static final class CheckedException extends Exception {
 		public CheckedException(String string) {
 			super(string);

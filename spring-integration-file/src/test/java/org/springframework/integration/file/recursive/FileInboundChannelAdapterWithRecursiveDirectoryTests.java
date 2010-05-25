@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertThat;
-import static org.junit.matchers.JUnitMatchers.hasItem;
 import static org.junit.matchers.JUnitMatchers.hasItems;
 import static org.springframework.integration.test.matcher.PayloadMatcher.hasPayload;
 
@@ -60,7 +59,8 @@ public class FileInboundChannelAdapterWithRecursiveDirectoryTests {
         assertThat(files.receive(), hasPayload(file));
     }
 
-    @Test(timeout = 2000)
+	@Test(timeout = 2000)
+    @SuppressWarnings("unchecked")
     public void shouldReturnFilesMultipleLevels() throws IOException {
 
         //when

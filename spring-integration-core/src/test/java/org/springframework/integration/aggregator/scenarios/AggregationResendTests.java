@@ -92,7 +92,6 @@ public class AggregationResendTests {
 		do {
 			replyMessage = reply.receive(waitSeconds);
 			if (null != replyMessage) {
-				System.out.println("Message Received: " + replyMessage);
 				messageCount++;
 			}
 		} while (null != replyMessage);

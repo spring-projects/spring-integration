@@ -180,7 +180,7 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 		if (resultFile != null) {
 			if (originalFileFromHeader == null && payload instanceof File) {
 				return MessageBuilder.withPayload(resultFile)
-						.setHeader(FileHeaders.ORIGINAL_FILE, (File) payload);
+						.setHeader(FileHeaders.ORIGINAL_FILE, payload);
 			}
 		}
 		return resultFile;

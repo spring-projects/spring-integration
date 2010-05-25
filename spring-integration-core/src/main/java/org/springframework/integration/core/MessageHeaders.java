@@ -42,6 +42,8 @@ import org.springframework.integration.history.MessageHistory;
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
+	private static final long serialVersionUID = -6515612906857332100L;
+
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
 	public static final String PREFIX = "$";

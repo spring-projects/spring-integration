@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ package org.springframework.integration.message;
  * @author Mark Fisher
  */
 public class StringMessage extends GenericMessage<String> {
+
+	private static final long serialVersionUID = -5084164633133229804L;
 
 	public StringMessage(String payload) {
 		super(payload);

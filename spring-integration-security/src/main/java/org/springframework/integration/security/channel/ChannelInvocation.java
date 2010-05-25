@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public class ChannelInvocation {
 				"MethodInvocation must be on a MessageChannel");
 		this.channel = (MessageChannel) methodInvocation.getThis();
 		if (methodInvocation.getMethod().getName().equals("send")) {
-			if (methodInvocation.getArguments().length < 1 || !(methodInvocation.getArguments()[0] instanceof Message)) {
+			if (methodInvocation.getArguments().length < 1 || !(methodInvocation.getArguments()[0] instanceof Message<?>)) {
 				throw new IllegalStateException("expected a Message as the first parameter of the channel's send method");
 			}
 			this.message = (Message<?>) methodInvocation.getArguments()[0];

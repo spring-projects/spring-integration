@@ -202,7 +202,7 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	@SuppressWarnings("unchecked")
 	private Object createPayloadFromMultipartRequest(MultipartHttpServletRequest multipartRequest) {
 		Map<String, Object> payloadMap = new HashMap<String, Object>(multipartRequest.getParameterMap());
-		Map<String, MultipartFile> fileMap = (Map<String, MultipartFile>) multipartRequest.getFileMap();
+		Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
 		for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
 			MultipartFile multipartFile = entry.getValue();
 			if (multipartFile.isEmpty()) {
@@ -300,6 +300,7 @@ public class DefaultInboundRequestMapper implements InboundRequestMapper {
 	 * The contents of the map are unmodifiable, so calling any modification operation
 	 * (e.g. put, add, or remove) will result in an UnsupportedOperationException. 
 	 */
+	@SuppressWarnings("serial")
 	private static class UnmodifiableRequestParameterMap
 			extends LinkedMultiValueMap<String, String> implements Serializable { // TODO: in 3.0.1 LMVM implements Serializable
 

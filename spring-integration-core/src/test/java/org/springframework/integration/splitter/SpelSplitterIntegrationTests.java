@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,10 +52,10 @@ public class SpelSplitterIntegrationTests {
 	public void split() {
 		Message<?> message = MessageBuilder.withPayload(new TestBean()).setHeader("foo", "foo").build();
 		this.input.send(message);
-		Message one = output.receive(0);
-		Message two = output.receive(0);
-		Message three = output.receive(0);
-		Message four = output.receive(0);
+		Message<?> one = output.receive(0);
+		Message<?> two = output.receive(0);
+		Message<?> three = output.receive(0);
+		Message<?> four = output.receive(0);
 		assertEquals(new Integer(1), one.getPayload());
 		assertEquals("foo", one.getHeaders().get("foo"));
 		assertEquals(new Integer(2), two.getPayload());

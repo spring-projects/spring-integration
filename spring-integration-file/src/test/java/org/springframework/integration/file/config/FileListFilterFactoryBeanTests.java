@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class FileListFilterFactoryBeanTests {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
 		TestFilter testFilter = new TestFilter();
 		factory.setFilterReference(testFilter);
-		FileListFilter result = (FileListFilter) factory.getObject();
+		FileListFilter result = factory.getObject();
 		assertFalse(result instanceof CompositeFileListFilter);
 		assertSame(testFilter, result);
 	}
@@ -57,7 +57,7 @@ public class FileListFilterFactoryBeanTests {
 		TestFilter testFilter = new TestFilter();
 		factory.setFilterReference(testFilter);
 		factory.setPreventDuplicates(Boolean.TRUE);
-		FileListFilter result = (FileListFilter) factory.getObject();
+		FileListFilter result = factory.getObject();
 		assertTrue(result instanceof CompositeFileListFilter);
 		Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
 		assertTrue(filters.iterator().next() instanceof AcceptOnceFileListFilter);
@@ -70,7 +70,7 @@ public class FileListFilterFactoryBeanTests {
 		TestFilter testFilter = new TestFilter();
 		factory.setFilterReference(testFilter);
 		factory.setPreventDuplicates(Boolean.FALSE);
-		FileListFilter result = (FileListFilter) factory.getObject();
+		FileListFilter result = factory.getObject();
 		assertFalse(result instanceof CompositeFileListFilter);
 		assertSame(testFilter, result);
 	}
@@ -80,7 +80,7 @@ public class FileListFilterFactoryBeanTests {
 	public void filenamePatternAndPreventDuplicatesNull() throws Exception {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
 		factory.setFilenamePattern(Pattern.compile("foo"));
-		FileListFilter result = (FileListFilter) factory.getObject();
+		FileListFilter result = factory.getObject();
 		assertTrue(result instanceof CompositeFileListFilter);
 		Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
 		Iterator<FileListFilter> iterator = filters.iterator();
@@ -94,7 +94,7 @@ public class FileListFilterFactoryBeanTests {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
 		factory.setFilenamePattern(Pattern.compile("foo"));
 		factory.setPreventDuplicates(Boolean.TRUE);
-		FileListFilter result = (FileListFilter) factory.getObject();
+		FileListFilter result = factory.getObject();
 		assertTrue(result instanceof CompositeFileListFilter);
 		Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
 		Iterator<FileListFilter> iterator = filters.iterator();
@@ -107,7 +107,7 @@ public class FileListFilterFactoryBeanTests {
 		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
 		factory.setFilenamePattern(Pattern.compile("foo"));
 		factory.setPreventDuplicates(Boolean.FALSE);
-		FileListFilter result = (FileListFilter) factory.getObject();
+		FileListFilter result = factory.getObject();
 		assertFalse(result instanceof CompositeFileListFilter);
 		assertTrue(result instanceof PatternMatchingFileListFilter);
 	}

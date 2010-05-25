@@ -34,8 +34,6 @@ public abstract class IpHeaders {
 
 	private static final String TCP = IP + "tcp_";
 
-	private static final String UDP = IP + "udp_";
-
 	public static final String HOSTNAME = IP + "hostname";
 
 	public static final String IP_ADDRESS = IP + "address"; 

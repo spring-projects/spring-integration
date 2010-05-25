@@ -27,6 +27,8 @@ import java.io.Serializable;
  */
 public class MessageHistoryEvent implements Serializable {
 
+	private static final long serialVersionUID = 1623653800353662107L;
+
 	private final String name;
 
 	private final String type;

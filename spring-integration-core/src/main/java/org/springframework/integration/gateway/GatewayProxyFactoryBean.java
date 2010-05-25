@@ -30,7 +30,6 @@ import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -315,18 +314,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
 		for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
-			if (gateway instanceof Lifecycle) {
-				((Lifecycle) gateway).start();
-			}
+			gateway.start();
 		}
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
 		for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
-			if (gateway instanceof Lifecycle) {
-				((Lifecycle) gateway).stop();
-			}
+			gateway.stop();
 		}
 	}
 	

@@ -42,6 +42,7 @@ import org.springframework.remoting.support.RemoteInvocationResult;
 /**
  * @author Mark Fisher
  */
+@SuppressWarnings("deprecation")
 public class HttpInvokerInboundGatewayTests {
 
 	@Test
@@ -104,7 +105,7 @@ public class HttpInvokerInboundGatewayTests {
 		ObjectInputStream ois = new ObjectInputStream(bais);
 		RemoteInvocationResult remoteResult = (RemoteInvocationResult) ois.readObject();
 		Object resultValue = remoteResult.getValue();
-		assertTrue(resultValue instanceof Message);
+		assertTrue(resultValue instanceof Message<?>);
 		return (Message<?>) resultValue;
 	}
 

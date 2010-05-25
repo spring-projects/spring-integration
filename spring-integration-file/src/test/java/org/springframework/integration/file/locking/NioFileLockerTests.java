@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class NioFileLockerTests {
         testFile.createNewFile();
         assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
         filter1.lock(testFile);
-        assertThat(filter2.filterFiles(workdir.listFiles()), is((List)new ArrayList<File>()));
+        assertThat(filter2.filterFiles(workdir.listFiles()), is((List<File>)new ArrayList<File>()));
     }
 
 }

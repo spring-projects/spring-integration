@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
@@ -41,7 +40,6 @@ import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
-import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.security.ConfigAttribute;
@@ -165,7 +163,7 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 
 	@SuppressWarnings("unchecked")
 	private ChannelAccessPolicy retrievePolicyForPatternString(String patternString, ChannelSecurityInterceptor interceptor) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor((ChannelInvocationDefinitionSource) interceptor.obtainObjectDefinitionSource());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(interceptor.obtainObjectDefinitionSource());
 		Map<Pattern, ChannelAccessPolicy> policies = (Map<Pattern, ChannelAccessPolicy>) accessor.getPropertyValue("patternMappings");
 		for (Map.Entry<Pattern, ChannelAccessPolicy> entry : policies.entrySet()) {
 			if (entry.getKey().pattern().equals(patternString)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -313,6 +313,7 @@ public class MessagingAnnotationPostProcessorTests {
 		}
 
 		@ServiceActivator(inputChannel="testChannel")
+		@SuppressWarnings("unused")
 		public void countdown(String input) {
 			this.messageText = input;
 			latch.countDown();
@@ -342,6 +343,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class ServiceActivatorAnnotatedBean {
 
+		@SuppressWarnings("unused")
 		@ServiceActivator(inputChannel="inputChannel")
 		public String test(String s) {
 			return s + s;
@@ -353,6 +355,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TransformerAnnotationTestBean {
 
+		@SuppressWarnings("unused")
 		@Transformer(inputChannel="inputChannel", outputChannel="outputChannel")
 		public String transformBefore(String input) {
 			return input.toUpperCase();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class FileWritingMessageHandlerFactoryBean implements FactoryBean, BeanFactoryAware, ResourceLoaderAware {
+public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWritingMessageHandler>,
+		BeanFactoryAware, ResourceLoaderAware {
 
 	private volatile FileWritingMessageHandler handler;
 
@@ -117,7 +118,7 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean, BeanFa
 		this.order = order;
 	}
 
-	public Object getObject() throws Exception {
+	public FileWritingMessageHandler getObject() throws Exception {
 		if (this.handler == null) {
 			initHandler();
 		}

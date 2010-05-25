@@ -111,7 +111,7 @@ class ObjectToSpelMapBuilder {
 		int i = 0;
 		for (Object arrayElement : arrayElements) {
 			String arrayPropertyPath = propertyPath + "[" + i++ + "]";	
-			if (arrayElement instanceof Map) {
+			if (arrayElement instanceof Map<?, ?>) {
 				// last argument is empty because it is not a named property, but an array element
 				this.processMap(context, propertiesMap, (Map<?, ?>) arrayElement, arrayPropertyPath, "");
 			}

@@ -63,7 +63,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, Lifecycle, ApplicationListener {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, Lifecycle, ApplicationListener<ApplicationEvent> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -73,7 +73,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
-	private final Set<ApplicationListener> listeners = new HashSet<ApplicationListener>();
+	private final Set<ApplicationListener<ApplicationEvent>> listeners = new HashSet<ApplicationListener<ApplicationEvent>>();
 
 	private final Set<Lifecycle> lifecycles = new HashSet<Lifecycle>();
 
@@ -186,7 +186,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
-		for (ApplicationListener listener : listeners) {
+		for (ApplicationListener<ApplicationEvent> listener : listeners) {
 			try  {
 				listener.onApplicationEvent(event);
 			}

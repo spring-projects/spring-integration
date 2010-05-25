@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -142,7 +142,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 			if (conversionResult == null) {
 				return null;
 			}
-			if (conversionResult instanceof Message) {
+			if (conversionResult instanceof Message<?>) {
 				builder = MessageBuilder.fromMessage((Message<?>) conversionResult);
 			}
 			else {
@@ -166,7 +166,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	public javax.jms.Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
 		MessageHeaders headers = null;
 		javax.jms.Message jmsMessage = null;
-		if (object instanceof Message) {
+		if (object instanceof Message<?>) {
 			headers = ((Message<?>) object).getHeaders();
 			if (this.extractIntegrationMessagePayload) {
 				object = ((Message<?>) object).getPayload();

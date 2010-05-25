@@ -32,9 +32,9 @@ import org.springframework.integration.message.StringMessage;
  *
  */
 public class ExpressionEvaluatingMessageProcessorTests {
-	
+
 	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingMessageProcessorTests.class);
-	
+
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
 
@@ -93,7 +93,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.error()");
 		assertEquals("foo", processor.processMessage(new GenericMessage<ExpressionEvaluatingMessageProcessorTests>(this)));
 	}
-	
+
 	@Test
 	public void testProcessMessageExpressionThrowsCheckedException() {
 		expected.expect(new TypeSafeMatcher<Exception>(Exception.class) {
@@ -111,7 +111,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.check()");
 		assertEquals("foo", processor.processMessage(new GenericMessage<ExpressionEvaluatingMessageProcessorTests>(this)));
 	}
-	
+
 	public String error() {
 		throw new UnsupportedOperationException("Expected test exception");
 	}
@@ -119,7 +119,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	public String check() throws Exception {
 		throw new CheckedException("Expected test exception");
 	}
-	
+
+	@SuppressWarnings("serial")
 	private static final class CheckedException extends Exception {
 		public CheckedException(String string) {
 			super(string);

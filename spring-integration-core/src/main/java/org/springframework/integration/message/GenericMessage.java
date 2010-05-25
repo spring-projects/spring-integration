@@ -32,6 +32,8 @@ import org.springframework.util.ObjectUtils;
  */
 public class GenericMessage<T> implements Message<T>, Serializable {
 
+	private static final long serialVersionUID = 3649200745084232821L;
+
 	private final T payload;
 
 	private final MessageHeaders headers;

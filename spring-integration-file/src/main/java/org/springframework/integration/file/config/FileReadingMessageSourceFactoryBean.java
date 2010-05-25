@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.util.Comparator;
  * @author Iwein Fuld
  * @since 1.0.3
  */
-public class FileReadingMessageSourceFactoryBean implements FactoryBean {
+public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileReadingMessageSource> {
 
     private static Log logger = LogFactory.getLog(FileReadingMessageSourceFactoryBean.class);
 
@@ -92,7 +92,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean {
         this.locker = locker;
     }
 
-    public Object getObject() throws Exception {
+    public FileReadingMessageSource getObject() throws Exception {
         if (this.source == null) {
             initSource();
         }
