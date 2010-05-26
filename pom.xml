@@ -134,7 +134,7 @@
 		</resources>
 		<testResources>
 			<testResource>
-				<directory>src/test/java</directory>
+				<directory>${project.basedir}/src/test/java</directory>
 				<includes>
 					<include>**/*</include>
 				</includes>
@@ -143,7 +143,7 @@
 				</excludes>
 			</testResource>
 			<testResource>
-				<directory>src/main/java</directory>
+				<directory>${project.basedir}/src/test/resources</directory>
 				<includes>
 					<include>**/*</include>
 				</includes>
