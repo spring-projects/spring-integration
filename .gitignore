@@ -1,8 +1,4 @@
 target
-integration-repo
-ivy-cache
-spring-build
-bin
 .springBeans
 .settings
 spring-integration-samples/loanshark/application.log*
