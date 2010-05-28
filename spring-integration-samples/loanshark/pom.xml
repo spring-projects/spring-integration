@@ -153,11 +153,23 @@
 			<exclusions>
 				<exclusion>
 					<groupId>org.springframework</groupId>
+					<artifactId>org.springframework.core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>org.springframework.beans</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
 					<artifactId>org.springframework.context</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>org.springframework</groupId>
 					<artifactId>org.springframework.web</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>org.springframework.web.servlet</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>org.apache.commons</groupId>
