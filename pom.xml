@@ -38,58 +38,30 @@
 		<org.mockito.version>1.8.4</org.mockito.version>
 		<org.slf4j.version>1.5.10</org.slf4j.version>
 		<org.springframework.version>3.0.2.RELEASE</org.springframework.version>
+		<org.springframework.security.version>2.0.5.RELEASE</org.springframework.security.version>
+		<org.springframework.ws.version>1.5.8</org.springframework.ws.version>
 	</properties>
 	<profiles>
-		<profile>
-			<id>non-strict</id>
-			<properties>
-				<maven.test.failure.ignore>true</maven.test.failure.ignore>
-			</properties>
-		</profile>
-		<profile>
-			<id>fast</id>
-			<properties>
-				<maven.test.skip>true</maven.test.skip>
-				<maven.javadoc.skip>true</maven.javadoc.skip>
-			</properties>
-		</profile>
 		<profile>
 			<id>staging</id>
 			<distributionManagement>
 				<site>
 					<id>staging</id>
-					<url>file:///${user.dir}/target/staging</url>
+					<url>file:///${java.io.tmpdir}/target/site</url>
 				</site>
 				<repository>
 					<id>staging</id>
-					<url>file:///${user.dir}/target/staging</url>
+					<url>file:///${java.io.tmpdir}/target/repository</url>
 				</repository>
 				<snapshotRepository>
 					<id>staging</id>
-					<url>file:///${user.dir}/target/staging</url>
+					<url>file:///${java.io.tmpdir}/target/snapshotRepository</url>
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
-		<profile>
-			<id>release</id>
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-source-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
 	</profiles>
 	<distributionManagement>
+		<!-- see 'staging' profile for dry-run deployment settings -->
 		<downloadUrl>http://static.springframework.org/spring-integration/site/downloads/releases.html</downloadUrl>
 		<repository>
 			<id>local</id>
@@ -236,6 +208,178 @@
 					</postProcess>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<!-- copies a tightly-controlled set of dependencies into ${project.build.dir}/dependency
+					 in order to be added to the distribution jar during the assembly process.
+
+					 WARNING: any new dependencies added to project pom files over time must be added explicitly
+					 to this list if they are to make it into the distribution zip.  This section should be
+					 considered fragile. Ideally, we would use the 'copy-dependencies' goal of the
+					 maven-dependency-plugin, which automatically adds all project dependencies, but it does
+					 not offer enough fine-grained control over what jars are added and which are not.
+
+					 NOTE: an unfortunate side effect of this plugin is that it runs not just once, but for
+					 every module in the build.  This is annoying but harmless, and adds only a few seconds
+					 to the overall build time.  It also creates a false sense of size in the target directories
+					 but again this is probably negligible.
+
+					 see src/assembly/distribution.xml
+					 see http://maven.apache.org/plugins/maven-dependency-plugin/copy-mojo.html
+					 -->
+				<version>2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-aop</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-asm</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-beans</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-context</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-context-support</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-core</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-expression</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-jdbc</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-jms</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-oxm</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-tx</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-web</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework</groupId>
+									<artifactId>spring-webmvc</artifactId>
+									<version>${org.springframework.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework.security</groupId>
+									<artifactId>spring-security-core</artifactId>
+									<version>${org.springframework.security.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework.ws</groupId>
+									<artifactId>spring-ws-core</artifactId>
+									<version>${org.springframework.ws.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.springframework.ws</groupId>
+									<artifactId>spring-xml</artifactId>
+									<version>${org.springframework.ws.version}</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>aopalliance</groupId>
+									<artifactId>aopalliance</artifactId>
+									<version>1.0</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>commons-codec</groupId>
+									<artifactId>commons-codec</artifactId>
+									<version>1.3</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>commons-collections</groupId>
+									<artifactId>commons-collections</artifactId>
+									<version>3.2</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>commons-httpclient</groupId>
+									<artifactId>commons-httpclient</artifactId>
+									<version>3.1</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>commons-lang</groupId>
+									<artifactId>commons-lang</artifactId>
+									<version>2.1</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>commons-logging</groupId>
+									<artifactId>commons-logging</artifactId>
+									<version>1.1.1</version>
+								</artifactItem>
+								<artifactItem>
+									<groupId>org.apache.ws.commons.schema</groupId>
+									<artifactId>XmlSchema</artifactId>
+									<version>1.3.2</version>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- run `mvn package assembly:assembly` to trigger assembly creation.
+					 see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-5</version>
+				<inherited>false</inherited>
+				<configuration>
+					<descriptors>
+						<descriptor>src/assembly/distribution.xml</descriptor>
+					</descriptors>
+					<appendAssemblyId>false</appendAssemblyId>
+				</configuration>
+			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -306,7 +450,6 @@
 					</groups>
 					<excludePackageNames>org.springframework.integration.samples</excludePackageNames>
 					<links>
-						<!-- TODO: examine JavaDoc warnings and see what other api links are needed -->
 						<link>http://static.springframework.org/spring/docs/${org.springframework.version}/javadoc-api</link>
 						<link>http://java.sun.com/javase/6/docs/api</link>
 					</links>
@@ -361,7 +504,6 @@
 		</pluginRepository>
 	</pluginRepositories>
 	<dependencies>
-		<!-- including log4j to quell respect src/test log4j.xml settings -->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
