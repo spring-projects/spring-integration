@@ -25,13 +25,17 @@
 		<module>spring-integration-stream</module>
 		<module>spring-integration-ws</module>
 		<module>spring-integration-xml</module>
+		<!-- TODO: leave samples in, or remove? -->
+		<module>spring-integration-samples</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- versions for commonly-used dependencies -->
 		<cglib.version>2.2</cglib.version>
+		<commons-logging.version>1.1.1</commons-logging.version>
 		<junit.version>4.7</junit.version>
 		<log4j.version>1.2.12</log4j.version>
+		<hsqldb.version>1.8.0.10</hsqldb.version>
 		<org.aspectj.version>1.6.5</org.aspectj.version>
 		<org.easymock.version>2.3</org.easymock.version>
 		<org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
@@ -87,8 +91,7 @@
 		</extensions>
 		<resources>
 			<resource>
-				<directory>${project.basedir}/src/main/java
-			</directory>
+				<directory>${project.basedir}/src/main/java</directory>
 				<includes>
 					<include>**/*</include>
 				</includes>
@@ -97,8 +100,7 @@
 				</excludes>
 			</resource>
 			<resource>
-				<directory>${project.basedir}/src/main/resources
-			</directory>
+				<directory>${project.basedir}/src/main/resources</directory>
 				<includes>
 					<include>**/*</include>
 				</includes>
@@ -355,7 +357,7 @@
 								<artifactItem>
 									<groupId>commons-logging</groupId>
 									<artifactId>commons-logging</artifactId>
-									<version>1.1.1</version>
+									<version>${commons-logging.version}</version>
 								</artifactItem>
 								<artifactItem>
 									<groupId>org.apache.ws.commons.schema</groupId>

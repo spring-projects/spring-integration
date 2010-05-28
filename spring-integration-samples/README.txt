@@ -1,38 +1,40 @@
 Instructions for building the samples using Maven (http://maven.apache.org)
-NOTE: this requires Maven 2.0.9 or later
+NOTE: this requires Maven 2.1.0 or later
 -------------------------------------------------------------------------------
 
 1. Open a command prompt and navigate to the 'samples' directory within the
 root of the project distribution:
 
-	#> cd samples
-	
+	#> cd spring-integration-samples
+
 2. Build the samples and install them into your local Maven repository:
 
 	#> mvn install
-	
+
 You should see output similar to the following:
 . . . .
+[INFO] ------------------------------------------------------------------------
 [INFO] Reactor Summary:
 [INFO] ------------------------------------------------------------------------
-[INFO] Spring Integration Samples ............................ SUCCESS [2.910s]
-[INFO] Unnamed - cafe:cafe:jar:2.0.0 ......................... SUCCESS [2.750s]
-[INFO] Unnamed - errorhandling:errorhandling:jar:2.0.0 ....... SUCCESS [1.427s]
-[INFO] Unnamed - filecopy:filecopy:jar:2.0.0 ................. SUCCESS [1.257s]
-[INFO] Unnamed - helloworld:helloworld:jar:2.0.0 ............. SUCCESS [0.943s]
-[INFO] Unnamed - jms:jms:jar:2.0.0 ........................... SUCCESS [0.801s]
-[INFO] Unnamed - oddeven:oddeven:jar:2.0.0 ................... SUCCESS [1.009s]
-[INFO] Unnamed - quote:quote:jar:2.0.0 ....................... SUCCESS [0.697s]
-[INFO] Unnamed - ws:ws:jar:2.0.0 ............................. SUCCESS [0.714s]
-[INFO] Unnamed - xml:xml:jar:2.0.0 ........................... SUCCESS [0.690s]
+[INFO] Spring Integration Samples ............................ SUCCESS [2.765s]
+[INFO] Spring Integration Cafe Sample ........................ SUCCESS [19.351s]
+[INFO] Spring Integration Error Handling Sample .............. SUCCESS [1.149s]
+[INFO] Spring Integration File Copy Sample ................... SUCCESS [0.829s]
+[INFO] Spring Integration Hello World Sample ................. SUCCESS [0.838s]
+[INFO] Spring Integration JMS Sample ......................... SUCCESS [0.853s]
+[INFO] Spring Integration Odd-Even Sample .................... SUCCESS [1.026s]
+[INFO] Spring Integration Quote Sample ....................... SUCCESS [0.753s]
+[INFO] Spring Integration WS Inbound Gateway Sample .......... SUCCESS [5.017s]
+[INFO] Spring Integration WS Outbound Gateway Sample ......... SUCCESS [1.135s]
+[INFO] Spring Integration XML Sample ......................... SUCCESS [0.823s]
 [INFO] ------------------------------------------------------------------------
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESSFUL
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 13 seconds
+[INFO] Total time: 35 seconds
 . . . .
 
-Once you see BUILD SUCCESSFUL, you are ready to start working with samples.
+Once you see BUILD SUCCESSFUL, you are ready to start working with the samples.
 
 You can do so in one of two ways:
 
@@ -51,7 +53,7 @@ Maven profile which will copy all project dependencies (JARs) in the 'lib'
 directory of each project:
 
 	#> mvn install -P classpath
-	
+
 Open any project and you will see the 'lib' directory with all of the JARs
 required to run the demos. Now you can configure your IDE to point to those
 directories.

@@ -3,25 +3,24 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.springframework.integration</groupId>
+	<parent>
+		<groupId>org.springframework.integration</groupId>
+		<artifactId>spring-integration</artifactId>
+		<version>2.0.0.BUILD-SNAPSHOT</version>
+	</parent>
+	<groupId>org.springframework.integration.samples</groupId>
 	<artifactId>spring-integration-samples</artifactId>
-	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Spring Integration Samples</name>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<!-- versions for commonly-used dependencies -->
-		<release.version>2.0.0.BUILD-SNAPSHOT</release.version>
-		<junit.version>4.7</junit.version>
-		<log4j.version>1.2.12</log4j.version>
-		<org.springframework.version>3.0.2.RELEASE</org.springframework.version>
-	</properties>
 	<modules>
 		<module>cafe</module>
 		<module>errorhandling</module>
 		<module>filecopy</module>
 		<module>helloworld</module>
 		<module>jms</module>
+		<module>jmx</module>
+		<module>loan-broker</module>
+		<module>loanshark</module>
 		<module>oddeven</module>
 		<module>quote</module>
 		<module>ws-inbound-gateway</module>
@@ -31,63 +30,73 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-core</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.event</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-event</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.file</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-file</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.http</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-http</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.httpinvoker</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-httpinvoker</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.jms</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-ip</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.mail</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-jms</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.rmi</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-mail</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.security</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-rmi</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.stream</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-security</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.ws</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-stream</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.xml</artifactId>
-			<version>${release.version}</version>
+			<artifactId>spring-integration-test</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-ws</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-xml</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -95,48 +104,6 @@
 			<version>${log4j.version}</version>
 		</dependency>
 	</dependencies>
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*.xml</include>
-					<include>**/*.xsl</include>
-					<include>**/*.dtd</include>
-				</includes>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-reactor-plugin</artifactId>
-				<version>1.0</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.0.2</version>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<useFile>false</useFile>
-					<includes>
-						<include>**/*Tests.java</include>
-					</includes>
-					<excludes>
-						<exclude>**/Abstract*.java</exclude>
-					</excludes>
-					<junitArtifactName>junit:junit</junitArtifactName>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 	<profiles>
 		<profile>
 			<id>classpath</id>
@@ -165,26 +132,4 @@
 			</build>
 		</profile>
 	</profiles>
-	<repositories>
-		<repository>
-			<id>com.springsource.repository.bundles.release</id>
-			<name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
-			<url>http://repository.springsource.com/maven/bundles/release</url>
-		</repository>
-		<repository>
-			<id>com.springsource.repository.bundles.external</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
-			<url>http://repository.springsource.com/maven/bundles/external</url>
-		</repository>
-		<repository>
-			<id>com.springsource.repository.bundles.milestone</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Milestones</name>
-			<url>http://repository.springsource.com/maven/bundles/milestone</url>
-		</repository>
-		<repository>
-			<id>com.springsource.repository.bundles.snapshot</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Snapshots</name>
-			<url>http://repository.springsource.com/maven/bundles/snapshot</url>
-		</repository>
-	</repositories>
 </project>

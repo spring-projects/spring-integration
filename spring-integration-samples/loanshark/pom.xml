@@ -1,167 +1,128 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.springframework.integration.loanbroker.loanshark</groupId>
+	<parent>
+		<groupId>org.springframework.integration.samples</groupId>
+		<artifactId>spring-integration-samples</artifactId>
+		<version>2.0.0.BUILD-SNAPSHOT</version>
+	</parent>
 	<artifactId>loanshark</artifactId>
-	<packaging>war</packaging>
-	<version>0.1.0-SNAPSHOT</version>
 	<name>Spring Integration Loan Shark Sample</name>
-	<properties>
-		<org.springframework.version>3.0.2.RELEASE</org.springframework.version>
-		<org.springframework.integration.version>2.0.0.M3</org.springframework.integration.version>
-		<org.aspectj.version>1.6.6.RELEASE</org.aspectj.version>
-	</properties>
-	<repositories>
-		<repository>
-			<id>com.springsource.repository.bundles.release</id>
-			<name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
-			<url>http://repository.springsource.com/maven/bundles/release</url>
-		</repository>
-		<repository>
-			<id>com.springsource.repository.bundles.external</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
-			<url>http://repository.springsource.com/maven/bundles/external</url>
-		</repository>
-		<repository>
-			<id>com.springsource.repository.bundles.milestone</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Milestones</name>
-			<url>http://repository.springsource.com/maven/bundles/milestone</url>
-		</repository>
-		<!--  required for some plugins that depend on snapshots -->
-		<repository>
-			<id>com.springsource.repository.bundles.snapshot</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Snapshots</name>
-			<url>http://repository.springsource.com/maven/bundles/snapshot</url>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>com.springsource.repository.bundles.release</id>
-			<name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
-			<url>http://repository.springsource.com/maven/bundles/release</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>com.springsource.repository.bundles.external</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
-			<url>http://repository.springsource.com/maven/bundles/external</url>
-		</pluginRepository>
-		<pluginRepository>
-			<id>com.springsource.repository.bundles.milestone</id>
-			<name>SpringSource Enterprise Bundle Repository - External Bundle Milestones</name>
-			<url>http://repository.springsource.com/maven/bundles/milestone</url>
-		</pluginRepository>
-	</pluginRepositories>
+	<packaging>war</packaging>
 	<dependencies>
-		<!-- General dependencies for standard applications -->
 		<dependency>
-			<groupId>org.junit</groupId>
-			<artifactId>com.springsource.org.junit</artifactId>
-			<version>4.7.0</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>com.springsource.org.apache.commons.logging</artifactId>
-			<version>1.1.1</version>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>${commons-logging.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.aspectj</groupId>
-			<artifactId>com.springsource.org.aspectj.runtime</artifactId>
+			<artifactId>aspectjrt</artifactId>
 			<version>${org.aspectj.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>com.springsource.javax.servlet</artifactId>
-			<version>2.5.0</version>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- ROO dependencies -->
 		<dependency>
+			<!-- available only in EBR. see <repositories> section at bottom -->
 			<groupId>org.springframework.roo</groupId>
 			<artifactId>org.springframework.roo.annotations</artifactId>
 			<version>1.0.2.RELEASE</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.core</artifactId>
+			<artifactId>spring-core</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.test</artifactId>
+			<artifactId>spring-aspects</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
 			<version>${org.springframework.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.context</artifactId>
+			<artifactId>spring-context</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.aop</artifactId>
+			<artifactId>spring-aop</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.aspects</artifactId>
+			<artifactId>spring-tx</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.transaction</artifactId>
+			<artifactId>spring-jdbc</artifactId>
 			<version>${org.springframework.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.hsqldb</groupId>
-			<artifactId>com.springsource.org.hsqldb</artifactId>
-			<version>1.8.0.9</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${org.springframework.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>${hsqldb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
-			<artifactId>com.springsource.org.hibernate.annotations</artifactId>
-			<version>3.3.2.GA</version>
+			<artifactId>hibernate-annotations</artifactId>
+			<version>3.3.1.GA</version>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>com.springsource.org.hibernate.ejb</artifactId>
-			<version>3.3.2.GA</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sourceforge.ehcache</groupId>
-			<artifactId>com.springsource.net.sf.ehcache</artifactId>
+			<groupId>net.sf.ehcache</groupId>
+			<artifactId>ehcache</artifactId>
 			<version>1.4.1</version>
 		</dependency>
 		<dependency>
-			<groupId>edu.emory.mathcs.backport</groupId>
-			<artifactId>com.springsource.edu.emory.mathcs.backport</artifactId>
-			<version>3.1.0</version>
+			<groupId>backport-util-concurrent</groupId>
+			<artifactId>backport-util-concurrent</artifactId>
+			<version>3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
-			<artifactId>com.springsource.slf4j.log4j</artifactId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.5.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.persistence</groupId>
-			<artifactId>com.springsource.javax.persistence</artifactId>
-			<version>1.0.0</version>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>com.springsource.slf4j.api</artifactId>
-			<version>1.5.6</version>
-		</dependency>
-		<dependency>
+			<!-- available only in JBoss repository. see <repositories> section below -->
 			<groupId>org.hibernate</groupId>
-			<artifactId>com.springsource.org.hibernate.validator</artifactId>
+			<artifactId>hibernate-validator</artifactId>
 			<version>4.0.0.GA</version>
 			<exclusions>
 				<exclusion>
@@ -172,103 +133,83 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.validation</groupId>
-			<artifactId>com.springsource.javax.validation</artifactId>
+			<artifactId>validation-api</artifactId>
 			<version>1.0.0.GA</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.transaction</groupId>
-			<artifactId>com.springsource.javax.transaction</artifactId>
-			<version>1.1.0</version>
+			<artifactId>transaction-api</artifactId>
+			<version>1.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>com.springsource.org.apache.commons.dbcp</artifactId>
-			<version>1.2.2.osgi</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.jdbc</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.orm</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.web</artifactId>
-			<version>${org.springframework.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.web.servlet</artifactId>
-			<version>${org.springframework.version}</version>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.webflow</groupId>
 			<artifactId>org.springframework.js</artifactId>
 			<version>2.0.8.RELEASE</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>org.springframework.context</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>org.springframework.web</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>com.springsource.org.apache.commons.logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>com.springsource.org.apache.commons.fileupload</artifactId>
-			<version>1.2.0</version>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>
-			<artifactId>com.springsource.org.tuckey.web.filters.urlrewrite</artifactId>
+			<artifactId>urlrewritefilter</artifactId>
 			<version>3.1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>com.springsource.javax.servlet.jsp.jstl</artifactId>
-			<version>1.2.0</version>
+			<!-- available only in glassfish repository. see <repositories> section below -->
+			<groupId>javax.servlet.jsp.jstl</groupId>
+			<artifactId>jstl-api</artifactId>
+			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.el</groupId>
-			<artifactId>com.springsource.org.apache.el</artifactId>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>el-api</artifactId>
 			<version>6.0.20</version>
 		</dependency>
 		<dependency>
-			<groupId>org.joda</groupId>
-			<artifactId>com.springsource.org.joda.time</artifactId>
-			<version>1.6.0</version>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>1.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tiles</groupId>
-			<artifactId>com.springsource.org.apache.tiles</artifactId>
+			<artifactId>tiles-api</artifactId>
 			<version>2.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tiles</groupId>
-			<artifactId>com.springsource.org.apache.tiles.jsp</artifactId>
+			<artifactId>tiles-jsp</artifactId>
 			<version>2.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tiles</groupId>
-			<artifactId>com.springsource.org.apache.tiles.core</artifactId>
+			<artifactId>tiles-core</artifactId>
 			<version>2.1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>org.springframework.expression</artifactId>
+			<artifactId>spring-expression</artifactId>
 			<version>${org.springframework.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration</artifactId>
-			<version>${org.springframework.integration.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.ip</artifactId>
-			<version>${org.springframework.integration.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.integration</groupId>
-			<artifactId>org.springframework.integration.adapter</artifactId>
-			<version>${org.springframework.integration.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -277,9 +218,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.0.2</version>
-				<!--
-					<configuration> <webXml>target/web.xml</webXml> </configuration>
-				-->
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -298,12 +236,12 @@
 					<!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
 					<dependency>
 						<groupId>org.aspectj</groupId>
-						<artifactId>com.springsource.org.aspectj.runtime</artifactId>
+						<artifactId>aspectjrt</artifactId>
 						<version>${org.aspectj.version}</version>
 					</dependency>
 					<dependency>
 						<groupId>org.aspectj</groupId>
-						<artifactId>com.springsource.org.aspectj.tools</artifactId>
+						<artifactId>aspectjtools</artifactId>
 						<version>${org.aspectj.version}</version>
 					</dependency>
 				</dependencies>
@@ -320,7 +258,7 @@
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
-							<artifactId>org.springframework.aspects</artifactId>
+							<artifactId>spring-aspects</artifactId>
 						</aspectLibrary>
 					</aspectLibraries>
 					<source>1.6</source>
@@ -332,7 +270,6 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.4.3</version>
 				<configuration>
-					<junitArtifactName>org.junit:com.springsource.org.junit</junitArtifactName>
 					<excludes>
 						<exclude>**/*_Roo_*</exclude>
 					</excludes>
@@ -403,4 +340,27 @@
 			</plugin>
 		</plugins>
 	</build>
+	<repositories>
+		<!-- necessary for roo annotations dependency -->
+		<repository>
+			<id>repository.springsource.release</id>
+			<name>SpringSource EBR</name>
+			<url>http://repository.springsource.com/maven/bundles/release</url>
+		</repository>
+		<!-- necessary for hibernate validator dependency -->
+		<repository>
+			<id>repository.jboss</id>
+			<name>JBoss Repository</name>
+			<url>http://repository.jboss.org/maven2</url>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>false</enabled></snapshots>
+		</repository>
+		<!-- necessary for jstl dependency -->
+		<repository>
+			<id>repository.glassfish</id>
+			<name>Glassfish Repository</name>
+			<url>http://download.java.net/maven/glassfish</url>
+			<snapshots><enabled>false</enabled></snapshots>
+		</repository>
+	</repositories>
 </project>
