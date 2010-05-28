@@ -177,21 +177,23 @@ public class TcpNioReceivingChannelAdapter extends
 				return;
 			}
 			if (messageStatus == SocketReader.MESSAGE_COMPLETE) {
+				if (close) {
+					logger.debug("Closing channel because close=true");
+					try {
+						key.channel().close();
+					} catch (IOException ioe) {
+						logger.error("Error on close", ioe);
+					}
+				}
 				Message<byte[]> message;
 					message = mapper.toMessage(reader);
 					if (message != null) {
 						sendMessage(message);
-						if (close) {
-							logger.debug("Closing channel because close=true");
-							try {
-								key.channel().close();
-							} catch (IOException ioe) {
-								logger.error("Error on close", ioe);
-							}
-						}
 					}
 			}
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			logger.error("Failure on read or message send", e);
+		}
 	}
 
 	@Override

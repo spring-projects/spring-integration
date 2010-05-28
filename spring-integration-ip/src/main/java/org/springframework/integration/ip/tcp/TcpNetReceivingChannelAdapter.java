@@ -102,7 +102,6 @@ public class TcpNetReceivingChannelAdapter extends
 					return;
 				}
 				if (messageStatus == SocketReader.MESSAGE_COMPLETE) {
-					processMessage(reader);
 					if (close) {
 						logger.debug("Closing socket because close=true");
 						try {
@@ -110,6 +109,9 @@ public class TcpNetReceivingChannelAdapter extends
 						} catch (IOException ioe) {
 							logger.error("Error on close", ioe);
 						}
+					}
+					processMessage(reader);
+					if (close) {
 						break;
 					}
 				}
