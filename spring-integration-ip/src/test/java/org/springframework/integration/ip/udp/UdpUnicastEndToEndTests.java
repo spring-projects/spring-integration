@@ -116,6 +116,16 @@ public class UdpUnicastEndToEndTests implements Runnable {
 	public void run() {
 		AbstractApplicationContext ctx = new ClassPathXmlApplicationContext(
 				"testIp-in-context.xml", UdpUnicastEndToEndTests.class);
+		UnicastReceivingChannelAdapter inbound = ctx.getBean(UnicastReceivingChannelAdapter.class);
+		int n = 0;
+		try {
+			while (!inbound.isListening()) {
+				Thread.sleep(100);
+				if (n++ > 100) {
+					throw new RuntimeException("Failed to start listening");
+				}
+			}
+		} catch (Exception e) { }
 		while (okToRun) {
 			try {
 				readyToReceive.countDown();
