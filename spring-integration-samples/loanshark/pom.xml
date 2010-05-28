@@ -341,13 +341,13 @@
 		</plugins>
 	</build>
 	<repositories>
-		<!-- necessary for roo annotations dependency -->
+		<!-- necessary for roo.annotations dependency -->
 		<repository>
 			<id>repository.springsource.release</id>
 			<name>SpringSource EBR</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</repository>
-		<!-- necessary for hibernate validator dependency -->
+		<!-- necessary for hibernate-validator dependency -->
 		<repository>
 			<id>repository.jboss</id>
 			<name>JBoss Repository</name>
@@ -355,7 +355,7 @@
 			<releases><enabled>true</enabled></releases>
 			<snapshots><enabled>false</enabled></snapshots>
 		</repository>
-		<!-- necessary for jstl dependency -->
+		<!-- necessary for jstl-api dependency -->
 		<repository>
 			<id>repository.glassfish</id>
 			<name>Glassfish Repository</name>

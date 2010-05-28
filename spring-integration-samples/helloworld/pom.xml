@@ -10,13 +10,6 @@
 	<artifactId>helloworld</artifactId>
 	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<name>Spring Integration Hello World Sample</name>
-	<dependencies>
-		<dependency>
-			<groupId>org.eclipse.osgi</groupId>
-			<artifactId>org.eclipse.osgi</artifactId>
-			<version>3.4.2.R34x_v20080826-1230</version>
-		</dependency>
-	</dependencies>
 	<build>
 		<resources>
 			<resource>

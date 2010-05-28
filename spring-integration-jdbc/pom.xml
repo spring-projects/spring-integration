@@ -113,6 +113,8 @@
 						<id>generate-sql</id>
 						<phase>generate-sources</phase>
 						<configuration>
+							<!-- task requires 'foundrylogic.vpp' dependency which is available only in
+								 the objectstyle repository. see <repositories> section below -->
 							<tasks>
 								<typedef resource="foundrylogic/vpp/typedef.properties" />
 								<taskdef resource="foundrylogic/vpp/taskdef.properties" />
@@ -252,4 +254,13 @@
 			</plugin>
 		</plugins>
 	</build>
+	<repositories>
+		<!-- necessary for foundrylogic.vpp dependency -->
+		<repository>
+			<id>repository.objectstyle</id>
+			<name>ObjectStyle.org Repository</name>
+			<url>http://objectstyle.org/maven2/</url>
+			<snapshots><enabled>false</enabled></snapshots>
+		</repository>
+	</repositories>
 </project>
