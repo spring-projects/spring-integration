@@ -50,6 +50,8 @@ public class SimpleTcpNetOutboundGateway extends
 	
 	protected NetSocketReader reader;
 	
+	protected boolean close;
+	
 	/**
 	 * Constructs a SimpleTcpNetOutboundGateway that sends data to the 
 	 * specified host and port, and waits for a response.
@@ -67,9 +69,9 @@ public class SimpleTcpNetOutboundGateway extends
 	@Override
 	protected synchronized Object handleRequestMessage(Message<?> requestMessage) {
 		this.handler.handleMessage(requestMessage);
+		Socket socket = this.handler.getSocket();
 		if (this.reader == null ||
-			this.reader.getSocket() != handler.getSocket()) {
-			Socket socket = this.handler.getSocket();
+			this.reader.getSocket() != socket) { // might have re-opened on error
 			this.reader = SocketIoUtils.createNetReader(this.messageFormat,
 				this.customSocketReaderClass, socket, this.maxMessageSize,
 				this.soReceiveBufferSize);
@@ -77,6 +79,10 @@ public class SimpleTcpNetOutboundGateway extends
 		try {
 			this.reader.assembleData();  // Net... always returns true
 			byte[] bytes = this.reader.getAssembledData();
+			if (close) {
+				logger.debug("Closing socket because close=true");
+				this.handler.close();
+			}
 			return bytes;
 		} catch (Exception e) {
 			this.reader = null;
@@ -205,6 +211,13 @@ public class SimpleTcpNetOutboundGateway extends
 	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
+	}
+
+	/**
+	 * @param close the close to set
+	 */
+	public void setClose(boolean close) {
+		this.close = close;
 	}
 
 }

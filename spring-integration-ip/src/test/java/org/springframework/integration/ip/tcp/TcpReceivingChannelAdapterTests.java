@@ -18,6 +18,8 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -44,14 +46,13 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		Thread.sleep(2000); // wait for server to start listening
+		waitListening(adapter);
 		SocketUtils.testSendLength(port, null); //sends 2 copies of TEST_STRING twice
-		Thread.sleep(2000); // wait for asynch processing
-		Message<?> message = channel.receive(0);
+		Message<?> message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				new String((byte[])message.getPayload()));
-		message = channel.receive(0);
+		message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				new String((byte[])message.getPayload()));
@@ -74,14 +75,13 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		Thread.sleep(2000); // wait for server to start listening
+		waitListening(adapter);
 		SocketUtils.testSendStxEtx(port, null); //sends 2 copies of TEST_STRING twice
-		Thread.sleep(4000); // wait for asynch processing
-		Message<?> message = channel.receive(0);
+		Message<?> message = channel.receive(4000);
 		assertNotNull(message);
 		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
 				new String((byte[])message.getPayload()));
-		message = channel.receive(0);
+		message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
 				new String((byte[])message.getPayload()));
@@ -102,14 +102,13 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		Thread.sleep(2000); // wait for server to start listening
+		waitListening(adapter);
 		SocketUtils.testSendLength(port, null); //sends 2 copies of TEST_STRING twice
-		Thread.sleep(2000); // wait for asynch processing
-		Message<?> message = channel.receive(0);
+		Message<?> message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				new String((byte[])message.getPayload()));
-		message = channel.receive(0);
+		message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				new String((byte[])message.getPayload()));
@@ -131,18 +130,98 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		Thread.sleep(2000); // wait for server to start listening
+		waitListening(adapter);
 		SocketUtils.testSendStxEtx(port, null); //sends 2 copies of TEST_STRING twice
-		Thread.sleep(4000); // wait for asynch processing
-		Message<?> message = channel.receive(0);
+		Message<?> message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
 				new String((byte[])message.getPayload()));
-		message = channel.receive(0);
+		message = channel.receive(2000);
 		assertNotNull(message);
 		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
 				new String((byte[])message.getPayload()));
 		adapter.stop();
 	}
+
+	/**
+	 * Tests close option on inbound adapter.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testNetClose() throws Exception {
+		QueueChannel channel = new QueueChannel(2);
+		int port = SocketUtils.findAvailableServerSocket();
+		AbstractTcpReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.setClose(true);
+		adapter.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		waitListening(adapter);
+		CountDownLatch latch = new CountDownLatch(1);
+		SocketUtils.testSendCrLfSingle(port, latch); 
+		Message<?> message = channel.receive(5000);
+		latch.countDown();
+		assertNotNull(message);
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+				new String((byte[])message.getPayload()));
+		latch = new CountDownLatch(1);
+		SocketUtils.testSendCrLfSingle(port, latch); 
+		message = channel.receive(5000);
+		latch.countDown();
+		assertNotNull(message);
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+				new String((byte[])message.getPayload()));
+		adapter.stop();
+	}
+
+	/**
+	 * Tests close option on inbound adapter.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testNioClose() throws Exception {
+		QueueChannel channel = new QueueChannel(2);
+		int port = SocketUtils.findAvailableServerSocket();
+		AbstractTcpReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
+		adapter.setOutputChannel(channel);
+		adapter.setClose(true);
+		adapter.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+		taskScheduler.initialize();
+		adapter.setTaskScheduler(taskScheduler);
+		adapter.start();
+		waitListening(adapter);
+		CountDownLatch latch = new CountDownLatch(1);
+		SocketUtils.testSendCrLfSingle(port, latch); 
+		Message<?> message = channel.receive(2000);
+		assertNotNull(message);
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+				new String((byte[])message.getPayload()));
+		latch = new CountDownLatch(1);
+		SocketUtils.testSendCrLfSingle(port, latch); 
+		message = channel.receive(2000);
+		assertNotNull(message);
+		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
+				new String((byte[])message.getPayload()));
+		adapter.stop();
+	}
+	
+	private void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter) throws Exception {
+		int n = 0;
+		while (!adapter.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				throw new Exception("Gateway failed to listen");
+			}
+		}
+		
+	}
+
+	
 
 }

@@ -41,11 +41,14 @@ public class CustomNetSocketReader extends NetSocketReader {
 	 * @see org.springframework.integration.ip.tcp.NetSocketReader#assembleDataCustomFormat()
 	 */
 	@Override
-	protected boolean assembleDataCustomFormat() throws IOException {
+	protected int assembleDataCustomFormat() throws IOException {
 		byte[] buff = new byte[24];
-		read(buff);
+		int status = read(buff, true);
+		if (status < 0) {
+			return status;
+		}
 		assembledData = buff;
-		return true;
+		return MESSAGE_COMPLETE;
 	}
 	
 	

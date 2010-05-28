@@ -134,9 +134,9 @@ public class SimpleTcpNetInboundGatewayTests {
 		startup = 0;
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayCustom.getPort());
 		String greetings = "Hello World!";
-		String pad = "                        ";
+		String pad = "            ";
 		socket.getOutputStream().write((greetings).getBytes());
-		socket.getOutputStream().write(pad.getBytes()); // will be truncated
+		socket.getOutputStream().write(pad.getBytes());
 		StringBuilder sb = new StringBuilder();
 		int c;
 		int n = 0;

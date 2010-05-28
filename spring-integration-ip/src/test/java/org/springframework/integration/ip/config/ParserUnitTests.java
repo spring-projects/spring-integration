@@ -95,12 +95,21 @@ public class ParserUnitTests {
 	TcpNetSendingMessageHandler tcpOutNet;
 
 	@Autowired
+	@Qualifier(value="simpleInGateway")
 	SimpleTcpNetInboundGateway simpleTcpNetInboundGateway;
 
 	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway#0")
 	SimpleTcpNetOutboundGateway simpleTcpNetOutboundGateway;
 	
+	@Autowired
+	@Qualifier(value="simpleInGatewayClose")
+	SimpleTcpNetInboundGateway simpleTcpNetInboundGatewayClose;
+
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway#1")
+	SimpleTcpNetOutboundGateway simpleTcpNetOutboundGatewayClose;
+
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
@@ -136,6 +145,7 @@ public class ParserUnitTests {
 		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals(false, dfa.getPropertyValue("close"));
 	}
 	
 	@Test
@@ -150,6 +160,7 @@ public class ParserUnitTests {
 		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals(true, dfa.getPropertyValue("close"));
 	}
 
 	@Test
@@ -163,6 +174,7 @@ public class ParserUnitTests {
 		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals(false, dfa.getPropertyValue("close"));
 	}
 	
 	@Test
@@ -217,7 +229,6 @@ public class ParserUnitTests {
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals(false, dfa.getPropertyValue("usingDirectBuffers"));
-		
 	}
 
 	@Test
@@ -233,7 +244,6 @@ public class ParserUnitTests {
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
-		
 	}
 
 	@Test
@@ -248,7 +258,6 @@ public class ParserUnitTests {
 		assertEquals(27, dfa.getPropertyValue("soTrafficClass"));
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
-		
 	}
 	
 	@Test
@@ -267,13 +276,13 @@ public class ParserUnitTests {
 		assertEquals(125, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(126, dfa.getPropertyValue("soTimeout"));
 		assertEquals(23, dfa.getPropertyValue("poolSize"));
-
+		assertEquals(false, dfa.getPropertyValue("close"));
 	}
 
 	@Test
 	public void testOutGateway() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(simpleTcpNetOutboundGateway);
-		assertTrue(simpleTcpNetOutboundGateway.getPort() >= 6500);
+		assertTrue(simpleTcpNetOutboundGateway.getPort() >= 6600);
 		assertEquals(MessageFormats.FORMAT_CRLF, dfa.getPropertyValue("messageFormat"));
 		TcpNetSendingMessageHandler handler = (TcpNetSendingMessageHandler) dfa
 				.getPropertyValue("handler");
@@ -284,6 +293,42 @@ public class ParserUnitTests {
 		assertEquals(224, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(225, delegateDfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(226, delegateDfa.getPropertyValue("soTimeout"));
+		assertEquals(false, dfa.getPropertyValue("close"));
 	}
 
+	@Test
+	public void testInGatewayClose() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(simpleTcpNetInboundGatewayClose);
+		assertTrue(simpleTcpNetInboundGatewayClose.getPort() >= 6700);
+		assertEquals(MessageFormats.FORMAT_CRLF, dfa.getPropertyValue("messageFormat"));
+		TcpNetReceivingChannelAdapter delegate = (TcpNetReceivingChannelAdapter) dfa
+				.getPropertyValue("delegate");
+		DirectFieldAccessor delegateDfa = new DirectFieldAccessor(delegate);
+		assertEquals(CustomNetSocketReader.class, delegateDfa.getPropertyValue("customSocketReaderClass"));
+		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriterClass"));
+		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
+		assertEquals(123, dfa.getPropertyValue("receiveBufferSize"));
+		assertEquals(124, dfa.getPropertyValue("soReceiveBufferSize"));
+		assertEquals(125, dfa.getPropertyValue("soSendBufferSize"));
+		assertEquals(126, dfa.getPropertyValue("soTimeout"));
+		assertEquals(23, dfa.getPropertyValue("poolSize"));
+		assertEquals(true, dfa.getPropertyValue("close"));
+	}
+
+	@Test
+	public void testOutGatewayClose() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(simpleTcpNetOutboundGatewayClose);
+		assertTrue(simpleTcpNetOutboundGatewayClose.getPort() >= 6800);
+		assertEquals(MessageFormats.FORMAT_CRLF, dfa.getPropertyValue("messageFormat"));
+		TcpNetSendingMessageHandler handler = (TcpNetSendingMessageHandler) dfa
+				.getPropertyValue("handler");
+		DirectFieldAccessor delegateDfa = new DirectFieldAccessor(handler);
+		assertEquals(CustomNetSocketReader.class, dfa.getPropertyValue("customSocketReaderClass"));
+		assertEquals(CustomNetSocketWriter.class, delegateDfa.getPropertyValue("customSocketWriterClass"));
+		assertEquals(true, delegateDfa.getPropertyValue("soKeepAlive"));
+		assertEquals(224, dfa.getPropertyValue("soReceiveBufferSize"));
+		assertEquals(225, delegateDfa.getPropertyValue("soSendBufferSize"));
+		assertEquals(226, delegateDfa.getPropertyValue("soTimeout"));
+		assertEquals(true, dfa.getPropertyValue("close"));
+	}
 }

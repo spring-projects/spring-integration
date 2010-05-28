@@ -29,6 +29,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * are provided.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public abstract class AbstractTcpReceivingChannelAdapter extends
@@ -42,7 +43,9 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 
 	protected volatile boolean soKeepAlive;
 
-	protected int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
+	protected volatile int messageFormat = MessageFormats.FORMAT_LENGTH_HEADER;
+	
+	protected volatile boolean close;
 	
 	/**
 	 * Constructs a receiving channel adapter that listens on the port.
@@ -120,6 +123,13 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	 */
 	public void setPoolSize(int poolSize) {
 		this.poolSize = poolSize;
+	}
+
+	/**
+	 * @param close the close to set
+	 */
+	public void setClose(boolean close) {
+		this.close = close;
 	}
 
 }

@@ -33,6 +33,7 @@ import java.io.IOException;
  * when the format is {@link MessageFormats#FORMAT_CUSTOM}. 
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public abstract class AbstractSocketReader implements SocketReader, MessageFormats {
@@ -52,21 +53,21 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 	 * @return True when a message is completely assembled.
 	 * @throws IOException
 	 */
-	protected abstract boolean assembleDataLengthFormat() throws IOException;
+	protected abstract int assembleDataLengthFormat() throws IOException;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_STX_ETX}.
 	 * @return True when a message is completely assembled.
 	 * @throws IOException
 	 */
-	protected abstract boolean assembleDataStxEtxFormat() throws IOException;
+	protected abstract int assembleDataStxEtxFormat() throws IOException;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_CRLF}.
 	 * @return True when a message is completely assembled.
 	 * @throws IOException
 	 */
-	protected abstract boolean assembleDataCrLfFormat() throws IOException;
+	protected abstract int assembleDataCrLfFormat() throws IOException;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_CUSTOM}. Implementations must
@@ -76,9 +77,9 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 	 * @return True when a message is completely assembled.
 	 * @throws IOException
 	 */
-	protected abstract boolean assembleDataCustomFormat() throws IOException;
+	protected abstract int assembleDataCustomFormat() throws IOException;
 	
-	public boolean assembleData() throws IOException {
+	public int assembleData() throws IOException {
 		try {
 			switch (this.messageFormat) {
 			case FORMAT_LENGTH_HEADER:

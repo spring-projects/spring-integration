@@ -27,6 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * data is wrapped in a wire protocol based on the messageFormat property.
  *
  * @author Gary Russell
+ * @since 2.0
  */
 public class NioSocketWriter extends AbstractSocketWriter {
 
@@ -250,7 +251,9 @@ public class NioSocketWriter extends AbstractSocketWriter {
 	protected void doClose() {
 		try {
 			channel.close();
-		} catch (IOException e) {}
+		} catch (IOException e) {
+			logger.error("Error on close", e);
+		}
 	}
 
 }

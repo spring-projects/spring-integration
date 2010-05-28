@@ -39,6 +39,15 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>					
+					<xsd:attribute name="close" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+If true, the socket will be closed after a message is received and sent to the
+outbound channel. If false, the socket will remain open ready to receive the 
+next message.							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -202,6 +211,18 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 				<xsd:attribute name="reply-timeout" type="xsd:string"/>
 				<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 				<xsd:attribute name="receive-buffer-size" type="xsd:string" />
+					<xsd:attribute name="close" type="xsd:string" default="false">
+						<xsd:annotation>
+							<xsd:documentation>
+If true, for an outbound gateway, the socket will be closed after a response 
+is received and sent to the
+reply channel. If false, the socket will remain open and be used to send the 
+next message. If true, for an inbound gateway, the socket will be closed after
+the response is sent. If false, the socket will remain open and be used to 
+receive the next message.					
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

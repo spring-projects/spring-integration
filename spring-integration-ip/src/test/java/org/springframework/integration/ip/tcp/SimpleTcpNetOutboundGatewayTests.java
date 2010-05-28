@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
@@ -22,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ServerSocketFactory;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,6 @@ import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Gary Russell
@@ -74,9 +73,21 @@ public class SimpleTcpNetOutboundGatewayTests {
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", inboundGatewayCrLf.getPort());
 		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		waitListening(inboundGatewayCrLf);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("echo:test", new String(bytes));
+	}
+
+	private void waitListening(SimpleTcpNetInboundGateway gateway) throws Exception {
+		int n = 0;
+		while (!gateway.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				throw new Exception("Gateway failed to listen");
+			}
+		}
+		
 	}
 
 	@Test
@@ -84,6 +95,7 @@ public class SimpleTcpNetOutboundGatewayTests {
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", inboundGatewayStxEtx.getPort());
 		gateway.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+		waitListening(inboundGatewayStxEtx);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("echo:test", new String(bytes));
@@ -94,6 +106,7 @@ public class SimpleTcpNetOutboundGatewayTests {
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", inboundGatewayLength.getPort());
 		gateway.setMessageFormat(MessageFormats.FORMAT_LENGTH_HEADER);
+		waitListening(inboundGatewayLength);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("echo:test", new String(bytes));
@@ -106,6 +119,7 @@ public class SimpleTcpNetOutboundGatewayTests {
 		gateway.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
 		gateway.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNetSocketReader");
 		gateway.setCustomSocketWriterClassName("org.springframework.integration.ip.tcp.CustomNetSocketWriter");
+		waitListening(inboundGatewayCustom);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("echo:test", new String(bytes).trim());
@@ -119,11 +133,12 @@ public class SimpleTcpNetOutboundGatewayTests {
 		assertEquals("echo:test", new String(bytes).trim());
 	}
 	
-	@Ignore @Test
+	@Test
 	public void testOutboundClose() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
+		final CountDownLatch latch3 = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -134,8 +149,9 @@ public class SimpleTcpNetOutboundGatewayTests {
 						byte[] b = new byte[1024];
 						s.getInputStream().read(b);
 						s.getOutputStream().write("OK\r\n".getBytes());
-						s.close();
 						latch2.countDown();
+						latch3.await();
+						s.close();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -146,9 +162,11 @@ public class SimpleTcpNetOutboundGatewayTests {
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", port);
 		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		gateway.setClose(true);
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
+		latch3.countDown();
 		latch2.await(2000, TimeUnit.MILLISECONDS);
 		bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));

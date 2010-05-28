@@ -30,6 +30,7 @@ import org.springframework.integration.message.MessageMappingException;
  * A non-blocking SocketReader that reads from a {@link java.nio.channels.SocketChannel}.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class NioSocketReader extends AbstractSocketReader {
@@ -71,13 +72,13 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * @see org.springframework.integration.ip.tcp.SocketReader#assembleData()
 	 */
 	@Override
-	public boolean assembleDataLengthFormat() throws IOException {
+	public int assembleDataLengthFormat() throws IOException {
 		if (lengthPart == null) {
 			lengthPart = allocate(4);
 		}
 		if (lengthPart.hasRemaining()) {
 			readChannel(lengthPart);
-			return false;
+			return MESSAGE_INCOMPLETE;
 		}
 		if (dataPart == null) {
 			lengthPart.flip();
@@ -94,19 +95,19 @@ public class NioSocketReader extends AbstractSocketReader {
 		if (dataPart.hasRemaining()) {
 			readChannel(dataPart);
 			if (dataPart.hasRemaining()) {
-				return false;
+				return MESSAGE_INCOMPLETE;
 			}
 		} 
 		assembledData = dataPart.array();
 		lengthPart = dataPart = null;
-		return true;
+		return MESSAGE_COMPLETE;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataStxEtxFormat()
 	 */
 	@Override
-	protected boolean assembleDataStxEtxFormat() throws IOException {
+	protected int assembleDataStxEtxFormat() throws IOException {
 		if (readChannelNonDeterministic()) {
 			byte bite = rawBuffer.get();
 			int count = 0;
@@ -120,12 +121,12 @@ public class NioSocketReader extends AbstractSocketReader {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Incomplete message, consumed 1 byte");
 					}
-					return false;
+					return MESSAGE_INCOMPLETE;
 				}
 			} else {
 				if (bite == ETX) {
 					finishAssembly();
-					return true;
+					return MESSAGE_COMPLETE;
 				}
 				buildBuffer.put(bite);
 				count++;
@@ -139,7 +140,7 @@ public class NioSocketReader extends AbstractSocketReader {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Incomplete message, consumed " + count + " bytes");
 					}
-					return false;
+					return MESSAGE_INCOMPLETE;
 				}
 				bite = rawBuffer.get();
 				if (bite == ETX) {
@@ -156,13 +157,13 @@ public class NioSocketReader extends AbstractSocketReader {
 				logger.debug("Consumed " + count + " bytes");
 			}
 			finishAssembly();
-			return true;
+			return MESSAGE_COMPLETE;
 		} else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Incomplete message, consumed 0 bytes");
 			}
 		}
-		return false;
+		return MESSAGE_INCOMPLETE;
 	}
 
 	/**
@@ -180,7 +181,7 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCrLfFormat()
 	 */
 	@Override
-	protected boolean assembleDataCrLfFormat() throws IOException {
+	protected int assembleDataCrLfFormat() throws IOException {
 		if (readChannelNonDeterministic()) {
 			int count = 0;
 			while (true) {
@@ -188,7 +189,7 @@ public class NioSocketReader extends AbstractSocketReader {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Incomplete message, consumed " + count + " bytes");
 					}
-					return false;
+					return MESSAGE_INCOMPLETE;
 				}
 				byte bite = rawBuffer.get();
 				if (bite == '\n' && buildBuffer.position() > 0) {
@@ -209,13 +210,13 @@ public class NioSocketReader extends AbstractSocketReader {
 				logger.debug("Consumed " + count + " bytes");
 			}
 			finishAssembly();
-			return true;
+			return MESSAGE_COMPLETE;
 		} else {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Incomplete message, consumed 0 bytes");
 			}
 		}
-		return false;
+		return MESSAGE_INCOMPLETE;
 	}
 
 	/**
@@ -226,7 +227,7 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * 
 	 */
 	@Override
-	protected boolean assembleDataCustomFormat() throws IOException {
+	protected int assembleDataCustomFormat() throws IOException {
 		throw new UnsupportedOperationException("Need to subclass for this format");
 	}
 

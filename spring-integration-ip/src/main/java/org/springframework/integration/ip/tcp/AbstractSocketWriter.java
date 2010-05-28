@@ -17,6 +17,9 @@ package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Abstract SocketWriter that handles data in 3 standard, and one custom
  * format. The default format is {@link MessageFormats#FORMAT_LENGTH_HEADER} in which 
@@ -31,14 +34,18 @@ import java.io.IOException;
  * appropriate implementation, and provide an implementation for 
  * {@link #writeCustomFormat(byte[])} which is invoked by {@link #write(byte[])}
  * when the format is {@link MessageFormats#FORMAT_CUSTOM}. 
+ * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public abstract class AbstractSocketWriter implements SocketWriter, MessageFormats {
 
 	protected int messageFormat = FORMAT_LENGTH_HEADER;
 
-	/*
+    protected final Log logger = LogFactory.getLog(this.getClass());
+
+    /*
 	 * @see org.springframework.integration.ip.tcp.SocketWriter#write(byte[])
 	 */
 	public synchronized void write(byte[] bytes) throws IOException {

@@ -25,6 +25,7 @@ import org.springframework.integration.ip.util.SocketIoUtils;
 /**
  * TCP Sending Channel Adapter that that uses a {@link java.net.Socket}.
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class TcpNetSendingMessageHandler extends
@@ -57,6 +58,7 @@ public class TcpNetSendingMessageHandler extends
 	protected synchronized SocketWriter getWriter() {
 		if (this.writer == null) {
 			try {
+				logger.debug("Opening new socket connection");
 				this.socket = SocketFactory.getDefault().createSocket(this.host, this.port);
 				this.setSocketAttributes(socket);
 				NetSocketWriter writer = SocketIoUtils.createNetWriter(messageFormat,
@@ -85,4 +87,12 @@ public class TcpNetSendingMessageHandler extends
 		}
 	}
 
+	/**
+	 * Close the underlying socket and prepare to establish a new socket on
+	 * the next write.
+	 */
+	protected void close() {
+		this.writer.doClose();
+		this.writer = null;
+	}
 }

@@ -21,7 +21,10 @@ import org.springframework.integration.ip.util.SocketIoUtils;
 
 
 /**
+ * TCP Sending Channel Adapter that that uses a {@link java.nio.channels.SocketChannel}.
+ *  
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class TcpNioSendingMessageHandler extends
@@ -49,6 +52,7 @@ public class TcpNioSendingMessageHandler extends
 	protected synchronized SocketWriter getWriter() {
 		if (this.socketChannel == null) {
 			try {
+				logger.debug("Creating new SocketChannel");
 				this.socketChannel = SocketChannel.open(this.destinationAddress);
 				this.setSocketAttributes(socketChannel.socket());
 				NioSocketWriter writer = SocketIoUtils.createNioWriter(messageFormat, 

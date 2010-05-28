@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -34,6 +35,7 @@ import org.springframework.integration.message.MessageMappingException;
  * number of concurrent connections expected.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
@@ -62,6 +64,8 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	
 	protected Class<NetSocketWriter> customSocketWriterClass;
 	
+	protected boolean close;
+	
 	@Override
 	protected void doStart() {
 		super.doStart();
@@ -86,6 +90,7 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 		this.delegate.setSoTimeout(soTimeout);
 		this.delegate.setTaskScheduler(getTaskScheduler());
 		this.delegate.setCustomSocketReaderClassName(customSocketReaderClassName);
+		this.delegate.setClose(close);
 		super.onInit();
 	}
 
@@ -189,6 +194,17 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 		}
 	}
 
+	/**
+	 * @param close the close to set
+	 */
+	public void setClose(boolean close) {
+		this.close = close;
+	}
+	
+	public boolean isListening() {
+		return delegate.isListening();
+	}
+
 	private class WriteCapableTcpNetReceivingChannelAdapter extends TcpNetReceivingChannelAdapter {
 
 		/**
@@ -206,6 +222,13 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 					customSocketWriterClass, socket);
 			try {
 				writer.write(this.mapper.fromMessage(message));
+				if (close) {
+					try {
+						socket.close();
+					} catch (IOException ioe) {
+						logger.error("Error on close", ioe);
+					}
+				}
 			} catch (Exception e) {
 				throw new MessageMappingException("Failed to map and send response", e);
 			}

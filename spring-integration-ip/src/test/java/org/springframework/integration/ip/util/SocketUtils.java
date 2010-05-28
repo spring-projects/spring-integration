@@ -222,7 +222,34 @@ public class SocketUtils {
 		thread.setDaemon(true);
 		thread.start();
 	}
-	
+
+	/**
+	 * Sends a single message +CRLF.
+	 * @param latch Waits for latch to count down before closing the socket.
+	 */
+	public static void testSendCrLfSingle(final int port, final CountDownLatch latch) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+					OutputStream outputStream = socket.getOutputStream();
+					outputStream.write(TEST_STRING.getBytes());
+					outputStream.write(TEST_STRING.getBytes());
+					writeByte(outputStream, '\r', true);
+					writeByte(outputStream, '\n', true);
+					if (latch != null) {
+						latch.await();
+					}
+					socket.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+	}
+
 	/**
 	 * Sends a large CRLF message with no CRLF.
 	 */

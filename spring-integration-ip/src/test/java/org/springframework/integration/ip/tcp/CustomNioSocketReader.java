@@ -44,17 +44,17 @@ public class CustomNioSocketReader extends NioSocketReader {
 	 * @see org.springframework.integration.ip.tcp.NetSocketReader#assembleDataCustomFormat()
 	 */
 	@Override
-	protected boolean assembleDataCustomFormat() throws IOException {
+	protected int assembleDataCustomFormat() throws IOException {
 		if (buffer == null) {
 			buffer = allocate(24);
 		}
 		readChannel(buffer);
 		if (buffer.hasRemaining()) {
-			return false;
+			return MESSAGE_INCOMPLETE;
 		}
 		assembledData = buffer.array();
 		buffer = null;
-		return true;
+		return MESSAGE_COMPLETE;
 	}
 	
 	

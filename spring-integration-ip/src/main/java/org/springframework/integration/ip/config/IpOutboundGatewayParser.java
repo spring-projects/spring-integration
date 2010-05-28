@@ -26,6 +26,7 @@ import org.w3c.dom.Element;
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.
  *
  * @author Gary Russell
+ * @since 2.0
  */
 public class IpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
@@ -44,6 +45,7 @@ public class IpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.CUSTOM_SOCKET_READER_CLASS_NAME); 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IpAdapterParserUtils.setClose(element, builder);
 		return builder;
 	}
 

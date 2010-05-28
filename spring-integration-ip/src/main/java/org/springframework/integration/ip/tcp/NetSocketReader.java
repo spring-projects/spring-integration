@@ -32,6 +32,7 @@ import org.springframework.integration.message.MessageMappingException;
  * is completely assembled.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class NetSocketReader extends AbstractSocketReader {
@@ -52,9 +53,11 @@ public class NetSocketReader extends AbstractSocketReader {
 	 * @see org.springframework.integration.ip.tcp.SocketReader#read(java.nio.ByteBuffer)
 	 */
 	@Override
-	protected boolean assembleDataLengthFormat() throws IOException {
+	protected int assembleDataLengthFormat() throws IOException {
 		byte[] lengthPart = new byte[4];
-		read(lengthPart);
+		int status = read(lengthPart, true);
+		if (status < 0)
+			return status;
 		int messageLength = ByteBuffer.wrap(lengthPart).getInt();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Message length is " + messageLength);
@@ -64,27 +67,27 @@ public class NetSocketReader extends AbstractSocketReader {
 					" exceeds max message length: " + this.maxMessageSize);
 		}
 		byte[] messagePart = new byte[messageLength];
-		read(messagePart);
+		read(messagePart, false);
 		assembledData = messagePart;
-		return true;
+		return MESSAGE_COMPLETE;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataStxEtxFormat()
 	 */
 	@Override
-	protected boolean assembleDataStxEtxFormat() throws IOException {
+	protected int assembleDataStxEtxFormat() throws IOException {
 		InputStream inputStream = socket.getInputStream();
-		if (inputStream.read() != STX)
+		int bite = inputStream.read();
+		if (bite < 0) {
+			return bite;
+		}
+		if (bite != STX)
 			throw new MessageMappingException("Expected STX to begin message");
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
-		int bite;
 		while ((bite = inputStream.read()) != ETX) {
-			if (bite < 0) {
-				logger.debug("Socket closed");				
-				throw new IOException("Socket Closed");
-			}
+			checkClosure(bite);
 			buffer[n++] = (byte) bite;
 			if (n >= this.maxMessageSize) {
 				throw new IOException("ETX not found before max message length: "
@@ -93,24 +96,31 @@ public class NetSocketReader extends AbstractSocketReader {
 		}
 		assembledData = new byte[n];
 		System.arraycopy(buffer, 0, assembledData, 0, n);
-		return true;
+		return MESSAGE_COMPLETE;
+	}
+
+	private void checkClosure(int bite) throws IOException {
+		if (bite < 0) {
+			logger.debug("Socket closed");				
+			throw new IOException("Socket closed");
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCrLfFormat()
 	 */
 	@Override
-	protected boolean assembleDataCrLfFormat() throws IOException {
+	protected int assembleDataCrLfFormat() throws IOException {
 		InputStream inputStream = socket.getInputStream();
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		int bite;
 		while (true) {
 			bite = inputStream.read();
-			if (bite < 0) {
-				logger.debug("Socket closed");				
-				throw new IOException("Socket Closed");
+			if (bite < 0 && n == 0) {
+				return bite;
 			}
+			checkClosure(bite);
 			if (n > 0 && bite == '\n' && buffer[n-1] == '\r')
 				break;
 			buffer[n++] = (byte) bite;
@@ -121,7 +131,7 @@ public class NetSocketReader extends AbstractSocketReader {
 		};
 		assembledData = new byte[n-1];
 		System.arraycopy(buffer, 0, assembledData, 0, n-1);
-		return true;
+		return MESSAGE_COMPLETE;
 	}
 
 	/**
@@ -132,7 +142,7 @@ public class NetSocketReader extends AbstractSocketReader {
 	 * 
 	 */
 	@Override
-	protected boolean assembleDataCustomFormat() throws IOException {
+	protected int assembleDataCustomFormat() throws IOException {
 		throw new UnsupportedOperationException("Need to subclass for this format");
 	}
 
@@ -149,19 +159,23 @@ public class NetSocketReader extends AbstractSocketReader {
 	 * Reads data from the socket and puts the data in buffer. Blocks until
 	 * buffer is full or a socket timeout occurs.
 	 * @param buffer
+	 * @param header true if we are reading the header
+	 * @return < 0 if socket closed and not in the middle of a message
 	 * @throws IOException
 	 */
-	protected void read(byte[] buffer) throws IOException {
+	protected int read(byte[] buffer, boolean header) throws IOException {
 		int lengthRead = 0;
 		int needed = buffer.length;
 		while (lengthRead < needed) {
 			int len;
 			len = socket.getInputStream().read(buffer, lengthRead,
 					needed - lengthRead);
-			if (len < 0) {
-				logger.debug("Socket closed");				
-				throw new IOException("Socket Closed");
+			if (len < 0 && header && lengthRead == 0) {
+				return len;
 			}
+			if (len < 0)
+				logger.debug("socket closed after " + lengthRead + " of " + needed);
+			checkClosure(len);
 			lengthRead += len;
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + len + " bytes, buffer is now at " + 
@@ -169,7 +183,7 @@ public class NetSocketReader extends AbstractSocketReader {
 							 needed);
 			}
 		}
-		
+		return 0;
 	}
 	
 	/* (non-Javadoc)

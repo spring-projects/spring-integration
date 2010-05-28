@@ -45,14 +45,14 @@ public class NetSocketReaderTests {
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
-		if (reader.assembleData()) {
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
-		if (reader.assembleData()) {
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
@@ -75,14 +75,14 @@ public class NetSocketReaderTests {
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-		if (reader.assembleData()) {
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
-		if (reader.assembleData()) {
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
@@ -105,14 +105,14 @@ public class NetSocketReaderTests {
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
-		if (reader.assembleData()) {
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
-		if (reader.assembleData()) {
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(reader.getAssembledData()));
 		}
@@ -131,7 +131,7 @@ public class NetSocketReaderTests {
 		socket.setSoTimeout(5000);
 		NetSocketReader reader = new NetSocketReader(socket);
 		try {
-		    if (reader.assembleData()) {
+		    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 		    	fail("Expected message length exceeded exception");
 		    }
 		} catch (IOException e) {
@@ -153,7 +153,7 @@ public class NetSocketReaderTests {
 		NetSocketReader reader = new NetSocketReader(socket);
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
 		try {
-		    if (reader.assembleData()) {
+		    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 		    	fail("Expected message length exceeded exception");
 		    }
 		} catch (IOException e) {
@@ -176,7 +176,7 @@ public class NetSocketReaderTests {
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
 		reader.setMaxMessageSize(1024);
 		try {
-		    if (reader.assembleData()) {
+		    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 		    	fail("Expected message length exceeded exception");
 		    }
 		} catch (IOException e) {
@@ -198,7 +198,7 @@ public class NetSocketReaderTests {
 		NetSocketReader reader = new NetSocketReader(socket);
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		try {
-		    if (reader.assembleData()) {
+		    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 		    	fail("Expected message length exceeded exception");
 		    }
 		} catch (IOException e) {
@@ -221,7 +221,7 @@ public class NetSocketReaderTests {
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		reader.setMaxMessageSize(1024);
 		try {
-		    if (reader.assembleData()) {
+		    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 		    	fail("Expected message length exceeded exception");
 		    }
 		} catch (IOException e) {

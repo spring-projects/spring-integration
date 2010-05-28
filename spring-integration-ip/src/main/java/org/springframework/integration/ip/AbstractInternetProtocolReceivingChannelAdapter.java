@@ -42,6 +42,8 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	protected volatile boolean active;
 
+	protected volatile boolean listening;
+
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
 		this.port = port;
@@ -93,6 +95,10 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	@Override
 	protected void doStop() {
 		this.active = false;
+	}
+
+	public boolean isListening() {
+		return listening;
 	}
 
 }

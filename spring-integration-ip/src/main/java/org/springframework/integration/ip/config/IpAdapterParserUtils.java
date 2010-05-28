@@ -87,6 +87,8 @@ public abstract class IpAdapterParserUtils {
 
 	static final String SO_TRAFFIC_CLASS = "so-traffic-class";
 
+	static final String CLOSE = "close";
+
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 
@@ -170,6 +172,22 @@ public abstract class IpAdapterParserUtils {
 			multicast = "false";
 		}
 		return multicast;
+	}
+
+	/**
+	 * Sets the close attribute, if present.
+	 * @param element
+	 */
+	static void setClose(Element element, BeanDefinitionBuilder builder) {
+		String close = element.getAttribute(IpAdapterParserUtils.CLOSE);
+		if (!StringUtils.hasText(close)) {
+			close = "false";
+		}
+		if (close.equals("true")) {
+			builder.addPropertyValue(
+					Conventions.attributeNameToPropertyName(IpAdapterParserUtils.CLOSE),
+					close);
+		}
 	}
 
 	/**

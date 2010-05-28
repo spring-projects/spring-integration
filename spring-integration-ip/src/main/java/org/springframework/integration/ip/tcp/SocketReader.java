@@ -23,19 +23,26 @@ import java.net.Socket;
  * General interface for assembling message data from a TCP/IP Socket.
  * Implementations for {@link java.net.Socket} and {@link java.nio.channels.SocketChannel}
  * are provided.
+ * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public interface SocketReader {
 
+	public static int MESSAGE_INCOMPLETE = 0;
+	
+	public static int MESSAGE_COMPLETE = 1;
+	
 	/**
 	 * Reads the data the socket and assembles 
 	 * packets of data into a complete message, depending on the format of that
 	 * data.
-	 * @return true when the message is assembled.
+	 * @return MESSAGE_COMPLETE when message is assembled, otherwise MESSAGE_IMCOMPLETE, or
+	 * < 0 if socket closed before any data for a message is received.
 	 * @throws IOException 
 	 */
-	public boolean assembleData() throws IOException;
+	public int assembleData() throws IOException;
 	
 	/**
 	 * Retrieves the assembled tcp data or null if the data is not

@@ -91,8 +91,8 @@ public class SocketMessageMapperTests {
 		/* (non-Javadoc)
 		 * @see org.springframework.integration.ip.tcp.SocketReader#assembleData()
 		 */
-		public boolean assembleData() {
-			return false;
+		public int assembleData() {
+			return SocketReader.MESSAGE_INCOMPLETE;
 		}
 
 		/* (non-Javadoc)

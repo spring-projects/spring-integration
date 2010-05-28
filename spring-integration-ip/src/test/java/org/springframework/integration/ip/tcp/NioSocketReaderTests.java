@@ -82,7 +82,7 @@ public class NioSocketReaderTests {
 				iterator.remove();
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
-					if (reader.assembleData()) {
+					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 						         new String(reader.getAssembledData()));
 						count++;
@@ -138,7 +138,7 @@ public class NioSocketReaderTests {
 				iterator.remove();
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
-					if (reader.assembleData()) {
+					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", "xx", 
 						         new String(reader.getAssembledData()));
 						done = true;
@@ -198,7 +198,7 @@ public class NioSocketReaderTests {
 				iterator.remove();
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
-					if (reader.assembleData()) {
+					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 						         new String(reader.getAssembledData()));
 						count++;
@@ -258,7 +258,7 @@ public class NioSocketReaderTests {
 				iterator.remove();
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
-					if (reader.assembleData()) {
+					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 						         new String(reader.getAssembledData()));
 						count++;
@@ -318,7 +318,7 @@ public class NioSocketReaderTests {
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
 					try {
-					    if (reader.assembleData()) {
+					    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 					    	fail("Expected message length exceeded exception");
 					    }
 					} catch (IOException e) {
@@ -387,7 +387,7 @@ public class NioSocketReaderTests {
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
 					try {
-					    if (reader.assembleData()) {
+					    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 					    	fail("Expected message length exceeded exception");
 					    }
 					} catch (IOException e) {
@@ -456,7 +456,7 @@ public class NioSocketReaderTests {
 				if (key.isReadable()) {
 					assertEquals(channel, key.channel());
 					try {
-					    if (reader.assembleData()) {
+					    if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 					    	fail("Expected message length exceeded exception");
 					    }
 					} catch (IOException e) {

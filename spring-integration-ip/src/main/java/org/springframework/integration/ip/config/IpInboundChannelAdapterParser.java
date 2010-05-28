@@ -124,6 +124,7 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.SO_KEEP_ALIVE);
+		IpAdapterParserUtils.setClose(element, builder);
 		return builder;
 	}
 

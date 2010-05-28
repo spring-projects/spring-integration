@@ -102,6 +102,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 			this.threadPoolTaskScheduler.initialize();
 		}
 
+		listening = true;
+		
 		// Do as little as possible here so we can loop around and catch the next packet.
 		// Just schedule the packet for processing.
 		while (this.active) {
@@ -121,6 +123,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				throw new MessagingException("failed to receive DatagramPacket", e);
 			}
 		}
+		listening = false;
 	}
 
 	protected void sendAck(Message<byte[]> message) {

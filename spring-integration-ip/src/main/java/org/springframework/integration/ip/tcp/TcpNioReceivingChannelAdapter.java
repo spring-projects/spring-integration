@@ -38,6 +38,7 @@ import org.springframework.integration.ip.util.SocketIoUtils;
  * number of threads is controlled by the poolSize property.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class TcpNioReceivingChannelAdapter extends
@@ -65,6 +66,7 @@ public class TcpNioReceivingChannelAdapter extends
 	protected void server() {
 		try {
 			serverChannel = ServerSocketChannel.open();
+			listening = true;
 			serverChannel.configureBlocking(false);
 			serverChannel.socket().bind(new InetSocketAddress(port),
 					Math.abs(poolSize));
@@ -76,6 +78,7 @@ public class TcpNioReceivingChannelAdapter extends
 			try {
 				serverChannel.close();
 			} catch (IOException e1) { }
+			listening = false;
 			serverChannel = null;
 			if (active) {
 				logger.error("Error on ServerSocketChannel", e);
@@ -169,11 +172,23 @@ public class TcpNioReceivingChannelAdapter extends
 	private void doRead(SelectionKey key) {
 		NioSocketReader reader = (NioSocketReader) key.attachment();
 		try {
-			if (reader.assembleData()) {
+			int messageStatus = reader.assembleData();
+			if (messageStatus < 0) {
+				return;
+			}
+			if (messageStatus == SocketReader.MESSAGE_COMPLETE) {
 				Message<byte[]> message;
 					message = mapper.toMessage(reader);
 					if (message != null) {
 						sendMessage(message);
+						if (close) {
+							logger.debug("Closing channel because close=true");
+							try {
+								key.channel().close();
+							} catch (IOException ioe) {
+								logger.error("Error on close", ioe);
+							}
+						}
 					}
 			}
 		} catch (Exception e) {}

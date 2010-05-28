@@ -30,6 +30,7 @@ import org.springframework.integration.ip.util.SocketIoUtils;
  * accordingly.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class TcpNetReceivingChannelAdapter extends
@@ -58,6 +59,7 @@ public class TcpNetReceivingChannelAdapter extends
 			try {
 				serverSocket = ServerSocketFactory.getDefault()
 						.createServerSocket(port, Math.abs(poolSize));
+				listening = true;
 				while (true) {
 					final Socket socket = serverSocket.accept();
 					setSocketOptions(socket);
@@ -72,6 +74,7 @@ public class TcpNetReceivingChannelAdapter extends
 						serverSocket.close();
 					} catch (IOException e1) {}
 				}
+				listening = false;
 				serverSocket = null;
 				if (active) {
 					logger.error("Error on ServerSocket", e);
@@ -94,8 +97,21 @@ public class TcpNetReceivingChannelAdapter extends
 				this.soReceiveBufferSize);
 		while (true) {
 			try {
-				if (reader.assembleData()) {
+				int messageStatus = reader.assembleData();
+				if (messageStatus < 0) {
+					return;
+				}
+				if (messageStatus == SocketReader.MESSAGE_COMPLETE) {
 					processMessage(reader);
+					if (close) {
+						logger.debug("Closing socket because close=true");
+						try {
+							reader.getSocket().close();
+						} catch (IOException ioe) {
+							logger.error("Error on close", ioe);
+						}
+						break;
+					}
 				}
 			} catch (Exception e) {
 				logger.error("processMessage failed", e);
