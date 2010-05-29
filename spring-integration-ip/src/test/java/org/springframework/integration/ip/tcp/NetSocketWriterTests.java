@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -128,6 +129,35 @@ public class NetSocketWriterTests {
 		assertEquals(testString, new String(buff, 0, testString.length()));
 		assertEquals('\r', buff[testString.length()]);
 		assertEquals('\n', buff[testString.length() + 1]);
+		server.close();
+	}
+	
+	@Test
+	public void testWriteSerialized() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final String testString = "abcdef";
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+					NetSocketWriter writer = new NetSocketWriter(socket);
+					writer.setMessageFormat(MessageFormats.FORMAT_JAVA_SERIALIZED);
+					writer.write(testString);
+					writer.write(testString);
+					Thread.sleep(1000000000L);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		t.setDaemon(true);
+		t.start();
+		Socket socket = server.accept();
+		InputStream is = socket.getInputStream();
+		ObjectInputStream ois = new ObjectInputStream(is);
+		assertEquals(testString, ois.readObject());
+		assertEquals(testString, ois.readObject());
 		server.close();
 	}
 	

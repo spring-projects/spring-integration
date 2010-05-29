@@ -75,6 +75,10 @@ public class ParserUnitTests {
 	TcpNetReceivingChannelAdapter tcpInNet;
 	
 	@Autowired
+	@Qualifier(value="testInTcpNetSerialized")
+	TcpNetReceivingChannelAdapter tcpInNetSerialized;
+	
+	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.udp.UnicastSendingMessageHandler#0")
 	UnicastSendingMessageHandler udpOut;
 
@@ -93,6 +97,10 @@ public class ParserUnitTests {
 	@Autowired
 	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#0")
 	TcpNetSendingMessageHandler tcpOutNet;
+
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler#1")
+	TcpNetSendingMessageHandler tcpOutNetSerialized;
 
 	@Autowired
 	@Qualifier(value="simpleInGateway")
@@ -178,6 +186,19 @@ public class ParserUnitTests {
 	}
 	
 	@Test
+	public void testInTcpNetSerialized() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInNetSerialized);
+		assertTrue(tcpInNetSerialized.getPort() >= 5450);
+		assertEquals(MessageFormats.FORMAT_JAVA_SERIALIZED, dfa.getPropertyValue("messageFormat"));
+		assertEquals(27, dfa.getPropertyValue("poolSize"));
+		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
+		assertEquals(29, dfa.getPropertyValue("receiveBufferSize"));
+		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
+		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals(false, dfa.getPropertyValue("close"));
+	}
+	
+	@Test
 	public void testOutUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpOut);
 		assertTrue(udpOut.getPort() >= 6000);
@@ -252,6 +273,19 @@ public class ParserUnitTests {
 		assertTrue(tcpOutNet.getPort() >= 6400);
 		assertEquals(MessageFormats.FORMAT_STX_ETX, dfa.getPropertyValue("messageFormat"));
 		assertEquals(CustomNetSocketWriter.class, dfa.getPropertyValue("customSocketWriterClass"));
+		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
+		assertEquals(3, dfa.getPropertyValue("soLinger"));
+		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
+		assertEquals(27, dfa.getPropertyValue("soTrafficClass"));
+		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
+		assertEquals(54, dfa.getPropertyValue("soTimeout"));
+	}
+	
+	@Test
+	public void testOutTcpNetSerialized() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOutNetSerialized);
+		assertTrue(tcpOutNetSerialized.getPort() >= 6450);
+		assertEquals(MessageFormats.FORMAT_JAVA_SERIALIZED, dfa.getPropertyValue("messageFormat"));
 		assertEquals(true, dfa.getPropertyValue("soKeepAlive"));
 		assertEquals(3, dfa.getPropertyValue("soLinger"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));

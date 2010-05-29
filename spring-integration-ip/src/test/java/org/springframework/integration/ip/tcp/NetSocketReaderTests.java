@@ -47,14 +47,14 @@ public class NetSocketReaderTests {
 		NetSocketReader reader = new NetSocketReader(socket);
 		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-								 new String(reader.getAssembledData()));
+								 new String((byte[]) reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
 		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-								 new String(reader.getAssembledData()));
+								 new String((byte[]) reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble second message");
@@ -77,14 +77,14 @@ public class NetSocketReaderTests {
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
 		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-								 new String(reader.getAssembledData()));
+								 new String((byte[]) reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
 		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-								 new String(reader.getAssembledData()));
+								 new String((byte[]) reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble second message");
@@ -107,14 +107,44 @@ public class NetSocketReaderTests {
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-								 new String(reader.getAssembledData()));
+								 new String((byte[]) reader.getAssembledData()));
 		}
 		else {
 			fail("Failed to assemble first message");
 		}
 		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 			assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-								 new String(reader.getAssembledData()));
+								 new String((byte[]) reader.getAssembledData()));
+		}
+		else {
+			fail("Failed to assemble second message");
+		}
+		server.close();
+	}
+
+	/**
+	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader#readFully()},
+	 * using STX&lt;message&gt;ETX
+	 */
+	@Test
+	public void testReadSerialized() throws Exception {
+		int port = SocketUtils.findAvailableServerSocket();
+		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		SocketUtils.testSendSerialized(port);
+		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
+		NetSocketReader reader = new NetSocketReader(socket);
+		reader.setMessageFormat(MessageFormats.FORMAT_JAVA_SERIALIZED);
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
+			assertEquals("Data", SocketUtils.TEST_STRING, 
+								 reader.getAssembledData());
+		}
+		else {
+			fail("Failed to assemble first message");
+		}
+		if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
+			assertEquals("Data", SocketUtils.TEST_STRING, 
+					 			 reader.getAssembledData());
 		}
 		else {
 			fail("Failed to assemble second message");

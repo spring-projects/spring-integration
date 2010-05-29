@@ -48,20 +48,23 @@ public abstract class AbstractSocketWriter implements SocketWriter, MessageForma
     /*
 	 * @see org.springframework.integration.ip.tcp.SocketWriter#write(byte[])
 	 */
-	public synchronized void write(byte[] bytes) throws IOException {
+	public synchronized void write(Object object) throws IOException {
 		try {
 			switch (this.messageFormat) {
 			case FORMAT_LENGTH_HEADER:
-				writeLengthFormat(bytes);
+				writeLengthFormat((byte[]) object);
 				return;
 			case FORMAT_STX_ETX:
-				writeStxEtxFormat(bytes);
+				writeStxEtxFormat((byte[]) object);
 				return;
 			case FORMAT_CRLF:
-				writeCrLfFormat(bytes);
+				writeCrLfFormat((byte[]) object);
+				return;
+			case FORMAT_JAVA_SERIALIZED:
+				writeSerializedFormat(object);
 				return;
 			case FORMAT_CUSTOM:
-				writeCustomFormat(bytes);
+				writeCustomFormat(object);
 				return;
 			default:
 				throw new UnsupportedOperationException(
@@ -102,10 +105,16 @@ public abstract class AbstractSocketWriter implements SocketWriter, MessageForma
 	protected abstract void writeCrLfFormat(byte[] bytes) throws IOException;
 
 	/**
+	 * Write the data, followed by carriage return, line feed ('\r\n').
+	 * @param bytes
+	 */
+	protected abstract void writeSerializedFormat(Object object) throws IOException;
+
+	/**
 	 * Write the data using some custom protocol.
 	 * @param bytes
 	 */
-	protected abstract void writeCustomFormat(byte[] bytes) throws IOException;
+	protected abstract void writeCustomFormat(Object object) throws IOException;
 
 	/**
 	 * @param messageFormat the messageFormat to set

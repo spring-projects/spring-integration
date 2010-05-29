@@ -84,7 +84,7 @@ public class NioSocketReaderTests {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-						         new String(reader.getAssembledData()));
+						         new String((byte[]) reader.getAssembledData()));
 						count++;
 					}
 					latch.countDown();
@@ -140,7 +140,7 @@ public class NioSocketReaderTests {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", "xx", 
-						         new String(reader.getAssembledData()));
+						         new String((byte[]) reader.getAssembledData()));
 						done = true;
 					}
 					latch.countDown();
@@ -200,7 +200,7 @@ public class NioSocketReaderTests {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-						         new String(reader.getAssembledData()));
+						         new String((byte[]) reader.getAssembledData()));
 						count++;
 					}
 					latch.countDown();
@@ -260,7 +260,7 @@ public class NioSocketReaderTests {
 					assertEquals(channel, key.channel());
 					if (reader.assembleData() == SocketReader.MESSAGE_COMPLETE) {
 						assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-						         new String(reader.getAssembledData()));
+						         new String((byte[]) reader.getAssembledData()));
 						count++;
 					}
 					latch.countDown();

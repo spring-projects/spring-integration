@@ -15,8 +15,10 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -40,6 +42,8 @@ public class NetSocketReader extends AbstractSocketReader {
 	protected final Log logger = LogFactory.getLog(getClass());
 	
 	protected Socket socket;
+	
+	protected ObjectInputStream objectInputStream;
 
 	/**
 	 * Constructs a NetsocketReader which reads from the Socket.
@@ -68,7 +72,7 @@ public class NetSocketReader extends AbstractSocketReader {
 		}
 		byte[] messagePart = new byte[messageLength];
 		read(messagePart, false);
-		assembledData = messagePart;
+		this.assembledData = messagePart;
 		return MESSAGE_COMPLETE;
 	}
 
@@ -94,8 +98,8 @@ public class NetSocketReader extends AbstractSocketReader {
 						+ this.maxMessageSize);
 			}
 		}
-		assembledData = new byte[n];
-		System.arraycopy(buffer, 0, assembledData, 0, n);
+		this.assembledData = new byte[n];
+		System.arraycopy(buffer, 0, this.assembledData, 0, n);
 		return MESSAGE_COMPLETE;
 	}
 
@@ -129,9 +133,25 @@ public class NetSocketReader extends AbstractSocketReader {
 						+ this.maxMessageSize);
 			}
 		};
-		assembledData = new byte[n-1];
-		System.arraycopy(buffer, 0, assembledData, 0, n-1);
+		this.assembledData = new byte[n-1];
+		System.arraycopy(buffer, 0, this.assembledData, 0, n-1);
 		return MESSAGE_COMPLETE;
+	}
+
+	@Override
+	protected int assembleDataSerializedFormat() throws IOException {
+		try {
+			if (this.objectInputStream == null) {
+				InputStream is = this.socket.getInputStream();
+				this.objectInputStream = new ObjectInputStream(is);
+			}
+			this.assembledData = this.objectInputStream.readObject();
+		} catch (EOFException ee) {
+			return -1;
+		} catch (ClassNotFoundException e) {
+			throw new IOException(e);
+		}
+		return SocketReader.MESSAGE_COMPLETE;
 	}
 
 	/**
@@ -144,15 +164,6 @@ public class NetSocketReader extends AbstractSocketReader {
 	@Override
 	protected int assembleDataCustomFormat() throws IOException {
 		throw new UnsupportedOperationException("Need to subclass for this format");
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.ip.tcp.SocketReader#getAssembledData()
-	 */
-	public byte[] getAssembledData() {
-		byte[] assembledData = this.assembledData;
-		this.assembledData = null;
-		return assembledData;
 	}
 
 	/**
@@ -168,7 +179,7 @@ public class NetSocketReader extends AbstractSocketReader {
 		int needed = buffer.length;
 		while (lengthRead < needed) {
 			int len;
-			len = socket.getInputStream().read(buffer, lengthRead,
+			len = this.socket.getInputStream().read(buffer, lengthRead,
 					needed - lengthRead);
 			if (len < 0 && header && lengthRead == 0) {
 				return len;

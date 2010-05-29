@@ -116,6 +116,7 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	 */
 	public void setMessageFormat(int messageFormat) {
 		this.messageFormat = messageFormat;
+		mapper.setMessageFormat(messageFormat);
 	}
 
 	/**

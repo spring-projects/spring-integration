@@ -45,8 +45,8 @@ public class SocketMessageMapperTests {
 	@Test
 	public void testToMessage() throws Exception {
 		SocketMessageMapper mapper = new SocketMessageMapper();
-		Message<byte[]> message = mapper.toMessage(new StubSocketReader());
-		assertEquals(TEST_PAYLOAD, new String(message.getPayload()));
+		Message<Object> message = mapper.toMessage(new StubSocketReader());
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
 		assertEquals(InetAddress.getLocalHost().getHostName(), message
 				.getHeaders().get(IpHeaders.HOSTNAME));
 		assertEquals(InetAddress.getLocalHost().getHostAddress(), message
@@ -64,7 +64,7 @@ public class SocketMessageMapperTests {
 		String s = "test";
 		Message<String> message = MessageBuilder.withPayload(s).build();
 		SocketMessageMapper mapper = new SocketMessageMapper();
-		byte[] bArray = mapper.fromMessage(message);
+		byte[] bArray = (byte[]) mapper.fromMessage(message);
 		assertEquals(s, new String(bArray));
 		
 	}

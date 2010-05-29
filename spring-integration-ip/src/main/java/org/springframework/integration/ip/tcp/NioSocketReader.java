@@ -60,15 +60,6 @@ public class NioSocketReader extends AbstractSocketReader {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.springframework.integration.ip.tcp.SocketReader#read(java.nio.ByteBuffer, int)
-	 */
-	public byte[] getAssembledData() {
-		byte[] assembledData = this.assembledData;
-		this.assembledData = null;
-		return assembledData;
-	}
-	
-	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.SocketReader#assembleData()
 	 */
 	@Override
@@ -170,10 +161,11 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * 
 	 */
 	private void finishAssembly() {
-		assembledData = new byte[buildBuffer.position()];
+		byte[] assembledData = new byte[buildBuffer.position()];
 		System.arraycopy(buildBuffer.array(), 0, assembledData, 0, assembledData.length);
 		building = false;
 		buildBuffer.clear();
+		this.assembledData = assembledData;
 		logger.debug("Message assembly complete");
 	}
 
@@ -218,6 +210,18 @@ public class NioSocketReader extends AbstractSocketReader {
 		}
 		return MESSAGE_INCOMPLETE;
 	}
+
+	/**
+	 * Throws {@link UnsupportedOperationException}; Java serialization is currently only
+	 * supported using the NetSocketReader.
+	 * @throws IOException 
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat().
+	 * 
+	 */
+	protected int assembleDataSerializedFormat() throws IOException {
+		throw new UnsupportedOperationException("Serializable not supported using NIO");
+	}
+
 
 	/**
 	 * Throws {@link UnsupportedOperationException}; custom implementations can

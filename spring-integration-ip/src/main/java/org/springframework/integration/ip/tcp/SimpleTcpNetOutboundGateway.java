@@ -78,12 +78,12 @@ public class SimpleTcpNetOutboundGateway extends
 		}
 		try {
 			this.reader.assembleData();  // Net... always returns true
-			byte[] bytes = this.reader.getAssembledData();
+			Object object = this.reader.getAssembledData();
 			if (close) {
 				logger.debug("Closing socket because close=true");
 				this.handler.close();
 			}
-			return bytes;
+			return object;
 		} catch (Exception e) {
 			this.reader = null;
 			throw new MessagingException(requestMessage, e);

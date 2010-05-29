@@ -114,12 +114,12 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	 */
 	protected void doWrite(Message<?> message) {
 		try {
-			byte[] bytes = mapper.fromMessage(message);
+			Object object = mapper.fromMessage(message);
 			SocketWriter writer = this.getWriter();
 			if (writer == null) {
 				throw new MessageMappingException(message, "Failed to create SocketWriter");
 			}
-			writer.write(bytes);
+			writer.write(object);
 		} catch (Exception e) {
 			this.writer = null;
 			if (e instanceof MessageMappingException) {
@@ -168,6 +168,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	 */
 	public void setMessageFormat(int messageFormat) {
 		this.messageFormat = messageFormat;
+		mapper.setMessageFormat(messageFormat);
 	}
 
 }

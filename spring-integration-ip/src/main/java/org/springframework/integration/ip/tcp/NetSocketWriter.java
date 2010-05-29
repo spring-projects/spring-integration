@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -30,6 +31,8 @@ import java.nio.ByteBuffer;
 public class NetSocketWriter extends AbstractSocketWriter {
 
 	protected Socket socket;
+	
+	protected ObjectOutputStream objectOutputStream;
 
 	/**
 	 * Constructs a NetSocketWriter for the Socket.
@@ -45,17 +48,31 @@ public class NetSocketWriter extends AbstractSocketWriter {
 	 */
 	@Override
 	protected void writeCrLfFormat(byte[] bytes) throws IOException {
-		OutputStream outputStream = socket.getOutputStream();
+		OutputStream outputStream = this.socket.getOutputStream();
 		outputStream.write(bytes);
 		outputStream.write('\r');
 		outputStream.write('\n');
+		outputStream.flush();
 	}
 
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketWriter#writeCustomFormat(byte[])
 	 */
 	@Override
-	protected void writeCustomFormat(byte[] bytes) throws IOException {
+	protected void writeSerializedFormat(Object object) throws IOException {
+		if (this.objectOutputStream == null) {
+			OutputStream os = this.socket.getOutputStream();
+			this.objectOutputStream = new ObjectOutputStream(os);
+		}
+		this.objectOutputStream.writeObject(object);
+		this.objectOutputStream.flush();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketWriter#writeCustomFormat(byte[])
+	 */
+	@Override
+	protected void writeCustomFormat(Object object) throws IOException {
 		throw new UnsupportedOperationException("Need to subclass for this format");
 	}
 
@@ -66,19 +83,21 @@ public class NetSocketWriter extends AbstractSocketWriter {
 	protected void writeLengthFormat(byte[] bytes) throws IOException {
 		ByteBuffer lengthPart = ByteBuffer.allocate(4);
 		lengthPart.putInt(bytes.length);
-		OutputStream outputStream = socket.getOutputStream();
+		OutputStream outputStream = this.socket.getOutputStream();
 		outputStream.write(lengthPart.array());
 		outputStream.write(bytes);
+		outputStream.flush();
 	}
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.ip.tcp.AbstractSocketWriter#writeStxEtxFormat(byte[])
 	 */
 	@Override
 	protected void writeStxEtxFormat(byte[] bytes) throws IOException {
-		OutputStream outputStream = socket.getOutputStream();
+		OutputStream outputStream = this.socket.getOutputStream();
 		outputStream.write(STX);
 		outputStream.write(bytes);
 		outputStream.write(ETX);
+		outputStream.flush();
 	}
 	
 	/* (non-Javadoc)
@@ -87,7 +106,7 @@ public class NetSocketWriter extends AbstractSocketWriter {
 	@Override
 	protected void doClose() {
 		try {
-			socket.close();
+			this.socket.close();
 		} catch (IOException e) {
 			logger.error("Error on close", e);
 		}

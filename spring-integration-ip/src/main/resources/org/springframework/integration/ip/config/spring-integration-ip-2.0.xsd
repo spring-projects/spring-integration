@@ -239,6 +239,7 @@ receive the next message.
 					<xsd:enumeration value="length-header" />
 					<xsd:enumeration value="stx-etx" />
 					<xsd:enumeration value="crlf" />
+					<xsd:enumeration value="serialized" />
 					<xsd:enumeration value="custom" />
 				</xsd:restriction>
 			</xsd:simpleType>

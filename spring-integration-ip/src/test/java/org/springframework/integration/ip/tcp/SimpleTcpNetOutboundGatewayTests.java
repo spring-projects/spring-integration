@@ -57,6 +57,10 @@ public class SimpleTcpNetOutboundGatewayTests {
 	private SimpleTcpNetInboundGateway inboundGatewayLength;
 
 	@Autowired
+	@Qualifier("gatewaySerialized")
+	private SimpleTcpNetInboundGateway inboundGatewaySerialized;
+
+	@Autowired
 	@Qualifier("gatewayCustom")
 	private SimpleTcpNetInboundGateway inboundGatewayCustom;
 	
@@ -99,6 +103,17 @@ public class SimpleTcpNetOutboundGatewayTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("echo:test", new String(bytes));
+	}
+
+	@Test
+	public void testOutboundSerialized() throws Exception {
+		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
+			("localhost", inboundGatewaySerialized.getPort());
+		gateway.setMessageFormat(MessageFormats.FORMAT_JAVA_SERIALIZED);
+		waitListening(inboundGatewaySerialized);
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		Object response = gateway.handleRequestMessage(message);
+		assertEquals("echo:test", response);
 	}
 
 	@Test

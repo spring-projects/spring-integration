@@ -33,14 +33,16 @@ import org.springframework.integration.message.OutboundMessageMapper;
  */
 public class SocketMessageMapper implements
 		InboundMessageMapper<SocketReader>, 
-		OutboundMessageMapper<byte[]> {
+		OutboundMessageMapper<Object> {
 
 	private volatile String charset = "UTF-8";
+	
+	private volatile int messageFormat;
 	
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.message.InboundMessageMapper#toMessage(java.lang.Object)
 	 */
-	public Message<byte[]> toMessage(SocketReader socketReader) throws Exception {
+	public Message<Object> toMessage(SocketReader socketReader) throws Exception {
 		return fromRaw(socketReader);
 	}
 
@@ -53,10 +55,10 @@ public class SocketMessageMapper implements
 	 * @return
 	 * @throws IOException 
 	 */
-	private Message<byte[]> fromRaw(SocketReader socketReader) throws IOException {
-		byte[] payload = socketReader.getAssembledData();
-		Message<byte[]> message = null;
-		if (payload != null && payload.length > 0) {
+	private Message<Object> fromRaw(SocketReader socketReader) throws IOException {
+		Object payload = socketReader.getAssembledData();
+		Message<Object> message = null;
+		if (payload != null) {
 			message = MessageBuilder.withPayload(payload)
 					.setHeader(IpHeaders.HOSTNAME, socketReader.getAddress().getHostName())
 					.setHeader(IpHeaders.IP_ADDRESS, socketReader.getAddress().getHostAddress())
@@ -69,8 +71,11 @@ public class SocketMessageMapper implements
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.message.OutboundMessageMapper#fromMessage(org.springframework.integration.core.Message)
 	 */
-	public byte[] fromMessage(Message<?> message) throws Exception {
-		return getPayloadAsBytes(message);
+	public Object fromMessage(Message<?> message) throws Exception {
+		if (this.messageFormat < MessageFormats.FORMAT_IMPLICIT) {
+			return getPayloadAsBytes(message);
+		}
+		return message.getPayload();
 	}
 
 	/**
@@ -105,6 +110,11 @@ public class SocketMessageMapper implements
 	 */
 	public void setCharset(String charset) {
 		this.charset = charset;
+	}
+
+
+	public void setMessageFormat(int messageFormat) {
+		this.messageFormat = messageFormat;
 	}
 
 }

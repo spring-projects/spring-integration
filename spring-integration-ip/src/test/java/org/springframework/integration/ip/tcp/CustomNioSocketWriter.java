@@ -41,7 +41,16 @@ public class CustomNioSocketWriter extends NioSocketWriter {
 	 * @see org.springframework.integration.ip.tcp.NetSocketWriter#writeCustomFormat(byte[])
 	 */
 	@Override
-	protected void writeCustomFormat(byte[] bytes) throws IOException {
+	protected void writeCustomFormat(Object object) throws IOException {
+		byte[] bytes;
+		if (object instanceof byte[]) {
+			bytes = (byte[]) object;
+		} else if (object instanceof String) {
+			bytes = ((String) object).getBytes();
+		} else {
+			throw new UnsupportedOperationException("Only supports String and byte[]");
+		}
+
 		ByteBuffer data = ByteBuffer.wrap(bytes);
 		if (bytes.length > 24) {
 			data.limit(24);

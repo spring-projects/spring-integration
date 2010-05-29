@@ -44,31 +44,42 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 	 * The assembled data; must contain a reference when assembleData()
 	 * returns true; will be set to null when getAssembledData() is called.
 	 */
-	protected byte[] assembledData;
+	protected Object assembledData;
 
 	protected int maxMessageSize = 1024 * 60;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_LENGTH_HEADER}.
-	 * @return True when a message is completely assembled.
+	 * @return SocketReader.MESSAGE_COMPLETE when message is assembled, otherwise SocketReader.MESSAGE_IMCOMPLETE, or
+	 * < 0 if socket closed before any data for a message is received.
 	 * @throws IOException
 	 */
 	protected abstract int assembleDataLengthFormat() throws IOException;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_STX_ETX}.
-	 * @return True when a message is completely assembled.
+	 * @return SocketReader.MESSAGE_COMPLETE when message is assembled, otherwise SocketReader.MESSAGE_IMCOMPLETE, or
+	 * < 0 if socket closed before any data for a message is received.
 	 * @throws IOException
 	 */
 	protected abstract int assembleDataStxEtxFormat() throws IOException;
 	
 	/**
 	 * Assembles data in format {@link #FORMAT_CRLF}.
-	 * @return True when a message is completely assembled.
+	 * @return SocketReader.MESSAGE_COMPLETE when message is assembled, otherwise SocketReader.MESSAGE_IMCOMPLETE, or
+	 * < 0 if socket closed before any data for a message is received.
 	 * @throws IOException
 	 */
 	protected abstract int assembleDataCrLfFormat() throws IOException;
-	
+
+	/**
+	 * Assembles data in format {@link #FORMAT_JAVA_SERIALIZED}
+	 * @return SocketReader.MESSAGE_COMPLETE when message is assembled, otherwise SocketReader.MESSAGE_IMCOMPLETE, or
+	 * < 0 if socket closed before any data for a message is received.
+	 * @throws IOException
+	 */
+	protected abstract int assembleDataSerializedFormat() throws IOException;
+
 	/**
 	 * Assembles data in format {@link #FORMAT_CUSTOM}. Implementations must
 	 * return false until the message is completely assembled, at which time
@@ -90,6 +101,8 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 				return assembleDataCrLfFormat();
 			case FORMAT_CUSTOM:
 				return assembleDataCustomFormat();
+			case FORMAT_JAVA_SERIALIZED:
+				return assembleDataSerializedFormat();
 			default:
 				throw new UnsupportedOperationException(
 						"Unsupported message format: " + messageFormat);
@@ -98,6 +111,19 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 			doClose();
 			throw e;
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.ip.tcp.SocketReader#getAssembledData()
+	 */
+	public Object getAssembledData() {
+		Object assembledData = this.assembledData;
+		this.assembledData = null;
+		if (assembledData instanceof byte[] &&
+				((byte[]) assembledData).length == 0) {
+			return null;
+		}
+		return assembledData;
 	}
 
 	/**

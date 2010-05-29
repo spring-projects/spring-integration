@@ -17,6 +17,8 @@ package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import javax.net.SocketFactory;
@@ -51,13 +53,16 @@ public class SimpleTcpNetInboundGatewayTests {
 	SimpleTcpNetInboundGateway gatewayLength;
 
 	@Autowired
+	@Qualifier(value="gatewaySerialized")
+	SimpleTcpNetInboundGateway gatewaySerialized;
+
+	@Autowired
 	@Qualifier(value="gatewayCustom")
 	SimpleTcpNetInboundGateway gatewayCustom;
 	
 	@Test
 	public void testCrLf() throws Exception {
-		Thread.sleep(startup);
-		startup = 0;
+		waitListening(gatewayCrLf);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayCrLf.getPort());
 		String greetings = "Hello World!";
 		socket.getOutputStream().write((greetings + "\r\n").getBytes());
@@ -75,8 +80,7 @@ public class SimpleTcpNetInboundGatewayTests {
 
 	@Test
 	public void testStxEtx() throws Exception {
-		Thread.sleep(startup);
-		startup = 0;
+		waitListening(gatewayStxEtx);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayStxEtx.getPort());
 		String greetings = "Hello World!";
 		socket.getOutputStream().write(MessageFormats.STX);
@@ -98,9 +102,18 @@ public class SimpleTcpNetInboundGatewayTests {
 	}
 
 	@Test
+	public void testSerialized() throws Exception {
+		waitListening(gatewaySerialized);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewaySerialized.getPort());
+		String greetings = "Hello World!";
+		new ObjectOutputStream(socket.getOutputStream()).writeObject(greetings);
+		String echo = (String) new ObjectInputStream(socket.getInputStream()).readObject();
+		assertEquals("echo:" + greetings, echo);
+	}
+
+	@Test
 	public void testLength() throws Exception {
-		Thread.sleep(startup);
-		startup = 0;
+		waitListening(gatewayLength);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayLength.getPort());
 		String greetings = "Hello World!";
 		byte[] header = new byte[4];
@@ -130,8 +143,7 @@ public class SimpleTcpNetInboundGatewayTests {
 
 	@Test
 	public void testCustom() throws Exception {
-		Thread.sleep(startup);
-		startup = 0;
+		waitListening(gatewayCustom);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayCustom.getPort());
 		String greetings = "Hello World!";
 		String pad = "            ";
@@ -150,4 +162,16 @@ public class SimpleTcpNetInboundGatewayTests {
 		}
 		assertEquals("echo:" + greetings, sb.toString().trim());
 	}
+
+	private void waitListening(SimpleTcpNetInboundGateway gateway) throws Exception {
+		int n = 0;
+		while (!gateway.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				throw new Exception("Gateway failed to listen");
+			}
+		}
+		
+	}
+
 }

@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.util;
 
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -241,6 +242,31 @@ public class SocketUtils {
 						latch.await();
 					}
 					socket.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	/**
+	 * Sends two serialized objects over the same socket.
+	 * @param port
+	 */
+	public static void testSendSerialized(final int port) {
+		Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
+					OutputStream outputStream = socket.getOutputStream();
+					ObjectOutputStream oos = new ObjectOutputStream(outputStream);
+					oos.writeObject(TEST_STRING);
+					oos.flush();
+					oos.writeObject(TEST_STRING);
+					oos.flush();
+					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

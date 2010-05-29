@@ -124,7 +124,7 @@ public class TcpNetReceivingChannelAdapter extends
 
 	protected void processMessage(NetSocketReader reader)
 			throws Exception {
-		Message<byte[]> message = mapper.toMessage(reader);
+		Message<Object> message = mapper.toMessage(reader);
 		if (message != null) {
 			sendMessage(message);
 		}

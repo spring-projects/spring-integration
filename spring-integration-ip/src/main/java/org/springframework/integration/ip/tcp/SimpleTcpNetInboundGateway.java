@@ -120,6 +120,7 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	 */
 	public void setMessageFormat(int messageFormat) {
 		this.messageFormat = messageFormat;
+		mapper.setMessageFormat(messageFormat);
 	}
 
 	/**

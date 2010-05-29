@@ -33,7 +33,7 @@ public interface SocketWriter {
 	 * @param bytes The bytes to write.
 	 * @throws IOException 
 	 */
-	void write(byte[] bytes) throws IOException;
+	void write(Object object) throws IOException;
 
 	/**
 	 * @param messageFormat the messageFormat to set

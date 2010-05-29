@@ -50,7 +50,7 @@ public interface SocketReader {
 	 * again null until a new assembly is completed.
 	 * @return The assembled data or null.
 	 */
-	public byte[] getAssembledData();
+	public Object getAssembledData();
 
 	/**
 	 * Returns the InetAddress of the underlying socket.

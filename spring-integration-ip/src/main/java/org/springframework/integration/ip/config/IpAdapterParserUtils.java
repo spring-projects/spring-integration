@@ -223,6 +223,9 @@ public abstract class IpAdapterParserUtils {
 		if (messageFormat.equals("crlf")) {
 			return MessageFormats.FORMAT_CRLF;
 		}
+		if (messageFormat.equals("serialized")) {
+			return MessageFormats.FORMAT_JAVA_SERIALIZED;
+		}
 		if (messageFormat.equals("custom")) {
 			return MessageFormats.FORMAT_CUSTOM;
 		}

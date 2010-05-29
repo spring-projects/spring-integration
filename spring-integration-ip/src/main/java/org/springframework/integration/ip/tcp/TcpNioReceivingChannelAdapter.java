@@ -185,7 +185,7 @@ public class TcpNioReceivingChannelAdapter extends
 						logger.error("Error on close", ioe);
 					}
 				}
-				Message<byte[]> message;
+				Message<Object> message;
 					message = mapper.toMessage(reader);
 					if (message != null) {
 						sendMessage(message);

@@ -36,7 +36,16 @@ public class CustomNetSocketWriter extends NetSocketWriter {
 	 * @see org.springframework.integration.ip.tcp.NetSocketWriter#writeCustomFormat(byte[])
 	 */
 	@Override
-	protected void writeCustomFormat(byte[] bytes) throws IOException {
+	protected void writeCustomFormat(Object object) throws IOException {
+		byte[] bytes;
+		if (object instanceof byte[]) {
+			bytes = (byte[]) object;
+		} else if (object instanceof String) {
+			bytes = ((String) object).getBytes();
+		} else {
+			throw new UnsupportedOperationException("Only supports String and byte[]");
+		}
+		
 		if (bytes.length > 24) {
 			socket.getOutputStream().write(bytes, 0, 24);
 			return;

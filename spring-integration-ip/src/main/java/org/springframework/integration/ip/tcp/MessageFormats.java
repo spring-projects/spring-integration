@@ -36,9 +36,19 @@ public interface MessageFormats {
 	 */
 	public static final int FORMAT_CRLF = 3;
 	/**
+	 * Not a real format; any formats less than this must use 
+	 * a byte[] payload (or a String for outbound). Formats higher
+	 * have implied format (e.g. Serializable).
+	 */
+	public static final int FORMAT_IMPLICIT = 128;
+	/**
+	 * Message contains a Serializable object
+	 */
+	public static final int FORMAT_JAVA_SERIALIZED = 129;
+	/**
 	 * Message has custom format.
 	 */
-	public static final int FORMAT_CUSTOM = 99;
+	public static final int FORMAT_CUSTOM = 255;
 	
 	public static final int STX = 0x02;
 	

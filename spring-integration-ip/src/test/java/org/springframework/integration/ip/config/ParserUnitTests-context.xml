@@ -91,6 +91,19 @@
 		so-timeout="32"
 	/>
 
+	<ip:inbound-channel-adapter id="testInTcpNetSerialized"
+		channel="tcpChannel"
+		check-length="true"
+		message-format="serialized"
+		pool-size="27"
+		port="#{tcpIpUtils.findAvailableServerSocket(5450)}"
+		protocol="tcp"
+		receive-buffer-size="29"
+		so-keep-alive="true"
+		so-receive-buffer-size="30"
+		so-timeout="32"
+	/>
+
 	<ip:outbound-channel-adapter id="testOutUdp" 
 		ack-host="somehost"
 		ack-port="#{tcpIpUtils.findAvailableUdpSocket(7000)}"
@@ -169,6 +182,20 @@
 		so-timeout="54"
 		custom-socket-writer-class-name="org.springframework.integration.ip.tcp.CustomNetSocketWriter"
 		message-format="stx-etx"
+		so-keep-alive="true"
+		so-linger="3"
+		so-tcp-no-delay="true"
+		so-traffic-class="27"
+	/>
+	
+	<ip:outbound-channel-adapter id="testOutTcpNetSerialized" 
+		channel="tcpChannel"
+		host="localhost"
+		port="#{tcpIpUtils.findAvailableServerSocket(6450)}"
+		protocol="tcp"
+		so-send-buffer-size="53"
+		so-timeout="54"
+		message-format="serialized"
 		so-keep-alive="true"
 		so-linger="3"
 		so-tcp-no-delay="true"
