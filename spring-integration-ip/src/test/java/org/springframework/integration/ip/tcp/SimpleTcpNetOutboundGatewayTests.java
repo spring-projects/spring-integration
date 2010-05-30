@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -184,6 +185,51 @@ public class SimpleTcpNetOutboundGatewayTests {
 		latch3.countDown();
 		latch2.await(2000, TimeUnit.MILLISECONDS);
 		bytes = (byte[]) gateway.handleRequestMessage(message);
+		assertEquals("OK", new String(bytes));
+	}
+	
+	@Test
+	public void testOutboundCloseOnTimeout() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		final CountDownLatch latch2 = new CountDownLatch(1);
+		final CountDownLatch latch3 = new CountDownLatch(1);
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch1.countDown();
+					boolean first = true;
+					while (true) {
+						Socket s = ss.accept();
+						byte[] b = new byte[1024];
+						s.getInputStream().read(b);
+						if (!first)
+							s.getOutputStream().write("OK\r\n".getBytes());
+						first = false;
+						latch2.countDown();
+						latch3.await();
+						s.close();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}});
+		t.start();
+		latch1.await(2000, TimeUnit.MILLISECONDS);
+		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
+			("localhost", port);
+		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
+		gateway.setClose(false);
+		gateway.setSoTimeout(500);
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		try {
+			gateway.handleRequestMessage(message);
+			fail("Expected failure");
+		} catch (Exception e) { }
+		latch3.countDown();
+		latch2.await(2000, TimeUnit.MILLISECONDS);
+		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
 	}
 	

@@ -186,9 +186,7 @@ public class SocketUtils {
 						writeByte(outputStream, 'x', true);
 					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				} catch (Exception e) { }
 			}
 		});
 		thread.setDaemon(true);
@@ -293,9 +291,7 @@ public class SocketUtils {
 						writeByte(outputStream, 'x', true);
 					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				} catch (Exception e) { }
 			}
 		});
 		thread.setDaemon(true);

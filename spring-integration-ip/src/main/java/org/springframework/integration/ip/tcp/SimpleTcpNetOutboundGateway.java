@@ -86,6 +86,7 @@ public class SimpleTcpNetOutboundGateway extends
 			return object;
 		} catch (Exception e) {
 			this.reader = null;
+			this.handler.close();
 			throw new MessagingException(requestMessage, e);
 		}
 	}
