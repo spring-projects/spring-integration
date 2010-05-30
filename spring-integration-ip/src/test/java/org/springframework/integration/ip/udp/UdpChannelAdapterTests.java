@@ -57,11 +57,13 @@ public class UdpChannelAdapterTests {
 		adapter.start();
 		SocketUtils.waitListening(adapter);
 
-		String whichNic = SocketUtils.chooseANic(false);
+//		String whichNic = SocketUtils.chooseANic(false);
 		UnicastSendingMessageHandler handler = new UnicastSendingMessageHandler(
-				"localhost", port, false, true, whichNic, 
-				SocketUtils.findAvailableUdpSocket(), 500000);
-		handler.setLocalAddress(whichNic);
+				"localhost", port, false, true,
+				"localhost",
+//				whichNic, 
+				SocketUtils.findAvailableUdpSocket(), 5000);
+//		handler.setLocalAddress(whichNic);
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);
