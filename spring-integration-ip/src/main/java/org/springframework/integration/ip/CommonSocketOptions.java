@@ -22,10 +22,37 @@ package org.springframework.integration.ip;
  */
 public interface CommonSocketOptions {
 
-	void setSoTimeout(int soTimeout);
+	/**
+	 * @see Socket#setSoTimeout(int)
+	 * @see DatagramSocket#setSoTimeout(int)
+	 * @param timeout
+	 */
+	public void setSoTimeout(int soTimeout);
 
-	void setSoReceiveBufferSize(int soReceiveBufferSize);
+	/**
+	 * @see Socket#setReceiveBufferSize(int)
+	 * @see DatagramSocket#setReceiveBufferSize(int)
+	 * @param size
+	 */
+	public void setSoReceiveBufferSize(int soReceiveBufferSize);
 
-	void setSoSendBufferSize(int soSendBufferSize);
+	/**
+	 * @see Socket#setSendBufferSize(int)
+	 * @see DatagramSocket#setSendBufferSize(int)
+	 * @param size
+	 */
+	public void setSoSendBufferSize(int soSendBufferSize);
+	
+	/**
+	 * On a multi-homed system, specifies the ip address of the network interface used to communicate.
+	 * For inbound adapters and gateways, specifies the interface used to listed for incoming connections.
+	 * If omitted, the endpoint will listen on all available adapters. For the UDP multicast outbound adapter
+	 * specifies the interface to which multicast packets will be sent. For UDP unicast and multicast
+	 * adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
+	 * apply to TCP outbound adapters and gateways.
+	 * 
+ 	 * @param localAddress
+	 */
+	public void setLocalAddress(String localAddress);
 
 }

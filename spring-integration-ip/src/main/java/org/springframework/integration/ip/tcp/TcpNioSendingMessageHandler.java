@@ -102,4 +102,7 @@ public class TcpNioSendingMessageHandler extends
 		this.buffsPerConnection = buffsPerConnection;
 	}
 
+	public void setLocalAddress(String localAddress) {
+		logger.warn("localAddress not used on tcp outbound endpoints");
+	}
 }

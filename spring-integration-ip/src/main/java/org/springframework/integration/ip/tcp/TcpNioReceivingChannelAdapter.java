@@ -17,6 +17,7 @@ package org.springframework.integration.ip.tcp;
 
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
@@ -65,22 +66,28 @@ public class TcpNioReceivingChannelAdapter extends
 	@Override
 	protected void server() {
 		try {
-			serverChannel = ServerSocketChannel.open();
-			listening = true;
-			serverChannel.configureBlocking(false);
-			serverChannel.socket().bind(new InetSocketAddress(port),
-					Math.abs(poolSize));
+			this.serverChannel = ServerSocketChannel.open();
+			this.listening = true;
+			this.serverChannel.configureBlocking(false);
+			if (this.localAddress == null) {
+				this.serverChannel.socket().bind(new InetSocketAddress(this.port),
+					Math.abs(this.poolSize));
+			} else {
+				InetAddress whichNic = InetAddress.getByName(this.localAddress);
+				this.serverChannel.socket().bind(new InetSocketAddress(whichNic, this.port),
+						Math.abs(this.poolSize));
+			}
 			final Selector selector = Selector.open();
-			serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-			doSelect(serverChannel, selector);
+			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+			doSelect(this.serverChannel, selector);
 
 		} catch (IOException e) {
 			try {
 				serverChannel.close();
 			} catch (IOException e1) { }
-			listening = false;
-			serverChannel = null;
-			if (active) {
+			this.listening = false;
+			this.serverChannel = null;
+			if (this.active) {
 				logger.error("Error on ServerSocketChannel", e);
 			}
 		}

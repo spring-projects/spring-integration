@@ -19,15 +19,19 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 
 import javax.net.ServerSocketFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 
 /**
  * TCP/IP Test utilities.
@@ -328,5 +332,44 @@ public class SocketUtils {
 	public static int findAvailableUdpSocket() {
 		return findAvailableUdpSocket(9876);
 	}
+
+	public static void setLocalNicIfPossible(
+			AbstractInternetProtocolReceivingChannelAdapter adapter)
+			throws UnknownHostException {
+		InetAddress[] nics = InetAddress.getAllByName(null);
+		if (nics.length > 0) {
+			// just listen on the loopback interface
+			String loopBack = nics[0].getHostAddress();
+			adapter.setLocalAddress(loopBack);
+		}
+	}
+	
+	public static String chooseANic(boolean multicast) throws Exception {
+		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();	
+		while (interfaces.hasMoreElements()) {
+			NetworkInterface intface = interfaces.nextElement();
+			if (intface.isLoopback() || (multicast && !intface.supportsMulticast()))
+				continue;
+			Enumeration<InetAddress> inet = intface.getInetAddresses();
+			if (!inet.hasMoreElements()) 
+				continue;
+			String address = inet.nextElement().getHostAddress();
+			return address;
+		}
+		return null;
+	}
+	
+	public static void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter) throws Exception {
+		int n = 0;
+		while (!adapter.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				throw new Exception("Gateway failed to listen");
+			}
+		}
+		
+	}
+	
+
 
 }

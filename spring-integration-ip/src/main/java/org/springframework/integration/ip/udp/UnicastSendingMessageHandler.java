@@ -17,9 +17,9 @@
 package org.springframework.integration.ip.udp;
 
 import java.io.IOException;
-import java.net.BindException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Collections;
@@ -63,6 +63,8 @@ public class UnicastSendingMessageHandler extends
 	 * If true adds headers to instruct receiving adapter to return an ack.
 	 */
 	protected volatile boolean waitForAck = false;
+	
+	protected volatile boolean acknowledge = false;
 
 	protected volatile int ackPort;
 
@@ -73,13 +75,16 @@ public class UnicastSendingMessageHandler extends
 	protected volatile Map<String, CountDownLatch> ackControl = Collections
 			.synchronizedMap(new HashMap<String, CountDownLatch>());
 
-	protected volatile DatagramSocket ackSocket;
-
 	protected volatile Exception fatalException;
 
 	protected int soReceiveBufferSize = -1;
 
+	protected String localAddress;
+	
+	private CountDownLatch ackLatch;
 
+	private boolean ackThreadRunning;
+	
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
 	 * @param host Destination host.
@@ -157,6 +162,7 @@ public class UnicastSendingMessageHandler extends
 		}
 		if (acknowledge) {
 			Assert.hasLength(ackHost);
+			this.acknowledge = true;
 			this.executorService = Executors
 					.newSingleThreadExecutor(new ThreadFactory() {
 						private AtomicInteger n = new AtomicInteger();
@@ -167,13 +173,25 @@ public class UnicastSendingMessageHandler extends
 							return thread;
 						}
 					});
-			this.executorService.execute(this);
 		}
 	}
 
 	public void handleMessage(Message<?> message)
 			throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
+		if (this.acknowledge) {
+			if (!this.ackThreadRunning) {
+				synchronized(this) {
+					if (!this.ackThreadRunning) {
+						ackLatch = new CountDownLatch(1);
+						this.executorService.execute(this);
+						try {
+							ackLatch.await(10000, TimeUnit.MILLISECONDS);
+						} catch (InterruptedException e) { }
+					}
+				}
+			}
+		}
 		CountDownLatch countdownLatch = null;
 		String messageId = message.getHeaders().getId().toString();
 		try {
@@ -187,7 +205,7 @@ public class UnicastSendingMessageHandler extends
 			}
 			packet = this.mapper.fromMessage(message);
 			this.send(packet);
-			logger.debug("Sent packet for message id " + message.getHeaders().getId());
+			logger.debug("Sent packet for message " + message);
 			if (this.waitForAck) {
 				if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
 					throw new MessagingException(message, "Failed to receive UDP Ack in " + ackTimeout + " millis");
@@ -219,7 +237,22 @@ public class UnicastSendingMessageHandler extends
 
 	protected synchronized DatagramSocket getSocket() throws IOException {
 		if (this.socket == null) {
-			this.socket = new DatagramSocket();
+			if (acknowledge) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Listening for acks on port: " + ackPort);
+				}
+				if (localAddress == null) {
+					this.socket = new DatagramSocket(this.ackPort);
+				} else {
+					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					this.socket = new DatagramSocket(this.ackPort, whichNic);
+				}
+				if (this.soReceiveBufferSize > 0) {
+					socket.setReceiveBufferSize(this.soReceiveBufferSize);
+				}
+			} else {
+				this.socket = new DatagramSocket();
+			}
 			setSocketAttributes(this.socket);
 		}
 		return this.socket;
@@ -238,18 +271,12 @@ public class UnicastSendingMessageHandler extends
 	 * Process acknowledgments, if requested.
 	 */
 	public void run() {
-		Exception fatalException = null;
 		try {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Listening for acks on port: " + ackPort);
-			}
-			this.ackSocket = new DatagramSocket(this.ackPort);
-			if (this.soReceiveBufferSize > 0) {
-				ackSocket.setReceiveBufferSize(this.soReceiveBufferSize);
-			}
+			this.ackThreadRunning = true;
+			ackLatch.countDown();
 			DatagramPacket ackPack = new DatagramPacket(new byte[100], 100);
 			while(true) {
-				this.ackSocket.receive(ackPack);
+				this.getSocket().receive(ackPack);
 				String id = new String(ackPack.getData(), ackPack.getOffset(), ackPack.getLength());
 				if (logger.isDebugEnabled()) {
 					logger.debug("Received ack for " + id + " from " + ackPack.getAddress().getHostAddress());
@@ -261,20 +288,12 @@ public class UnicastSendingMessageHandler extends
 			}
 		}
 		catch (IOException e) {
-			logger.error("Error on UDP Acknowledge thread" + e.getMessage());
-			fatalException = e;
+			if (this.socket != null && !this.socket.isClosed()) {
+				logger.error("Error on UDP Acknowledge thread:" + e.getMessage());
+			}
 		}
 		finally {
-			if (this.ackSocket != null) {
-				this.ackSocket.close();
-			}
-			if (fatalException instanceof BindException) {
-				logger.fatal("Failed to bind to acknowledge port: " + ackPort);
-				this.fatalException = fatalException;
-			}
-			else {
-				this.executorService.execute(this);
-			}
+			this.ackThreadRunning = false;
 		}
 	}
 
@@ -291,10 +310,9 @@ public class UnicastSendingMessageHandler extends
 	}
 
 	public void shutDown() {
-		DatagramSocket socket = this.ackSocket;
-		this.ackSocket = null;
 		if (socket != null) {
 			socket.close();
+			socket = null;
 		}
 	}
 
@@ -306,4 +324,9 @@ public class UnicastSendingMessageHandler extends
 		this.soReceiveBufferSize = size;
 	}
 
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
+	}
+
+	
 }

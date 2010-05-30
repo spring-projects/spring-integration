@@ -58,10 +58,7 @@ public class MultiClientTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
-		while (!adapter.isRunning()) { 
-			Thread.sleep(50); // wait for server to start listening
-		}
-		Thread.sleep(250); // wait for listener
+		SocketUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			Thread t = new Thread( new Runnable() {
 				public void run() {
@@ -102,10 +99,7 @@ public class MultiClientTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
-		while (!adapter.isRunning()) { 
-			Thread.sleep(50); // wait for server to start listening
-		}
-		Thread.sleep(250); // wait for listener
+		SocketUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
 			Thread t = new Thread( new Runnable() {
@@ -150,10 +144,7 @@ public class MultiClientTests {
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
 		final QueueChannel queueIn = new QueueChannel(1000);
-		while (!adapter.isRunning()) { 
-			Thread.sleep(50); // wait for server to start listening
-		}
-		Thread.sleep(250); // wait for listener
+		SocketUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			final int j = i;
 			Thread t = new Thread( new Runnable() {
@@ -161,7 +152,7 @@ public class MultiClientTests {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort(),
 							true, true, "localhost",
-							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
+							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
 							10000);
 					while (true) {
 						Message message = queueIn.receive();

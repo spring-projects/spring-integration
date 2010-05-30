@@ -38,6 +38,7 @@ import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
+import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
@@ -47,9 +48,11 @@ import org.springframework.integration.message.MessageBuilder;
  */
 public class DatagramPacketSendingHandlerTests {
 
+	private boolean noMulticast;
+	
 	@Test
 	public void verifySend() throws Exception {
-		final int testPort = 27816;
+		final int testPort = SocketUtils.findAvailableUdpSocket();
 		byte[] buffer = new byte[8];
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -83,11 +86,12 @@ public class DatagramPacketSendingHandlerTests {
 
 	@Test
 	public void verifySendWithAck() throws Exception {
-		final int testPort = 27816;
-		final int ackPort = 17816;
+		final int testPort = SocketUtils.findAvailableUdpSocket();
+		final int ackPort = SocketUtils.findAvailableUdpSocket(testPort + 1);
 		byte[] buffer = new byte[1000];
 		final DatagramPacket receivedPacket = new DatagramPacket(buffer, buffer.length);
-		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch1 = new CountDownLatch(1);		
+		final CountDownLatch latch2 = new CountDownLatch(1);
 		UnicastSendingMessageHandler handler = 
 				new UnicastSendingMessageHandler("localhost", testPort, true, 
 						true, "localhost", ackPort, 5000);
@@ -95,6 +99,7 @@ public class DatagramPacketSendingHandlerTests {
 			public void run() {
 				try {
 					DatagramSocket socket = new DatagramSocket(testPort);
+					latch1.countDown();
 					socket.receive(receivedPacket);
 					socket.close();
 					DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
@@ -108,17 +113,17 @@ public class DatagramPacketSendingHandlerTests {
 					DatagramSocket out = new DatagramSocket();
 					out.send(ackPack);
 					out.close();
-					latch.countDown();
+					latch2.countDown();
 				}
 				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
-		Thread.sleep(3000);
+		latch1.await(3000, TimeUnit.MILLISECONDS);
 		String payload = "foobar";
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertTrue(latch2.await(10000, TimeUnit.MILLISECONDS));
 		byte[] src = receivedPacket.getData();
 		int length = receivedPacket.getLength();
 		int offset = receivedPacket.getOffset();
@@ -131,10 +136,11 @@ public class DatagramPacketSendingHandlerTests {
 	@Test
 	@Ignore
 	public void verifySendMulticast() throws Exception {
-		final int testPort = 27816;
+		final int testPort = SocketUtils.findAvailableUdpSocket();
 		final String multicastAddress = "225.6.7.8";
 		final String payload = "foo";
-		final CountDownLatch latch = new CountDownLatch(2);
+		final CountDownLatch latch1 = new CountDownLatch(2);
+		final CountDownLatch latch2 = new CountDownLatch(2);
 		Runnable catcher = new Runnable() {
 			public void run() {
 				try {
@@ -143,6 +149,7 @@ public class DatagramPacketSendingHandlerTests {
 					MulticastSocket socket = new MulticastSocket(testPort);
 					InetAddress group = InetAddress.getByName(multicastAddress);
 					socket.joinGroup(group);
+					latch1.countDown();
 					LogFactory.getLog(getClass())
 						.debug(Thread.currentThread().getName() + " waiting for packet");
 					socket.receive(receivedPacket);
@@ -155,9 +162,11 @@ public class DatagramPacketSendingHandlerTests {
 					assertEquals(payload, new String(dest));
 					LogFactory.getLog(getClass())
 						.debug(Thread.currentThread().getName() + " received packet");
-					latch.countDown();
+					latch2.countDown();
 				}
 				catch (Exception e) {
+					noMulticast = true;
+					latch1.countDown();
 					e.printStackTrace();
 				}
 			}
@@ -165,21 +174,25 @@ public class DatagramPacketSendingHandlerTests {
 		Executor executor = Executors.newFixedThreadPool(2);
 		executor.execute(catcher);
 		executor.execute(catcher);
-		Thread.sleep(1000);
+		latch1.await(3000, TimeUnit.MILLISECONDS);
+		if (noMulticast) {
+			return;
+		}
 		MulticastSendingMessageHandler handler = new MulticastSendingMessageHandler(multicastAddress, testPort);
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(latch.await(3000, TimeUnit.MILLISECONDS));
+		assertTrue(latch2.await(3000, TimeUnit.MILLISECONDS));
 		handler.shutDown();
 	}
 
 	@Test
 	@Ignore
 	public void verifySendMulticastWithAcks() throws Exception {
-		final int testPort = 27816;
-		final int ackPort = 17817;
+		final int testPort = SocketUtils.findAvailableUdpSocket();
+		final int ackPort = SocketUtils.findAvailableUdpSocket(testPort + 1);
 		final String multicastAddress = "225.6.7.8";
 		final String payload = "foobar";
-		final CountDownLatch latch = new CountDownLatch(2);
+		final CountDownLatch latch1 = new CountDownLatch(2);
+		final CountDownLatch latch2 = new CountDownLatch(2);
 		Runnable catcher = new Runnable() {
 			public void run() {
 				try {
@@ -188,6 +201,7 @@ public class DatagramPacketSendingHandlerTests {
 					MulticastSocket socket = new MulticastSocket(testPort);
 					InetAddress group = InetAddress.getByName(multicastAddress);
 					socket.joinGroup(group);
+					latch1.countDown();
 					LogFactory.getLog(getClass()).debug(Thread.currentThread().getName() + " waiting for packet");
 					socket.receive(receivedPacket);
 					socket.close();
@@ -209,9 +223,11 @@ public class DatagramPacketSendingHandlerTests {
 					DatagramSocket out = new DatagramSocket();
 					out.send(ackPack);
 					out.close();
-					latch.countDown();
+					latch2.countDown();
 				}
 				catch (Exception e) {
+					noMulticast = true;
+					latch1.countDown();
 					e.printStackTrace();
 				}
 			}
@@ -219,13 +235,16 @@ public class DatagramPacketSendingHandlerTests {
 		Executor executor = Executors.newFixedThreadPool(2);
 		executor.execute(catcher);
 		executor.execute(catcher);
-		Thread.sleep(3000);
+		latch1.await(3000, TimeUnit.MILLISECONDS);
+		if (noMulticast) {
+			return;
+		}
 		MulticastSendingMessageHandler handler = 
 			new MulticastSendingMessageHandler(multicastAddress, testPort, true, 
-                    							true, "localhost", ackPort, 500000);;
+                    							true, "localhost", ackPort, 500000);
 		handler.setMinAcksForSuccess(2);
 		handler.handleMessage(MessageBuilder.withPayload(payload).build());
-		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
+		assertTrue(latch2.await(10000, TimeUnit.MILLISECONDS));
 		handler.shutDown();
 	}
 	

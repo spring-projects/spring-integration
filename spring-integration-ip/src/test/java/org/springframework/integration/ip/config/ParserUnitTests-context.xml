@@ -26,6 +26,7 @@
 		so-receive-buffer-size="30"
 		so-send-buffer-size="31"
 		so-timeout="32"
+		local-address="127.0.0.1"
 	/>
 
 	<ip:inbound-channel-adapter id="testInUdpMulticast"
@@ -42,6 +43,7 @@
 		so-receive-buffer-size="30"
 		so-send-buffer-size="31"
 		so-timeout="32"
+		local-address="127.0.0.1"		
 	/>
 
 	<ip:inbound-channel-adapter id="testInTcpNio"
@@ -58,6 +60,7 @@
 		so-timeout="32"
 		using-direct-buffers="false"
 		using-nio="true"
+		local-address="127.0.0.1"
 	/>
 
 	<ip:inbound-channel-adapter id="testInTcpNioDirect"
@@ -89,6 +92,7 @@
 		so-keep-alive="true"
 		so-receive-buffer-size="30"
 		so-timeout="32"
+		local-address="127.0.0.1"		
 	/>
 
 	<ip:inbound-channel-adapter id="testInTcpNetSerialized"
@@ -118,6 +122,7 @@
 		so-receive-buffer-size="52"
 		so-send-buffer-size="53"
 		so-timeout="54"
+		local-address="127.0.0.1"		
 	/>
 	
 	<ip:outbound-channel-adapter id="testOutUdpiMulticast" 
@@ -215,7 +220,7 @@
 		so-receive-buffer-size="124"
 		so-send-buffer-size="125"
 		so-timeout="126"
-		
+		local-address="127.0.0.1"		
 		/>	
 
 	<ip:outbound-gateway id="simpleOutGateway"

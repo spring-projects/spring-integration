@@ -245,6 +245,18 @@ receive the next message.
 			</xsd:simpleType>
 		</xsd:attribute>
 		<xsd:attribute name="so-keep-alive" type="xsd:string" />
+		<xsd:attribute name="local-address" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+On a multi-homed system, specifies the ip address of the network interface used to communicate.
+For inbound adapters and gateways, specifies the interface used to listed for incoming connections.
+If omitted, the endpoint will listen on all available adapters. For the UDP multicast outbound adapter
+specifies the interface to which multicast packets will be sent. For UDP unicast and multicast
+adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
+apply to TCP outbound adapters and gateways.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 </xsd:schema>

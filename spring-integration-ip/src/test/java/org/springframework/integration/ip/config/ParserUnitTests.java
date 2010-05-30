@@ -127,6 +127,7 @@ public class ParserUnitTests {
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 	}
 	
 	@Test
@@ -139,6 +140,7 @@ public class ParserUnitTests {
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 	}
 	
 	@Test
@@ -154,6 +156,7 @@ public class ParserUnitTests {
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
 		assertEquals(false, dfa.getPropertyValue("close"));
+		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 	}
 	
 	@Test
@@ -183,6 +186,7 @@ public class ParserUnitTests {
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
 		assertEquals(false, dfa.getPropertyValue("close"));
+		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 	}
 	
 	@Test
@@ -215,6 +219,7 @@ public class ParserUnitTests {
 		assertEquals(52, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
+		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 	}
 	
 	@Test
@@ -311,6 +316,7 @@ public class ParserUnitTests {
 		assertEquals(126, dfa.getPropertyValue("soTimeout"));
 		assertEquals(23, dfa.getPropertyValue("poolSize"));
 		assertEquals(false, dfa.getPropertyValue("close"));
+		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 	}
 
 	@Test

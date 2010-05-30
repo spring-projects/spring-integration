@@ -34,6 +34,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * Ensures that all messages are correctly assembled and received ok.
  * 
  * @author Gary Russell
+ * @since 2.0
  *
  */
 public class MultiClientTests {
@@ -46,16 +47,14 @@ public class MultiClientTests {
 			new TcpNetReceivingChannelAdapter(SocketUtils.findAvailableServerSocket());
 		int drivers = 10;
 		adapter.setPoolSize(drivers);
+		adapter.setReceiveBufferSize(10000);
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		while (!adapter.isRunning()) { 
-			Thread.sleep(50); // wait for server to start listening
-		}
-		Thread.sleep(250); // wait for listener
+		SocketUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			Thread t = new Thread( new Runnable() {
 				public void run() {
@@ -85,6 +84,7 @@ public class MultiClientTests {
 		final TcpNioReceivingChannelAdapter adapter = 
 			new TcpNioReceivingChannelAdapter(SocketUtils.findAvailableServerSocket());
 		adapter.setPoolSize(4);
+		adapter.setReceiveBufferSize(10000);
 		int drivers = 10;
 		QueueChannel queue = new QueueChannel(drivers * 3);
 		adapter.setOutputChannel(queue);
@@ -92,10 +92,7 @@ public class MultiClientTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		while (!adapter.isRunning()) { 
-			Thread.sleep(50); // wait for server to start its listener.
-		}
-		Thread.sleep(250); // wait for listener
+		SocketUtils.waitListening(adapter);
 		for (int i = 0; i < drivers; i++) {
 			Thread t = new Thread( new Runnable() {
 				public void run() {

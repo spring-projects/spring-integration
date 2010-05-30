@@ -48,8 +48,7 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 	protected volatile int soTimeout = -1;
 
 	protected volatile ExecutorService executorService;
-
-
+	
 	public AbstractInternetProtocolSendingMessageHandler(String host, int port) {
 		Assert.notNull(host, "host must not be null");
 		this.destinationAddress = new InetSocketAddress(host, port);

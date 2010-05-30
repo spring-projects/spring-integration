@@ -34,6 +34,7 @@ import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -97,6 +98,10 @@ public class UdpMulticastEndToEndTests implements Runnable {
 			catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		} catch (MessagingException e) {
+			// no multicast this host
+			e.printStackTrace();
+			return;
 		}
 		finally {
 			if (hangAroundFor == 0) {

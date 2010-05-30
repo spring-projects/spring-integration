@@ -44,6 +44,8 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	protected volatile boolean listening;
 
+	protected volatile String localAddress;
+
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
 		this.port = port;
@@ -99,6 +101,14 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	public boolean isListening() {
 		return listening;
+	}
+
+	public String getLocalAddress() {
+		return localAddress;
+	}
+
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
 	}
 
 }

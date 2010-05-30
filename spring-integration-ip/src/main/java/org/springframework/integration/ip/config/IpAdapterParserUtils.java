@@ -88,6 +88,8 @@ public abstract class IpAdapterParserUtils {
 	static final String SO_TRAFFIC_CLASS = "so-traffic-class";
 
 	static final String CLOSE = "close";
+	
+	static final String LOCAL_ADDRESS = "local-address";
 
 
 	/**
@@ -265,6 +267,7 @@ public abstract class IpAdapterParserUtils {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SO_TIMEOUT);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SO_RECEIVE_BUFFER_SIZE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SO_SEND_BUFFER_SIZE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, LOCAL_ADDRESS);
 	}
 
 }

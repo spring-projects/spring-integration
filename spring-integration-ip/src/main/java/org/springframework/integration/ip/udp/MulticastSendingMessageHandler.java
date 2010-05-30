@@ -18,7 +18,11 @@ package org.springframework.integration.ip.udp;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketAddress;
 
 import org.springframework.integration.message.MessageHandler;
 
@@ -38,7 +42,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 
 	protected int timeToLive = -1;
 
-
+	protected String localAddress;
+	
 	/**
 	 * Constructs a MulticastSendingMessageHandler to send data to the multicast address/port.
 	 * @param address The multicast address.
@@ -93,6 +98,40 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		super(address, port, lengthCheck, acknowledge, ackHost, ackPort, ackTimeout);
 	}
 
+	@Override
+	protected synchronized DatagramSocket getSocket() throws IOException {
+		if (this.socket == null) {
+			MulticastSocket socket;
+			if (acknowledge) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Listening for acks on port: " + ackPort);
+				}
+				if (localAddress == null) {
+					socket = new MulticastSocket(this.ackPort);
+				} else {
+					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					socket = new MulticastSocket(new InetSocketAddress(whichNic, this.ackPort));
+				}
+				if (this.soReceiveBufferSize > 0) {
+					socket.setReceiveBufferSize(this.soReceiveBufferSize);
+				}
+			} else {
+				socket = new MulticastSocket();
+			}
+			if (this.timeToLive >= 0) {
+				socket.setTimeToLive(this.timeToLive);
+			}
+			setSocketAttributes(socket);
+			if (localAddress != null) {
+				InetAddress whichNic = InetAddress.getByName(this.localAddress);
+				NetworkInterface intfce = NetworkInterface.getByInetAddress(whichNic);
+				socket.setNetworkInterface(intfce);
+			}
+			this.socket = socket;
+		}
+		return this.socket;
+	}
+	
 
 	/**
 	 * If acknowledge = true; how many acks needed for success.
@@ -110,17 +149,8 @@ public class MulticastSendingMessageHandler extends UnicastSendingMessageHandler
 		this.timeToLive = timeToLive;
 	}
 
-	protected synchronized DatagramSocket getSocket() throws IOException {
-		if (this.socket == null) {
-			MulticastSocket socket = new MulticastSocket();
-			if (this.timeToLive >= 0) {
-				socket.setTimeToLive(this.timeToLive);
-			}
-			socket.setLoopbackMode(true); // disable loopback to the local port
-			setSocketAttributes(socket);
-			this.socket = socket;
-		}
-		return this.socket;
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
 	}
 
 }

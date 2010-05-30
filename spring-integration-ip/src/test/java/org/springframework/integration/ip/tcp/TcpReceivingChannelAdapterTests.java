@@ -45,8 +45,9 @@ public class TcpReceivingChannelAdapterTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
+		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
-		waitListening(adapter);
+		SocketUtils.waitListening(adapter);
 		SocketUtils.testSendLength(port, null); //sends 2 copies of TEST_STRING twice
 		Message<?> message = channel.receive(2000);
 		assertNotNull(message);
@@ -75,7 +76,7 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		waitListening(adapter);
+		SocketUtils.waitListening(adapter);
 		SocketUtils.testSendStxEtx(port, null); //sends 2 copies of TEST_STRING twice
 		Message<?> message = channel.receive(4000);
 		assertNotNull(message);
@@ -101,8 +102,9 @@ public class TcpReceivingChannelAdapterTests {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
+		SocketUtils.setLocalNicIfPossible(adapter);
 		adapter.start();
-		waitListening(adapter);
+		SocketUtils.waitListening(adapter);
 		SocketUtils.testSendLength(port, null); //sends 2 copies of TEST_STRING twice
 		Message<?> message = channel.receive(2000);
 		assertNotNull(message);
@@ -130,7 +132,7 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		waitListening(adapter);
+		SocketUtils.waitListening(adapter);
 		SocketUtils.testSendStxEtx(port, null); //sends 2 copies of TEST_STRING twice
 		Message<?> message = channel.receive(2000);
 		assertNotNull(message);
@@ -160,7 +162,7 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		waitListening(adapter);
+		SocketUtils.waitListening(adapter);
 		CountDownLatch latch = new CountDownLatch(1);
 		SocketUtils.testSendCrLfSingle(port, latch); 
 		Message<?> message = channel.receive(5000);
@@ -195,7 +197,7 @@ public class TcpReceivingChannelAdapterTests {
 		taskScheduler.initialize();
 		adapter.setTaskScheduler(taskScheduler);
 		adapter.start();
-		waitListening(adapter);
+		SocketUtils.waitListening(adapter);
 		CountDownLatch latch = new CountDownLatch(1);
 		SocketUtils.testSendCrLfSingle(port, latch); 
 		Message<?> message = channel.receive(2000);
@@ -210,18 +212,5 @@ public class TcpReceivingChannelAdapterTests {
 				new String((byte[])message.getPayload()));
 		adapter.stop();
 	}
-	
-	private void waitListening(AbstractInternetProtocolReceivingChannelAdapter adapter) throws Exception {
-		int n = 0;
-		while (!adapter.isListening()) {
-			Thread.sleep(100);
-			if (n++ > 100) {
-				throw new Exception("Gateway failed to listen");
-			}
-		}
-		
-	}
-
-	
 
 }

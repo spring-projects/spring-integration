@@ -19,6 +19,7 @@ package org.springframework.integration.ip.udp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -161,6 +162,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 				Message<byte[]> message = null;
 				try {
 					message = mapper.toMessage(packet);
+					if (logger.isDebugEnabled())
+						logger.debug("Received:" + message);
 				}
 				catch (Exception e) {
 					logger.error("Failed to map packet to message ", e);
@@ -186,13 +189,19 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	protected synchronized DatagramSocket getSocket() {
 		if (this.socket == null) {
 			try {
-				this.socket = new DatagramSocket(this.port);
+				if (localAddress == null) {
+					this.socket = new DatagramSocket(this.port);
+				} else {
+					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					this.socket = new DatagramSocket(this.port, whichNic);
+				}
+				
 				this.socket.setSoTimeout(this.soTimeout);
 				if (this.soReceiveBufferSize > 0) {
 					this.socket.setReceiveBufferSize(this.soReceiveBufferSize);
 				}
 			}
-			catch (SocketException e) {
+			catch (IOException e) {
 				throw new MessagingException("failed to create DatagramSocket", e);
 			}
 		}

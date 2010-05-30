@@ -95,4 +95,8 @@ public class TcpNetSendingMessageHandler extends
 		this.writer.doClose();
 		this.writer = null;
 	}
+
+	public void setLocalAddress(String localAddress) {
+		logger.warn("localAddress not used on tcp outbound endpoints");
+	}
 }

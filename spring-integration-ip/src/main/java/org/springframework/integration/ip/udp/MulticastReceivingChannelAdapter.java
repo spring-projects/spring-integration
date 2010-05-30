@@ -59,12 +59,15 @@ public class MulticastReceivingChannelAdapter extends UnicastReceivingChannelAda
 		this.group = group;
 	}
 
-
 	@Override
 	protected synchronized DatagramSocket getSocket() {
 		if (this.socket == null) {
 			try {
 				MulticastSocket socket = new MulticastSocket(this.port);
+				if (localAddress != null) {
+					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					socket.setInterface(whichNic);
+				}
 				socket.setSoTimeout(this.soTimeout);
 				if (this.soReceiveBufferSize > 0) {
 					socket.setReceiveBufferSize(this.soReceiveBufferSize);

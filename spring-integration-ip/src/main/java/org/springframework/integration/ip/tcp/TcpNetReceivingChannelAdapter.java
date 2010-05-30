@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -37,6 +38,7 @@ public class TcpNetReceivingChannelAdapter extends
 		AbstractTcpReceivingChannelAdapter {
 
 	protected ServerSocket serverSocket;
+	
 	protected Class<NetSocketReader> customSocketReaderClass;
 	/**
 	 * Constructs a TcpNetReceivingChannelAdapter that listens on the provided port.
@@ -55,11 +57,17 @@ public class TcpNetReceivingChannelAdapter extends
 	 */
 	@Override
 	protected void server() {
-		while (active) {
+		while (this.active) {
 			try {
-				serverSocket = ServerSocketFactory.getDefault()
-						.createServerSocket(port, Math.abs(poolSize));
-				listening = true;
+				if (this.localAddress == null) {
+					this.serverSocket = ServerSocketFactory.getDefault()
+							.createServerSocket(this.port, Math.abs(this.poolSize));
+				} else {
+					InetAddress whichNic = InetAddress.getByName(this.localAddress);
+					this.serverSocket = ServerSocketFactory.getDefault()
+							.createServerSocket(port, Math.abs(poolSize), whichNic);
+				}
+				this.listening = true;
 				while (true) {
 					final Socket socket = serverSocket.accept();
 					setSocketOptions(socket);
@@ -69,14 +77,14 @@ public class TcpNetReceivingChannelAdapter extends
 						}});
 				}
 			} catch (IOException e) {
-				if (serverSocket != null) {
+				if (this.serverSocket != null) {
 					try {
-						serverSocket.close();
+						this.serverSocket.close();
 					} catch (IOException e1) {}
 				}
-				listening = false;
-				serverSocket = null;
-				if (active) {
+				this.listening = false;
+				this.serverSocket = null;
+				if (this.active) {
 					logger.error("Error on ServerSocket", e);
 				}
 

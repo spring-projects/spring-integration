@@ -66,6 +66,8 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	
 	protected boolean close;
 	
+	protected String localAddress;
+	
 	@Override
 	protected void doStart() {
 		super.doStart();
@@ -91,6 +93,7 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 		this.delegate.setTaskScheduler(getTaskScheduler());
 		this.delegate.setCustomSocketReaderClassName(customSocketReaderClassName);
 		this.delegate.setClose(close);
+		this.delegate.setLocalAddress(localAddress);
 		super.onInit();
 	}
 
@@ -204,6 +207,10 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	
 	public boolean isListening() {
 		return delegate.isListening();
+	}
+
+	public void setLocalAddress(String localAddress) {
+		this.localAddress = localAddress;
 	}
 
 	private class WriteCapableTcpNetReceivingChannelAdapter extends TcpNetReceivingChannelAdapter {
