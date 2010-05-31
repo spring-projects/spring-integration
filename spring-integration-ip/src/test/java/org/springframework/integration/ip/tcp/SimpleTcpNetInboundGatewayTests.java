@@ -64,6 +64,7 @@ public class SimpleTcpNetInboundGatewayTests {
 	public void testCrLf() throws Exception {
 		waitListening(gatewayCrLf);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayCrLf.getPort());
+		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		socket.getOutputStream().write((greetings + "\r\n").getBytes());
 		StringBuilder sb = new StringBuilder();
@@ -82,6 +83,7 @@ public class SimpleTcpNetInboundGatewayTests {
 	public void testStxEtx() throws Exception {
 		waitListening(gatewayStxEtx);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayStxEtx.getPort());
+		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		socket.getOutputStream().write(MessageFormats.STX);
 		socket.getOutputStream().write((greetings).getBytes());
@@ -105,6 +107,7 @@ public class SimpleTcpNetInboundGatewayTests {
 	public void testSerialized() throws Exception {
 		waitListening(gatewaySerialized);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewaySerialized.getPort());
+		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		new ObjectOutputStream(socket.getOutputStream()).writeObject(greetings);
 		String echo = (String) new ObjectInputStream(socket.getInputStream()).readObject();
@@ -115,6 +118,7 @@ public class SimpleTcpNetInboundGatewayTests {
 	public void testLength() throws Exception {
 		waitListening(gatewayLength);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayLength.getPort());
+		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
 		byte[] header = new byte[4];
 		header[3] = (byte) greetings.length();

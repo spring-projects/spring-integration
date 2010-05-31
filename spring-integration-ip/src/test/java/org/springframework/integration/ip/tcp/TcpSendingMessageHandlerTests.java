@@ -57,6 +57,7 @@ public class TcpSendingMessageHandlerTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
@@ -88,6 +89,7 @@ public class TcpSendingMessageHandlerTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[24];
 		readFully(is, buff);
@@ -117,6 +119,7 @@ public class TcpSendingMessageHandlerTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
@@ -148,6 +151,7 @@ public class TcpSendingMessageHandlerTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
@@ -179,6 +183,7 @@ public class TcpSendingMessageHandlerTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[24];
 		readFully(is, buff);

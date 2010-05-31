@@ -139,6 +139,7 @@ public class NioSocketWriterTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 4];
 		readFully(is, buff);
@@ -175,6 +176,7 @@ public class NioSocketWriterTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
@@ -211,6 +213,7 @@ public class NioSocketWriterTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
@@ -249,6 +252,7 @@ public class NioSocketWriterTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 4];
 		readFully(is, buff);
@@ -286,6 +290,7 @@ public class NioSocketWriterTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
@@ -323,6 +328,7 @@ public class NioSocketWriterTests {
 		t.setDaemon(true);
 		t.start();
 		Socket socket = server.accept();
+		socket.setSoTimeout(5000);
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
