@@ -41,6 +41,7 @@ public class NetSocketReaderTests {
 	public void testReadLength() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendLength(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -70,6 +71,7 @@ public class NetSocketReaderTests {
 	public void testReadStxEtx() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendStxEtx(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -100,6 +102,7 @@ public class NetSocketReaderTests {
 	public void testReadCrLf() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendCrLf(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -130,6 +133,7 @@ public class NetSocketReaderTests {
 	public void testReadSerialized() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendSerialized(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -156,6 +160,7 @@ public class NetSocketReaderTests {
 	public void testReadLengthOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendLengthOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -177,6 +182,7 @@ public class NetSocketReaderTests {
 	public void testReadStxEtxTimeout() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendStxEtxOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(500);
@@ -199,6 +205,7 @@ public class NetSocketReaderTests {
 	public void testReadStxEtxOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendStxEtxOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -222,6 +229,7 @@ public class NetSocketReaderTests {
 	public void testReadCrLfTimeout() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(500);
@@ -244,6 +252,7 @@ public class NetSocketReaderTests {
 	public void testReadCrLfOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		SocketUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
@@ -262,5 +271,5 @@ public class NetSocketReaderTests {
 		}
 		server.close();
 	}
-
+	
 }

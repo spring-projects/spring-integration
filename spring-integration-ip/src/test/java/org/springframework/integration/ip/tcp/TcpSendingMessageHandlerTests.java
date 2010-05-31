@@ -41,6 +41,7 @@ public class TcpSendingMessageHandlerTests {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -72,6 +73,7 @@ public class TcpSendingMessageHandlerTests {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -103,6 +105,7 @@ public class TcpSendingMessageHandlerTests {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -134,6 +137,7 @@ public class TcpSendingMessageHandlerTests {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -166,6 +170,7 @@ public class TcpSendingMessageHandlerTests {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {

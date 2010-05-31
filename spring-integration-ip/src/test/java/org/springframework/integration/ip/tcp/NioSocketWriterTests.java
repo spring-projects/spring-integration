@@ -117,6 +117,7 @@ public class NioSocketWriterTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -155,6 +156,7 @@ public class NioSocketWriterTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -192,6 +194,7 @@ public class NioSocketWriterTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -229,6 +232,7 @@ public class NioSocketWriterTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -268,6 +272,7 @@ public class NioSocketWriterTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
@@ -306,6 +311,7 @@ public class NioSocketWriterTests {
 		final String testString = "abcdef";
 		ServerSocket server = ServerSocketFactory.getDefault()
 				.createServerSocket(port);
+		server.setSoTimeout(10000);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
