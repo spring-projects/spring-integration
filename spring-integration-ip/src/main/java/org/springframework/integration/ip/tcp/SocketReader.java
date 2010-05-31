@@ -30,6 +30,8 @@ import java.net.Socket;
  */
 public interface SocketReader {
 
+	public static int SOCKET_CLOSED = -1;
+	
 	public static int MESSAGE_INCOMPLETE = 0;
 	
 	public static int MESSAGE_COMPLETE = 1;

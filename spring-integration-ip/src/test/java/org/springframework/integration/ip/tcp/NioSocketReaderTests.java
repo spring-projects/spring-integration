@@ -21,6 +21,8 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -28,6 +30,10 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
+
+import javax.net.SocketFactory;
 
 import org.junit.Test;
 import org.springframework.integration.ip.util.SocketUtils;
@@ -52,31 +58,15 @@ public class NioSocketReaderTests {
 		server.register(selector, SelectionKey.OP_ACCEPT);
 		
 		// Fire up the sender.
+		
 		SocketUtils.testSendLength(port, latch);
 		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		int count = 0;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -109,30 +99,13 @@ public class NioSocketReaderTests {
 		
 		// Fire up the sender.
 		SocketUtils.testSendFragmented(port, false);
-		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		boolean done = false;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -168,31 +141,14 @@ public class NioSocketReaderTests {
 		
 		// Fire up the sender.
 		SocketUtils.testSendStxEtx(port, latch);
-		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
 		int count = 0;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -228,31 +184,14 @@ public class NioSocketReaderTests {
 		
 		// Fire up the sender.
 		SocketUtils.testSendCrLf(port, latch);
-		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		int count = 0;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -288,30 +227,13 @@ public class NioSocketReaderTests {
 		
 		// Fire up the sender.
 		SocketUtils.testSendLengthOverflow(port);
-		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		int count = 0;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -355,32 +277,15 @@ public class NioSocketReaderTests {
 		
 		// Fire up the sender.
 		SocketUtils.testSendStxEtxOverflow(port);
-		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
 		reader.setMaxMessageSize(1024);
 		int count = 0;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -424,32 +329,15 @@ public class NioSocketReaderTests {
 		
 		// Fire up the sender.
 		SocketUtils.testSendCrLfOverflow(port);
-		
-		if(selector.select(10000) <= 0) {
-			fail("Socket failed to connect");
-		}
-		Set<SelectionKey> keys = selector.selectedKeys();
-		Iterator<SelectionKey> iterator = keys.iterator();
-		SocketChannel channel = null;
-		while (iterator.hasNext()) {
-			SelectionKey key = iterator.next();
-			iterator.remove();
-			if (key.isAcceptable()) {
-				channel = server.accept();
-				channel.configureBlocking(false);
-				channel.register(selector, SelectionKey.OP_READ);
-			}
-			else {
-				fail("Unexpected key: " + key);
-			}
-		}
+
+		SocketChannel channel = accept(server, selector);
 		NioSocketReader reader = new NioSocketReader(channel);
 		reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
 		reader.setMaxMessageSize(1024);
 		int count = 0;
 		while(selector.select(1000) > 0) {
-			keys = selector.selectedKeys();
-			iterator = keys.iterator();
+			Set<SelectionKey> keys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = keys.iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
 				iterator.remove();
@@ -477,6 +365,214 @@ public class NioSocketReaderTests {
 			}
 		}
 		server.close();
+	}
+
+	/**
+	 * Tests socket closure when no data received.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCloseCleanupNoData() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final Semaphore semaphore = new Semaphore(0);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					semaphore.acquire();
+					while (true) {
+						Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+						semaphore.acquire();
+						socket.close();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		try {
+			ServerSocketChannel server = ServerSocketChannel.open();
+			server.configureBlocking(false);
+			server.socket().bind(new InetSocketAddress(port));
+			final Selector selector = Selector.open();
+			server.register(selector, SelectionKey.OP_ACCEPT);
+			
+			semaphore.release();
+
+			SocketChannel channel = accept(server, selector);
+
+			NioSocketReader reader = new NioSocketReader(channel);
+			semaphore.release();
+			assertTrue(assembleData(reader) < 0);
+			assertTrue(reader.getSocket().isClosed());
+			
+			channel = accept(server, selector);
+			reader = new NioSocketReader(channel);
+			reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+			semaphore.release();
+			assertTrue(assembleData(reader) < 0);
+			assertTrue(reader.getSocket().isClosed());			
+			
+			channel = accept(server, selector);
+			reader = new NioSocketReader(channel);
+			reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+			semaphore.release();
+			assertTrue(assembleData(reader) < 0);
+			assertTrue(reader.getSocket().isClosed());			
+			
+			channel = accept(server, selector);
+			reader = new CustomNioSocketReader(channel);
+			reader.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
+			semaphore.release();
+			assertTrue(assembleData(reader) < 0);
+			assertTrue(reader.getSocket().isClosed());		
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Tests socket closure when mid-message
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCloseCleanup() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final Semaphore semaphore = new Semaphore(0);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					semaphore.acquire();
+					
+					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+					byte[] header = {0, 0, 0, 10};
+					socket.getOutputStream().write(header);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+					
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					socket.getOutputStream().write(MessageFormats.STX);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+					
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					socket.getOutputStream().write(MessageFormats.STX);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		try {
+			ServerSocketChannel server = ServerSocketChannel.open();
+			server.configureBlocking(false);
+			server.socket().bind(new InetSocketAddress(port));
+			final Selector selector = Selector.open();
+			server.register(selector, SelectionKey.OP_ACCEPT);
+			
+			semaphore.release();
+
+			SocketChannel channel = accept(server, selector);
+
+			NioSocketReader reader = new NioSocketReader(channel);
+			semaphore.release();
+			try {
+				assembleData(reader);
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());
+			
+			channel = accept(server, selector);
+			reader = new NioSocketReader(channel);
+			reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+			semaphore.release();
+			try {
+				assembleData(reader);
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());			
+			
+			channel = accept(server, selector);
+			reader = new NioSocketReader(channel);
+			reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+			semaphore.release();
+			try {
+				assembleData(reader);
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());			
+			
+			channel = accept(server, selector);
+			reader = new CustomNioSocketReader(channel);
+			reader.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
+			semaphore.release();
+			try {
+				assembleData(reader);
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());		
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+
+
+	/** Poor man's nio reader 
+	 * 
+	 * @param reader
+	 * @return
+	 * @throws IOException
+	 */
+	private int assembleData(NioSocketReader reader) throws Exception {
+		int m = 0;
+		while (true) {
+			int n = reader.assembleData();
+			if (n < 0) {
+				return n;
+			}
+			Thread.sleep(10);
+			if (m++ > 1000)
+				throw new Exception("No close detected");
+		}
+	}
+
+	private SocketChannel accept(ServerSocketChannel server,
+			final Selector selector) throws IOException, ClosedChannelException {
+		SocketChannel channel = null;
+		
+		if(selector.select(10000) <= 0) {
+			fail("Socket failed to connect");
+		}
+		Set<SelectionKey> keys = selector.selectedKeys();
+		Iterator<SelectionKey> iterator = keys.iterator();
+		while (iterator.hasNext()) {
+			SelectionKey key = iterator.next();
+			iterator.remove();
+			if (key.isAcceptable()) {
+				channel = server.accept();
+				channel.configureBlocking(false);
+				channel.register(selector, SelectionKey.OP_READ);
+			}
+			else {
+				fail("Unexpected key: " + key);
+			}
+		}
+		return channel;
 	}
 
 }

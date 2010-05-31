@@ -91,22 +91,32 @@ public abstract class AbstractSocketReader implements SocketReader, MessageForma
 	protected abstract int assembleDataCustomFormat() throws IOException;
 	
 	public int assembleData() throws IOException {
+		int result;
 		try {
 			switch (this.messageFormat) {
 			case FORMAT_LENGTH_HEADER:
-				return assembleDataLengthFormat();
+				result = assembleDataLengthFormat();
+				break;
 			case FORMAT_STX_ETX:
-				return assembleDataStxEtxFormat();
+				result = assembleDataStxEtxFormat();
+				break;
 			case FORMAT_CRLF:
-				return assembleDataCrLfFormat();
-			case FORMAT_CUSTOM:
-				return assembleDataCustomFormat();
+				result = assembleDataCrLfFormat();
+				break;
 			case FORMAT_JAVA_SERIALIZED:
-				return assembleDataSerializedFormat();
+				result = assembleDataSerializedFormat();
+				break;
+			case FORMAT_CUSTOM:
+				result = assembleDataCustomFormat();
+				break;
 			default:
 				throw new UnsupportedOperationException(
 						"Unsupported message format: " + messageFormat);
 			}
+			if (result < 0) {
+				doClose();
+			}
+			return result;
 		} catch (IOException e) {
 			doClose();
 			throw e;

@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.ip.tcp;
 
+import java.io.IOException;
 import java.net.Socket;
 
 import org.springframework.integration.core.Message;
@@ -77,7 +78,9 @@ public class SimpleTcpNetOutboundGateway extends
 				this.soReceiveBufferSize);
 		}
 		try {
-			this.reader.assembleData();  // Net... always returns true
+			if (this.reader.assembleData() < 0) {
+				throw new IOException("Socket closed");
+			}
 			Object object = this.reader.getAssembledData();
 			if (close) {
 				logger.debug("Closing socket because close=true");

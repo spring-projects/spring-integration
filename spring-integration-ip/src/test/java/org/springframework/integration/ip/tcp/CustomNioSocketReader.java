@@ -48,7 +48,12 @@ public class CustomNioSocketReader extends NioSocketReader {
 		if (buffer == null) {
 			buffer = allocate(24);
 		}
-		readChannel(buffer);
+		int status = readChannel(buffer);
+		if (status < 0 ) {
+			if (buffer.remaining() == 24)
+				return status;
+			throw new IOException("Channel closed");
+		}
 		if (buffer.hasRemaining()) {
 			return MESSAGE_INCOMPLETE;
 		}

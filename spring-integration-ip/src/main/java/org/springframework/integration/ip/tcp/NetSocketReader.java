@@ -60,8 +60,9 @@ public class NetSocketReader extends AbstractSocketReader {
 	protected int assembleDataLengthFormat() throws IOException {
 		byte[] lengthPart = new byte[4];
 		int status = read(lengthPart, true);
-		if (status < 0)
+		if (status < 0) {
 			return status;
+		}
 		int messageLength = ByteBuffer.wrap(lengthPart).getInt();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Message length is " + messageLength);
@@ -147,7 +148,7 @@ public class NetSocketReader extends AbstractSocketReader {
 			}
 			this.assembledData = this.objectInputStream.readObject();
 		} catch (EOFException ee) {
-			return -1;
+			return SOCKET_CLOSED;
 		} catch (ClassNotFoundException e) {
 			throw new IOException(e);
 		}
@@ -204,7 +205,9 @@ public class NetSocketReader extends AbstractSocketReader {
 	protected void doClose() {
 		try {
 			socket.close();
-		} catch (IOException e) {}
+		} catch (IOException e) {
+			logger.error("Error on close", e);
+		}
 	}
 
 	

@@ -68,7 +68,14 @@ public class NioSocketReader extends AbstractSocketReader {
 			lengthPart = allocate(4);
 		}
 		if (lengthPart.hasRemaining()) {
-			readChannel(lengthPart);
+			int status = readChannel(lengthPart);
+			if (status < 0) {
+				if (lengthPart.remaining() == 4) {
+					// not in the middle of a message, clean close
+					return status;
+				}
+				throw new IOException("Channel closed");
+			}
 			return MESSAGE_INCOMPLETE;
 		}
 		if (dataPart == null) {
@@ -84,7 +91,10 @@ public class NioSocketReader extends AbstractSocketReader {
 			dataPart = ByteBuffer.allocate(messageLength);
 		}
 		if (dataPart.hasRemaining()) {
-			readChannel(dataPart);
+			int status = readChannel(dataPart);
+			if (status < 0) {
+				throw new IOException("Channel closed");
+			}
 			if (dataPart.hasRemaining()) {
 				return MESSAGE_INCOMPLETE;
 			}
@@ -99,16 +109,17 @@ public class NioSocketReader extends AbstractSocketReader {
 	 */
 	@Override
 	protected int assembleDataStxEtxFormat() throws IOException {
-		if (readChannelNonDeterministic()) {
-			byte bite = rawBuffer.get();
+		int len = readChannelNonDeterministic();
+		if (len > 0) {
+			byte bite = this.rawBuffer.get();
 			int count = 0;
-			if (!building) { 
+			if (!this.building) { 
 				if (bite != STX) {
 					throw new MessageMappingException("Expected STX, received " + Integer.toHexString(bite));
 				}
-				building = true;
+				this.building = true;
 				count++;
-				if (!rawBuffer.hasRemaining()) {
+				if (!this.rawBuffer.hasRemaining()) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Incomplete message, consumed 1 byte");
 					}
@@ -119,27 +130,27 @@ public class NioSocketReader extends AbstractSocketReader {
 					finishAssembly();
 					return MESSAGE_COMPLETE;
 				}
-				buildBuffer.put(bite);
+				this.buildBuffer.put(bite);
 				count++;
-				if (buildBuffer.position() >= buildBuffer.limit()) {
+				if (this.buildBuffer.position() >= this.buildBuffer.limit()) {
 					throw new IOException("ETX not found before max message length: "
 							+ maxMessageSize);
 				}
 			}
 			while (true) {
-				if (!rawBuffer.hasRemaining()) {
+				if (!this.rawBuffer.hasRemaining()) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("Incomplete message, consumed " + count + " bytes");
 					}
 					return MESSAGE_INCOMPLETE;
 				}
-				bite = rawBuffer.get();
+				bite = this.rawBuffer.get();
 				if (bite == ETX) {
 					break;
 				}
-				buildBuffer.put(bite);
+				this.buildBuffer.put(bite);
 				count++;
-				if (buildBuffer.position() >= buildBuffer.limit()) {
+				if (this.buildBuffer.position() >= this.buildBuffer.limit()) {
 					throw new IOException("ETX not found before max message length: "
 							+ maxMessageSize);
 				}
@@ -149,12 +160,18 @@ public class NioSocketReader extends AbstractSocketReader {
 			}
 			finishAssembly();
 			return MESSAGE_COMPLETE;
+		} else if (len == 0) {
+			logger.debug("Incomplete message, nothing to read");
+			return MESSAGE_INCOMPLETE;
 		} else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Incomplete message, consumed 0 bytes");
+			logger.debug("Channel closed");
+			if (!this.building) {
+				// not in the middle of a message, clean close
+				return SOCKET_CLOSED;
 			}
+			this.building = false;
+			throw new IOException("Channel closed");
 		}
-		return MESSAGE_INCOMPLETE;
 	}
 
 	/**
@@ -162,9 +179,9 @@ public class NioSocketReader extends AbstractSocketReader {
 	 */
 	private void finishAssembly() {
 		byte[] assembledData = new byte[buildBuffer.position()];
-		System.arraycopy(buildBuffer.array(), 0, assembledData, 0, assembledData.length);
-		building = false;
-		buildBuffer.clear();
+		System.arraycopy(this.buildBuffer.array(), 0, assembledData, 0, assembledData.length);
+		this.building = false;
+		this.buildBuffer.clear();
 		this.assembledData = assembledData;
 		logger.debug("Message assembly complete");
 	}
@@ -174,7 +191,8 @@ public class NioSocketReader extends AbstractSocketReader {
 	 */
 	@Override
 	protected int assembleDataCrLfFormat() throws IOException {
-		if (readChannelNonDeterministic()) {
+		int len = readChannelNonDeterministic();
+		if (len > 0) {
 			int count = 0;
 			while (true) {
 				if (!rawBuffer.hasRemaining()) {
@@ -184,18 +202,19 @@ public class NioSocketReader extends AbstractSocketReader {
 					return MESSAGE_INCOMPLETE;
 				}
 				byte bite = rawBuffer.get();
-				if (bite == '\n' && buildBuffer.position() > 0) {
-					buildBuffer.position(buildBuffer.position() - 1);
-					if (buildBuffer.get() == '\r') {
-						buildBuffer.position(buildBuffer.position() - 1);
+				this.building = true;
+				if (bite == '\n' && this.buildBuffer.position() > 0) {
+					this.buildBuffer.position(this.buildBuffer.position() - 1);
+					if (this.buildBuffer.get() == '\r') {
+						this.buildBuffer.position(this.buildBuffer.position() - 1);
 						break;
 					}
 				}
-				buildBuffer.put(bite);
+				this.buildBuffer.put(bite);
 				count++;
-				if (buildBuffer.position() >= buildBuffer.limit()) {
+				if (this.buildBuffer.position() >= this.buildBuffer.limit()) {
 					throw new IOException("CRLF not found before max message length: "
-							+ maxMessageSize);
+							+ this.maxMessageSize);
 				}
 			} 
 			if (logger.isDebugEnabled()) {
@@ -203,12 +222,18 @@ public class NioSocketReader extends AbstractSocketReader {
 			}
 			finishAssembly();
 			return MESSAGE_COMPLETE;
+		} else if (len == 0) {
+			logger.debug("Incomplete message, nothing to read");
+			return MESSAGE_INCOMPLETE;
 		} else {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Incomplete message, consumed 0 bytes");
+			logger.debug("Channel closed");
+			if (!this.building) {	
+				// not in the middle of a message, clean close
+				return SOCKET_CLOSED;
 			}
+			this.building = false;
+			throw new IOException("Channel closed");
 		}
-		return MESSAGE_INCOMPLETE;
 	}
 
 	/**
@@ -241,18 +266,19 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * @param buffer
 	 * @throws IOException
 	 */
-	protected void readChannel(ByteBuffer buffer) throws IOException {
+	protected int readChannel(ByteBuffer buffer) throws IOException {
 		try {
 			int len = channel.read(buffer);
 			if (len < 0) {
 				logger.debug("Socket closed");
-				throw new IOException("Socket closed");
+				return len;
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("Read " + len + " bytes, buffer is now at " + 
 							 buffer.position() + " of " +
 							 buffer.capacity());
 			}
+			return len;
 		} catch (IOException e) {
 			throw e;
 		}
@@ -260,10 +286,10 @@ public class NioSocketReader extends AbstractSocketReader {
 	
 	/**
 	 * Reads data into the rawBuffer for non-deterministic algorithms.
-	 * @return true if data is available.
+	 * @return bytes remaining in raw buffer or < 0 if channel closed
 	 * @throws IOException
 	 */
-	protected boolean readChannelNonDeterministic() throws IOException {
+	protected int readChannelNonDeterministic() throws IOException {
 		if (rawBuffer == null) {
 			rawBuffer = allocate(maxMessageSize);
 			buildBuffer = ByteBuffer.allocate(maxMessageSize);
@@ -271,22 +297,18 @@ public class NioSocketReader extends AbstractSocketReader {
 			if (logger.isDebugEnabled()) {
 				logger.debug("Raw buffer has " + rawBuffer.remaining() + " remaining");
 			}
-			return true;
+			return rawBuffer.remaining();
 		}
 		rawBuffer.clear();
 		int len = channel.read(rawBuffer);
-		if (len == 0) {
-			return false;
-		}
 		if (len < 0) {
-			logger.debug("Socket closed");
-			throw new IOException("Socket closed");
+			return len;
 		}
 		rawBuffer.flip();
 		if (logger.isDebugEnabled()) {
 			logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
 		}
-		return true;
+		return rawBuffer.remaining();
 	}
 	
 	/**
@@ -312,7 +334,9 @@ public class NioSocketReader extends AbstractSocketReader {
 	protected void doClose() {
 		try {
 			channel.close();
-		} catch (IOException e) {}
+		} catch (IOException e) {
+			logger.error("Error on close", e);
+		}
 	}
 
 	/* (non-Javadoc)

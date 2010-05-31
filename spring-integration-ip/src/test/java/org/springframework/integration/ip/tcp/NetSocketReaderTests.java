@@ -16,13 +16,17 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
 
 import org.junit.Test;
 import org.springframework.integration.ip.util.SocketUtils;
@@ -271,5 +275,159 @@ public class NetSocketReaderTests {
 		}
 		server.close();
 	}
+
+	/**
+	 * Tests socket closure when no data received.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCloseCleanupNoData() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final Semaphore semaphore = new Semaphore(0);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					while (true) {
+						Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+						semaphore.acquire();
+						socket.close();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		try {
+			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+			server.setSoTimeout(10000);
+			Socket socket = server.accept();
+			NetSocketReader reader = new NetSocketReader(socket);
+			semaphore.release();
+			assertTrue(reader.assembleData() < 0);
+			assertTrue(reader.getSocket().isClosed());
+			
+			socket = server.accept();
+			reader = new NetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+			semaphore.release();
+			assertTrue(reader.assembleData() < 0);
+			assertTrue(reader.getSocket().isClosed());			
+			
+			socket = server.accept();
+			reader = new NetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+			semaphore.release();
+			assertTrue(reader.assembleData() < 0);
+			assertTrue(reader.getSocket().isClosed());			
+			
+			socket = server.accept();
+			reader = new NetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_JAVA_SERIALIZED);
+			semaphore.release();
+			assertTrue(reader.assembleData() < 0);
+			assertTrue(reader.getSocket().isClosed());		
+			
+			socket = server.accept();
+			reader = new CustomNetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
+			semaphore.release();
+			assertTrue(reader.assembleData() < 0);
+			assertTrue(reader.getSocket().isClosed());		
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
+	/**
+	 * Tests socket closure when mid-message
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testCloseCleanup() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final Semaphore semaphore = new Semaphore(0);
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+					byte[] header = {0, 0, 0, 10};
+					socket.getOutputStream().write(header);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+					
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					socket.getOutputStream().write(MessageFormats.STX);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+					
+					socket = SocketFactory.getDefault().createSocket("localhost", port);
+					socket.getOutputStream().write(MessageFormats.STX);
+					socket.getOutputStream().write("xx".getBytes());
+					semaphore.acquire();
+					socket.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		try {
+			ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+			server.setSoTimeout(10000);
+			Socket socket = server.accept();
+			NetSocketReader reader = new NetSocketReader(socket);
+			semaphore.release();
+			try {
+				reader.assembleData();
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());
+			
+			socket = server.accept();
+			reader = new NetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_CRLF);
+			semaphore.release();
+			try {
+				reader.assembleData();
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());
+			
+			socket = server.accept();
+			reader = new NetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
+			semaphore.release();
+			try {
+				reader.assembleData();
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());
+			
+			socket = server.accept();
+			reader = new CustomNetSocketReader(socket);
+			reader.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
+			semaphore.release();
+			try {
+				reader.assembleData();
+				fail("Exception expected");
+			} catch (IOException e) { }
+			assertTrue(reader.getSocket().isClosed());
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
+	}
+
 	
 }
