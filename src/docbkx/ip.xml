@@ -26,9 +26,14 @@
       The choice of which to use in what circumstances is described below.
     </para>
     <para>
-      A simple inbound TCP gateway is provided; this allows for simple request/response processing. While
+     A simple inbound TCP gateway is provided; this allows for simple request/response processing. While
      the gateway can support any number of connections, each connection can only process serially. The thread
      that reads from the socket waits for, and sends, the response before reading again.
+    </para>
+    <para>
+     A simple outbound TCP gateway is provided; this allows for simple request/response processing. Each
+     request is processed serially. The calling thread blocks on the socket until either a response is received
+     or an I/O error occurs. Requests are single-threaded over the socket.
     </para>
   </section>
   <section id="udp-adapters">
@@ -147,12 +152,15 @@
     <para>
       TCP is a streaming protocol; this means that some structure has to be provided to data 
       transported over TCP, so the receiver can demarcate the data into discrete messages.
-      Three standard message formats are provided for this purpose; you can also provide code
-      for your own custom format. The first of the three standard formats is length-header, in which case a 4 byte 
-      length header precedes the data; this is the default. The second is stx-etx in which the message 
+      Four standard message formats are provided for this purpose; you can also provide code
+      for your own custom format. The first of the four standard formats is 'length-header', in which case a 4 byte 
+      length header precedes the data; this is the default. The second is 'stx-etx' in which the message 
       data is preceded by an STX (0x02) character and terminated with an ETX (0x03) character.
-      The third is crlf in which the message is terminated with a carriage return and line feed
-      (\r\n). The first format (the default) is likely to be the most performant. This is because
+      The third is 'crlf' in which the message is terminated with a carriage return and line feed
+      (\r\n). These three formats require a byte array or String payload outbound endpoints; inbound 
+      endpoints produce messages with byte array payloads. The fourth format is 'serialized' wherby
+      standard java serialization is used; payloads must implement <classname>Serializable</classname>. 
+      For the simple formats, the first (the default) is likely to be the most performant. This is because
       we can determine exactly how many bytes to read to obtain the complete message. The other
       two formats require examining each byte to determine if the end of the message has been 
       received. The length-header format can also handle binary data. The other two formats can only handle
@@ -221,7 +229,8 @@
   	  message can be handled at a time and if another thread attempts to send
   	  a message before the current response has been received, it will block. Only
   	  when the inprocess message receives a response (or times out based on the
-  	  socket timeout option) will it proceed.
+  	  socket timeout option) will it proceed. If an error occurs while reading the 
+  	  response, the socket will be closed, regardless of the close attribute.
   	</para>
     <para>
   	  <programlisting language="xml"><![CDATA[ 	<ip:inbound-gateway id="gatewayCrLf"
@@ -376,7 +385,7 @@
               <entry>message-format</entry>
               <entry>Y</entry>
               <entry>N</entry>
-              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>length-header, stx-etx, crlf, serialized, custom</entry>
               <entry>The formatting that the tcp adapter uses so the receiver can demarcate
                      messages. Defaults to length-header.
                      See the discussion above for details about each format.</entry>
@@ -442,6 +451,17 @@
               <entry>N</entry>
               <entry></entry>
               <entry>See <classname>java.net.Socket. setTrafficClass()</classname>.</entry>
+            </row>
+            <row>
+              <entry>local-address</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>On a multi-homed system, for the UDP adapter, specifies an IP address 
+                     for the interface to which the socket will be bound for reply messages.
+                     For a multicast adapter it is also used to determine which interface
+                     the multicast packets will be sent over. Not applicable to the TCP
+                     adapter.</entry>
             </row>
           </tbody>
         </tgroup>
@@ -545,7 +565,7 @@
               <entry>message-format</entry>
               <entry>Y</entry>
               <entry>N</entry>
-              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>length-header, stx-etx, crlf, serialized, custom</entry>
               <entry>The formatting that the tcp adapter uses so the adapter can demarcate
                      messages. Defaults to length-header.
                      See the discussion above for details about each format.</entry>
@@ -590,6 +610,22 @@
               <entry>true, false</entry>
               <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
             </row>
+            <row>
+              <entry>local-address</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>On a multi-homed system, specifies an IP address 
+                     for the interface to which the socket will be bound.</entry>
+            </row>
+            <row>
+              <entry>close</entry>
+              <entry>Y</entry>
+              <entry>N</entry>
+              <entry></entry>
+              <entry>If set to true, instructs the adapter to close the socket
+                     after receiving a message. Defaults to false.</entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -598,8 +634,8 @@
         <tgroup cols="3">
           <colspec align="left" />
           <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col4" colwidth="1*"/>
-          <colspec colnum="3" colname="col5" colwidth="3*"/>
+          <colspec colnum="2" colname="col2" colwidth="1*"/>
+          <colspec colnum="3" colname="col3" colwidth="3*"/>
           <thead>
             <row>
               <entry align="center">Attribute Name</entry>
@@ -628,7 +664,7 @@
             </row>
             <row>
               <entry>message-format</entry>
-              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>length-header, stx-etx, crlf, serialized, custom</entry>
               <entry>The formatting that the tcp gateway uses for demarcating
                      incoming requests and formatting responses. Defaults to length-header.
                      See the discussion above for details about each format.</entry>
@@ -670,6 +706,18 @@
               <entry>true, false</entry>
               <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
             </row>
+            <row>
+              <entry>local-address</entry>
+              <entry></entry>
+              <entry>On a multi-homed system, specifies an IP address 
+                     for the interface to which the socket will be bound.</entry>
+            </row>
+            <row>
+              <entry>close</entry>
+              <entry></entry>
+              <entry>If set to true, instructs the gateway to close the socket
+                     after sending the reply to a message. Defaults to false.</entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -678,8 +726,8 @@
         <tgroup cols="3">
           <colspec align="left" />
           <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col4" colwidth="1*"/>
-          <colspec colnum="3" colname="col5" colwidth="3*"/>
+          <colspec colnum="2" colname="col2" colwidth="1*"/>
+          <colspec colnum="3" colname="col3" colwidth="3*"/>
           <thead>
             <row>
               <entry align="center">Attribute Name</entry>
@@ -707,7 +755,7 @@
             </row>
             <row>
               <entry>message-format</entry>
-              <entry>length-header, stx-etx, crlf, custom</entry>
+              <entry>length-header, stx-etx, crlf, serialized, custom</entry>
               <entry>The formatting that the tcp gateway uses for formating 
               		 requests and demarcating
                      incoming responses. Defaults to length-header.
@@ -749,6 +797,12 @@
               <entry>so-keep-alive</entry>
               <entry>true, false</entry>
               <entry>See <classname>java.net.Socket. setKeepAlive()</classname>.</entry>
+            </row>
+            <row>
+              <entry>close</entry>
+              <entry></entry>
+              <entry>If set to true, instructs the adapter to close the socket
+                     after receiving the reply to a message. Defaults to false.</entry>
             </row>
           </tbody>
         </tgroup>
