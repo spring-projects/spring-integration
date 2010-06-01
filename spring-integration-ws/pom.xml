@@ -92,7 +92,7 @@
 		<plugins>
 			<plugin>
 				<groupId>com.springsource.bundlor</groupId>
-				<artifactId>com.springsource.bundlor.maven</artifactId>
+				<artifactId>com.springsource.bundlor</artifactId>
 			</plugin>
 		</plugins>
 	</build>

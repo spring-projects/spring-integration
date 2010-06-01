@@ -387,7 +387,7 @@
 			<plugins>
 				<plugin>
 					<groupId>com.springsource.bundlor</groupId>
-					<artifactId>com.springsource.bundlor.maven</artifactId>
+					<artifactId>com.springsource.bundlor</artifactId>
 					<version>1.0.0.RELEASE</version>
 					<executions>
 						<execution>
@@ -470,7 +470,7 @@
 		<!-- necessary for bundlor and utils -->
 		<pluginRepository>
 			<id>repository.plugin.springsource.release</id>
-			<name>SpringSource EBR</name>
+			<name>SpringSource Maven Repository</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</pluginRepository>
 	</pluginRepositories>
