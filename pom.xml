@@ -387,7 +387,7 @@
 			<plugins>
 				<plugin>
 					<groupId>com.springsource.bundlor</groupId>
-					<artifactId>com.springsource.bundlor</artifactId>
+					<artifactId>com.springsource.bundlor.maven</artifactId>
 					<version>1.0.0.RELEASE</version>
 					<executions>
 						<execution>
