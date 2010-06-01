@@ -159,7 +159,7 @@ public class NetSocketReader extends AbstractSocketReader {
 	 * Throws {@link UnsupportedOperationException}; custom implementations can
 	 * subclass this class and provide an implementation for this method.
 	 * @throws IOException 
-	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat().
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat
 	 * 
 	 */
 	@Override

@@ -103,9 +103,6 @@ public class SocketUtils {
 	/**
 	 * Test for reassembly of completely fragmented message; sends
 	 * 6 bytes 500ms apart.
-	 * @param os
-	 * @param b
-	 * @throws Exception
 	 */
 	public static void testSendFragmented(final int port, final boolean noDelay) {
 		Thread thread = new Thread(new Runnable() {

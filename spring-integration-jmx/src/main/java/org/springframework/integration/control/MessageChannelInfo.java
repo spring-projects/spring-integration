@@ -37,7 +37,6 @@ interface MessageChannelInfo {
 
 	/**
 	 * Number of Messages that have caused Exceptions on send.
-	 * @return
 	 */
 	long getSendErrorCount();
 

@@ -67,7 +67,6 @@ public class BanksChannelSelector {
 
 	/**
 	 * @param message
-	 * @return
 	 */
 	@SuppressWarnings("unchecked")
 	public Set<String> selectBankChannels(Message<?> message) {

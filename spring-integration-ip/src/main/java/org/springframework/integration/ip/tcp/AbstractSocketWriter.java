@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
  * {@link java.nio.channels.SocketChannel} implementations are provided for
  * the standard formats. Users requiring other formats should subclass the
  * appropriate implementation, and provide an implementation for 
- * {@link #writeCustomFormat(byte[])} which is invoked by {@link #write(byte[])}
+ * {@link #writeCustomFormat(Object)} which is invoked by {@link #write(Object)}
  * when the format is {@link MessageFormats#FORMAT_CUSTOM}. 
  * 
  * @author Gary Russell
@@ -46,7 +46,7 @@ public abstract class AbstractSocketWriter implements SocketWriter, MessageForma
     protected final Log logger = LogFactory.getLog(this.getClass());
 
     /*
-	 * @see org.springframework.integration.ip.tcp.SocketWriter#write(byte[])
+	 * @see org.springframework.integration.ip.tcp.SocketWriter#write(Object)
 	 */
 	public synchronized void write(Object object) throws IOException {
 		try {
@@ -100,19 +100,16 @@ public abstract class AbstractSocketWriter implements SocketWriter, MessageForma
 
 	/**
 	 * Write the data, followed by carriage return, line feed ('\r\n').
-	 * @param bytes
 	 */
 	protected abstract void writeCrLfFormat(byte[] bytes) throws IOException;
 
 	/**
 	 * Write the data, followed by carriage return, line feed ('\r\n').
-	 * @param bytes
 	 */
 	protected abstract void writeSerializedFormat(Object object) throws IOException;
 
 	/**
 	 * Write the data using some custom protocol.
-	 * @param bytes
 	 */
 	protected abstract void writeCustomFormat(Object object) throws IOException;
 

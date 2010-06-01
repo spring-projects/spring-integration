@@ -37,10 +37,6 @@ import org.springframework.integration.ip.util.SocketUtils;
  */
 public class NetSocketReaderTests {
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader#readFully()},
-	 * using &lt;length&gt;&lt;message&gt;.
-	 */
 	@Test
 	public void testReadLength() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
@@ -67,10 +63,6 @@ public class NetSocketReaderTests {
 		server.close();
 	}
 	
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader#readFully()},
-	 * using STX&lt;message&gt;ETX
-	 */
 	@Test
 	public void testReadStxEtx() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
@@ -98,10 +90,6 @@ public class NetSocketReaderTests {
 		server.close();
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader#readFully()},
-	 * using STX&lt;message&gt;ETX
-	 */
 	@Test
 	public void testReadCrLf() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
@@ -129,10 +117,6 @@ public class NetSocketReaderTests {
 		server.close();
 	}
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.NioSocketReader#readFully()},
-	 * using STX&lt;message&gt;ETX
-	 */
 	@Test
 	public void testReadSerialized() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();

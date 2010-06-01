@@ -33,9 +33,6 @@ public class CustomNioSocketReader extends NioSocketReader {
 		super(null);
 	}
 	
-	/**
-	 * @param socket
-	 */
 	public CustomNioSocketReader(SocketChannel channel) {
 		super(channel);
 	}

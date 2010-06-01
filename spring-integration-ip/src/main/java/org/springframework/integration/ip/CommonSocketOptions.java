@@ -16,6 +16,9 @@
 
 package org.springframework.integration.ip;
 
+import java.net.DatagramSocket;
+import java.net.Socket;
+
 /**
  * @author Gary Russell
  * @since 2.0
@@ -25,21 +28,18 @@ public interface CommonSocketOptions {
 	/**
 	 * @see Socket#setSoTimeout(int)
 	 * @see DatagramSocket#setSoTimeout(int)
-	 * @param timeout
 	 */
 	public void setSoTimeout(int soTimeout);
 
 	/**
 	 * @see Socket#setReceiveBufferSize(int)
 	 * @see DatagramSocket#setReceiveBufferSize(int)
-	 * @param size
 	 */
 	public void setSoReceiveBufferSize(int soReceiveBufferSize);
 
 	/**
 	 * @see Socket#setSendBufferSize(int)
 	 * @see DatagramSocket#setSendBufferSize(int)
-	 * @param size
 	 */
 	public void setSoSendBufferSize(int soSendBufferSize);
 	

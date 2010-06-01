@@ -240,7 +240,7 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * Throws {@link UnsupportedOperationException}; Java serialization is currently only
 	 * supported using the NetSocketReader.
 	 * @throws IOException 
-	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat().
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat
 	 * 
 	 */
 	protected int assembleDataSerializedFormat() throws IOException {
@@ -252,7 +252,7 @@ public class NioSocketReader extends AbstractSocketReader {
 	 * Throws {@link UnsupportedOperationException}; custom implementations can
 	 * subclass this class and provide an implementation.
 	 * @throws IOException 
-	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat().
+	 * @see org.springframework.integration.ip.tcp.AbstractSocketReader#assembleDataCustomFormat
 	 * 
 	 */
 	@Override
