@@ -178,8 +178,8 @@
 					<chunkedOutput>true</chunkedOutput>
 					<htmlStylesheet>css/html.css</htmlStylesheet>
 					<xincludeSupported>true</xincludeSupported>
-					<htmlCustomization>src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
-					<foCustomization>src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
+					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
 					<!-- original spring-build fopdf xsl
 					<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization>
 					-->
@@ -190,22 +190,22 @@
 						</entity>
 					</entities>
 					<postProcess>
-						<copy todir="target/site/reference">
-							<fileset dir="target/docbkx">
+						<copy todir="${project.basedir}/target/site/reference">
+							<fileset dir="${project.basedir}/target/docbkx">
 								<include name="**/*.html" />
 								<include name="**/*.pdf" />
 							</fileset>
 						</copy>
-						<copy todir="target/site/reference/html">
-							<fileset dir="src/docbkx/resources">
+						<copy todir="${project.basedir}/target/site/reference/html">
+							<fileset dir="${project.basedir}/src/docbkx/resources">
 								<include name="**/*.css" />
 								<include name="**/*.png" />
 								<include name="**/*.gif" />
 								<include name="**/*.jpg" />
 							</fileset>
 						</copy>
-						<move file="target/site/reference/pdf/index.pdf"
-							tofile="target/site/reference/pdf/spring-integration-reference.pdf"
+						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
+							tofile="${project.basedir}/target/site/reference/pdf/spring-integration-reference.pdf"
 							failonerror="false" />
 					</postProcess>
 				</configuration>
@@ -377,7 +377,7 @@
 				<inherited>false</inherited>
 				<configuration>
 					<descriptors>
-						<descriptor>src/assembly/distribution.xml</descriptor>
+						<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
 					</descriptors>
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
@@ -438,9 +438,9 @@
 					<header>Spring Integration</header>
 					<source>1.5</source>
 					<quiet>true</quiet>
-					<javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
-					<overview>${basedir}/src/main/javadoc/overview.html</overview>
-					<stylesheetfile>${basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+					<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
+					<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+					<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
 					<!-- copies doc-files subdirectory which contains image resources -->
 					<docfilessubdirs>true</docfilessubdirs>
 					<groups>
