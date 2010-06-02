@@ -131,7 +131,7 @@ public final class MessageBuilder<T> {
 	 * @see MessageHeaders#ID
 	 * @see MessageHeaders#TIMESTAMP
 	 */
-	public MessageBuilder<T> copyHeaders(Map<String, Object> headersToCopy) {
+	public MessageBuilder<T> copyHeaders(Map<String, ?> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
 			this.setHeader(key, headersToCopy.get(key));
