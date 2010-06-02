@@ -23,6 +23,7 @@ import java.net.Socket;
 
 import javax.net.SocketFactory;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class SimpleTcpNetInboundGatewayTests {
 	@Qualifier(value="gatewayCustom")
 	SimpleTcpNetInboundGateway gatewayCustom;
 	
-	@Test
+	@Test @Ignore
 	public void testCrLf() throws Exception {
 		waitListening(gatewayCrLf);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayCrLf.getPort());
@@ -112,7 +113,7 @@ public class SimpleTcpNetInboundGatewayTests {
 		assertEquals("echo:" + greetings, echo);
 	}
 
-	@Test
+	@Test @Ignore
 	public void testLength() throws Exception {
 		waitListening(gatewayLength);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", gatewayLength.getPort());
