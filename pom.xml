@@ -98,14 +98,17 @@
 				</dependencies>
 				<configuration>
 					<includes>index.xml</includes>
-					<chunkedOutput>true</chunkedOutput>
-					<htmlStylesheet>css/html.css</htmlStylesheet>
 					<xincludeSupported>true</xincludeSupported>
-					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization>
 					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
 					<!-- original spring-build fopdf xsl
-					<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization>
-					-->
+					<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization> -->
+					<htmlStylesheet>css/html.css</htmlStylesheet>
+					<!-- produce single-page html output -->
+					<chunkedOutput>false</chunkedOutput>
+					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+					<!-- produce multi-page html output
+					<chunkedOutput>false</chunkedOutput>
+					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization> -->
 					<entities>
 						<entity>
 							<name>version</name>
