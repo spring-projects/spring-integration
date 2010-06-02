@@ -5,12 +5,10 @@
 	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration</artifactId>
 	<name>Spring Integration</name>
-	<url>http://www.springsource.org/spring-integration</url>
 	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-integration-core</module>
-		<module>spring-integration-test</module>
 		<module>spring-integration-event</module>
 		<module>spring-integration-file</module>
 		<module>spring-integration-http</module>
@@ -20,30 +18,17 @@
 		<module>spring-integration-jms</module>
 		<module>spring-integration-jmx</module>
 		<module>spring-integration-mail</module>
+		<module>spring-integration-parent</module>
 		<module>spring-integration-rmi</module>
+		<module>spring-integration-samples</module>
 		<module>spring-integration-security</module>
 		<module>spring-integration-stream</module>
+		<module>spring-integration-test</module>
 		<module>spring-integration-ws</module>
 		<module>spring-integration-xml</module>
-		<!-- TODO: leave samples in, or remove? -->
-		<module>spring-integration-samples</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<!-- versions for commonly-used dependencies -->
-		<cglib.version>2.2</cglib.version>
-		<commons-logging.version>1.1.1</commons-logging.version>
-		<junit.version>4.7</junit.version>
-		<log4j.version>1.2.12</log4j.version>
-		<hsqldb.version>1.8.0.10</hsqldb.version>
-		<org.aspectj.version>1.6.5</org.aspectj.version>
-		<org.easymock.version>2.3</org.easymock.version>
-		<org.eclipse.jdt.core.version>3.4.2.v_883_R34x</org.eclipse.jdt.core.version>
-		<org.mockito.version>1.8.4</org.mockito.version>
-		<org.slf4j.version>1.5.10</org.slf4j.version>
-		<org.springframework.version>3.0.2.RELEASE</org.springframework.version>
-		<org.springframework.security.version>2.0.5.RELEASE</org.springframework.security.version>
-		<org.springframework.ws.version>1.5.8</org.springframework.ws.version>
 	</properties>
 	<profiles>
 		<profile>
@@ -82,76 +67,7 @@
 		</site>
 	</distributionManagement>
 	<build>
-		<extensions>
-			<extension>
-				<groupId>org.springframework.build.aws</groupId>
-				<artifactId>org.springframework.build.aws.maven</artifactId>
-				<version>2.0.0.RELEASE</version>
-			</extension>
-		</extensions>
-		<resources>
-			<resource>
-				<directory>${project.basedir}/src/main/java</directory>
-				<includes>
-					<include>**/*</include>
-				</includes>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</resource>
-			<resource>
-				<directory>${project.basedir}/src/main/resources</directory>
-				<includes>
-					<include>**/*</include>
-				</includes>
-			</resource>
-		</resources>
-		<testResources>
-			<testResource>
-				<directory>${project.basedir}/src/test/java</directory>
-				<includes>
-					<include>**/*</include>
-				</includes>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</testResource>
-			<testResource>
-				<directory>${project.basedir}/src/test/resources</directory>
-				<includes>
-					<include>**/*</include>
-				</includes>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</testResource>
-		</testResources>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.5</source>
-					<target>1.5</target>
-					<compilerArgument>-Xlint:all</compilerArgument>
-					<showWarnings>true</showWarnings>
-					<showDeprecation>false</showDeprecation>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<useFile>false</useFile>
-					<includes>
-						<include>**/*Tests.java</include>
-					</includes>
-					<excludes>
-						<exclude>**/Abstract*.java</exclude>
-					</excludes>
-					<junitArtifactName>junit:junit</junitArtifactName>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>com.agilejava.docbkx</groupId>
 				<artifactId>docbkx-maven-plugin</artifactId>
@@ -162,7 +78,7 @@
 							<goal>generate-html</goal>
 							<goal>generate-pdf</goal>
 						</goals>
-						<phase>pre-site</phase>
+						<phase>package</phase>
 					</execution>
 				</executions>
 				<dependencies>
@@ -211,35 +127,60 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<artifactId>maven-source-plugin</artifactId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.5</version>
 				<executions>
 					<execution>
-						<id>attach-sources</id>
+						<id>aggregate</id>
 						<goals>
-							<goal>jar</goal>
+							<goal>aggregate</goal>
 						</goals>
+						<phase>package</phase>
+						<configuration>
+							<javadoc:aggregate>true</javadoc:aggregate>
+							<breakiterator>true</breakiterator>
+							<header>Spring Integration</header>
+							<source>1.5</source>
+							<quiet>true</quiet>
+							<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
+							<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
+							<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
+							<!-- copies doc-files subdirectory which contains image resources -->
+							<docfilessubdirs>true</docfilessubdirs>
+							<groups>
+								<group>
+									<title>Spring Integration</title>
+									<packages>org.springframework.integration.core</packages>
+								</group>
+								<!-- TODO: fill in other groups -->
+							</groups>
+							<excludePackageNames>org.springframework.integration.samples</excludePackageNames>
+							<links>
+								<link>http://static.springframework.org/spring/docs/3.0.2.RELEASE/javadoc-api</link>
+								<link>http://java.sun.com/javase/6/docs/api</link>
+							</links>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+			<!-- copies a tightly-controlled set of dependencies into ${project.build.dir}/dependency
+				 in order to be added to the distribution jar during the assembly process.
+
+				 WARNING: any new dependencies added to project pom files over time must be added explicitly
+				 to this list if they are to make it into the distribution zip.  This section should be
+				 considered fragile. Ideally, we would use the 'copy-dependencies' goal of the
+				 maven-dependency-plugin, which automatically adds all project dependencies, but it does
+				 not offer enough fine-grained control over what jars are added and which are not.
+
+				 NOTE: an unfortunate side effect of this plugin is that it runs not just once, but for
+				 every module in the build.  This is annoying but harmless, and adds only a few seconds
+				 to the overall build time.  It also creates a false sense of size in the target directories
+				 but again this is probably negligible.
+
+				 see src/assembly/distribution.xml
+				 see http://maven.apache.org/plugins/maven-dependency-plugin/copy-mojo.html
 			<plugin>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<!-- copies a tightly-controlled set of dependencies into ${project.build.dir}/dependency
-					 in order to be added to the distribution jar during the assembly process.
-
-					 WARNING: any new dependencies added to project pom files over time must be added explicitly
-					 to this list if they are to make it into the distribution zip.  This section should be
-					 considered fragile. Ideally, we would use the 'copy-dependencies' goal of the
-					 maven-dependency-plugin, which automatically adds all project dependencies, but it does
-					 not offer enough fine-grained control over what jars are added and which are not.
-
-					 NOTE: an unfortunate side effect of this plugin is that it runs not just once, but for
-					 every module in the build.  This is annoying but harmless, and adds only a few seconds
-					 to the overall build time.  It also creates a false sense of size in the target directories
-					 but again this is probably negligible.
-
-					 see src/assembly/distribution.xml
-					 see http://maven.apache.org/plugins/maven-dependency-plugin/copy-mojo.html
-					 -->
 				<version>2.1</version>
 				<executions>
 					<execution>
@@ -369,117 +310,29 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 			<plugin>
 				<!-- run `mvn package assembly:assembly` to trigger assembly creation.
 					 see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.2-beta-5</version>
 				<inherited>false</inherited>
-				<configuration>
-					<descriptors>
-						<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
-					</descriptors>
-					<appendAssemblyId>false</appendAssemblyId>
-				</configuration>
-			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>com.springsource.bundlor</groupId>
-					<artifactId>com.springsource.bundlor.maven</artifactId>
-					<version>1.0.0.RELEASE</version>
 					<executions>
 						<execution>
-							<id>bundlor</id>
+							<id>distribution</id>
 							<goals>
-								<goal>bundlor</goal>
+								<goal>single</goal>
 							</goals>
+							<phase>package</phase>
+							<configuration>
+								<descriptors>
+									<descriptor>${project.basedir}/src/assembly/distribution.xml</descriptor>
+								</descriptors>
+								<appendAssemblyId>false</appendAssemblyId>
+							</configuration>
 						</execution>
 					</executions>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-antrun-plugin</artifactId>
-					<dependencies>
-						<dependency>
-							<groupId>org.apache.ant</groupId>
-							<artifactId>ant</artifactId>
-							<version>1.7.0</version>
-						</dependency>
-						<dependency>
-							<groupId>org.apache.ant</groupId>
-							<artifactId>ant-trax</artifactId>
-							<version>1.7.0</version>
-						</dependency>
-						<dependency>
-							<groupId>org.apache.ant</groupId>
-							<artifactId>ant-apache-regexp</artifactId>
-							<version>1.7.0</version>
-						</dependency>
-						<dependency>
-							<groupId>foundrylogic.vpp</groupId>
-							<artifactId>vpp</artifactId>
-							<version>2.2.1</version>
-						</dependency>
-					</dependencies>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
-	<reporting>
-		<plugins>
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.5</version>
-				<configuration>
-					<javadoc:aggregate>true</javadoc:aggregate>
-					<breakiterator>true</breakiterator>
-					<header>Spring Integration</header>
-					<source>1.5</source>
-					<quiet>true</quiet>
-					<javadocDirectory>${project.basedir}/src/main/javadoc</javadocDirectory>
-					<overview>${project.basedir}/src/main/javadoc/overview.html</overview>
-					<stylesheetfile>${project.basedir}/src/main/javadoc/spring-javadoc.css</stylesheetfile>
-					<!-- copies doc-files subdirectory which contains image resources -->
-					<docfilessubdirs>true</docfilessubdirs>
-					<groups>
-						<group>
-							<title>Spring Integration</title>
-							<packages>org.springframework.integration.core</packages>
-						</group>
-						<!-- TODO: fill in other groups -->
-					</groups>
-					<excludePackageNames>org.springframework.integration.samples</excludePackageNames>
-					<links>
-						<link>http://static.springframework.org/spring/docs/${org.springframework.version}/javadoc-api</link>
-						<link>http://java.sun.com/javase/6/docs/api</link>
-					</links>
-				</configuration>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<report>javadoc</report>
-						</reports>
-					</reportSet>
-				</reportSets>
 			</plugin>
 		</plugins>
-	</reporting>
-	<pluginRepositories>
-		<!-- necessary for bundlor and utils -->
-		<pluginRepository>
-			<id>repository.plugin.springsource.release</id>
-			<name>SpringSource Maven Repository</name>
-			<url>http://repository.springsource.com/maven/bundles/release</url>
-		</pluginRepository>
-	</pluginRepositories>
-	<dependencies>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+	</build>
 </project>

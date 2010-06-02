@@ -4,8 +4,9 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.integration</groupId>
-		<artifactId>spring-integration</artifactId>
+		<artifactId>spring-integration-parent</artifactId>
 		<version>2.0.0.BUILD-SNAPSHOT</version>
+		<relativePath>../spring-integration-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-integration-jdbc</artifactId>
 	<packaging>jar</packaging>
