@@ -44,6 +44,23 @@
 			</distributionManagement>
 		</profile>
 	</profiles>
+	<distributionManagement>
+		<!-- see 'staging' profile for dry-run deployment settings -->
+		<downloadUrl>http://static.springframework.org/spring-integration/site/downloads/releases.html</downloadUrl>
+		<repository>
+			<id>local</id>
+			<url>file://${java.io.tmpdir}/spring-integration-repo</url>
+		</repository>
+		<snapshotRepository>
+			<id>spring-snapshot</id>
+			<name>Spring Snapshot Repository</name>
+			<url>s3://maven.springframework.org/snapshot</url>
+		</snapshotRepository>
+		<site>
+			<id>static.springframework.org</id>
+			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-integration/sites/${project.version}</url>
+		</site>
+	</distributionManagement>
 	<build>
 		<extensions>
 			<extension>
