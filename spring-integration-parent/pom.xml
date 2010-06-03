@@ -151,6 +151,9 @@
 					<groupId>com.springsource.bundlor</groupId>
 					<artifactId>com.springsource.bundlor.maven</artifactId>
 					<version>1.0.0.RELEASE</version>
+					<configuration>
+						<failOnWarnings>true</failOnWarnings>
+					</configuration>
 					<executions>
 						<execution>
 							<id>bundlor</id>
