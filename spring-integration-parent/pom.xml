@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration-parent</artifactId>
@@ -61,6 +61,169 @@
 			<url>scp://static.springframework.org/var/www/domains/springframework.org/static/htdocs/spring-integration/sites/${project.version}</url>
 		</site>
 	</distributionManagement>
+	<dependencyManagement><!--
+		inheritable <dependency> declarations for child poms. children still must
+		explicitly declare the groupId/artifactId of these dependencies in order
+		for them to show up on the classpath, but metadata like <version> and
+		<scope> are inherited, which cuts down on verbosity.
+		see http://www.sonatype.com/books/mvnref-book/reference/pom-relationships-sect-dep-manage.html -->
+		<dependencies>
+			<dependency>
+				<groupId>org.aspectj</groupId>
+				<artifactId>aspectjrt</artifactId>
+				<version>${org.aspectj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.aspectj</groupId>
+				<artifactId>aspectjweaver</artifactId>
+				<version>${org.aspectj.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aop</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aspects</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-expression</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context-support</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jdbc</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jms</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-orm</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-oxm</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-tx</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-webmvc</artifactId>
+				<version>${org.springframework.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.integration</groupId>
+				<artifactId>spring-integration-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.integration</groupId>
+				<artifactId>spring-integration-file</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.integration</groupId>
+				<artifactId>spring-integration-stream</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<!-- test-scoped dependencies -->
+			<dependency><!--
+				while cglib is not necessarily a 'test'-related dependency, it
+				is only used for testing purposes by child modules thus it's
+				scope has been generalized to 'test' here -->
+				<groupId>cglib</groupId>
+				<artifactId>cglib-nodep</artifactId>
+				<version>${cglib.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.easymock</groupId>
+				<artifactId>easymock</artifactId>
+				<version>${org.easymock.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.easymock</groupId>
+				<artifactId>easymockclassextension</artifactId>
+				<version>${org.easymock.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-all</artifactId>
+				<version>${org.mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>hsqldb</groupId>
+				<artifactId>hsqldb</artifactId>
+				<version>${hsqldb.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
+				<version>${org.springframework.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework.integration</groupId>
+				<artifactId>spring-integration-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<dependencies><!--
+		dependency definitions to be inherited by child poms. any <dependency>
+		declarations here will automatically show up on child project classpaths.
+		only items that are truly common across all projects (modules and samples)
+		should go here. otherwise, consider <dependencyManagement> above -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 	<build>
 		<extensions>
 			<extension>
@@ -147,7 +310,14 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<plugin>
+				<plugin><!--
+					configures the springsource bundlor plugin, which generates OSGI-compatible MANIFEST.MF
+					files during the 'compile' phase of the maven build. this plugin is declared within
+					the pluginManagement section because not every module that inherits from this pom
+					needs bundlor's services, e.g.: spring-integration-samples and all its children. for this
+					reason, all modules that wish to use bundlor must declare it explicitly.  it is not necessary
+					to specify the <version> or <configuration> sections, but groupId and artifactId are required.
+					see http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html for more info -->
 					<groupId>com.springsource.bundlor</groupId>
 					<artifactId>com.springsource.bundlor.maven</artifactId>
 					<version>1.0.0.RELEASE</version>
@@ -163,40 +333,14 @@
 						</execution>
 					</executions>
 				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-antrun-plugin</artifactId>
-					<dependencies>
-						<dependency>
-							<groupId>org.apache.ant</groupId>
-							<artifactId>ant</artifactId>
-							<version>1.7.0</version>
-						</dependency>
-						<dependency>
-							<groupId>org.apache.ant</groupId>
-							<artifactId>ant-trax</artifactId>
-							<version>1.7.0</version>
-						</dependency>
-						<dependency>
-							<groupId>org.apache.ant</groupId>
-							<artifactId>ant-apache-regexp</artifactId>
-							<version>1.7.0</version>
-						</dependency>
-						<dependency>
-							<groupId>foundrylogic.vpp</groupId>
-							<artifactId>vpp</artifactId>
-							<version>2.2.1</version>
-						</dependency>
-					</dependencies>
-				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
 	<reporting>
 		<plugins>
-			<plugin>
-				<!-- significantly speeds up the 'Dependencies' report during site creation
-					 see http://old.nabble.com/Skipping-dependency-report-during-Maven2-site-generation-td20116761.html -->
+			<plugin><!--
+				significantly speeds up the 'Dependencies' report during site creation
+				see http://old.nabble.com/Skipping-dependency-report-during-Maven2-site-generation-td20116761.html -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>2.1</version>
@@ -207,27 +351,19 @@
 		</plugins>
 	</reporting>
 	<pluginRepositories>
-		<!-- necessary for bundlor and utils -->
 		<pluginRepository>
+			<!-- necessary for bundlor and utils -->
 			<id>repository.plugin.springsource.release</id>
 			<name>SpringSource Maven Repository</name>
 			<url>http://repository.springsource.com/maven/bundles/release</url>
 		</pluginRepository>
 	</pluginRepositories>
 	<repositories>
-		<!-- necessary for org.springframework.build.aws.maven dependency -->
 		<repository>
+			<!-- necessary for org.springframework.build.aws.maven dependency -->
 			<id>repository.springframework.maven.release</id>
 			<name>Spring Framework Maven Release Repository</name>
 			<url>http://maven.springframework.org/release</url>
 		</repository>
 	</repositories>
-	<dependencies>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>${log4j.version}</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 </project>
