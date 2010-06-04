@@ -3,3 +3,4 @@ target
 .springBeans
 .settings
 spring-integration-samples/loanshark/application.log*
+integration-repo
