@@ -13,8 +13,10 @@
     pipeline that includes a Splitter.</para>
 
     <para>Technically, the Aggregator is more complex than a Splitter, because
-    it is required to maintain state (the Messages to-be-aggregated), to
-    decide when the complete group of Messages is available.</para>
+    it is required to maintain state (the Messages to be aggregated), to
+    decide when the complete group of Messages is available. In order to do this
+    it requires a MessageStore</para>
+
   </section>
 
   <section id="aggregator-functionality">
@@ -25,22 +27,22 @@
     Aggregator will create a single message by processing the whole group, and
     will send that aggregated message as output.</para>
 
-    <para>An important aspect of
+    <para>An main aspect of
     implementing an Aggregator is providing the logic that has to be executed
     when the aggregation (creation of a single message out of many) takes
-    place.</para>
+    place. The other two aspects are correlation and release</para>
 
-    <para>In Spring Integration, the grouping of the messages for aggregation
+    <para>In Spring Integration, the grouping of the messages for aggregation (correlation)
     is done by default based on their CORRELATION_ID message header (i.e. the
     messages with the same CORRELATION_ID will be grouped together). However,
     this can be customized, and the users can opt for other ways of
     specifying how the messages should be grouped together, by using a
     CorrelationStrategy (see below).</para>
 
-    <para>Another important concern is, what happens if
-    late messages arrive after the aggregation has taken place? In this case,
-    the user needs to be able to decide whether they should be
-    discarded or not.</para>
+    <para>To determine whether or not a group of messages may be processed,
+    a ReleaseStrategy is consulted. The default release strategy for aggregator
+    will release groups that have all messages from the sequence, but this can
+    be entirely customized</para>
   </section>
 
   <section id="aggregator-api">
@@ -77,13 +79,13 @@
           <para>correlating messages into a group to be aggregated</para>
         </listitem>
         <listitem>
-          <para>maintaining those messages until the group is complete</para>
+          <para>maintaining those messages in a MessageStore until the group may be released</para>
         </listitem>
         <listitem>
-          <para>deciding when the group is in fact complete</para>
+          <para>deciding when the group is in fact may be released</para>
         </listitem>
         <listitem>
-          <para>processing the completed group into a single aggregated message</para>
+          <para>processing the released group into a single aggregated message</para>
         </listitem>
         <listitem>
           <para>recognizing and responding to an expired group</para>
@@ -123,7 +125,7 @@
 
       <note>
 	    <para>When using a Publish Subscribe Channel or Recipient List Router in this
-        type of scenario, be sure to enable the flag to <emphasis>apply sequence</emphasis>.
+        type of scenario, be sure to enable the flag to <emphasis>apply-sequence</emphasis>.
         That will add the necessary headers (correlation id, sequence number and sequence
         size). That behavior is enabled by default for Splitters in Spring Integration,
         but it is not enabled for the Publish Subscribe Channel or Recipient List
