@@ -1,0 +1,123 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.xml.transformer;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
+
+import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.xml.transformer.XPathTransformer.ResultType;
+import org.springframework.xml.xpath.NodeMapper;
+
+/**
+ * @author Mark Fisher
+ * @since 2.0
+ */
+public class XPathTransformerTests {
+
+	private static final String XML = "<parent><child name='test' age='42' married='true'/></parent>";
+
+	private volatile Message<?> message;
+
+
+	@Before
+	public void createMessage() {
+		this.message = MessageBuilder.withPayload(XML).build();
+	}
+
+
+	@Test
+	public void stringResultTypeByDefault() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
+		Object result = transformer.doTransform(message);
+		assertEquals("test", result);
+	}
+
+	@Test
+	public void numberResult() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/parent/child/@age");
+		transformer.setExpectedResultType(ResultType.NUMBER);
+		Object result = transformer.doTransform(message);
+		assertEquals(new Double(42), result);
+	}
+
+	@Test
+	public void booleanResult() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/parent/child/@married");
+		transformer.setExpectedResultType(ResultType.BOOLEAN);
+		Object result = transformer.doTransform(message);
+		assertEquals(Boolean.TRUE, result);
+	}
+
+	@Test
+	public void nodeResult() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/parent/child");
+		transformer.setExpectedResultType(ResultType.NODE);
+		Object result = transformer.doTransform(message);
+		assertTrue(result instanceof Node);
+		Node node = (Node) result;
+		assertEquals("child", node.getLocalName());
+		assertEquals("test", node.getAttributes().getNamedItem("name").getTextContent());
+		assertEquals("42", node.getAttributes().getNamedItem("age").getTextContent());
+		assertEquals("true", node.getAttributes().getNamedItem("married").getTextContent());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void nodeListResult() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/parent/child");
+		transformer.setExpectedResultType(ResultType.NODELIST);
+		Message<?> message = MessageBuilder.withPayload(
+				"<parent><child name='foo'/><child name='bar'/></parent>").build();
+		Object result = transformer.doTransform(message);
+		assertTrue(List.class.isAssignableFrom(result.getClass()));
+		List<Node> nodeList = (List<Node>) result;
+		assertEquals(2, nodeList.size());
+		Node node1 = nodeList.get(0);
+		Node node2 = nodeList.get(1);
+		assertEquals("child", node1.getLocalName());
+		assertEquals("foo", node1.getAttributes().getNamedItem("name").getTextContent());
+		assertEquals("child", node2.getLocalName());
+		assertEquals("bar", node2.getAttributes().getNamedItem("name").getTextContent());
+	}
+
+	@Test
+	public void nodeMapper() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
+		transformer.setNodeMapper(new TestNodeMapper());
+		Object result = transformer.doTransform(message);
+		assertEquals("test-mapped", result);
+	}
+
+
+	private static class TestNodeMapper implements NodeMapper {
+
+		@Override
+		public Object mapNode(Node node, int nodeNum) throws DOMException {
+			return node.getTextContent() + "-mapped";
+		}
+	}
+
+}
