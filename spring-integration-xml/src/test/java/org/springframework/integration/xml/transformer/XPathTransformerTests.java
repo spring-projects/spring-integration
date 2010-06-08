@@ -65,7 +65,7 @@ public class XPathTransformerTests {
 
 	@Test
 	public void booleanResult() throws Exception {
-		XPathTransformer transformer = new XPathTransformer("/parent/child/@married");
+		XPathTransformer transformer = new XPathTransformer("/parent/child/@married = 'true'");
 		transformer.setEvaluationType(XPathEvaluationType.BOOLEAN_RESULT);
 		Object result = transformer.doTransform(message);
 		assertEquals(Boolean.TRUE, result);
