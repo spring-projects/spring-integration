@@ -25,6 +25,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.transformer.AbstractTransformer;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
+import org.springframework.integration.xml.xpath.XPathEvaluationType;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
@@ -39,15 +40,11 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathTransformer extends AbstractTransformer {
 
-	public static enum ResultType {
-		BOOLEAN, NODE, NODELIST, NUMBER, OBJECT, STRING
-	}
-
 	private final XPathExpression xpathExpression;
 
 	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-	private volatile ResultType expectedResultType = ResultType.STRING;
+	private volatile XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
 	private volatile NodeMapper nodeMapper;
 
@@ -68,19 +65,19 @@ public class XPathTransformer extends AbstractTransformer {
 
 
 	/**
-	 * Specify the expected {@link ResultType}. The default is {@link ResultType#STRING}.
+	 * Specify the expected {@link XPathEvaluationType}. The default is {@link XPathEvaluationType#STRING_RESULT}.
 	 */
-	public void setExpectedResultType(ResultType expectedResultType) {
-		this.expectedResultType = expectedResultType;
+	public void setEvaluationType(XPathEvaluationType evaluationType) {
+		this.evaluationType = evaluationType;
 	}
 
 	/**
 	 * Set a {@link NodeMapper} to use for generating the result object.
-	 * This will also set the expectedResultType to <code>OBJECT</code> since
+	 * This will also set the evaluationType to <code>null</code> since
 	 * the actual type determination is a responsibility of the NodeMapper.
 	 */
 	public void setNodeMapper(NodeMapper nodeMapper) {
-		this.expectedResultType = ResultType.OBJECT;
+		this.evaluationType = null;
 		this.nodeMapper = nodeMapper;
 	}
 
@@ -96,26 +93,12 @@ public class XPathTransformer extends AbstractTransformer {
 	protected Object doTransform(Message<?> message) throws Exception {
 		Node node = this.converter.convertToNode(message.getPayload());
 		Object result = null;
-		switch (this.expectedResultType) {
-			case BOOLEAN:
-				result = this.xpathExpression.evaluateAsBoolean(node);
-				break;
-			case NODE:
-				result = this.xpathExpression.evaluateAsNode(node);
-				break;
-			case NODELIST:
-				result = this.xpathExpression.evaluateAsNodeList(node);
-				break;
-			case NUMBER:
-				result = this.xpathExpression.evaluateAsNumber(node);
-				break;
-			case STRING:
-				result = this.xpathExpression.evaluateAsString(node);
-				break;
-			default: // works for OBJECT
-				Assert.notNull(this.nodeMapper, "NodeMapper required if expectedResultType is OBJECT");
-				result = this.xpathExpression.evaluateAsObject(node, this.nodeMapper);
-				break;
+		if (evaluationType == null) {
+			Assert.notNull(this.nodeMapper, "NodeMapper required if evaluationType is null.");
+			result = this.xpathExpression.evaluateAsObject(node, this.nodeMapper);
+		}
+		else {
+			result = this.evaluationType.evaluateXPath(this.xpathExpression, node);
 		}
 		return result;
 	}

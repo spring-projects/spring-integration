@@ -28,7 +28,7 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.xml.transformer.XPathTransformer.ResultType;
+import org.springframework.integration.xml.xpath.XPathEvaluationType;
 import org.springframework.xml.xpath.NodeMapper;
 
 /**
@@ -58,7 +58,7 @@ public class XPathTransformerTests {
 	@Test
 	public void numberResult() throws Exception {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@age");
-		transformer.setExpectedResultType(ResultType.NUMBER);
+		transformer.setEvaluationType(XPathEvaluationType.NUMBER_RESULT);
 		Object result = transformer.doTransform(message);
 		assertEquals(new Double(42), result);
 	}
@@ -66,7 +66,7 @@ public class XPathTransformerTests {
 	@Test
 	public void booleanResult() throws Exception {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@married");
-		transformer.setExpectedResultType(ResultType.BOOLEAN);
+		transformer.setEvaluationType(XPathEvaluationType.BOOLEAN_RESULT);
 		Object result = transformer.doTransform(message);
 		assertEquals(Boolean.TRUE, result);
 	}
@@ -74,7 +74,7 @@ public class XPathTransformerTests {
 	@Test
 	public void nodeResult() throws Exception {
 		XPathTransformer transformer = new XPathTransformer("/parent/child");
-		transformer.setExpectedResultType(ResultType.NODE);
+		transformer.setEvaluationType(XPathEvaluationType.NODE_RESULT);
 		Object result = transformer.doTransform(message);
 		assertTrue(result instanceof Node);
 		Node node = (Node) result;
@@ -88,7 +88,7 @@ public class XPathTransformerTests {
 	@SuppressWarnings("unchecked")
 	public void nodeListResult() throws Exception {
 		XPathTransformer transformer = new XPathTransformer("/parent/child");
-		transformer.setExpectedResultType(ResultType.NODELIST);
+		transformer.setEvaluationType(XPathEvaluationType.NODE_LIST_RESULT);
 		Message<?> message = MessageBuilder.withPayload(
 				"<parent><child name='foo'/><child name='bar'/></parent>").build();
 		Object result = transformer.doTransform(message);
