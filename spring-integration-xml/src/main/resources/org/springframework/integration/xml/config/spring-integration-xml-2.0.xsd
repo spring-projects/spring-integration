@@ -157,6 +157,43 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="xpath-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an XPath transformer.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpoint">
+					<xsd:attribute name="expression" type="xsd:string" use="required">
+						<xsd:annotation>
+							<xsd:documentation>
+	The XPath expression to be evaluated against the input Message's payload.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="evaluation-type" default="STRING_RESULT">
+						<xsd:annotation>
+							<xsd:documentation>
+	The result type expected from the XPath evaluation. This will be the payload type of the output Message.
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="BOOLEAN_RESULT"/>
+								<xsd:enumeration value="NODE_RESULT"/>
+								<xsd:enumeration value="NODE_LIST_RESULT"/>
+								<xsd:enumeration value="NUMBER_RESULT"/>
+								<xsd:enumeration value="STRING_RESULT"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="xpath-router">
 		<xsd:complexType>
 			<xsd:annotation>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class IntegrationXmlNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
@@ -27,6 +28,7 @@ public class IntegrationXmlNamespaceHandler extends AbstractIntegrationNamespace
 		registerBeanDefinitionParser("marshalling-transformer", new MarshallingTransformerParser());
 		registerBeanDefinitionParser("unmarshalling-transformer", new UnmarshallingTransformerParser());
 		registerBeanDefinitionParser("xslt-transformer", new XsltPayloadTransformerParser());
+		registerBeanDefinitionParser("xpath-transformer", new XPathTransformerParser());
 		registerBeanDefinitionParser("xpath-router", new XPathRouterParser());
 		registerBeanDefinitionParser("xpath-selector", new XPathSelectorParser());
 		registerBeanDefinitionParser("xpath-expression", new XPathExpressionParser());
