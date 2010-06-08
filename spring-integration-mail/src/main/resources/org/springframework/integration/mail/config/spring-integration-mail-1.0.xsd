@@ -132,10 +132,10 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="should-delete-messages" type="xsd:string">
+			<xsd:attribute name="should-delete-messages" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Specify whether mail messages should be deleted after retrieval. The default is TRUE.
+	Specify whether mail messages should be deleted after retrieval.
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
