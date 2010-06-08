@@ -2,16 +2,25 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:mail="http://www.springframework.org/schema/integration/mail"
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util-2.5.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">
+
+	<context:property-placeholder properties-ref="configProperties"/>
+
+	<util:properties id="configProperties">
+		<prop key="mail.delete">false</prop>
+	</util:properties>
 
 	<integration:channel id="channel"/>
 
@@ -25,11 +34,11 @@
 			store-uri="imap:foo"
 			channel="channel"
 			auto-startup="false"
-			java-mail-properties="props"
-			should-delete-messages="false"
+			java-mail-properties="javaMailProperties"
+			should-delete-messages="${mail.delete}"
 			task-executor="executor"/>
 
-	<util:properties id="props">
+	<util:properties id="javaMailProperties">
 		<prop key="foo">bar</prop>
 	</util:properties>
 
