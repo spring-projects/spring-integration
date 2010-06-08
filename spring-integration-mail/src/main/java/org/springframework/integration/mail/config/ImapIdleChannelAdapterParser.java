@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package org.springframework.integration.mail.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
@@ -51,32 +51,21 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String channel = element.getAttribute("channel");
 		Assert.hasText(channel, "the 'channel' attribute is required");
-		builder.addConstructorArgReference(this.parseImapMailReceiver(element, parserContext));
+		builder.addConstructorArgValue(this.parseImapMailReceiver(element, parserContext));
 		builder.addPropertyReference("outputChannel", channel);
-		String taskExecutorRef = element.getAttribute("task-executor");
-		if (StringUtils.hasText(taskExecutorRef)) {
-			builder.addPropertyReference("taskExecutor", taskExecutorRef);
-		}
-		String autoStartup = element.getAttribute("auto-startup");
-		if (StringUtils.hasText(autoStartup)) {
-			builder.addPropertyValue("autoStartup", autoStartup);
-		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 	}
 
-	private String parseImapMailReceiver(Element element, ParserContext parserContext) {
+	private BeanDefinition parseImapMailReceiver(Element element, ParserContext parserContext) {
 		String uri = element.getAttribute("store-uri");
 		Assert.hasText(uri, "the 'store-uri' attribute is required");
 		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE + ".ImapMailReceiver");
 		receiverBuilder.addConstructorArgValue(uri);
-		String propertiesRef = element.getAttribute("java-mail-properties");
-		if (StringUtils.hasText(propertiesRef)) {
-			receiverBuilder.addPropertyReference("javaMailProperties", propertiesRef);
-		}
-		receiverBuilder.addPropertyValue("shouldDeleteMessages",
-				!"false".equals(element.getAttribute("should-delete-messages")));
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				receiverBuilder.getBeanDefinition(), parserContext.getRegistry());
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "java-mail-properties");
+		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
+		return receiverBuilder.getBeanDefinition();
 	}
 
 }
