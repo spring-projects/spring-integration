@@ -24,6 +24,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
@@ -58,12 +59,25 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 	}
 
 	private BeanDefinition parseImapMailReceiver(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".ImapMailReceiver");
+		Object source = parserContext.extractSource(element);
 		String uri = element.getAttribute("store-uri");
-		Assert.hasText(uri, "the 'store-uri' attribute is required");
-		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				BASE_PACKAGE + ".ImapMailReceiver");
-		receiverBuilder.addConstructorArgValue(uri);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "java-mail-properties");
+		if (StringUtils.hasText(uri)) {
+			receiverBuilder.addConstructorArgValue(uri);
+		}
+		String session = element.getAttribute("session");
+		if (StringUtils.hasText(session)) {
+			if (element.hasAttribute("java-mail-properties") || element.hasAttribute("authenticator")) {
+				parserContext.getReaderContext().error("Neither 'java-mail-properties' nor 'authenticator' " +
+						"references are allowed when a 'session' reference has been provided.", source);
+			}
+			receiverBuilder.addPropertyReference("session", session);
+		}
+		else {
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "java-mail-properties");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "authenticator", "javaMailAuthenticator");
+		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "max-fetch-size");
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
 		return receiverBuilder.getBeanDefinition();
 	}

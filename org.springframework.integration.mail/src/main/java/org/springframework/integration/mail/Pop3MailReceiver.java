@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,19 @@ import org.springframework.util.Assert;
  */
 public class Pop3MailReceiver extends AbstractMailReceiver {
 
+	public Pop3MailReceiver() {
+		super();
+		this.setProtocol("pop3");
+	}
+
 	public Pop3MailReceiver(String url) {
 		super(url);
-		Assert.isTrue(url.startsWith("pop3"), "url must start with 'pop3'");
+		if (url != null) {
+			Assert.isTrue(url.startsWith("pop3"), "url must start with 'pop3'");
+		}
+		else {
+			this.setProtocol("pop3");
+		}
 	}
 
 	public Pop3MailReceiver(String host, String username, String password) {
@@ -46,14 +56,6 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 		super(new URLName("pop3", host, port, "INBOX", username, password));
 	}
 
-
-	/**
-	 * POP3 is unable to detect new Messages, so this always returns true.
-	 */
-	@Override
-	protected final boolean shouldDeleteMessages() {
-		return true;
-	}
 
 	@Override
 	protected Message[] searchForNewMessages() throws MessagingException {
