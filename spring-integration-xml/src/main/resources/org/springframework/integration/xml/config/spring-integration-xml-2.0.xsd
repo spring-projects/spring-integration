@@ -166,11 +166,25 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
-					<xsd:attribute name="expression" type="xsd:string" use="required">
+					<xsd:attribute name="expression" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	The XPath expression to be evaluated against the input Message's payload.
+	The XPath expression string to be evaluated against the input Message's payload.
+	Either this or 'expression-ref' must be provided, but not both.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="expression-ref" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Reference to the XPathExpression instance to be evaluated against the input Message's payload.
+	Either this or 'expression' must be provided, but not both.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.xml.xpath.XPathExpression"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="evaluation-type" default="STRING_RESULT">
@@ -182,12 +196,38 @@
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
 								<xsd:enumeration value="BOOLEAN_RESULT"/>
+								<xsd:enumeration value="STRING_RESULT"/>
+								<xsd:enumeration value="NUMBER_RESULT"/>
 								<xsd:enumeration value="NODE_RESULT"/>
 								<xsd:enumeration value="NODE_LIST_RESULT"/>
-								<xsd:enumeration value="NUMBER_RESULT"/>
-								<xsd:enumeration value="STRING_RESULT"/>
 							</xsd:restriction>
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="node-mapper">
+						<xsd:annotation>
+							<xsd:documentation>
+	Reference to a NodeMapper. If this is provided, the 'evaluation-type' will be ignored. Instead, the
+	org.springframework.xml.xpath.XPathExpression's evaluateAsObject(Node node, NodeMapper nodeMapper)
+	method will be invoked.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.xml.xpath.NodeMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="converter">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the XmlPayloadConverter to use when converting a Message payload prior to XPath evaluation.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.xml.XmlPayloadConverter"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>

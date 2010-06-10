@@ -41,9 +41,19 @@ public class XPathTransformerParser extends AbstractTransformerParser {
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String expression = element.getAttribute("expression");
-		Assert.isTrue(StringUtils.hasText(expression), "The 'expression' attribute is required.");
-		builder.addConstructorArgValue(expression);
+		String expressionRef = element.getAttribute("expression-ref");
+		boolean hasRef = StringUtils.hasText(expressionRef);
+		Assert.isTrue(hasRef ^ StringUtils.hasText(expression),
+				"Exactly one of the 'expression' or 'expression-ref' attributes is required.");
+		if (hasRef) {
+			builder.addConstructorArgReference(expressionRef);
+		}
+		else {
+			builder.addConstructorArgValue(expression);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "evaluation-type");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "node-mapper");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "converter");
 	}
 
 }

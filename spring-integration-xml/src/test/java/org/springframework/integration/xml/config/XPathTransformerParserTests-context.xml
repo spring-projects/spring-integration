@@ -24,4 +24,16 @@
 
 	<xpath-transformer input-channel="nodeListInput" expression="/person/@*" evaluation-type="NODE_LIST_RESULT" output-channel="output"/>
 
+	<xpath-transformer input-channel="nodeMapperInput" expression="/person/@age" node-mapper="testNodeMapper" output-channel="output"/>
+
+	<xpath-transformer input-channel="customConverterInput" expression="/test/@type" converter="testXmlPayloadConverter" output-channel="output"/>
+
+	<xpath-transformer input-channel="expressionRefInput" expression-ref="testExpression" evaluation-type="NUMBER_RESULT" output-channel="output"/>
+
+	<xpath-expression id="testExpression" expression="/person/@age * 2"/>
+
+	<beans:bean id="testNodeMapper" class="org.springframework.integration.xml.config.XPathTransformerParserTests$TestNodeMapper"/>
+
+	<beans:bean id="testXmlPayloadConverter" class="org.springframework.integration.xml.config.XPathTransformerParserTests$TestXmlPayloadConverter"/>
+
 </beans:beans>

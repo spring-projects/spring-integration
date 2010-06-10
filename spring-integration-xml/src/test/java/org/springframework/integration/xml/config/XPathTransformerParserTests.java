@@ -19,19 +19,28 @@ package org.springframework.integration.xml.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringReader;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.xml.xpath.NodeMapper;
 
 /**
  * @author Mark Fisher
@@ -55,6 +64,15 @@ public class XPathTransformerParserTests {
 
 	@Autowired
 	private MessageChannel nodeListInput;
+
+	@Autowired
+	private MessageChannel nodeMapperInput;
+
+	@Autowired
+	private MessageChannel customConverterInput;
+
+	@Autowired
+	private MessageChannel expressionRefInput;
 
 	@Autowired
 	private PollableChannel output;
@@ -97,6 +115,57 @@ public class XPathTransformerParserTests {
 		assertTrue(List.class.isAssignableFrom(payload.getClass()));
 		List<Node> nodeList = (List<Node>) payload;
 		assertEquals(3, nodeList.size());
+	}
+
+	@Test
+	public void nodeMapper() {
+		this.nodeMapperInput.send(message);
+		assertEquals("42-mapped", output.receive(0).getPayload());
+	}
+
+	@Test
+	public void customConverter() {
+		this.customConverterInput.send(message);
+		assertEquals("custom", output.receive(0).getPayload());
+	}
+
+	@Test
+	public void expressionRef() {
+		this.expressionRefInput.send(message);
+		assertEquals(new Double(84), output.receive(0).getPayload());
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class TestNodeMapper implements NodeMapper {
+
+		@Override
+		public Object mapNode(Node node, int nodeNum) throws DOMException {
+			return node.getTextContent() + "-mapped";
+		}
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class TestXmlPayloadConverter implements XmlPayloadConverter {
+
+		public Source convertToSource(Object object) {
+			throw new UnsupportedOperationException();
+		}
+
+		public Node convertToNode(Object object) {
+			try {
+				return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+						new InputSource(new StringReader("<test type='custom'/>")));
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		public Document convertToDocument(Object object) {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 }

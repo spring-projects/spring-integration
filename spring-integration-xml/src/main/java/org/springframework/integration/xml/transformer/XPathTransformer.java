@@ -16,9 +16,6 @@
 
 package org.springframework.integration.xml.transformer;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.w3c.dom.Node;
 
 import org.springframework.integration.core.Message;
@@ -34,6 +31,13 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
 /**
  * Transformer implementation that evaluates an XPath expression against the inbound
  * Message payload and returns a Message whose payload is the result of that evaluation.
+ * Prior to evaluation, the payload may be converted by the configured {@link XmlPayloadConverter}
+ * instance. The default converter type is {@link DefaultXmlPayloadConverter}.
+ * <p>
+ * The evaluation result type will depend on either the enumeration value provided to
+ * {@link #setEvaluationType(XPathEvaluationType)} or the presence of a {@link NodeMapper},
+ * which takes precedence. If no {@link NodeMapper} or evaluation type is configured explicitly,
+ * the default evaluation type is {@link XPathEvaluationType#STRING_RESULT}.
  * 
  * @author Mark Fisher
  * @since 2.0
@@ -49,18 +53,21 @@ public class XPathTransformer extends AbstractTransformer {
 	private volatile NodeMapper nodeMapper;
 
 
+	/**
+	 * Create an {@link XPathTransformer} that will create an XPath expression from the given String
+	 * to be evaluated against converted inbound Message payloads. 
+	 */
 	public XPathTransformer(String expression) {
 		this.xpathExpression = XPathExpressionFactory.createXPathExpression(expression);		
 	}
 
-	public XPathTransformer(String expression, Map<String, String> namespaces) {
-		this.xpathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
-	}
-
-	public XPathTransformer(String expression, String prefix, String namespace) {
-		Map<String, String> namespaces = new HashMap<String, String>();
-		namespaces.put(prefix, namespace);
-		this.xpathExpression = XPathExpressionFactory.createXPathExpression(expression, namespaces);
+	/**
+	 * Create an {@link XPathTransformer} that will evaluate the given {@link XPathExpression}
+	 * against converted inbound Message payloads.
+	 */
+	public XPathTransformer(XPathExpression expression) {
+		Assert.notNull(expression, "expression must not be null");
+		this.xpathExpression = expression;
 	}
 
 
@@ -68,16 +75,16 @@ public class XPathTransformer extends AbstractTransformer {
 	 * Specify the expected {@link XPathEvaluationType}. The default is {@link XPathEvaluationType#STRING_RESULT}.
 	 */
 	public void setEvaluationType(XPathEvaluationType evaluationType) {
+		Assert.notNull(evaluationType, "evaluationType must not be null.");
 		this.evaluationType = evaluationType;
 	}
 
 	/**
-	 * Set a {@link NodeMapper} to use for generating the result object.
-	 * This will also set the evaluationType to <code>null</code> since
-	 * the actual type determination is a responsibility of the NodeMapper.
+	 * Set a {@link NodeMapper} to use for generating the result object. By default the NodeMapper is null,
+	 * but if explicitly set, type determination is the responsibility of the NodeMapper, taking precedence
+	 * over any configured evaluationType.
 	 */
 	public void setNodeMapper(NodeMapper nodeMapper) {
-		this.evaluationType = null;
 		this.nodeMapper = nodeMapper;
 	}
 
@@ -93,8 +100,7 @@ public class XPathTransformer extends AbstractTransformer {
 	protected Object doTransform(Message<?> message) throws Exception {
 		Node node = this.converter.convertToNode(message.getPayload());
 		Object result = null;
-		if (evaluationType == null) {
-			Assert.notNull(this.nodeMapper, "NodeMapper required if evaluationType is null.");
+		if (this.nodeMapper != null) {
 			result = this.xpathExpression.evaluateAsObject(node, this.nodeMapper);
 		}
 		else {

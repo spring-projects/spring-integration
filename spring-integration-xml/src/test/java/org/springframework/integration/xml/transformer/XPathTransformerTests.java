@@ -19,17 +19,26 @@ package org.springframework.integration.xml.transformer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringReader;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
 import org.springframework.xml.xpath.NodeMapper;
+import org.springframework.xml.xpath.XPathExpression;
+import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * @author Mark Fisher
@@ -51,6 +60,14 @@ public class XPathTransformerTests {
 	@Test
 	public void stringResultTypeByDefault() throws Exception {
 		XPathTransformer transformer = new XPathTransformer("/parent/child/@name");
+		Object result = transformer.doTransform(message);
+		assertEquals("test", result);
+	}
+
+	@Test
+	public void xpathExpressionReferenceConstructorInsteadOfString() throws Exception {
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/parent/child/@name");
+		XPathTransformer transformer = new XPathTransformer(expression);
 		Object result = transformer.doTransform(message);
 		assertEquals("test", result);
 	}
@@ -111,12 +128,42 @@ public class XPathTransformerTests {
 		assertEquals("test-mapped", result);
 	}
 
+	@Test
+	public void customConverter() throws Exception {
+		XPathTransformer transformer = new XPathTransformer("/test/@type");
+		transformer.setConverter(new TestXmlPayloadConverter());
+		Object result = transformer.doTransform(message);
+		assertEquals("custom", result);
+	}
+
 
 	private static class TestNodeMapper implements NodeMapper {
 
 		@Override
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";
+		}
+	}
+
+
+	private static class TestXmlPayloadConverter implements XmlPayloadConverter {
+
+		public Source convertToSource(Object object) {
+			throw new UnsupportedOperationException();
+		}
+
+		public Node convertToNode(Object object) {
+			try {
+				return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+						new InputSource(new StringReader("<test type='custom'/>")));
+			}
+			catch (Exception e) {
+				throw new IllegalStateException(e);
+			}
+		}
+
+		public Document convertToDocument(Object object) {
+			throw new UnsupportedOperationException();
 		}
 	}
 
