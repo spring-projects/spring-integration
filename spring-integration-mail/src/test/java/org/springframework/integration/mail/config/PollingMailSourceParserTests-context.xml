@@ -16,10 +16,10 @@
 	<integration:channel id="channel"/>
 
 	<mail:inbound-channel-adapter id="imapAdapter"
-			store-uri="imap:foo" java-mail-properties="props" channel="channel" auto-startup="false"/>
+			store-uri="imap:foo" java-mail-properties="props" channel="channel" should-delete-messages="false" auto-startup="false"/>
 
 	<mail:inbound-channel-adapter id="pop3Adapter"
-			store-uri="pop3:bar" java-mail-properties="props" channel="channel" auto-startup="false"/>
+			store-uri="pop3:bar" java-mail-properties="props" channel="channel" should-delete-messages="true" auto-startup="false"/>
 
 	<util:properties id="props">
 		<prop key="foo">bar</prop>

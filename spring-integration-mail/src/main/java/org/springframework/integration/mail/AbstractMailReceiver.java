@@ -49,6 +49,8 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 
 	private final URLName url;
 
+	private volatile String protocol;
+
 	private volatile int maxFetchSize = -1;
 
 	private volatile Session session;
@@ -56,6 +58,8 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	private volatile Store store;
 
 	private volatile Folder folder;
+
+	private volatile boolean shouldDeleteMessages = false;
 
 	private volatile Properties javaMailProperties = new Properties();
 
@@ -65,29 +69,88 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 
 	private Authenticator javaMailAuthenticator;
 
+
+	public AbstractMailReceiver() {
+		this.url = null;
+	}
+
 	public AbstractMailReceiver(URLName urlName) {
 		Assert.notNull(urlName, "urlName must not be null");
 		this.url = urlName;
+		this.shouldDeleteMessages = urlName.getProtocol().startsWith("pop3");
 	}
 
 	public AbstractMailReceiver(String url) {
-		Assert.notNull(url, "url must not be null");
-		this.url = new URLName(url);
+		if (url != null) {
+			this.url = new URLName(url);
+			this.shouldDeleteMessages = this.url.getProtocol().startsWith("pop3");
+		}
+		else {
+			this.url = null;
+		}
 	}
 
+
+	public void setProtocol(String protocol) {
+		if (this.url != null) {
+			Assert.isTrue(this.url.getProtocol().equals(protocol),
+					"The 'protocol' does not match that provided by the Store URI.");
+		}
+		this.protocol = protocol;
+	}
+
+	/**
+	 * Set the {@link Session}. Otherwise, the Session will be created by invocation of
+	 * {@link Session#getInstance(Properties)} or {@link Session#getInstance(Properties, Authenticator)}.
+	 * 
+	 * @see #setJavaMailProperties(Properties)
+	 * @see #setJavaMailAuthenticator(Authenticator)
+	 */
+	public void setSession(Session session) {
+		Assert.notNull(session, "Session must not be null");
+		this.session = session;
+	}
+
+	/**
+	 * A new {@link Session} will be created with these properties (and the JavaMailAuthenticator if provided).
+	 * Use either this method or {@link #setSession}, but not both.
+	 * 
+	 * @see #setJavaMailAuthenticator(Authenticator)
+	 * @see #setSession(Session)
+	 */
 	public void setJavaMailProperties(Properties javaMailProperties) {
 		this.javaMailProperties = javaMailProperties;
 	}
 
 	/**
-	 * Optional, sets the Authenticator to be used to obtain a session
+	 * Optional, sets the Authenticator to be used to obtain a session. This will not be used if
+	 * {@link AbstractMailReceiver#setSession} has been used to configure the {@link Session} directly.
+	 * 
+	 * @see #setSession(Session)
 	 */
 	public void setJavaMailAuthenticator(Authenticator javaMailAuthenticator) {
 		this.javaMailAuthenticator = javaMailAuthenticator;
 	}
 
+	/**
+	 * Specify the maximum number of Messages to fetch per call to {@link #receive()}.
+	 */
 	public void setMaxFetchSize(int maxFetchSize) {
 		this.maxFetchSize = maxFetchSize;
+	}
+
+	/**
+	 * Specify whether mail messages should be deleted after retrieval.
+	 */
+	public void setShouldDeleteMessages(boolean shouldDeleteMessages) {
+		this.shouldDeleteMessages = shouldDeleteMessages;
+	}
+
+	/**
+	 * Indicates whether the mail messages should be deleted after being received.
+	 */
+	protected boolean shouldDeleteMessages() {
+		return this.shouldDeleteMessages;
 	}
 
 	protected Folder getFolder() {
@@ -99,18 +162,25 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	 */
 	protected abstract Message[] searchForNewMessages() throws MessagingException;
 
-	/**
-	 * Subclasses must implement this method to indicate whether the mail
-	 * messages should be deleted after being received.
-	 */
-	protected abstract boolean shouldDeleteMessages();
-
 	private void openSession() throws MessagingException {
 		if (this.session == null) {
-			this.session = Session.getInstance(this.javaMailProperties, this.javaMailAuthenticator);
+			if (this.javaMailAuthenticator != null) {
+				this.session = Session.getInstance(this.javaMailProperties, this.javaMailAuthenticator);
+			}
+			else {
+				this.session = Session.getInstance(this.javaMailProperties);
+			}
 		}
 		if (this.store == null) {
-			this.store = this.session.getStore(this.url);
+			if (this.url != null) {
+				this.store = this.session.getStore(this.url);
+			}
+			else if (this.protocol != null) {
+				this.store = this.session.getStore(this.protocol);
+			}
+			else {
+				this.store = this.session.getStore();
+			}
 		}
 		if (!this.store.isConnected()) {
 			if (logger.isDebugEnabled()) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,30 +44,25 @@ import com.sun.mail.imap.IMAPFolder;
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
-	private volatile boolean shouldDeleteMessages = true;
-
 	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
 
 
+	public ImapMailReceiver() {
+		super();
+		this.setProtocol("imap");
+	}
+
 	public ImapMailReceiver(String url) {
 		super(url);
-		Assert.isTrue(url.toLowerCase().startsWith("imap"),
-				"URL must start with 'imap' for the IMAP Mail receiver.");
+		if (url != null) {
+			Assert.isTrue(url.toLowerCase().startsWith("imap"),
+					"URL must start with 'imap' for the IMAP Mail receiver.");
+		}
+		else {
+			this.setProtocol("imap");
+		}
 	}
 
-
-	/**
-	 * Specify whether mail messages should be deleted after retrieval.
-	 * The default is <code>true</code>. 
-	 */
-	public void setShouldDeleteMessages(boolean shouldDeleteMessages) {
-		this.shouldDeleteMessages = shouldDeleteMessages;
-	}
-
-	@Override
-	protected boolean shouldDeleteMessages() {
-		return this.shouldDeleteMessages;
-	}
 
 	/**
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE

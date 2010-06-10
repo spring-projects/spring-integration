@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+		http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<!-- INT-1163 -->
+
+	<mail:inbound-channel-adapter id="invalid" channel="testChannel" protocol="pop3" auto-startup="false"/>
+
+	<si:channel id="testChannel"/>
+
+	<si:poller default="true" max-messages-per-poll="1">
+		<si:interval-trigger interval="60" time-unit="SECONDS"/>
+	</si:poller>
+
+</beans>

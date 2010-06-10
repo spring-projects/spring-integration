@@ -63,112 +63,146 @@
 	</xsd:element>
 
 	<xsd:element name="inbound-channel-adapter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines an inbound Channel Adapter that polls a mailbox for mail messages.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
-			<xsd:attribute name="java-mail-properties" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="java.util.Properties"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inboundMailAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="protocol" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	The protocol to use (e.g. "pop3" or "imap"). Typically, either this or the 'store-uri' would be
+	provided, but not both. However, at least one of them is required.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="imap-idle-channel-adapter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines an IMAP IDLE channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	A unique identifier for this adapter.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string" use="required">
-				<xsd:annotation>
-					<xsd:documentation>
-	Reference to a Message Channel to which Messages will be sent.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="store-uri" type="xsd:string" use="required">
-				<xsd:annotation>
-					<xsd:documentation>
-	URI for the Mail store from which to receive messages.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="java-mail-properties" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Reference to a 'java.util.Properties' instance with settings for the JavaMail Session.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="java.util.Properties"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="task-executor" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-	Reference to a TaskExecutor for sending Mail asynchronously.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="should-delete-messages" type="xsd:string" use="required">
-				<xsd:annotation>
-					<xsd:documentation><![CDATA[
-	Specify whether mail messages should be deleted after retrieval.
-					]]></xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true">
-				<xsd:annotation>
-					<xsd:documentation>
-	Specify whether this adapter should start automatically. Default is TRUE.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inboundMailAdapterType">
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Reference to a TaskExecutor for sending inbound Mail to a MessageChannel asynchronously.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.core.task.TaskExecutor"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="inboundMailAdapterType">
+		<xsd:attribute name="id" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	A unique identifier for this Channel Adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="channel" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference for the MessageChannel to which this adapter will send Messages.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="store-uri" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The URI for the Mail Store. Typically of the form: [pop3|imap]://user:password@host:port/INBOX
+	If this is not provided, then the store will be retrieved via the no-arg Session.getStore()
+	instead of the Session.getStore(url) method.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="session" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify the javax.mail.Session reference.
+	NOTE: if this is provided, then 'java-mail-properties' should not be.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.mail.Session"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="java-mail-properties" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Reference to a 'java.util.Properties' instance with settings for the JavaMail Session.
+	NOTE: if this is provided, then 'session' should not be.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="java.util.Properties"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="authenticator" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify the javax.mail.Authenticator.
+	NOTE: if this is provided, then 'session' should not be.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="javax.mail.Authenticator"/>
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="max-fetch-size" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify the maximum number of Mail Messages to fetch per receive call.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="should-delete-messages" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify whether mail messages should be deleted after retrieval.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specify whether this endpoint should be started automatically. The default is TRUE.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
 
 	<xsd:element name="mail-to-string-transformer">
 		<xsd:complexType>

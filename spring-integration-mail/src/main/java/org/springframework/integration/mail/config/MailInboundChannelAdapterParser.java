@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package org.springframework.integration.mail.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
-import org.springframework.util.Assert;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -42,30 +43,44 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 	protected String parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE + ".MailReceivingMessageSource");
-		builder.addConstructorArgReference(this.parseMailReceiver(element, parserContext));
+		builder.addConstructorArgValue(this.parseMailReceiver(element, parserContext));
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
-	private String parseMailReceiver(Element element, ParserContext parserContext) {
-		String storeUri = element.getAttribute("store-uri");
-		Assert.hasText(storeUri, "the 'store-uri' attribute is required");
+	private BeanDefinition parseMailReceiver(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				BASE_PACKAGE + ".config.MailReceiverFactoryBean");
-		receiverBuilder.addPropertyValue("storeUri", storeUri);
-		String propertiesRef = element.getAttribute("java-mail-properties");
-		if (StringUtils.hasText(propertiesRef)) {
-			receiverBuilder.addPropertyReference("javaMailProperties", propertiesRef);
+		Object source = parserContext.extractSource(element);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "store-uri");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "protocol");
+		String session = element.getAttribute("session");
+		if (StringUtils.hasText(session)) {
+			if (element.hasAttribute("java-mail-properties") || element.hasAttribute("authenticator")) {
+				parserContext.getReaderContext().error("Neither 'java-mail-properties' nor 'authenticator' " +
+						"references are allowed when a 'session' reference has been provided.", source);
+			}
+			receiverBuilder.addPropertyReference("session", session);
 		}
-		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		if (pollerElement != null) {
-			String mmpp = pollerElement.getAttribute("max-messages-per-poll");
-			if (StringUtils.hasText(mmpp)) {
-				receiverBuilder.addPropertyValue("maxFetchSize", mmpp);
+		else {
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "java-mail-properties");
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(receiverBuilder, element, "authenticator");
+		}
+		String maxFetchSize = element.getAttribute("max-fetch-size");
+		if (StringUtils.hasText(maxFetchSize)) {
+			receiverBuilder.addPropertyValue("maxFetchSize", maxFetchSize);
+		}
+		else {
+			Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
+			if (pollerElement != null) {
+				String mmpp = pollerElement.getAttribute("max-messages-per-poll");
+				if (StringUtils.hasText(mmpp)) {
+					receiverBuilder.addPropertyValue("maxFetchSize", mmpp);
+				}
 			}
 		}
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				receiverBuilder.getBeanDefinition(), parserContext.getRegistry());
+		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
+		return receiverBuilder.getBeanDefinition();
 	}
 
 }
