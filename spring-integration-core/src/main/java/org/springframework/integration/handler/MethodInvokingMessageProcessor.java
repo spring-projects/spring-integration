@@ -159,7 +159,8 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 		for (HandlerMethod candidate : candidates) {
 			try {
 				Expression expression = candidate.getExpression();
-				Object result = this.evaluateExpression(expression, message);
+				Class<?> expectedType = candidate.method.getReturnType();
+				Object result = this.evaluateExpression(expression, message, expectedType);
 				if (this.requiresReply) {
 					Assert.notNull(result, "Expression evaluation result was null, but this processor requires a reply.");
 				}

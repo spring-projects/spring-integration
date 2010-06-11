@@ -37,6 +37,8 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 
 	private final Expression expression;
 
+	private volatile Class<?> expectedType = null;
+
 
 	public ExpressionEvaluatingMessageProcessor(String expression) {
 		try {
@@ -49,8 +51,12 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	}
 
 
+	public void setExpectedType(Class<?> expectedType) {
+		this.expectedType = expectedType;
+	}
+
 	public Object processMessage(Message<?> message) {
-		return this.evaluateExpression(this.expression, message);
+		return this.evaluateExpression(this.expression, message, this.expectedType);
 	}
 
 }
