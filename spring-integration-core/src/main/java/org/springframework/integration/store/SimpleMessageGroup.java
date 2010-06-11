@@ -13,30 +13,32 @@
 
 package org.springframework.integration.store;
 
+import org.springframework.integration.core.Message;
+
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-
-import org.springframework.integration.core.Message;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and correlation
- * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it. <strong>This is not thread
- * safe and should not be used for long running aggregations</strong>.
- * 
+ * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it.
+ *
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Dave Syer
- * 
  * @since 2.0
  */
 public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object correlationKey;
 
-	public final Collection<Message<?>> marked = new HashSet<Message<?>>();
-
-	public final Collection<Message<?>> unmarked = new HashSet<Message<?>>();
+	//Guards(marked, unmarked)
+	private final Object lock = new Object();
+	//@GuardedBy(lock)
+	public final BlockingQueue<Message<?>> marked = new LinkedBlockingQueue<Message<?>>();
+	//@GuardedBy(lock)
+	public final BlockingQueue<Message<?>> unmarked = new LinkedBlockingQueue<Message<?>>();
 
 	private final long timestamp;
 
@@ -48,21 +50,27 @@ public class SimpleMessageGroup implements MessageGroup {
 		this(unmarked, Collections.<Message<?>>emptyList(), correlationKey, System.currentTimeMillis());
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked, Object correlationKey, long timestamp) {
+	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked,
+							  Collection<? extends Message<?>> marked,
+							  Object correlationKey, long timestamp) {
 		this.correlationKey = correlationKey;
 		this.timestamp = timestamp;
-		for (Message<?> message : unmarked) {
-			addUnmarked(message);
-		}
-		for (Message<?> message : marked) {
-			addMarked(message);
+		synchronized (lock) {
+			for (Message<?> message : unmarked) {
+				addUnmarked(message);
+			}
+			for (Message<?> message : marked) {
+				addMarked(message);
+			}
 		}
 	}
 
 	public SimpleMessageGroup(MessageGroup template) {
 		this.correlationKey = template.getCorrelationKey();
-		this.marked.addAll(template.getMarked());
-		this.unmarked.addAll(template.getUnmarked());
+		synchronized (lock) {
+			this.marked.addAll(template.getMarked());
+			this.unmarked.addAll(template.getUnmarked());
+		}
 		this.timestamp = template.getTimestamp();
 	}
 
@@ -78,24 +86,26 @@ public class SimpleMessageGroup implements MessageGroup {
 		if (isMember(message)) {
 			return false;
 		}
-		this.unmarked.add(message);
-		return true;
+		synchronized (lock) {
+			return this.unmarked.offer(message);
+		}
 	}
 
 	private boolean addMarked(Message<?> message) {
 		if (isMember(message)) {
 			return false;
 		}
-		this.marked.add(message);
-		return true;
+		synchronized (lock) {
+			return this.marked.offer(message);
+		}
 	}
 
 	public Collection<Message<?>> getUnmarked() {
-		return unmarked;
+		return Collections.unmodifiableCollection(unmarked);
 	}
 
 	public Collection<Message<?>> getMarked() {
-		return marked;
+		return Collections.unmodifiableCollection(marked);
 	}
 
 	public Object getCorrelationKey() {
@@ -119,16 +129,23 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public void mark() {
-		marked.addAll(unmarked);
-		unmarked.clear();
+		synchronized (lock) {
+			unmarked.drainTo(marked);
+		}
 	}
 
 	public int size() {
-		return marked.size() + unmarked.size();
+		synchronized (lock) {
+			return marked.size() + unmarked.size();
+		}
 	}
 
 	public Message<?> getOne() {
-		return unmarked.isEmpty() ? (marked.isEmpty() ? null : marked.iterator().next()) : unmarked.iterator().next();
+		Message<?> one = unmarked.peek();
+		if (one == null) {
+			one = marked.peek();
+		}
+		return one;
 	}
 
 	/**
@@ -143,10 +160,15 @@ public class SimpleMessageGroup implements MessageGroup {
 		Integer messageSequenceNumber = message.getHeaders().getSequenceNumber();
 		if (messageSequenceNumber != null && messageSequenceNumber > 0) {
 			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
-			if (!messageSequenceSize.equals(getSequenceSize())
-					|| containsSequenceNumber(unmarked, messageSequenceNumber)
-					|| containsSequenceNumber(marked, messageSequenceNumber)) {
+			if (!messageSequenceSize.equals(getSequenceSize())) {
 				return true;
+			} else {
+				synchronized (lock) {
+					if (containsSequenceNumber(unmarked, messageSequenceNumber)
+							|| containsSequenceNumber(marked, messageSequenceNumber)) {
+						return true;
+					}
+				}
 			}
 		}
 		return false;
