@@ -28,6 +28,7 @@
       The <classname>MessageFilter</classname> constructor accepts a selector instance:
       <programlisting language="java"><![CDATA[ MessageFilter filter = new MessageFilter(someSelector);]]></programlisting>
     </para>
+      In combination with the namespace and SpEL very powerful filters can be configured with very little java code.
   </section>
 
   <section id="filter-namespace">
@@ -81,6 +82,21 @@
         is not allowed, as it creates an ambiguous condition, and it will therefore result in an Exception being thrown.
       </para>
     </note>
+    <para>
+      With the introduction of SpEL Spring Integration has added the <code>expression</code> attribute to the filter
+      element. It can be used to avoid Java entirely for simple filters.
+      <programlisting language="xml">
+        <![CDATA[  <filter input-channel="input" expression="payload.equals(nonsense)"/>]]>
+      </programlisting>
+      The string passed as the expression attribute will be evaluated as a SpEL expression in the context of the message.
+      If it is needed to include the result of an expression in the scope of the application context you can use the
+      #{} notation as defined in the SpEL reference documentation
+      <ulink url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#expressions-beandef">
+        SpEL reference documentation
+      </ulink>.
+      <programlisting language="xml">
+        <![CDATA[  <filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
+      </programlisting>
+    </para>
   </section>
-
 </chapter>
