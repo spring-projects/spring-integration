@@ -16,20 +16,18 @@
 
 package org.springframework.integration.xml.enricher;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 import org.w3c.dom.Node;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.transformer.HeaderEnricher;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 import org.springframework.xml.xpath.XPathExpression;
+import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * Transformer implementation that evaluates XPath expressions against the
@@ -37,71 +35,60 @@ import org.springframework.xml.xpath.XPathExpression;
  * header. The header names will match the keys in the map of expressions.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  * @since 2.0
  */
-public class XPathHeaderEnricher implements Transformer {
-
-	private final Map<String, XPathExpression> expressionMap;
-
-	private Map<String, XPathEvaluationType> evaluationTypes;
-
-	private XPathEvaluationType defaultEvaluationType = XPathEvaluationType.STRING_RESULT;
-
-	private volatile boolean skipNullResults = true;
-
-	private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
-
+public class XPathHeaderEnricher extends HeaderEnricher {
 
 	/**
 	 * Create an instance of XPathHeaderEnricher using a map with header names as keys
-	 * and XPathExpressions to evaluate as the values. All XPathExpressions are evaluated
-	 * as String results by default.
-	 * 
-	 * @param expressionMap
+	 * and XPathExpressionValueHolders to evaluate the values.
 	 */
-	public XPathHeaderEnricher(Map<String, XPathExpression> expressionMap) {
-		this.expressionMap = Collections.unmodifiableMap(expressionMap);
+	public XPathHeaderEnricher(Map<String, XPathExpressionValueHolder> expressionMap) {
+		super(expressionMap);
 	}
 
 
-	public void setConverter(XmlPayloadConverter converter) {
-		this.converter = converter;
-	}
+	public static class XPathExpressionValueHolder implements ValueHolder {
 
-	public void setSkipNullResults(boolean skipNullResults) {
-		this.skipNullResults = skipNullResults;
-	}
+		private final XPathExpression expression;
 
-	public void setEvaluationTypes(Map<String, XPathEvaluationType> evaluationTypes) {
-		this.evaluationTypes = evaluationTypes;
-	}
+		private volatile XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
 
-	public void setDefaultEvaluationType(XPathEvaluationType defaultEvaluationType) {
-		this.defaultEvaluationType = defaultEvaluationType;
-	}
+		private volatile  XPathEvaluationType evaluationType = XPathEvaluationType.STRING_RESULT;
 
-	public final Message<?> transform(Message<?> message) {
-		MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
-		Node node = this.converter.convertToNode(message.getPayload());
-		Set<String> keys = this.expressionMap.keySet();
-		for (String key : keys) {
-			XPathExpression expression = this.expressionMap.get(key);
-			XPathEvaluationType evalType = this.defaultEvaluationType;
-			if (this.evaluationTypes != null && this.evaluationTypes.containsKey(key)) {
-				evalType = this.evaluationTypes.get(key);
-			}
-			setHeader(node, key, expression, evalType, builder);
+		private volatile Boolean overwrite = null;
+
+
+		public XPathExpressionValueHolder(String expression) {
+			Assert.hasText(expression, "expression must have text");
+			this.expression = XPathExpressionFactory.createXPathExpression(expression);
 		}
-		return builder.build();
-	}
 
-	private void setHeader(Node node, String headerName, XPathExpression expression,
-			XPathEvaluationType evaluationType, MessageBuilder<?> builder) {
-		Object result = evaluationType.evaluateXPath(expression, node);
-		boolean nullOrEmptyString = (result == null) ||
-				(result instanceof String && !StringUtils.hasLength((String) result));
-		if (!nullOrEmptyString || !this.skipNullResults) {
-			builder.setHeader(headerName, result);
+		public XPathExpressionValueHolder(XPathExpression expression) {
+			Assert.notNull(expression, "expression must not be null");
+			this.expression = expression;
+		}
+
+		public void setEvaluationType(XPathEvaluationType evaluationType) {
+			this.evaluationType = evaluationType;
+		}
+
+		public void setOverwrite(Boolean overwrite) {
+			this.overwrite = overwrite;
+		}
+
+		public Object evaluate(Message<?> message) {
+			Node node = converter.convertToNode(message.getPayload());
+			Object result = this.evaluationType.evaluateXPath(this.expression, node);
+			if (result instanceof String && ((String) result).length() == 0) {
+				result = null;
+			}
+			return result;
+		}
+
+		public Boolean isOverwrite() {
+			return this.overwrite;
 		}
 	}
 

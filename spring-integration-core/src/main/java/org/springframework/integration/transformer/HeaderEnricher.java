@@ -49,11 +49,13 @@ public class HeaderEnricher implements Transformer {
 	private static final Log logger = LogFactory.getLog(HeaderEnricher.class);
 
 
-	private final Map<String, ValueHolder> headersToAdd;
+	private final Map<String, ? extends ValueHolder> headersToAdd;
 
 	private volatile MessageProcessor messageProcessor;
 
 	private volatile boolean defaultOverwrite = false;
+
+	private volatile boolean shouldSkipNulls = true;
 
 
 	public HeaderEnricher() {
@@ -63,7 +65,7 @@ public class HeaderEnricher implements Transformer {
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
 	 */
-	public HeaderEnricher(Map<String, ValueHolder> headersToAdd) {
+	public HeaderEnricher(Map<String, ? extends ValueHolder> headersToAdd) {
 		this.headersToAdd = (headersToAdd != null) ? headersToAdd : new HashMap<String, ValueHolder>();
 	}
 
@@ -76,19 +78,29 @@ public class HeaderEnricher implements Transformer {
 		this.defaultOverwrite = defaultOverwrite;
 	}
 
+	/**
+	 * Specify whether <code>null</code> values, such as might be returned from an expression evaluation,
+	 * should be skipped. The default value is <code>true</code>. Set this to <code>false</false> if a
+	 * <code>null</code> value should trigger <i>removal</i> of the corresponding header instead.
+	 */
+	public void setShouldSkipNulls(boolean shouldSkipNulls) {
+		this.shouldSkipNulls = shouldSkipNulls;
+	}
+
 	public Message<?> transform(Message<?> message) {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
 			this.addHeadersFromMessageProcessor(message, headerMap);
-			for (Map.Entry<String, ValueHolder> entry : this.headersToAdd.entrySet()) {
+			for (Map.Entry<String, ? extends ValueHolder> entry : this.headersToAdd.entrySet()) {
 				String key = entry.getKey();
 				ValueHolder valueHolder = entry.getValue();
 				Boolean shouldOverwrite = valueHolder.isOverwrite();
 				if (shouldOverwrite == null) {
 					shouldOverwrite = this.defaultOverwrite;
 				}
-				if (shouldOverwrite || headerMap.get(key) == null) {
-					headerMap.put(key, valueHolder.evaluate(message));
+				Object value = valueHolder.evaluate(message);
+				if ((value != null && shouldOverwrite) || headerMap.get(key) == null || (value == null && !this.shouldSkipNulls)) {
+					headerMap.put(key, value);
 				}
 			}
 	        return MessageBuilder.withPayload(message.getPayload()).copyHeaders(headerMap).build();

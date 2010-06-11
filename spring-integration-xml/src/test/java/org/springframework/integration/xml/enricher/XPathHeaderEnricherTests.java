@@ -17,6 +17,7 @@
 package org.springframework.integration.xml.enricher;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
@@ -27,9 +28,8 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.xml.enricher.XPathHeaderEnricher.XPathExpressionValueHolder;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
-import org.springframework.xml.xpath.XPathExpression;
-import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
  * @author Jonas Partner
@@ -39,9 +39,9 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void simpleStringEvaluation() {
-		Map<String, XPathExpression> expressionMap = new HashMap<String, XPathExpression>();
-		expressionMap.put("one", XPathExpressionFactory.createXPathExpression("/root/elementOne"));
-		expressionMap.put("two", XPathExpressionFactory.createXPathExpression("/root/elementTwo"));
+		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
+		expressionMap.put("one", new XPathExpressionValueHolder("/root/elementOne"));
+		expressionMap.put("two", new XPathExpressionValueHolder("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
@@ -52,8 +52,8 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void nullValuesSkippedByDefault() {
-		Map<String, XPathExpression> expressionMap = new HashMap<String, XPathExpression>();
-		expressionMap.put("two", XPathExpressionFactory.createXPathExpression("/root/elementTwo"));
+		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
+		expressionMap.put("two", new XPathExpressionValueHolder("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
@@ -63,27 +63,29 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void notSkippingNullValues() {
-		Map<String, XPathExpression> expressionMap = new HashMap<String, XPathExpression>();
-		expressionMap.put("two", XPathExpressionFactory.createXPathExpression("/root/elementTwo"));
+		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
+		expressionMap.put("two", new XPathExpressionValueHolder("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
-		enricher.setSkipNullResults(false);
-		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
+		enricher.setShouldSkipNulls(false);
+		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).setHeader("two", "x").build());
 		MessageHeaders headers = result.getHeaders();
-		assertEquals("no value set for two when result was null and ignore null was false",
-				"", headers.get("two"));
+		assertNull(headers.get("two"));
+		assertFalse(headers.containsKey("two"));
 	}
 
 	@Test
 	public void numberEvaluationResult() {
-		Map<String, XPathExpression> expressionMap = new HashMap<String, XPathExpression>();
-		expressionMap.put("one", XPathExpressionFactory.createXPathExpression("/root/elementOne"));
-		expressionMap.put("two", XPathExpressionFactory.createXPathExpression("/root/elementTwo"));
+		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
+		XPathExpressionValueHolder expression1 = new XPathExpressionValueHolder("/root/elementOne");
+		XPathExpressionValueHolder expression2 = new XPathExpressionValueHolder("/root/elementTwo");
+		expression2.setEvaluationType(XPathEvaluationType.NUMBER_RESULT);
+		expressionMap.put("one", expression1);
+		expressionMap.put("two", expression2);
 		Map<String, XPathEvaluationType> evalTypeMap = new HashMap<String, XPathEvaluationType>();
 		evalTypeMap.put("two", XPathEvaluationType.NUMBER_RESULT);
 		String docAsString = "<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
-		enricher.setEvaluationTypes(evalTypeMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
 		MessageHeaders headers = result.getHeaders();
 		assertEquals("Wrong value for element one expression", "1", headers.get("one"));
