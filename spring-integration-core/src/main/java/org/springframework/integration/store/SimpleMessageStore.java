@@ -13,16 +13,16 @@
 
 package org.springframework.integration.store;
 
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.util.UpperBound;
+import org.springframework.util.Assert;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.util.UpperBound;
-import org.springframework.util.Assert;
 
 /**
  * Map-based implementation of {@link MessageStore} and {@link MessageGroupStore}. Enforces a maximum capacity for the
@@ -38,7 +38,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage;
 
-	final ConcurrentMap<Object, SimpleMessageGroup> correlationToMessageGroup;
+	private final ConcurrentMap<Object, SimpleMessageGroup> correlationToMessageGroup;
 
 	private final UpperBound individualUpperBound;
 

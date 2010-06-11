@@ -22,7 +22,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and correlation
- * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it.
+ * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it. This MessageGroup is thread
+ * safe.
  *
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
