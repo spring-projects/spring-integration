@@ -22,16 +22,9 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.EvaluationException;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.ParseException;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 import org.springframework.integration.message.MessageBuilder;
@@ -49,7 +42,7 @@ public class HeaderEnricher implements Transformer {
 	private static final Log logger = LogFactory.getLog(HeaderEnricher.class);
 
 
-	private final Map<String, ? extends ValueHolder> headersToAdd;
+	private final Map<String, ? extends HeaderValueMessageProcessor> headersToAdd;
 
 	private volatile MessageProcessor messageProcessor;
 
@@ -65,8 +58,8 @@ public class HeaderEnricher implements Transformer {
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
 	 */
-	public HeaderEnricher(Map<String, ? extends ValueHolder> headersToAdd) {
-		this.headersToAdd = (headersToAdd != null) ? headersToAdd : new HashMap<String, ValueHolder>();
+	public HeaderEnricher(Map<String, ? extends HeaderValueMessageProcessor> headersToAdd) {
+		this.headersToAdd = (headersToAdd != null) ? headersToAdd : new HashMap<String, HeaderValueMessageProcessor>();
 	}
 
 
@@ -91,14 +84,14 @@ public class HeaderEnricher implements Transformer {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
 			this.addHeadersFromMessageProcessor(message, headerMap);
-			for (Map.Entry<String, ? extends ValueHolder> entry : this.headersToAdd.entrySet()) {
+			for (Map.Entry<String, ? extends HeaderValueMessageProcessor> entry : this.headersToAdd.entrySet()) {
 				String key = entry.getKey();
-				ValueHolder valueHolder = entry.getValue();
-				Boolean shouldOverwrite = valueHolder.isOverwrite();
+				HeaderValueMessageProcessor valueProcessor = entry.getValue();
+				Boolean shouldOverwrite = valueProcessor.isOverwrite();
 				if (shouldOverwrite == null) {
 					shouldOverwrite = this.defaultOverwrite;
 				}
-				Object value = valueHolder.evaluate(message);
+				Object value = valueProcessor.processMessage(message);
 				if ((value != null && shouldOverwrite) || headerMap.get(key) == null || (value == null && !this.shouldSkipNulls)) {
 					headerMap.put(key, value);
 				}
@@ -133,16 +126,15 @@ public class HeaderEnricher implements Transformer {
 		}
 	}
 
-	public static interface ValueHolder {
 
-		Object evaluate(Message<?> message);
+	public static interface HeaderValueMessageProcessor extends MessageProcessor {
 
 		Boolean isOverwrite();
 
 	}
 
 
-	static abstract class AbstractValueHolder implements ValueHolder {
+	static abstract class AbstractHeaderValueMessageProcessor implements HeaderValueMessageProcessor {
 
 		// null indicates no explicit setting; use header-enricher's 'default-overwrite' value
 		private volatile Boolean overwrite = null;
@@ -158,63 +150,52 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	static class StaticValueHolder extends AbstractValueHolder {
+	static class StaticHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor {
 
 		private final Object value;
 
-		public StaticValueHolder(Object value) {
+		public StaticHeaderValueMessageProcessor(Object value) {
 			this.value = value;
 		}
 
-		public Object evaluate(Message<?> message) {
+		public Object processMessage(Message<?> message) {
 			return this.value;
 		}
 	}
 
 
-	static class ExpressionHolder extends AbstractValueHolder {
+	static class ExpressionEvaluatingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor {
 
-		private static final ExpressionParser parser = new SpelExpressionParser();
-
-		private final Class<?> expectedType;
-
-		private final Expression expression;
-
-		private final EvaluationContext evaluationContext;
-
+		private final ExpressionEvaluatingMessageProcessor targetProcessor;
 
 		/**
-		 * Create a holder object for the given expression String and the expected type
+		 * Create a header value processor for the given expression String and the expected type
 		 * of the expression evaluation result. The expectedType may be null if unknown.
 		 */
-		public ExpressionHolder(String expressionString, Class<?> expectedType) {
-			this.expectedType = expectedType;
-			this.expression = parser.parseExpression(expressionString);
-			StandardEvaluationContext context = new StandardEvaluationContext();
-			context.addPropertyAccessor(new MapAccessor());
-			this.evaluationContext = context;
+		public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<?> expectedType) {
+			this.targetProcessor = new ExpressionEvaluatingMessageProcessor(expressionString);
+			this.targetProcessor.setExpectedType(expectedType);
 		}
 
-
-		public Object evaluate(Message<?> message) throws ParseException, EvaluationException {
-			return (this.expectedType != null)
-					? this.expression.getValue(this.evaluationContext, message, this.expectedType)
-					: this.expression.getValue(this.evaluationContext, message);
+		public Object processMessage(Message<?> message) {
+			return this.targetProcessor.processMessage(message);
 		}
+
 	}
 
 
-	static class MethodExpressionHolder extends AbstractValueHolder  {
+	static class MethodInvokingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor {
 
-		private final MethodInvokingMessageProcessor processor;
+		private final MethodInvokingMessageProcessor targetProcessor;
 
-		public MethodExpressionHolder(Object targetObject, String method) {
-			this.processor = new MethodInvokingMessageProcessor(targetObject, method);
+		public MethodInvokingHeaderValueMessageProcessor(Object targetObject, String method) {
+			this.targetProcessor = new MethodInvokingMessageProcessor(targetObject, method);
 		}
 
-		public Object evaluate(Message<?> message) {
-			return this.processor.processMessage(message);
+		public Object processMessage(Message<?> message) {
+			return this.targetProcessor.processMessage(message);
 		}
+
 	}
 
 }

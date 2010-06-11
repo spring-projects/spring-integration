@@ -120,7 +120,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
 					}
 					Object headerSource = parserContext.extractSource(headerElement);
-					BeanDefinitionBuilder valueHolderBuilder = null;
+					BeanDefinitionBuilder valueProcessorBuilder = null;
 					if (isValue) {
 						if (hasMethod) {
 							parserContext.getReaderContext().error(
@@ -128,19 +128,19 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						Object headerValue = (headerType != null) ?
 								new TypedStringValue(value, headerType) : value;
-						valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticValueHolder");
-						valueHolderBuilder.addConstructorArgValue(headerValue);
+						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
+						valueProcessorBuilder.addConstructorArgValue(headerValue);
 					}
 					else if (isExpression) {
 						if (hasMethod) {
 							parserContext.getReaderContext().error(
 									"The 'method' attribute cannot be used with the 'expression' attribute.", element);
 						}
-						valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionHolder");
-						valueHolderBuilder.addConstructorArgValue(expression);
-						valueHolderBuilder.addConstructorArgValue(headerType);
+						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionEvaluatingHeaderValueMessageProcessor");
+						valueProcessorBuilder.addConstructorArgValue(expression);
+						valueProcessorBuilder.addConstructorArgValue(headerType);
 					}
 					else {
 						if (StringUtils.hasText(headerElement.getAttribute("type"))) {
@@ -148,22 +148,22 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 									"The 'type' attribute cannot be used with the 'ref' attribute.", element);
 						}
 						if (hasMethod) {
-							valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodExpressionHolder");
-							valueHolderBuilder.addConstructorArgReference(ref);
-							valueHolderBuilder.addConstructorArgValue(method);
+							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$MethodInvokingHeaderValueMessageProcessor");
+							valueProcessorBuilder.addConstructorArgReference(ref);
+							valueProcessorBuilder.addConstructorArgValue(method);
 						}
 						else {
-							valueHolderBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticValueHolder");
-							valueHolderBuilder.addConstructorArgReference(ref);
+							valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
+							valueProcessorBuilder.addConstructorArgReference(ref);
 						}
 					}
-					if (valueHolderBuilder == null) {
+					if (valueProcessorBuilder == null) {
 						parserContext.getReaderContext().error("failed to parse header sub-element", headerSource);
 					}
-					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueHolderBuilder, headerElement, "overwrite");
-					headers.put(headerName, valueHolderBuilder.getBeanDefinition());
+					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, headerElement, "overwrite");
+					headers.put(headerName, valueProcessorBuilder.getBeanDefinition());
 				}
 			}
 		}

@@ -44,12 +44,12 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 	 * Create an instance of XPathHeaderEnricher using a map with header names as keys
 	 * and XPathExpressionValueHolders to evaluate the values.
 	 */
-	public XPathHeaderEnricher(Map<String, XPathExpressionValueHolder> expressionMap) {
+	public XPathHeaderEnricher(Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap) {
 		super(expressionMap);
 	}
 
 
-	public static class XPathExpressionValueHolder implements ValueHolder {
+	public static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor {
 
 		private final XPathExpression expression;
 
@@ -60,12 +60,12 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 		private volatile Boolean overwrite = null;
 
 
-		public XPathExpressionValueHolder(String expression) {
+		public XPathExpressionEvaluatingHeaderValueMessageProcessor(String expression) {
 			Assert.hasText(expression, "expression must have text");
 			this.expression = XPathExpressionFactory.createXPathExpression(expression);
 		}
 
-		public XPathExpressionValueHolder(XPathExpression expression) {
+		public XPathExpressionEvaluatingHeaderValueMessageProcessor(XPathExpression expression) {
 			Assert.notNull(expression, "expression must not be null");
 			this.expression = expression;
 		}
@@ -78,17 +78,17 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 			this.overwrite = overwrite;
 		}
 
-		public Object evaluate(Message<?> message) {
+		public Boolean isOverwrite() {
+			return this.overwrite;
+		}
+
+		public Object processMessage(Message<?> message) {
 			Node node = converter.convertToNode(message.getPayload());
 			Object result = this.evaluationType.evaluateXPath(this.expression, node);
 			if (result instanceof String && ((String) result).length() == 0) {
 				result = null;
 			}
 			return result;
-		}
-
-		public Boolean isOverwrite() {
-			return this.overwrite;
 		}
 	}
 

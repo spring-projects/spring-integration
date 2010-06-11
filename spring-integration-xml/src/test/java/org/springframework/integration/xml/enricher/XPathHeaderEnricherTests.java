@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.xml.enricher.XPathHeaderEnricher.XPathExpressionValueHolder;
+import org.springframework.integration.xml.enricher.XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
 
 /**
@@ -39,9 +39,10 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void simpleStringEvaluation() {
-		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
-		expressionMap.put("one", new XPathExpressionValueHolder("/root/elementOne"));
-		expressionMap.put("two", new XPathExpressionValueHolder("/root/elementTwo"));
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
+				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		expressionMap.put("one", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne"));
+		expressionMap.put("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne><elementTwo>2</elementTwo></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
@@ -52,8 +53,9 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void nullValuesSkippedByDefault() {
-		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
-		expressionMap.put("two", new XPathExpressionValueHolder("/root/elementTwo"));
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap
+				= new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		expressionMap.put("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		Message<?> result = enricher.transform(MessageBuilder.withPayload(docAsString).build());
@@ -63,8 +65,9 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void notSkippingNullValues() {
-		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
-		expressionMap.put("two", new XPathExpressionValueHolder("/root/elementTwo"));
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
+				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		expressionMap.put("two", new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo"));
 		String docAsString = "<root><elementOne>1</elementOne></root>";
 		XPathHeaderEnricher enricher = new XPathHeaderEnricher(expressionMap);
 		enricher.setShouldSkipNulls(false);
@@ -76,9 +79,12 @@ public class XPathHeaderEnricherTests {
 
 	@Test
 	public void numberEvaluationResult() {
-		Map<String, XPathExpressionValueHolder> expressionMap = new HashMap<String, XPathExpressionValueHolder>();
-		XPathExpressionValueHolder expression1 = new XPathExpressionValueHolder("/root/elementOne");
-		XPathExpressionValueHolder expression2 = new XPathExpressionValueHolder("/root/elementTwo");
+		Map<String, XPathExpressionEvaluatingHeaderValueMessageProcessor> expressionMap =
+				new HashMap<String, XPathExpressionEvaluatingHeaderValueMessageProcessor>();
+		XPathExpressionEvaluatingHeaderValueMessageProcessor expression1 =
+				new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementOne");
+		XPathExpressionEvaluatingHeaderValueMessageProcessor expression2 =
+				new XPathExpressionEvaluatingHeaderValueMessageProcessor("/root/elementTwo");
 		expression2.setEvaluationType(XPathEvaluationType.NUMBER_RESULT);
 		expressionMap.put("one", expression1);
 		expressionMap.put("two", expression2);
