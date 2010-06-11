@@ -30,7 +30,7 @@ public interface SocketWriter {
 	 * Write the entire buffer to the underlying socket. Appropriate wire
 	 * protocols will be implemented so the receiving side can decode and
 	 * reassemble the message, if packetized by the network.
-	 * @param bytes The bytes to write.
+	 * @param object The object to write.
 	 * @throws IOException 
 	 */
 	void write(Object object) throws IOException;
