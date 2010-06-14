@@ -158,7 +158,7 @@ public class SimpleTcpNetOutboundGatewayTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port, 10);
 					latch1.countDown();
 					while (true) {
 						Socket s = ss.accept();
@@ -197,7 +197,7 @@ public class SimpleTcpNetOutboundGatewayTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port, 10);
 					latch1.countDown();
 					boolean first = true;
 					while (true) {
