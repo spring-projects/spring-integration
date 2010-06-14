@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.core.Ordered;
@@ -65,6 +66,13 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 	private volatile MessageChannel outputChannel;
 
+	/**
+	 * If the sendTimeout is configured explicitly on this chain instance, it will
+	 * take precedence over the actual settings on the final handler in the chain.
+	 * By default, it is <code>null</code>, so the actual handler configuration is used.
+	 */
+	private volatile Long sendTimeout = null;
+
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 	private volatile boolean initialized;
@@ -78,6 +86,10 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public void setOrder(int order) {
@@ -112,8 +124,9 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 	}
 
 	private void configureChain() {
-		List<MessageHandler> handlers = this.handlers;
-		for (int i = 0; i < handlers.size(); i++) {
+		Assert.isTrue(this.handlers.size() == new HashSet<MessageHandler>(this.handlers).size(),
+				"duplicate handlers are not allowed in a chain");
+		for (int i = 0; i < this.handlers.size(); i++) {
 			MessageHandler handler = handlers.get(i);
 			if (i < handlers.size() - 1) { // not the last handler
 				Assert.isTrue(handler instanceof MessageProducer, "All handlers except for " +
@@ -131,8 +144,7 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 				((MessageProducer) handler).setOutputChannel(nextChannel);
 			}
 			else if (handler instanceof MessageProducer) {
-				MessageChannel replyChannel = (this.outputChannel != null) ? this.outputChannel
-						: new ReplyForwardingMessageChannel();
+				MessageChannel replyChannel = new ReplyForwardingMessageChannel();
 				((MessageProducer) handler).setOutputChannel(replyChannel);
 			}
 			else {
@@ -151,6 +163,11 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 		}
 
 		public boolean send(Message<?> message, long timeout) {
+			timeout = (MessageHandlerChain.this.sendTimeout != null)
+					? MessageHandlerChain.this.sendTimeout : timeout;
+			if (MessageHandlerChain.this.outputChannel != null) {
+				return MessageHandlerChain.this.outputChannel.send(message, timeout);
+			}
 			Object replyChannelHeader = message.getHeaders().getReplyChannel();
 			if (replyChannelHeader == null) {
 				throw new MessageHandlingException(message, "no replyChannel header available");

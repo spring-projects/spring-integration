@@ -74,6 +74,11 @@
 		</payload-type-router>
 	</chain>
 
+	<chain id="chainWithSendTimeout" input-channel="chainWithSendTimeoutInput" output-channel="output" send-timeout="9876">
+		<filter ref="typeSelector" />
+		<service-activator ref="testHandler" />
+	</chain>
+
 	<channel id="strings">
 		<queue/>
 	</channel>

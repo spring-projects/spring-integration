@@ -27,12 +27,16 @@ import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.test.context.ContextConfiguration;
@@ -87,6 +91,9 @@ public class ChainParserTests {
 
 	@Autowired
 	private PollableChannel numbers;
+
+	@Autowired
+	private ApplicationContext context;
 
 	public static Message<?> successMessage = MessageBuilder.withPayload("success").build();
 
@@ -174,6 +181,15 @@ public class ChainParserTests {
 		assertEquals("test", reply1.getPayload());
 		assertEquals(123, reply2.getPayload());
 	}
+
+	@Test // INT-1165
+	public void chainWithSendTimeout() {
+		Object endpoint = this.context.getBean("chainWithSendTimeout");
+		MessageHandlerChain chain = (MessageHandlerChain) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		long sendTimeout = ((Long) new DirectFieldAccessor(chain).getPropertyValue("sendTimeout")).longValue();
+		assertEquals(9876, sendTimeout);
+	}
+
 
 	public static class StubHandler extends AbstractReplyProducingMessageHandler {
 		@Override
