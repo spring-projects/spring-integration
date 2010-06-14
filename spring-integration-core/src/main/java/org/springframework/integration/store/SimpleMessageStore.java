@@ -113,13 +113,17 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	public void markMessageGroup(MessageGroup group) {
 		Object correlationId = group.getCorrelationKey();
 		MessageGroup internal = getMessageGroupInternal(correlationId);
-		internal.mark();
-		group.mark();
+		internal.markAll();
+		group.markAll();
 	}
 
 	public void removeMessageGroup(Object correlationId) {
 		groupUpperBound.release();
 		correlationToMessageGroup.remove(correlationId);
+	}
+
+	public void markMessageInGroup(Object key, Message<?> messageToMark) {
+		getMessageGroupInternal(key).mark(messageToMark);
 	}
 
 	@Override

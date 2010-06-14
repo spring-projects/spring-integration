@@ -16,18 +16,14 @@
 
 package org.springframework.integration.store;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
@@ -80,6 +76,9 @@ public class MessageStoreTests {
 		}
 
 		public void markMessageGroup(MessageGroup group) {
+		}
+
+		public void markMessageInGroup(Object key, Message<?> messageToMark) {
 		}
 
 		public void removeMessageGroup(Object correlationKey) {

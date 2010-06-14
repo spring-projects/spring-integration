@@ -44,21 +44,29 @@ public interface MessageGroupStore {
 	/**
 	 * Persist the mark on all the messages from the group. The group is modified in the process as all its unmarked
 	 * messages become marked.
-	 * 
+	 *
 	 * @param group a MessageGroup with no unmarked messages
 	 */
 	void markMessageGroup(MessageGroup group);
 
 	/**
+	 * Persist a mark on a single message from the group. The group is modified to reflect that 'messageToMark' is no
+	 * longer unmarked but became marked instead.
+	 * @param key the correlationKey for the group containing the message
+	 * @param messageToMark the message to be marked
+	 */
+	void markMessageInGroup(Object key, Message<?> messageToMark);
+
+	/**
 	 * Remove the message group with this correlation key.
-	 * 
+	 *
 	 * @param correlationKey the correlation id to remove
 	 */
 	void removeMessageGroup(Object correlationKey);
 
 	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.
-	 * 
+	 *
 	 * @param callback a callback to execute when a message group is cleaned up
 	 */
 	void registerMessageGroupExpiryCallback(MessageGroupCallback callback);
@@ -68,12 +76,11 @@ public interface MessageGroupStore {
 	 * each of the registered callbacks on them in turn. For example: call with a timeout of 100 to expire all groups
 	 * that were created more than 100 milliseconds ago, and are not yet complete. Use a timeout of 0 (or negative to be
 	 * on the safe side) to expire all message groups.
-	 * 
+	 *
 	 * @param timeout the timeout threshold to use
 	 * @return the number of message groups expired
-	 * 
+	 *
 	 * @see #registerMessageGroupExpiryCallback(MessageGroupCallback)
 	 */
 	int expireMessageGroups(long timeout);
-
 }

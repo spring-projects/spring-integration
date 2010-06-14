@@ -55,7 +55,7 @@ public interface MessageGroup {
 	 * Mark all unmarked messages in the group. A MessageGroupProcessor typically invokes this method after
 	 * processing all unmarked messages.
 	 */
-	void mark();
+	void markAll();
 
 	/**
 	 * @return a single message from the group

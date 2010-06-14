@@ -129,7 +129,14 @@ public class SimpleMessageGroup implements MessageGroup {
 		return getOne().getHeaders().getSequenceSize();
 	}
 
-	public void mark() {
+	public void mark(Message<?> messageToMark) {
+		synchronized (lock) {
+			unmarked.remove(messageToMark);
+			marked.offer(messageToMark);
+		}
+	}
+
+	public void markAll() {
 		synchronized (lock) {
 			unmarked.drainTo(marked);
 		}
@@ -184,5 +191,4 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 		return false;
 	}
-
 }
