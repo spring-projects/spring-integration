@@ -21,6 +21,7 @@ import static org.junit.Assert.fail;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ServerSocketFactory;
@@ -150,32 +151,33 @@ public class SimpleTcpNetOutboundGatewayTests {
 		assertEquals("echo:test", new String(bytes).trim());
 	}
 	
-	@Test @Ignore
+	@Test
 	public void testOutboundClose() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
-		final CountDownLatch latch1 = new CountDownLatch(1);
-		final CountDownLatch latch2 = new CountDownLatch(1);
-		final CountDownLatch latch3 = new CountDownLatch(1);
+		final Semaphore semaphore1 = new Semaphore(0);
+		final Semaphore semaphore2 = new Semaphore(0);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
 					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port, 10);
-					latch1.countDown();
+					semaphore1.release();
 					while (true) {
 						Socket s = ss.accept();
 						byte[] b = new byte[1024];
 						s.getInputStream().read(b);
 						s.getOutputStream().write("OK\r\n".getBytes());
-						latch3.await();
+						semaphore2.acquire();
 						s.close();
-						latch2.countDown();
+						semaphore1.release();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}});
 		t.start();
-		latch1.await(2000, TimeUnit.MILLISECONDS);
+		if (!semaphore1.tryAcquire(2000, TimeUnit.MILLISECONDS)) {
+			fail("Server not ready");
+		}
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", port);
 		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
@@ -183,23 +185,24 @@ public class SimpleTcpNetOutboundGatewayTests {
 		Message<String> message = MessageBuilder.withPayload("test").build();
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
-		latch3.countDown();
-		latch2.await(2000, TimeUnit.MILLISECONDS);
+		semaphore2.release();
+		if (!semaphore1.tryAcquire(2000, TimeUnit.MILLISECONDS)) {
+			fail("Server failed to close");
+		}
 		bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
 	}
 	
-	@Test @Ignore
+	@Test
 	public void testOutboundCloseOnTimeout() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
-		final CountDownLatch latch1 = new CountDownLatch(1);
-		final CountDownLatch latch2 = new CountDownLatch(1);
-		final CountDownLatch latch3 = new CountDownLatch(1);
+		final Semaphore semaphore1 = new Semaphore(0);
+		final Semaphore semaphore2 = new Semaphore(0);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
 					ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(port, 10);
-					latch1.countDown();
+					semaphore1.release();
 					boolean first = true;
 					while (true) {
 						Socket s = ss.accept();
@@ -208,16 +211,18 @@ public class SimpleTcpNetOutboundGatewayTests {
 						if (!first)
 							s.getOutputStream().write("OK\r\n".getBytes());
 						first = false;
-						latch3.await();
+						semaphore2.acquire();
 						s.close();
-						latch2.countDown();
+						semaphore1.release();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}});
 		t.start();
-		latch1.await(2000, TimeUnit.MILLISECONDS);
+		if (!semaphore1.tryAcquire(2000, TimeUnit.MILLISECONDS)) {
+			fail("Server not ready");
+		}
 		SimpleTcpNetOutboundGateway gateway = new SimpleTcpNetOutboundGateway
 			("localhost", port);
 		gateway.setMessageFormat(MessageFormats.FORMAT_CRLF);
@@ -228,8 +233,10 @@ public class SimpleTcpNetOutboundGatewayTests {
 			gateway.handleRequestMessage(message);
 			fail("Expected failure");
 		} catch (Exception e) { }
-		latch3.countDown();
-		latch2.await(2000, TimeUnit.MILLISECONDS);
+		semaphore2.release();
+		if (!semaphore1.tryAcquire(2000, TimeUnit.MILLISECONDS)) {
+			fail("Server failed to close");
+		}
 		byte[] bytes = (byte[]) gateway.handleRequestMessage(message);
 		assertEquals("OK", new String(bytes));
 	}
