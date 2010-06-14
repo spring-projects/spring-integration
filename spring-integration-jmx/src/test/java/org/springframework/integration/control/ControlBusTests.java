@@ -18,6 +18,7 @@ package org.springframework.integration.control;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MBeanServer;
@@ -87,6 +88,35 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance("domain.test1:type=channel,name=directChannel"));
+		assertEquals(DirectChannel.class.getName(), instance.getClassName());
+	}
+
+	@Test
+	public void anonymousDirectChannelRegistered() throws Exception {
+		context.registerBeanDefinition("org.springframework.integration.generated#0", new RootBeanDefinition(DirectChannel.class));
+		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue("domain.test1b");
+		context.registerBeanDefinition("controlBus", controlBusDef);
+		context.refresh();
+		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
+		ObjectInstance instance = mbeanServer.getObjectInstance(
+				ObjectNameManager.getInstance("domain.test1b:type=channel,name=anonymous,generated=org.springframework.integration.generated#0"));
+		assertEquals(DirectChannel.class.getName(), instance.getClassName());
+	}
+
+	@Test
+	public void staticObjectNamePropertiesRegistered() throws Exception {
+		context.registerBeanDefinition("directChannel", new RootBeanDefinition(DirectChannel.class));
+		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue("domain.test1a");
+		controlBusDef.getPropertyValues().add("objectNameStaticProperties", Collections.singletonMap("foo","bar"));
+		context.registerBeanDefinition("controlBus", controlBusDef);
+		context.refresh();
+		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
+		ObjectInstance instance = mbeanServer.getObjectInstance(
+				ObjectNameManager.getInstance("domain.test1a:type=channel,foo=bar,name=directChannel"));
 		assertEquals(DirectChannel.class.getName(), instance.getClassName());
 	}
 

@@ -55,8 +55,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * JMX-based Control Bus implementation. Exports all channel and endpoint
- * beans from a given BeanFactory as MBeans.
+ * JMX-based Control Bus implementation. Exports all channel and endpoint beans from a given BeanFactory as MBeans.
  * 
  * @author Mark Fisher
  * @since 2.0
@@ -67,7 +66,6 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 
 	public static final String TARGET_BEAN_NAME = JmxHeaders.PREFIX + "_controlBus_targetBeanName";
 
-
 	private volatile SubscribableChannel operationChannel;
 
 	private final MBeanExporter exporter;
@@ -76,15 +74,25 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 
 	private final Map<String, ObjectName> exportedBeanObjectNameMap = new HashMap<String, ObjectName>();
 
+	private final Map<String, String> objectNameStaticProperties = new HashMap<String, String>();
+
 	private volatile ListableBeanFactory beanFactory;
 
-	private final Set<Class<?>> managedTypes = new HashSet<Class<?>>(
-			Arrays.asList(new Class<?>[] { MessageChannel.class, AbstractEndpoint.class }));
-
+	private final Set<Class<?>> managedTypes = new HashSet<Class<?>>(Arrays.asList(new Class<?>[] {
+			MessageChannel.class, AbstractEndpoint.class }));
 
 	/**
-	 * Create a {@link ControlBus} that will register channels and endpoints
-	 * as MBeans with the given MBeanServer using the default domain name.
+	 * Static properties that will be added to all object names.
+	 * 
+	 * @param objectNameStaticProperties the objectNameStaticProperties to set
+	 */
+	public void setObjectNameStaticProperties(Map<String, String> objectNameStaticProperties) {
+		this.objectNameStaticProperties.putAll(objectNameStaticProperties);
+	}
+
+	/**
+	 * Create a {@link ControlBus} that will register channels and endpoints as MBeans with the given MBeanServer using
+	 * the default domain name.
 	 * @see #DEFAULT_DOMAIN
 	 */
 	public ControlBus(MBeanServer server) {
@@ -92,14 +100,14 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 	}
 
 	/**
-	 * Create a {@link ControlBus} that will register channels and endpoints
-	 * as MBeans with the given MBeanServer using the specified domain name.
+	 * Create a {@link ControlBus} that will register channels and endpoints as MBeans with the given MBeanServer using
+	 * the specified domain name.
 	 */
 	public ControlBus(MBeanServer server, String domain) {
 		Assert.notNull(server, "MBeanServer must not be null.");
 		this.domain = (domain != null) ? domain : DEFAULT_DOMAIN;
-		Assert.isTrue(!ObjectUtils.containsElement(server.getDomains(), this.domain),
-				"Domain [" + this.domain + "] is already in use within this MBeanServer.");
+		Assert.isTrue(!ObjectUtils.containsElement(server.getDomains(), this.domain), "Domain [" + this.domain
+				+ "] is already in use within this MBeanServer.");
 		MBeanExporter exporter = new MBeanExporter();
 		exporter.setServer(server);
 		exporter.setAutodetect(false);
@@ -107,25 +115,22 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		this.exporter = exporter;
 	}
 
-
 	public void setOperationChannel(SubscribableChannel operationChannel) {
 		this.operationChannel = operationChannel;
 	}
 
 	/**
-	 * Returns the channel to which operation-invoking Messages may be sent. Any messages
-	 * sent to this channel must contain {@link ControlBus#TARGET_BEAN_NAME} and
-	 * {@link JmxHeaders#OPERATION_NAME} header values, and the target bean name must
-	 * match one that has been exported by this Control Bus. If the operation returns a
-	 * result, the {@link MessageHeaders#REPLY_CHANNEL} header is also required.
+	 * Returns the channel to which operation-invoking Messages may be sent. Any messages sent to this channel must
+	 * contain {@link ControlBus#TARGET_BEAN_NAME} and {@link JmxHeaders#OPERATION_NAME} header values, and the target
+	 * bean name must match one that has been exported by this Control Bus. If the operation returns a result, the
+	 * {@link MessageHeaders#REPLY_CHANNEL} header is also required.
 	 */
 	public SubscribableChannel getOperationChannel() {
 		return this.operationChannel;
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isTrue(beanFactory instanceof ListableBeanFactory,
-				"A ListableBeanFactory is required.");
+		Assert.isTrue(beanFactory instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		this.beanFactory = (ListableBeanFactory) beanFactory;
 	}
 
@@ -157,8 +162,10 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		this.operationChannel.subscribe(handler);
 	}
 
-	private ObjectName generateObjectName(String beanName, Class<?> beanType) throws MalformedObjectNameException {
-		StringBuilder sb = new StringBuilder(this.domain + ":name=" + beanName + ",");
+	protected ObjectName generateObjectName(String beanName, Class<?> beanType) throws MalformedObjectNameException {
+
+		String name = beanName.startsWith("org.springframework.integration") ? "anonymous,generated="+beanName : beanName;
+		StringBuilder sb = new StringBuilder(this.domain + ":name=" + name + ",");
 		if (MessageChannel.class.isAssignableFrom(beanType)) {
 			sb.append("type=channel");
 		}
@@ -168,9 +175,12 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		else {
 			sb.append("type=" + ClassUtils.getShortNameAsProperty(beanType));
 		}
+		for (String key : objectNameStaticProperties.keySet()) {
+			sb.append("," + key + "=" + objectNameStaticProperties.get(key));
+		}
 		return ObjectNameManager.getInstance(sb.toString());
-	}
 
+	}
 
 	/**
 	 * An {@link MBeanInfoAssembler} implementation for channels and endpoints.
@@ -196,13 +206,13 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		}
 
 		private boolean shouldInclude(Method method, Class<?> declaringClass) {
-			if (MessageChannel.class.isAssignableFrom(declaringClass) ||
-					AbstractEndpoint.class.isAssignableFrom(declaringClass)) {
+			if (MessageChannel.class.isAssignableFrom(declaringClass)
+					|| AbstractEndpoint.class.isAssignableFrom(declaringClass)) {
 				Class<?> managementInterface = this.getManagementInterface(declaringClass);
 				if (managementInterface != null) {
 					for (Method interfaceMethod : managementInterface.getMethods()) {
-						if (interfaceMethod.getName().equals(method.getName()) &&
-								Arrays.equals(interfaceMethod.getParameterTypes(), method.getParameterTypes())) {
+						if (interfaceMethod.getName().equals(method.getName())
+								&& Arrays.equals(interfaceMethod.getParameterTypes(), method.getParameterTypes())) {
 							return true;
 						}
 					}
@@ -228,7 +238,6 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		}
 	}
 
-
 	private class ControlBusOperationInvokingMessageHandler extends OperationInvokingMessageHandler {
 
 		@Override
@@ -236,12 +245,9 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 			String beanName = requestMessage.getHeaders().get(TARGET_BEAN_NAME, String.class);
 			Assert.notNull(beanName, "The ControlBus.TARGET_BEAN_NAME is required.");
 			ObjectName objectName = exportedBeanObjectNameMap.get(beanName);
-			Assert.notNull(objectName,
-					"ControlBus has not exported an MBean for '" + beanName + "'");
-			requestMessage = MessageBuilder.fromMessage(requestMessage)
-					.setHeader(JmxHeaders.OBJECT_NAME, objectName)
-					.setHeader(TARGET_BEAN_NAME, null)
-					.build(); 
+			Assert.notNull(objectName, "ControlBus has not exported an MBean for '" + beanName + "'");
+			requestMessage = MessageBuilder.fromMessage(requestMessage).setHeader(JmxHeaders.OBJECT_NAME, objectName)
+					.setHeader(TARGET_BEAN_NAME, null).build();
 			return super.handleRequestMessage(requestMessage);
 		}
 	}

@@ -18,6 +18,8 @@ package org.springframework.integration.control;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Set;
+
 import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 
@@ -65,6 +67,14 @@ public class ControlBusXmlTests {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=endpoint,name=testEventDrivenBridge"));
 		assertEquals(EventDrivenConsumer.class.getName(), instance.getClassName());
+	}
+
+	@Test
+	public void anonymousConsumerRegistered() throws Exception {
+		Set<ObjectInstance> instances = mbeanServer.queryMBeans(
+				ObjectNameManager.getInstance(DOMAIN + ":type=endpoint,name=anonymous,generated=*"), null);
+		assertEquals(1, instances.size());
+		assertEquals(EventDrivenConsumer.class.getName(), instances.iterator().next().getClassName());
 	}
 
 	@Test
