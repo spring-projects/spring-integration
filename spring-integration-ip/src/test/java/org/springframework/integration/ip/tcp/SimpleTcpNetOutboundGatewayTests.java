@@ -165,9 +165,9 @@ public class SimpleTcpNetOutboundGatewayTests {
 						byte[] b = new byte[1024];
 						s.getInputStream().read(b);
 						s.getOutputStream().write("OK\r\n".getBytes());
-						latch2.countDown();
 						latch3.await();
 						s.close();
+						latch2.countDown();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -207,9 +207,9 @@ public class SimpleTcpNetOutboundGatewayTests {
 						if (!first)
 							s.getOutputStream().write("OK\r\n".getBytes());
 						first = false;
-						latch2.countDown();
 						latch3.await();
 						s.close();
+						latch2.countDown();
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
