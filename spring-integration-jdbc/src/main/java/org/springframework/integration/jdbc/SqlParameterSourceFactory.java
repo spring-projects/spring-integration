@@ -19,9 +19,8 @@ package org.springframework.integration.jdbc;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 /**
- * Collaborator for {@link JdbcPollingChannelAdapter} which allows creation of
- * instances of {@link SqlParameterSource} for use in updates to be created
- * according to the result of the poll.
+ * Collaborator for JDBC adapters which allows creation of
+ * instances of {@link SqlParameterSource} for use in update operations.
  * 
  * @author Jonas Partner
  * @since 2.0
@@ -30,8 +29,8 @@ public interface SqlParameterSourceFactory {
 
 	/**
 	 * Return a new {@link SqlParameterSource}.
-	 * @param resultOfSelect the result of the preceding poll operation
+	 * @param input the raw message or query result to be transformed into a SqlParameterSource
 	 */
-	public SqlParameterSource createParameterSource(Object resultOfSelect);
+	public SqlParameterSource createParameterSource(Object input);
 
 }

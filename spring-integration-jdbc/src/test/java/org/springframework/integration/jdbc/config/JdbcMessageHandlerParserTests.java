@@ -25,7 +25,7 @@ public class JdbcMessageHandlerParserTests {
 	private ConfigurableApplicationContext context;
 	
 	@Test
-	public void testSimpleInboundChannelAdapter(){
+	public void testSimpleOutboundChannelAdapter(){
 		setUp("handlingWithJdbcOperationsJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("business.key", "FOO").build();
 		channel.send(message);
@@ -35,7 +35,7 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testDollarHeaderInboundChannelAdapter(){
+	public void testDollarHeaderOutboundChannelAdapter(){
 		setUp("handlingDollarHeaderJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		channel.send(message);
@@ -45,13 +45,23 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
-	public void testMapPayloadInboundChannelAdapter(){
+	public void testMapPayloadOutboundChannelAdapter(){
 		setUp("handlingMapPayloadJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
 		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong id", "bar", map.get("name"));
+		assertEquals("Wrong name", "bar", map.get("name"));
+	}
+
+	@Test
+	public void testParameterSourceOutboundChannelAdapter(){
+		setUp("handlingParameterSourceJdbcOutboundChannelAdapterTest.xml", getClass());
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		channel.send(message);
+		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
+		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
+		assertEquals("Wrong name", "foo", map.get("name"));
 	}
 
 	@After

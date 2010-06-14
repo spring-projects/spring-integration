@@ -1,10 +1,12 @@
 package org.springframework.integration.jdbc.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -24,18 +26,16 @@ public class JdbcPollingChannelAdapterParserTests {
 	
 	final long receiveTimeout = 5000;
 	
-	SimpleJdbcTemplate jdbcTemplate;
+	private SimpleJdbcTemplate jdbcTemplate;
 	
-	MessageChannelTemplate channelTemplate;
+	private MessageChannelTemplate channelTemplate;
 	
-	ConfigurableApplicationContext appCtx;
-	
-	
-	
+	private ConfigurableApplicationContext appCtx;
+		
 	@Test
 	public void testSimpleInboundChannelAdapter(){
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
-		this.jdbcTemplate.update("insert into item values(1,2)");
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = channelTemplate.receive();
 		assertNotNull("No message found ", message);
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
@@ -45,7 +45,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	@Test
 	public void testSimpleInboundChannelAdapterWithUpdate(){
 		setUp("pollingForMapJdbcInboundChannelAdapterWithUpdateTest.xml", getClass());
-		this.jdbcTemplate.update("insert into item values(1,2)");
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = channelTemplate.receive();
 		assertNotNull(message);
 		message = channelTemplate.receive();
@@ -55,9 +55,20 @@ public class JdbcPollingChannelAdapterParserTests {
 	@Test
 	public void testExtendedInboundChannelAdapter(){
 		setUp("pollingWithJdbcOperationsJdbcInboundChannelAdapterTest.xml", getClass());
-		this.jdbcTemplate.update("insert into item values(1,2)");
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = channelTemplate.receive();
 		assertNotNull(message);
+	}
+	
+	@Test
+	public void testParameterSourceInboundChannelAdapter(){
+		setUp("pollingWithParameterSourceJdbcInboundChannelAdapterTest.xml", getClass());
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
+		Message<?> message = channelTemplate.receive();
+		assertNotNull(message);
+		List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM item WHERE status=1");
+		assertEquals(1, list.size());
+		assertEquals("bar", list.get(0).get("NAME"));
 	}
 	
 	@After

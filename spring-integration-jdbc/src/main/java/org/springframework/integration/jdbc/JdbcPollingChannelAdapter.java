@@ -51,7 +51,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 
 	private volatile String updateSql;
 
-	private volatile SqlParameterSourceFactory sqlParameterSourceFactoryForUpdate = new DefaultSqlParameterSourceFactory();
+	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new DefaultSqlParameterSourceFactory();
 
 
 	/**
@@ -91,8 +91,8 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 		this.updatePerRow = updatePerRow;
 	}
 
-	public void setSqlParameterSourceFactoryForUpdate(SqlParameterSourceFactory sqlParameterSourceFactoryForUpdate) {
-		this.sqlParameterSourceFactoryForUpdate = sqlParameterSourceFactoryForUpdate;
+	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	 * this method will return <code>null</code>.
 	 */
 	public Message<Object> receive() {
-		Object payload = pollAndUpdate();
+		Object payload = poll();
 		if (payload == null) {
 			return null;
 		}
@@ -114,7 +114,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	 * Returns the rows returned by the select query. If a RowMapper
 	 * has been provided, the mapped results are returned.
 	 */
-	private Object pollAndUpdate() {
+	private Object poll() {
 		List<?> payload;
 		if (this.rowMapper != null) {
 			payload = pollWithRowMapper();
@@ -140,8 +140,8 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 
 	private void executeUpdateQuery(Object obj) {
 		SqlParameterSource updateParamaterSource = null;
-		if (this.sqlParameterSourceFactoryForUpdate != null) {
-			updateParamaterSource = this.sqlParameterSourceFactoryForUpdate.createParameterSource(obj);
+		if (this.sqlParameterSourceFactory != null) {
+			updateParamaterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
 			this.jdbcOperations.update(this.updateSql, updateParamaterSource);
 		}
 		else {
