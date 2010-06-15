@@ -7,7 +7,19 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+	<header-enricher id="headerEnricherWithDefaults" input-channel="input">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+
 	<header-enricher id="headerEnricherWithSendTimeout" input-channel="input" send-timeout="1234">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+
+	<header-enricher id="headerEnricherWithShouldSkipNullsTrue" input-channel="input" should-skip-nulls="true">
+		<header name="foo" value="bar"/>
+	</header-enricher>
+
+	<header-enricher id="headerEnricherWithShouldSkipNullsFalse" input-channel="input" should-skip-nulls="false">
 		<header name="foo" value="bar"/>
 	</header-enricher>
 

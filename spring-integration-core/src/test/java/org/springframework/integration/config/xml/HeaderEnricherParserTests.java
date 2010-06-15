@@ -40,10 +40,38 @@ public class HeaderEnricherParserTests {
 
 
 	@Test // INT-1154
+	public void sendTimeoutDefault() {
+		Object endpoint = context.getBean("headerEnricherWithDefaults");
+		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.channelTemplate.sendTimeout", Long.class).longValue();
+		assertEquals(1000L, sendTimeout);
+	}
+
+	@Test // INT-1154
 	public void sendTimeoutConfigured() {
 		Object endpoint = context.getBean("headerEnricherWithSendTimeout");
 		long sendTimeout = TestUtils.getPropertyValue(endpoint, "handler.channelTemplate.sendTimeout", Long.class).longValue();
 		assertEquals(1234L, sendTimeout);
+	}
+
+	@Test // INT-1167
+	public void shouldSkipNullsDefault() {
+		Object endpoint = context.getBean("headerEnricherWithDefaults");
+		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		assertEquals(Boolean.TRUE, shouldSkipNulls);
+	}
+
+	@Test // INT-1167
+	public void shouldSkipNullsFalseConfigured() {
+		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsFalse");
+		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		assertEquals(Boolean.FALSE, shouldSkipNulls);
+	}
+
+	@Test // INT-1167
+	public void shouldSkipNullsTrueConfigured() {
+		Object endpoint = context.getBean("headerEnricherWithShouldSkipNullsTrue");
+		Boolean shouldSkipNulls = TestUtils.getPropertyValue(endpoint, "handler.transformer.shouldSkipNulls", Boolean.class);
+		assertEquals(Boolean.TRUE, shouldSkipNulls);
 	}
 
 }

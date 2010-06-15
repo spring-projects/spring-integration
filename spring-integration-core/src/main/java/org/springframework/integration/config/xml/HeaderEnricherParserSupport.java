@@ -66,6 +66,7 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 		this.processHeaders(element, headers, parserContext);
 		builder.addConstructorArgValue(headers);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-overwrite");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "should-skip-nulls");
 		this.postProcessHeaderEnricher(builder, element, parserContext);
 	}
 
