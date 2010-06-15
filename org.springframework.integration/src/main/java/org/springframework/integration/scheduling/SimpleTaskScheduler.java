@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.scheduling;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.FutureTask;
@@ -37,6 +37,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.JdkVersion;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -72,7 +73,7 @@ public class SimpleTaskScheduler implements TaskScheduler, BeanFactoryAware, App
 
 	private final DelayQueue<TriggeredTask<?>> scheduledTasks = new DelayQueue<TriggeredTask<?>>();
 
-	private final Set<TriggeredTask<?>> executingTasks = Collections.synchronizedSet(new TreeSet<TriggeredTask<?>>());
+	private final Set<TriggeredTask<?>> executingTasks = Collections.synchronizedSet(new HashSet<TriggeredTask<?>>());
 
 	private volatile boolean running;
 
@@ -236,6 +237,8 @@ public class SimpleTaskScheduler implements TaskScheduler, BeanFactoryAware, App
 	 */
 	private class TriggeredTask<V> extends FutureTask<V> implements Delayed, ScheduledFuture<V> {
 
+		private final Runnable task;
+
 		private final Trigger trigger;
 
 		private volatile Date scheduledTime;
@@ -243,6 +246,7 @@ public class SimpleTaskScheduler implements TaskScheduler, BeanFactoryAware, App
 
 		public TriggeredTask(Runnable task, Trigger trigger) {
 			super(new ErrorHandlingRunnableWrapper(task), null);
+			this.task = task;
 			this.trigger = trigger;
 		}
 
@@ -280,9 +284,30 @@ public class SimpleTaskScheduler implements TaskScheduler, BeanFactoryAware, App
 
 		public synchronized boolean cancel(boolean mayInterruptIfRunning) {
 			if (!this.isCancelled()) {
-				SimpleTaskScheduler.this.scheduledTasks.remove(this);
+				if (JdkVersion.isAtLeastJava16()) {
+					SimpleTaskScheduler.this.scheduledTasks.remove(this);
+				}
+				else { // see: INT-1179
+					SimpleTaskScheduler.this.scheduledTasks.removeAll(Collections.singletonList(this));
+				}
 			}
 			return super.cancel(mayInterruptIfRunning);
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (!(other instanceof TriggeredTask<?>)) {
+				return false;
+			}
+			TriggeredTask<?> otherTask = (TriggeredTask<?>) other;
+			return this.task.equals(otherTask.task)
+					&& this.trigger.equals(otherTask.trigger);
+		}
+
+		@Override
+		public int hashCode() {
+			return (this.task.hashCode() * 29)
+					+ (this.trigger.hashCode() * 17);
 		}
 	}
 
