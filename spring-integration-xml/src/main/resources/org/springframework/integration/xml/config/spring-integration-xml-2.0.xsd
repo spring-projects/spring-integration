@@ -234,6 +234,105 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="xpath-header-enricher">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Header Enricher Message Transformer that evaluates XPath expressions against the
+	message payload and inserts the result of the evaluation into a messsage header.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpoint">
+					<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+						<xsd:element type="xpathHeaderType" name="header"/>
+					</xsd:sequence>
+					<xsd:attribute name="default-overwrite">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify the default boolean value for whether to overwrite existing header values. This will
+	only take effect for sub-elements that do not provide their own 'overwrite' attribute. If the
+	'default-overwrite' attribute is not provided, then the specified header values will NOT
+	overwrite any existing ones with the same header names. 
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="should-skip-nulls">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specify whether null values, such as might be returned from an expression evaluation, should be
+	skipped. The default value is true. Set this to false if a null value should trigger removal of
+	the corresponding header instead. 
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="xsd:boolean xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="xpathHeaderType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an XPath expression to be configured within an &lt;xpath-header-enricher/&gt; element.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+	The name of the header to be enriched.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="xpath-expression">
+			<xsd:annotation>
+				<xsd:documentation>
+	The XPath Expression as a String. Either this or 'xpath-expression-ref' must be provided, but not both.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="xpath-expression-ref">
+			<xsd:annotation>
+				<xsd:documentation>
+	The XPath Expression reference. Either this or 'xpath-expression' must be provided, but not both.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="evaluation-type" default="STRING_RESULT">
+			<xsd:annotation>
+				<xsd:documentation>
+	The result type expected from the XPath evaluation. This will be the type of the header value.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="BOOLEAN_RESULT"/>
+					<xsd:enumeration value="STRING_RESULT"/>
+					<xsd:enumeration value="NUMBER_RESULT"/>
+					<xsd:enumeration value="NODE_RESULT"/>
+					<xsd:enumeration value="NODE_LIST_RESULT"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="overwrite">
+			<xsd:annotation>
+				<xsd:documentation>
+	Boolean value to indicate whether this header value should overwrite an existing header value
+	for the same name if already present on the input Message.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:union memberTypes="xsd:boolean xsd:string" />
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+
 	<xsd:element name="xpath-router">
 		<xsd:complexType>
 			<xsd:annotation>

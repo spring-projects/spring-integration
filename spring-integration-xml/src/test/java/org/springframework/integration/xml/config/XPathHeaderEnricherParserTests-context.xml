@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/xml"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/xml
+			http://www.springframework.org/schema/integration/xml/spring-integration-xml.xsd">
+
+	<si:channel id="output">
+		<si:queue/>
+	</si:channel>
+
+	<xpath-header-enricher input-channel="input" output-channel="output">
+		<header name="name" xpath-expression="/person/@name" />
+		<header name="age" xpath-expression="/person/@age" evaluation-type="NUMBER_RESULT" />
+		<header name="married" xpath-expression="/person/@married = 'true'" evaluation-type="BOOLEAN_RESULT" />
+		<header name="node-test" xpath-expression="/person/@age" evaluation-type="NODE_RESULT" />
+		<header name="node-list-test" xpath-expression="/person/@*" evaluation-type="NODE_LIST_RESULT" />
+		<header name="ref-test" xpath-expression-ref="testExpression" evaluation-type="NUMBER_RESULT" /> 
+	</xpath-header-enricher>
+
+	<xpath-expression id="testExpression" expression="/person/@age * 2"/>
+
+	<xpath-header-enricher id="defaultHeaderEnricher" input-channel="defaultInput">
+		<header name="foo" xpath-expression="/person/@name" overwrite="true" />
+	</xpath-header-enricher>
+
+	<xpath-header-enricher id="customHeaderEnricher" input-channel="customInput" default-overwrite="true" should-skip-nulls="false">
+		<header name="foo" xpath-expression="/person/@name" overwrite="false" />
+	</xpath-header-enricher>
+
+</beans:beans>
