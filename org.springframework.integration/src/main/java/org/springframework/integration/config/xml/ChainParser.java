@@ -51,6 +51,7 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 			}
 		}
 		builder.addPropertyValue("handlers", handlerList);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
 		return builder;
 	}
 

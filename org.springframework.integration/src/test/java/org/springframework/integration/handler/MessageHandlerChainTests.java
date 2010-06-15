@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,22 +39,35 @@ public class MessageHandlerChainTests {
 
 	private Message<String> message = MessageBuilder.withPayload("foo").build();
 
-	private MessageHandler handler = createMock(MessageHandler.class);
+	private MessageHandler handler1 = createMock(MessageHandler.class);
 
-	private ProducingHandlerStub producer = new ProducingHandlerStub(handler);
+	private MessageHandler handler2 = createMock(MessageHandler.class);
 
-	private Object[] allMocks = new Object[] { outputChannel, handler };
+	private MessageHandler handler3 = createMock(MessageHandler.class);
+
+	private ProducingHandlerStub producer1 = new ProducingHandlerStub(handler1);
+
+	private ProducingHandlerStub producer2 = new ProducingHandlerStub(handler2);
+
+	private ProducingHandlerStub producer3 = new ProducingHandlerStub(handler3);
+
+	private Object[] allMocks = new Object[] { outputChannel, handler1, handler2, handler3 };
+
 
 	@Test
 	public void chainWithOutputChannel() {
-		handler.handleMessage(message);
-		expectLastCall().times(3);
-		expect(outputChannel.send(eq(message))).andReturn(true);
+		handler1.handleMessage(message);
+		expectLastCall();
+		handler2.handleMessage(message);
+		expectLastCall();
+		handler3.handleMessage(message);
+		expectLastCall();
+		expect(outputChannel.send(eq(message), eq(-1L))).andReturn(true);
 		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
-		handlers.add(producer);
-		handlers.add(producer);
-		handlers.add(producer);
+		handlers.add(producer1);
+		handlers.add(producer2);
+		handlers.add(producer3);
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
@@ -66,9 +79,9 @@ public class MessageHandlerChainTests {
 	public void chainWithOutputChannelButLastHandlerDoesNotProduceReplies() {
 		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
-		handlers.add(producer);
-		handlers.add(producer);
-		handlers.add(handler);
+		handlers.add(producer1);
+		handlers.add(producer2);
+		handlers.add(handler3);
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
@@ -77,13 +90,17 @@ public class MessageHandlerChainTests {
 	}
 	@Test
 	public void chainWithoutOutputChannelButLastHandlerDoesNotProduceReplies() {
-		handler.handleMessage(message);
-		expectLastCall().times(3);
+		handler1.handleMessage(message);
+		expectLastCall();
+		handler2.handleMessage(message);
+		expectLastCall();
+		handler3.handleMessage(message);
+		expectLastCall();
 		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
-		handlers.add(producer);
-		handlers.add(producer);
-		handlers.add(handler);
+		handlers.add(producer1);
+		handlers.add(producer2);
+		handlers.add(handler3);
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
@@ -93,15 +110,19 @@ public class MessageHandlerChainTests {
 	@Test
 	public void chainForwardsToReplyChannel() {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannel(outputChannel).build();
-		handler.handleMessage(message);
-		expectLastCall().times(3);
+		handler1.handleMessage(message);
+		expectLastCall();
+		handler2.handleMessage(message);
+		expectLastCall();
+		handler3.handleMessage(message);
+		expectLastCall();
 		//equality is lost when recreating the message
 		expect(outputChannel.send(isA(Message.class))).andReturn(true);
 		replay(allMocks);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
-		handlers.add(producer);
-		handlers.add(producer);
-		handlers.add(producer);
+		handlers.add(producer1);
+		handlers.add(producer2);
+		handlers.add(producer3);
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
@@ -111,22 +132,43 @@ public class MessageHandlerChainTests {
 	@Test
 	public void chainResolvesReplyChannelName() {
 		Message<String> message = MessageBuilder.withPayload("test").setReplyChannelName("testChannel").build();
-		handler.handleMessage(message);
-		expectLastCall().times(3);
+		handler1.handleMessage(message);
+		expectLastCall();
+		handler2.handleMessage(message);
+		expectLastCall();
+		handler3.handleMessage(message);
+		expectLastCall();
 		expect(outputChannel.send(eq(message))).andReturn(true);
 		replay(allMocks);
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", outputChannel);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
-		handlers.add(producer);
-		handlers.add(producer);
-		handlers.add(producer);
+		handlers.add(producer1);
+		handlers.add(producer2);
+		handlers.add(producer3);
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(beanFactory);
 		chain.handleMessage(message);
 	}
+
+	@Test(expected = IllegalArgumentException.class) // INT-1175
+	public void chainRejectsDuplicateHandlers() {
+		Message<String> message = MessageBuilder.withPayload("test").setReplyChannelName("testChannel").build();
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("testChannel", outputChannel);
+		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
+		handlers.add(producer1);
+		handlers.add(producer2);
+		handlers.add(producer1);
+		MessageHandlerChain chain = new MessageHandlerChain();
+		chain.setBeanName("testChain");
+		chain.setHandlers(handlers);
+		chain.setBeanFactory(beanFactory);
+		chain.handleMessage(message);
+	}
+
 
 	private class ProducingHandlerStub implements MessageHandler {
 		private MessageChannel output;
@@ -136,7 +178,8 @@ public class MessageHandlerChainTests {
 		public ProducingHandlerStub(MessageHandler handler) {
 			messageHandler = handler;
 		}
-		
+
+		@SuppressWarnings("unused")
 		public void setOutputChannel(MessageChannel channel) {
 			this.output = channel;
 			
