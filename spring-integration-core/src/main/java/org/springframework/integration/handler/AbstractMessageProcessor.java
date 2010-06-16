@@ -45,9 +45,9 @@ public abstract class AbstractMessageProcessor implements MessageProcessor {
 
 	protected Object evaluateExpression(Expression expression, Message<?> message, Class<?> expectedType) {
 		try {
-			return (expectedType != null && expectedType != void.class)
-				? expression.getValue(this.evaluationContext, message, expectedType)
-				: expression.getValue(this.evaluationContext, message);
+			return (expectedType != null)
+					? expression.getValue(this.evaluationContext, message, expectedType)
+					: expression.getValue(this.evaluationContext, message);
 		}
 		catch (EvaluationException e) {
 			Throwable cause = e.getCause();
