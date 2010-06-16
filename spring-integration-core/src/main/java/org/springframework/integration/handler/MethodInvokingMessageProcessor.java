@@ -434,15 +434,9 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 			}
 			Assert.notNull(headerName, "Cannot determine header name. Possible reasons: -debug is " +
 					"disabled or header name is not explicitly provided via @Header annotation.");
-			if (headerName.startsWith("$")) {
-				// rely on access to getSomeValue for $someValue
-				headerName = headerName.substring(1);
-			}
 			String headerExpression = "headers." + headerName + relativeExpression;
-			if (headerAnnotation.required()) {
-				return headerExpression;
-			}
-			return "headers['" + headerName + "'] != null ? " + headerExpression + " : null";
+			return (headerAnnotation.required()) ? headerExpression
+					: "headers['" + headerName + "'] != null ? " + headerExpression + " : null";
 		}
 
 		private synchronized void setExclusiveTargetParameterType(Class<?> targetParameterType) {
