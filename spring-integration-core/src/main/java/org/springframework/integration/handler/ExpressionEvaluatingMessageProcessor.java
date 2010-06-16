@@ -16,7 +16,12 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.MapAccessor;
+import org.springframework.expression.AccessException;
+import org.springframework.expression.BeanResolver;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
@@ -31,7 +36,7 @@ import org.springframework.integration.core.Message;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor {
+public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor implements BeanFactoryAware {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -40,6 +45,9 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	private volatile Class<?> expectedType = null;
 
 
+	/**
+	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
+	 */
 	public ExpressionEvaluatingMessageProcessor(String expression) {
 		try {
 			this.expression = parser.parseExpression(expression);
@@ -51,10 +59,30 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	}
 
 
+	/**
+	 * Set the result type expected from evaluation of the expression.
+	 */
 	public void setExpectedType(Class<?> expectedType) {
 		this.expectedType = expectedType;
 	}
 
+	/**
+	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
+	 */
+	public void setBeanFactory(final BeanFactory beanFactory) {
+		if (beanFactory != null) {
+			this.getEvaluationContext().setBeanResolver(new BeanResolver() {
+				public Object resolve(EvaluationContext context, String beanName) throws AccessException {
+					return beanFactory.getBean(beanName);
+				}
+			});
+		}
+	}
+
+	/**
+	 * Processes the Message by evaluating the expression with that Message as the
+	 * root object. The expression evaluation result Object will be returned.
+	 */
 	public Object processMessage(Message<?> message) {
 		return this.evaluateExpression(this.expression, message, this.expectedType);
 	}

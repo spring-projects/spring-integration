@@ -22,21 +22,27 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
+
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Dave Syer
+ * @author Mark Fisher
  * @since 2.0
- *
  */
 public class ExpressionEvaluatingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingMessageProcessorTests.class);
 
+
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
+
 
 	@Test
 	public void testProcessMessage() {
@@ -45,8 +51,15 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	}
 
 	@Test
-	public void testProcessMessageWithDollar() {
+	public void testProcessMessageWithDollarInBrackets() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers['$id']");
+		StringMessage message = new StringMessage("foo");
+		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
+	}
+
+	@Test
+	public void testProcessMessageWithDollarPropertyAccess() {
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers.$id");
 		StringMessage message = new StringMessage("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
@@ -56,6 +69,30 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers[headers.ID]");
 		StringMessage message = new StringMessage("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
+	}
+
+	@Test
+	public void testProcessMessageWithBeanAsMethodArgument() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
+		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
+		context.registerBeanDefinition("testString", beanDefinition);
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.concat(@testString)");
+		processor.setBeanFactory(context);
+		StringMessage message = new StringMessage("foo");
+		assertEquals("foobar", processor.processMessage(message));
+	}
+
+	@Test
+	public void testProcessMessageWithMethodCallOnBean() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
+		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
+		context.registerBeanDefinition("testString", beanDefinition);
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("@testString.concat(payload)");
+		processor.setBeanFactory(context);
+		StringMessage message = new StringMessage("foo");
+		assertEquals("barfoo", processor.processMessage(message));
 	}
 
 	@Test
@@ -90,8 +127,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				description.appendText("cause to be UnsupportedOperationException but was ").appendValue(cause);
 			}
 		});
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.error()");
-		assertEquals("foo", processor.processMessage(new GenericMessage<ExpressionEvaluatingMessageProcessorTests>(this)));
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.throwRuntimeException()");
+		assertEquals("foo", processor.processMessage(new GenericMessage<TestPayload>(new TestPayload())));
 	}
 
 	@Test
@@ -108,17 +145,23 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				description.appendText("cause to be CheckedException but was ").appendValue(cause);
 			}
 		});
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.check()");
-		assertEquals("foo", processor.processMessage(new GenericMessage<ExpressionEvaluatingMessageProcessorTests>(this)));
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.throwCheckedException()");
+		assertEquals("foo", processor.processMessage(new GenericMessage<TestPayload>(new TestPayload())));
 	}
 
-	public String error() {
-		throw new UnsupportedOperationException("Expected test exception");
+
+	@SuppressWarnings("unused")
+	private static class TestPayload {
+
+		public String throwRuntimeException() {
+			throw new UnsupportedOperationException("Expected test exception");
+		}
+
+		public String throwCheckedException() throws Exception {
+			throw new CheckedException("Expected test exception");
+		}
 	}
 
-	public String check() throws Exception {
-		throw new CheckedException("Expected test exception");
-	}
 
 	@SuppressWarnings("serial")
 	private static final class CheckedException extends Exception {
