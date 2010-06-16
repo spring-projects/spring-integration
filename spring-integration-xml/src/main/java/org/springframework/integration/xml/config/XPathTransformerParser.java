@@ -40,11 +40,11 @@ public class XPathTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String expression = element.getAttribute("expression");
-		String expressionRef = element.getAttribute("expression-ref");
+		String expression = element.getAttribute("xpath-expression");
+		String expressionRef = element.getAttribute("xpath-expression-ref");
 		boolean hasRef = StringUtils.hasText(expressionRef);
 		Assert.isTrue(hasRef ^ StringUtils.hasText(expression),
-				"Exactly one of the 'expression' or 'expression-ref' attributes is required.");
+				"Exactly one of the 'xpath-expression' or 'xpath-expression-ref' attributes is required.");
 		if (hasRef) {
 			builder.addConstructorArgReference(expressionRef);
 		}

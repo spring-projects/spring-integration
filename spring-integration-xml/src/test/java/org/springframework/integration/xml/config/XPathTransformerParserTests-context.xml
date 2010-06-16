@@ -14,21 +14,21 @@
 		<si:queue/>
 	</si:channel>
 
-	<xpath-transformer input-channel="defaultInput" expression="/person/@name" output-channel="output"/>
+	<xpath-transformer input-channel="defaultInput" xpath-expression="/person/@name" output-channel="output"/>
 
-	<xpath-transformer input-channel="numberInput" expression="/person/@age" evaluation-type="NUMBER_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="numberInput" xpath-expression="/person/@age" evaluation-type="NUMBER_RESULT" output-channel="output"/>
 
-	<xpath-transformer input-channel="booleanInput" expression="/person/@married = 'true'" evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'" evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
 
-	<xpath-transformer input-channel="nodeInput" expression="/person/@age" evaluation-type="NODE_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="nodeInput" xpath-expression="/person/@age" evaluation-type="NODE_RESULT" output-channel="output"/>
 
-	<xpath-transformer input-channel="nodeListInput" expression="/person/@*" evaluation-type="NODE_LIST_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="nodeListInput" xpath-expression="/person/@*" evaluation-type="NODE_LIST_RESULT" output-channel="output"/>
 
-	<xpath-transformer input-channel="nodeMapperInput" expression="/person/@age" node-mapper="testNodeMapper" output-channel="output"/>
+	<xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age" node-mapper="testNodeMapper" output-channel="output"/>
 
-	<xpath-transformer input-channel="customConverterInput" expression="/test/@type" converter="testXmlPayloadConverter" output-channel="output"/>
+	<xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type" converter="testXmlPayloadConverter" output-channel="output"/>
 
-	<xpath-transformer input-channel="expressionRefInput" expression-ref="testExpression" evaluation-type="NUMBER_RESULT" output-channel="output"/>
+	<xpath-transformer input-channel="expressionRefInput" xpath-expression-ref="testExpression" evaluation-type="NUMBER_RESULT" output-channel="output"/>
 
 	<xpath-expression id="testExpression" expression="/person/@age * 2"/>
 
