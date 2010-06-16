@@ -43,6 +43,9 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 
 
 	public void setBeanFactory(BeanFactory beanFactory) {
+		if (this.messageProcessor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
+		}
 		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);

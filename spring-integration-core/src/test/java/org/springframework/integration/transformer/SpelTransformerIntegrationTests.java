@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,20 +37,30 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpelTransformerIntegrationTests {
 
-	@Autowired @Qualifier("input")
-	private MessageChannel input;
+	@Autowired
+	private MessageChannel simpleInput;
+
+	@Autowired
+	private MessageChannel beanResolvingInput;
 
 	@Autowired @Qualifier("output")
 	private PollableChannel output;
 
 
 	@Test
-	public void transform() {
-		Message<?> message = MessageBuilder.withPayload(new TestBean())
-				.setHeader("bar", 123).build();
-		this.input.send(message);
+	public void simple() {
+		Message<?> message = MessageBuilder.withPayload(new TestBean()).setHeader("bar", 123).build();
+		this.simpleInput.send(message);
 		Message<?> result = output.receive(0);
 		assertEquals("test123", result.getPayload());
+	}
+
+	@Test
+	public void beanResolving() {
+		Message<?> message = MessageBuilder.withPayload("foo").build();
+		this.beanResolvingInput.send(message);
+		Message<?> result = output.receive(0);
+		assertEquals("testFOO", result.getPayload());
 	}
 
 

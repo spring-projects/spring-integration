@@ -7,13 +7,13 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="input"/>
-
 	<channel id="output">
 		<queue/>
 	</channel>
 
-	<transformer input-channel="input" expression="payload.foo + headers.bar" output-channel="output"/>
+	<transformer input-channel="simpleInput" expression="payload.foo + headers.bar" output-channel="output"/>
+
+	<transformer input-channel="beanResolvingInput" expression="@testBean.foo + payload.toUpperCase()" output-channel="output"/>
 
 	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelTransformerIntegrationTests$TestBean"/>
 
