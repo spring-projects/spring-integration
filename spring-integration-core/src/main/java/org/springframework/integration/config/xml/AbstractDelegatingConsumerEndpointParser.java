@@ -57,8 +57,8 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		}
 		else if (!this.hasDefaultOption()) {
 			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +
-					"or inner bean (<bean/>) definition is required for this '" + element.getLocalName() + "' endpoint.",
-					element);
+					"or inner bean (<bean/>) definition is required for element " +
+					IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
 			return null;
 		}
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
