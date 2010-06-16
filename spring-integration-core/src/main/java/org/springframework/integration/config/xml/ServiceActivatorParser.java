@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,22 @@
 
 package org.springframework.integration.config.xml;
 
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-
 /**
  * Parser for the &lt;service-activator&gt; element.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
+public class ServiceActivatorParser extends AbstractDelegatingConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanComponentDefinition innerHandlerDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
-		
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				IntegrationNamespaceUtils.BASE_PACKAGE + ".handler.ServiceActivatingHandler");
-		if (innerHandlerDefinition != null){
-			builder.addConstructorArgValue(innerHandlerDefinition);
-		} else {
-			String ref = element.getAttribute(REF_ATTRIBUTE);
-			if (!StringUtils.hasText(ref)) {
-				parserContext.getReaderContext().error("The '" + REF_ATTRIBUTE + "' attribute is required for element "
-						+ IntegrationNamespaceUtils.createElementDescription(element) + ".", element);
-			}
-			builder.addConstructorArgReference(ref);
-		}
-		
-		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			builder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method, "java.lang.String");
-		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");
-		return builder;
+	String getFactoryBeanClassName() {
+		return "org.springframework.integration.config.ServiceActivatorFactoryBean";
+	}
+
+	@Override
+	boolean hasDefaultOption() {
+		return false;
 	}
 
 }

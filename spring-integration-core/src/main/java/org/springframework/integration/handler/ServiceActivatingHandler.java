@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
@@ -27,7 +28,7 @@ import org.springframework.integration.message.MessageHandlingException;
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
 
-	private final MethodInvokingMessageProcessor processor;
+	private final AbstractMessageProcessor processor;
 
 
 	public ServiceActivatingHandler(final Object object) {
@@ -42,6 +43,12 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 		this.processor = new MethodInvokingMessageProcessor(object, methodName);
 	}
 
+	public ServiceActivatingHandler(String expression, Class<?> expectedType) {
+		ExpressionEvaluatingMessageProcessor eemp = new ExpressionEvaluatingMessageProcessor(expression);
+		eemp.setExpectedType(expectedType);
+		this.processor = eemp;
+	}
+
 
 	@Override
 	public String getComponentType() {
@@ -51,6 +58,9 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 	@Override
 	public final void onInit() {
 		this.processor.setConversionService(this.getConversionService());
+		if (this.processor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.processor).setBeanFactory(this.getBeanFactory());
+		}
 	}
 
 	@Override

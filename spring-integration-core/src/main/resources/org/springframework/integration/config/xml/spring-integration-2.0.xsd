@@ -730,7 +730,7 @@
 			default="true" />
 	</xsd:complexType>
 
-	<xsd:element name="service-activator" type="innerEndpointDefinitionAware">
+	<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines an endpoint for exposing any bean reference as a service that
@@ -2125,7 +2125,13 @@
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
 			<xsd:extension base="innerEndpointDefinitionAware">
-				<xsd:attribute name="expression" type="xsd:string" />
+				<xsd:attribute name="expression" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+	A SpEL expression to be evaluated against the input Message as its root object.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
