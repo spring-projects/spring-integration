@@ -7,13 +7,13 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="input"/>
-
 	<channel id="output">
 		<queue/>
 	</channel>
 
-	<splitter input-channel="input" expression="payload.numbers.?[#this&lt;5]" output-channel="output"/>
+	<splitter input-channel="simpleInput" expression="payload.numbers.?[#this&lt;5]" output-channel="output"/>
+
+	<splitter input-channel="beanResolvingInput" expression="@testBean.split(payload)" output-channel="output"/>
 
 	<beans:bean id="testBean" class="org.springframework.integration.splitter.SpelSplitterIntegrationTests$TestBean"/>
 

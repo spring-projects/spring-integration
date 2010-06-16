@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -41,17 +40,20 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpelSplitterIntegrationTests {
 
-	@Autowired @Qualifier("input")
-	private MessageChannel input;
+	@Autowired
+	private MessageChannel simpleInput;
 
-	@Autowired @Qualifier("output")
+	@Autowired
+	private MessageChannel beanResolvingInput;
+
+	@Autowired
 	private PollableChannel output;
 
 
 	@Test
-	public void split() {
+	public void simple() {
 		Message<?> message = MessageBuilder.withPayload(new TestBean()).setHeader("foo", "foo").build();
-		this.input.send(message);
+		this.simpleInput.send(message);
 		Message<?> one = output.receive(0);
 		Message<?> two = output.receive(0);
 		Message<?> three = output.receive(0);
@@ -66,9 +68,23 @@ public class SpelSplitterIntegrationTests {
 		assertEquals("foo", four.getHeaders().get("foo"));
 		assertNull(output.receive(0));
 	}
-	
-	
-	
+
+	@Test
+	public void beanResolving() {
+		Message<?> message = MessageBuilder.withPayload("a,b,c,d").build();
+		this.beanResolvingInput.send(message);
+		Message<?> a = output.receive(0);
+		Message<?> b = output.receive(0);
+		Message<?> c = output.receive(0);
+		Message<?> d = output.receive(0);
+		assertEquals("a", a.getPayload());
+		assertEquals("b", b.getPayload());
+		assertEquals("c", c.getPayload());
+		assertEquals("d", d.getPayload());
+		assertNull(output.receive(0));
+	}
+
+
 	static class TestBean {
 
 		private final List<Integer> numbers = new ArrayList<Integer>();
@@ -81,6 +97,10 @@ public class SpelSplitterIntegrationTests {
 
 		public List<Integer> getNumbers() {
 			return this.numbers;
+		}
+
+		public String[] split(String s) {
+			return s.split(",");
 		}
 	}
 

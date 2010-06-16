@@ -16,6 +16,7 @@
 
 package org.springframework.integration.splitter;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractMessageProcessor;
@@ -44,6 +45,9 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+		}
+		if (this.messageProcessor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
 		}
 	}
 
