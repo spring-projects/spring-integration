@@ -47,6 +47,12 @@ public class ServiceActivatorParserTests {
 	@Autowired
 	private MessageChannel beanInvocationResultInput;
 
+	@Autowired
+	private MessageChannel multipleLiteralArgsInput;
+
+	@Autowired
+	private MessageChannel multipleArgsFromPayloadInput;
+
 
 	@Test
 	public void literalExpression() {
@@ -72,6 +78,18 @@ public class ServiceActivatorParserTests {
 		assertEquals("helloFOO", result);
 	}
 
+	@Test
+	public void multipleLiteralArgs() {
+		Object result = this.sendAndReceive(multipleLiteralArgsInput, "hello");
+		assertEquals("foobar", result);
+	}
+
+	@Test
+	public void multipleArgsFromPayload() {
+		Object result = this.sendAndReceive(multipleArgsFromPayloadInput, new TestPerson("John", "Doe"));
+		assertEquals("JohnDoe", result);
+	}
+
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
@@ -86,6 +104,10 @@ public class ServiceActivatorParserTests {
 		public String caps(String s) {
 			return s.toUpperCase();
 		}
+
+		public String concat(String s1, String s2) {
+			return s1 + s2;
+		}
 	}
 
 
@@ -94,6 +116,28 @@ public class ServiceActivatorParserTests {
 
 		public String getSimpleClassName(Object o) {
 			return o.getClass().getSimpleName();
+		}
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class TestPerson {
+
+		private String firstName;
+
+		private String lastName;
+
+		public TestPerson(String firstName, String lastName) {
+			this.firstName = firstName;
+			this.lastName = lastName;
+		}
+
+		public String getFirstName() {
+			return firstName;
+		}
+
+		public String getLastName() {
+			return lastName;
 		}
 	}
 

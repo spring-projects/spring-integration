@@ -15,6 +15,10 @@
 
 	<service-activator input-channel="beanInvocationResultInput" expression="payload.concat(@testBean.caps('foo'))"/>
 
+	<service-activator input-channel="multipleLiteralArgsInput" expression="@testBean.concat('foo', 'bar')"/>
+
+	<service-activator input-channel="multipleArgsFromPayloadInput" expression="@testBean.concat(payload.firstName, payload.lastName)"/>
+
 	<beans:bean id="testBean" class="org.springframework.integration.config.xml.ServiceActivatorParserTests$TestBean"/>
 
 </beans:beans>
