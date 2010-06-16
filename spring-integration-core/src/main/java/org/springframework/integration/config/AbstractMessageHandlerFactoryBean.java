@@ -80,6 +80,10 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 		this.beanFactory = beanFactory;
 	}
 
+	protected BeanFactory getBeanFactory() {
+		return this.beanFactory;
+	}
+
 	public MessageHandler getObject() throws Exception {
 		if (this.handler == null) {
 			this.initializeHandler();
