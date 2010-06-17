@@ -530,31 +530,34 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
         Channel Interceptors allow you for a clean and concise way of applying cross-cutting behavior per individual channel. 
         But what if the same behavior should be applied on multiple channels, configuring the same set of interceptors for 
         each channel <emphasis>would not be</emphasis> the most efficient way. The better way would be to configure interceptors globally and apply 
-        them on multiple channels in one shot. Spring Integration provides capabilities to configure <emphasis>Global Interceptor Chains</emphasis> 
+        them on multiple channels in one shot. Spring Integration provides capabilities to configure <emphasis>Global Interceptors</emphasis> 
         and apply them on multiple channels.
 		Look at the example below:
-        <programlisting language="xml"><![CDATA[<int:channel-interceptor-chain channel-name-pattern="input*, bar*, foo" order="3">
+        <programlisting language="xml"><![CDATA[<int:channel-interceptor pattern="input*, bar*, foo" order="3">
     <bean class="foo.barSampleInterceptor"/>
-    <ref bean="someOtherInterceptor"/>
-</int:channel-interceptor-chain>]]></programlisting>
-        &lt;channel-interceptor-chain&gt; element will assemble the chain of interceptors and will apply them on all the 
-        channels defined in the &lt;channel-name-patter&gt; attribute. In the above case the two interceptors that are defined 
-        within the chain are going to be applied on 'foo' channel and all other channels that begin with 'bar' and 'input'. 
-        The &lt;order&gt; attribute allows you to manage the place where this interceptor chain will be injected. 
+</int:channel-interceptor>]]></programlisting>
+		or
+		<programlisting language="xml"><![CDATA[<int:channel-interceptor ref="myInterceptor" pattern="input*, bar*, foo" order="3"/> 
+		
+<bean id="myInterceptor" class="foo.barSampleInterceptor"/>]]></programlisting>
+        &lt;channel-interceptor&gt; element allows you to define a global interceptor which will be applied on all 
+        channels that match patterns defined via &lt;pattern&gt; attribute. In the above case the global interceptor will be applied on 
+        'foo' channel and all other channels that begin with 'bar' and 'input'. 
+        The &lt;order&gt; attribute allows you to manage the place where this interceptor will be injected. 
         For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
         <programlisting language="xml"><![CDATA[<int:channel id="inputChannel"> 
 	<int:interceptors>
 		<int:wire-tap channel="logger"/> 
 	</int:interceptors>
 </int:channel>]]></programlisting>
-	The reasonable question would be where interceptors defined by <emphasis>channel-interceptor-cahin</emphasis> should be injected
-	in relation to the existing one(s) (configured locally or through other global chains)? Current implementation provides 
+	The reasonable question would be how global interceptor will be injected in relation to other interceptors 
+	configured locally or through other global interceptor definitions? Current implementation provides 
 	a very simple and clever mechanism of handling this. Positive number in the <emphasis>order</emphasis> attribute will ensure interceptor injection 
 	after existing interceptors and negative number will ensure that such interceptors injected before. 
-	This means that in the above example interceptors configured in global interceptor chain would be injected after 
-	'wire-tap' interceptor configured locally. If there was another global chain with matching <emphasis>channel-name-pattern</emphasis> the 
-	order between the interceptors defined in two chains would be determined based on who's got the higher or lower 
-	value in <emphasis>order</emphasis> attribute.
+	This means that in the above example global interceptor will be injected <emphasis>AFTER</emphasis> (since its order is greater then 0)
+	'wire-tap' interceptor configured locally. If there was another global interceptor with matching <emphasis>pattern</emphasis> their 
+	order would be determined based on who's got the higher or lower value in <emphasis>order</emphasis> attribute.
+	To inject global interceptor <emphasis>BEFORE</emphasis> the existing interceptors use negative value for the <emphasis>order</emphasis> attribute.
       </para>
     </section>
 
