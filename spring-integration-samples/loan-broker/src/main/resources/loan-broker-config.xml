@@ -21,16 +21,15 @@
 		</method>
 	</gateway>
 
-	<chain input-channel="loanBrokerPreProcessingChannel" output-channel="banksDistributionChannel">
+	<chain input-channel="loanBrokerPreProcessingChannel">
 		<header-enricher>
 			<header name="CREDIT_SCORE" ref="creditBureau" method="getCreditScore"/>
 		</header-enricher>
-		<header-enricher>
-			<header name="BANKS" ref="bankSelector" method="selectBankChannels"/>
-		</header-enricher>
+		<router expression="headers['CREDIT_SCORE'].score > 780
+								? @banks.?[value.equals('premier')].keySet()
+								: @banks.?[value.equals('secondary')].keySet()"
+				apply-sequence="true"/>
 	</chain>
-
-	<header-value-router input-channel="banksDistributionChannel" header-name="BANKS" apply-sequence="true"/>
 
 	<!-- Messages are sent to the banks via bank channels and will be received and processed by an aggregator -->
 	
@@ -38,17 +37,4 @@
 		<beans:bean class="org.springframework.integration.loanbroker.LoanQuoteAggregator"/>
 	</aggregator>
 	
-	<beans:bean id="bankSelector" class="org.springframework.integration.loanbroker.BanksChannelSelector">
-		<beans:constructor-arg ref="banks"/>
-		<beans:property name="routingExpression">
-			<!-- This expression also demonstrates 'Collection Selection' concept of SpEL 
-			(see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/expressions.html#d0e11961)
-			-->
-			<beans:value>
-				headers['CREDIT_SCORE'].score > 780 ? #banks.?[value.equals('premier')].keySet()
-													: #banks.?[value.equals('secondary')].keySet()
-			</beans:value>	
-		</beans:property>
-	</beans:bean>
-
 </beans:beans>
