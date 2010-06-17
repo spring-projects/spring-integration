@@ -16,6 +16,9 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractMessageProcessor;
@@ -29,7 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-abstract class AbstractMessageProcessingSelector implements MessageSelector {
+abstract class AbstractMessageProcessingSelector implements MessageSelector, BeanFactoryAware {
 
 	private final MessageProcessor messageProcessor;
 
@@ -43,6 +46,12 @@ abstract class AbstractMessageProcessingSelector implements MessageSelector {
 	protected void setConversionService(ConversionService conversionService) {
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+		}
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		if (this.messageProcessor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(beanFactory);
 		}
 	}
 

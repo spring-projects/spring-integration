@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -37,28 +36,60 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpelFilterIntegrationTests {
 
-	@Autowired @Qualifier("input")
-	private MessageChannel input;
+	@Autowired
+	private MessageChannel simpleInput;
 
-	@Autowired @Qualifier("positives")
+	@Autowired
 	private PollableChannel positives;
 
-	@Autowired @Qualifier("discards")
-	private PollableChannel discards;
+	@Autowired
+	private PollableChannel negatives;
+
+	@Autowired
+	private MessageChannel beanResolvingInput;
+
+	@Autowired
+	private PollableChannel evens;
+
+	@Autowired
+	private PollableChannel odds;
 
 
 	@Test
-	public void filter() {
-		this.input.send(new GenericMessage<Integer>(1));
-		this.input.send(new GenericMessage<Integer>(0));
-		this.input.send(new GenericMessage<Integer>(99));
-		this.input.send(new GenericMessage<Integer>(-99));
+	public void simpleExpressionBasedFilter() {
+		this.simpleInput.send(new GenericMessage<Integer>(1));
+		this.simpleInput.send(new GenericMessage<Integer>(0));
+		this.simpleInput.send(new GenericMessage<Integer>(99));
+		this.simpleInput.send(new GenericMessage<Integer>(-99));
 		assertEquals(new Integer(1), positives.receive(0).getPayload());
 		assertEquals(new Integer(99), positives.receive(0).getPayload());
-		assertEquals(new Integer(0), discards.receive(0).getPayload());
-		assertEquals(new Integer(-99), discards.receive(0).getPayload());
+		assertEquals(new Integer(0), negatives.receive(0).getPayload());
+		assertEquals(new Integer(-99), negatives.receive(0).getPayload());
 		assertNull(positives.receive(0));
-		assertNull(discards.receive(0));
+		assertNull(negatives.receive(0));
+	}
+
+	@Test
+	public void beanResolvingExpressionBasedFilter() {
+		this.beanResolvingInput.send(new GenericMessage<Integer>(1));
+		this.beanResolvingInput.send(new GenericMessage<Integer>(2));
+		this.beanResolvingInput.send(new GenericMessage<Integer>(9));
+		this.beanResolvingInput.send(new GenericMessage<Integer>(22));
+		assertEquals(new Integer(1), odds.receive(0).getPayload());
+		assertEquals(new Integer(9), odds.receive(0).getPayload());
+		assertEquals(new Integer(2), evens.receive(0).getPayload());
+		assertEquals(new Integer(22), evens.receive(0).getPayload());
+		assertNull(odds.receive(0));
+		assertNull(evens.receive(0));
+	}
+
+
+	@SuppressWarnings("unused")
+	private static class TestBean {
+
+		public boolean isEven(int number) {
+			return number % 2 == 0;
+		}
 	}
 
 }

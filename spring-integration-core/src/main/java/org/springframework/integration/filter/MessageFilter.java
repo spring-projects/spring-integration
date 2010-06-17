@@ -16,6 +16,7 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -90,6 +91,9 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	public final void onInit() {
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
+		}
+		if (this.selector instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.selector).setBeanFactory(this.getBeanFactory());
 		}
 	}
 

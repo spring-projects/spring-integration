@@ -7,16 +7,26 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="input"/>
-
 	<channel id="positives">
 		<queue/>
 	</channel>
 
-	<channel id="discards">
+	<channel id="negatives">
 		<queue/>
 	</channel>
 
-	<filter input-channel="input" expression="payload > 0" output-channel="positives" discard-channel="discards"/>
+	<channel id="evens">
+		<queue/>
+	</channel>
+
+	<channel id="odds">
+		<queue/>
+	</channel>
+
+	<filter input-channel="simpleInput" expression="payload > 0" output-channel="positives" discard-channel="negatives"/>
+
+	<filter input-channel="beanResolvingInput" expression="@testBean.isEven(payload)" output-channel="evens" discard-channel="odds"/>
+
+	<beans:bean id="testBean" class="org.springframework.integration.filter.SpelFilterIntegrationTests$TestBean"/>
 
 </beans:beans>
