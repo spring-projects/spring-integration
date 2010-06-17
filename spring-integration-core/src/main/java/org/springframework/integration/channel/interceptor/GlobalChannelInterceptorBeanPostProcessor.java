@@ -18,8 +18,10 @@ package org.springframework.integration.channel.interceptor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,36 +34,10 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.util.CollectionUtils;
 
 /**
- * Will apply global interceptors to channels (<channel-interceptor-chain>). Since global interceptors
- * could be Ordered or un-Ordered they will be sorted before merged with other interceptors in the channel.
- * Sorting will only be done within the given interceptor chain which itself defines 'order' attribute 
- * essentially creating a group of ordered interceptors which are ordered internally and then these chain 
- * groups are also ordered. For example:
- * <pre>
- * channel-interceptor-chain channel-name-pattern="foo" order="5" - positive order value means AFTER local channel interceptors
- * 			Ordered-global interceptor (4)
- * 			Ordered-global interceptor (1)
- * channel-interceptor-chain
- * channel-interceptor-chain channel-name-pattern="foo" order="-1" - negative order value means AFTER local channel interceptors
- * 			Ordered-global interceptor (3)
- * 			Ordered-global interceptor (10)
- * channel-interceptor-chain
+ * Will apply global interceptors to channels (&lt;channel-interceptor&gt;). 
  * 
- * channel id="foo"
- * 		Ordered-in-channel interceptor (1)
- * channel
- * 
- * will result in channel with the following interceptors
- * Channel "foo"
- * 		Ordered-global interceptor (3)
- * 		Ordered-global interceptor (10)
- * 		Ordered-in-channel interceptor (1)
- * 		Ordered-global interceptor (1)
- * 		Ordered-global interceptor (4)
- * </pre>
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -69,18 +45,17 @@ import org.springframework.util.CollectionUtils;
 final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcessor, InitializingBean{
 	private final static Log logger = LogFactory.getLog(GlobalChannelInterceptorBeanPostProcessor.class);
 	private final OrderComparator comparator = new OrderComparator();
-	private List<String> allAvailablePatters;
-	private List<GlobalChannelInterceptorChain> globalInterceptors;
+	private List<GlobalChannelInterceptorWrapper> channelInterceptors;
 	private final Map<String, Pattern> compiledPatterns = new HashMap<String, Pattern>();
-	
-	private List<GlobalChannelInterceptorChain> positiveOrderChains = new ArrayList<GlobalChannelInterceptorChain>();
-	private List<GlobalChannelInterceptorChain> negativeOrderChains = new ArrayList<GlobalChannelInterceptorChain>();
+
+	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
+	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
 	/**
-	 * 
+	 *   
 	 * @param globalInterceptors
 	 */
-	GlobalChannelInterceptorBeanPostProcessor(List<GlobalChannelInterceptorChain> globalInterceptors){
-		this.globalInterceptors = globalInterceptors;
+	GlobalChannelInterceptorBeanPostProcessor(List<GlobalChannelInterceptorWrapper> channelInterceptors){
+		this.channelInterceptors = channelInterceptors;
 	}
 	/*
 	 * (non-Javadoc)
@@ -96,71 +71,16 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	 */
 	public Object postProcessBeforeInitialization(Object bean, String beanName)
 			throws BeansException {
-		if (channelPatternMatches(beanName)){
-			if (bean instanceof AbstractMessageChannel){
-				logger.debug("Applying global interceptors on channel '" + beanName + "'");
-				this.mergeInterceptorsToChannel((AbstractMessageChannel) bean, beanName);
-			} else {
-				logger.warn("Attempt to add channel interceptors is unsuccessfull. Global channel interceptors " +
-						"can only be added to AbstractMessageChannel. Current implementation is: " + bean.getClass() +
-						" This might happen becouse you specified a single wild-card '*' in 'channel-name-pattern'");
-			}		
-		}
+		
+		if (bean instanceof AbstractMessageChannel){
+			
+			logger.debug("Applying global interceptors on channel '" + beanName + "'");
+			this.addInterceptorsIfExist((AbstractMessageChannel) bean, beanName);
+		} 
+	
 		return bean;
 	}
-	/**
-	 * 
-	 * @param channel
-	 * @param channelName
-	 */
-	private void mergeInterceptorsToChannel(AbstractMessageChannel channel, String channelName){
-		List<ChannelInterceptor> tInt = null;
-		List<ChannelInterceptor> interceptors = this.getExistingInterceptors(channel);
-		// POSITIVE
-		List<GlobalChannelInterceptorChain> tempPositiveInterceptorChains = new ArrayList<GlobalChannelInterceptorChain>();
-		for (GlobalChannelInterceptorChain positiveOrderChain : positiveOrderChains) {
-			if (channelPatternMatches(channelName, positiveOrderChain.getPatterns())){
-				tempPositiveInterceptorChains.add(positiveOrderChain);
-			}
-		}
-		// sort chain
-	    Collections.sort(tempPositiveInterceptorChains, comparator);
-	    
-	    for (GlobalChannelInterceptorChain globalChannelInterceptorChain : tempPositiveInterceptorChains) {
-	    	tInt = globalChannelInterceptorChain.getInterceptors();
-	    	// sort within the chain
-	    	Collections.sort(tInt, comparator);
-	    	interceptors.addAll(tInt);
-		}
-	    // NEGATIVE
-	    List<GlobalChannelInterceptorChain> tempNegativeInterceptorChains = new ArrayList<GlobalChannelInterceptorChain>();
-		for (GlobalChannelInterceptorChain negativeOrderChain : negativeOrderChains) {
-			if (channelPatternMatches(channelName, negativeOrderChain.getPatterns())){
-				tempNegativeInterceptorChains.add(negativeOrderChain);
-			}
-		}
-		// sort chains
-	    Collections.sort(tempNegativeInterceptorChains, comparator);
-	    
-	    for (GlobalChannelInterceptorChain globalChannelInterceptorChain : tempNegativeInterceptorChains) {
-	    	tInt = globalChannelInterceptorChain.getInterceptors();
-	    	// sort within the chain
-	    	Collections.sort(tInt, comparator);
-	    	interceptors.addAll(0, tInt);
-		}
-	}
-	/*
-	 * 
-	 */
-	private void filterPositiveNegativeOrderChains(){
-		for (GlobalChannelInterceptorChain globalInterceptorChain : globalInterceptors) {
-			if (globalInterceptorChain.getOrder() < 0){
-				negativeOrderChains.add(globalInterceptorChain);
-			} else {
-				positiveOrderChains.add(globalInterceptorChain);
-			}
-		}
-	}
+
 	/*
 	 * 
 	 */
@@ -175,38 +95,65 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	/*
 	 * 
 	 */
-	private boolean channelPatternMatches(String beanName, String... patternsToMatch){
-		String[] patterns = null;
-		if (patternsToMatch.length > 0){
-			patterns = patternsToMatch;
-		} else {
-			patterns = allAvailablePatters.toArray(new String[]{});
-		}
-		for (String channelPattern : patterns) {
-			channelPattern = channelPattern.trim();
-			if (channelPattern.trim().equals("*")){
-				return true;
-			}
-			Pattern p = compiledPatterns.get(channelPattern);
-			if (p == null){
-				p = Pattern.compile(channelPattern);
-				compiledPatterns.put(channelPattern, p);
-			}
-			Matcher m = p.matcher(beanName);
-			if (m.find()){
-				return true;
+	private void addInterceptorsIfExist(AbstractMessageChannel channel, String beanName){
+		List<ChannelInterceptor> interceptors = this.getExistingInterceptors(channel);
+		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
+		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : positiveOrderInterceptors) {
+			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+			for (String channelPattern : patterns) {
+				channelPattern = channelPattern.trim();
+				if (channelPattern.equals("*")){
+					tempInterceptors.add(globalChannelInterceptorWrapper);
+				} else {
+					Pattern pattern = compiledPatterns.get(channelPattern);
+					
+					Matcher m = pattern.matcher(beanName);
+					if (m.find()){
+						tempInterceptors.add(globalChannelInterceptorWrapper);
+					}
+				}
 			}
 		}
-		return false;
+		Collections.sort(tempInterceptors, comparator);
+		interceptors.addAll(tempInterceptors);
+		
+		tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
+		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : negativeOrderInterceptors) {
+			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
+			for (String channelPattern : patterns) {
+				channelPattern = channelPattern.trim();
+				Pattern pattern = compiledPatterns.get(channelPattern);
+				Matcher m = pattern.matcher(beanName);
+				if (m.find()){
+					tempInterceptors.add(globalChannelInterceptorWrapper);
+				}
+			}
+		}
+		Collections.sort(tempInterceptors, comparator);
+		interceptors.addAll(0, tempInterceptors);
 	}
-
-	@SuppressWarnings("unchecked")
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
+	 */
 	public void afterPropertiesSet() throws Exception {
-		allAvailablePatters = new ArrayList<String>();
-		for (GlobalChannelInterceptorChain globalInterceptorchain : globalInterceptors) {
-			allAvailablePatters.addAll(CollectionUtils.arrayToList(globalInterceptorchain.getPatterns()));
+		for (GlobalChannelInterceptorWrapper channelInterceptor : channelInterceptors) {
+			String[] patterns = channelInterceptor.getPatterns();
+			for (String pattern : patterns) {
+				pattern = pattern.trim();
+				if (!pattern.equals("*" )){
+					Pattern p = compiledPatterns.get(pattern);
+					if (p == null){
+						p = Pattern.compile(pattern);
+						compiledPatterns.put(pattern, p);
+					}
+				}	
+				if (channelInterceptor.getOrder() >= 0){
+					positiveOrderInterceptors.add(channelInterceptor);
+				} else {
+					negativeOrderInterceptors.add(channelInterceptor);
+				}
+			}
 		}
-		this.filterPositiveNegativeOrderChains();
-		logger.info("Initialized: '" + this.getClass().getSimpleName() + "' to apply global channel interceptors");
 	}
 }

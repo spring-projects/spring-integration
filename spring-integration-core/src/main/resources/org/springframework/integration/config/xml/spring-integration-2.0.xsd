@@ -2172,7 +2172,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="channel-interceptor-chain">
+	<xsd:element name="channel-interceptor">
 		<xsd:annotation>
 			<xsd:documentation>
 				Allows you to define channel interceptors to be applied globally.
@@ -2180,13 +2180,11 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:choice minOccurs="0" maxOccurs="unbounded">
-					<xsd:element ref="beans:ref" />
+				<xsd:choice minOccurs="0" maxOccurs="1">
 					<xsd:element ref="beans:bean" />
 				</xsd:choice>
 			</xsd:sequence>
-			<xsd:attribute name="channel-name-pattern" type="xsd:string"
-				use="required">
+			<xsd:attribute name="pattern" type="xsd:string" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
 						[REQUIRED] Channel name(s) or patterns. To specify more than one channel use
@@ -2198,12 +2196,19 @@
 			<xsd:attribute name="order" type="xsd:integer" use="optional">
 				<xsd:annotation>
 					<xsd:documentation>
-						[OPTIONAL] Specifies the order in which these interceptors will be
+						[OPTIONAL] Specifies the order in which this interceptor will be
 						added to the existing channel interceptors (if any).
-						Negative value (e.g., -2) will signify AFTER, but BEFORE the
-						the chain that might specify -1 (if any). Positive value (e.g., 2)
-						will signify BEFORE, but AFTER the chain that might specify 1 (if
-						any).
+						Negative value (e.g., -2) will signify BEFORE existing iinterceptors (if any). Positive value (e.g., 2)
+						will signify AFTER existing interceptors (if any)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="ref" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:documentation>
+						<![CDATA[
+	[OPTIONAL] points to a bean reference which implements this interceptor. Could also be defined as inner &lt;bean&gt; element.
+				]]>	
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

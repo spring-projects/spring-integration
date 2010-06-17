@@ -33,8 +33,9 @@ import org.springframework.integration.core.MessageChannel;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
+@SuppressWarnings("all")
 public class GlobalChannelInterceptorTests {
-	@SuppressWarnings("unchecked")
+	
 	@Test
 	public void validateGlobalInterceptor(){
 		ApplicationContext applicationContext = 
@@ -46,149 +47,61 @@ public class GlobalChannelInterceptorTests {
 			Object iList = cAccessor.getPropertyValue("interceptors");
 			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
 			List<SampleInterceptor> interceptoList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
-			if (channelName.equals("inputA")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 13);
-				Assert.assertEquals("four", inter[0].getTestIdentifier());
-				Assert.assertEquals("seven", inter[1].getTestIdentifier());
-				Assert.assertEquals("five", inter[2].getTestIdentifier());
-				Assert.assertEquals("seven", inter[3].getTestIdentifier());
-				Assert.assertEquals("eight", inter[4].getTestIdentifier());
-				Assert.assertEquals("seven", inter[5].getTestIdentifier());
-				Assert.assertEquals("one", inter[6].getTestIdentifier());
-				Assert.assertEquals("seven", inter[7].getTestIdentifier());
-				Assert.assertEquals("two", inter[8].getTestIdentifier());
-				Assert.assertEquals("three", inter[9].getTestIdentifier());
-				Assert.assertEquals("seven", inter[10].getTestIdentifier());
-				Assert.assertEquals("six", inter[11].getTestIdentifier());
-				Assert.assertEquals("seven", inter[12].getTestIdentifier());
+			if (channelName.equals("inputA")){ // 328741
+				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				Assert.assertTrue(inter.length ==10);
+				Assert.assertEquals("interceptor-three", inter[0].toString());
+				Assert.assertEquals("interceptor-two", inter[1].toString());
+				Assert.assertEquals("interceptor-eight", inter[2].toString());
+				Assert.assertEquals("interceptor-seven", inter[3].toString());
+				Assert.assertEquals("interceptor-five", inter[4].toString());
+				Assert.assertEquals("interceptor-six", inter[5].toString());
+				Assert.assertEquals("interceptor-ten", inter[6].toString());
+				Assert.assertEquals("interceptor-eleven", inter[7].toString());
+				Assert.assertEquals("interceptor-four", inter[8].toString());
+				Assert.assertEquals("interceptor-one", inter[9].toString());
 			} 
 			else
 			if (channelName.equals("inputB")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 11);
-				Assert.assertEquals("four", inter[0].getTestIdentifier());
-				Assert.assertEquals("seven", inter[1].getTestIdentifier());
-				Assert.assertEquals("five", inter[2].getTestIdentifier());
-				Assert.assertEquals("seven", inter[3].getTestIdentifier());
-				Assert.assertEquals("one", inter[4].getTestIdentifier());
-				Assert.assertEquals("seven", inter[5].getTestIdentifier());
-				Assert.assertEquals("two", inter[6].getTestIdentifier());
-				Assert.assertEquals("three", inter[7].getTestIdentifier());
-				Assert.assertEquals("seven", inter[8].getTestIdentifier());
-				Assert.assertEquals("six", inter[9].getTestIdentifier());
-				Assert.assertEquals("seven", inter[10].getTestIdentifier());
+				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				Assert.assertTrue(inter.length == 6);
+				Assert.assertEquals("interceptor-three", inter[0].toString());
+				Assert.assertEquals("interceptor-two", inter[1].toString());
+				Assert.assertEquals("interceptor-ten", inter[2].toString());
+				Assert.assertEquals("interceptor-eleven", inter[3].toString());
+				Assert.assertEquals("interceptor-four", inter[4].toString());
+				Assert.assertEquals("interceptor-one", inter[5].toString());
 			} 
 			else 
 			if (channelName.equals("foo")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
+				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length == 6);
-				Assert.assertEquals("four", inter[0].getTestIdentifier());
-				Assert.assertEquals("seven", inter[1].getTestIdentifier());
-				Assert.assertEquals("five", inter[2].getTestIdentifier());
-				Assert.assertEquals("seven", inter[3].getTestIdentifier());
-				Assert.assertEquals("six", inter[4].getTestIdentifier());
-				Assert.assertEquals("seven", inter[5].getTestIdentifier());
+				Assert.assertEquals("interceptor-two", inter[0].toString());
+				Assert.assertEquals("interceptor-five", inter[1].toString());
+				Assert.assertEquals("interceptor-ten", inter[2].toString());
+				Assert.assertEquals("interceptor-eleven", inter[3].toString());
+				Assert.assertEquals("interceptor-four", inter[4].toString());
+				Assert.assertEquals("interceptor-one", inter[5].toString());
 			}
 			else 
 			if (channelName.equals("bar")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 2);
-				Assert.assertEquals("eight", inter[0].getTestIdentifier());
-				Assert.assertEquals("seven", inter[1].getTestIdentifier());
+				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				Assert.assertTrue(inter.length == 4);
+				Assert.assertEquals("interceptor-eight", inter[0].toString());
+				Assert.assertEquals("interceptor-seven", inter[1].toString());
+				Assert.assertEquals("interceptor-ten", inter[2].toString());
+				Assert.assertEquals("interceptor-eleven", inter[3].toString());
 			}
 			else 
 			if (channelName.equals("baz")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 0);
-			}
-		}
-	}
-	/**
-	 * Will test mix of Ordered and un-Ordered ChannelInterceptors
-	 * Individual interceptors will only be sorted within groups they are defined.
-	 * For example: interceptors defined inside of channels will be sorted according to Ordered implementation
-	 * If global interceptors were added BEFORE (negative order) or AFTER (ppositive order) the global stack will be sorted
-	 * and added before/after the existing stack
-	 */
-	@SuppressWarnings("unchecked")
-	@Test
-	public void validateGlobalInterceptorsOrdered(){
-		ApplicationContext applicationContext = 
-			new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-ordered-context.xml", GlobalChannelInterceptorTests.class);
-		Map<String, AbstractMessageChannel> channels = applicationContext.getBeansOfType(AbstractMessageChannel.class);
-		for (String channelName : channels.keySet()) {
-			AbstractMessageChannel channel = channels.get(channelName);
-			DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
-			Object iList = cAccessor.getPropertyValue("interceptors");
-			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
-			List<SampleInterceptor> interceptoList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
-			if (channelName.equals("inputA")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 10);
-				Assert.assertEquals("ten", inter[0].getTestIdentifier());
-				Assert.assertEquals("four", inter[1].getTestIdentifier());
-				Assert.assertEquals("ten", inter[2].getTestIdentifier());
-				Assert.assertEquals("eight", inter[3].getTestIdentifier());
-				Assert.assertEquals("seven", inter[4].getTestIdentifier());
-				Assert.assertEquals("five", inter[5].getTestIdentifier());
-				Assert.assertEquals("ten", inter[6].getTestIdentifier());
-				Assert.assertEquals("one", inter[7].getTestIdentifier());
-				Assert.assertEquals("six", inter[8].getTestIdentifier());
-				Assert.assertEquals("seven", inter[9].getTestIdentifier());
-			} 
-			
-		}
-	}
-	@SuppressWarnings("unchecked")
-	@Test
-	public void validateGlobalInterceptorsUnOrdered(){
-		ApplicationContext applicationContext = 
-			new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-unordered-context.xml", GlobalChannelInterceptorTests.class);
-		Map<String, AbstractMessageChannel> channels = applicationContext.getBeansOfType(AbstractMessageChannel.class);
-		for (String channelName : channels.keySet()) {
-			AbstractMessageChannel channel = channels.get(channelName);
-			DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
-			Object iList = cAccessor.getPropertyValue("interceptors");
-			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
-			List<SampleInterceptor> interceptoList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
-			if (channelName.equals("inputA")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 7);
-				Assert.assertEquals("eight", inter[0].getTestIdentifier());
-				Assert.assertEquals("seven", inter[1].getTestIdentifier());
-				Assert.assertEquals("five", inter[2].getTestIdentifier());
-				Assert.assertEquals("six", inter[3].getTestIdentifier());
-				Assert.assertEquals("seven", inter[4].getTestIdentifier());
-				Assert.assertEquals("seven", inter[5].getTestIdentifier());
-				Assert.assertEquals("one", inter[6].getTestIdentifier());
-			} 
-		}
-	}
-	@SuppressWarnings("unchecked")
-	@Test
-	public void validateGlobalInterceptorsAllPattern(){
-		ApplicationContext applicationContext = 
-			new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-all-context.xml", GlobalChannelInterceptorTests.class);
-		Map<String, AbstractMessageChannel> channels = applicationContext.getBeansOfType(AbstractMessageChannel.class);
-		for (String channelName : channels.keySet()) {
-			AbstractMessageChannel channel = channels.get(channelName);
-			DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
-			Object iList = cAccessor.getPropertyValue("interceptors");
-			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
-			List<SampleInterceptor> interceptoList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
-			if (channelName.equals("inputA")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
+				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length == 2);
-			} else if (channelName.equals("inputB")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 1);
-			} else if (channelName.equals("inputC")){
-				SampleInterceptor[] inter = interceptoList.toArray(new SampleInterceptor[]{});
-				Assert.assertTrue(inter.length == 1);
+				Assert.assertEquals("interceptor-ten", inter[0].toString());
+				Assert.assertEquals("interceptor-eleven", inter[1].toString());
 			}
 		}
 	}
+
 	
 	public static class SampleInterceptor implements ChannelInterceptor {
 		private String testIdentifier;
@@ -210,6 +123,10 @@ public class GlobalChannelInterceptorTests {
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			return null;
 		}	
+		public String toString(){
+			return "interceptor-" + testIdentifier; 
+		}
+		
 	}
 	public static class SampleOrderedInterceptor extends SampleInterceptor implements Ordered {
 		private int order;
