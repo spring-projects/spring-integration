@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
@@ -38,18 +38,24 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SpelRouterIntegrationTests {
 
-	@Autowired @Qualifier("input")
-	private MessageChannel input;
+	@Autowired
+	private MessageChannel simpleInput;
 
-	@Autowired @Qualifier("even")
+	@Autowired
 	private PollableChannel even;
 
-	@Autowired @Qualifier("odd")
+	@Autowired
 	private PollableChannel odd;
+
+	@Autowired
+	private MessageChannel beanResolvingInput;
+
+	@Autowired
+	private TestBean testBean;
 
 
 	@Test
-	public void split() {
+	public void simpleExpressionBasedRouter() {
 		TestBean testBean1 = new TestBean(1);
 		TestBean testBean2 = new TestBean(2);
 		TestBean testBean3 = new TestBean(3);
@@ -58,10 +64,10 @@ public class SpelRouterIntegrationTests {
 		Message<?> message2 = MessageBuilder.withPayload(testBean2).build();
 		Message<?> message3 = MessageBuilder.withPayload(testBean3).build();
 		Message<?> message4 = MessageBuilder.withPayload(testBean4).build();
-		this.input.send(message1);
-		this.input.send(message2);
-		this.input.send(message3);
-		this.input.send(message4);
+		this.simpleInput.send(message1);
+		this.simpleInput.send(message2);
+		this.simpleInput.send(message3);
+		this.simpleInput.send(message4);
 		assertEquals(testBean1, odd.receive(0).getPayload());
 		assertEquals(testBean2, even.receive(0).getPayload());
 		assertEquals(testBean3, odd.receive(0).getPayload());
@@ -70,10 +76,30 @@ public class SpelRouterIntegrationTests {
 		assertNull(even.receive(0));
 	}
 
+	@Test
+	public void beanResolvingExpressionBasedRouter() {
+		this.beanResolvingInput.send(MessageBuilder.withPayload(5).build());
+		this.beanResolvingInput.send(MessageBuilder.withPayload(9).build());
+		this.beanResolvingInput.send(MessageBuilder.withPayload(20).build());
+		this.beanResolvingInput.send(MessageBuilder.withPayload(30).build());
+		this.beanResolvingInput.send(MessageBuilder.withPayload(34).build());
+		assertEquals(20, testBean.clear.receive(0).getPayload());
+		assertEquals(30, testBean.clear.receive(0).getPayload());
+		assertNull(testBean.clear.receive(0));
+		assertEquals(5, testBean.remainders.receive(0).getPayload());
+		assertEquals(9, testBean.remainders.receive(0).getPayload());
+		assertEquals(34, testBean.remainders.receive(0).getPayload());
+		assertNull(testBean.remainders.receive(0));
+	}
+
 
 	static class TestBean {
 
 		private final int number;
+
+		private final QueueChannel clear = new QueueChannel();
+
+		private final QueueChannel remainders = new QueueChannel();
 
 		public TestBean(int number) {
 			this.number = number;
@@ -81,6 +107,10 @@ public class SpelRouterIntegrationTests {
 
 		public int getNumber() {
 			return this.number;
+		}
+
+		public MessageChannel getChannel(int value) {
+			return (value == 0) ? clear : remainders;
 		}
 	}
 

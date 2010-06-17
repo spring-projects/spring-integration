@@ -19,6 +19,7 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
@@ -46,6 +47,9 @@ class AbstractMessageProcessingRouter extends AbstractChannelNameResolvingMessag
 		super.onInit();
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
 			((AbstractMessageProcessor) this.messageProcessor).setConversionService(this.getConversionService());
+		}
+		if (this.messageProcessor instanceof BeanFactoryAware) {
+			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());
 		}
 	}
 

@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="input"/>
-
 	<channel id="even">
 		<queue/>
 	</channel>
@@ -17,6 +15,12 @@
 		<queue/>
 	</channel>
 
-	<router input-channel="input" expression="payload.number % 2 == 0 ? 'even' : 'odd'"/>
+	<router input-channel="simpleInput" expression="payload.number % 2 == 0 ? 'even' : 'odd'"/>
+
+	<router input-channel="beanResolvingInput" expression="@testBean.getChannel(payload % @testBean.number)"/>
+
+	<beans:bean id="testBean" class="org.springframework.integration.router.config.SpelRouterIntegrationTests$TestBean">
+		<beans:constructor-arg value="10"/>
+	</beans:bean>
 
 </beans:beans>
