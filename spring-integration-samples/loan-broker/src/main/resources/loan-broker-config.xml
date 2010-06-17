@@ -16,9 +16,6 @@
 		<method name="getLoanQuote">
 			<header name="RESPONSE_TYPE" value="BEST"/>
 		</method>
-		<method name="getAllLoanQuotes">
-			<header name="RESPONSE_TYPE" value="ALL"/>
-		</method>
 	</gateway>
 
 	<chain input-channel="loanBrokerPreProcessingChannel">
@@ -26,8 +23,8 @@
 			<header name="CREDIT_SCORE" ref="creditBureau" method="getCreditScore"/>
 		</header-enricher>
 		<router expression="headers['CREDIT_SCORE'].score > 780
-								? @banks.?[value.equals('premier')].keySet()
-								: @banks.?[value.equals('secondary')].keySet()"
+				? @banks.?[value.equals('premier')].keySet()
+				: @banks.?[value.equals('secondary')].keySet()"
 				apply-sequence="true"/>
 	</chain>
 

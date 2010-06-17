@@ -25,7 +25,7 @@ import org.springframework.integration.loanbroker.domain.LoanQuote;
 
 /**
  * Will aggregate {@link LoanQuote}s based on the value of the 'RESPONSE_TYPE' message header.
- * The value of 'RESPONSE_TYPE' header is set by the 'gateway' and is based on the type of
+ * The value of the 'RESPONSE_TYPE' header is set by the 'gateway' and is based on the type of
  * {@link LoanBrokerGateway} method that was invoked by the client.
  * <p>
  * Will return the best {@link LoanQuote} if 'RESPONSE_TYPE' header value is 'BEST' else it will
@@ -35,23 +35,18 @@ import org.springframework.integration.loanbroker.domain.LoanQuote;
  */
 public class LoanQuoteAggregator {
 
-	/**
-	 * @param messages
-	 * @return
-	 */
-	@SuppressWarnings({ "unused", "unchecked" })
-	private Object aggregateQuotes(List<Message<LoanQuote>> messages) {
-		ArrayList payloads = new ArrayList(messages.size());
-		for (Message<?> message : messages) {
+	public Object aggregateQuotes(List<Message<LoanQuote>> messages) {
+		ArrayList<LoanQuote> payloads = new ArrayList<LoanQuote>(messages.size());
+		for (Message<LoanQuote> message : messages) {
 			payloads.add(message.getPayload());
 		}
-		String responceType = (String) messages.get(0).getHeaders().get("RESPONSE_TYPE");
-		if (responceType.equals("ALL")) {	
-			return payloads;
-		}
-		else {
+		String responseType = messages.get(0).getHeaders().get("RESPONSE_TYPE", String.class);
+		if ("BEST".equals(responseType)) {
 			Collections.sort(payloads);
 			return payloads.get(0);
+		}
+		else {
+			return payloads;
 		}
 	}
 
