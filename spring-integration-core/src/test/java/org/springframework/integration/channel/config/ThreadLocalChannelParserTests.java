@@ -17,46 +17,99 @@
 package org.springframework.integration.channel.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.channel.ThreadLocalChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Dave Syer
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class ThreadLocalChannelParserTests {
 
 	@Autowired @Qualifier("simpleChannel")
-	private MessageChannel simpleChannel;
+	private PollableChannel simpleChannel;
 
 	@Autowired @Qualifier("channelWithInterceptor")
-	private MessageChannel channelWithInterceptor;
+	private PollableChannel channelWithInterceptor;
 
 	@Autowired
 	private TestChannelInterceptor interceptor;
 
-
 	@Test
-	public void checkType() {
-		assertEquals(ThreadLocalChannel.class, simpleChannel.getClass());
+	public void testSendInAnotherThread() throws Exception {
+		simpleChannel.send(new StringMessage("test"));
+		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
+		final CountDownLatch latch = new CountDownLatch(1);
+		otherThreadExecutor.execute(new Runnable() {
+			public void run() {
+				simpleChannel.send(new StringMessage("crap"));
+				latch.countDown();
+			}
+		});
+		latch.await(1, TimeUnit.SECONDS);
+		assertEquals("test", simpleChannel.receive(10).getPayload());
+		// Message sent on another thread is not collected here
+		assertEquals(null, simpleChannel.receive(10));
 	}
 
 	@Test
-	public void verifyInterceptor() {
-		assertEquals(0, interceptor.getSendCount());
+	public void testReceiveInAnotherThread() throws Exception {
+		simpleChannel.send(new StringMessage("test-1.1"));
+		simpleChannel.send(new StringMessage("test-1.2"));
+		simpleChannel.send(new StringMessage("test-1.3"));
+		channelWithInterceptor.send(new StringMessage("test-2.1"));
+		channelWithInterceptor.send(new StringMessage("test-2.2"));
+		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
+		final List<Object> otherThreadResults = new ArrayList<Object>();
+		final CountDownLatch latch = new CountDownLatch(2);
+		otherThreadExecutor.execute(new Runnable() {
+			public void run() {
+				otherThreadResults.add(simpleChannel.receive(0));
+				latch.countDown();
+			}
+		});
+		otherThreadExecutor.execute(new Runnable() {
+			public void run() {
+				otherThreadResults.add(channelWithInterceptor.receive(0));
+				latch.countDown();
+			}
+		});
+		latch.await(1, TimeUnit.SECONDS);
+		assertEquals(2, otherThreadResults.size());
+		assertNull(otherThreadResults.get(0));
+		assertNull(otherThreadResults.get(1));
+		assertEquals("test-1.1", simpleChannel.receive(0).getPayload());
+		assertEquals("test-1.2", simpleChannel.receive(0).getPayload());
+		assertEquals("test-1.3", simpleChannel.receive(0).getPayload());
+		assertNull(simpleChannel.receive(0));
+		assertEquals("test-2.1", channelWithInterceptor.receive(0).getPayload());
+		assertEquals("test-2.2", channelWithInterceptor.receive(0).getPayload());
+		assertNull(channelWithInterceptor.receive(0));
+	}
+
+	@Test
+	public void testInterceptor() {
+		int before = interceptor.getSendCount();
 		channelWithInterceptor.send(new StringMessage("test"));
-		assertEquals(1, interceptor.getSendCount());
+		assertEquals(before+1, interceptor.getSendCount());
 	}
 
 }

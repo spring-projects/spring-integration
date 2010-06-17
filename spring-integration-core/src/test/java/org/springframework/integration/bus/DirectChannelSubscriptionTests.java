@@ -20,12 +20,11 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
@@ -46,7 +45,7 @@ public class DirectChannelSubscriptionTests {
 
 	private DirectChannel sourceChannel = new DirectChannel();
 
-	private ThreadLocalChannel targetChannel = new ThreadLocalChannel();
+	private PollableChannel targetChannel = new QueueChannel();
 
 
 	@Before

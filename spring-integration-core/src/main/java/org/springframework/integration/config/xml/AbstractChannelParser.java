@@ -18,8 +18,11 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
+import org.springframework.aop.scope.ScopedProxyUtils;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -31,6 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * Base class for channel parsers.
  * 
  * @author Mark Fisher
+ * @author Dave Syer
  */
 public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser {
 
@@ -60,7 +64,24 @@ public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser
 			builder.addPropertyValue("datatypes", datatypes);
 		}
 		builder.addPropertyValue("interceptors", interceptors);
-		return builder.getBeanDefinition();
+		AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
+		String scopeAttr = element.getAttribute("scope");
+		if (StringUtils.hasText(scopeAttr)) {
+			builder.setScope(scopeAttr);
+		}
+		return beanDefinition;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.springframework.beans.factory.xml.AbstractBeanDefinitionParser#registerBeanDefinition(org.springframework.beans.factory.config.BeanDefinitionHolder, org.springframework.beans.factory.support.BeanDefinitionRegistry)
+	 */
+	@Override
+	protected void registerBeanDefinition(BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
+		String scope = definition.getBeanDefinition().getScope();
+		if (!AbstractBeanDefinition.SCOPE_DEFAULT.equals(scope) && !AbstractBeanDefinition.SCOPE_SINGLETON.equals(scope) && !AbstractBeanDefinition.SCOPE_PROTOTYPE.equals(scope)) {
+			definition = ScopedProxyUtils.createScopedProxy(definition, registry, false);
+		}
+		super.registerBeanDefinition(definition, registry);
 	}
 
 	/**

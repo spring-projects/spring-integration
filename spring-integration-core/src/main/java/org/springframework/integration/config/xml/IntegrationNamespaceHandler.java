@@ -27,7 +27,6 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 
 	public void init() {
 		registerBeanDefinitionParser("channel", new PointToPointChannelParser());
-		registerBeanDefinitionParser("thread-local-channel", new ThreadLocalChannelParser());
 		registerBeanDefinitionParser("publish-subscribe-channel", new PublishSubscribeChannelParser());
 		registerBeanDefinitionParser("service-activator", new ServiceActivatorParser());
 		registerBeanDefinitionParser("transformer", new TransformerParser());

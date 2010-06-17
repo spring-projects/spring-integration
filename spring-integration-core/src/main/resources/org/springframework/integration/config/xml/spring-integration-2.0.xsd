@@ -325,29 +325,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="thread-local-channel">
-		<xsd:annotation>
-			<xsd:documentation>
-				Defines a channel that maintains its Messages on a thread-bound queue.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<tool:annotation>
-					<tool:exports type="org.springframework.integration.core.MessageChannel" />
-				</tool:annotation>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="channelType">
-					<xsd:sequence>
-						<xsd:element name="interceptors" type="channelInterceptorsType"
-							minOccurs="0" maxOccurs="1" />
-					</xsd:sequence>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-
 	<xsd:complexType name="channelType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -355,6 +332,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID" use="required" />
+		<xsd:attribute name="scope" type="xsd:string"/>
 		<xsd:attribute name="datatype" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>	
