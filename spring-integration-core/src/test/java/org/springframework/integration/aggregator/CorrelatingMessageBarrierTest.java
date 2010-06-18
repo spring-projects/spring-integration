@@ -54,15 +54,15 @@ public class CorrelatingMessageBarrierTest {
 
 	@Test
 	public void shouldPassMessage() {
-		Message message = testMessage();
+		Message<Object> message = testMessage();
 		barrier.handleMessage(message);
 		assertThat(barrier.receive(), is(message));
 	}
 
 	@Test
 	public void shouldRemoveKeyWithoutLockingOnEmptyQueue() throws InterruptedException {
-		Message message = testMessage();
-		Message message2 = testMessage();
+		Message<Object> message = testMessage();
+		Message<Object> message2 = testMessage();
 		barrier.handleMessage(message);
 		verify(correlationStrategy).getCorrelationKey(message);
 		assertThat(barrier.receive(), is(notNullValue()));
@@ -95,7 +95,7 @@ public class CorrelatingMessageBarrierTest {
 		}
 	}
 
-	private void sendAsynchronously(final MessageHandler handler, final Message<?> message, final CountDownLatch start, final CountDownLatch sent) {
+	private void sendAsynchronously(final MessageHandler handler, final Message<Object> message, final CountDownLatch start, final CountDownLatch sent) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				try {
@@ -110,8 +110,8 @@ public class CorrelatingMessageBarrierTest {
 
 	}
 
-	private Message testMessage() {
-		return MessageBuilder.withPayload("payload").build();
+	private Message<Object> testMessage() {
+		return MessageBuilder.withPayload((Object)"payload").build();
 	}
 
 
@@ -145,6 +145,7 @@ public class CorrelatingMessageBarrierTest {
 			}
 		}
 
+		@SuppressWarnings("unused")
 		public void releaseAll() {
 			for (Semaphore semaphore : keyLocks.values()) {
 				semaphore.release();

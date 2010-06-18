@@ -68,7 +68,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
-	private static final String LIST_UNMARKED_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MARKED=0";
+	private static final String LIST_UNMARKED_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MARKED=0 order by CREATED_DATE";
 
 	private static final String LIST_MARKED_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MARKED=1";
 
@@ -301,17 +301,15 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	public MessageGroup removeMessageFromGroup(Object correlationKey, Message<?> messageToMark) {
-		final long updatedDate = System.currentTimeMillis();
 		final String correlationId = getKey(correlationKey);
 		final String messageId = getKey(messageToMark.getHeaders().getId());
 
 		jdbcTemplate.update(getQuery(REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
-				logger.debug("Marking messages with correlation key=" + correlationId);
-				ps.setTimestamp(1, new Timestamp(updatedDate));
-				ps.setString(2, correlationId);
-				ps.setString(3, region);
-				ps.setString(4, messageId);
+				logger.debug("Removing message from group with correlation key=" + correlationId);
+				ps.setString(1, correlationId);
+				ps.setString(2, region);
+				ps.setString(3, messageId);
 			}
 		});
 		return getMessageGroup(correlationKey);

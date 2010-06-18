@@ -21,6 +21,6 @@ package org.springframework.integration.store;
  */
 public interface MessageGroupCallback {
 	
-	void execute(MessageGroup group);
+	void execute(MessageGroupStore messageGroupStore, MessageGroup group);
 
 }

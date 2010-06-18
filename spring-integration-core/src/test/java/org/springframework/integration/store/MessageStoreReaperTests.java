@@ -13,7 +13,7 @@
 
 package org.springframework.integration.store;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +57,9 @@ public class MessageStoreReaperTests {
 
 		private static final List<MessageGroup> groups = new ArrayList<MessageGroup>();
 
-		public void execute(MessageGroup group) {
+		public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			groups.add(group);
+			messageGroupStore.removeMessageGroup(group.getCorrelationKey());
 		}
 		
 	}

@@ -12,6 +12,10 @@
  */
 package org.springframework.integration.aggregator;
 
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.core.Message;
@@ -20,10 +24,6 @@ import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
-
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * This Endpoint serves as a barrier for messages that should not be processed yet. The decision when a message can be
@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @author Iwein Fuld
  */
-public class CorrelatingMessageBarrier extends AbstractMessageHandler implements MessageSource {
+public class CorrelatingMessageBarrier extends AbstractMessageHandler implements MessageSource<Object> {
 	private static final Log log = LogFactory.getLog(CorrelatingMessageBarrier.class);
 
 	private CorrelationStrategy correlationStrategy;
@@ -86,7 +86,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 	}
 
 
-	public Message receive() {
+	public Message<Object> receive() {
 		for (Object key : correlationLocks.keySet()) {
 			Object lock = getLock(key);
 			synchronized (lock) {
@@ -106,7 +106,9 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 						} else {
 							remove(key);
 						}
-						return nextMessage;
+						@SuppressWarnings("unchecked")
+						Message<Object> result = (Message<Object>) nextMessage;
+						return result;
 					}
 				}
 			}

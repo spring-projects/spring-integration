@@ -8,6 +8,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -19,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.store.MessageGroupCallback;
+import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,7 +103,7 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
-	public void testAddAndDelete() throws Exception {
+	public void testAddAndRemoveMessageGroup() throws Exception {
 		Message<String> message = MessageBuilder.withPayload("foo").build();
 		message = messageStore.addMessage(message);
 		assertNotNull(messageStore.removeMessage(message.getHeaders().getId()));
@@ -120,6 +123,32 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	public void testAddAndRemoveMessageFromMessageGroup() throws Exception {
+		String correlationId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
+		messageStore.addMessageToGroup(correlationId, message);
+		messageStore.removeMessageFromGroup(correlationId, message);
+		MessageGroup group = messageStore.getMessageGroup(correlationId);
+		assertEquals(0, group.size());
+	}
+
+	@Test
+	@Transactional
+	public void testOrderInMessageGroup() throws Exception {
+		String correlationId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
+		messageStore.addMessageToGroup(correlationId, message);
+		message = MessageBuilder.withPayload("bar").setCorrelationId(correlationId).build();
+		messageStore.addMessageToGroup(correlationId, message);
+		MessageGroup group = messageStore.getMessageGroup(correlationId);
+		assertEquals(2, group.size());
+		Iterator<Message<?>> iterator = group.getUnmarked().iterator();
+		assertEquals("foo", iterator.next().getPayload());
+		assertEquals("bar", iterator.next().getPayload());
+	}
+
+	@Test
+	@Transactional
 	public void testAddAndMarkMessageGroup() throws Exception {
 		String correlationId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
@@ -135,9 +164,14 @@ public class JdbcMessageStoreTests {
 		String correlationId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
 		messageStore.addMessageToGroup(correlationId, message);
+		messageStore.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
+			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
+				messageGroupStore.removeMessageGroup(group.getCorrelationKey());
+			}
+		});
 		messageStore.expireMessageGroups(-10000);
 		MessageGroup group = messageStore.getMessageGroup(correlationId);
-		assertEquals(0, group.getMarked().size());
+		assertEquals(0, group.size());
 	}
 
 }

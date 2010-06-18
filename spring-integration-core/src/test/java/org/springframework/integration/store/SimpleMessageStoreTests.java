@@ -105,7 +105,7 @@ public class SimpleMessageStoreTests {
 	public void shouldRegisterCallbacks() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
 		store.setExpiryCallbacks(Arrays.<MessageGroupCallback>asList(new MessageGroupCallback() {
-			public void execute(MessageGroup group) {
+			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			}
 		}));
 		assertEquals(1, ((Collection<?>)ReflectionTestUtils.getField(store, "expiryCallbacks")).size());
@@ -117,8 +117,9 @@ public class SimpleMessageStoreTests {
 		SimpleMessageStore store = new SimpleMessageStore();
 		final List<String> list = new ArrayList<String>();
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-			public void execute(MessageGroup group) {
+			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				list.add(group.getOne().getPayload().toString());
+				messageGroupStore.removeMessageGroup(group.getCorrelationKey());
 			}
 		});
 

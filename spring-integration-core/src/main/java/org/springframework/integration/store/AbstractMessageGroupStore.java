@@ -62,7 +62,6 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 			if (group.getTimestamp() < threshold) {
 				count++;
 				expire(group);
-				removeMessageGroup(group.getCorrelationKey());
 			}
 		}
 		return count;
@@ -76,7 +75,7 @@ public abstract class AbstractMessageGroupStore implements MessageGroupStore, It
 	
 		for (MessageGroupCallback callback : expiryCallbacks) {
 			try {
-				callback.execute(group);
+				callback.execute(this, group);
 			} catch (RuntimeException e) {
 				if (exception == null) {
 					exception = e;

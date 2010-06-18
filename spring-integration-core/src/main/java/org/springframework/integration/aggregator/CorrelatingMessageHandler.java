@@ -108,7 +108,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	public void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
-			public void execute(MessageGroup group) {
+			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				forceComplete(group);
 			}
 		});
