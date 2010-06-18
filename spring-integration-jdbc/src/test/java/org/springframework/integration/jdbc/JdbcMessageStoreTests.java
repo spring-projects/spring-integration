@@ -154,7 +154,7 @@ public class JdbcMessageStoreTests {
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(correlationId).build();
 		messageStore.addMessageToGroup(correlationId, message);
 		MessageGroup group = messageStore.getMessageGroup(correlationId);
-		messageStore.markMessageGroup(group);
+		group = messageStore.markMessageGroup(group);
 		assertEquals(1, group.getMarked().size());
 	}
 

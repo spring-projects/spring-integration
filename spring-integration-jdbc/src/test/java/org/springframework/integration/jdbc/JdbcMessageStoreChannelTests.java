@@ -2,8 +2,8 @@ package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -72,7 +72,7 @@ public class JdbcMessageStoreChannelTests {
 	
 	public static class Service {
 		private static boolean fail = false;
-		private static List<String> messages = new ArrayList<String>();
+		private static List<String> messages = new CopyOnWriteArrayList<String>();
 		private static CountDownLatch latch = new CountDownLatch(0);
 		public static void reset(int count) {
 			fail = false;
@@ -83,8 +83,8 @@ public class JdbcMessageStoreChannelTests {
 			latch.await(timeout, TimeUnit.MILLISECONDS);
 		}
 		public String echo(String input) {
-			latch.countDown();
 			messages.add(input);
+			latch.countDown();
 			if (fail) {
 				throw new RuntimeException("Planned failure");
 			}

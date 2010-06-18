@@ -294,9 +294,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 			}
 		});
 
-		group.markAll();
-		
-		return group;
+		return getMessageGroup(group.getCorrelationKey());
 
 	}
 
