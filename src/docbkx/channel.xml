@@ -541,9 +541,9 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 		
 <bean id="myInterceptor" class="foo.barSampleInterceptor"/>]]></programlisting>
         &lt;channel-interceptor&gt; element allows you to define a global interceptor which will be applied on all 
-        channels that match patterns defined via &lt;pattern&gt; attribute. In the above case the global interceptor will be applied on 
+        channels that match patterns defined via <emphasis>pattern</emphasis> attribute. In the above case the global interceptor will be applied on 
         'foo' channel and all other channels that begin with 'bar' and 'input'. 
-        The &lt;order&gt; attribute allows you to manage the place where this interceptor will be injected. 
+        The <emphasis>order</emphasis> attribute allows you to manage the place where this interceptor will be injected. 
         For example, channel 'inputChannel' could have individual interceptors configured locally (see below):
         <programlisting language="xml"><![CDATA[<int:channel id="inputChannel"> 
 	<int:interceptors>
@@ -559,6 +559,10 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
 	order would be determined based on who's got the higher or lower value in <emphasis>order</emphasis> attribute.
 	To inject global interceptor <emphasis>BEFORE</emphasis> the existing interceptors use negative value for the <emphasis>order</emphasis> attribute.
       </para>
+      <note>
+      Note that <emphasis>order</emphasis> and <emphasis>pattern</emphasis> attributes are optional. The default value for <emphasis>order</emphasis> 
+      will be 0 and for <emphasis>pattern</emphasis> is '*'
+      </note>
     </section>
 
     <section id="channel-wiretap">
