@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.loanbroker.demo;
 
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.springframework.context.ConfigurableApplicationContext;
+
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.loanbroker.LoanBrokerGateway;
 import org.springframework.integration.loanbroker.domain.Customer;
@@ -28,39 +30,28 @@ import org.springframework.integration.loanbroker.domain.LoanRequest;
 
 /**
  * @author Oleg Zhurakousky
- * 
  */
 public class LoanBrokerDemo {
+
 	private static Logger logger = Logger.getLogger(LoanBrokerDemo.class);
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		new LoanBrokerDemo().runDemo();
 	}
-	/**
-	 * 
-	 */
+
 	@Test
 	public void runDemo() {
-
-		ConfigurableApplicationContext ac = 
-						new ClassPathXmlApplicationContext("bootstrap-config/stubbed-loan-broker.xml");
-
-		LoanBrokerGateway broker = ac.getBean("loanBrokerGateway", LoanBrokerGateway.class);
+		ApplicationContext context =  new ClassPathXmlApplicationContext("bootstrap-config/stubbed-loan-broker.xml");
+		LoanBrokerGateway broker = context.getBean("loanBrokerGateway", LoanBrokerGateway.class);
 		LoanRequest loanRequest = new LoanRequest();
 		loanRequest.setCustomer(new Customer());
-
-		LoanQuote loan = broker.getLoanQuote(loanRequest);
+		LoanQuote loan = broker.getBestLoanQuote(loanRequest);
 		logger.info("\n********* Best Quote: " + loan);
-
 		List<LoanQuote> loanQuotes = broker.getAllLoanQuotes(loanRequest);
 		logger.info("\n********* All Quotes: ");
 		for (LoanQuote loanQuote : loanQuotes) {
 			logger.info(loanQuote);
 		}
-
-		ac.close();
 	}
+
 }

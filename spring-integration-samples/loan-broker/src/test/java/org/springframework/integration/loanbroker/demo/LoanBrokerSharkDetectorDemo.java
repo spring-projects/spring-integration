@@ -32,6 +32,7 @@ import org.springframework.integration.loanbroker.domain.LoanRequest;
  * @author Gary Russell
  */
 public class LoanBrokerSharkDetectorDemo {
+
 	private static Logger logger = Logger.getLogger(LoanBrokerSharkDetectorDemo.class);
 
 	@Test
@@ -39,19 +40,15 @@ public class LoanBrokerSharkDetectorDemo {
 		ConfigurableApplicationContext context = 
 				new ClassPathXmlApplicationContext("bootstrap-config/stubbed-loan-broker-multicast.xml");
 		LoanBrokerGateway broker = context.getBean("loanBrokerGateway", LoanBrokerGateway.class);
-
 		LoanRequest loanRequest = new LoanRequest();
 		loanRequest.setCustomer(new Customer());
-
-		LoanQuote loan = broker.getLoanQuote(loanRequest);
+		LoanQuote loan = broker.getBestLoanQuote(loanRequest);
 		logger.info("\n********* Best Quote: " + loan);
-
 		List<LoanQuote> loanQuotes = broker.getAllLoanQuotes(loanRequest);
 		logger.info("\n********* All Quotes: ");
 		for (LoanQuote loanQuote : loanQuotes) {
 			logger.info(loanQuote);
 		}
-		context.close();
 	}
-	
+
 }

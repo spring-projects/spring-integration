@@ -36,7 +36,7 @@ public class CreditBureauStub {
 	 */
 	public CreditScore getCreditScore(LoanRequest loanRequest){
 		Random random =  new Random();
-		int creditScore = 750 + random.nextInt(100);
+		int creditScore = 700 + random.nextInt(150);
 		logger.info("Credit Score: " + creditScore);
 		return new CreditScore(creditScore);
 	}

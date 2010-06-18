@@ -1,8 +1,8 @@
-Loan Broker sample is distributed as valid Eclipse/Maven project, so you can run it in two ways.
+The Loan Broker sample is distributed as a valid Eclipse/Maven project, so you can run it in two ways.
 
 Maven (command line):
 1. Execute 'mvn install'
-   You should see the output that looks similar to this:
+   You should see output that looks similar to this:
     . . . . .
    	INFO : org.springframework.integration.loanbroker.demo.LoanBrokerDemo - 
 	********* Best Quote: 
@@ -17,5 +17,5 @@ Maven (command line):
 	. . . . .
 	
 Eclipse/STS (with m2eclipse plug-in)
-1. Import project into Eclipse/STS. If m2eclipse plugin is installed the dependency will be downloaded automatically
-2. Run 'org.springframework.integration.loanbroker.demo.LoanBrokerDemo' class located in 'src/test/java' 
+1. Import project into Eclipse/STS. If the m2eclipse plugin is installed, the dependencies will be downloaded automatically.
+2. Run the 'org.springframework.integration.loanbroker.demo.LoanBrokerDemo' class located in 'src/test/java'.

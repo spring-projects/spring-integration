@@ -31,7 +31,7 @@ public class BankStub {
 	 * @param loanRequest the loan request
 	 * @return a LoanQuote for the given request
 	 */
-	public LoanQuote quote(LoanRequest loanRequest){
+	public LoanQuote quote(LoanRequest loanRequest) {
 		Calendar calendar = Calendar.getInstance();
 		LoanQuote loanQuote = new LoanQuote();
 		Random random = new Random();
@@ -39,8 +39,8 @@ public class BankStub {
 		calendar.add(Calendar.DAY_OF_YEAR, random.nextInt(25));
 		loanQuote.setExpirationDate(calendar.getTime());
 		loanQuote.setRate(random.nextFloat() + 5);
-		loanQuote.setLoanTerm(10 + random.nextInt(10));
-		loanQuote.setLoanAmount(250000 + random.nextInt(40000));
+		loanQuote.setTerm(10 + random.nextInt(10));
+		loanQuote.setAmount(250000 + random.nextInt(40000));
 		loanQuote.setLender("StubBank-" + random.nextInt(30));
 		return loanQuote;
 	}

@@ -22,8 +22,8 @@ import org.springframework.integration.loanbroker.domain.LoanQuote;
 import org.springframework.integration.loanbroker.domain.LoanRequest;
 
 /**
- * POJI Gateway which connects method invocations to the request-channel
- * completely isolating SI developer from SI API details.
+ * POJI Gateway that connects method invocations to the request-channel.
+ * This completely isolates the developer from Spring Integration API details.
  * 
  * @author Oleg Zhurakousky
  */
@@ -32,7 +32,7 @@ public interface LoanBrokerGateway {
 	/**
 	 * Will return the best {@link LoanQuote} for the given request.
 	 */
-	public LoanQuote getLoanQuote(LoanRequest loanRequest);
+	public LoanQuote getBestLoanQuote(LoanRequest loanRequest);
 
 	/**
 	 * Will return all {@link LoanQuote}s for the given request.

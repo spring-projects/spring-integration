@@ -27,10 +27,10 @@ public class LoanQuote implements Comparable<LoanQuote>{
 	private String lender;
 	private Date quoteDate;
 	private Date expirationDate;
-	private double loanAmount;
-	private int loanTerm;
+	private double amount;
+	private int term;
 	private float rate;
-	
+
 	public String getLender() {
 		return lender;
 	}
@@ -38,7 +38,7 @@ public class LoanQuote implements Comparable<LoanQuote>{
 	public void setLender(String lender) {
 		this.lender = lender;
 	}
-	
+
 	public Date getQuoteDate() {
 		return quoteDate;
 	}
@@ -46,56 +46,55 @@ public class LoanQuote implements Comparable<LoanQuote>{
 	public void setQuoteDate(Date quoteDate) {
 		this.quoteDate = quoteDate;
 	}
-	
+
 	public Date getExpirationDate() {
 		return expirationDate;
 	}
-	
+
 	public void setExpirationDate(Date expirationDate) {
 		this.expirationDate = expirationDate;
 	}
-	
-	public double getLoanAmount() {
-		return loanAmount;
+
+	public double getAmount() {
+		return amount;
 	}
-	
-	public void setLoanAmount(double loanAmount) {
-		this.loanAmount = loanAmount;
+
+	public void setAmount(double amount) {
+		this.amount = amount;
 	}
-	
-	public int getLoanTerm() {
-		return loanTerm;
+
+	public int getTerm() {
+		return term;
 	}
-	
-	public void setLoanTerm(int loanTerm) {
-		this.loanTerm = loanTerm;
+
+	public void setTerm(int term) {
+		this.term = term;
 	}
-	
+
 	public float getRate() {
 		return rate;
 	}
-	
+
 	public void setRate(float rate) {
 		this.rate = rate;
 	}
 
 	public String toString(){
 		return "\n====== Loan Quote =====\n" +
-			   "Lender: " + lender + "\n" +
-			   "Loan amount: " + new DecimalFormat("$###,###.###").format(loanAmount) + "\n" + 
-			   "Quotation Date: " + quoteDate + "\n" +
-			   "Expiration Date: " + expirationDate + "\n" + 
-			   "Term: " + loanTerm + " years" + "\n" +
-			   "Rate: " + rate + "%\n" + 
+			   "Lender: " + this.lender + "\n" +
+			   "Loan amount: " + new DecimalFormat("$###,###.###").format(this.amount) + "\n" + 
+			   "Quote Date: " + this.quoteDate + "\n" +
+			   "Expiration Date: " + this.expirationDate + "\n" + 
+			   "Term: " + this.term + " years" + "\n" +
+			   "Rate: " + this.rate + "%\n" + 
 			   "=======================\n";
-			   
 	}
 
-	public int compareTo(LoanQuote loanQuote) {
-		if (loanQuote.rate > this.rate) {
+	public int compareTo(LoanQuote other) {
+		if (this.rate > other.rate) {
 			return 1;
 		}
-		else if (loanQuote.rate < this.rate) {
+		else if (this.rate < other.rate) {
 			return -1;
 		}
 		return 0;
