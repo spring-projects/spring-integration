@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="output">
+		<queue/>
+	</channel>
+
+	<header-enricher input-channel="simpleInput" output-channel="output">
+		<header name="testHeader" expression="2 ^ 3"/>
+	</header-enricher>
+
+	<header-enricher input-channel="beanResolvingInput" output-channel="output">
+		<header name="num" expression="headers.num ^ @testBean.value" overwrite="true"/>
+	</header-enricher>
+
+	<beans:bean id="testBean" class="org.springframework.integration.transformer.SpelHeaderEnricherIntegrationTests$TestBean"/>
+
+</beans:beans>

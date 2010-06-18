@@ -22,6 +22,8 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -164,7 +166,7 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	static class ExpressionEvaluatingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor {
+	static class ExpressionEvaluatingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor implements BeanFactoryAware {
 
 		private final ExpressionEvaluatingMessageProcessor targetProcessor;
 
@@ -175,6 +177,10 @@ public class HeaderEnricher implements Transformer {
 		public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<?> expectedType) {
 			this.targetProcessor = new ExpressionEvaluatingMessageProcessor(expressionString);
 			this.targetProcessor.setExpectedType(expectedType);
+		}
+
+		public void setBeanFactory(BeanFactory beanFactory) {
+			this.targetProcessor.setBeanFactory(beanFactory);
 		}
 
 		public Object processMessage(Message<?> message) {
