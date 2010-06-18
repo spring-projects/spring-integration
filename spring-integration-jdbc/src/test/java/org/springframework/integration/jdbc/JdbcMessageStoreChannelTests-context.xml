@@ -8,9 +8,12 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY">
+	<jdbc:embedded-database id="dataSource" type="DERBY"/>
+	
+	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+		<jdbc:script location="${int.drop.script}" />
 		<jdbc:script location="${int.schema.script}" />
-	</jdbc:embedded-database>
+	</jdbc:initialize-database>
 
 	<int-jdbc:message-store id="messageStore" data-source="dataSource" />
 

@@ -5,9 +5,12 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
 			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<jdbc:embedded-database id="dataSource" type="DERBY">
+	<jdbc:embedded-database id="dataSource" type="DERBY"/>
+	
+	<jdbc:initialize-database data-source="dataSource" ignore-failures="DROPS">
+		<jdbc:script location="${int.drop.script}" />
 		<jdbc:script location="${int.schema.script}" />
-	</jdbc:embedded-database>
+	</jdbc:initialize-database>
 
 	<bean id="placeholderProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="classpath:int-${ENVIRONMENT:derby}.properties" />
