@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -40,6 +41,7 @@ public class MessagePublishingAnnotationUsageTests {
 	@Autowired
 	private QueueChannel channel;
 
+
 	@Test
 	public void demoMessagePublishingInterceptor() {
 		String name = testBean.setName("John", "Doe");
@@ -53,7 +55,7 @@ public class MessagePublishingAnnotationUsageTests {
 	
 	public static class TestBean {
 
-		@Publisher(value="#return", channel="testChannel", headers="bar='123'")
+		@Publisher(channel="testChannel", payload="#return", headers="bar='123'")
 		public String setName(String fname, String lname){
 			return fname + " " + lname;
 		}

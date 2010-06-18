@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,15 +79,15 @@ public class MethodAnnotationExpressionSourceTests {
 	}
 
 
-	@Publisher("testExpression1")
+	@Publisher(payload="testExpression1")
 	public void methodWithExpressionAnnotationOnly(String arg1, int arg2) {
 	}
 
-	@Publisher(value="#return", channel="foo", headers="bar=123")
+	@Publisher(payload="#return", channel="foo", headers="bar=123")
 	public void methodWithChannelAndReturnAsPayload() {
 	}
 
-	@Publisher("testExpression2")
+	@Publisher(payload="testExpression2")
 	@ExpressionBinding(argumentVariableNames="s, i", argumentMapVariableName="argz",
 			exceptionVariableName="x", returnValueVariableName="result")
 	public void methodWithExpressionBinding(String arg1, int arg2) {
