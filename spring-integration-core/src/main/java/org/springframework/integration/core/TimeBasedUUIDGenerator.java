@@ -15,7 +15,12 @@
  */
 package org.springframework.integration.core;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.UUID;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Will generate time-based UUID (version 1 UUID).
@@ -28,6 +33,27 @@ import java.util.UUID;
 class TimeBasedUUIDGenerator {
 	public static final Object lock = new Object();
 	private static long lastTime;
+	private static final Log logger = LogFactory.getLog(TimeBasedUUIDGenerator.class);
+	private static long  macAddressAsLong = 0;
+	
+	static {
+		try {
+			InetAddress address = InetAddress.getLocalHost();
+			NetworkInterface ni = NetworkInterface.getByInetAddress(address);
+			if (ni != null) {
+				byte[] mac = ni.getHardwareAddress();
+				//Converts array of unsigned bytes to an long
+				if (mac != null) {
+					for (int i = 0; i < mac.length; i++) {					
+						macAddressAsLong |= mac[i] & 0xFF;
+						macAddressAsLong <<= 8;
+					}
+				}
+			} 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Will generate unique time based UUID where the next UUID is 
@@ -45,6 +71,7 @@ class TimeBasedUUIDGenerator {
 	 */
 	public final static UUID generateIdFromTimestamp(long currentTimeMillis){
 		long time;
+		long macNanoTime;
 		synchronized (lock) {
 			if (currentTimeMillis > lastTime) {
 				lastTime = currentTimeMillis;
@@ -63,7 +90,17 @@ class TimeBasedUUIDGenerator {
 
 		// hi Time
 		time |= 0x1000 | ((currentTimeMillis >> 48) & 0x0FFF); // version 1
-
-		return new UUID(time, System.nanoTime());
+		
+		macNanoTime = macAddressAsLong;
+		if (macNanoTime == 0){
+			logger.warn("Can not determine machine's MAC address. Will use System.nanoTime() for UUID generation, however there is a slim chance of it not being globally unique");
+			macNanoTime = System.nanoTime();
+		} else {
+			//considering the type of time returned by nanoTime, this will ensure that 
+			// even if more then one process is running on the same machine, the id is still unique
+			macNanoTime |= System.nanoTime() & 0xFF;
+			macNanoTime <<= 8;
+		}
+		return new UUID(time, macNanoTime);
 	}
 }

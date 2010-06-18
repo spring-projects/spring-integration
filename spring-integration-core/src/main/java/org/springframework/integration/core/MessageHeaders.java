@@ -77,7 +77,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
-		this.headers.put(ID, TimeBasedUUIDGenerator.generateId());
+		//this.headers.put(ID, TimeBasedUUIDGenerator.generateId());
+		this.headers.put(ID, UUID.randomUUID());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 		if (this.headers.get(HISTORY) == null) {
 			this.headers.put(HISTORY, new MessageHistory());
