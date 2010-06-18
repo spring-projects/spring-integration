@@ -3,7 +3,7 @@
 <chapter id="message-publishing">
   <title>Message Publishing</title>
 	<para>
-    Message Publishing feature will allow you to send a message as a result of method invocation. For example; Imagine you 
+    Message Publishing feature will allow you to construct and send a message as a by-product of method invocation. For example; Imagine you 
     have a component and every time the state of this components changes you would like to get notified. The easiest 
     way to send notification would be to send a message to a dedicated channel, but how would you connect the method invocation that 
     changes the state of the object to a message sending process and what should be the structure of the 
@@ -26,6 +26,14 @@
 		    Internally <classname>PublisherAnnotationAdvisor</classname> uses Spring 3.0 Expression Language support giving you 
 		    the flexibility and control over the structure of a <emphasis>Message</emphasis> it will build. 
 		    </para>
+		    
+		    <para>
+<programlisting language="java">@Publisher(value="#return", channel="testChannel", headers="bar='123',fname=#args.fname")
+public String setName(String fname, String lname){
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>
+	 		
 		     <para>
 		   <classname>PublisherAnnotationAdvisor</classname> defines and binds the following variables:
 		   <itemizedlist>
@@ -38,17 +46,12 @@
 		          <para><emphasis>#exception</emphasis> - will bind to an exception if one is thrown.</para>
 		        </listitem>
 		        <listitem>
-		          <para><emphasis>#[parameName]</emphasis> - will be dynamically constructed pointing to the method parameter 
-		          names (e.g., <emphasis>#fname</emphasis> as in the above method)</para>
+		          <para><emphasis>#args</emphasis> - will bind to method arguments, so individual arguments could be extracted by name
+		           (e.g., <emphasis>#args.fname</emphasis> as in the above method)</para>
 		        </listitem>	       
 	      </itemizedlist>
 		    </para>
-	 		<para>
-<programlisting language="java">@Publisher(value="#return", channel="testChannel", headers="bar='123',fname=#fname")
-public String setName(String fname, String lname){
-	return fname + " " + lname;
-}</programlisting>
-	 		</para>
+	 		
 	 		<para>
 	 		In the above example the Message will be constructed and its structure will be as follows:
 	 		<itemizedlist>
@@ -56,7 +59,7 @@ public String setName(String fname, String lname){
 		          <para>Message payload - will be of type String and contain the value returned by the method.</para>
 		        </listitem>
 		        <listitem>
-		          <para>Message headers will be 'bar' with value of "123" and 'fname' with value of 'fname' parameter of the method.</para>
+		          <para>Message headers will be 'bar' with value of "123" and 'fname' with value of 'fname' argument of the method.</para>
 		        </listitem>      
 	      </itemizedlist>
 	 		</para>
