@@ -51,12 +51,6 @@ public interface MessageGroup {
 	int size();
 
 	/**
-	 * Mark all unmarked messages in the group. A MessageGroupProcessor typically invokes this method after
-	 * processing all unmarked messages.
-	 */
-	void markAll();
-
-	/**
 	 * @return a single message from the group
 	 */
 	Message<?> getOne();

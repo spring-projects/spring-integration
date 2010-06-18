@@ -115,11 +115,15 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public Collection<Message<?>> getUnmarked() {
-		return Collections.unmodifiableCollection(unmarked);
+		synchronized (lock) {
+			return Collections.unmodifiableCollection(unmarked);
+		}
 	}
 
 	public Collection<Message<?>> getMarked() {
-		return Collections.unmodifiableCollection(marked);
+		synchronized (lock) {
+			return Collections.unmodifiableCollection(marked);
+		}
 	}
 
 	public Object getCorrelationKey() {
