@@ -71,8 +71,17 @@ public class SimpleMessageGroup implements MessageGroup {
 	public SimpleMessageGroup(MessageGroup template) {
 		this.correlationKey = template.getCorrelationKey();
 		synchronized (lock) {
-			this.marked.addAll(template.getMarked());
-			this.unmarked.addAll(template.getUnmarked());
+			// Explicit iteration to work around bug in JDK (before 1.6.0_20
+			for (Message<?> message : template.getMarked()) {
+				if (message != null) {
+					this.marked.add(message);
+				}
+			}
+			for (Message<?> message : template.getUnmarked()) {
+				if (message != null) {
+					this.unmarked.add(message);
+				}
+			}
 		}
 		this.timestamp = template.getTimestamp();
 	}
@@ -155,7 +164,9 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public void markAll() {
 		synchronized (lock) {
-			unmarked.drainTo(marked);
+			marked.addAll(unmarked);
+			unmarked.clear();
+			// unmarked.drainTo(marked);
 		}
 	}
 
