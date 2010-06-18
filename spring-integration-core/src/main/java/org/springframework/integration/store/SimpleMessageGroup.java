@@ -13,18 +13,18 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.core.Message;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.springframework.integration.core.Message;
+
 /**
  * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and correlation
  * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it. This MessageGroup is thread
  * safe.
- *
+ * 
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  * @author Dave Syer
@@ -34,26 +34,28 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final Object correlationKey;
 
-	//Guards(marked, unmarked)
+	// Guards(marked, unmarked)
 	private final Object lock = new Object();
-	//@GuardedBy(lock)
+
+	// @GuardedBy(lock)
 	public final BlockingQueue<Message<?>> marked = new LinkedBlockingQueue<Message<?>>();
-	//@GuardedBy(lock)
+
+	// @GuardedBy(lock)
 	public final BlockingQueue<Message<?>> unmarked = new LinkedBlockingQueue<Message<?>>();
 
 	private final long timestamp;
 
 	public SimpleMessageGroup(Object correlationKey) {
-		this(Collections.<Message<?>>emptyList(), Collections.<Message<?>>emptyList(), correlationKey, System.currentTimeMillis());
+		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), correlationKey, System
+				.currentTimeMillis());
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object correlationKey) {
-		this(unmarked, Collections.<Message<?>>emptyList(), correlationKey, System.currentTimeMillis());
+		this(unmarked, Collections.<Message<?>> emptyList(), correlationKey, System.currentTimeMillis());
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked,
-							  Collection<? extends Message<?>> marked,
-							  Object correlationKey, long timestamp) {
+	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked,
+			Object correlationKey, long timestamp) {
 		this.correlationKey = correlationKey;
 		this.timestamp = timestamp;
 		synchronized (lock) {
@@ -79,8 +81,19 @@ public class SimpleMessageGroup implements MessageGroup {
 		return timestamp;
 	}
 
-	public boolean add(Message<?> message) {
-		return addUnmarked(message);
+	public boolean canAdd(Message<?> message) {
+		return !isMember(message);
+	}
+
+	public void add(Message<?> message) {
+		addUnmarked(message);
+	}
+
+	public void remove(Message<?> message) {
+		synchronized (lock) {
+			marked.remove(message);
+			unmarked.remove(message);
+		}
 	}
 
 	private boolean addUnmarked(Message<?> message) {
@@ -170,7 +183,8 @@ public class SimpleMessageGroup implements MessageGroup {
 			Integer messageSequenceSize = message.getHeaders().getSequenceSize();
 			if (!messageSequenceSize.equals(getSequenceSize())) {
 				return true;
-			} else {
+			}
+			else {
 				synchronized (lock) {
 					if (containsSequenceNumber(unmarked, messageSequenceNumber)
 							|| containsSequenceNumber(marked, messageSequenceNumber)) {
@@ -191,4 +205,5 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 		return false;
 	}
+
 }

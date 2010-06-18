@@ -34,7 +34,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 	public void testIncompleteList() {
 		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new SimpleMessageGroup("FOO");
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy();
 		assertFalse(releaseStrategy.canRelease(messages));
@@ -44,7 +44,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 	public void testIncompleteListWithTimeout() {
 		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new SimpleMessageGroup("FOO");
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy(TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_THRESHOLD, -100);
 		assertTrue(releaseStrategy.canRelease(messages));
@@ -54,7 +54,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 	public void testIncompleteListWithCount() {
 		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new SimpleMessageGroup("FOO");
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		TimeoutCountSequenceSizeReleaseStrategy releaseStrategy = new TimeoutCountSequenceSizeReleaseStrategy(1, TimeoutCountSequenceSizeReleaseStrategy.DEFAULT_TIMEOUT);
 		assertTrue(releaseStrategy.canRelease(messages));
@@ -66,7 +66,7 @@ public class TimeoutCountSequenceSizeReleaseStrategyTests {
 				.setSequenceSize(2).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new SimpleMessageGroup("FOO");
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message1);
 		messages.add(message2);
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();

@@ -39,7 +39,7 @@ public interface MessageGroupStore {
 	 * @param correlationKey the correlation id to store the message under
 	 * @param message a message
 	 */
-	void addMessageToGroup(Object correlationKey, Message<?> message);
+	MessageGroup addMessageToGroup(Object correlationKey, Message<?> message);
 
 	/**
 	 * Persist the mark on all the messages from the group. The group is modified in the process as all its unmarked
@@ -47,7 +47,7 @@ public interface MessageGroupStore {
 	 *
 	 * @param group a MessageGroup with no unmarked messages
 	 */
-	void markMessageGroup(MessageGroup group);
+	MessageGroup markMessageGroup(MessageGroup group);
 
 	/**
 	 * Persist a mark on a single message from the group. The group is modified to reflect that 'messageToMark' is no
@@ -55,7 +55,7 @@ public interface MessageGroupStore {
 	 * @param key the correlationKey for the group containing the message
 	 * @param messageToMark the message to be marked
 	 */
-	void markMessageInGroup(Object key, Message<?> messageToMark);
+	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark);
 
 	/**
 	 * Remove the message group with this correlation key.

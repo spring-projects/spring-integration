@@ -16,14 +16,18 @@
 
 package org.springframework.integration.store;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Dave Syer
@@ -68,17 +72,20 @@ public class MessageStoreTests {
 			return Arrays.asList(testMessages).iterator();
 		}
 
-		public void addMessageToGroup(Object correlationKey, Message<?> message) {
+		public MessageGroup addMessageToGroup(Object correlationKey, Message<?> message) {
+			throw new UnsupportedOperationException();
 		}
 
 		public MessageGroup getMessageGroup(Object correlationKey) {
 			return removed ? new SimpleMessageGroup(correlationKey) : testMessages;
 		}
 
-		public void markMessageGroup(MessageGroup group) {
+		public MessageGroup markMessageGroup(MessageGroup group) {
+			throw new UnsupportedOperationException();
 		}
 
-		public void markMessageInGroup(Object key, Message<?> messageToMark) {
+		public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark) {
+			throw new UnsupportedOperationException();
 		}
 
 		public void removeMessageGroup(Object correlationKey) {

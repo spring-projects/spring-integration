@@ -83,6 +83,17 @@ public class SimpleMessageStoreTests {
 	}
 
 	@Test
+	public void shouldRemoveFromGroup() throws Exception {
+		SimpleMessageStore store = new SimpleMessageStore();
+		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();
+		store.addMessageToGroup("bar", testMessage1);
+		Message<?> testMessage2 = store.getMessageGroup("bar").getOne();
+		MessageGroup group = store.removeMessageFromGroup("bar", testMessage2);
+		assertEquals(0, group.size());
+		assertEquals(0, store.getMessageGroup("bar").size());
+	}
+
+	@Test
 	public void shouldCopyMessageGroup() throws Exception {
 		SimpleMessageStore store = new SimpleMessageStore();
 		Message<String> testMessage1 = MessageBuilder.withPayload("foo").build();

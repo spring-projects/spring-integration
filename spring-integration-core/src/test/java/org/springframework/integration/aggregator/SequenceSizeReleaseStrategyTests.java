@@ -34,7 +34,7 @@ public class SequenceSizeReleaseStrategyTests {
 	public void testIncompleteList() {
 		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new SimpleMessageGroup("FOO");
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message);
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		assertFalse(releaseStrategy.canRelease(messages));
@@ -46,7 +46,7 @@ public class SequenceSizeReleaseStrategyTests {
 				.setSequenceSize(2).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceSize(2).build();
-		MessageGroup messages = new SimpleMessageGroup("FOO");
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
 		messages.add(message1);
 		messages.add(message2);
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();

@@ -13,16 +13,16 @@
 
 package org.springframework.integration.store;
 
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.util.UpperBound;
-import org.springframework.util.Assert;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.util.UpperBound;
+import org.springframework.util.Assert;
 
 /**
  * Map-based implementation of {@link MessageStore} and {@link MessageGroupStore}. Enforces a maximum capacity for the
@@ -89,7 +89,8 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		if (key != null) {
 			individualUpperBound.release();
 			return this.idToMessage.remove(key);
-		} else
+		}
+		else
 			return null;
 	}
 
@@ -102,19 +103,22 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		return new SimpleMessageGroup(group);
 	}
 
-	public void addMessageToGroup(Object correlationId, Message<?> message) {
+	public MessageGroup addMessageToGroup(Object correlationId, Message<?> message) {
 		if (!groupUpperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-		getMessageGroupInternal(correlationId).add(message);
+		SimpleMessageGroup group = getMessageGroupInternal(correlationId);
+		group.add(message);
+		return group;
 	}
 
-	public void markMessageGroup(MessageGroup group) {
+	public MessageGroup markMessageGroup(MessageGroup group) {
 		Object correlationId = group.getCorrelationKey();
 		MessageGroup internal = getMessageGroupInternal(correlationId);
 		internal.markAll();
 		group.markAll();
+		return group;
 	}
 
 	public void removeMessageGroup(Object correlationId) {
@@ -122,8 +126,10 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		correlationToMessageGroup.remove(correlationId);
 	}
 
-	public void markMessageInGroup(Object key, Message<?> messageToMark) {
-		getMessageGroupInternal(key).mark(messageToMark);
+	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark) {
+		SimpleMessageGroup group = getMessageGroupInternal(key);
+		group.remove(messageToMark);
+		return group;
 	}
 
 	@Override

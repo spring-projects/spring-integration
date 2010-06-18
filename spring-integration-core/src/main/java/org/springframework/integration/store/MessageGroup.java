@@ -15,10 +15,9 @@ import java.util.Collection;
 public interface MessageGroup {
 
 	/**
-	 * Add a message to the internal list. This is needed to avoid hitting the
-	 * underlying store or copying the internal list.
+	 * Query if the message can be added.
 	 */
-	boolean add(Message<?> message);
+	boolean canAdd(Message<?> message);
 
 	/**
 	 * @return unmarked messages in the group at time of the invocation

@@ -99,7 +99,7 @@ public class CorrelatingMessageBarrier extends AbstractMessageHandler implements
 						Iterator<Message<?>> unmarked = group.getUnmarked().iterator();
 						if (unmarked.hasNext()) {
 							nextMessage = unmarked.next();
-							store.markMessageInGroup(key, nextMessage);
+							store.removeMessageFromGroup(key, nextMessage);
 							if (log.isDebugEnabled()) {
 								log.debug(String.format("Released message for key [%s]: %s.", key, nextMessage));
 							}

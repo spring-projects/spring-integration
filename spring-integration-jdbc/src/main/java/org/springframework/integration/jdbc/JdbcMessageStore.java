@@ -76,7 +76,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and CORRELATION_KEY=? and REGION=?";
 
-	private static final String MARK_MESSAGE_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and CORRELATION_KEY=? and REGION=? and MESSAGE_ID=?";
+	private static final String REMOVE_MESSAGE_FROM_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=?";
 
@@ -242,7 +242,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return result;
 	}
 
-	public void addMessageToGroup(Object correlationKey, Message<?> message) {
+	public MessageGroup addMessageToGroup(Object correlationKey, Message<?> message) {
 
 		final long createdDate = System.currentTimeMillis();
 		final String messageId = getKey(message.getHeaders().getId());
@@ -259,6 +259,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
 			}
 		});
+		
+		return getMessageGroup(correlationKey);
 
 	}
 
@@ -278,7 +280,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return new SimpleMessageGroup(unmarked, marked, correlationKey, timestamp);
 	}
 
-	public void markMessageGroup(MessageGroup group) {
+	public MessageGroup markMessageGroup(MessageGroup group) {
 
 		final long updatedDate = System.currentTimeMillis();
 		final String correlationId = getKey(group.getCorrelationKey());
@@ -293,15 +295,17 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		});
 
 		group.markAll();
+		
+		return group;
 
 	}
 
-	public void markMessageInGroup(Object key, Message<?> messageToMark) {
+	public MessageGroup removeMessageFromGroup(Object correlationKey, Message<?> messageToMark) {
 		final long updatedDate = System.currentTimeMillis();
-		final String correlationId = getKey(key);
+		final String correlationId = getKey(correlationKey);
 		final String messageId = getKey(messageToMark.getHeaders().getId());
 
-		jdbcTemplate.update(getQuery(MARK_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
+		jdbcTemplate.update(getQuery(REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
 				logger.debug("Marking messages with correlation key=" + correlationId);
 				ps.setTimestamp(1, new Timestamp(updatedDate));
@@ -310,6 +314,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(4, messageId);
 			}
 		});
+		return getMessageGroup(correlationKey);
 	}
 
 	public void removeMessageGroup(Object correlationKey) {

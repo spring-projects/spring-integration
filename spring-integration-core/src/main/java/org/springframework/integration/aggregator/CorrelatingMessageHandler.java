@@ -165,9 +165,9 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 			MessageGroup group = messageStore.getMessageGroup(correlationKey);
 
-			if (group.add(message)) {
+			if (group.canAdd(message)) {
 
-				store(correlationKey, message);
+				group = store(correlationKey, message);
 
 				if (releaseStrategy.canRelease(group)) {
 
@@ -281,8 +281,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		locks.remove(correlationKey);
 	}
 
-	private void store(Object correlationKey, Message<?> message) {
-		messageStore.addMessageToGroup(correlationKey, message);
+	private MessageGroup store(Object correlationKey, Message<?> message) {
+		return messageStore.addMessageToGroup(correlationKey, message);
 	}
 
 }
