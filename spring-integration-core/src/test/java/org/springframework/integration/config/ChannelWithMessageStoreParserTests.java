@@ -39,6 +39,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ChannelWithMessageStoreParserTests {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration";
 
 	@Autowired
 	@Qualifier("input")
@@ -62,11 +64,11 @@ public class ChannelWithMessageStoreParserTests {
 		handler.getLatch().await(100, TimeUnit.MILLISECONDS);
 		assertEquals("The message payload is not correct", "123", handler.getMessageString());
 		// The group id for buffered messages is the channel name
-		assertEquals(1, messageGroupStore.getMessageGroup("output").size());
+		assertEquals(1, messageGroupStore.getMessageGroup(BASE_PACKAGE+".store:output").size());
 		
 		Message<?> result = output.receive(100);
 		assertEquals("hello", result.getPayload());
-		assertEquals(0, messageGroupStore.getMessageGroup("output").size());
+		assertEquals(0, messageGroupStore.getMessageGroup(BASE_PACKAGE+".store:output").size());
 
 	}
 

@@ -37,6 +37,8 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 	private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
 
+	private static final String STORE_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".store";
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@Override
@@ -165,9 +167,9 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		String storeRef = queueElement.getAttribute("message-store");
 		if (StringUtils.hasText(storeRef)) {
 			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".store.MessageGroupQueue");
+					.genericBeanDefinition(STORE_PACKAGE + ".MessageGroupQueue");
 			queueBuilder.addConstructorArgReference(storeRef);
-			queueBuilder.addConstructorArgValue(channel);
+			queueBuilder.addConstructorArgValue(STORE_PACKAGE + ":" + channel);
 			parseQueueCapacity(queueBuilder, queueElement);
 			builder.addConstructorArgValue(queueBuilder.getBeanDefinition());
 			return true;
