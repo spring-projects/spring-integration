@@ -27,7 +27,7 @@ import org.springframework.integration.core.Message;
 /**
  * A {@link BlockingQueue} that is backed by a {@link MessageGroupStore}. Can be used to ensure guaranteed delivery in
  * the face of transaction rollback (assuming the store is transactional) and also to ensure messages are not lost if
- * the process dies (assuming the store is durable). To use the queue across process re-starts, the same correlation key
+ * the process dies (assuming the store is durable). To use the queue across process re-starts, the same group id
  * must be provided, so it needs to be unique but identifiable with a single logical instance of the queue.
  * 
  * @author Dave Syer
@@ -40,7 +40,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	private final MessageGroupStore messageGroupStore;
 
-	private final Object correlationKey;
+	private final Object groupId;
 
 	private final int capacity;
 
@@ -53,13 +53,13 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	// This one only needs to be local
 	private Object readLock = new Object();
 
-	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object correlationKey) {
-		this(messageGroupStore, correlationKey, DEFAULT_CAPACITY);
+	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId) {
+		this(messageGroupStore, groupId, DEFAULT_CAPACITY);
 	}
 
-	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object correlationKey, int capacity) {
+	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId, int capacity) {
 		this.messageGroupStore = messageGroupStore;
-		this.correlationKey = correlationKey;
+		this.groupId = groupId;
 		this.capacity = capacity;
 	}
 
@@ -72,11 +72,11 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public boolean offer(Message<?> e) {
-		if (messageGroupStore.getMessageGroup(correlationKey).size() >= capacity) {
+		if (messageGroupStore.getMessageGroup(groupId).size() >= capacity) {
 			return false;
 		}
 		synchronized (storeLock) {
-			messageGroupStore.addMessageToGroup(correlationKey, e);
+			messageGroupStore.addMessageToGroup(groupId, e);
 		}
 		synchronized (readLock) {
 			readLock.notifyAll();
@@ -100,7 +100,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 				return null;
 			}
 			result = unmarked.iterator().next();
-			messageGroupStore.removeMessageFromGroup(correlationKey, result);
+			messageGroupStore.removeMessageFromGroup(groupId, result);
 		}
 		synchronized (writeLock) {
 			writeLock.notifyAll();
@@ -113,7 +113,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		synchronized (storeLock) {
 			unmarked = getUnmarked();
 			c.addAll(unmarked);
-			messageGroupStore.markMessageGroup(messageGroupStore.getMessageGroup(correlationKey));
+			messageGroupStore.markMessageGroup(messageGroupStore.getMessageGroup(groupId));
 		}
 		synchronized (writeLock) {
 			writeLock.notifyAll();
@@ -127,7 +127,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 			Iterator<Message<?>> unmarked = getUnmarked().iterator();
 			for (int i = 0; i < maxElements && unmarked.hasNext(); i++) {
 				Message<?> message = unmarked.next();
-				messageGroupStore.removeMessageFromGroup(correlationKey, message);
+				messageGroupStore.removeMessageFromGroup(groupId, message);
 				list.add(message);
 			}
 		}
@@ -174,7 +174,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public int remainingCapacity() {
-		return capacity - messageGroupStore.getMessageGroup(correlationKey).size();
+		return capacity - messageGroupStore.getMessageGroup(groupId).size();
 	}
 
 	public Message<?> take() throws InterruptedException {
@@ -189,7 +189,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	private Collection<Message<?>> getUnmarked() {
-		return messageGroupStore.getMessageGroup(correlationKey).getUnmarked();
+		return messageGroupStore.getMessageGroup(groupId).getUnmarked();
 	}
 
 }

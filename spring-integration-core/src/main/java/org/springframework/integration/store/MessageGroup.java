@@ -30,10 +30,9 @@ public interface MessageGroup {
 	Collection<Message<?>> getMarked();
 
 	/**
-	 * @return the correlation key that links these messages together, typically according
-	 *         to a particular CorrelationStrategy
+	 * @return the key that links these messages together
 	 */
-	Object getCorrelationKey();
+	Object getGroupId();
 
 	/**
 	 * @return true if the group is complete (i.e. no more messages are expected to be added)

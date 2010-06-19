@@ -59,7 +59,7 @@ public class MessageStoreReaperTests {
 
 		public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 			groups.add(group);
-			messageGroupStore.removeMessageGroup(group.getCorrelationKey());
+			messageGroupStore.removeMessageGroup(group.getGroupId());
 		}
 		
 	}

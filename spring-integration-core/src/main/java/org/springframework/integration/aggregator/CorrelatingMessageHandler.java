@@ -219,7 +219,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private final boolean forceComplete(MessageGroup group) {
 
-		Object correlationKey = group.getCorrelationKey();
+		Object correlationKey = group.getGroupId();
 		Object lock = getLock(correlationKey);
 		synchronized (lock) {
 
@@ -276,7 +276,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private void remove(MessageGroup group) {
-		Object correlationKey = group.getCorrelationKey();
+		Object correlationKey = group.getGroupId();
 		messageStore.removeMessageGroup(correlationKey);
 		locks.remove(correlationKey);
 	}

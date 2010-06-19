@@ -53,7 +53,7 @@ public class MessageStoreTests {
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				list.add(group.getOne().getPayload().toString());
-				messageGroupStore.removeMessageGroup(group.getCorrelationKey());
+				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
 		});
 
@@ -90,7 +90,7 @@ public class MessageStoreTests {
 		}
 
 		public void removeMessageGroup(Object correlationKey) {
-			if (correlationKey.equals(testMessages.getCorrelationKey())) {
+			if (correlationKey.equals(testMessages.getGroupId())) {
 				removed = true;
 			}
 		}

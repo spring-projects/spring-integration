@@ -31,7 +31,7 @@ public class JdbcMessageStoreChannelTests {
 	@Before
 	public void clear() {
 		for (MessageGroup group : messageStore) {
-			messageStore.removeMessageGroup(group.getCorrelationKey());
+			messageStore.removeMessageGroup(group.getGroupId());
 		}
 	}
 

@@ -21,9 +21,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.springframework.integration.core.Message;
 
 /**
- * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and correlation
- * key. The group will grow during its lifetime, when messages are <code>add</code>ed to it. This MessageGroup is thread
- * safe.
+ * Represents a mutable group of correlated messages that is bound to a certain {@link MessageStore} and group id. The
+ * group will grow during its lifetime, when messages are <code>add</code>ed to it. This MessageGroup is thread safe.
  * 
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
@@ -32,7 +31,7 @@ import org.springframework.integration.core.Message;
  */
 public class SimpleMessageGroup implements MessageGroup {
 
-	private final Object correlationKey;
+	private final Object groupId;
 
 	// Guards(marked, unmarked)
 	private final Object lock = new Object();
@@ -45,18 +44,18 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	private final long timestamp;
 
-	public SimpleMessageGroup(Object correlationKey) {
-		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), correlationKey, System
+	public SimpleMessageGroup(Object groupId) {
+		this(Collections.<Message<?>> emptyList(), Collections.<Message<?>> emptyList(), groupId, System
 				.currentTimeMillis());
 	}
 
-	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object correlationKey) {
-		this(unmarked, Collections.<Message<?>> emptyList(), correlationKey, System.currentTimeMillis());
+	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Object groupId) {
+		this(unmarked, Collections.<Message<?>> emptyList(), groupId, System.currentTimeMillis());
 	}
 
 	public SimpleMessageGroup(Collection<? extends Message<?>> unmarked, Collection<? extends Message<?>> marked,
-			Object correlationKey, long timestamp) {
-		this.correlationKey = correlationKey;
+			Object groupId, long timestamp) {
+		this.groupId = groupId;
 		this.timestamp = timestamp;
 		synchronized (lock) {
 			for (Message<?> message : unmarked) {
@@ -69,7 +68,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	public SimpleMessageGroup(MessageGroup template) {
-		this.correlationKey = template.getCorrelationKey();
+		this.groupId = template.getGroupId();
 		synchronized (lock) {
 			// Explicit iteration to work around bug in JDK (before 1.6.0_20
 			for (Message<?> message : template.getMarked()) {
@@ -135,8 +134,8 @@ public class SimpleMessageGroup implements MessageGroup {
 		}
 	}
 
-	public Object getCorrelationKey() {
-		return correlationKey;
+	public Object getGroupId() {
+		return groupId;
 	}
 
 	public boolean isComplete() {

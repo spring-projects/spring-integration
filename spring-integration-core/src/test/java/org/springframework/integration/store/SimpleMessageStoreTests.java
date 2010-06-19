@@ -119,7 +119,7 @@ public class SimpleMessageStoreTests {
 		store.registerMessageGroupExpiryCallback(new MessageGroupCallback() {
 			public void execute(MessageGroupStore messageGroupStore, MessageGroup group) {
 				list.add(group.getOne().getPayload().toString());
-				messageGroupStore.removeMessageGroup(group.getCorrelationKey());
+				messageGroupStore.removeMessageGroup(group.getGroupId());
 			}
 		});
 

@@ -68,22 +68,22 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private static final String CREATE_MESSAGE = "INSERT into %PREFIX%MESSAGE(MESSAGE_ID, REGION, CREATED_DATE, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?)";
 
-	private static final String LIST_UNMARKED_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MARKED=0 order by CREATED_DATE";
+	private static final String LIST_UNMARKED_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MARKED=0 order by CREATED_DATE";
 
-	private static final String LIST_MARKED_MESSAGES_BY_CORRELATION_KEY = "SELECT MESSAGE_ID, CREATED_DATE, CORRELATION_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MARKED=1";
+	private static final String LIST_MARKED_MESSAGES_BY_GROUP_KEY = "SELECT MESSAGE_ID, CREATED_DATE, GROUP_KEY, MESSAGE_BYTES from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MARKED=1";
 
-	private static final String GET_MIN_CREATED_DATE_BY_CORRELATION_KEY = "SELECT MIN(CREATED_DATE) from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=?";
+	private static final String GET_MIN_CREATED_DATE_BY_GROUP_KEY = "SELECT MIN(CREATED_DATE) from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
 
-	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and CORRELATION_KEY=? and REGION=?";
+	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and GROUP_KEY=? and REGION=?";
 
-	private static final String REMOVE_MESSAGE_FROM_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=? and MESSAGE_ID=?";
+	private static final String REMOVE_MESSAGE_FROM_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MESSAGE_ID=?";
 
-	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where CORRELATION_KEY=? and REGION=?";
+	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
 
-	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, CORRELATION_KEY, MARKED, MESSAGE_BYTES)"
+	private static final String CREATE_MESSAGE_IN_GROUP = "INSERT into %PREFIX%MESSAGE_GROUP(MESSAGE_ID, REGION, CREATED_DATE, GROUP_KEY, MARKED, MESSAGE_BYTES)"
 			+ " values (?, ?, ?, ?, 0, ?)";
 
-	private static final String LIST_CORRELATION_KEYS = "SELECT distinct CORRELATION_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
+	private static final String LIST_GROUP_KEYS = "SELECT distinct GROUP_KEY as CREATED from %PREFIX%MESSAGE_GROUP where REGION=?";
 
 	public static final int DEFAULT_LONG_STRING_LENGTH = 2500;
 
@@ -242,11 +242,11 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		return result;
 	}
 
-	public MessageGroup addMessageToGroup(Object correlationKey, Message<?> message) {
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 
 		final long createdDate = System.currentTimeMillis();
 		final String messageId = getKey(message.getHeaders().getId());
-		final String correlationId = getKey(correlationKey);
+		final String groupKey = getKey(groupId);
 		final byte[] messageBytes = SerializationUtils.serialize(message);
 
 		jdbcTemplate.update(getQuery(CREATE_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
@@ -255,72 +255,72 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 				ps.setString(1, messageId);
 				ps.setString(2, region);
 				ps.setTimestamp(3, new Timestamp(createdDate));
-				ps.setString(4, correlationId);
+				ps.setString(4, groupKey);
 				lobHandler.getLobCreator().setBlobAsBytes(ps, 5, messageBytes);
 			}
 		});
 		
-		return getMessageGroup(correlationKey);
+		return getMessageGroup(groupId);
 
 	}
 
-	public MessageGroup getMessageGroup(Object correlationKey) {
-		String key = getKey(correlationKey);
-		List<Message<?>> marked = jdbcTemplate.query(getQuery(LIST_MARKED_MESSAGES_BY_CORRELATION_KEY), new Object[] {
+	public MessageGroup getMessageGroup(Object groupId) {
+		String key = getKey(groupId);
+		List<Message<?>> marked = jdbcTemplate.query(getQuery(LIST_MARKED_MESSAGES_BY_GROUP_KEY), new Object[] {
 				key, region }, mapper);
-		List<Message<?>> unmarked = jdbcTemplate.query(getQuery(LIST_UNMARKED_MESSAGES_BY_CORRELATION_KEY),
+		List<Message<?>> unmarked = jdbcTemplate.query(getQuery(LIST_UNMARKED_MESSAGES_BY_GROUP_KEY),
 				new Object[] { key, region }, mapper);
 		if (marked.isEmpty() && unmarked.isEmpty()) {
-			return new SimpleMessageGroup(correlationKey);
+			return new SimpleMessageGroup(groupId);
 		}
-		Timestamp date = jdbcTemplate.queryForObject(getQuery(GET_MIN_CREATED_DATE_BY_CORRELATION_KEY),
+		Timestamp date = jdbcTemplate.queryForObject(getQuery(GET_MIN_CREATED_DATE_BY_GROUP_KEY),
 				Timestamp.class, key, region);
-		Assert.state(date != null, "Could not locate created date for correlationKey=" + correlationKey);
+		Assert.state(date != null, "Could not locate created date for groupId=" + groupId);
 		long timestamp = date.getTime();
-		return new SimpleMessageGroup(unmarked, marked, correlationKey, timestamp);
+		return new SimpleMessageGroup(unmarked, marked, groupId, timestamp);
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
 
 		final long updatedDate = System.currentTimeMillis();
-		final String correlationId = getKey(group.getCorrelationKey());
+		final String groupKey = getKey(group.getGroupId());
 
 		jdbcTemplate.update(getQuery(MARK_MESSAGES_IN_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
-				logger.debug("Marking messages with correlation key=" + correlationId);
+				logger.debug("Marking messages with group key=" + groupKey);
 				ps.setTimestamp(1, new Timestamp(updatedDate));
-				ps.setString(2, correlationId);
+				ps.setString(2, groupKey);
 				ps.setString(3, region);
 			}
 		});
 
-		return getMessageGroup(group.getCorrelationKey());
+		return getMessageGroup(group.getGroupId());
 
 	}
 
-	public MessageGroup removeMessageFromGroup(Object correlationKey, Message<?> messageToMark) {
-		final String correlationId = getKey(correlationKey);
+	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToMark) {
+		final String groupKey = getKey(groupId);
 		final String messageId = getKey(messageToMark.getHeaders().getId());
 
 		jdbcTemplate.update(getQuery(REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
-				logger.debug("Removing message from group with correlation key=" + correlationId);
-				ps.setString(1, correlationId);
+				logger.debug("Removing message from group with group key=" + groupKey);
+				ps.setString(1, groupKey);
 				ps.setString(2, region);
 				ps.setString(3, messageId);
 			}
 		});
-		return getMessageGroup(correlationKey);
+		return getMessageGroup(groupId);
 	}
 
-	public void removeMessageGroup(Object correlationKey) {
+	public void removeMessageGroup(Object groupId) {
 
-		final String correlationId = getKey(correlationKey);
+		final String groupKey = getKey(groupId);
 
 		jdbcTemplate.update(getQuery(DELETE_MESSAGE_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
-				logger.debug("Marking messages with correlation key=" + correlationId);
-				ps.setString(1, correlationId);
+				logger.debug("Marking messages with group key=" + groupKey);
+				ps.setString(1, groupKey);
 				ps.setString(2, region);
 			}
 		});
@@ -331,7 +331,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public Iterator<MessageGroup> iterator() {
 
 		@SuppressWarnings("unchecked")
-		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_CORRELATION_KEYS), new Object[] { region },
+		final Iterator<String> iterator = jdbcTemplate.query(getQuery(LIST_GROUP_KEYS), new Object[] { region },
 				new SingleColumnRowMapper(String.class)).iterator();
 
 		return new Iterator<MessageGroup>() {

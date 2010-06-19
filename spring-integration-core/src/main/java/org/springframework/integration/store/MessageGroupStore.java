@@ -15,7 +15,7 @@ package org.springframework.integration.store;
 import org.springframework.integration.core.Message;
 
 /**
- * Interface for storage operations on groups of messages linked by a correlation key.
+ * Interface for storage operations on groups of messages linked by a group id.
  * 
  * @author Dave Syer
  * 
@@ -26,20 +26,19 @@ public interface MessageGroupStore {
 
 	/**
 	 * Return all Messages currently in the MessageStore that were stored using
-	 * {@link #addMessageToGroup(Object, Message)} with this correlation id.
+	 * {@link #addMessageToGroup(Object, Message)} with this group id.
 	 * 
 	 * @return a group of messages, empty if none exists for this key
 	 */
-	MessageGroup getMessageGroup(Object correlationKey);
+	MessageGroup getMessageGroup(Object groupId);
 
 	/**
-	 * Store a message with an association to a correlation key. This can be used to group messages together instead of
-	 * storing them just under their id.
+	 * Store a message with an association to a group id. This can be used to group messages together.
 	 * 
-	 * @param correlationKey the correlation id to store the message under
+	 * @param groupId the group id to store the message under
 	 * @param message a message
 	 */
-	MessageGroup addMessageToGroup(Object correlationKey, Message<?> message);
+	MessageGroup addMessageToGroup(Object groupId, Message<?> message);
 
 	/**
 	 * Persist the mark on all the messages from the group. The group is modified in the process as all its unmarked
@@ -52,17 +51,17 @@ public interface MessageGroupStore {
 	/**
 	 * Persist a mark on a single message from the group. The group is modified to reflect that 'messageToMark' is no
 	 * longer unmarked but became marked instead.
-	 * @param key the correlationKey for the group containing the message
+	 * @param key the groupId for the group containing the message
 	 * @param messageToMark the message to be marked
 	 */
 	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark);
 
 	/**
-	 * Remove the message group with this correlation key.
+	 * Remove the message group with this id.
 	 *
-	 * @param correlationKey the correlation id to remove
+	 * @param groupId the id of the group to remove
 	 */
-	void removeMessageGroup(Object correlationKey);
+	void removeMessageGroup(Object groupId);
 
 	/**
 	 * Register a callback for when a message group is expired through {@link #expireMessageGroups(long)}.

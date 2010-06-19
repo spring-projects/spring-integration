@@ -38,7 +38,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 
 	private final ConcurrentMap<UUID, Message<?>> idToMessage;
 
-	private final ConcurrentMap<Object, SimpleMessageGroup> correlationToMessageGroup;
+	private final ConcurrentMap<Object, SimpleMessageGroup> groupIdToMessageGroup;
 
 	private final UpperBound individualUpperBound;
 
@@ -53,7 +53,7 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 	 */
 	public SimpleMessageStore(int individualCapacity, int groupCapacity) {
 		this.idToMessage = new ConcurrentHashMap<UUID, Message<?>>();
-		this.correlationToMessageGroup = new ConcurrentHashMap<Object, SimpleMessageGroup>();
+		this.groupIdToMessageGroup = new ConcurrentHashMap<Object, SimpleMessageGroup>();
 		this.individualUpperBound = new UpperBound(individualCapacity);
 		this.groupUpperBound = new UpperBound(groupCapacity);
 	}
@@ -94,35 +94,35 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 			return null;
 	}
 
-	public MessageGroup getMessageGroup(Object correlationId) {
-		Assert.notNull(correlationId, "'correlationKey' must not be null");
-		SimpleMessageGroup group = correlationToMessageGroup.get(correlationId);
+	public MessageGroup getMessageGroup(Object groupId) {
+		Assert.notNull(groupId, "'groupId' must not be null");
+		SimpleMessageGroup group = groupIdToMessageGroup.get(groupId);
 		if (group == null) {
-			return new SimpleMessageGroup(correlationId);
+			return new SimpleMessageGroup(groupId);
 		}
 		return new SimpleMessageGroup(group);
 	}
 
-	public MessageGroup addMessageToGroup(Object correlationId, Message<?> message) {
+	public MessageGroup addMessageToGroup(Object groupId, Message<?> message) {
 		if (!groupUpperBound.tryAcquire(0)) {
 			throw new MessagingException(this.getClass().getSimpleName()
 					+ " was out of capacity at, try constructing it with a larger capacity.");
 		}
-		SimpleMessageGroup group = getMessageGroupInternal(correlationId);
+		SimpleMessageGroup group = getMessageGroupInternal(groupId);
 		group.add(message);
 		return group;
 	}
 
 	public MessageGroup markMessageGroup(MessageGroup group) {
-		Object correlationId = group.getCorrelationKey();
-		SimpleMessageGroup internal = getMessageGroupInternal(correlationId);
+		Object groupId = group.getGroupId();
+		SimpleMessageGroup internal = getMessageGroupInternal(groupId);
 		internal.markAll();
 		return internal;
 	}
 
-	public void removeMessageGroup(Object correlationId) {
+	public void removeMessageGroup(Object groupId) {
 		groupUpperBound.release();
-		correlationToMessageGroup.remove(correlationId);
+		groupIdToMessageGroup.remove(groupId);
 	}
 
 	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark) {
@@ -133,14 +133,14 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 
 	@Override
 	public Iterator<MessageGroup> iterator() {
-		return new HashSet<MessageGroup>(correlationToMessageGroup.values()).iterator();
+		return new HashSet<MessageGroup>(groupIdToMessageGroup.values()).iterator();
 	}
 
-	private SimpleMessageGroup getMessageGroupInternal(Object correlationId) {
-		if (!correlationToMessageGroup.containsKey(correlationId)) {
-			correlationToMessageGroup.putIfAbsent(correlationId, new SimpleMessageGroup(correlationId));
+	private SimpleMessageGroup getMessageGroupInternal(Object groupId) {
+		if (!groupIdToMessageGroup.containsKey(groupId)) {
+			groupIdToMessageGroup.putIfAbsent(groupId, new SimpleMessageGroup(groupId));
 		}
-		return correlationToMessageGroup.get(correlationId);
+		return groupIdToMessageGroup.get(groupId);
 	}
 
 }
