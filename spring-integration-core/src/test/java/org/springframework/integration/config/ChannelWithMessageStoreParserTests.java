@@ -56,16 +56,17 @@ public class ChannelWithMessageStoreParserTests {
 
 	@Test
 	@DirtiesContext
-	public void testAggregation() throws Exception {
+	public void testActivatorSendsToPersistentQueue() throws Exception {
 
 		input.send(createMessage("123", "id1", 3, 1, null));
-		assertEquals(1, messageGroupStore.getMessageGroup("id1").size());
 		handler.getLatch().await(100, TimeUnit.MILLISECONDS);
 		assertEquals("The message payload is not correct", "123", handler.getMessageString());
-		assertEquals(0, messageGroupStore.getMessageGroup("id1").size());
+		// The group id for buffered messages is the channel name
+		assertEquals(1, messageGroupStore.getMessageGroup("output").size());
 		
 		Message<?> result = output.receive(100);
 		assertEquals("hello", result.getPayload());
+		assertEquals(0, messageGroupStore.getMessageGroup("output").size());
 
 	}
 

@@ -50,7 +50,7 @@ public class TestHandler {
 	public String handle(Message<?> message) {
 		this.messageString = message.getPayload().toString();
 		this.latch.countDown();
-		return (this.replyMessageText != null) ? this.replyMessageText : null;
+		return this.replyMessageText;
 	}
 
 	public String getMessageString() {

@@ -7,17 +7,9 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
 	<channel id="output">
-		<queue capacity="5" message-store="messageStore" />
+		<queue message-store="messageStore" ref="queue" />
 	</channel>
 
-	<channel id="input" />
-
-	<service-activator id="activator" ref="bean" input-channel="input" output-channel="output"/>
-
 	<beans:bean id="messageStore" class="org.springframework.integration.store.SimpleMessageStore" />
-
-	<beans:bean id="bean" class="org.springframework.integration.config.TestHandler">
-		<beans:property name="replyMessageText" value="hello"/>
-	</beans:bean>
 
 </beans:beans>

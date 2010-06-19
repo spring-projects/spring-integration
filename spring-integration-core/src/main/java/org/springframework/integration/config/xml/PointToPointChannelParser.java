@@ -37,9 +37,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 	private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
 
-
 	private final Log logger = LogFactory.getLog(this.getClass());
-
 
 	@Override
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
@@ -49,11 +47,20 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		// configure a queue-based channel if any queue sub-element is defined
 		if ((queueElement = DomUtils.getChildElementByTagName(element, "queue")) != null) {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".QueueChannel");
-			boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
+			boolean hasStoreRef = this.parseStoreRef(builder, queueElement, element.getAttribute(ID_ATTRIBUTE));
 			boolean hasQueueRef = this.parseQueueRef(builder, queueElement);
-			if (hasCapacity && hasQueueRef) {
-				parserContext.getReaderContext().error("The 'capacity' attribute is not allowed" +
-						" when providing a 'ref' to a custom queue.", element);
+			if (!hasStoreRef) {
+				boolean hasCapacity = this.parseQueueCapacity(builder, queueElement);
+				if (hasCapacity && hasQueueRef) {
+					parserContext.getReaderContext().error(
+							"The 'capacity' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
+							element);
+				}
+			}
+			if (hasStoreRef && hasQueueRef) {
+				parserContext.getReaderContext().error(
+						"The 'message-store' attribute is not allowed" + " when providing a 'ref' to a custom queue.",
+						element);
 			}
 		}
 		else if ((queueElement = DomUtils.getChildElementByTagName(element, "priority-queue")) != null) {
@@ -74,14 +81,15 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		String dispatcherAttribute = element.getAttribute("dispatcher");
 		boolean hasDispatcherAttribute = StringUtils.hasText(dispatcherAttribute);
 		if (hasDispatcherAttribute && logger.isWarnEnabled()) {
-			logger.warn("The 'dispatcher' attribute on the 'channel' element is deprecated. " +
-					"Please use the 'dispatcher' sub-element instead.");
+			logger.warn("The 'dispatcher' attribute on the 'channel' element is deprecated. "
+					+ "Please use the 'dispatcher' sub-element instead.");
 		}
 
 		// verify that a dispatcher is not provided if a queue sub-element exists
 		if (queueElement != null && (dispatcherElement != null || hasDispatcherAttribute)) {
-			parserContext.getReaderContext().error("The 'dispatcher' attribute or sub-element " +
-					"and any queue sub-element are mutually exclusive.", element);
+			parserContext.getReaderContext().error(
+					"The 'dispatcher' attribute or sub-element " + "and any queue sub-element are mutually exclusive.",
+					element);
 			return null;
 		}
 
@@ -90,9 +98,10 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 		}
 
 		if (dispatcherElement != null && hasDispatcherAttribute) {
-			parserContext.getReaderContext().error("The 'dispatcher' attribute and 'dispatcher' " +
-					"sub-element are mutually exclusive. NOTE: the attribute is DEPRECATED. " +
-					"Please use the dispatcher sub-element instead.", element);
+			parserContext.getReaderContext().error(
+					"The 'dispatcher' attribute and 'dispatcher' "
+							+ "sub-element are mutually exclusive. NOTE: the attribute is DEPRECATED. "
+							+ "Please use the dispatcher sub-element instead.", element);
 			return null;
 		}
 
@@ -102,15 +111,15 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
 			if (!"failover".equals(dispatcherAttribute)) {
 				// round-robin dispatcher is used by default, the "failover" value simply disables it
-				builder.addConstructorArgValue(new RootBeanDefinition(
-						DISPATCHER_PACKAGE + ".RoundRobinLoadBalancingStrategy", null, null));
+				builder.addConstructorArgValue(new RootBeanDefinition(DISPATCHER_PACKAGE
+						+ ".RoundRobinLoadBalancingStrategy", null, null));
 			}
 		}
 		else if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
-			builder.addConstructorArgValue(new RootBeanDefinition(
-					DISPATCHER_PACKAGE + ".RoundRobinLoadBalancingStrategy", null, null));
+			builder.addConstructorArgValue(new RootBeanDefinition(DISPATCHER_PACKAGE
+					+ ".RoundRobinLoadBalancingStrategy", null, null));
 		}
 		else {
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
@@ -126,8 +135,8 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			// configure the default RoundRobinLoadBalancingStrategy
 			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
 			if (!"none".equals(loadBalancer)) {
-				builder.addConstructorArgValue(new RootBeanDefinition(
-						DISPATCHER_PACKAGE + ".RoundRobinLoadBalancingStrategy", null, null));
+				builder.addConstructorArgValue(new RootBeanDefinition(DISPATCHER_PACKAGE
+						+ ".RoundRobinLoadBalancingStrategy", null, null));
 			}
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
 		}
@@ -145,8 +154,22 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 
 	private boolean parseQueueRef(BeanDefinitionBuilder builder, Element queueElement) {
 		String queueRef = queueElement.getAttribute("ref");
-		if (StringUtils.hasText(queueRef)){
+		if (StringUtils.hasText(queueRef)) {
 			builder.addConstructorArgReference(queueRef);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean parseStoreRef(BeanDefinitionBuilder builder, Element queueElement, String channel) {
+		String storeRef = queueElement.getAttribute("message-store");
+		if (StringUtils.hasText(storeRef)) {
+			BeanDefinitionBuilder queueBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".store.MessageGroupQueue");
+			queueBuilder.addConstructorArgReference(storeRef);
+			queueBuilder.addConstructorArgValue(channel);
+			parseQueueCapacity(queueBuilder, queueElement);
+			builder.addConstructorArgValue(queueBuilder.getBeanDefinition());
 			return true;
 		}
 		return false;

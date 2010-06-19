@@ -139,12 +139,15 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public boolean offer(Message<?> e, long timeout, TimeUnit unit) throws InterruptedException {
-		if (!offer(e)) {
+		long threshold = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(timeout, unit);
+		boolean result = offer(e);
+		while (!result && System.currentTimeMillis() < threshold) {
 			synchronized (writeLock) {
-				writeLock.wait(TimeUnit.MILLISECONDS.convert(timeout, unit));
+				writeLock.wait(threshold - System.currentTimeMillis());
 			}
+			result = offer(e);
 		}
-		return offer(e);
+		return result;
 	}
 
 	public Message<?> poll(long timeout, TimeUnit unit) throws InterruptedException {

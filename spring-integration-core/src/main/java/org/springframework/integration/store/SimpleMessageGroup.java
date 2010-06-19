@@ -164,9 +164,7 @@ public class SimpleMessageGroup implements MessageGroup {
 
 	public void markAll() {
 		synchronized (lock) {
-			marked.addAll(unmarked);
-			unmarked.clear();
-			// unmarked.drainTo(marked);
+			unmarked.drainTo(marked);
 		}
 	}
 
