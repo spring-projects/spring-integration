@@ -16,9 +16,13 @@
 package org.springframework.integration.core;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.util.StopWatch;
 
 /**
  * @author Oleg Zhurakousky
@@ -46,5 +50,55 @@ public class TimeBasedUUIDGeneratorTests {
 			Assert.assertTrue(newId.compareTo(id) == 1);
 			id = newId;
 		}
+	}
+	@Test
+	public void performanceTestSynch(){
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		for (int i = 0; i < 10000; i++) {
+			TimeBasedUUIDGenerator.generateId();
+		}
+		stopWatch.stop();
+		System.out.println("Generated 10000 UUID (sync) via TimeBasedUUIDGenerator.generateId(): in " + stopWatch.getTotalTimeSeconds() + " seconds");
+		
+		stopWatch = new StopWatch();
+		stopWatch.start();
+		for (int i = 0; i < 10000; i++) {
+			UUID.randomUUID();
+		}
+		stopWatch.stop();
+		System.out.println("Generated 10000 UUID  (sync) via UUID.randomUUID(): in " + stopWatch.getTotalTimeSeconds() + " seconds");
+	}
+	@Test
+	public void performanceTestAsynch() throws Exception {
+		ExecutorService executor = Executors.newFixedThreadPool(1);
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		for (int i = 0; i < 10000; i++) {
+			executor.execute(new Runnable() {
+				public void run() {
+					TimeBasedUUIDGenerator.generateId();
+				}
+			});
+		}
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
+		stopWatch.stop();
+		System.out.println("Generated 10000 UUID (async) via TimeBasedUUIDGenerator.generateId(): in " + stopWatch.getTotalTimeSeconds() + " seconds");
+		
+		executor = Executors.newFixedThreadPool(1);
+		stopWatch = new StopWatch();
+		stopWatch.start();
+		for (int i = 0; i < 10000; i++) {
+			executor.execute(new Runnable() {
+				public void run() {
+					UUID.randomUUID();
+				}
+			});
+		}
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.SECONDS);
+		stopWatch.stop();
+		System.out.println("Generated 10000 UUID (async) via UUID.randomUUID(): in " + stopWatch.getTotalTimeSeconds() + " seconds");
 	}
 }
