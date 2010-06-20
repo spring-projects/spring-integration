@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.core;
 
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.UUID;
@@ -32,7 +33,10 @@ import org.apache.commons.logging.LogFactory;
  */
 class TimeBasedUUIDGenerator {
 	public static final Object lock = new Object();
+	private static boolean canNotDetermineMac = true;
 	private static long lastTime;
+	private static long processId = Long.valueOf(ManagementFactory.getRuntimeMXBean().getName().hashCode());
+	private static long pidMac;
 	private static final Log logger = LogFactory.getLog(TimeBasedUUIDGenerator.class);
 	private static long  macAddressAsLong = 0;
 	
@@ -53,6 +57,13 @@ class TimeBasedUUIDGenerator {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		pidMac = macAddressAsLong;
+		if (pidMac == 0){
+			pidMac = (processId << 32) | System.currentTimeMillis();
+		} else {
+			canNotDetermineMac = false;
+			pidMac = (processId << 32) | macAddressAsLong;
+		}
 	}
 
 	/**
@@ -71,7 +82,6 @@ class TimeBasedUUIDGenerator {
 	 */
 	public final static UUID generateIdFromTimestamp(long currentTimeMillis){
 		long time;
-		long macNanoTime;
 		synchronized (lock) {
 			if (currentTimeMillis > lastTime) {
 				lastTime = currentTimeMillis;
@@ -90,17 +100,10 @@ class TimeBasedUUIDGenerator {
 
 		// hi Time
 		time |= 0x1000 | ((currentTimeMillis >> 48) & 0x0FFF); // version 1
-		
-		macNanoTime = macAddressAsLong;
-		if (macNanoTime == 0){
-			logger.warn("Can not determine machine's MAC address. Will use System.nanoTime() for UUID generation, however there is a slim chance of it not being globally unique");
-			macNanoTime = System.nanoTime();
-		} else {
-			//considering the type of time returned by nanoTime, this will ensure that 
-			// even if more then one process is running on the same machine, the id is still unique
-			macNanoTime |= System.nanoTime() & 0xFF;
-			macNanoTime <<= 8;
+		if (canNotDetermineMac){
+			logger.warn("UUID generation process was not able to determine your MAC address. There is a slight chance for this UUID not to be globally unique");
 		}
-		return new UUID(time, macNanoTime);
+		
+		return new UUID(time, pidMac);
 	}
 }

@@ -32,9 +32,11 @@ public class TimeBasedUUIDGeneratorTests {
 
 	@Test
 	public void testGreaterThen(){
+
 		UUID id = TimeBasedUUIDGenerator.generateId();
 		for (int i = 0; i < 1000; i++) {
 			UUID newId = TimeBasedUUIDGenerator.generateId();
+			//System.out.println(newId);
 			// tests, that newly created UUID is always greater then the previous one.
 			Assert.assertTrue(newId.compareTo(id) == 1);
 			id = newId;
