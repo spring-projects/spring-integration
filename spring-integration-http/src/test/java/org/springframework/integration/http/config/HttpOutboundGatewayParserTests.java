@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.net.URL;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -31,13 +29,13 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.DefaultOutboundRequestMapper;
-import org.springframework.integration.http.HttpOutboundEndpoint;
-import org.springframework.integration.http.HttpRequestExecutor;
+import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.OutboundRequestMapper;
-import org.springframework.integration.http.SimpleHttpRequestExecutor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -63,22 +61,24 @@ public class HttpOutboundGatewayParserTests {
 
 	@Test
 	public void minimalConfig() {
-		HttpOutboundEndpoint gateway = (HttpOutboundEndpoint) new DirectFieldAccessor(
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) new DirectFieldAccessor(
 				this.minimalConfigEndpoint).getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.minimalConfigEndpoint).getPropertyValue("inputChannel");
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		Object replyChannel = accessor.getPropertyValue("outputChannel");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNull(replyChannel);
-		OutboundRequestMapper mapper = (OutboundRequestMapper) accessor.getPropertyValue("requestMapper");
-		HttpRequestExecutor executor = (HttpRequestExecutor) accessor.getPropertyValue("requestExecutor");
+		OutboundRequestMapper mapper = (OutboundRequestMapper) handlerAccessor.getPropertyValue("requestMapper");
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
 		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
-		assertTrue(executor instanceof SimpleHttpRequestExecutor);
-		Object mapperBean = this.applicationContext.getBean("mapper");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		Object mapperBean = this.applicationContext.getBean("testMapper");
 		assertNotSame(mapperBean, mapper);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertNull(mapperAccessor.getPropertyValue("defaultUrl"));
+		assertNull(handlerAccessor.getPropertyValue("defaultUri"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(true, mapperAccessor.getPropertyValue("extractPayload"));
 	}
@@ -86,59 +86,63 @@ public class HttpOutboundGatewayParserTests {
 	@Test
 	public void fullConfigWithMapper() throws Exception {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfigWithMapperEndpoint);
-		HttpOutboundEndpoint gateway = (HttpOutboundEndpoint) endpointAccessor.getPropertyValue("handler");
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.fullConfigWithMapperEndpoint).getPropertyValue("inputChannel");
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(77, accessor.getPropertyValue("order"));
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		assertEquals(77, handlerAccessor.getPropertyValue("order"));
 		assertEquals(Boolean.FALSE, endpointAccessor.getPropertyValue("autoStartup"));
-		Object replyChannel = accessor.getPropertyValue("outputChannel");
+		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNotNull(replyChannel);
 		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
-		OutboundRequestMapper mapper = (OutboundRequestMapper) accessor.getPropertyValue("requestMapper");
-		HttpRequestExecutor executor = (HttpRequestExecutor) accessor.getPropertyValue("requestExecutor");
+		OutboundRequestMapper mapper = (OutboundRequestMapper) handlerAccessor.getPropertyValue("requestMapper");
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
 		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
-		assertTrue(executor instanceof SimpleHttpRequestExecutor);
-		Object mapperBean = this.applicationContext.getBean("mapper");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		Object mapperBean = this.applicationContext.getBean("testMapper");
 		assertEquals(mapperBean, mapper);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertEquals(new URL("http://localhost/test"), mapperAccessor.getPropertyValue("defaultUrl"));
+		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("defaultUri"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
-		Object executorBean = this.applicationContext.getBean("executor");
-		assertEquals(executorBean, executor);
+		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
+		assertEquals(requestFactoryBean, requestFactory);
 		Object sendTimeout = new DirectFieldAccessor(
-				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout");
+				handlerAccessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);
 	}
 
 	@Test
 	public void fullConfigWithoutMapper() throws Exception {
-		HttpOutboundEndpoint gateway = (HttpOutboundEndpoint) new DirectFieldAccessor(
+		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) new DirectFieldAccessor(
 				this.fullConfigWithoutMapperEndpoint).getPropertyValue("handler");
 		MessageChannel requestChannel = (MessageChannel) new DirectFieldAccessor(
 				this.fullConfigWithoutMapperEndpoint).getPropertyValue("inputChannel");
 		assertEquals(this.applicationContext.getBean("requests"), requestChannel);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		Object replyChannel = accessor.getPropertyValue("outputChannel");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNotNull(replyChannel);
 		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
-		OutboundRequestMapper mapper = (OutboundRequestMapper) accessor.getPropertyValue("requestMapper");
-		HttpRequestExecutor executor = (HttpRequestExecutor) accessor.getPropertyValue("requestExecutor");
+		OutboundRequestMapper mapper = (OutboundRequestMapper) handlerAccessor.getPropertyValue("requestMapper");
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
+		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
+				templateAccessor.getPropertyValue("requestFactory");
 		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
-		assertTrue(executor instanceof SimpleHttpRequestExecutor);
-		Object mapperBean = this.applicationContext.getBean("mapper");
+		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
+		Object mapperBean = this.applicationContext.getBean("testMapper");
 		assertNotSame(mapperBean, mapper);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertEquals(new URL("http://localhost/test"), mapperAccessor.getPropertyValue("defaultUrl"));
+		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("defaultUri"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
-		Object executorBean = this.applicationContext.getBean("executor");
-		assertEquals(executorBean, executor);
+		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
+		assertEquals(requestFactoryBean, requestFactory);
 		Object sendTimeout = new DirectFieldAccessor(
-				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout");
+				handlerAccessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);
-	}	
+	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package org.springframework.integration.http.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
@@ -42,44 +41,39 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
 		String defaultUrl = element.getAttribute("default-url");
+		if (StringUtils.hasText(defaultUrl)) {
+			builder.addConstructorArgValue(defaultUrl);
+		}
 		String charset = element.getAttribute("charset");
 		String extractPayload = element.getAttribute("extract-request-payload");
 		String requestMapperRef = element.getAttribute("request-mapper");
 		if (StringUtils.hasText(requestMapperRef)) {
-			if (StringUtils.hasText(defaultUrl)) {
-				this.requestMapperConflictError("default-url", parserContext, element);
-				return null;
-			}
-			else if (StringUtils.hasText(charset)) {
+			if (StringUtils.hasText(charset)) {
 				this.requestMapperConflictError("charset", parserContext, element);
 				return null;
 			}
-			else if (StringUtils.hasText(extractPayload)) {
+			if (StringUtils.hasText(extractPayload)) {
 				this.requestMapperConflictError("extract-request-payload", parserContext, element);
 				return null;
 			}
+			builder.addPropertyReference("requestMapper", requestMapperRef);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_PATH + ".HttpOutboundEndpoint");
-		if (!StringUtils.hasText(requestMapperRef)) {
+		else {
 			BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					PACKAGE_PATH + ".DefaultOutboundRequestMapper");
-			if (StringUtils.hasText(defaultUrl)) {
-				mapperBuilder.addConstructorArgValue(defaultUrl);
-			}
 			if (StringUtils.hasText(charset)) {
 				mapperBuilder.addPropertyValue("charset", charset);
 			}
 			if (StringUtils.hasText(extractPayload)) {
 				mapperBuilder.addPropertyValue("extractPayload", extractPayload);
 			}
-			requestMapperRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					mapperBuilder.getBeanDefinition(), parserContext.getRegistry());
+			builder.addPropertyValue("requestMapper", mapperBuilder.getBeanDefinition());
 		}
-		builder.addPropertyReference("requestMapper", requestMapperRef);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-executor");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		return builder;
 	}

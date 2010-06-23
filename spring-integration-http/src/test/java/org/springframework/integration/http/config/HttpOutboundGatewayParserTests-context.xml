@@ -20,8 +20,9 @@
 
 	<outbound-gateway id="fullConfigWithMapper"
 		request-channel="requests"
-		request-mapper="mapper"
-		request-executor="executor"
+		default-url="http://localhost/test1"
+		request-mapper="testMapper"
+		request-factory="testRequestFactory"
 		request-timeout="1234"
 		reply-channel="replies"
 		order="77"
@@ -29,19 +30,18 @@
 
 	<outbound-gateway id="fullConfigWithoutMapper"
 		request-channel="requests"
-		default-url="http://localhost/test"
+		default-url="http://localhost/test2"
 		extract-request-payload="false"
 		charset="UTF-8"
-		request-executor="executor"
+		request-factory="testRequestFactory"
 		request-timeout="1234"
 		reply-channel="replies"/>
 
-	<beans:bean id="mapper" class="org.springframework.integration.http.DefaultOutboundRequestMapper">
-		<beans:property name="defaultUrl" value="http://localhost/test"/>
+	<beans:bean id="testMapper" class="org.springframework.integration.http.DefaultOutboundRequestMapper">
 		<beans:property name="charset" value="UTF-8"/>
 		<beans:property name="extractPayload" value="false"/>
 	</beans:bean>
 
-	<beans:bean id="executor" class="org.springframework.integration.http.SimpleHttpRequestExecutor"/>
+	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
 </beans:beans>

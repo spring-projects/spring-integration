@@ -17,11 +17,10 @@
 package org.springframework.integration.http;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -30,6 +29,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 
@@ -40,38 +41,61 @@ public class DefaultOutboundRequestMapperTests {
 
 	@Test
 	public void simpleStringValueFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper(new URL("http://example.org"));
+		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
 		Map<String, String> form = new LinkedHashMap<String, String>();
 		form.put("a", "1");
 		form.put("b", "2");
 		form.put("c", "3");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpRequest request = mapper.fromMessage(message);
-		String bodyText = request.getBody().toString("UTF-8");
-		assertEquals("a=1&b=2&c=3", bodyText);
-		assertEquals("application/x-www-form-urlencoded", request.getContentType());
+		HttpEntity<?> request = mapper.fromMessage(message);
+		Object body = request.getBody();
+		assertTrue(body instanceof Map<?, ?>);
+		Map<?, ?> map = (Map <?, ?>) body;
+		assertEquals("1", map.get("a"));
+		assertEquals("2", map.get("b"));
+		assertEquals("3", map.get("c"));
+		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void stringArrayValueFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper(new URL("http://example.org"));
+		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
 		Map form = new LinkedHashMap();
 		form.put("a", new String[] { "1", "2", "3" });
 		form.put("b", "4");
 		form.put("c", new String[] { "5" });
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpRequest request = mapper.fromMessage(message);
-		String bodyText = request.getBody().toString("UTF-8");
-		assertEquals("a=1&a=2&a=3&b=4&c=5&d=6", bodyText);
-		assertEquals("application/x-www-form-urlencoded", request.getContentType());
+		HttpEntity<?> request = mapper.fromMessage(message);
+		Object body = request.getBody();
+		assertTrue(body instanceof Map<?, ?>);
+		Map<?, ?> map = (Map <?, ?>) body;
+		Object entryA = map.get("a");
+		assertEquals(String[].class, entryA.getClass());
+		String[] resultA = (String[]) entryA;
+		assertEquals(3, resultA.length);
+		assertEquals("1", resultA[0]);
+		assertEquals("2", resultA[1]);
+		assertEquals("3", resultA[2]);
+		Object entryB = map.get("b");
+		assertEquals(String.class, entryB.getClass());
+		assertEquals("4", entryB);
+		Object entryC = map.get("c");
+		assertEquals(String[].class, entryC.getClass());
+		String[] resultC = (String[]) entryC;
+		assertEquals(1, resultC.length);		
+		assertEquals("5", resultC[0]);
+		Object entryD = map.get("d");
+		assertEquals(String.class, entryD.getClass());
+		assertEquals("6", entryD);
+		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void stringListValueFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper(new URL("http://example.org"));
+	public void listValueFormData() throws Exception {
+		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
 		Map form = new LinkedHashMap();
 		List<String> listA = new ArrayList<String>();
 		listA.add("1");
@@ -80,58 +104,62 @@ public class DefaultOutboundRequestMapperTests {
 		form.put("b", Collections.EMPTY_LIST);
 		form.put("c", Collections.singletonList("3"));
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpRequest request = mapper.fromMessage(message);
-		String bodyText = request.getBody().toString("UTF-8");
-		assertEquals("a=1&a=2&b&c=3", bodyText);
-		assertEquals("application/x-www-form-urlencoded", request.getContentType());
+		HttpEntity<?> request = mapper.fromMessage(message);
+		Object body = request.getBody();
+		assertTrue(body instanceof Map<?, ?>);
+		Map<?, ?> map = (Map <?, ?>) body;
+		Object entryA = map.get("a");
+		assertTrue(entryA instanceof List<?>);
+		List<?> resultA = (List<?>) entryA;
+		assertEquals(2, resultA.size());
+		assertEquals("1", resultA.get(0));
+		assertEquals("2", resultA.get(1));
+		Object entryB = map.get("b");
+		assertTrue(entryB instanceof List<?>);
+		List<?> resultB = (List<?>) entryB;
+		assertEquals(0, resultB.size());
+		Object entryC = map.get("c");
+		assertTrue(entryC instanceof List<?>);
+		List<?> resultC = (List<?>) entryC;
+		assertEquals(1, resultC.size());		
+		assertEquals("3", resultC.get(0));
+		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void nameOnlyWithNullValues() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper(new URL("http://example.org"));
+		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
 		Map form = new LinkedHashMap();
 		form.put("a", null);
 		form.put("b", "foo");
 		form.put("c", null);
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpRequest request = mapper.fromMessage(message);
-		String bodyText = request.getBody().toString("UTF-8");
-		assertEquals("a&b=foo&c", bodyText);
-		assertEquals("application/x-www-form-urlencoded", request.getContentType());
+		HttpEntity<?> request = mapper.fromMessage(message);
+		Object body = request.getBody();
+		assertTrue(body instanceof Map<?, ?>);
+		Map<?, ?> map = (Map<?, ?>) body;
+		assertTrue(map.containsKey("a"));
+		assertNull(map.get("a"));
+		Object entryB = map.get("b");
+		assertEquals("foo", entryB);
+		assertTrue(map.containsKey("c"));
+		assertNull(map.get("c"));
+		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
 	@Test
-	public void encodedFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper(new URL("http://example.org"));
-		Map<String, String> form = new LinkedHashMap<String, String>();
-		form.put("a", "1 + 2 + 3");
-		form.put("b", "4+5");
-		form.put("c", "97%");
-		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpRequest request = mapper.fromMessage(message);
-		String bodyText = request.getBody().toString("UTF-8");
-		assertEquals("a=1+%2B+2+%2B+3&b=4%2B5&c=97%25", bodyText);
-		assertEquals("application/x-www-form-urlencoded", request.getContentType());
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
 	public void nonFormDataInMap() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper(new URL("http://example.org"));
+		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
 		Map<String, TestBean> form = new LinkedHashMap<String, TestBean>();
 		form.put("A", new TestBean());
 		form.put("B", new TestBean());
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpRequest request = mapper.fromMessage(message);
-		byte[] body = request.getBody().toByteArray();
-		ByteArrayInputStream byteStream = new ByteArrayInputStream(body);
-		Object result = new ObjectInputStream(byteStream).readObject();
-		assertEquals(LinkedHashMap.class, result.getClass());
-		Map<String, TestBean> resultMap = (Map<String, TestBean>) result; 
-		assertEquals(2, resultMap.size());
-		assertEquals(TestBean.class, resultMap.get("A").getClass());
-		assertEquals(TestBean.class, resultMap.get("B").getClass());
+		HttpEntity<?> request = mapper.fromMessage(message);
+		Map<?, ?> map = (Map<?, ?>) request.getBody();
+		assertEquals(2, map.size());
+		assertEquals(TestBean.class, map.get("A").getClass());
+		assertEquals(TestBean.class, map.get("B").getClass());
 	}
 
 

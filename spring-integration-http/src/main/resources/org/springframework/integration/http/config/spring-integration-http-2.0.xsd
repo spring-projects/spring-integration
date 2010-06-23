@@ -105,7 +105,13 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="default-url" type="xsd:string"/>
+					<xsd:attribute name="default-url" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	URL to be used as a fallback for any request Message does not contain the request URL Message header.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
 					<xsd:attribute name="charset" type="xsd:string"/>
 					<xsd:attribute name="request-mapper" type="xsd:string">
@@ -117,11 +123,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="request-executor" type="xsd:string">
+					<xsd:attribute name="request-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.http.HttpRequestExecutor"/>
+									<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -129,8 +135,7 @@
 					<xsd:attribute name="order" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation><![CDATA[
-	Specifies the order for invocation when this gateway is connected as a
-	subscriber to a SubscribableChannel.
+	Specifies the order for invocation when this gateway is connected as a subscriber to a SubscribableChannel.
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

@@ -16,15 +16,30 @@
 
 package org.springframework.integration.http;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.http.MediaType;
 
 /**
- * Strategy for mapping to an {@link HttpEntity} from a message.
+ * Strategy for resolving the content type of a given object. The content type
+ * will be represented as an instance of the {@link MediaType} enum.
  * 
  * @author Mark Fisher
- * @since 1.0.2
+ * @since 2.0
  */
-public interface OutboundRequestMapper extends OutboundMessageMapper<HttpEntity<?>> {
+public interface ContentTypeResolver {
+
+	/**
+	 * Resolves the content type of a given object.
+	 * 
+	 * @param content the object whose content type should be resolved
+	 */
+	MediaType resolveContentType(Object content);
+
+	/**
+	 * Resolves the content type of a given String instance and charset name.
+	 * 
+	 * @param content the String whose content type should be resolved
+	 * @param charset charset name
+	 */
+	MediaType resolveContentType(String content, String charset);
 
 }
