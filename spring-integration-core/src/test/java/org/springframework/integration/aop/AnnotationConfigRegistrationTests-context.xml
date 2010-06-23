@@ -13,6 +13,10 @@
 		<si:queue />
 	</si:channel>
 
-	<si:annotation-config/>
+	<si:channel id="defaultChannel">
+		<si:queue />
+	</si:channel>
+
+	<si:annotation-config default-publisher-channel="defaultChannel"/>
 
 </beans>

@@ -19,9 +19,11 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;annotation-config&gt; element of the integration namespace.
@@ -42,6 +44,10 @@ public class AnnotationConfigParser implements BeanDefinitionParser {
 		RootBeanDefinition publisherAnnotationPostProcessorDef = new RootBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.PublisherAnnotationBeanPostProcessor");
 		publisherAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		String defaultPublisherChannel = element.getAttribute("default-publisher-channel");
+		if (StringUtils.hasText(defaultPublisherChannel)) {
+			publisherAnnotationPostProcessorDef.getPropertyValues().add("defaultChannel", new RuntimeBeanReference(defaultPublisherChannel));
+		}
 		String publisherAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
 		parserContext.getRegistry().registerBeanDefinition(publisherAnnotationPostProcessorName, publisherAnnotationPostProcessorDef);
 		return null;

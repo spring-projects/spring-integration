@@ -39,25 +39,43 @@ public class AnnotationConfigRegistrationTests {
 	private TestBean testBean;
 
 	@Autowired
-	private QueueChannel channel;
+	private QueueChannel testChannel;
+
+	@Autowired
+	private QueueChannel defaultChannel;
 
 
 	@Test // INT-1200
 	public void verifyInterception() {
 		String name = testBean.setName("John", "Doe");
 		Assert.assertNotNull(name);
-		Message<?> message = channel.receive(0);
+		Message<?> message = testChannel.receive(0);
 		Assert.assertNotNull(message);
-		Assert.assertEquals("John Doe", message.getPayload());
+		Assert.assertEquals("John DoeDoe", message.getPayload());
 		Assert.assertEquals("123", message.getHeaders().get("x"));
+	}
+
+	@Test
+	public void defaultChannel() {
+		String result = testBean.exclaim("hello");
+		Assert.assertNotNull(result);
+		Assert.assertEquals("HELLO!!!", result);
+		Message<?> message = defaultChannel.receive(0);
+		Assert.assertNotNull(message);
+		Assert.assertEquals("HELLO!!!", message.getPayload());
 	}
 
 
 	public static class TestBean {
 
-		@Publisher(channel="testChannel", payload="#return", headers="x='123'")
+		@Publisher(channel="testChannel", payload="#return + #args.lname", headers="x='123'")
 		public String setName(String fname, String lname){
 			return fname + " " + lname;
+		}
+
+		@Publisher
+		public String exclaim(String s) {
+			return s.toUpperCase() + "!!!";
 		}
 	}
 
