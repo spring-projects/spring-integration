@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +18,34 @@ package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 
 /**
  * Parser for the &lt;annotation-config&gt; element of the integration namespace.
  * Adds a {@link org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor}
+ * and a {@link org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor}
  * to the application context.
  * 
  * @author Mark Fisher
  */
-public class AnnotationConfigParser extends AbstractSingleBeanDefinitionParser {
+public class AnnotationConfigParser implements BeanDefinitionParser {
 
-	private final static String PACKAGE_NAME = IntegrationNamespaceUtils.BASE_PACKAGE + ".config.annotation";
-
-
-	@Override
-	protected String getBeanClassName(Element element) {
-		return PACKAGE_NAME + ".MessagingAnnotationPostProcessor";
+	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		RootBeanDefinition messagingAnnotationPostProcessorDef = new RootBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".config.annotation.MessagingAnnotationPostProcessor");
+		messagingAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		String messagingAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalMessagingAnnotationPostProcessor";
+		parserContext.getRegistry().registerBeanDefinition(messagingAnnotationPostProcessorName, messagingAnnotationPostProcessorDef);
+		RootBeanDefinition publisherAnnotationPostProcessorDef = new RootBeanDefinition(
+				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.PublisherAnnotationBeanPostProcessor");
+		publisherAnnotationPostProcessorDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		String publisherAnnotationPostProcessorName = IntegrationNamespaceUtils.BASE_PACKAGE + ".internalPublisherAnnotationBeanPostProcessor";
+		parserContext.getRegistry().registerBeanDefinition(publisherAnnotationPostProcessorName, publisherAnnotationPostProcessorDef);
+		return null;
 	}
 
-	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
-			throws BeanDefinitionStoreException {
-		return PACKAGE_NAME + ".internalMessagingAnnotationPostProcessor";
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-	}
 
 }
