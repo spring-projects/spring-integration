@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="xmpp">
+  <title>XMPP Support</title>
+  <para>
+    Spring Integration provides Channel Adapters for XMPP.
+  </para>
+
+  <section id="xmpp-inbound-channel-adapter">
+    <title>Inbound Channel Adapter</title>
+    <para>
+      TODO
+      <programlisting language="xml"><![CDATA[ <xmpp:foo/>]]></programlisting>
+      <tip>
+        Don't forget, it's not actually "foo"!
+      </tip>
+      <note>
+        Really... that won't work.
+      </note>
+    </para>
+  </section>
+
+  <section id="xmpp-samples">
+    <title>XMPP Samples</title>
+    <para>
+      We really should have some samples...
+    </para>
+  </section>
+
+</chapter>
