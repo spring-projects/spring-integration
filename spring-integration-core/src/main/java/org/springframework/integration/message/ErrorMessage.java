@@ -16,10 +16,13 @@
 
 package org.springframework.integration.message;
 
+import java.util.Map;
+
 /**
  * A message implementation that accepts a {@link Throwable} payload.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ErrorMessage extends GenericMessage<Throwable> {
 
@@ -27,6 +30,10 @@ public class ErrorMessage extends GenericMessage<Throwable> {
 
 	public ErrorMessage(Throwable payload) {
 		super(payload);
+	}
+	
+	public ErrorMessage(Throwable payload, Map<String, Object> headers) {
+		super(payload, headers);
 	}
 
 }

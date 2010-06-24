@@ -9,6 +9,37 @@
 				default-request-channel="inputA" 
 				default-reply-channel="inputB"
 				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
+				
+	<si:gateway id="gatewayWithError"
+				default-request-channel="routingChannel" 
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
+	
+	<si:router input-channel="routingChannel" expression="payload"/>			
+				
+				
+	<si:service-activator input-channel="echoWithErrorMessageChannel" method="echoWithErrorMessage">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:service-activator input-channel="echoWithRuntimeExceptionChannel" method="echoWithRuntimeException">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:service-activator input-channel="echoWithMessagingExceptionChannel" method="echoWithMessagingException">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:service-activator input-channel="echoWithCheckedExceptionChannel" method="echoWithCheckedException">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:service-activator input-channel="echoWithRuntimeExceptionChannel" method="echoWithRuntimeExceptionThrown">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
+	
+	<si:service-activator input-channel="echoWithMessagingExceptionChannel" method="echoWithMessagingExceptionThrown">
+		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
+	</si:service-activator>
 
 	<si:publish-subscribe-channel id="inputA" />
 	<si:publish-subscribe-channel id="inputB" />
@@ -18,7 +49,7 @@
 		<si:header-enricher>
 			<si:header name="foo" value="foo" />
 		</si:header-enricher>
-		<si:service-activator>
+		<si:service-activator method="echo">
 			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
 		<si:gateway request-channel="inputC"/>  
@@ -31,7 +62,7 @@
 			<si:header name="name" value="oleg" />
 		</si:header-enricher>
 		<si:gateway request-channel="inputD"/> 
-		<si:service-activator>
+		<si:service-activator method="echo">
 			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
 	</si:chain>
@@ -40,7 +71,7 @@
 		<si:header-enricher>
 			<si:header name="name" value="oleg" />
 		</si:header-enricher>
-		<si:service-activator>
+		<si:service-activator method="echo">
 			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
 	</si:chain>

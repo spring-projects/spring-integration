@@ -32,6 +32,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Arjen Poutsma
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public final class MessageBuilder<T> {
 
@@ -196,11 +197,17 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.PRIORITY, priority);
 	}
 
+	@SuppressWarnings("unchecked")
 	public Message<T> build() {
 		if (!this.modified && this.originalMessage != null) {
 			return this.originalMessage;
 		}
-		return new GenericMessage<T>(this.payload, this.headers);
+		if (payload instanceof Throwable){
+			Throwable t = (Throwable) payload;
+			return (Message<T>) new ErrorMessage(t, this.headers);
+		} else {
+			return new GenericMessage<T>(this.payload, this.headers);
+		}
 	}
 
 	private void verifyType(String headerName, Object headerValue) {
