@@ -204,12 +204,6 @@ public class ArgumentArrayMessageMapperToMessageTests {
 		assertEquals("foo", message.getHeaders().get("foo"));
 		assertEquals("bar", message.getHeaders().get("bar"));
 	}
-	@Test(expected=IllegalArgumentException.class)
-	public void toMessageWithPayloadAndIllegalHeader() throws Exception {
-		Method method = TestService.class.getMethod("sendPayloadAndIllegalHeader", String.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
-		mapper.toMessage(new Object[] { "test", "foo"});
-	}
 
 
 	private static interface TestService {
@@ -218,8 +212,6 @@ public class ArgumentArrayMessageMapperToMessageTests {
 
 		void sendPayloadAndHeader(String payload, @Header("foo") String foo);
 		
-		void sendPayloadAndIllegalHeader(String payload, @Header(MessageHeaders.PREFIX + "foo") String foo);
-
 		void sendPayloadAndOptionalHeader(String payload, @Header(value="foo", required=false) String foo);
 
 		void sendPayloadAndHeadersMap(String payload, @Headers Map<String, Object> headers);
