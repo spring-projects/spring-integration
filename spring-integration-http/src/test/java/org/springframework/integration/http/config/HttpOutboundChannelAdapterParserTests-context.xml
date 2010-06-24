@@ -16,6 +16,7 @@
 
 	<outbound-channel-adapter id="fullConfig"
 		url="http://localhost/test2"
+		http-method="GET"
 		channel="requests"
 		charset="UTF-8"
 		extract-payload="false"

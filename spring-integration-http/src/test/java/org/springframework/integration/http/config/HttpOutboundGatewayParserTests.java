@@ -28,6 +28,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.core.MessageChannel;
@@ -73,6 +74,7 @@ public class HttpOutboundGatewayParserTests {
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
+		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(true, mapperAccessor.getPropertyValue("extractPayload"));
 	}
@@ -98,6 +100,7 @@ public class HttpOutboundGatewayParserTests {
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("uri"));
+		assertEquals(HttpMethod.PUT, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");

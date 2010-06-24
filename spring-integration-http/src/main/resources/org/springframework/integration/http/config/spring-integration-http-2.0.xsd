@@ -112,6 +112,16 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="http-method">
+				<xsd:annotation>
+					<xsd:documentation>
+	The HTTP method to use when executing requests with this adapter. 
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
+				</xsd:simpleType>
+			</xsd:attribute>
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -165,6 +175,16 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="http-method">
+						<xsd:annotation>
+							<xsd:documentation>
+	The HTTP method to use when executing requests with this adapter. 
+							</xsd:documentation>
+						</xsd:annotation>
+						<xsd:simpleType>
+							<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
+						</xsd:simpleType>
+					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
 					<xsd:attribute name="charset" type="xsd:string"/>
 					<xsd:attribute name="request-factory" type="xsd:string">
@@ -188,6 +208,18 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:simpleType name="httpMethodEnumeration">
+		<xsd:restriction base="xsd:token">
+			<xsd:enumeration value="GET" />
+			<xsd:enumeration value="POST" />
+			<xsd:enumeration value="HEAD" />
+			<xsd:enumeration value="OPTIONS" />
+			<xsd:enumeration value="PUT" />
+			<xsd:enumeration value="DELETE" />
+			<xsd:enumeration value="TRACE" />
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="gatewayType">
 		<xsd:annotation>
