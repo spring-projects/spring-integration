@@ -30,7 +30,6 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
@@ -148,10 +147,6 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				else if (annotation.annotationType().equals(Header.class)) {
 					Header headerAnnotation = (Header) annotation;
 					String headerName = this.determineHeaderName(headerAnnotation, methodParameter);
-					if (headerName.startsWith(MessageHeaders.PREFIX)){
-						throw new IllegalArgumentException("Attempting to set header: " + headerName + ". Prefix: '" 
-								+ MessageHeaders.PREFIX + "' is reservered for SI internal use");
-					}
 					if (headerAnnotation.required() && argumentValue == null) {
 						throw new IllegalArgumentException("Received null argument value for required header: '" + headerName + "'");
 					}
