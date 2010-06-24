@@ -16,9 +16,7 @@
 
 package org.springframework.integration.http;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +45,7 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
-	private final String defaultUri;
+	private final String uri;
 
 	private volatile HttpMethod defaultHttpMethod = HttpMethod.POST;
 
@@ -61,30 +59,18 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 
 	/**
-	 * Create an adapter that has no default URI. Any Message sent to this handler will be
-	 * required to contain a valid value for the {@link HttpHeaders#REQUEST_URL} header.
+	 * Create a handler that will send requests to the provided URI.
 	 */
-	public HttpRequestExecutingMessageHandler() {
-		this((String) null);
+	public HttpRequestExecutingMessageHandler(URI uri) {
+		this(uri.toString());
 	}
 
 	/**
-	 * Create an HttpOutboundEndpoint that will send requests to the provided
-	 * URI by default. If a Message contains a valid value for the 
-	 * {@link HttpHeaders#REQUEST_URL} header, that will take precedence.
+	 * Create a handler that will send requests to the provided URI.
 	 */
-	public HttpRequestExecutingMessageHandler(URI defaultUri) {
-		this(defaultUri.toString());
-	}
-
-	/**
-	 * Create an HttpOutboundEndpoint that will send requests to the provided
-	 * URI by default. If a Message contains a valid value for the 
-	 * {@link HttpHeaders#REQUEST_URL} header, that will take precedence.
-	 */
-	public HttpRequestExecutingMessageHandler(String defaultUri) {
+	public HttpRequestExecutingMessageHandler(String uri) {
 		this.restTemplate.getMessageConverters().add(0, new SerializingHttpMessageConverter());
-		this.defaultUri = defaultUri;
+		this.uri = uri;
 	}
 
 
@@ -150,9 +136,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		String uri = null;
 		try {
-			uri = this.resolveUri(requestMessage);
 			HttpMethod httpMethod = this.resolveHttpMethod(requestMessage);
 			// TODO: allow a boolean flag for treating Map as queryParams vs. uriVariables?
 			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
@@ -160,7 +144,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			if (!isWritableRequestMethod(httpMethod) && httpRequest.getBody() != null) {
 				httpRequest = new HttpEntity<Object>(null, httpRequest.getHeaders());
 			}
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				Object responseBody = httpResponse.getBody();
 				MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
@@ -173,7 +157,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			throw e;
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + uri + "]", e);
+			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + this.uri + "]", e);
 		}
 	}
 
@@ -182,32 +166,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			case POST: case PUT: return true;
 			default: return false;
 		}
-	}
-
-	/**
-	 * Resolve the request URL for the given Message. This implementation
-	 * returns the value associated with the {@link HttpHeaders#REQUEST_URL}
-	 * key if available in the Message's headers. Otherwise, it falls back to
-	 * the default URI as provided to the constructor of this handler instance.
-	 * @throws MalformedURLException if an error occurs while constructing the URL
-	 */
-	private String resolveUri(Message<?> message) throws MalformedURLException {
-		Object urlHeader = message.getHeaders().get(HttpHeaders.REQUEST_URL);
-		if (urlHeader == null) {
-			Assert.notNull(this.defaultUri,
-					"No request URL header available in request Message, and no default has been provided.");
-			return this.defaultUri;
-		}
-		if (urlHeader instanceof URL) {
-			return ((URL) urlHeader).toString();
-		}
-		if (urlHeader instanceof URI) {
-			return ((URI) urlHeader).toString();
-		}
-		if (urlHeader instanceof String) {
-			return (String) urlHeader;
-		}
-		throw new IllegalArgumentException("Target URL in Message header must be a URL, URI, or String.");
 	}
 
 	private HttpMethod resolveHttpMethod(Message<?> requestMessage) {

@@ -7,6 +7,6 @@
 			http://www.springframework.org/schema/integration/http
 			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
-	<http:outbound-gateway request-channel="testChannel" auto-startup="false"/>
+	<http:outbound-gateway url="http://localhost/test1" request-channel="testChannel" auto-startup="false"/>
 
 </beans>

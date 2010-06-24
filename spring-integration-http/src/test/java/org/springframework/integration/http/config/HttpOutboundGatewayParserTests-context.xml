@@ -12,35 +12,22 @@
 
 	<si:channel id="requests"/>
 
-	<outbound-gateway id="minimalConfig" request-channel="requests"/>
+	<outbound-gateway id="minimalConfig" url="http://localhost/test1" request-channel="requests"/>
 
 	<si:channel id="replies">
 		<si:queue/>
 	</si:channel>
 
-	<outbound-gateway id="fullConfigWithMapper"
+	<outbound-gateway id="fullConfig"
+		url="http://localhost/test2"
 		request-channel="requests"
-		default-url="http://localhost/test1"
-		request-mapper="testMapper"
 		request-factory="testRequestFactory"
 		request-timeout="1234"
+		extract-request-payload="false"
 		reply-channel="replies"
+		charset="UTF-8"
 		order="77"
 		auto-startup="false"/>
-
-	<outbound-gateway id="fullConfigWithoutMapper"
-		request-channel="requests"
-		default-url="http://localhost/test2"
-		extract-request-payload="false"
-		charset="UTF-8"
-		request-factory="testRequestFactory"
-		request-timeout="1234"
-		reply-channel="replies"/>
-
-	<beans:bean id="testMapper" class="org.springframework.integration.http.DefaultOutboundRequestMapper">
-		<beans:property name="charset" value="UTF-8"/>
-		<beans:property name="extractPayload" value="false"/>
-	</beans:bean>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 

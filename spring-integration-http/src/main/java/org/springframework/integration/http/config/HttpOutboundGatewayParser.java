@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'outbound-gateway' element of the http namespace.
@@ -43,44 +42,16 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
-		String defaultUrl = element.getAttribute("default-url");
-		if (StringUtils.hasText(defaultUrl)) {
-			builder.addConstructorArgValue(defaultUrl);
-		}
-		String charset = element.getAttribute("charset");
-		String extractPayload = element.getAttribute("extract-request-payload");
-		String requestMapperRef = element.getAttribute("request-mapper");
-		if (StringUtils.hasText(requestMapperRef)) {
-			if (StringUtils.hasText(charset)) {
-				this.requestMapperConflictError("charset", parserContext, element);
-				return null;
-			}
-			if (StringUtils.hasText(extractPayload)) {
-				this.requestMapperConflictError("extract-request-payload", parserContext, element);
-				return null;
-			}
-			builder.addPropertyReference("requestMapper", requestMapperRef);
-		}
-		else {
-			BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					PACKAGE_PATH + ".DefaultOutboundRequestMapper");
-			if (StringUtils.hasText(charset)) {
-				mapperBuilder.addPropertyValue("charset", charset);
-			}
-			if (StringUtils.hasText(extractPayload)) {
-				mapperBuilder.addPropertyValue("extractPayload", extractPayload);
-			}
-			builder.addPropertyValue("requestMapper", mapperBuilder.getBeanDefinition());
-		}
+		builder.addConstructorArgValue(element.getAttribute("url"));
+		BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				PACKAGE_PATH + ".DefaultOutboundRequestMapper");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(mapperBuilder, element, "charset");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(mapperBuilder, element, "extract-request-payload", "extractPayload");
+		builder.addPropertyValue("requestMapper", mapperBuilder.getBeanDefinition());
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		return builder;
-	}
-
-	private void requestMapperConflictError(String nameForGateway, ParserContext parserContext, Element element) {
-		parserContext.getReaderContext().error("The '" + nameForGateway + "' and 'request-mapper' are mutually exclusive. " +
-				"When providing an OutboundRequestMapper, set any corresponding property on the mapper directly.", element);
 	}
 
 }

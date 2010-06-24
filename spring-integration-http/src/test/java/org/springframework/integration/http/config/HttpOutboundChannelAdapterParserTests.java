@@ -68,7 +68,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("defaultUri"));
+		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(true, mapperAccessor.getPropertyValue("extractPayload"));
 	}
@@ -92,7 +92,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertEquals(requestFactoryBean, requestFactory);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("defaultUri"));
+		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("uri"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
 	}

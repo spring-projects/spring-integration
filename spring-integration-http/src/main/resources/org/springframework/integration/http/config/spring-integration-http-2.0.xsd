@@ -158,7 +158,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="default-url" type="xsd:string">
+					<xsd:attribute name="url" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:documentation>
 	URL to be used as a fallback for any request Message does not contain the request URL Message header.
@@ -167,15 +167,6 @@
 					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
 					<xsd:attribute name="charset" type="xsd:string"/>
-					<xsd:attribute name="request-mapper" type="xsd:string">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.http.OutboundRequestMapper"/>
-								</tool:annotation>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="request-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
