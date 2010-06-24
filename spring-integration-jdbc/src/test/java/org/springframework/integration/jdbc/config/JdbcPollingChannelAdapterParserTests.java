@@ -53,6 +53,16 @@ public class JdbcPollingChannelAdapterParserTests {
 	}
 	
 	@Test
+	public void testSimpleInboundChannelAdapterWithNestedUpdate(){
+		setUp("pollingForMapJdbcInboundChannelAdapterWithNestedUpdateTest.xml", getClass());
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
+		Message<?> message = channelTemplate.receive();
+		assertNotNull(message);
+		message = channelTemplate.receive();
+		assertNull(channelTemplate.receive());
+	}
+	
+	@Test
 	public void testExtendedInboundChannelAdapter(){
 		setUp("pollingWithJdbcOperationsJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");

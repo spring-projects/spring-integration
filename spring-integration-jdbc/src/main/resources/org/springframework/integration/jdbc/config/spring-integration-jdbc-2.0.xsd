@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.springframework.org/schema/integration/jdbc" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
-	xmlns:integration="http://www.springframework.org/schema/integration" targetNamespace="http://www.springframework.org/schema/integration/jdbc"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/jdbc"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	targetNamespace="http://www.springframework.org/schema/integration/jdbc"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
-	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+		schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -49,7 +52,8 @@
 									specified (but not both).
 								</xsd:documentation>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.jdbc.core.JdbcOperations" />
+									<tool:expected-type
+										type="org.springframework.jdbc.core.JdbcOperations" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -85,7 +89,8 @@
 							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.jdbc.support.lob.LobHandler" />
+									<tool:expected-type
+										type="org.springframework.jdbc.support.lob.LobHandler" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -106,14 +111,45 @@
 			<xsd:complexContent>
 				<xsd:extension base="jdbcType">
 					<xsd:sequence>
-						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+						<xsd:element name="query" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<xsd:documentation>
+										A select query to execute when a message is
+										polled. In general
+										the query can return multiple
+										rows, because
+										the result will be a List (of type determined by the
+										row
+										mapper).
+									</xsd:documentation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="update" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<xsd:documentation>
+										An update query to execute when a message is
+										polled. If the poll is in a transaction then the
+										update will
+										roll back if the transaction does.
+									</xsd:documentation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element ref="integration:poller" minOccurs="0"
+							maxOccurs="1" />
 					</xsd:sequence>
-					<xsd:attribute name="query" type="xsd:string" use="required">
+					<xsd:attribute name="query" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									A select query to execute when a message is polled. In general the query can return multiple
-									rows, because the result will be a List (of type determined by the row mapper).
+									A select query to execute when a message is
+									polled. In general the query can return multiple
+									rows, because
+									the result will be a List (of type determined by the row
+									mapper).
 					</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -122,13 +158,17 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									Reference to a row mapper to use to convert JDBC result set rows to message payloads.
+									Reference to a row mapper to use to convert
+									JDBC result set rows to message payloads.
 									Optional
-									with default that maps
-									result set row to a map (column name to column value). Other simple
+									with default
+									that maps
+									result set row to a map (column name to column value).
+									Other simple
 									use cases can
 									be handled
-									with out-of-the box implementations from Spring JDBC. Others require a custom row
+									with out-of-the box
+									implementations from Spring JDBC. Others require a custom row
 									mapper.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
@@ -141,18 +181,23 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									An update query to execute when a message is polled. If the poll is in a transaction then the
-									update will roll back if the transaction does.
+									An update query to execute when a message is
+									polled. If the poll is in a transaction then the
+									update will
+									roll back if the transaction does.
 					</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="update-per-row" type="xsd:boolean" default="false">
+					<xsd:attribute name="update-per-row" type="xsd:boolean"
+						default="false">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									Flag to indicate whether the update query should be executed per message, or per row (in the
-									case that a message contains multiple rows).
+									Flag to indicate whether the update query
+									should be executed per message, or per row (in the
+									case that a
+									message contains multiple rows).
 								</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -161,10 +206,12 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									Channel to which polled messages will be sent.
+									Channel to which polled messages will be
+									sent.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+									<tool:expected-type
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -184,15 +231,36 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jdbcType">
-					<xsd:attribute name="query" type="xsd:string" use="required">
+					<xsd:sequence>
+						<xsd:element name="query" minOccurs="0" maxOccurs="1">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<xsd:documentation>
+										An SQL update query to execute (INSERT,
+										UPDATE
+										or DELETE). Bean properties of the outgoing
+										message can be
+										referenced in named parameters, e.g. "INSERT into FOOS (ID,
+										NAME) values (:headers[business.key],
+										:payload)". More complex
+										requirements can be implemented by 
+									</xsd:documentation>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+					<xsd:attribute name="query" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									An SQL update query to execute (INSERT, UPDATE
+									An SQL update query to execute (INSERT,
+									UPDATE
 									or DELETE). Bean properties of the outgoing
 									message can be
-									referenced in named parameters, e.g. "INSERT into FOOS (ID, NAME) values (:headers[business.key],
-									:payload)". More complex requirements can be implemented by 
+									referenced in named parameters, e.g. "INSERT into FOOS (ID,
+									NAME) values (:headers[business.key],
+									:payload)". More complex
+									requirements can be implemented by 
 						</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -201,11 +269,14 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<xsd:documentation>
-									Channel from which messages will be output. When a message is sent to this channel it will
-									cause the query to be executed.
+									Channel from which messages will be output.
+									When a message is sent to this channel it will
+									cause the query
+									to be executed.
 								</xsd:documentation>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
+									<tool:expected-type
+										type="org.springframework.integration.core.MessageChannel" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -224,7 +295,8 @@
 					database. Either this or the
 					simple-jdbc-operations
 					must be
-					specified (but not both).
+					specified
+					(but not both).
 							</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
@@ -239,7 +311,8 @@
 					<xsd:documentation>
 						Reference to a JdbcOperations. Either
 						this or
-						the data-source must be
+						the
+						data-source must be
 						specified (but not both).
 					</xsd:documentation>
 					<tool:annotation kind="ref">
@@ -252,14 +325,21 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<xsd:documentation>
-						Reference to a SqlParameterSourceFactory. For an inbound adapter the input is the result of the
-						query, and for an outbound adapter the input is the whole outgoing message. The default factory creates a bean
-						property parameter source for a generic input (like a Message), and treats a List in a special way: the List is
-						assumed to contain entities with a field called "id" and these are collected and copied to a field in the
+						Reference to a SqlParameterSourceFactory. For an
+						inbound adapter the input is the result of the
+						query, and for an
+						outbound adapter the input is the whole outgoing message. The
+						default factory creates a bean
+						property parameter source for a
+						generic input (like a Message), and treats a List in a special
+						way: the List is
+						assumed to contain entities with a field called
+						"id" and these are collected and copied to a field in the
 						parameter source called "idList".
 					</xsd:documentation>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
+						<tool:expected-type
+							type="org.springframework.integration.jdbc.SqlParameterSourceFactory" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

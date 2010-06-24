@@ -55,6 +55,16 @@ public class JdbcMessageHandlerParserTests {
 	}
 
 	@Test
+	public void testMapPayloadNestedQueryOutboundChannelAdapter(){
+		setUp("handlingMapPayloadNestedQueryJdbcOutboundChannelAdapterTest.xml", getClass());
+		Message<?> message = MessageBuilder.withPayload(Collections.singletonMap("foo", "bar")).build();
+		channel.send(message);
+		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
+		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
+		assertEquals("Wrong name", "bar", map.get("name"));
+	}
+
+	@Test
 	public void testParameterSourceOutboundChannelAdapter(){
 		setUp("handlingParameterSourceJdbcOutboundChannelAdapterTest.xml", getClass());
 		Message<?> message = MessageBuilder.withPayload("foo").build();

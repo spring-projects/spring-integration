@@ -55,10 +55,11 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 			parserContext.getReaderContext().error("Exactly one of the attributes data-source or " +
 					"simple-jdbc-operations should be set for the JDBC inbound-channel-adapter", source);
 		}
-		String query = element.getAttribute("query");
+		String query = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query", parserContext);
 		if (!StringUtils.hasText(query)) {
 			throw new BeanCreationException("The query attrbitue is required");
 		}
+		String update = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "update", parserContext);
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);
 		}
@@ -68,7 +69,9 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		builder.addConstructorArgValue(query);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-parameter-source-factory");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update", "updateSql");
+		if (update!=null) {
+			builder.addPropertyValue("updateSql", update);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "update-per-row");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());

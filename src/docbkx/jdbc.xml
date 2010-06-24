@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<chapter id="jdbc">
+  <title>JDBC Support</title>
+
+  <para>Spring Integration provides Channel Adapters for receiving and sending
+  messages via database queries.</para>
+
+  <section id="jdbc-inbound-channel-adapter">
+    <title>Inbound Channel Adapter</title>
+
+    <para>The main function of an inbound Channel Adapter is to execute a SQL
+    <code>SELECT</code> query and turn the result set into a message. The
+    message payload is the whole result set, expressed as a
+    <classname>List</classname>, and the types of the items in the list
+    depends on the row-mapping strategy that is used. The default strategy is
+    a generic mapper that just returns a <classname>Map</classname> for each
+    row i nthe query. Optionally this can be changed by adding a reference to
+    requires a reference to a <classname>RowMapper</classname> instance (see
+    the <ulink
+    url="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html">Spring
+    JDBC</ulink> documentation for more detailed information about row
+    mapping).<note>
+        <para>If you want to convert rows in the SELECT query result to
+        individual messages you can use a downstream splitter.</para>
+      </note></para>
+
+    <para>The inbound adapter also requires a reference to either
+    <classname>JdbcTemplate</classname> instance or
+    <interfacename>DataSource</interfacename>. The following example defines
+    an inbound Channel Adapter with a <classname>DataSource</classname>
+    reference. <programlisting language="xml"><![CDATA[<jdbc:inbound-channel-adapter query="select * from item where status=2" 
+  channel="target" data-source="dataSource" 
+  update="update item set status=10 where id in (:idList)" />]]></programlisting>
+    <note>
+         The parameters in the update query are specified with a colon (:) prefix to the name of a map key. This is a standard feature of the named parameter JDBC support in Spring JDBC. 
+      </note></para>
+
+    <para>As well as the <code>SELECT</code> statement to generate the
+    messages, the adapter above also has an <code>UPDATE</code> statement that
+    is being used to mark the records as processed, so they don't show up in
+    the next poll. The update is parameterised by the list of ids from the
+    original select. This is done through a naming convention by default (a
+    column in the input result set called "id" is translated into a list in
+    the parameter map for the update called "idList"). To change the parameter
+    generation strategy you can inject a
+    <classname>SqlParameterSourceFactory</classname> into the adapter to
+    override the default behaviour (the adapter has a
+    <code>sql-parameter-source-factory</code> attribute).</para>
+
+    <section>
+      <title>Polling and Transactions</title>
+
+      <para>The inbound adapter accepts a regular Spring Integration poller as
+      a sub element, so for instance the frequency of the polling can be
+      controlled. A very important feature of the poller for JDBC usage is the
+      option to wrap the poll operation in a transaction, for example:</para>
+
+      <programlisting><![CDATA[<jdbc:inbound-channel-adapter query="..." 
+  channel="target" data-source="dataSource" 
+  update="...">
+  <poller>
+    <interval-trigger interval="1000"/>
+    <transactional/>
+  </poller>
+</jdbc:inbound-channel-adapter>]]></programlisting>
+
+      <para>In this example the database is polled every 1000 milliseconds,
+      and the update and select queries are both executed in the same
+      transaction. The transaction manager configuration is not shown, but as
+      long as it is aware of the data source then the poll is transactional. A
+      common use case is for the downstream channels to be direct channels
+      (the default), so that the endpoints are invoked in the same thread, and
+      hence the same transaction. then if any of them fails, the transaction
+      rolls back and the input data are reverted to their original
+      state.</para>
+    </section>
+  </section>
+
+  <section id="jdbc-outbound-channel-adapter">
+    <title>Outbound Channel Adapter</title>
+
+    <para>The outbound Channel Adapter is the inverse of the inbound: its role
+    is to handle a message and use it to execute a SQL query. The message
+    payload and headers are available by default as input parameters to the
+    query, for instance: <programlisting language="xml"><![CDATA[<jdbc:outbound-channel-adapter 
+  query="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
+  channel="input" data-source="dataSource"/>]]></programlisting> In the
+    example above, messages arriving on the channel "input" have a payload of
+    a map with key "foo", so the <code>[]</code> operator dereferences that
+    value from the map. The headers are also accessed as a map. <note>
+         The parameters in the query above are bean paths in the incoming message (they are not Spring EL expressions). This behaviour is part of the 
+
+        <classname>MapSqlParameterSource</classname>
+
+         in Spring JDBC, which is the default source created by the outbound adapter. Other behaviour is possible in the adapter, and only requires the user to inject a different 
+
+        <classname>SqlParameterSourceFactory</classname>
+
+        . 
+      </note></para>
+
+    <para>The outbound adapter requires a reference to either a DataSource or
+    a JdbcTemplate. It can also have a
+    <classname>SqlParameterSourceFactory</classname> injected to control the
+    binding of incoming message to the query. </para>
+
+    <para>If the input channel is a direct channel then the outbound adapter
+    runs its query in the same thread, and therefor ethe same transaction (if
+    there is one) as the sender of the message.</para>
+  </section>
+</chapter>

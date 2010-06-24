@@ -52,7 +52,10 @@ public class JdbcMessageHandlerParser extends AbstractOutboundChannelAdapterPars
 					"Exactly one of the attributes data-source or "
 							+ "simple-jdbc-operations should be set for the JDBC outbound-channel-adapter", source);
 		}
-		String query = element.getAttribute("query");
+		String query = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query", parserContext);
+		if (!StringUtils.hasText(query)) {
+			throw new BeanCreationException("The query attrbitue is required");
+		}
 		if (!StringUtils.hasText(query)) {
 			throw new BeanCreationException("The query attrbitue is required");
 		}
