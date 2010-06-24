@@ -202,12 +202,10 @@ public final class MessageBuilder<T> {
 		if (!this.modified && this.originalMessage != null) {
 			return this.originalMessage;
 		}
-		if (payload instanceof Throwable){
-			Throwable t = (Throwable) payload;
-			return (Message<T>) new ErrorMessage(t, this.headers);
-		} else {
-			return new GenericMessage<T>(this.payload, this.headers);
+		if (this.payload instanceof Throwable) {
+			return (Message<T>) new ErrorMessage((Throwable) this.payload, this.headers);
 		}
+		return new GenericMessage<T>(this.payload, this.headers);
 	}
 
 	private void verifyType(String headerName, Object headerValue) {
