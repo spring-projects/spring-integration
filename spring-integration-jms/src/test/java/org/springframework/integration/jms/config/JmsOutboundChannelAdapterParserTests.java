@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jms.JmsHeaderMapper;
+import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * @author Mark Fisher
@@ -86,6 +87,17 @@ public class JmsOutboundChannelAdapterParserTests {
 		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");
 		assertNotNull(headerMapper);
 		assertEquals(TestJmsHeaderMapper.class, headerMapper.getClass());
+	}
+
+	@Test
+	public void adapterWithMessageConverter() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithMessageConverter.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		MessageConverter messageConverter = (MessageConverter) handlerAccessor.getPropertyValue("messageConverter");
+		assertNotNull(messageConverter);
+		assertEquals(TestMessageConverter.class, messageConverter.getClass());
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)

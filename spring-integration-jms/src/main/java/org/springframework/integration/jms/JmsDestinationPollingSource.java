@@ -61,15 +61,6 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 	}
 
 	/**
-	 * Specify a MessageConverter to use when mapping from JMS Mesages to
-	 * Spring Integration Messages. If it is not itself an implementation
-	 * of {@link HeaderMappingMessageConverter}, it will be wrapped.
-	 */
-	public void setMessageConverter(MessageConverter messageConverter) {
-		this.getJmsTemplate().setMessageConverter(messageConverter);
-	}
-
-	/**
 	 * Specify whether the payload should be extracted from each received JMS
 	 * Message to be used as the Spring Integration Message payload.
 	 * 

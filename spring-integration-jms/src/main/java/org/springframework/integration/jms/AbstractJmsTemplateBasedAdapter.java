@@ -22,6 +22,8 @@ import javax.jms.Destination;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.util.Assert;
 
@@ -51,6 +53,8 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	private volatile boolean explicitQosEnabled;
 
 	private volatile JmsTemplate jmsTemplate;
+
+	private volatile MessageConverter messageConverter;
 
 	private volatile JmsHeaderMapper headerMapper;
 
@@ -97,12 +101,19 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		this.pubSubDomain = pubSubDomain;
 	}
 
-	public void setDestinationResolver(DestinationResolver destinationResolver) {
-		this.destinationResolver = destinationResolver;
+	/**
+	 * Provide a {@link MessageConverter} strategy to use for converting
+	 * between Spring Integration Messages and JMS Messages.
+	 * <p>
+	 * The default is a {@link HeaderMappingMessageConverter} that delegates to
+	 * a {@link SimpleMessageConverter}.
+	 */
+	public void setMessageConverter(MessageConverter messageConverter) {
+		this.messageConverter = messageConverter;
 	}
 
-	public void setJmsTemplate(JmsTemplate jmsTemplate) {
-		this.jmsTemplate = jmsTemplate;
+	public void setDestinationResolver(DestinationResolver destinationResolver) {
+		this.destinationResolver = destinationResolver;
 	}
 
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
@@ -168,6 +179,9 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 			this.jmsTemplate.setTimeToLive(this.timeToLive);
 			this.jmsTemplate.setPriority(this.priority);
 			this.jmsTemplate.setDeliveryMode(this.deliveryMode);
+			if (this.messageConverter != null) {
+				this.jmsTemplate.setMessageConverter(this.messageConverter);
+			}
 			this.configureMessageConverter(this.jmsTemplate, this.headerMapper);
 			this.initialized = true;
 		}
