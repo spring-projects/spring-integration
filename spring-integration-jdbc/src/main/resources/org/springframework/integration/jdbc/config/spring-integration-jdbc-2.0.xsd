@@ -149,7 +149,7 @@
 									polled. In general the query can return multiple
 									rows, because
 									the result will be a List (of type determined by the row
-									mapper).
+									mapper).  The query can also be specified as a nested element.
 					</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -184,7 +184,7 @@
 									An update query to execute when a message is
 									polled. If the poll is in a transaction then the
 									update will
-									roll back if the transaction does.
+									roll back if the transaction does.  The update can also be specified as a nested element.
 					</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -243,7 +243,7 @@
 										referenced in named parameters, e.g. "INSERT into FOOS (ID,
 										NAME) values (:headers[business.key],
 										:payload)". More complex
-										requirements can be implemented by 
+										requirements can be implemented by specifying a sql-parameter-source-factory.
 									</xsd:documentation>
 								</xsd:appinfo>
 							</xsd:annotation>
@@ -259,8 +259,7 @@
 									message can be
 									referenced in named parameters, e.g. "INSERT into FOOS (ID,
 									NAME) values (:headers[business.key],
-									:payload)". More complex
-									requirements can be implemented by 
+									:payload)".  The query can also be specified as a nested element.
 						</xsd:documentation>
 							</xsd:appinfo>
 						</xsd:annotation>
