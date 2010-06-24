@@ -32,10 +32,16 @@ import org.springframework.integration.store.SimpleMessageStore;
  * {@link org.springframework.integration.aggregator.ReleaseStrategy#canRelease(org.springframework.integration.store.MessageGroup) canRelease(..)}
  * method).
  * <p/>
+ * This class differs from CorrelatingMessageHandler in that it completely decouples the receiver and the sender. It can
+ * be applied in scenarios where completion of a message group is not well defined but only a certain amount of messages
+ * for any given correlation key may be processed at a time.
+ * <p/>
  * The messages will be stored in a {@link org.springframework.integration.store.MessageGroupStore MessageStore}
  * for each correlation key.
  *
  * @author Iwein Fuld
+ *
+ * @see CorrelatingMessageHandler
  */
 public class CorrelatingMessageBarrier extends AbstractMessageHandler implements MessageSource<Object> {
 	private static final Log log = LogFactory.getLog(CorrelatingMessageBarrier.class);
