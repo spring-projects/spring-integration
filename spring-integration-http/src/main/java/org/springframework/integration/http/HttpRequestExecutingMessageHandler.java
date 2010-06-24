@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.core.Message;
@@ -51,6 +52,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile HttpMethod defaultHttpMethod = HttpMethod.POST;
 
 	private volatile OutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
+
+	private boolean expectReply = true;
 
 	private volatile Class<?> expectedResponseType = Object.class;
 
@@ -92,6 +95,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 */
 	public void setDefaultHttpMethod(HttpMethod defaultHttpMethod) {
 		this.defaultHttpMethod = defaultHttpMethod;
+	}
+
+	/**
+	 * Specify whether a reply Message is expected. If not, this handler will simply return null for a
+	 * successful response or throw an Exception for a non-successful response. The default is true.
+	 */
+	public void setExpectReply(boolean expectReply) {
+		this.expectReply = expectReply;
 	}
 
 	/**
@@ -149,11 +160,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			if (!isWritableRequestMethod(httpMethod) && httpRequest.getBody() != null) {
 				httpRequest = new HttpEntity<Object>(null, httpRequest.getHeaders());
 			}
-			HttpEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
-			Object responseBody = httpResponse.getBody();
-			MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
-					MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
-			return replyBuilder.copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
+			if (this.expectReply) {
+				Object responseBody = httpResponse.getBody();
+				MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
+						MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
+				return replyBuilder.copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+			}
+			return null;
 		}
 		catch (MessagingException e) {
 			throw e;
