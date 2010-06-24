@@ -18,12 +18,14 @@ package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.config.TestTrigger;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
 
@@ -86,6 +88,16 @@ public class PollerParserTests {
 		assertNotNull(poller);
 		PollerMetadata metadata = (PollerMetadata) poller;
 		assertEquals(1234, metadata.getReceiveTimeout());
+	}
+
+    @Test
+	public void pollerWithTriggerReference() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"pollerWithTriggerReference.xml", PollerParserTests.class);
+		Object poller = context.getBean("poller");
+		assertNotNull(poller);
+		PollerMetadata metadata = (PollerMetadata) poller;
+		assertTrue(metadata.getTrigger() instanceof TestTrigger);
 	}
 
 }

@@ -42,6 +42,7 @@ import org.springframework.util.xml.DomUtils;
  * Parser for the &lt;poller&gt; element.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class PollerParser extends AbstractBeanDefinitionParser {
 
@@ -91,18 +92,31 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 
 	private void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		String triggerBeanName = null;
+        if (pollerElement.hasAttribute("trigger")) {
+            triggerBeanName = pollerElement.getAttribute("trigger");
+        }
 		Element intervalElement = DomUtils.getChildElementByTagName(pollerElement, "interval-trigger");
 		if (intervalElement != null) {
+            if (triggerBeanName != null) {
+                parserContext.getReaderContext().error(
+                        "A <poller> element with the 'trigger' attribute cannot have <interval-trigger/> or <cron-trigger/> child elements. ", pollerElement);
+            }
 			triggerBeanName = parseIntervalTrigger(intervalElement, parserContext);
 		}
 		else {
 			Element cronElement = DomUtils.getChildElementByTagName(pollerElement, "cron-trigger");
-			if (cronElement == null) {
-				parserContext.getReaderContext().error(
-						"A <poller> element must include either an <interval-trigger/> or <cron-trigger/> child element.", pollerElement);
-			}
-			triggerBeanName = parseCronTrigger(cronElement, parserContext);
+            if (cronElement != null) {
+                if (triggerBeanName != null) {
+                    parserContext.getReaderContext().error(
+                            "A <poller> element with the 'trigger' attribute cannot have <interval-trigger/> or <cron-trigger/> child elements. ", pollerElement);
+                }
+                triggerBeanName = parseCronTrigger(cronElement, parserContext);
+            }
 		}
+        if (triggerBeanName == null) {
+            parserContext.getReaderContext().error(
+                    "A <poller> element must include a trigger definition, either as a 'trigger' attribute, or as an <interval-trigger/> or <cron-trigger/> child element.", pollerElement);              
+        }
 		targetBuilder.addPropertyReference("trigger", triggerBeanName);
 	}
 

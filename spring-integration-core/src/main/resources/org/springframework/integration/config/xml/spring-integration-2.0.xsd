@@ -1099,6 +1099,15 @@
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:sequence>
+        <xsd:attribute name="trigger" type="xsd:string">
+            <xsd:annotation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.scheduling.Trigger" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+        </xsd:attribute>
 		<xsd:attribute name="receive-timeout" type="xsd:string" />
 		<xsd:attribute name="send-timeout" type="xsd:string" />
 		<xsd:attribute name="max-messages-per-poll" type="xsd:string" />
