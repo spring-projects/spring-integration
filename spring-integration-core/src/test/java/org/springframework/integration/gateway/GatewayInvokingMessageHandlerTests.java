@@ -24,15 +24,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
 
 /**
  * @author Oleg Zhurakousky
