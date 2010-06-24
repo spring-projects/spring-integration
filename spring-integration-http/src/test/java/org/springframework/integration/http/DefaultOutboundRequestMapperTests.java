@@ -30,6 +30,7 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -42,6 +43,7 @@ public class DefaultOutboundRequestMapperTests {
 	@Test
 	public void simpleStringValueFormData() throws Exception {
 		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
+		mapper.setHttpMethod(HttpMethod.POST);
 		Map<String, String> form = new LinkedHashMap<String, String>();
 		form.put("a", "1");
 		form.put("b", "2");
@@ -61,6 +63,7 @@ public class DefaultOutboundRequestMapperTests {
 	@SuppressWarnings("unchecked")
 	public void stringArrayValueFormData() throws Exception {
 		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
+		mapper.setHttpMethod(HttpMethod.POST);
 		Map form = new LinkedHashMap();
 		form.put("a", new String[] { "1", "2", "3" });
 		form.put("b", "4");
@@ -96,6 +99,7 @@ public class DefaultOutboundRequestMapperTests {
 	@SuppressWarnings("unchecked")
 	public void listValueFormData() throws Exception {
 		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
+		mapper.setHttpMethod(HttpMethod.POST);
 		Map form = new LinkedHashMap();
 		List<String> listA = new ArrayList<String>();
 		listA.add("1");
@@ -130,6 +134,7 @@ public class DefaultOutboundRequestMapperTests {
 	@SuppressWarnings("unchecked")
 	public void nameOnlyWithNullValues() throws Exception {
 		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
+		mapper.setHttpMethod(HttpMethod.POST);
 		Map form = new LinkedHashMap();
 		form.put("a", null);
 		form.put("b", "foo");
@@ -151,6 +156,7 @@ public class DefaultOutboundRequestMapperTests {
 	@Test
 	public void nonFormDataInMap() throws Exception {
 		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
+		mapper.setHttpMethod(HttpMethod.POST);
 		Map<String, TestBean> form = new LinkedHashMap<String, TestBean>();
 		form.put("A", new TestBean());
 		form.put("B", new TestBean());

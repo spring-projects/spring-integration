@@ -24,6 +24,7 @@ import javax.xml.transform.Source;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
@@ -36,12 +37,21 @@ import org.springframework.util.Assert;
  */
 public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 
+	private volatile HttpMethod httpMethod;
+
 	private volatile boolean extractPayload = true;
 
 	private volatile ContentTypeResolver contentTypeResolver = new DefaultContentTypeResolver();
 
 	private volatile String charset = "UTF-8";
 
+
+	/**
+	 * Specify the {@link HttpMethod} that will be used when executing requests.
+	 */
+	public void setHttpMethod(HttpMethod httpMethod) {
+		this.httpMethod = httpMethod;
+	}
 
 	/**
 	 * Specify whether the outbound message's payload should be extracted
@@ -84,7 +94,10 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		MediaType contentType = (payload instanceof String) ? this.contentTypeResolver.resolveContentType((String) payload, this.charset)
 				: this.contentTypeResolver.resolveContentType(payload);
 		httpHeaders.setContentType(contentType);
-		return new HttpEntity(requestMessage.getPayload(), httpHeaders);
+		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
+			return new HttpEntity(requestMessage.getPayload(), httpHeaders);
+		}
+		return new HttpEntity(httpHeaders);
 	}
 
 	private HttpEntity<Object> createHttpEntityWithMessageAsBody(Message<?> requestMessage) {

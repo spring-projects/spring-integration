@@ -32,7 +32,6 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -47,13 +46,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final String uri;
 
-	private volatile HttpMethod defaultHttpMethod = HttpMethod.POST;
-
-	private volatile OutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
+	private volatile HttpMethod httpMethod = HttpMethod.POST;
 
 	private boolean expectReply = true;
 
-	private volatile Class<?> expectedResponseType = Object.class;
+	private volatile Class<?> expectedResponseType = byte[].class;
+
+	private final DefaultOutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
@@ -75,12 +74,28 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 
 	/**
-	 * Specify the default {@link HttpMethod}. This will provide a fallback in the case
-	 * that a Message does not contain the HTTP method as a header. If this is not
-	 * explicitly specified, then the default method will be POST.
+	 * Specify the {@link HttpMethod} for requests. The default method will be POST.
 	 */
-	public void setDefaultHttpMethod(HttpMethod defaultHttpMethod) {
-		this.defaultHttpMethod = defaultHttpMethod;
+	public void setHttpMethod(HttpMethod httpMethod) {
+		this.requestMapper.setHttpMethod(httpMethod);
+		this.httpMethod = httpMethod;
+	}
+
+	/**
+	 * Specify whether the outbound message's payload should be extracted
+	 * when preparing the request body. Otherwise the Message instance itself
+	 * will be serialized. The default value is <code>true</code>.
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.requestMapper.setExtractPayload(extractPayload);
+	}
+
+	/**
+	 * Specify the charset name to use for converting String-typed payloads to
+	 * bytes. The default is 'UTF-8'.
+	 */
+	public void setCharset(String charset) {
+		this.requestMapper.setCharset(charset);
 	}
 
 	/**
@@ -123,28 +138,13 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		this.restTemplate.setRequestFactory(requestFactory);
 	}
 
-	/**
-	 * Specify the {@link OutboundRequestMapper} implementation to use for mapping a
-	 * {@link Message} into an {@link HttpEntity} when executing an HTTP request.
-	 * <p>
-	 * If not provided explicitly, the default implementation is {@link DefaultOutboundRequestMapper}. 
-	 */
-	public void setRequestMapper(OutboundRequestMapper requestMapper) {
-		Assert.notNull(requestMapper, "requestMapper must not be null");
-		this.requestMapper = requestMapper;
-	}
-
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		try {
-			HttpMethod httpMethod = this.resolveHttpMethod(requestMessage);
 			// TODO: allow a boolean flag for treating Map as queryParams vs. uriVariables?
 			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
 			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
-			if (!isWritableRequestMethod(httpMethod) && httpRequest.getBody() != null) {
-				httpRequest = new HttpEntity<Object>(null, httpRequest.getHeaders());
-			}
-			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, httpMethod, httpRequest, this.expectedResponseType, uriVariables);
+			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				Object responseBody = httpResponse.getBody();
 				MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
@@ -159,32 +159,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + this.uri + "]", e);
 		}
-	}
-
-	private boolean isWritableRequestMethod(HttpMethod httpMethod) {
-		switch (httpMethod) {
-			case POST: case PUT: return true;
-			default: return false;
-		}
-	}
-
-	private HttpMethod resolveHttpMethod(Message<?> requestMessage) {
-		HttpMethod httpMethod = null;
-		Object methodFromMessage = requestMessage.getHeaders().get(HttpHeaders.REQUEST_METHOD);
-		if (methodFromMessage instanceof HttpMethod) {
-			httpMethod = (HttpMethod) methodFromMessage;
-		}
-		else if (methodFromMessage instanceof String) {
-			httpMethod = HttpMethod.valueOf((String) methodFromMessage);
-		}
-		else if (methodFromMessage != null) {
-			throw new IllegalArgumentException("expected an HttpMethod enum instance or String for " +
-					"the REQUEST_METHOD header, but received type: " + methodFromMessage.getClass());
-		}
-		if (httpMethod == null) {
-			httpMethod = this.defaultHttpMethod;
-		}
-		return httpMethod;
 	}
 
 	private Map<String, ?> determineUriVariables(Message<?> requestMessage) {

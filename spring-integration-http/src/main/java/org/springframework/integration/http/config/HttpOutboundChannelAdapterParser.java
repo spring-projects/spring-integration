@@ -23,7 +23,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the 'outbound-channel-adapter' element of the http namespace.
@@ -40,15 +39,9 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
 		builder.addPropertyValue("expectReply", false);
-		String url = element.getAttribute("url");
-		if (StringUtils.hasText(url)) {
-			builder.addConstructorArgValue(url);
-		}
-		BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_PATH + ".DefaultOutboundRequestMapper");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(mapperBuilder, element, "charset");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(mapperBuilder, element, "extract-payload");
-		builder.addPropertyValue("requestMapper", mapperBuilder.getBeanDefinition());
+		builder.addConstructorArgValue(element.getAttribute("url"));
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
 		return builder.getBeanDefinition();
 	}

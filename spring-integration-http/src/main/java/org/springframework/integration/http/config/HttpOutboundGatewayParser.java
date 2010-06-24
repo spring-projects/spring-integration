@@ -43,11 +43,8 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
 		builder.addConstructorArgValue(element.getAttribute("url"));
-		BeanDefinitionBuilder mapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				PACKAGE_PATH + ".DefaultOutboundRequestMapper");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(mapperBuilder, element, "charset");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(mapperBuilder, element, "extract-request-payload", "extractPayload");
-		builder.addPropertyValue("requestMapper", mapperBuilder.getBeanDefinition());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload", "extractPayload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
