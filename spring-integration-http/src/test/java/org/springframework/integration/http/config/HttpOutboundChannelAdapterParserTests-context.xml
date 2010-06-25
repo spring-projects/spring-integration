@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration/http"
+<beans:beans
+	xmlns="http://www.springframework.org/schema/integration/http"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/integration/http
-			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:channel id="requests"/>
 
@@ -19,11 +19,17 @@
 		http-method="GET"
 		channel="requests"
 		charset="UTF-8"
+		message-converters="converterList"
 		extract-payload="false"
 		request-factory="testRequestFactory"
 		order="77"
 		auto-startup="false"/>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
+
+	<util:list id="converterList">
+		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>
+		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>
+	</util:list>
 
 </beans:beans>

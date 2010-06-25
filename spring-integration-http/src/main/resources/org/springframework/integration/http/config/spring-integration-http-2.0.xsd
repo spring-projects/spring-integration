@@ -133,6 +133,14 @@
 			</xsd:attribute>
 			<xsd:attribute name="charset" type="xsd:string"/>
 			<xsd:attribute name="extract-payload" type="xsd:string"/>
+			<xsd:attribute name="message-converters" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
+	all of the default converters that would normally be present on the underlying RestTemplate.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="request-factory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -184,6 +192,14 @@
 						<xsd:simpleType>
 							<xsd:union memberTypes="httpMethodEnumeration xsd:string" />
 						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="message-converters" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
+	all of the default converters that would normally be present on the underlying RestTemplate.
+							</xsd:documentation>
+						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
 					<xsd:attribute name="charset" type="xsd:string"/>

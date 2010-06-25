@@ -3,12 +3,14 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd
 			http://www.springframework.org/schema/integration/http
-			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd
+			http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:channel id="requests"/>
 
@@ -24,6 +26,7 @@
 		request-channel="requests"
 		request-factory="testRequestFactory"
 		request-timeout="1234"
+		message-converters="converterList"
 		extract-request-payload="false"
 		reply-channel="replies"
 		charset="UTF-8"
@@ -31,5 +34,10 @@
 		auto-startup="false"/>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
+
+	<util:list id="converterList">
+		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>
+		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>
+	</util:list>
 
 </beans:beans>

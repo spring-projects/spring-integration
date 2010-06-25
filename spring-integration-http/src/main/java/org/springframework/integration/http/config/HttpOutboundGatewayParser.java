@@ -44,6 +44,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 				PACKAGE_PATH + ".HttpRequestExecutingMessageHandler");
 		builder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload", "extractPayload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
