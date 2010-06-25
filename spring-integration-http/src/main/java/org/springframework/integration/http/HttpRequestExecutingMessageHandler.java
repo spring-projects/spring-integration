@@ -32,6 +32,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -68,6 +69,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * Create a handler that will send requests to the provided URI.
 	 */
 	public HttpRequestExecutingMessageHandler(String uri) {
+		Assert.hasText(uri, "URI is required");
 		this.restTemplate.getMessageConverters().add(0, new SerializingHttpMessageConverter());
 		this.uri = uri;
 	}
