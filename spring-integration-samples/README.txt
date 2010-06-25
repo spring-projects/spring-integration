@@ -5,7 +5,7 @@ NOTE: this requires Maven 2.1.0 or later
 1. Open a command prompt and navigate to the 'samples' directory within the
 root of the project distribution:
 
-	#> cd spring-integration-samples
+	#> cd samples
 
 2. Build the samples and install them into your local Maven repository:
 
