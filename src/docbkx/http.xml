@@ -111,7 +111,9 @@ By default the HTTP request will be generated using an instance of <classname>Si
     </para>
     <para>
 		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
-		default http-method is POST, and the default response type is a byte array (byte[]).
+		default http-method is POST, and the default response type is <emphasis>null</emphasis>. With a null response type, the payload of the reply Message would only
+		contain the status code (e.g. 200) as long as it's a successful status (non-successful status codes will throw Exceptions). If you are expecting a different
+		type, such as a <classname>String</classname>, then provide that fully-qualified class name as shown below.
 		<programlisting language="xml"><![CDATA[<http:outbound-gateway id="example"
 		request-channel="requests"
 		url="http://localhost/test"
