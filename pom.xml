@@ -8,6 +8,7 @@
 	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
+		<module>spring-integration-parent</module>
 		<module>spring-integration-core</module>
 		<module>spring-integration-event</module>
 		<module>spring-integration-file</module>
@@ -18,7 +19,6 @@
 		<module>spring-integration-jms</module>
 		<module>spring-integration-jmx</module>
 		<module>spring-integration-mail</module>
-		<module>spring-integration-parent</module>
 		<module>spring-integration-rmi</module>
 		<module>spring-integration-samples</module>
 		<module>spring-integration-security</module>
