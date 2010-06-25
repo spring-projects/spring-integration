@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  */
 public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 
-	private volatile HttpMethod httpMethod;
+	private volatile HttpMethod httpMethod = HttpMethod.POST;
 
 	private volatile boolean extractPayload = true;
 
