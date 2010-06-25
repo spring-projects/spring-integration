@@ -74,21 +74,21 @@
 	<para>
 		To configure the <classname>HttpRequestExecutingMessageHandler</classname> write a bean definition like this:
 		<programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpRequestExecutingMessageHandler" >
+	<constructor-arg value="http://localhost:8080/example" />
 	<property name="outputChannel" ref="responseChannel" />
 </bean>]]></programlisting>
-		This bean definition will execute HTTP requests by first converting the message to an HTTP request using an instance of 
-		<classname>DefaultOutboundRequestMapper</classname>.  It will also expect to find the request URL in the message header under 
-		the key <emphasis>HttpHeaders.REQUEST_URL</emphasis>.  However, it is also possible to set a default URL as a constructor argument 
-		along with other options as shown below.
+		This bean definition will execute HTTP requests by delegating to a <classname>RestTemplate</classname>. That template in turn delegates
+		to a list of HttpMessageConverters to generate the HTTP request body from the Message payload. You can configure those converters as well
+		as the ClientHttpRequestFactory instance to use:
 		<programlisting language="xml"><![CDATA[<bean id="httpOutbound" class="org.springframework.integration.http.HttpRequestExecutingMessageHandler" >
 	<constructor-arg value="http://localhost:8080/example" />
 	<property name="outputChannel" ref="responseChannel" />
-	<property name="sendTimeout" value="5000" />
-	<property name="requestMapper" ref="customRequestMapper" />
+	<property name="messageConverters" ref="messageConverterList" />
+	<property name="requestFactory" ref="customRequestFactory" />
 </bean>]]></programlisting>
 By default the HTTP request will be generated using an instance of <classname>SimpleClientHttpRequestFactory</classname> which uses the JDK 
 	<classname>HttpURLConnection</classname>.  Use of the Apache Commons HTTP Client is also supported through the provided 
-	<classname>CommonsClientHttpRequestFactory</classname> which can be injected into the outbound gateway.   	
+	<classname>CommonsClientHttpRequestFactory</classname> which can be injected as shown above.   	
     </para>
   </section>
 
@@ -111,18 +111,28 @@ By default the HTTP request will be generated using an instance of <classname>Si
     </para>
     <para>
 		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway.
-		<programlisting language="xml"><![CDATA[<http:outbound-gateway id="fullConfigWithoutMapper"
+		<programlisting language="xml"><![CDATA[<http:outbound-gateway id="example"
 		request-channel="requests"
-		default-url="http://localhost/test"
+		url="http://localhost/test"
+		http-method="POST"
 		extract-request-payload="false"
 		charset="UTF-8"
 		request-factory="requestFactory"
 		request-timeout="1234"
 		reply-channel="replies"/>]]></programlisting>
-		If you want to provide a custom OutboundRequestMapper, then a reference may be supplied to the
-		'request-mapper' attribute. In that case however you will not be allowed to set the 'charset'
-		or 'extract-request-payload' attributes since those are both properties of the default
-		mapper (see the JavaDoc for DefaultOutboundRequestMapper for more information).
     </para>
+	<para>If your outbound adapter is to be used in a unidirectional way, then you can use an outbound-channel-adapter instead. This means that
+		a successful response will simply execute without sending any Messages to a reply channel. In the case of any non-successful response
+		status code, it will throw an exception. The configuration looks very similar to the gateway:
+		<programlisting language="xml"><![CDATA[<http:outbound-channel-adapter id="example"
+			url="http://localhost/example"
+			http-method="GET"
+			channel="requests"
+			charset="UTF-8"
+			extract-payload="false"
+			request-factory="someRequestFactory"
+			order="3"
+			auto-startup="false"/>]]></programlisting>
+	</para>
   </section>
 </chapter>
