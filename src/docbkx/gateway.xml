@@ -98,6 +98,35 @@
 	In the above case you can clearly see how a different header value will be set for the 'RESPONSE_TYPE' 
 	header based on the gateway's method.
     </para>
+    <para>
+    As with anything else, Gateway invocation might result in error.
+    By default all error that have occurred downstream will be re-thrown as MessagingExeption (RuntimeException) 
+    upon Gateway's method invocation. However there are times when you may want to treat Exception as a valid reply, 
+    by mapping it to a Message. To accomplish this Gateway provides support for Exception mappers via <emphasis>exception-mapper</emphasis> 
+    attribute. 
+    </para>
+<programlisting language="xml"><![CDATA[<si:gateway id="sampleGateway"
+		default-request-channel="gatewayChannel" 
+		service-interface="foo.bar.SimpleGateway"
+		exception-mapper="exceptionMapper"/>
+				
+<bean id="exceptionMapper" class="foo.bar.SampleExceptionMapper"/>
+				
+				]]></programlisting>
+				
+	<emphasis>foo.bar.SampleExceptionMapper</emphasis> is the implementation of 
+	<emphasis>org.springframework.integration.message.InboundMessageMapper</emphasis> which only defines one method <code>toMessage(Object object)</code>.
+<programlisting language="java"><![CDATA[public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
+	public Message<?> toMessage(Throwable object) throws Exception {
+		MessageHandlingException ex = (MessageHandlingException) object;		
+		return MessageBuilder.withPayload("Error happened in message: " + 
+		            ex.getFailedMessage().getPayload()).build();
+	}
+		
+}
+				]]></programlisting>	
+ 
+ 
   </section>
 
 </chapter>
