@@ -49,13 +49,12 @@
 				<artifactId>spring-integration-xml</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<!-- test-scoped dependencies -->
 			<dependency>
 				<groupId>org.springframework.integration</groupId>
 				<artifactId>spring-integration-ws</artifactId>
 				<version>${project.version}</version>
-				<scope>test</scope>
 			</dependency>
+			<!-- test-scoped dependencies -->
 			<dependency>
 				<groupId>org.springframework.integration</groupId>
 				<artifactId>spring-integration-test</artifactId>
