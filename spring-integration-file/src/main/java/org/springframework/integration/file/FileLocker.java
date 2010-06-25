@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file.locking;
+package org.springframework.integration.file;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ import java.io.File;
  * contract, defining these guarantees is up to the implementation.
  *
  * If a filter that respects locks is required extend
- * {@link AbstractFileLockerFilter} instead.
+ * {@link org.springframework.integration.file.locking.AbstractFileLockerFilter} instead.
  * 
  * @author Iwein Fuld
  * @since 2.0

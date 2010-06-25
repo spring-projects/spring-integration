@@ -16,8 +16,6 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.file.locking.FileLocker;
-
 import java.io.File;
 import java.util.List;
 

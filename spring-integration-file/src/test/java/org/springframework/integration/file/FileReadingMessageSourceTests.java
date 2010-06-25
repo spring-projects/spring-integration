@@ -22,7 +22,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.file.locking.FileLocker;
 
 import java.io.File;
 import java.io.IOException;

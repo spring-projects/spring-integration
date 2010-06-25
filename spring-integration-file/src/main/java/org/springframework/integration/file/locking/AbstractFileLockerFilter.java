@@ -17,6 +17,7 @@
 package org.springframework.integration.file.locking;
 
 import org.springframework.integration.file.AbstractFileListFilter;
+import org.springframework.integration.file.FileLocker;
 
 import java.io.File;
 
