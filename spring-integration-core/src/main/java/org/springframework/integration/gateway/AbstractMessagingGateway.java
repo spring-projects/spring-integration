@@ -27,6 +27,8 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -41,6 +43,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public abstract class AbstractMessagingGateway extends AbstractEndpoint {
+	
+	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private volatile MessageChannel requestChannel;
 
@@ -120,7 +124,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		}
 	}
 
-	public void send(Object object) {
+	protected void send(Object object) {
 		this.initializeIfNecessary();
 		Assert.state(this.requestChannel != null,
 				"send is not supported, because no request channel has been configured");
@@ -131,7 +135,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		}
 	}
 
-	public Object receive() {
+	protected Object receive() {
 		this.initializeIfNecessary();
 		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
@@ -147,15 +151,15 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		}
 	}
 
-	public Object sendAndReceive(Object object) {
+	protected Object sendAndReceive(Object object) {
 		return this.sendAndReceive(object, true);
 	}
 
-	public Message<?> sendAndReceiveMessage(Object object) {
+	protected Message<?> sendAndReceiveMessage(Object object) {
 		return (Message<?>) this.sendAndReceive(object, false);
 	}
 
-	private Object sendAndReceive(Object object, boolean shouldMapMessage) {
+	Object sendAndReceive(Object object, boolean shouldMapMessage) {
 		Message<?> request = this.toMessage(object);
 		Message<?> reply = this.sendAndReceiveMessage(request);
 		if (!shouldMapMessage) {
@@ -174,7 +178,19 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		if (this.replyChannel != null && this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
-		Message<?> reply = this.channelTemplate.sendAndReceive(message, this.requestChannel);
+		Message<?> reply = null;
+		try {
+			reply = this.channelTemplate.sendAndReceive(message, this.requestChannel);
+		} catch (Exception e) {
+			logger.warn("Execution of endpoint by the MessageListener resulted in : " + e);
+			reply = this.toMessage(e);
+			if (reply == null){ // if reply wasn't mapped re-throw
+				if (e instanceof RuntimeException){
+					throw (RuntimeException)e;
+				} 
+			}
+		}
+			
 		if (reply != null && this.shouldThrowErrors && reply instanceof ErrorMessage) {
 			Throwable error = ((ErrorMessage) reply).getPayload();
 			if (error instanceof RuntimeException) {
@@ -226,10 +242,29 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		}
 	}
 
+	public InboundMessageMapper<Throwable> getExceptionMapper() {
+		return exceptionMapper;
+	}
+
+	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
+		this.exceptionMapper = exceptionMapper;
+	}
+
 	/**
 	 * Subclasses must implement this to map from an Object to a Message.
 	 */
-	protected abstract Message<?> toMessage(Object object);
+	protected  Message<?> toMessage(Object object){
+		if (object instanceof Throwable){
+			if (this.exceptionMapper != null){
+				try {
+					return exceptionMapper.toMessage((Throwable) object);
+				} catch (Exception e2) {
+					logger.warn("Problem mapping " + object + " to message with: " + exceptionMapper);
+				}	
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Subclasses must implement this to map from a Message to an Object.

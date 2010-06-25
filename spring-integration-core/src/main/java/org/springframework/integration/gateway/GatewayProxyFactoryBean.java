@@ -35,6 +35,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.ArgumentArrayMessageMapper;
+import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -47,6 +48,8 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  */
 public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
+
+	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private volatile Class<?> serviceInterface;
 
@@ -287,6 +290,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		}
 		ArgumentArrayMessageMapper messageMapper = new ArgumentArrayMessageMapper(method, staticHeaders);
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(messageMapper, new SimpleMessageMapper());
+		gateway.setExceptionMapper(exceptionMapper);
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
 		}
@@ -331,6 +335,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	public void setMethodToChannelMap(Map<String, GatewayMethodDefinition> methodToChannelMap) {
 		this.methodToChannelMap = methodToChannelMap;
+	}
+	
+	public InboundMessageMapper<Throwable> getExceptionMapper() {
+		return exceptionMapper;
+	}
+
+	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
+		this.exceptionMapper = exceptionMapper;
 	}
 
 }

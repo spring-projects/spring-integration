@@ -468,6 +468,7 @@
 					</xsd:attribute>
 					<xsd:attribute name="request-destination-name" type="xsd:string"/>
 					<xsd:attribute name="request-pub-sub-domain" type="xsd:string"/>
+					<xsd:attribute name="exception-mapper" type="xsd:string"/>
 					<xsd:attribute name="default-reply-destination" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>

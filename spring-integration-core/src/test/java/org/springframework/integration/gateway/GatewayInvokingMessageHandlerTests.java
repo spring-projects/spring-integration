@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -50,6 +51,11 @@ public class GatewayInvokingMessageHandlerTests {
 	@Autowired
 	@Qualifier("gatewayWithError")
 	SimpleGateway gatewayWithError;
+	
+	@Autowired
+	@Qualifier("gatewayWithErrorAndMapper")
+	SimpleGateway gatewayWithErrorAndMapper;
+	
 	
 	@Autowired
 	@Qualifier("inputB")
@@ -82,39 +88,44 @@ public class GatewayInvokingMessageHandlerTests {
 	
 	@Test
 	public void validateGatewayWithErrorMessageReturned() {	
+
 		try {
-			gatewayWithError.sendRecieve("echoWithErrorMessageChannel");
-			Assert.fail();
+			String result = gatewayWithErrorAndMapper.sendRecieve("echoWithRuntimeExceptionChannel");
+			Assert.assertNotNull(result);
+			Assert.assertEquals("Error happened in message: echoWithRuntimeExceptionChannel", result);
 		} catch (Exception e) {
-			Assert.assertEquals("echoWithErrorMessageChannel", e.getMessage());
+			Assert.fail();
 		}
 		
 		try {
 			gatewayWithError.sendRecieve("echoWithRuntimeExceptionChannel");
 			Assert.fail();
-		} catch (Exception e) {
-			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getMessage());
+		} catch (MessageHandlingException e) {
+			Assert.assertEquals("echoWithRuntimeExceptionChannel", e.getFailedMessage().getPayload());
 		}
-		
 		try {
 			gatewayWithError.sendRecieve("echoWithMessagingExceptionChannel");
 			Assert.fail();
 		} catch (MessageHandlingException e) {
 			Assert.assertEquals("echoWithMessagingExceptionChannel", e.getFailedMessage().getPayload());
 		}
-		
 		try {
-			gatewayWithError.sendRecieve("echoWithCheckedExceptionChannel");
-			Assert.fail();
+			String result = gatewayWithErrorAndMapper.sendRecieve("echoWithMessagingExceptionChannel");
+			Assert.assertNotNull(result);
+			Assert.assertEquals("Error happened in message: echoWithMessagingExceptionChannel", result);
 		} catch (Exception e) {
-			Assert.assertEquals("echoWithCheckedExceptionChannel", e.getCause().getMessage());
+			Assert.fail();
 		}
-		
-		//String result = gatewayWithError.sendRecieve("echoWithErrorMessageChannel");
-		//System.out.println("Result: " + result);
-		//Assert.assertEquals("echo:echo:echo:hello", result);
 	}
 	
+	
+	public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
+		public Message<?> toMessage(Throwable object) throws Exception {
+			MessageHandlingException ex = (MessageHandlingException) object;		
+			return MessageBuilder.withPayload("Error happened in message: " + ex.getFailedMessage().getPayload()).build();
+		}
+		
+	}
 
 	public static interface SimpleGateway {
 		public String sendRecieve(String str);
@@ -124,22 +135,11 @@ public class GatewayInvokingMessageHandlerTests {
 		public String echo(String value) {
 			return "echo:" + value;
 		}
-		public Message echoWithErrorMessage(String value) {
-			return MessageBuilder.withPayload(new RuntimeException(value)).build();
-		}
 		public RuntimeException echoWithRuntimeException(String value) {
-			return new RuntimeException(value);
-		}
-		public MessageHandlingException echoWithMessagingException(String value) {
-			return new MessageHandlingException(new StringMessage(value));
-		}
-		public SampleCheckedException echoWithCheckedException(String value) {
-			return new SampleCheckedException(value);
-		}
-		public String echoWithRuntimeExceptionThrown(String value) {
 			throw new RuntimeException(value);
 		}
-		public String echoWithMessagingExceptionThrown(String value) {
+
+		public MessageHandlingException echoWithMessagingException(String value) {
 			throw new MessageHandlingException(new StringMessage(value));
 		}
 	}

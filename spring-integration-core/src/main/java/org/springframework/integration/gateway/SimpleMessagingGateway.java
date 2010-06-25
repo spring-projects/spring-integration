@@ -52,6 +52,14 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		this.inboundMapper = inboundMapper;
 		this.outboundMapper = outboundMapper;
 	}
+	
+	public Message<?> sendAndReceiveMessage(Object object) {
+		return (Message<?>) super.sendAndReceive(object, false);
+	}
+	
+	public Object sendAndReceive(Object object) {
+		return super.sendAndReceive(object, true);
+	}
 
 
 	@Override
@@ -69,19 +77,24 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 
 	@Override
 	protected Message<?> toMessage(Object object) {
-		try {
-			Message<?> message = this.inboundMapper.toMessage(object);
-			if (message != null) {
-				message.getHeaders().getHistory().addEvent(this);
+		Message<?> message = null;
+		if (object instanceof Throwable){
+			message = super.toMessage(object);
+		} else {
+			try {
+				message = this.inboundMapper.toMessage(object);
+				if (message != null) {
+					message.getHeaders().getHistory().addEvent(this);
+				}
 			}
-			return message;
-		}
-		catch (Exception e) {
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
+			catch (Exception e) {
+				if (e instanceof RuntimeException) {
+					throw (RuntimeException) e;
+				}
+				throw new MessagingException("failed to create Message", e);
 			}
-			throw new MessagingException("failed to create Message", e);
 		}
+		return message;
 	}
 
 }

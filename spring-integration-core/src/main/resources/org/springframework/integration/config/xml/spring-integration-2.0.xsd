@@ -533,6 +533,16 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="exception-mapper" type="xsd:string">
+				<xsd:annotation>  
+					<xsd:documentation>	
+							<![CDATA[  
+					Allows you to provide implementation of InboundMessageMapper which allows you to map
+					an Exception thrown by the endpoint to a successfull return message. 
+							]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="default-request-channel" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>	

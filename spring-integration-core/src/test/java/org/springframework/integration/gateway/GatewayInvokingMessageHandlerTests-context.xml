@@ -13,14 +13,15 @@
 	<si:gateway id="gatewayWithError"
 				default-request-channel="routingChannel" 
 				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"/>
-	
+
+	<si:gateway id="gatewayWithErrorAndMapper"
+				default-request-channel="routingChannel" 
+				service-interface="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleGateway"
+				exception-mapper="exceptionMapper"/>
+				
+
 	<si:router input-channel="routingChannel" expression="payload"/>			
 				
-				
-	<si:service-activator input-channel="echoWithErrorMessageChannel" method="echoWithErrorMessage">
-		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
-	</si:service-activator>
-	
 	<si:service-activator input-channel="echoWithRuntimeExceptionChannel" method="echoWithRuntimeException">
 		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 	</si:service-activator>
@@ -29,18 +30,6 @@
 		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 	</si:service-activator>
 	
-	<si:service-activator input-channel="echoWithCheckedExceptionChannel" method="echoWithCheckedException">
-		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
-	</si:service-activator>
-	
-	<si:service-activator input-channel="echoWithRuntimeExceptionChannel" method="echoWithRuntimeExceptionThrown">
-		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
-	</si:service-activator>
-	
-	<si:service-activator input-channel="echoWithMessagingExceptionChannel" method="echoWithMessagingExceptionThrown">
-		<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
-	</si:service-activator>
-
 	<si:publish-subscribe-channel id="inputA" />
 	<si:publish-subscribe-channel id="inputB" />
 	<si:publish-subscribe-channel id="inputC" />
@@ -75,5 +64,7 @@
 			<bean class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SimpleService" />
 		</si:service-activator>
 	</si:chain>
+	
+	<bean id="exceptionMapper" class="org.springframework.integration.gateway.GatewayInvokingMessageHandlerTests$SampleExceptionMapper"/>
 
 </beans>

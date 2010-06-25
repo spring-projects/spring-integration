@@ -39,7 +39,7 @@ import org.w3c.dom.Element;
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static String[] referenceAttributes = new String[] {
-		"default-request-channel", "default-reply-channel", "message-mapper"
+		"default-request-channel", "default-reply-channel", "message-mapper", "exception-mapper"
 	};
 
 	private static String[] innerAttributes = new String[] {

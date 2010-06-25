@@ -23,12 +23,12 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.gateway.AbstractMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
@@ -43,8 +43,12 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  * @author Juergen Hoeller
+ * @author Oleg Zhurakousky
  */
-public class ChannelPublishingJmsMessageListener implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
+public class ChannelPublishingJmsMessageListener extends AbstractMessagingGateway
+												 implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
+	
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile boolean expectReply;
 
@@ -68,41 +72,12 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 
 	private volatile JmsHeaderMapper headerMapper;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
-
-
-	/**
-	 * Specify the channel to which request Messages should be sent.
-	 */
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.channelTemplate.setDefaultChannel(requestChannel);
-	}
-
 	/**
 	 * Specify whether a JMS reply Message is expected.
 	 */
 	public void setExpectReply(boolean expectReply) {
 		this.expectReply = expectReply;
 	}
-
-	/**
-	 * Specify the maximum time to wait when sending a request message to the
-	 * request channel. The default value will be that of
-	 * {@link MessageChannelTemplate}.
-	 */
-	public void setRequestTimeout(long requestTimeout) {
-		this.channelTemplate.setSendTimeout(requestTimeout);
-	}
-
-	/**
-	 * Specify the maximum time to wait for reply Messages. This value is only
-	 * relevant if {@link #expectReply} is <code>true</code>. The default
-	 * value will be that of {@link MessageChannelTemplate}.
-	 */
-	public void setReplyTimeout(long replyTimeout) {
-		this.channelTemplate.setReceiveTimeout(replyTimeout);
-	}
-
 	/**
 	 * Set the default reply destination to send reply messages to. This will
 	 * be applied in case of a request message that does not carry a
@@ -226,8 +201,7 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
 	}
-
-	public final void afterPropertiesSet() {
+	public final void onInit() {
 		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
 			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter, this.headerMapper);
 			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
@@ -241,31 +215,31 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 		Message<?> requestMessage = (object instanceof Message<?>) ?
 				(Message<?>) object : MessageBuilder.withPayload(object).build();
 		if (!this.expectReply) {
-			boolean sent = this.channelTemplate.send(requestMessage);
-			if (!sent) {
-				throw new MessageDeliveryException(requestMessage, "failed to send Message to request channel");
-			}
+			this.send(requestMessage);
 		}
 		else {
-			Message<?> replyMessage = this.channelTemplate.sendAndReceive(requestMessage);
-			if (replyMessage != null) {
-				Destination destination = this.getReplyDestination(jmsMessage, session);
-				javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
-				if (jmsReply.getJMSCorrelationID() == null) {
-					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
-				}
-				MessageProducer producer = session.createProducer(destination);
-				try {
-					if (this.explicitQosEnabledForReplies) {
-						producer.send(jmsReply,
-								this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
+			Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
+			
+			if (replyMessage != null){
+				Destination destination = this.getReplyDestination(jmsMessage, session, false);
+				if (destination != null){
+					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
+					if (jmsReply.getJMSCorrelationID() == null) {
+						jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 					}
-					else {
-						producer.send(jmsReply);
+					MessageProducer producer = session.createProducer(destination);
+					try {
+						if (this.explicitQosEnabledForReplies) {
+							producer.send(jmsReply,
+									this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
+						}
+						else {
+							producer.send(jmsReply);
+						}
 					}
-				}
-				finally {
-					producer.close();
+					finally {
+						producer.close();
+					}
 				}
 			}
 		}
@@ -273,7 +247,9 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 
 	/**
 	 * Determine a reply destination for the given message.
-	 * <p>This implementation first checks the JMS Reply-To {@link Destination}
+	 * <p>This implementation first checks the boolean 'error' flag which signifies that the reply is an error message. 
+	 * If it is it will attempt to get the destination value from {@link JmsHeaders#SEND_ERROR_TO}. 
+	 * If reply is not an error it will first check the JMS Reply-To {@link Destination}
 	 * of the supplied request message; if that is not <code>null</code> it is
 	 * returned; if it is <code>null</code>, then the configured
 	 * {@link #resolveDefaultReplyDestination default reply destination}
@@ -287,7 +263,8 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 	 * @see #setDefaultReplyDestination
 	 * @see javax.jms.Message#getJMSReplyTo()
 	 */
-	private Destination getReplyDestination(javax.jms.Message request, Session session) throws JMSException {
+	private Destination getReplyDestination(javax.jms.Message request, Session session, boolean error) throws JMSException {
+		
 		Destination replyTo = request.getJMSReplyTo();
 		if (replyTo == null) {
 			replyTo = resolveDefaultReplyDestination(session);
@@ -296,6 +273,7 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 						"Request message does not contain reply-to destination, and no default reply destination set.");
 			}
 		}
+		
 		return replyTo;
 	}
 
@@ -337,4 +315,19 @@ public class ChannelPublishingJmsMessageListener implements SessionAwareMessageL
 		}
 	}
 
+	@Override
+	protected Object fromMessage(Message<?> message) {
+		throw new UnsupportedOperationException("'fromMessage' is not supported within this instance");
+	}
+
+	@Override
+	protected Message<?> toMessage(Object object) {
+		Message<?> message = null;
+		if (object instanceof Throwable){
+			message = super.toMessage(object);
+		} else if (object instanceof Message<?>) {
+			message = (Message<?>) object;
+		}
+		return message;
+	}
 }
