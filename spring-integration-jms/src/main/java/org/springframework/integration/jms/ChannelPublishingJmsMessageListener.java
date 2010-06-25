@@ -201,6 +201,10 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
 	}
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#onInit()
+	 */
 	public final void onInit() {
 		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
 			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter, this.headerMapper);
@@ -209,7 +213,9 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 			this.messageConverter = hmmc;
 		}
 	}
-
+	/**
+	 * 
+	 */
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object object = this.messageConverter.fromMessage(jmsMessage);
 		Message<?> requestMessage = (object instanceof Message<?>) ?
@@ -221,7 +227,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 			Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
 			
 			if (replyMessage != null){
-				Destination destination = this.getReplyDestination(jmsMessage, session, false);
+				Destination destination = this.getReplyDestination(jmsMessage, session);
 				if (destination != null){
 					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
 					if (jmsReply.getJMSCorrelationID() == null) {
@@ -263,7 +269,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	 * @see #setDefaultReplyDestination
 	 * @see javax.jms.Message#getJMSReplyTo()
 	 */
-	private Destination getReplyDestination(javax.jms.Message request, Session session, boolean error) throws JMSException {
+	private Destination getReplyDestination(javax.jms.Message request, Session session) throws JMSException {
 		
 		Destination replyTo = request.getJMSReplyTo();
 		if (replyTo == null) {
@@ -313,21 +319,5 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 			this.name = name;
 			this.isTopic = isTopic;
 		}
-	}
-
-	@Override
-	protected Object fromMessage(Message<?> message) {
-		throw new UnsupportedOperationException("'fromMessage' is not supported within this instance");
-	}
-
-	@Override
-	protected Message<?> toMessage(Object object) {
-		Message<?> message = null;
-		if (object instanceof Throwable){
-			message = super.toMessage(object);
-		} else if (object instanceof Message<?>) {
-			message = (Message<?>) object;
-		}
-		return message;
 	}
 }

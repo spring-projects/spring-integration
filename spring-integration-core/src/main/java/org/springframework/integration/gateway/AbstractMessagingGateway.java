@@ -31,6 +31,7 @@ import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageMappingException;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
@@ -183,7 +184,13 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 			reply = this.channelTemplate.sendAndReceive(message, this.requestChannel);
 		} catch (Exception e) {
 			logger.warn("Execution of endpoint by the MessageListener resulted in : " + e);
-			reply = this.toMessage(e);
+			if (this.exceptionMapper != null){
+				try {
+					reply = exceptionMapper.toMessage(e);
+				} catch (Exception e2) {
+					logger.warn("Problem mapping " + e + " to message with: " + exceptionMapper);
+				}	
+			}
 			if (reply == null){ // if reply wasn't mapped re-throw
 				if (e instanceof RuntimeException){
 					throw (RuntimeException)e;
@@ -250,25 +257,17 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		this.exceptionMapper = exceptionMapper;
 	}
 
-	/**
-	 * Subclasses must implement this to map from an Object to a Message.
-	 */
-	protected  Message<?> toMessage(Object object){
-		if (object instanceof Throwable){
-			if (this.exceptionMapper != null){
-				try {
-					return exceptionMapper.toMessage((Throwable) object);
-				} catch (Exception e2) {
-					logger.warn("Problem mapping " + object + " to message with: " + exceptionMapper);
-				}	
-			}
-		}
-		return null;
+	protected Object fromMessage(Message<?> message) {
+		throw new MessageMappingException("Can not map "  + message + " to a object. No Mappers defined");
 	}
 
-	/**
-	 * Subclasses must implement this to map from a Message to an Object.
-	 */
-	protected abstract Object fromMessage(Message<?> message);
+
+	protected Message<?> toMessage(Object object) {
+		if (object instanceof Message<?>){
+			return (Message<?>) object;
+		} else {
+			throw new MessageMappingException("Can not map "  + object + " to a message. No Mappers defined");
+		}
+	}
 
 }

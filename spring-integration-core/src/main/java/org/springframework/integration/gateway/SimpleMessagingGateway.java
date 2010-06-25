@@ -78,21 +78,17 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 	@Override
 	protected Message<?> toMessage(Object object) {
 		Message<?> message = null;
-		if (object instanceof Throwable){
-			message = super.toMessage(object);
-		} else {
-			try {
-				message = this.inboundMapper.toMessage(object);
-				if (message != null) {
-					message.getHeaders().getHistory().addEvent(this);
-				}
+		try {
+			message = this.inboundMapper.toMessage(object);
+			if (message != null) {
+				message.getHeaders().getHistory().addEvent(this);
 			}
-			catch (Exception e) {
-				if (e instanceof RuntimeException) {
-					throw (RuntimeException) e;
-				}
-				throw new MessagingException("failed to create Message", e);
+		}
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
 			}
+			throw new MessagingException("failed to create Message", e);
 		}
 		return message;
 	}
