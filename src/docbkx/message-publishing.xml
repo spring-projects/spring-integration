@@ -3,32 +3,32 @@
 <chapter id="message-publishing">
   <title>Message Publishing</title>
 	<para>
-    Message Publishing feature will allow you to construct and send a message as a by-product of method invocation. For example; Imagine you 
-    have a component and every time the state of this components changes you would like to get notified. The easiest 
-    way to send notification would be to send a message to a dedicated channel, but how would you connect the method invocation that 
-    changes the state of the object to a message sending process and what should be the structure of the 
-    message? Message Publishing feature will allow you to do just that. 
+    The AOP Message Publishing feature allows you to construct and send a message as a by-product of method invocation. For example, imagine you 
+    have a component and every time the state of this component changes you would like to be notified via a Message. The easiest 
+    way to send such notifications would be to send a message to a dedicated channel, but how would you connect the method invocation that 
+    changes the state of the object to a message sending process, and how should the notification Message be structured?
+    The AOP Message Publishing feature handles these responsibilities with a configuration-driven approach. 
     </para>
   <section id="message-publishing-config">
     <title>Message Publishing Configuration</title>
     <para>
-    Spring Integration provides two approaches - XML and Annotation.
+    Spring Integration provides two approaches: XML and Annotation-driven.
     </para>
 	 	<section id="publisher-annotation">
-		    <title>Annotation-based approach via @Publisher annotation</title>
+		    <title>Annotation-driven approach via @Publisher annotation</title>
 		    <para>
-		   	Annotation bassed approach allows you to annotate any method with <interfacename>@Publisher</interfacename>  annotation and 
-		   	provide configuration attributes which will dictate the structure of a <emphasis>Message</emphasis>. Invocation of such 
+		   	The annotation-driven approach allows you to annotate any method with the <interfacename>@Publisher</interfacename>  annotation and 
+		   	provide configuration attributes which will dictate the structure of a <emphasis>Message</emphasis>. The invocation of the annotated
 		   	method will be proxied through <classname>PublisherAnnotationAdvisor</classname> which will 
-		   	construct a <emphasis>Message</emphasis> and send it to a <emphasis>channel</emphasis>.	   
+		   	construct a <emphasis>Message</emphasis> and send it to a <emphasis>Message Channel</emphasis>.	   
 		    </para>
 		    <para>
-		    Internally <classname>PublisherAnnotationAdvisor</classname> uses Spring 3.0 Expression Language support giving you 
-		    the flexibility and control over the structure of a <emphasis>Message</emphasis> it will build. 
+		    Internally <classname>PublisherAnnotationAdvisor</classname> uses the Spring 3.0 Expression Language support, giving you 
+		    considerable flexibility and control over the structure of the <emphasis>Message</emphasis> it will build. Here's an example:
 		    </para>
 		    
 		    <para>
-<programlisting language="java">@Publisher(value="#return", channel="testChannel", headers="bar='123',fname=#args.fname")
+<programlisting language="java">@Publisher(payload="#return", channel="testChannel", headers="bar='123',fname=#args.fname")
 public String setName(String fname, String lname){
 	return fname + " " + lname;
 }</programlisting>
@@ -43,7 +43,7 @@ public String setName(String fname, String lname){
 		          <emphasis>#return</emphasis>)</para>
 		        </listitem>
 		        <listitem>
-		          <para><emphasis>#exception</emphasis> - will bind to an exception if one is thrown.</para>
+		          <para><emphasis>#exception</emphasis> - will bind to an exception if one is thrown by the method invocation.</para>
 		        </listitem>
 		        <listitem>
 		          <para><emphasis>#args</emphasis> - will bind to method arguments, so individual arguments could be extracted by name
@@ -53,39 +53,41 @@ public String setName(String fname, String lname){
 		    </para>
 	 		
 	 		<para>
-	 		In the above example the Message will be constructed and its structure will be as follows:
+	 		In the above example the Message will be constructed with the following structure:
 	 		<itemizedlist>
 		        <listitem>
 		          <para>Message payload - will be of type String and contain the value returned by the method.</para>
 		        </listitem>
 		        <listitem>
-		          <para>Message headers will be 'bar' with value of "123" and 'fname' with value of 'fname' argument of the method.</para>
+		          <para>Message headers will contain 'bar' with a value of "123" and 'fname' with the value of the 'fname' argument passed to the method at runtime.</para>
 		        </listitem>      
 	      </itemizedlist>
 	 		</para>
 	 		<para>
-	 		As with any other annotation you will need to register <classname>PublisherAnnotationBeanPostProcessor</classname>
+	 		As with most other annotation-driven features in Spring, you will need to register a post-processor       
+	        (<classname>PublisherAnnotationBeanPostProcessor</classname>).
 		<programlisting language="xml">&lt;bean class="org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor"/&gt;</programlisting>
 	 		</para>
 	  	</section>
+
 	  	<section id="aop-based-interceptor">
 		    <title>XML-based approach via &lt;publisher&gt; element</title>
 		    <para>
-		    XML-based approach allows you to configure Message Publishing via AOP-based configuration and 
-		    simple namespace-based configuration of <classname>MessagePublishingInterceptor</classname>.
-		    It certainly has certain benefits over annotation based approach since it
+		    The XML-based approach allows you to configure the same AOP-based Message Publishing functionality with
+		    simple namespace-based configuration of a <classname>MessagePublishingInterceptor</classname>.
+		    It certainly has some benefits over the annotation-driven approach since it
 		    allows you to use AOP pointcut expressions, thus possibly intercepting multiple methods at once or 
-		    intercepting and publishing methods to which you don't have a source code.
+		    intercepting and publishing methods to which you don't have the source code.
 		    </para>
 		    <para>
-			To configure Message Publishing via XML all you need is the following two things:
+			To configure Message Publishing via XML, you only need to do the following two things:
 			<itemizedlist>
 		        <listitem>
 		          <para>Provide configuration for <classname>MessagePublishingInterceptor</classname> 
-		          via <code>&lt;publisher&gt;</code> XML element</para>
+		          via the <code>&lt;publisher&gt;</code> XML element.</para>
 		        </listitem>
 		        <listitem>
-		          <para>Provide AOP configuration to apply <classname>MessagePublishingInterceptor</classname></para>
+		          <para>Provide AOP configuration to apply the <classname>MessagePublishingInterceptor</classname> to managed objects.</para>
 		        </listitem>      
 	      </itemizedlist>
 		    </para>
@@ -104,50 +106,49 @@ public String setName(String fname, String lname){
 	</programlisting>		    
 		    </para>
 		    <para>
-		    As you can see <code>&lt;publisher&gt;</code> uses the same variables as 
-		    <classname>PublisherAnnotationAdvisor</classname> to utilize the power of Spring 3.0 Expression Langage.
+		    As you can see the <code>&lt;publisher&gt;</code> element expects the same variables as the
+		    <classname>PublisherAnnotationAdvisor</classname> and also utilizes the power of the Spring 3.0 Expression Language.
 		    </para>
 		    <para>
-		    In the above example the execution of <code>echo</code> method of a <code>testBean</code> will 
-		    rander the <emphasis>Message</emphasis> with the following structure:
+		    In the above example the execution of the <code>echo</code> method of a <code>testBean</code> will 
+		    render a <emphasis>Message</emphasis> with the following structure:
 		<itemizedlist>
 		        <listitem>
-		          <para>Message payload - will be of type String and value of "Echoing: [value]" where <code>value</code> is the value 
+		          <para>The Message payload will be of type String and value of "Echoing: [value]" where <code>value</code> is the value 
 		          returned by an executed method.</para>
 		        </listitem>
 		        <listitem>
-		          <para>Message headers will be 'foo' with value of "bar".</para>
+		          <para>The Message headers will contain the key "foo" with a value of "bar".</para>
 		        </listitem>  
 		        <listitem>
-		          <para>Message will be sent to <code>echoChannel</code>.</para>
+		          <para>The Message will be sent to <code>echoChannel</code>.</para>
 		        </listitem>      
 	      </itemizedlist>
 	      </para>
 	      <para>
-	      In the second method mapping the execution of any method that begins with <code>echoDef</code> of <code>testBean</code> will result in the 
+	      The second method, mapping the execution of any method that begins with <code>echoDef</code> of <code>testBean</code>, will produce a 
 	      Message with the following structure.
 	      <itemizedlist>
 		        <listitem>
-		          <para>Message payload - will be the value 
-		          returned by an executed method.</para>
+		          <para>The Message payload will be the value returned by an executed method.</para>
 		        </listitem>  
 		        <listitem>
-		          <para>Since <code>channel</code> attriute is not provided, the Message will be sent to the
+		          <para>Since the <code>channel</code> attribute is not provided explicitly, the Message will be sent to the
 		          <code>defaultChannel</code> defined by the <emphasis>publisher</emphasis>.</para>
 		        </listitem>      
 	      </itemizedlist>
 	      </para>
 	      <para>
-	      The third mapping is almost identical to the previous (with the exceptipon of method pattern), 
-	      since the return value will be mapped to the Message paylad by default if nothing else is specifued.
+	      The third mapping is almost identical to the previous one (with the exception of method pattern), 
+	      since the return value will be mapped to the Message payload by default if nothing else is specified.
 	      </para>
 	     <para>
-	     For a simple maping rules you can rely on <emphasis>publisher</emphasis> defaults. For example:
+	     For simple mapping rules you can rely on the <emphasis>publisher</emphasis> defaults. For example:
 	     <programlisting language="xml">
 &lt;publisher id="anotherInterceptor"/&gt;
 	</programlisting>
 		This will map the return value of every method that matches the pointcut expression to a payload and will be sent to a <emphasis>default-channel</emphasis>. 
-		If the <emphasis>defaultChannel</emphasis>is not specified (as above) the messages will be sent to <emphasis>nullChannel</emphasis>
+		If the <emphasis>defaultChannel</emphasis>is not specified (as above) the messages will be sent to the global <emphasis>nullChannel</emphasis>.
 	     </para>
 		</section>
   </section>
