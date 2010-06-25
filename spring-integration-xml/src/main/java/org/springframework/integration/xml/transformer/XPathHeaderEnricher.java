@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.enricher;
+package org.springframework.integration.xml.transformer;
 
 import java.util.Map;
 

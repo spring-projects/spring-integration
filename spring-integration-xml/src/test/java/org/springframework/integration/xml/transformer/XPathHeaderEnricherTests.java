@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.enricher;
+package org.springframework.integration.xml.transformer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -28,7 +28,8 @@ import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.xml.enricher.XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor;
+import org.springframework.integration.xml.transformer.XPathHeaderEnricher;
+import org.springframework.integration.xml.transformer.XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;
 
 /**
