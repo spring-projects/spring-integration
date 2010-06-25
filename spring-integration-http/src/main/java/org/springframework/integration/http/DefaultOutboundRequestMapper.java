@@ -27,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.Assert;
 
 /**
@@ -82,14 +83,8 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
 			return (HttpEntity<?>) requestMessage.getPayload();
 		}
-		// TODO: provide more fine-grained control over header mapping
 		HttpHeaders httpHeaders = new HttpHeaders();
-		for (String headerName : requestMessage.getHeaders().keySet()) {
-			Object value = requestMessage.getHeaders().get(headerName);
-			if (value instanceof String) {
-				httpHeaders.add(headerName, (String) value);
-			}
-		}
+		this.mapMessageHeadersToHttpHeaders(requestMessage.getHeaders(), httpHeaders);
 		Object payload = requestMessage.getPayload();
 		MediaType contentType = (payload instanceof String) ? this.contentTypeResolver.resolveContentType((String) payload, this.charset)
 				: this.contentTypeResolver.resolveContentType(payload);
@@ -106,6 +101,14 @@ public class DefaultOutboundRequestMapper implements OutboundRequestMapper {
 		return new HttpEntity<Object>(requestMessage, headers);
 	}
 
+	private void mapMessageHeadersToHttpHeaders(MessageHeaders messageHeaders, HttpHeaders httpHeaders) {
+		for (String headerName : messageHeaders.keySet()) {
+			Object value = messageHeaders.get(headerName);
+			if (value instanceof String && !headerName.startsWith(MessageHeaders.PREFIX)) {
+				httpHeaders.add(headerName, (String) value);
+			}
+		}
+	}
 
 	private static class DefaultContentTypeResolver implements ContentTypeResolver {
 
