@@ -58,6 +58,16 @@ public class GatewayInvokingMessageHandlerTests {
 	
 	
 	@Autowired
+	@Qualifier("gatewayWithErrorAsync")
+	SimpleGateway gatewayWithErrorAsync;
+	
+	@Autowired
+	@Qualifier("gatewayWithErrorAsyncAndMapper")
+	SimpleGateway gatewayWithErrorAsyncAndMapper;
+	
+	
+	
+	@Autowired
 	@Qualifier("inputB")
 	SubscribableChannel output;
 
@@ -118,6 +128,33 @@ public class GatewayInvokingMessageHandlerTests {
 		}
 	}
 	
+	@Test
+	public void validateGatewayWithErrorAsync() {	
+		try {
+			gatewayWithErrorAsync.sendRecieve("echoWithErrorAsyncChannel");
+			Assert.fail();
+		} catch (Exception e) {
+			Assert.assertTrue(e instanceof MessageHandlingException);
+		}
+	}
+	
+	@Test
+	public void validateGatewayWithErrorAsyncAndMaper() {	
+		try {
+			gatewayWithErrorAsync.sendRecieve("echoWithErrorAsyncChannel");
+			Assert.fail();
+		} catch (Exception e) {
+			Assert.assertTrue(e instanceof MessageHandlingException);
+		}
+		
+		try {
+			Object result = gatewayWithErrorAsyncAndMapper.sendRecieve("echoWithErrorAsyncChannel");
+			Assert.assertEquals("Error happened in message: echoWithErrorAsyncChannel", result);
+		} catch (Exception e) {
+			Assert.fail();
+		}
+	}
+	
 	
 	public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
 		public Message<?> toMessage(Throwable object) throws Exception {
@@ -142,6 +179,10 @@ public class GatewayInvokingMessageHandlerTests {
 		public MessageHandlingException echoWithMessagingException(String value) {
 			throw new MessageHandlingException(new StringMessage(value));
 		}
+		public RuntimeException echoWithErrorAsync(String value) {
+			throw new RuntimeException(value);
+		}
+		
 	}
 	
 	public static class SampleCheckedException extends Exception {
