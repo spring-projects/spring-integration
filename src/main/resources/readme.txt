@@ -1,7 +1,7 @@
-SPRING INTEGRATION 2.0.0 Milestone 5 (TBD, 2010)
---------------------------------------------------
+SPRING INTEGRATION 2.0.0 Milestone 5 (June 25, 2010)
+----------------------------------------------------
 
-To find out what has changed since version 1.0.4 or 2.0 M3, see 'changelog.txt'
+To find out what has changed since version 1.0.4 or 2.0 M4, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release and also visit the official Spring Integration home at:
@@ -16,11 +16,7 @@ To checkout the project from the SVN head and build from source, do the followin
 (NOTE: this requires Maven 2.1.0):
 
     svn co https://src.springsource.org/svn/spring-integration/trunk .
-    cd build-spring-integration
-    mvn package
-
-The result is available as a zip file in "target/artifacts"
-An expanded version is also available in "target/package-expanded"
+    mvn clean install
 
 To build the JavaDoc, run `mvn javadoc:aggregate` from within the root directory. The
 result will be available in 'target/site/apidocs'.
