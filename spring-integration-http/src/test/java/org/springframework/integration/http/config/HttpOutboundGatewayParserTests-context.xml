@@ -28,6 +28,7 @@
 		request-timeout="1234"
 		message-converters="converterList"
 		extract-request-payload="false"
+		expected-response-type="java.lang.String"
 		reply-channel="replies"
 		charset="UTF-8"
 		order="77"

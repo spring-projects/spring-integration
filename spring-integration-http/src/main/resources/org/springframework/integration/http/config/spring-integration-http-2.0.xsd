@@ -133,6 +133,18 @@
 			</xsd:attribute>
 			<xsd:attribute name="charset" type="xsd:string"/>
 			<xsd:attribute name="extract-payload" type="xsd:string"/>
+			<xsd:attribute name="expected-response-type" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	The expected type to which the response body should be converted. 
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="direct">
+							<tool:expected-type type="java.lang.Class"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="message-converters" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -202,6 +214,18 @@
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
+					<xsd:attribute name="expected-response-type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	The expected type to which the response body should be converted. 
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="direct">
+									<tool:expected-type type="java.lang.Class"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="charset" type="xsd:string"/>
 					<xsd:attribute name="request-factory" type="xsd:string">
 						<xsd:annotation>

@@ -89,6 +89,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
+		assertEquals(Boolean.class, handlerAccessor.getPropertyValue("expectedResponseType"));
 		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Object converterListBean = this.applicationContext.getBean("converterList");

@@ -100,6 +100,7 @@ public class HttpOutboundGatewayParserTests {
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Object converterListBean = this.applicationContext.getBean("converterList");
 		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));
+		assertEquals(String.class, handlerAccessor.getPropertyValue("expectedResponseType"));
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("uri"));
 		assertEquals(HttpMethod.PUT, handlerAccessor.getPropertyValue("httpMethod"));

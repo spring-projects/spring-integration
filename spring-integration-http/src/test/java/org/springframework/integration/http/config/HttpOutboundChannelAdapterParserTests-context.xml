@@ -21,6 +21,7 @@
 		charset="UTF-8"
 		message-converters="converterList"
 		extract-payload="false"
+		expected-response-type="java.lang.Boolean"
 		request-factory="testRequestFactory"
 		order="77"
 		auto-startup="false"/>
