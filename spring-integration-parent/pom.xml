@@ -25,7 +25,7 @@
 		<org.slf4j.version>1.5.10</org.slf4j.version>
 		<org.springframework.version>3.0.3.RELEASE</org.springframework.version>
 		<org.springframework.security.version>2.0.5.RELEASE</org.springframework.security.version>
-		<org.springframework.ws.version>1.5.8</org.springframework.ws.version>
+		<org.springframework.ws.version>1.5.9</org.springframework.ws.version>
 	</properties>
 	<profiles>
 		<profile>
