@@ -31,7 +31,6 @@ import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageMappingException;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
@@ -114,6 +113,16 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		this.shouldThrowErrors = shouldThrowErrors;
 	}
 
+	/**
+	 * Provide an {@link InboundMessageMapper} for creating a reply Message from
+	 * an Exception that occurs downstream from this gateway. If no exceptionMapper
+	 * is provided, then the {@link #shouldThrowErrors} property will dictate
+	 * whether the error is rethrown or returned as an ErrorMessage.
+	 */
+	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
+		this.exceptionMapper = exceptionMapper;
+	}
+
 	@Override
 	protected void onInit() throws Exception {
 		this.initialized = true;
@@ -180,26 +189,27 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 			this.registerReplyMessageCorrelator();
 		}
 		Message<?> reply = null;
+		Throwable error = null;
 		try {
 			reply = this.channelTemplate.sendAndReceive(message, this.requestChannel);
-		} catch (Exception e) {
-			logger.warn("Execution of endpoint by the MessageListener resulted in : " + e);
-			if (this.exceptionMapper != null){
-				try {
-					reply = exceptionMapper.toMessage(e);
-				} catch (Exception e2) {
-					logger.warn("Problem mapping " + e + " to message with: " + exceptionMapper);
-				}	
-			}
-			if (reply == null){ // if reply wasn't mapped re-throw
-				if (e instanceof RuntimeException){
-					throw (RuntimeException)e;
-				} 
-			}
 		}
-			
-		if (reply != null && this.shouldThrowErrors && reply instanceof ErrorMessage) {
-			Throwable error = ((ErrorMessage) reply).getPayload();
+		catch (Exception e) {
+			logger.warn("failure occurred in gateway sendAndReceive.", e);
+			error = e;
+		}
+		if (reply instanceof ErrorMessage) {
+			error = ((ErrorMessage) reply).getPayload();
+		}
+		if (error != null && this.exceptionMapper != null) {
+			try {
+				// create a reply message from the error
+				return this.exceptionMapper.toMessage(error);
+			}
+			catch (Exception e2) {
+				// ignore this, we'll handle the original error next 
+			} 
+		}
+		if (error != null && this.shouldThrowErrors) {
 			if (error instanceof RuntimeException) {
 				throw (RuntimeException) error;
 			}
@@ -235,6 +245,19 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		}
 	}
 
+	protected Object fromMessage(Message<?> message) {
+		return (message != null ? message.getPayload() : null);
+	}
+
+	protected Message<?> toMessage(Object object) {
+		if (object instanceof Message<?>) {
+			return (Message<?>) object;
+		}
+		else {
+			return MessageBuilder.withPayload(object).build();
+		}
+	}
+
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
 		if (this.replyMessageCorrelator != null) {
@@ -246,27 +269,6 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 	protected void doStop() {
 		if (this.replyMessageCorrelator != null) {
 			this.replyMessageCorrelator.stop();
-		}
-	}
-
-	public InboundMessageMapper<Throwable> getExceptionMapper() {
-		return exceptionMapper;
-	}
-
-	public void setExceptionMapper(InboundMessageMapper<Throwable> exceptionMapper) {
-		this.exceptionMapper = exceptionMapper;
-	}
-
-	protected Object fromMessage(Message<?> message) {
-		throw new MessageMappingException("Can not map "  + message + " to a object. No Mappers defined");
-	}
-
-
-	protected Message<?> toMessage(Object object) {
-		if (object instanceof Message<?>){
-			return (Message<?>) object;
-		} else {
-			throw new MessageMappingException("Can not map "  + object + " to a message. No Mappers defined");
 		}
 	}
 

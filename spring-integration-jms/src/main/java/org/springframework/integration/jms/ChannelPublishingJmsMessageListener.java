@@ -23,8 +23,6 @@ import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
@@ -46,10 +44,8 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public class ChannelPublishingJmsMessageListener extends AbstractMessagingGateway
-												 implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
+		implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
 	
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private volatile boolean expectReply;
 
 	private volatile MessageConverter messageConverter;
@@ -201,21 +197,17 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
 	}
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.integration.gateway.AbstractMessagingGateway#onInit()
-	 */
-	public final void onInit() {
+
+	public final void onInit() throws Exception {
 		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
 			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter, this.headerMapper);
 			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
 			hmmc.setExtractIntegrationMessagePayload(this.extractReplyPayload);
 			this.messageConverter = hmmc;
 		}
+		super.onInit();
 	}
-	/**
-	 * 
-	 */
+
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object object = this.messageConverter.fromMessage(jmsMessage);
 		Message<?> requestMessage = (object instanceof Message<?>) ?
@@ -225,8 +217,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 		}
 		else {
 			Message<?> replyMessage = this.sendAndReceiveMessage(requestMessage);
-			
-			if (replyMessage != null){
+			if (replyMessage != null) {
 				Destination destination = this.getReplyDestination(jmsMessage, session);
 				if (destination != null){
 					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
@@ -270,7 +261,6 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	 * @see javax.jms.Message#getJMSReplyTo()
 	 */
 	private Destination getReplyDestination(javax.jms.Message request, Session session) throws JMSException {
-		
 		Destination replyTo = request.getJMSReplyTo();
 		if (replyTo == null) {
 			replyTo = resolveDefaultReplyDestination(session);
@@ -279,7 +269,6 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 						"Request message does not contain reply-to destination, and no default reply destination set.");
 			}
 		}
-		
 		return replyTo;
 	}
 
