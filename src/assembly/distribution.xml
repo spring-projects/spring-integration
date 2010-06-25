@@ -51,6 +51,7 @@
 			<!-- adds sample projects distribution archive under the 'samples' directory -->
 			<directory>spring-integration-samples</directory>
 			<excludes>
+				<exclude>target/</exclude>
 				<exclude>*/target/</exclude>
 			</excludes>
 			<outputDirectory>samples</outputDirectory>
