@@ -51,7 +51,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private boolean expectReply = true;
 
-	private volatile Class<?> expectedResponseType = byte[].class;
+	private volatile Class<?> expectedResponseType;
 
 	private final DefaultOutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
 
@@ -110,9 +110,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	/**
 	 * Specify the expected response type for the REST request.
+	 * If this is null (the default), only the status code will be returned
+	 * as the reply Message payload. To take advantage of the HttpMessageConverters
+	 * registered on this adapter, provide a different type).
 	 */
 	public void setExpectedResponseType(Class<?> expectedResponseType) {
-		this.expectedResponseType = (expectedResponseType != null) ? expectedResponseType : byte[].class;
+		this.expectedResponseType = expectedResponseType;
 	}
 
 	/**
@@ -148,10 +151,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
-				Object responseBody = httpResponse.getBody();
-				MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
-						MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
-				return replyBuilder.copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+				if (httpResponse.hasBody()) {
+					Object responseBody = httpResponse.getBody();
+					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
+							MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
+							return replyBuilder.copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+				}
+				else {
+					return MessageBuilder.withPayload(httpResponse.getStatusCode()).copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+				}
 			}
 			return null;
 		}
