@@ -12,13 +12,12 @@
 	<packaging>war</packaging>
 	<dependencies>
 		<dependency>
-			<groupId>jivesoftware</groupId>
-			<artifactId>smackx</artifactId>
-			<version>3.1.0</version>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-xml</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
-			<artifactId>spring-integration-xml</artifactId>
+			<artifactId>spring-integration-ws</artifactId>
 		</dependency>
 		<!-- test-scoped dependencies -->
 		<dependency>
@@ -28,10 +27,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.integration</groupId>
-			<artifactId>spring-integration-ws</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
