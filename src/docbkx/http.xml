@@ -110,12 +110,14 @@ By default the HTTP request will be generated using an instance of <classname>Si
 		<programlisting language="xml"><![CDATA[ <http:inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>]]></programlisting>
     </para>
     <para>
-		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway.
+		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration options for an outbound Http gateway. Most importantly, notice that the 'http-method' and 'expected-response-type' are provided. Those are two of the most commonly configured values. The
+		default http-method is POST, and the default response type is a byte array (byte[]).
 		<programlisting language="xml"><![CDATA[<http:outbound-gateway id="example"
 		request-channel="requests"
 		url="http://localhost/test"
 		http-method="POST"
 		extract-request-payload="false"
+		expected-response-type="java.lang.String"
 		charset="UTF-8"
 		request-factory="requestFactory"
 		request-timeout="1234"
@@ -130,6 +132,7 @@ By default the HTTP request will be generated using an instance of <classname>Si
 			channel="requests"
 			charset="UTF-8"
 			extract-payload="false"
+			expected-response-type="java.lang.String"
 			request-factory="someRequestFactory"
 			order="3"
 			auto-startup="false"/>]]></programlisting>
