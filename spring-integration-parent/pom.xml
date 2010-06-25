@@ -6,7 +6,7 @@
 	<artifactId>spring-integration-parent</artifactId>
 	<name>Spring Integration Parent</name>
 	<url>http://www.springsource.org/spring-integration</url>
-	<version>2.0.0.M5</version>
+	<version>2.0.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -63,9 +63,8 @@
 		<!-- see 'staging' profile for dry-run deployment settings -->
 		<downloadUrl>http://static.springframework.org/spring-integration/site/downloads/releases.html</downloadUrl>
         <repository>
-            <id>spring-milestone</id>
-            <name>Spring Milestone Repository</name>
-            <url>s3://maven.springframework.org/milestone</url>
+            <id>local</id>
+            <url>file://${java.io.tmpdir}/spring-integration-repo</url>
         </repository>
 		<snapshotRepository>
 			<id>spring-snapshot</id>
