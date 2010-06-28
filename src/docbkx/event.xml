@@ -20,12 +20,13 @@
 		list of event types that you want to receive with the 'eventTypes' property.
 	</para>
 	<para>
-	For convenience namespace support was provided to configure <classname>ApplicationEventListeningChannelAdapter</classname>
+	For convenience namespace support was provided to configure <classname>ApplicationEventListeningChannelAdapter</classname> via <emphasis>inbound-channel-adapter</emphasis>
 		<programlisting language="xml"><![CDATA[<int-event:inbound-channel-adapter channel="input"/>
 	
 <int:publish-subscribe-channel id="sampleEventChannel"/>]]></programlisting>
+In the above sample, all Application Context events will be delivered as Spring Integration Messages to 'sampleEventChannel'.
 	</para>
-	In the above sample, all Application Context events will be delivered as Spring Integration Messages to 'sampleEventChannel'.
+	
 	
   </section>
 
@@ -37,6 +38,26 @@
 		This implementation of the <interfacename>MessageHandler</interfacename> interface also implements
 		Spring's <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a
 		bridge between Spring Integration Messages and <classname>ApplicationEvents</classname>.
+	</para>
+	<para>
+	For convenience namespace support was provided to configure <classname>ApplicationEventPublishingMessageHandler</classname> via <emphasis>outbound-channel-adapter</emphasis> element
+		<programlisting language="xml"><![CDATA[<int:channel id="input"/>
+	
+<int-event:outbound-channel-adapter channel="input"/>]]></programlisting>
+If you are using PollableChannel (e.g., Queue), you can also provide <emphasis>poller</emphasis> as sub-element of <emphasis>outbound-channel-adapter</emphasis>, optionally providing <emphasis>task-executor</emphasis>
+<programlisting language="xml"><![CDATA[<int:channel id="input">
+	<int:queue/>
+</int:channel>
+	
+<int-event:outbound-channel-adapter channel="input">
+	<int:poller max-messages-per-poll="1" task-executor="executor">
+		<int:interval-trigger interval="100" time-unit="MILLISECONDS"/>
+	</int:poller>
+</int-event:outbound-channel-adapter>
+
+<task:executor id="executor" pool-size="5"/>]]></programlisting>
+
+In the above sample, all messages sent to an 'input' channel will be published as ApplicationEvents to Spring Application sContext
 	</para>
   </section>
 
