@@ -28,6 +28,7 @@ public class EventNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new EventInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new EventOutboundChannelAdapterParser());
 	}
 
 }
