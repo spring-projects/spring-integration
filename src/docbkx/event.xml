@@ -19,6 +19,14 @@
 		received events as Spring Integration Messages. To limit based on the type of event, configure the
 		list of event types that you want to receive with the 'eventTypes' property.
 	</para>
+	<para>
+	For convenience namespace support was provided to configure <classname>ApplicationEventListeningChannelAdapter</classname>
+		<programlisting language="xml"><![CDATA[<int-event:inbound-channel-adapter channel="input"/>
+	
+<int:publish-subscribe-channel id="sampleEventChannel"/>]]></programlisting>
+	</para>
+	In the above sample, all Application Context events will be delivered as Spring Integration Messages to 'sampleEventChannel'.
+	
   </section>
 
   <section id="applicationevent-outbound">
