@@ -15,6 +15,10 @@
  */
 package org.springframework.integration.event.config;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -24,10 +28,13 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.event.ApplicationEventPublishingMessageHandler;
@@ -74,6 +81,33 @@ public class EventOutboundChannelAdapterParserTests {
 		context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("input", DirectChannel.class);
 		channel.send(new StringMessage("hello"));
+		Assert.assertTrue(recievedEvent);
+	}
+	
+	@Test(timeout=2000)
+	public void validateUsageWithPollableChannel() throws Exception {
+		ConfigurableApplicationContext ac = new ClassPathXmlApplicationContext("EventOutboundChannelAdapterParserTestsWithPollable-context.xml", EventOutboundChannelAdapterParserTests.class);
+		final CyclicBarrier barier = new CyclicBarrier(2);
+		ApplicationListener listener = new ApplicationListener<ApplicationEvent>() {
+			public void onApplicationEvent(ApplicationEvent event) {
+				Object source = event.getSource();
+				if (source instanceof Message){
+					String payload = (String) ((Message)source).getPayload();
+					if (payload.equals("hello")){
+						recievedEvent = true;
+						try {
+							barier.await();
+						} catch (Exception e) {
+							e.printStackTrace();
+						} 
+					}
+				}
+			}
+		};
+		ac.addApplicationListener(listener);
+		QueueChannel channel = ac.getBean("input", QueueChannel.class);
+		channel.send(new StringMessage("hello"));
+		barier.await();
 		Assert.assertTrue(recievedEvent);
 	}
 	
