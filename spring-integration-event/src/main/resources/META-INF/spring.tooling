@@ -1,0 +1,3 @@
+# Tooling related information for the integration event namespace
+http\://www.springframework.org/schema/integration/event@name=integration event Namespace
+http\://www.springframework.org/schema/integration/event@prefix=int-event
