@@ -612,6 +612,10 @@
 			</xsd:attribute>
 			<xsd:attribute name="message-converter" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A reference to the MessageConverter strategy for converting between JMS Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+				]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
@@ -876,6 +880,10 @@
 		</xsd:attribute>
 		<xsd:attribute name="message-converter" type="xsd:string">
 			<xsd:annotation>
+			<xsd:documentation><![CDATA[
+	A reference to the MessageConverter strategy for converting between JMS Messages
+	and the Spring Integration Message payloads. Default is a SimpleMessageConverter.
+				]]></xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="org.springframework.jms.support.converter.MessageConverter"/>
