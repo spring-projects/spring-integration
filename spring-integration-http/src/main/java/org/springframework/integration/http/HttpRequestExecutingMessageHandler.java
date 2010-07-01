@@ -177,7 +177,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			Map<?,?> payloadMap = (Map<?,?>) requestMessage.getPayload();
 			for (Object key : payloadMap.keySet()) {
 				if (key instanceof String) {
-					System.out.println("adding value for key: " + key);
 					uriVariables.put((String) key, payloadMap.get(key).toString());
 				}
 				else if (logger.isDebugEnabled()) {
