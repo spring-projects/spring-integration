@@ -17,9 +17,11 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactoryAware;
-
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -29,6 +31,7 @@ import org.springframework.util.Assert;
  * and sends the result to its output channel.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler {
 
@@ -69,5 +72,12 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 			throw new MessageTransformationException(message, e);
 		}
 	}
-
+	
+	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders, MessageChannel replyChannel) {
+		if (!this.sendReplyMessage((Message<?>) replyMessage, replyChannel)) {
+			throw new MessageDeliveryException((Message<?>) replyMessage,
+					"failed to send reply Message to channel '" + replyChannel + "'. Consider increasing the " +
+                            "send timeout of this endpoint.");
+		}
+	}
 }

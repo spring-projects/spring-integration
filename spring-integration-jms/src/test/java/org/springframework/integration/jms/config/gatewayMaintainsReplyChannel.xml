@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jms="http://www.springframework.org/schema/integration/jms">
+
+	<int:gateway id="gateway"
+	             service-interface="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$SampleGateway"
+		         default-request-channel="requests">
+		<int:method name="echo">
+			<int:header name="foo" value="bar"/>
+		</int:method>
+    </int:gateway>
+		
+	<int:chain input-channel="requests">
+		<int-jms:outbound-gateway request-destination="requestQueue" 
+	                              reply-destination="replyQueue" 
+	                              connection-factory="connectionFactory"/>
+	</int:chain>
+	
+	
+	
+	<bean id="requestQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue"/>
+	</bean>
+
+	<bean id="replyQueue" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="reply.queue"/>
+	</bean>
+	
+
+	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">
+		<property name="targetConnectionFactory">
+			<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+				<property name="brokerURL" value="vm://localhost"/>		
+			</bean>
+		</property>
+		<property name="sessionCacheSize" value="10"/>
+		<property name="cacheProducers" value="false"/>
+	</bean>
+	
+	<int-jms:inbound-gateway request-channel="jmsInput" request-destination="requestQueue"/>
+	
+	<int:channel id="jmsInput"/>
+	
+	<int:service-activator input-channel="jmsInput">
+		<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$SampleService"/>
+	</int:service-activator>
+</beans>

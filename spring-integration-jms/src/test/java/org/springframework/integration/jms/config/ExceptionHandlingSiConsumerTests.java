@@ -42,6 +42,7 @@ public class ExceptionHandlingSiConsumerTests {
 	
 	@Test
 	public void nonSiProducer_siConsumer_sync_withReturn() throws Exception {
+		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		JmsTemplate jmsTemplate = new JmsTemplate(applicationContext.getBean("connectionFactory", ConnectionFactory.class));
 		Destination request = applicationContext.getBean("requestQueue", Destination.class);
@@ -61,6 +62,7 @@ public class ExceptionHandlingSiConsumerTests {
 	}
 	@Test
 	public void nonSiProducer_siConsumer_sync_withReturnNoException() throws Exception {
+		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		JmsTemplate jmsTemplate = new JmsTemplate(applicationContext.getBean("connectionFactory", ConnectionFactory.class));
 		Destination request = applicationContext.getBean("requestQueue", Destination.class);
@@ -81,35 +83,12 @@ public class ExceptionHandlingSiConsumerTests {
 
 	@Test
 	public void nonSiProducer_siConsumer_sync_withOutboundGateway() throws Exception{
+		ActiveMqTestUtils.prepare();
 		final ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
 		String reply = gateway.echo("echoWithExceptionChannel");
 		System.out.println("Reply: " + reply);
 		applicationContext.close();
-	}
-	
-	
-	
-	@Before
-	public void prepare() throws Exception {
-		System.out.println("####### Refreshing ActiveMq ########");
-		File activeMqTempDir = new File("activemq-data");
-		this.deleteDir(activeMqTempDir);
-		
-	}
-	/*
-	 * 
-	 */
-	private void deleteDir(File directory){
-		if (directory.exists()){
-			String[] children = directory.list();
-			if (children != null){
-				 for (int i=0; i < children.length; i++) {
-			         deleteDir(new File(directory, children[i]));
-			     }
-			}
-		}
-		directory.delete();
 	}
 	
 	public static class SampleService{

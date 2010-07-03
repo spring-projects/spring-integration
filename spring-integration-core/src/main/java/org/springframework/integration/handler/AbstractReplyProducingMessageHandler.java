@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
 		implements MessageProducer {
@@ -116,7 +117,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	@SuppressWarnings("unchecked")
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
 		if (reply instanceof Message) {
-			return (Message<?>) reply;
+			return MessageBuilder.fromMessage((Message<?>) reply).copyHeadersIfAbsent(requestHeaders).build();
 		}
 		MessageBuilder<?> builder = (reply instanceof MessageBuilder)
 				? (MessageBuilder<?>) reply : MessageBuilder.withPayload(reply);

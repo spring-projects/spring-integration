@@ -29,6 +29,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
 public class JmsOutboundGatewayParserTests {
 
@@ -54,5 +55,25 @@ public class JmsOutboundGatewayParserTests {
 		Object order = accessor.getPropertyValue("order");
 		assertEquals(99, order);
 	}
-
+	
+	@Test
+	public void gatewayMaintainsReplyChannel() {
+		ActiveMqTestUtils.prepare();
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"gatewayMaintainsReplyChannel.xml", this.getClass());
+		SampleGateway gateway = context.getBean("gateway", SampleGateway.class);
+		String result = gateway.echo("hello");
+		assertEquals("HELLO", result);
+	}
+	
+	public static interface SampleGateway{
+		public String echo(String value);
+	}
+	
+	public static class SampleService{
+		public String echo(String value){
+			return value.toUpperCase();
+		}
+	}
+	
 }
