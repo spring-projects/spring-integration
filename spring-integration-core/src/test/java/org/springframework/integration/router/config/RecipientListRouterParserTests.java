@@ -17,6 +17,7 @@
 package org.springframework.integration.router.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -50,6 +51,9 @@ public class RecipientListRouterParserTests {
 	@Autowired
 	@Qualifier("routingChannelA")
 	private MessageChannel channel;
+
+	@Autowired
+	private MessageChannel simpleDynamicInput;
 
 	@Test
 	public void checkMessageRouting() {
@@ -86,6 +90,25 @@ public class RecipientListRouterParserTests {
 				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("applySequence"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreSendFailures"));
+	}
+
+	@Test
+	public void simpleDynamicRouter() {
+		context.start();
+		Message<?> message = new GenericMessage<Integer>(1);
+		simpleDynamicInput.send(message);
+		PollableChannel chanel1 = (PollableChannel) context.getBean("channel1");
+		PollableChannel chanel2 = (PollableChannel) context.getBean("channel2");
+		assertTrue(chanel1.receive(0).getPayload().equals(1));
+		assertNull(chanel2.receive(0));
+	}
+
+
+	public static class TestBean {
+
+		public boolean accept(int number) {
+			return number == 1;
+		}
 	}
 
 }

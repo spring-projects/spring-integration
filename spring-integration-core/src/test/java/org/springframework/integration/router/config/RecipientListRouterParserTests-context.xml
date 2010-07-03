@@ -15,9 +15,15 @@
 		<queue capacity="1" />
 	</channel>
 
+	<channel id="channel3">
+		<queue capacity="1" />
+	</channel>
+
 	<channel id="routingChannelA" />
 
 	<channel id="routingChannelB" />
+
+	<channel id="routingChannelC" />
 
 	<recipient-list-router id="simpleRouter" input-channel="routingChannelA">
 		<recipient channel="channel1"/>
@@ -31,5 +37,13 @@
 		<recipient channel="channel1"/>
 		<recipient channel="channel2"/>
 	</recipient-list-router>
+
+	<recipient-list-router id="simpleDynamicRouter" input-channel="simpleDynamicInput">
+		<recipient selector-expression="true" channel="channel1"/>
+		<recipient selector-expression="false" channel="channel2"/>
+		<recipient selector-expression="@testBean.accept(payload)" channel="channel3"/>
+	</recipient-list-router>
+
+	<beans:bean id="testBean" class="org.springframework.integration.router.config.RecipientListRouterParserTests.TestBean"/>
 
 </beans:beans>

@@ -51,7 +51,7 @@ public class RecipientListRouterParser extends AbstractConsumerEndpointParser {
 			BeanDefinitionBuilder recipientBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					"org.springframework.integration.router.RecipientListRouter.Recipient");
 			recipientBuilder.addConstructorArgReference(childElement.getAttribute("channel"));
-			String expression = childElement.getAttribute("expression");
+			String expression = childElement.getAttribute("selector-expression");
 			if (StringUtils.hasText(expression)) {
 				BeanDefinition selectorDef = new RootBeanDefinition(
 						"org.springframework.integration.filter.ExpressionEvaluatingSelector");

@@ -1642,7 +1642,7 @@
 					<xsd:sequence>
 						<xsd:element name="recipient" minOccurs="1" maxOccurs="unbounded">
 							<xsd:complexType>
-								<xsd:attribute name="expression" type="xsd:string">
+								<xsd:attribute name="selector-expression" type="xsd:string">
 									<xsd:annotation>
 										<xsd:documentation>
 	An expression to be evaluated to determine if this recipient should be included in the recipient
