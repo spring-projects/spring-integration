@@ -59,7 +59,7 @@ import org.springframework.util.Assert;
  */
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
-    private volatile Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap;
+    private volatile Map<MessageSelector, ? extends Collection<? extends MessageChannel>> channelMap;
 
 
     /**
@@ -83,7 +83,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
      *
      * @param channelMap
      */
-    public void setChannelMap(Map<MessageSelector, ? extends Collection<MessageChannel>> channelMap) {
+    public void setChannelMap(Map<MessageSelector, ? extends Collection<? extends MessageChannel>> channelMap) {
         this.channelMap = channelMap;
     }
 
@@ -100,7 +100,8 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		List<MessageChannel> recipients = new ArrayList<MessageChannel>();
-		Map<MessageSelector, Collection<MessageChannel>> map = new HashMap<MessageSelector, Collection<MessageChannel>>(this.channelMap);
+		Map<MessageSelector, Collection<? extends MessageChannel>> map =
+				new HashMap<MessageSelector, Collection<? extends MessageChannel>>(this.channelMap);
 		for (MessageSelector selector : map.keySet()) {
 			if (selector.accept(message)) {
 				recipients.addAll(map.get(selector));

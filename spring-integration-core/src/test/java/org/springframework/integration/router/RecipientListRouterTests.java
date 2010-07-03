@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -355,6 +356,60 @@ public class RecipientListRouterTests {
 	public void noChannelListFailsInitialization() {
 		RecipientListRouter router = new RecipientListRouter();
 		router.afterPropertiesSet();
+	}
+
+	@Test
+	public void selectors() {
+		QueueChannel channel1 = new QueueChannel();
+		QueueChannel channel2 = new QueueChannel();
+		QueueChannel channel3 = new QueueChannel();
+		QueueChannel channel4 = new QueueChannel();
+		QueueChannel channel5 = new QueueChannel();
+		QueueChannel channel6 = new QueueChannel();
+		RecipientListRouter router = new RecipientListRouter();
+		Map<MessageSelector, List<? extends MessageChannel>> channelMap =
+				new HashMap<MessageSelector, List<? extends MessageChannel>>();
+		channelMap.put(new AlwaysTrueSelector(), Collections.singletonList(channel1));
+		channelMap.put(new AlwaysFalseSelector(), Collections.singletonList(channel2));
+		List<QueueChannel> acceptList = new ArrayList<QueueChannel>();
+		acceptList.add(channel3);
+		acceptList.add(channel4);
+		channelMap.put(new AlwaysTrueSelector(), acceptList);
+		List<QueueChannel> rejectList = new ArrayList<QueueChannel>();
+		rejectList.add(channel5);
+		rejectList.add(channel6);
+		channelMap.put(new AlwaysFalseSelector(), rejectList);
+		router.setChannelMap(channelMap);
+		Message<?> message = new StringMessage("test");
+		router.handleMessage(message);
+		Message<?> reply1 = channel1.receive(0);
+		assertEquals(message, reply1);
+		Message<?> reply2 = channel2.receive(0);
+		assertNull(reply2);
+		Message<?> reply3 = channel3.receive(0);
+		assertEquals(message, reply3);
+		Message<?> reply4 = channel4.receive(0);
+		assertEquals(message, reply4);
+		Message<?> reply5 = channel5.receive(0);
+		assertNull(reply5);
+		Message<?> reply6 = channel6.receive(0);
+		assertNull(reply6);
+	}
+
+
+	private static class AlwaysTrueSelector implements MessageSelector {
+
+		public boolean accept(Message<?> message) {
+			return true;
+		}
+	}
+
+
+	private static class AlwaysFalseSelector implements MessageSelector {
+
+		public boolean accept(Message<?> message) {
+			return false;
+		}
 	}
 
 }
