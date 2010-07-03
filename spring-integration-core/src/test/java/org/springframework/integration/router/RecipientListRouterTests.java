@@ -19,14 +19,10 @@ package org.springframework.integration.router;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Test;
 
@@ -36,6 +32,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.router.RecipientListRouter.Recipient;
 import org.springframework.integration.selector.MessageSelector;
 
 /**
@@ -54,13 +51,11 @@ public class RecipientListRouterTests {
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(channels);
 		router.afterPropertiesSet();
-		Map<MessageSelector, Collection<MessageChannel>> channelMap =
-				(Map<MessageSelector, Collection<MessageChannel>>)
-						new DirectFieldAccessor(router).getPropertyValue("channelMap");
-		Collection<MessageChannel> channelList = channelMap.values().iterator().next();
-		assertEquals(2, channelList.size());
-		assertTrue(channelList.contains(channel1));
-		assertTrue(channelList.contains(channel2));
+		List<Recipient> recipients = (List<Recipient>)
+				new DirectFieldAccessor(router).getPropertyValue("recipients");
+		assertEquals(2, recipients.size());
+		assertEquals(channel1, new DirectFieldAccessor(recipients.get(0)).getPropertyValue("channel"));
+		assertEquals(channel2, new DirectFieldAccessor(recipients.get(1)).getPropertyValue("channel"));
 	}
 
 	@Test
@@ -359,27 +354,20 @@ public class RecipientListRouterTests {
 	}
 
 	@Test
-	public void selectors() {
+	public void recipientsWithSelectors() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
 		QueueChannel channel3 = new QueueChannel();
 		QueueChannel channel4 = new QueueChannel();
 		QueueChannel channel5 = new QueueChannel();
-		QueueChannel channel6 = new QueueChannel();
+		List<Recipient> recipients = new ArrayList<Recipient>();
+		recipients.add(new Recipient(channel1, new AlwaysTrueSelector()));
+		recipients.add(new Recipient(channel2, new AlwaysFalseSelector()));
+		recipients.add(new Recipient(channel3));
+		recipients.add(new Recipient(channel4));
+		recipients.add(new Recipient(channel5, new AlwaysFalseSelector()));
 		RecipientListRouter router = new RecipientListRouter();
-		Map<MessageSelector, List<? extends MessageChannel>> channelMap =
-				new HashMap<MessageSelector, List<? extends MessageChannel>>();
-		channelMap.put(new AlwaysTrueSelector(), Collections.singletonList(channel1));
-		channelMap.put(new AlwaysFalseSelector(), Collections.singletonList(channel2));
-		List<QueueChannel> acceptList = new ArrayList<QueueChannel>();
-		acceptList.add(channel3);
-		acceptList.add(channel4);
-		channelMap.put(new AlwaysTrueSelector(), acceptList);
-		List<QueueChannel> rejectList = new ArrayList<QueueChannel>();
-		rejectList.add(channel5);
-		rejectList.add(channel6);
-		channelMap.put(new AlwaysFalseSelector(), rejectList);
-		router.setChannelMap(channelMap);
+		router.setRecipients(recipients);
 		Message<?> message = new StringMessage("test");
 		router.handleMessage(message);
 		Message<?> reply1 = channel1.receive(0);
@@ -392,8 +380,6 @@ public class RecipientListRouterTests {
 		assertEquals(message, reply4);
 		Message<?> reply5 = channel5.receive(0);
 		assertNull(reply5);
-		Message<?> reply6 = channel6.receive(0);
-		assertNull(reply6);
 	}
 
 

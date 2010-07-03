@@ -18,8 +18,6 @@ package org.springframework.integration.router;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,32 +57,29 @@ import org.springframework.util.Assert;
  */
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
-    private volatile Map<MessageSelector, ? extends Collection<? extends MessageChannel>> channelMap;
-
+    private volatile List<Recipient> recipients;
+   
 
     /**
-     * Set the output channels of this router.
-     *
-     * @param channels
+     * Set the channels for this router. Either call this method or
+     * {@link #setRecipients(List)} but not both. If MessageSelectors
+     * should be considered, then use {@link #setRecipients(List)}.
      */
     public void setChannels(List<MessageChannel> channels) {
         Assert.notEmpty(channels, "channels must not be empty");
-        MessageSelector selector = new MessageSelector() {
-            public boolean accept(Message<?> message) {
-                return true;
-            }
-        };
-        this.setChannelMap(Collections.singletonMap(selector, channels));
+        List<Recipient> recipients = new ArrayList<Recipient>();
+        for (MessageChannel channel : channels) {
+        	recipients.add(new Recipient(channel));
+        }
+        this.setRecipients(recipients);
     }
 
     /**
-     * Set a custom map of selectors to channels. This allows a configuration where groups of channels are used for
-     * messages matching a particular filter.
-     *
-     * @param channelMap
+     * Set the recipients for this router.
      */
-    public void setChannelMap(Map<MessageSelector, ? extends Collection<? extends MessageChannel>> channelMap) {
-        this.channelMap = channelMap;
+    public void setRecipients(List<Recipient> recipients) {
+        Assert.notEmpty(recipients, "recipients must not be empty");
+        this.recipients = recipients;
     }
 
 	@Override
@@ -94,20 +89,44 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 
     @Override
     public final void onInit() {
-        Assert.notEmpty(this.channelMap, "a non-empty channel map is required");
+        Assert.notEmpty(this.recipients, "a non-empty recipient list is required");
     }
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		List<MessageChannel> recipients = new ArrayList<MessageChannel>();
-		Map<MessageSelector, Collection<? extends MessageChannel>> map =
-				new HashMap<MessageSelector, Collection<? extends MessageChannel>>(this.channelMap);
-		for (MessageSelector selector : map.keySet()) {
-			if (selector.accept(message)) {
-				recipients.addAll(map.get(selector));
+		List<MessageChannel> channels = new ArrayList<MessageChannel>();
+		List<Recipient> recipientList = this.recipients;
+		for (Recipient recipient : recipientList) {
+			if (recipient.accept(message)) {
+				channels.add(recipient.getChannel());
 			}
 		}
-		return recipients;
+		return channels;
+	}
+
+
+	public static class Recipient {
+
+		private final MessageChannel channel;
+
+		private final MessageSelector selector;
+
+		public Recipient(MessageChannel channel) {
+			this(channel, null);
+		}
+
+		public Recipient(MessageChannel channel, MessageSelector selector) {
+			this.channel = channel;
+			this.selector = selector;
+		}
+
+		public boolean accept(Message<?> message) {
+			return (this.selector != null ? this.selector.accept(message) : true);
+		}
+
+		public MessageChannel getChannel() {
+			return this.channel;
+		}
 	}
 
 }

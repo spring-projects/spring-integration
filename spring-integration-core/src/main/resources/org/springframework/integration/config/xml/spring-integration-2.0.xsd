@@ -1642,7 +1642,16 @@
 					<xsd:sequence>
 						<xsd:element name="recipient" minOccurs="1" maxOccurs="unbounded">
 							<xsd:complexType>
-								<xsd:attribute name="channel" type="xsd:string">
+								<xsd:attribute name="expression" type="xsd:string">
+									<xsd:annotation>
+										<xsd:documentation>
+	An expression to be evaluated to determine if this recipient should be included in the recipient
+	list for a given input Message. The evaluation result of the expression must be a boolean.
+	If this attribute is not defined, the channel will always be among the list of recipients.
+										</xsd:documentation>
+									</xsd:annotation>
+								</xsd:attribute>
+								<xsd:attribute name="channel" type="xsd:string" use="required">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<tool:annotation kind="ref">
