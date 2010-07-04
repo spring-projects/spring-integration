@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.annotation.Order;
@@ -70,7 +72,9 @@ public class SubscriberOrderTests {
 	public void directChannelAndFailoverDispatcherWithMultipleCallsPerMethod() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBeanDefinition("postProcessor", new RootBeanDefinition(MessagingAnnotationPostProcessor.class));
-		RootBeanDefinition channelDefinition = new RootBeanDefinition(DirectChannel.class);
+		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.rootBeanDefinition(DirectChannel.class);
+		channelBuilder.addConstructorArgValue(null);
+		RootBeanDefinition channelDefinition = (RootBeanDefinition) channelBuilder.getBeanDefinition();
 		context.registerBeanDefinition("input", channelDefinition);
 		RootBeanDefinition testBeanDefinition = new RootBeanDefinition(TestBean.class);
 		testBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(2);

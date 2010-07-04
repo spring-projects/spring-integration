@@ -20,6 +20,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.Assert;
@@ -58,7 +59,7 @@ public class ExecutorChannel extends AbstractSubscribableChannel {
 	 * The Executor must not be null.
 	 */
 	public ExecutorChannel(Executor executor) {
-		this(executor, null);
+		this(executor, new RoundRobinLoadBalancingStrategy());
 	}
 
 	/**

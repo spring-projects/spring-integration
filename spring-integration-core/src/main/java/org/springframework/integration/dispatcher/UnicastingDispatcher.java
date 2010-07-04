@@ -19,12 +19,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link MessageDispatcher} that will attempt to send a
@@ -43,12 +45,13 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Mark Fisher
  * @author Gary Russell
+ * @author Oleg Zhurakousky
  * @since 1.0.2
  */
 public class UnicastingDispatcher extends AbstractDispatcher {
 
 	private volatile boolean failover = true;
-
+	private ReadWriteLock rwLock = new ReentrantReadWriteLock();
 	private volatile LoadBalancingStrategy loadBalancingStrategy;
 
 	private final Executor executor;
@@ -76,8 +79,10 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * Provide a {@link LoadBalancingStrategy} for this dispatcher.
 	 */
 	public void setLoadBalancingStrategy(LoadBalancingStrategy loadBalancingStrategy) {
-		Assert.notNull(loadBalancingStrategy, "loadBalancingStrategy must not be null");
+		Lock lock = rwLock.writeLock();
+		lock.lock();
 		this.loadBalancingStrategy = loadBalancingStrategy;
+		lock.unlock();
 	}
 
 	public final boolean dispatch(final Message<?> message) {
@@ -127,9 +132,15 @@ public class UnicastingDispatcher extends AbstractDispatcher {
 	 * it simply returns the Iterator for the existing handler List.
 	 */
 	private Iterator<MessageHandler> getHandlerIterator(Message<?> message) {
-		if (this.loadBalancingStrategy != null) {
-			return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
-		}
+		Lock lock = rwLock.readLock();
+		lock.lock();
+		try {
+			if (this.loadBalancingStrategy != null) {
+				return this.loadBalancingStrategy.getHandlerIterator(message, this.getHandlers());
+			}
+		} finally {
+			lock.unlock();
+		}	
 		return this.getHandlers().iterator();
 	}
 

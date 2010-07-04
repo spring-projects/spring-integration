@@ -30,12 +30,13 @@ import org.w3c.dom.Element;
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class PointToPointChannelParser extends AbstractChannelParser {
 
 	private static final String CHANNEL_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".channel";
 
-	private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
+	//private static final String DISPATCHER_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".dispatcher";
 
 	private static final String STORE_PACKAGE = IntegrationNamespaceUtils.BASE_PACKAGE + ".store";
 
@@ -111,17 +112,14 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			// this attribute is deprecated, but if set, we need to create a DirectChannel
 			// without any LoadBalancerStrategy and the failover flag set to true (default).
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
-			if (!"failover".equals(dispatcherAttribute)) {
+			if ("failover".equals(dispatcherAttribute)) {
 				// round-robin dispatcher is used by default, the "failover" value simply disables it
-				builder.addConstructorArgValue(new RootBeanDefinition(DISPATCHER_PACKAGE
-						+ ".RoundRobinLoadBalancingStrategy", null, null));
-			}
+				builder.addConstructorArgValue(null);
+			} 
 		}
 		else if (dispatcherElement == null) {
 			// configure the default DirectChannel with a RoundRobinLoadBalancingStrategy
 			builder = BeanDefinitionBuilder.genericBeanDefinition(CHANNEL_PACKAGE + ".DirectChannel");
-			builder.addConstructorArgValue(new RootBeanDefinition(DISPATCHER_PACKAGE
-					+ ".RoundRobinLoadBalancingStrategy", null, null));
 		}
 		else {
 			// configure either an ExecutorChannel or DirectChannel based on existence of 'task-executor'
@@ -136,10 +134,9 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 			// unless the 'load-balancer' attribute is explicitly set to 'none',
 			// configure the default RoundRobinLoadBalancingStrategy
 			String loadBalancer = dispatcherElement.getAttribute("load-balancer");
-			if (!"none".equals(loadBalancer)) {
-				builder.addConstructorArgValue(new RootBeanDefinition(DISPATCHER_PACKAGE
-						+ ".RoundRobinLoadBalancingStrategy", null, null));
-			}
+			if ("none".equals(loadBalancer)) {
+				builder.addConstructorArgValue(null);
+			} 
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, dispatcherElement, "failover");
 		}
 		return builder;

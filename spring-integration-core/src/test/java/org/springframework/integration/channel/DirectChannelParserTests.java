@@ -17,14 +17,18 @@
 package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class DirectChannelParserTests {
 
@@ -34,6 +38,8 @@ public class DirectChannelParserTests {
 				"directChannelParserTests.xml", DirectChannelParserTests.class);
 		Object channel = context.getBean("channel");
 		assertEquals(DirectChannel.class, channel.getClass());
+		DirectFieldAccessor dcAccessor = new DirectFieldAccessor(((DirectChannel)channel).getDispatcher());
+		assertTrue(dcAccessor.getPropertyValue("loadBalancingStrategy") instanceof RoundRobinLoadBalancingStrategy);
 	}
 
 }

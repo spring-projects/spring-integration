@@ -24,12 +24,16 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
+import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class DirectChannelTests {
 
@@ -41,6 +45,11 @@ public class DirectChannelTests {
 		StringMessage message = new StringMessage("test");
 		assertTrue(channel.send(message));
 		assertEquals(Thread.currentThread().getName(), target.threadName);
+		DirectFieldAccessor channelAccessor = new DirectFieldAccessor(channel);
+		UnicastingDispatcher dispatcher = (UnicastingDispatcher) channelAccessor.getPropertyValue("dispatcher");
+		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
+		Object loadBalancingStrategy = dispatcherAccessor.getPropertyValue("loadBalancingStrategy");
+		assertTrue(loadBalancingStrategy instanceof RoundRobinLoadBalancingStrategy);
 	}
 
 	@Test

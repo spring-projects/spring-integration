@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
+import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.integration.dispatcher.UnicastingDispatcher;
  * @author Dave Syer
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public class DirectChannel extends AbstractSubscribableChannel {
 
@@ -33,11 +35,10 @@ public class DirectChannel extends AbstractSubscribableChannel {
 
 
 	/**
-	 * Create a channel with no {@link LoadBalancingStrategy}.
-	 * The dispatcher for such a channel will invoke its
-	 * MessageHandlers in a fixed-order.
+	 * Create a channel with default {@link RoundRobinLoadBalancingStrategy}
 	 */
 	public DirectChannel() {
+		this(new RoundRobinLoadBalancingStrategy());
 	}
 
 	/**

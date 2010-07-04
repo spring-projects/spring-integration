@@ -130,7 +130,7 @@ public class ExecutorChannelTests {
 		int numberOfMessages = 11;
 		ConcurrentTaskExecutor taskExecutor = new ConcurrentTaskExecutor(
 				Executors.newSingleThreadScheduledExecutor(new CustomizableThreadFactory("test-")));
-		ExecutorChannel channel = new ExecutorChannel(taskExecutor);
+		ExecutorChannel channel = new ExecutorChannel(taskExecutor, null);
 		CountDownLatch latch = new CountDownLatch(numberOfMessages);
 		TestHandler handler1 = new TestHandler(latch);
 		TestHandler handler2 = new TestHandler(latch);
