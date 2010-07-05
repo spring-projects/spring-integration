@@ -22,7 +22,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
  * Simple TCP outbound gateway; delegates write to a {@link TcpNetSendingMessageHandler}

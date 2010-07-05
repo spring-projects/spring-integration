@@ -21,7 +21,6 @@ import java.net.SocketException;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
-import org.springframework.integration.ip.util.SocketIoUtils;
 import org.springframework.integration.message.MessageMappingException;
 
 /**

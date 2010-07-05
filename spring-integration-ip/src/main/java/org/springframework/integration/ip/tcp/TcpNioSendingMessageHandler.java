@@ -17,7 +17,6 @@ package org.springframework.integration.ip.tcp;
 
 import java.nio.channels.SocketChannel;
 
-import org.springframework.integration.ip.util.SocketIoUtils;
 
 
 /**

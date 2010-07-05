@@ -19,7 +19,6 @@ import java.net.Socket;
 
 import javax.net.SocketFactory;
 
-import org.springframework.integration.ip.util.SocketIoUtils;
 
 
 /**

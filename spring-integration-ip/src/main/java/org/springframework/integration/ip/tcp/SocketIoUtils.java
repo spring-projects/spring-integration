@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.util;
+package org.springframework.integration.ip.tcp;
 
 import java.lang.reflect.Constructor;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.integration.ip.tcp.MessageFormats;
-import org.springframework.integration.ip.tcp.NetSocketReader;
-import org.springframework.integration.ip.tcp.NetSocketWriter;
-import org.springframework.integration.ip.tcp.NioSocketReader;
-import org.springframework.integration.ip.tcp.NioSocketWriter;
 import org.springframework.integration.message.MessageMappingException;
 
 /**

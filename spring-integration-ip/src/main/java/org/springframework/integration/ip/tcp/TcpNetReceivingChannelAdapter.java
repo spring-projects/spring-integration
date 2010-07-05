@@ -23,7 +23,6 @@ import java.net.Socket;
 import javax.net.ServerSocketFactory;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.ip.util.SocketIoUtils;
 
 /**
  * Tcp Receiving Channel adapter that uses a {@link Socket}. Each
