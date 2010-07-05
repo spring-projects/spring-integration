@@ -26,6 +26,7 @@
 		<module>spring-integration-test</module>
 		<module>spring-integration-ws</module>
 		<module>spring-integration-xml</module>
+		<module>spring-integration-xmpp</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

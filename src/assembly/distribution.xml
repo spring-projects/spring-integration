@@ -77,6 +77,7 @@
 				<include>org.springframework.integration:spring-integration-test</include>
 				<include>org.springframework.integration:spring-integration-ws</include>
 				<include>org.springframework.integration:spring-integration-xml</include>
+				<include>org.springframework.integration:spring-integration-xmpp</include>
 			</includes>
 			<binaries>
 				<outputDirectory>dist</outputDirectory>
@@ -104,6 +105,7 @@
 				<include>org.springframework.integration:spring-integration-test</include>
 				<include>org.springframework.integration:spring-integration-ws</include>
 				<include>org.springframework.integration:spring-integration-xml</include>
+				<include>org.springframework.integration:spring-integration-xmpp</include>
 			</includes>
 			<binaries>
 				<attachmentClassifier>sources</attachmentClassifier>
