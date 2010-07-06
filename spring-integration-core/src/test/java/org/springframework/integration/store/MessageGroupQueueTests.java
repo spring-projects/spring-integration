@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -40,7 +41,7 @@ import org.springframework.integration.message.StringMessage;
  * 
  */
 public class MessageGroupQueueTests {
-	
+
 	static final Log logger = LogFactory.getLog(MessageGroupQueueTests.class);
 
 	@Test
@@ -91,20 +92,25 @@ public class MessageGroupQueueTests {
 
 	@Test
 	public void testConcurrentAccess() throws Exception {
+		doTestConcurrentAccess(50, 20, new HashSet<String>());
+	}
+
+	@Test
+	public void testConcurrentAccessUniqueResults() throws Exception {
+		doTestConcurrentAccess(50, 20, null);
+	}
+	
+	private void doTestConcurrentAccess(int concurrency, final int maxPerTask, final Set<String> set) throws Exception {
 
 		SimpleMessageStore messageGroupStore = new SimpleMessageStore();
 		final MessageGroupQueue queue = new MessageGroupQueue(messageGroupStore, "FOO");
-		CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(Executors
-				.newCachedThreadPool());
-
-		int concurrency = 30;
-		final int maxPerTask = 20;
-		final Set<String> set = new HashSet<String>();
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executorService);
 
 		for (int i = 0; i < concurrency; i++) {
 
-			final int big = i;		
-	
+			final int big = i;
+
 			completionService.submit(new Callable<Boolean>() {
 				public Boolean call() throws Exception {
 					boolean result = true;
@@ -123,31 +129,39 @@ public class MessageGroupQueueTests {
 					boolean result = true;
 					for (int j = 0; j < maxPerTask; j++) {
 						@SuppressWarnings("unchecked")
-						Message<String> item = (Message<String>) queue.poll(1, TimeUnit.SECONDS);
-						set.add(item.getPayload());
-						result &= item!=null;
+						Message<String> item = (Message<String>) queue.poll(10, TimeUnit.SECONDS);
+						result &= item != null;
 						if (!result) {
 							logger.warn("Failed to poll");
+						}
+						else if (set != null) {
+							synchronized (set) {
+								set.add(item.getPayload());
+							}
 						}
 					}
 					return result;
 				}
 			});
-			
+
 			messageGroupStore.expireMessageGroups(-10000);
-			
+
 		}
 
-		for (int j = 0; j < 2*concurrency; j++) {
+		for (int j = 0; j < 2 * concurrency; j++) {
 			assertTrue(completionService.take().get());
 		}
-		
-		// Ensure all items polled are unique
-		assertEquals(concurrency*maxPerTask, set.size());
-		
+
+		if (set != null) {
+			// Ensure all items polled are unique
+			assertEquals(concurrency * maxPerTask, set.size());
+		}
+
 		assertEquals(0, queue.size());
 		messageGroupStore.expireMessageGroups(-10000);
 		assertEquals(Integer.MAX_VALUE, queue.remainingCapacity());
+		
+		executorService.shutdown();
 
 	}
 
