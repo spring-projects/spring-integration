@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xmpp.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
@@ -27,8 +29,11 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.*;
 
+import org.springframework.integration.xmpp.messages.XmppMessageSendingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+
 
 
 /**
@@ -39,6 +44,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class XmppHeaderEnricherParserTests {
+
+
+    private static final Log logger = LogFactory.getLog(XmppHeaderEnricherParserTests.class);
 
     @Value("#{input}")
     private DirectChannel input;
@@ -55,7 +63,7 @@ public class XmppHeaderEnricherParserTests {
                     throws MessageRejectedException, MessageHandlingException,
                         MessageDeliveryException {
                     for (String h : message.getHeaders().keySet())
-                        System.out.println(String.format("%s=%s (class: %s)", h, message.getHeaders().get(h), message.getHeaders().get(h).getClass().toString()));
+                         logger.debug(String.format("%s=%s (class: %s)", h, message.getHeaders().get(h), message.getHeaders().get(h).getClass().toString()));
                 }
             });
         messageChannelTemplate.send(MessageBuilder.withPayload("foo").build(), input);
