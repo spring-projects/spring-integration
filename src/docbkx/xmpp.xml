@@ -1,31 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
-"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+    "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="xmpp">
   <title>XMPP Support</title>
   <para>
-    Spring Integration provides Channel Adapters for XMPP.
+    Spring Integration provides Channel Adapters for<ulink url="http://www.xmpp.org">XMPP</ulink>.
   </para>
-
-  <section id="xmpp-inbound-channel-adapter">
-    <title>Inbound Channel Adapter</title>
+  <section id="xmpp-intro">
+    <title>Introduction</title>
     <para>
-      TODO
-      <programlisting language="xml"><![CDATA[ <xmpp:foo/>]]></programlisting>
-      <tip>
-        Don't forget, it's not actually "foo"!
-      </tip>
-      <note>
-        Really... that won't work.
-      </note>
+      Spring Integration provides adapters for sending and receiving both XMPP messages and status changes from other
+      entries in your roster as well as XMPP.
+    </para>
+    <para>
+      XMPP describes a way for multiple agents to communicate with each other in a distributed system.
+      The canonical use case is to send and receive instant messages, though XMPP can be, and is, used for far more
+      applications.
+      XMPP is used to describe a network of actors. Within that network, actors may address each other directly, as well
+      as broadcast status changes.
+    </para>
+    <para>
+      <!--
+      todo do we have to include TM for 'Facebook', 'GMail', and 'Gtalk'?       
+     -->
+      XMPP provides the messaging fabric that underlies some of the biggest Instant Messaging networks in the world,
+      including Google Talk (GTalk)
+      - which is also available from within GMail - and Facebook Chat.
+      There are many good open-source XMPP servers available. Two popular implementations are
+      <ulink url="http://www.igniterealtime.org/projects/openfire/">
+        <citetitle>Openfire</citetitle>
+      </ulink>
+      and
+      <ulink url="http://www.ejabberd.im">
+        <citetitle>ejabberd</citetitle>
+      </ulink>
+      .
+    </para>
+    <para>
+      In XMPP,
+      <emphasis>rosters</emphasis>
+      (the roster corresponds to the notion of a "buddy list" in your typical IM client) are used to manage a list of
+      other agents ("contacts", or "buddies", in an IM client)
+      in the system, called<emphasis>roster items</emphasis>.
+      The roster item contains - at a minimum - the roster item's JID which is its unique ID on the network.
+      An actor may subscribe to the state changes of another actor in the system. The subscription can be bidirectional,
+      as well.
+      The subscription settings determine whose status updates are broadcast, and to whom.
+      These subscriptions are stored on the XMPP server, and are thus durable.
+
+    </para>
+
+
+  </section>
+
+
+  <section id="xmpp-connection">
+    <title>XMPP Connection</title>
+    <para>
+      To participate in the network, an actor must connect to an XMPP server. Typically this requires - at a minimum - a
+      <code>user</code>, a<code>password</code>, a<code>host</code>, and a<code>port</code>.
+
+      To create an XMPP connection, you may use the XML namespace.
+
+      <programlisting lang="xml"><![CDATA[<xmpp:xmpp-connection
+  id="myConnection"
+  user="user"
+  password="password"
+  host="host"
+  port="port"
+  resource="theNameOfTheResource"
+/>
+      ]]></programlisting>
     </para>
   </section>
 
-  <section id="xmpp-samples">
+  <section id="xmpp-messages">
+    <title>XMPP Messages</title>
+    <section id="xmpp-message-inbound-channel-adapter">
+      <title>Inbound Message Adapter</title>
+      <para>TBD</para>
+    </section>
+    <section id="xmpp-message-outbound-channel-adapter">
+      <title>Outbound Message Adapter</title>
+      <para>TBD</para>
+    </section>
+  </section>
+  <section id="xmpp-presence">
+    <title>XMPP Presence</title>
+    <section id="xmpp-presence-inbound-channel-adapter">
+      <title>Inbound Presence Adapter</title>
+      <para>TBD</para>
+    </section>
+    <section id="xmpp-presence-outbound-channel-adapter">
+      <title>Outbound Presence Adapter</title>
+      <para>TBD</para>
+    </section>
+  </section>
+
+  <!--<section id="xmpp-samples">
     <title>XMPP Samples</title>
     <para>
       We really should have some samples...
     </para>
   </section>
-
+  -->
 </chapter>
