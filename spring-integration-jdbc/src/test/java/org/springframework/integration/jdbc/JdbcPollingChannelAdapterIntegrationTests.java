@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
@@ -28,7 +30,6 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 
 	private SimpleJdbcTemplate jdbcTemplate;
 
-	
 	@Before
 	public void setUp() {
 		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
@@ -55,13 +56,49 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		assertTrue("Wrong payload type", payload instanceof List<?>);
 		List<?> rows = (List<?>) payload;
 		assertEquals("Wrong number of elements", 1, rows.size());
-		assertTrue("Returned row not a map", rows.get(0) instanceof Map<?,?>);
+		assertTrue("Returned row not a map", rows.get(0) instanceof Map<?, ?>);
 		Map<?, ?> row = (Map<?, ?>) rows.get(0);
 		assertEquals("Wrong id", 1, row.get("id"));
 		assertEquals("Wrong status", 2, row.get("status"));
 
 	}
-	
+
+	@Test
+	public void testParameterizedPollForListOfMapsNoUpdate() {
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
+				this.embeddedDatabase,
+				"select * from item where status=:status");
+		adapter.setSqlQueryParameterSource(new SqlParameterSource() {
+
+			public boolean hasValue(String name) {
+				return "status".equals(name);
+			}
+
+			public Object getValue(String name) throws IllegalArgumentException {
+				return 2;
+			}
+
+			public String getTypeName(String name) {
+				return null;
+			}
+
+			public int getSqlType(String name) {
+				return Types.INTEGER;
+			}
+		});
+		this.jdbcTemplate.update("insert into item values(1,2)");
+		Message<Object> message = adapter.receive();
+		Object payload = message.getPayload();
+		assertTrue("Wrong payload type", payload instanceof List<?>);
+		List<?> rows = (List<?>) payload;
+		assertEquals("Wrong number of elements", 1, rows.size());
+		assertTrue("Returned row not a map", rows.get(0) instanceof Map<?, ?>);
+		Map<?, ?> row = (Map<?, ?>) rows.get(0);
+		assertEquals("Wrong id", 1, row.get("id"));
+		assertEquals("Wrong status", 2, row.get("status"));
+
+	}
+
 	@Test
 	public void testSimplePollForListWithRowMapperNoUpdate() {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
@@ -146,14 +183,13 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 				countOfStatusTen);
 
 	}
-	
+
 	@Test
 	public void testEmptyPoll() {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
 				this.embeddedDatabase, "select * from item");
 		Message<Object> message = adapter.receive();
 		assertNull("Message received when no rows in table", message);
-		
 
 	}
 

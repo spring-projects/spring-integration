@@ -94,6 +94,16 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 	}
+	
+	/**
+	 * A source of parameters for the select query used for polling.
+	 * 
+	 * @param sqlQueryParameterSource the sql query parameter source to set
+	 */
+	public void setSqlQueryParameterSource(
+			SqlParameterSource sqlQueryParameterSource) {
+		this.sqlQueryParameterSource = sqlQueryParameterSource;
+	}
 
 	/**
 	 * Executes the query. If a query result set contains one or more rows, the Message

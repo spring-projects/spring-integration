@@ -216,6 +216,21 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="sql-query-parameter-source" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Reference to a SqlParameterSource for the SELECT query used for polling. If
+									that query has placeholders (e.g. "SELECT * from FOO where KEY=:key") they
+									will be bound from this source by name.
+								</xsd:documentation>
+								<tool:annotation kind="ref">
+									<tool:expected-type
+										type="org.springframework.jdbc.core.namedparam.SqlParameterSource" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

@@ -17,6 +17,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,7 +72,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	}
 	
 	@Test
-	public void testParameterSourceInboundChannelAdapter(){
+	public void testParameterSourceFactoryInboundChannelAdapter(){
 		setUp("pollingWithParameterSourceJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = channelTemplate.receive();
@@ -79,6 +80,14 @@ public class JdbcPollingChannelAdapterParserTests {
 		List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM item WHERE status=1");
 		assertEquals(1, list.size());
 		assertEquals("bar", list.get(0).get("NAME"));
+	}
+	
+	@Test
+	public void testParameterSourceInboundChannelAdapter(){
+		setUp("pollingWithParametersForMapJdbcInboundChannelAdapterTest.xml", getClass());
+		this.jdbcTemplate.update("insert into item values(1,'',2)");
+		Message<?> message = channelTemplate.receive();
+		assertNotNull(message);
 	}
 	
 	@After
@@ -103,6 +112,19 @@ public class JdbcPollingChannelAdapterParserTests {
 	
 	protected void setupJdbcTemplate(){
 		this.jdbcTemplate = new SimpleJdbcTemplate(this.appCtx.getBean("dataSource",DataSource.class));
+	}
+	
+	public static class TestSqlParameterSource extends AbstractSqlParameterSource {
+
+		public Object getValue(String paramName)
+				throws IllegalArgumentException {
+			return 2;
+		}
+
+		public boolean hasValue(String paramName) {
+			return true;
+		}
+		
 	}
 
 }
