@@ -19,7 +19,11 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Transactional
 public class JdbcPollingChannelAdapterParserTests {
@@ -32,6 +36,8 @@ public class JdbcPollingChannelAdapterParserTests {
 	private MessageChannelTemplate channelTemplate;
 	
 	private ConfigurableApplicationContext appCtx;
+
+	private PlatformTransactionManager transactionManager;
 		
 	@Test
 	public void testSimpleInboundChannelAdapter(){
@@ -90,6 +96,24 @@ public class JdbcPollingChannelAdapterParserTests {
 		assertNotNull(message);
 	}
 	
+	@Test
+	public void testMaxRowsInboundChannelAdapter(){
+		setUp("pollingWithMaxRowsJdbcInboundChannelAdapterTest.xml", getClass());
+		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+			public Void doInTransaction(TransactionStatus status) {
+				jdbcTemplate.update("insert into item values(1,'',2)");
+				jdbcTemplate.update("insert into item values(2,'',2)");
+				jdbcTemplate.update("insert into item values(3,'',2)");
+				jdbcTemplate.update("insert into item values(4,'',2)");
+				return null;
+			}
+		});
+		@SuppressWarnings("unchecked")
+		Message<List<?>> message = (Message<List<?>>) channelTemplate.receive();
+		assertNotNull(message);
+		assertEquals(2, message.getPayload().size());
+	}
+	
 	@After
 	public void tearDown(){
 		if(appCtx != null){
@@ -100,6 +124,8 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void setUp(String name, Class<?> cls){
 		appCtx = new ClassPathXmlApplicationContext(name, cls);
 		setupJdbcTemplate();
+		jdbcTemplate.update("delete from item");
+		setupTransactionManager();
 		setupMessageChannelTemplate();
 	}
 	
@@ -112,6 +138,10 @@ public class JdbcPollingChannelAdapterParserTests {
 	
 	protected void setupJdbcTemplate(){
 		this.jdbcTemplate = new SimpleJdbcTemplate(this.appCtx.getBean("dataSource",DataSource.class));
+	}
+	
+	protected void setupTransactionManager(){
+		this.transactionManager = this.appCtx.getBean("transactionManager",PlatformTransactionManager.class);
 	}
 	
 	public static class TestSqlParameterSource extends AbstractSqlParameterSource {

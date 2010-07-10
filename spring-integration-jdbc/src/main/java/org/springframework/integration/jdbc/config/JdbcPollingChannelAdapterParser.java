@@ -70,6 +70,7 @@ public class JdbcPollingChannelAdapterParser extends AbstractPollingInboundChann
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "row-mapper");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-parameter-source-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "sql-query-parameter-source");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-rows-per-poll");
 		if (update!=null) {
 			builder.addPropertyValue("updateSql", update);
 		}

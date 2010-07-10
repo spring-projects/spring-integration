@@ -16,15 +16,22 @@
 
 package org.springframework.integration.jdbc;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.RowMapperResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcOperations;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
@@ -35,6 +42,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * select in order to update processed rows.
  * 
  * @author Jonas Partner
+ * @author Dave Syer
  * @since 2.0
  */
 public class JdbcPollingChannelAdapter implements MessageSource<Object> {
@@ -53,10 +61,11 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 
 	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new DefaultSqlParameterSourceFactory();
 
+	private int maxRowsPerPoll = 0;
 
 	/**
-	 * Constructor taking {@link DataSource} from which the DB Connection can
-	 * be obtained and the select query to execute to retrieve new rows.
+	 * Constructor taking {@link DataSource} from which the DB Connection can be
+	 * obtained and the select query to execute to retrieve new rows.
 	 * 
 	 * @param dataSource used to create a {@link SimpleJdbcTemplate}
 	 * @param selectQuery query to execute
@@ -78,7 +87,6 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 		this.selectQuery = selectQuery;
 	}
 
-
 	public void setRowMapper(RowMapper<?> rowMapper) {
 		this.rowMapper = rowMapper;
 	}
@@ -94,22 +102,32 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 	}
-	
+
 	/**
 	 * A source of parameters for the select query used for polling.
 	 * 
 	 * @param sqlQueryParameterSource the sql query parameter source to set
 	 */
-	public void setSqlQueryParameterSource(
-			SqlParameterSource sqlQueryParameterSource) {
+	public void setSqlQueryParameterSource(SqlParameterSource sqlQueryParameterSource) {
 		this.sqlQueryParameterSource = sqlQueryParameterSource;
 	}
 
 	/**
-	 * Executes the query. If a query result set contains one or more rows, the Message
-	 * payload will contain either a List of Maps for each row or, if a RowMapper has
-	 * been provided, the values mapped from those rows. If the query returns no rows,
-	 * this method will return <code>null</code>.
+	 * The maximum number of rows to pull out of the query results per poll (if
+	 * greater than zero, otherwise all rows will be packed into the outgoing
+	 * message). Default is zero.
+	 * 
+	 * @param maxRows the max rows to set
+	 */
+	public void setMaxRowsPerPoll(int maxRows) {
+		this.maxRowsPerPoll = maxRows;
+	}
+
+	/**
+	 * Executes the query. If a query result set contains one or more rows, the
+	 * Message payload will contain either a List of Maps for each row or, if a
+	 * RowMapper has been provided, the values mapped from those rows. If the
+	 * query returns no rows, this method will return <code>null</code>.
 	 */
 	public Message<Object> receive() {
 		Object payload = poll();
@@ -120,18 +138,12 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	}
 
 	/**
-	 * Execute the select query and the update query if provided.
-	 * Returns the rows returned by the select query. If a RowMapper
-	 * has been provided, the mapped results are returned.
+	 * Execute the select query and the update query if provided. Returns the
+	 * rows returned by the select query. If a RowMapper has been provided, the
+	 * mapped results are returned.
 	 */
 	private Object poll() {
-		List<?> payload;
-		if (this.rowMapper != null) {
-			payload = pollWithRowMapper();
-		}
-		else {
-			payload = this.jdbcOperations.queryForList(this.selectQuery, this.sqlQueryParameterSource);
-		}
+		List<?> payload = doPoll();
 		if (payload.size() < 1) {
 			payload = null;
 		}
@@ -149,25 +161,45 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	}
 
 	private void executeUpdateQuery(Object obj) {
-		SqlParameterSource updateParamaterSource = null;
-		if (this.sqlParameterSourceFactory != null) {
-			updateParamaterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
-			this.jdbcOperations.update(this.updateSql, updateParamaterSource);
-		}
-		else {
-			this.jdbcOperations.update(this.updateSql);
-		}
+		SqlParameterSource updateParamaterSource = this.sqlParameterSourceFactory.createParameterSource(obj);
+		this.jdbcOperations.update(this.updateSql, updateParamaterSource);
 	}
 
-	private List<?> pollWithRowMapper() {
+	private List<?> doPoll() {
+
 		List<?> payload = null;
-		if (this.sqlQueryParameterSource != null) {
-			payload = this.jdbcOperations.query(this.selectQuery, this.rowMapper, this.sqlQueryParameterSource);
+		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
+		ResultSetExtractor<List<Object>> resultSetExtractor;
+
+		if (maxRowsPerPoll > 0) {
+			resultSetExtractor = new ResultSetExtractor<List<Object>>() {
+				public List<Object> extractData(ResultSet rs) throws SQLException, DataAccessException {
+					List<Object> results = new ArrayList<Object>(maxRowsPerPoll);
+					int rowNum = 0;
+					while (rs.next() && rowNum < maxRowsPerPoll) {
+						results.add(rowMapper.mapRow(rs, rowNum++));
+					}
+					return results;
+				}
+			};
 		}
 		else {
-			payload = this.jdbcOperations.query(this.selectQuery, this.rowMapper);
+			@SuppressWarnings("unchecked")
+			ResultSetExtractor<List<Object>> temp = new RowMapperResultSetExtractor<Object>(
+					(RowMapper<Object>) rowMapper);
+			resultSetExtractor = temp;
 		}
+
+		if (this.sqlQueryParameterSource != null) {
+			payload = this.jdbcOperations.getNamedParameterJdbcOperations().query(this.selectQuery,
+					this.sqlQueryParameterSource, resultSetExtractor);
+		}
+		else {
+			payload = this.jdbcOperations.getJdbcOperations().query(this.selectQuery, resultSetExtractor);
+		}
+
 		return payload;
+
 	}
 
 }

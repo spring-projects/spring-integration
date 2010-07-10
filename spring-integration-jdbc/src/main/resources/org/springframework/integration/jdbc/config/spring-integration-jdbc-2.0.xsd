@@ -202,6 +202,16 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="max-rows-per-poll" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<xsd:documentation>
+									Limits the number of rows extracted per query (otherwise all rows
+									are extracted into the outgoing message).
+								</xsd:documentation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="channel" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:appinfo>
