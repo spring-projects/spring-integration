@@ -70,7 +70,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	public void pollableChannel() {
 		Message<?> message = new StringMessage("test1");
 		this.pollableChannel.send(message);
-		Message<?> reply = this.output1.receive(1000);
+		Message<?> reply = this.output1.receive(6000);
 		assertThat(message, sameExceptImmutableHeaders(reply));
 	}
 
