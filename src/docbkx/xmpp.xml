@@ -58,7 +58,7 @@
     <title>XMPP Connection</title>
     <para>
       To participate in the network, an actor must connect to an XMPP server. Typically this requires - at a minimum - a
-      <code>user</code>, a<code>password</code>, a<code>host</code>, and a<code>port</code>.
+      <code>user</code>, a <code>password</code>, a <code>host</code>, and a <code>port</code>.
 
       To create an XMPP connection, you may use the XML namespace.
 
@@ -78,7 +78,93 @@
     <title>XMPP Messages</title>
     <section id="xmpp-message-inbound-channel-adapter">
       <title>Inbound Message Adapter</title>
-      <para>TBD</para>
+      <para>The Spring Integration adapters support receiving messages from other users in the system.  To do this, the adapter "logs in" as a user
+        on your behalf and receives the messages sent to that user. Those messages are then forwarded to  your Spring Integration
+        client.
+        The payload of the inbound Spring Integration message may be of the raw type
+        <code>org.jivesoftware.smack.packet.Message</code>, or of the type <code>java.lang.String</code> - which is the type of the raw <code>
+        Message</code>'s <code>
+        body</code> property  -
+        depending on whether you specify <code>extract-payload</code> on the adapter's configuration or not.
+     Inbound  Messages  are typically small and are text-oriented. Messages received using the adapter have
+        a pretty standard layout, with known headers (all headers have keys defined on <code>org.springframework.integration.xmpp.XmppHeaders</code>):
+            </para>
+
+       <table>
+         <tr> <th>   Header Name</th> <th> What it Describes</th></tr>
+           <tr><td>XmppHeaders.CHAT</td>
+            <td> A reference to the <code>org.jivesoftware.smack.Chat</code> class which represents the
+              threaded conversation containing the message.
+            </td>
+           </tr>
+         <tr> <td>XmppHeaders.TYPE</td> <td>The value of the
+          the <code>
+            org.jivesoftware.smack.packet.Message.Type </code> enum that describes the inbound message. Possible values are:
+           <code>normal</code>,
+           <code>chat</code>,
+           <code>groupchat</code>,
+           <code>headline</code>,
+           <code>error</code>.
+        </td>
+         </tr>
+       </table>
+
+
+
+      <para>
+       This adapter requires a reference to an XMPP Connection. You may
+        use the   <link linkend="xmpp-connection">xmpp-connection</link>
+         element to define one.
+
+        An example  might look as follows: 
+
+      <programlisting lang="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans
+    xmlns="http://www.springframework.org/schema/integration"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
+    xmlns:tool="http://www.springframework.org/schema/tool"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
+        http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+				http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+				http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
+				http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
+
+  <context:component-scan
+            base-package="com.myxmppclient.inbound"/>
+
+  <context:property-placeholder
+            location="#{ systemProperties['user.home'] }/xmpp/xmppclient.properties"/>
+
+  <channel id="xmppInbound"/>
+
+  <xmpp:xmpp-connection
+    id="testConnection"
+      ...
+  />
+
+  <xmpp:message-inbound-channel-adapter
+        channel="xmppInbound"
+        xmpp-connection="testConnection"/>
+
+  <service-activator input-channel="xmppInbound"
+        ref="xmppMessageConsumer"/>
+
+</beans:beans>]]></programlisting>
+
+
+
+
+      </para>
     </section>
     <section id="xmpp-message-outbound-channel-adapter">
       <title>Outbound Message Adapter</title>

@@ -15,16 +15,16 @@
   ~     limitations under the License.
   -->
 <beans:beans
-        xmlns="http://www.springframework.org/schema/integration"
-        xmlns:beans="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:p="http://www.springframework.org/schema/p"
-        xmlns:context="http://www.springframework.org/schema/context"
-        xmlns:util="http://www.springframework.org/schema/util"
-        xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
-        xmlns:tool="http://www.springframework.org/schema/tool"
-        xmlns:lang="http://www.springframework.org/schema/lang"
-        xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
+    xmlns="http://www.springframework.org/schema/integration"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
+    xmlns:tool="http://www.springframework.org/schema/tool"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
         http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
                         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
@@ -33,32 +33,26 @@
 						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
 
-    <context:component-scan base-package="org.springframework.integration.xmpp"/>
+  <context:component-scan base-package="org.springframework.integration.xmpp"/>
 
-    <beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" p:ignoreUnresolvablePlaceholders="false">
-        <beans:property name="location">
-            <beans:bean class="org.springframework.core.io.FileSystemResource">
-                <beans:constructor-arg value="#{ systemProperties['user.home'] }/Desktop/test.properties"/>
-            </beans:bean>
-        </beans:property>
-    </beans:bean>
+  <context:property-placeholder location="#{ systemProperties['user.home'] }/Desktop/test.properties"/>
 
-    <channel id="xmppInbound"/>
+  <channel id="xmppInbound"/>
 
-    <xmpp:xmpp-connection
-            id="testConnection"
-            user="${user.2.login}"
-            password="${user.2.password}"
-            host="${user.2.host}"
-            port="${user.2.port}"
-            resource="${user.2.resource}"
-            sasl-mechanism-supported="${user.2.sasl.mechanism}"
-            sasl-mechanism-supported-index="${user.2.sasl.index}"
-            service-name="${user.2.service}"
-            />
+  <xmpp:xmpp-connection
+      id="testConnection"
+      user="${user.2.login}"
+      password="${user.2.password}"
+      host="${user.2.host}"
+      port="${user.2.port}"
+      resource="${user.2.resource}"
+      sasl-mechanism-supported="${user.2.sasl.mechanism}"
+      sasl-mechanism-supported-index="${user.2.sasl.index}"
+      service-name="${user.2.service}"
+      />
 
-    <xmpp:message-inbound-channel-adapter channel="xmppInbound" xmpp-connection="testConnection"/>
+  <xmpp:message-inbound-channel-adapter channel="xmppInbound" xmpp-connection="testConnection"/>
 
-    <service-activator input-channel="xmppInbound" ref="xmppMessageConsumer"/>
+  <service-activator input-channel="xmppInbound" ref="xmppMessageConsumer"/>
 
 </beans:beans>

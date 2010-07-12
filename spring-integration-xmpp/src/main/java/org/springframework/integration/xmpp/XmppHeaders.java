@@ -33,9 +33,9 @@ public class XmppHeaders {
     public static final String CHAT_TO_USER = PREFIX + "chat_to_user";
     public static final String CHAT_THREAD_ID = PREFIX + "thread_id";
     public static final String TYPE = PREFIX + "type";
-    public static final String ROSTER_CHANGE_TYPE = PREFIX + "roster_change_type";
+//    public static final String ROSTER_CHANGE_TYPE = PREFIX + "roster_change_type";
     public static final String PRESENCE = PREFIX + "presence";
-    public static final String ROSTER = PREFIX + "roster";
+//    public static final String ROSTER = PREFIX + "roster";
 
     public static final String PRESENCE_LANGUAGE = PRESENCE + "language" ;
     public static final String PRESENCE_PRIORITY = PRESENCE + "priority" ;
