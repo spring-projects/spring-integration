@@ -3,15 +3,19 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:ip="http://www.springframework.org/schema/integration/ip"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd	
-		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 
 	<int:channel id="udpChannel" />
 	<int:channel id="tcpChannel" />
 	<int:channel id="replyChannel" />
+	
+	<task:executor id="externalTE" pool-size="10"/>
 	
 	<ip:inbound-channel-adapter id="testInUdp"
 		channel="udpChannel"
@@ -27,6 +31,7 @@
 		so-send-buffer-size="31"
 		so-timeout="32"
 		local-address="127.0.0.1"
+		task-executor="externalTE"
 	/>
 
 	<ip:inbound-channel-adapter id="testInUdpMulticast"
@@ -122,7 +127,8 @@
 		so-receive-buffer-size="52"
 		so-send-buffer-size="53"
 		so-timeout="54"
-		local-address="127.0.0.1"		
+		local-address="127.0.0.1"	
+		task-executor="externalTE"	
 	/>
 	
 	<ip:outbound-channel-adapter id="testOutUdpiMulticast" 
@@ -221,6 +227,7 @@
 		so-send-buffer-size="125"
 		so-timeout="126"
 		local-address="127.0.0.1"		
+		task-executor="externalTE"
 		/>	
 
 	<ip:outbound-gateway id="simpleOutGateway"

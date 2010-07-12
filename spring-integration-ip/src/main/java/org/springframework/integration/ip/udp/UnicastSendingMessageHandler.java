@@ -26,11 +26,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
@@ -52,7 +54,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
-		AbstractInternetProtocolSendingMessageHandler implements Runnable {
+		AbstractInternetProtocolSendingMessageHandler implements Runnable, InitializingBean {
 
 	protected final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
@@ -84,6 +86,8 @@ public class UnicastSendingMessageHandler extends
 	private CountDownLatch ackLatch;
 
 	private boolean ackThreadRunning;
+
+	protected volatile Executor taskExecutor;
 	
 	/**
 	 * Basic constructor; no reliability; no acknowledgment.
@@ -160,19 +164,27 @@ public class UnicastSendingMessageHandler extends
 		if (ackTimeout > 0) {
 			this.ackTimeout = ackTimeout;
 		}
-		if (acknowledge) {
+		this.acknowledge = acknowledge;
+		if (this.acknowledge) {
 			Assert.hasLength(ackHost);
-			this.acknowledge = true;
-			this.executorService = Executors
-					.newSingleThreadExecutor(new ThreadFactory() {
-						private AtomicInteger n = new AtomicInteger();
-						public Thread newThread(Runnable runner) {
-							Thread thread = new Thread(runner);
-							thread.setName("UDP-Ack-Handler-" + n.getAndIncrement());
-							thread.setDaemon(true);
-							return thread;
-						}
-					});
+		}
+	}
+
+	public void afterPropertiesSet() {
+		if (this.acknowledge) {
+			if (this.taskExecutor == null) {
+				Executor executor = Executors
+						.newSingleThreadExecutor(new ThreadFactory() {
+							private AtomicInteger n = new AtomicInteger();
+							public Thread newThread(Runnable runner) {
+								Thread thread = new Thread(runner);
+								thread.setName("UDP-Ack-Handler-" + n.getAndIncrement());
+								thread.setDaemon(true);
+								return thread;
+							}
+						});
+				this.taskExecutor = executor;
+			}
 		}
 	}
 
@@ -184,7 +196,7 @@ public class UnicastSendingMessageHandler extends
 				synchronized(this) {
 					if (!this.ackThreadRunning) {
 						ackLatch = new CountDownLatch(1);
-						this.executorService.execute(this);
+						this.taskExecutor.execute(this);
 						try {
 							ackLatch.await(10000, TimeUnit.MILLISECONDS);
 						} catch (InterruptedException e) { }
@@ -306,7 +318,7 @@ public class UnicastSendingMessageHandler extends
 			return;
 		}
 		this.fatalException = null;
-		this.executorService.execute(this);
+		this.taskExecutor.execute(this);
 	}
 
 	public void shutDown() {
@@ -326,6 +338,10 @@ public class UnicastSendingMessageHandler extends
 
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
+	}
+
+	public void setTaskExecutor(Executor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 
 	

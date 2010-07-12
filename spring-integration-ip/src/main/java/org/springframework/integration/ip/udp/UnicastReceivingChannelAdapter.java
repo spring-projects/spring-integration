@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.ThreadFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,7 +31,6 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * A channel adapter to receive incoming UDP packets. Packets can optionally be preceded by a 
@@ -47,10 +45,6 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	protected volatile DatagramSocket socket;
 
 	protected final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
-
-	protected volatile ThreadPoolTaskScheduler threadPoolTaskScheduler;
-
-	protected volatile int poolSize = -1;
 
 	protected volatile int soSendBufferSize = -1;
 
@@ -79,29 +73,11 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	}
 
 
-	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
-	}
-
 	public void run() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("UDP Receiver running on port:" + port);
 		}
-		if (this.active && this.threadPoolTaskScheduler == null) {
-			this.threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-			this.threadPoolTaskScheduler.setThreadFactory(new ThreadFactory() {
-				public Thread newThread(Runnable runner) {
-					Thread thread = new Thread(runner);
-					thread.setName("UDP-Incoming-Msg-Handler");
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
-			if (this.poolSize > 0) {
-				this.threadPoolTaskScheduler.setPoolSize(this.poolSize);
-			}
-			this.threadPoolTaskScheduler.initialize();
-		}
+		checkTaskExecutor("UDP-Incoming-Msg-Handler");
 
 		listening = true;
 		
@@ -109,7 +85,7 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		// Just schedule the packet for processing.
 		while (this.active) {
 			try {
-				scheduleSendMessage(receive());
+				asyncSendMessage(receive());
 			}
 			catch (SocketTimeoutException e) {
 				// continue
@@ -156,8 +132,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 		}
 	}
 
-	protected boolean scheduleSendMessage(final DatagramPacket packet) {
-		this.threadPoolTaskScheduler.execute(new Runnable(){
+	protected boolean asyncSendMessage(final DatagramPacket packet) {
+		this.taskExecutor.execute(new Runnable(){
 			public void run() {
 				Message<byte[]> message = null;
 				try {

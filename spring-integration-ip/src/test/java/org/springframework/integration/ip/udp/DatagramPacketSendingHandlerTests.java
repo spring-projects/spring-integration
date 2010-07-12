@@ -95,6 +95,7 @@ public class DatagramPacketSendingHandlerTests {
 		UnicastSendingMessageHandler handler = 
 				new UnicastSendingMessageHandler("localhost", testPort, true, 
 						true, "localhost", ackPort, 5000);
+		handler.afterPropertiesSet();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				try {

@@ -17,6 +17,9 @@
 package org.springframework.integration.ip;
 
 import java.util.Date;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.scheduling.TaskScheduler;
@@ -45,6 +48,10 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 	protected volatile boolean listening;
 
 	protected volatile String localAddress;
+
+	protected volatile Executor taskExecutor;
+
+	protected volatile int poolSize = 5;
 
 
 	public AbstractInternetProtocolReceivingChannelAdapter(int port) {
@@ -91,6 +98,25 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 		taskScheduler.schedule(this, new Date());
 	}
 
+	/**
+	 * Creates a default task executor if none was supplied.
+	 * 
+	 * @param threadName
+	 */
+	protected void checkTaskExecutor(final String threadName) {
+		if (this.active && this.taskExecutor == null) {
+			Executor executor = Executors.newFixedThreadPool(this.poolSize, new ThreadFactory() {
+				public Thread newThread(Runnable runner) {
+					Thread thread = new Thread(runner);
+					thread.setName(threadName);
+					thread.setDaemon(true);
+					return thread;
+				}
+			});
+			this.taskExecutor = executor;
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.springframework.integration.endpoint.AbstractEndpoint#doStop()
 	 */
@@ -109,6 +135,14 @@ public abstract class AbstractInternetProtocolReceivingChannelAdapter
 
 	public void setLocalAddress(String localAddress) {
 		this.localAddress = localAddress;
+	}
+
+	public void setPoolSize(int poolSize) {
+		this.poolSize = poolSize;
+	}
+
+	public void setTaskExecutor(Executor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 
 }

@@ -91,6 +91,8 @@ public abstract class IpAdapterParserUtils {
 	
 	static final String LOCAL_ADDRESS = "local-address";
 
+	static final String TASK_EXECUTOR = "task-executor";
+
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 

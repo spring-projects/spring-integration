@@ -70,7 +70,7 @@ public class TcpNetReceivingChannelAdapter extends
 				while (true) {
 					final Socket socket = serverSocket.accept();
 					setSocketOptions(socket);
-					this.threadPoolTaskScheduler.execute(new Runnable() {
+					this.taskExecutor.execute(new Runnable() {
 						public void run() {
 							handleSocket(socket);
 						}});

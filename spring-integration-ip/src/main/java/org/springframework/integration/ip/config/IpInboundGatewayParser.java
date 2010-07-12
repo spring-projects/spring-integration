@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.Conventions;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ip.tcp.SimpleTcpNetInboundGateway;
 
 /**
@@ -38,6 +39,7 @@ public class IpInboundGatewayParser extends AbstractInboundGatewayParser {
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
 		return !attributeName.equals(IpAdapterParserUtils.MESSAGE_FORMAT)
+		        && !attributeName.equals(IpAdapterParserUtils.TASK_EXECUTOR)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
@@ -46,6 +48,8 @@ public class IpInboundGatewayParser extends AbstractInboundGatewayParser {
 		builder.addPropertyValue(
 				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
 				IpAdapterParserUtils.getMessageFormat(element));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.TASK_EXECUTOR);
 	}
 
 }

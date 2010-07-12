@@ -16,6 +16,8 @@
 package org.springframework.integration.ip.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -24,6 +26,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ip.tcp.CustomNetSocketReader;
 import org.springframework.integration.ip.tcp.CustomNetSocketWriter;
 import org.springframework.integration.ip.tcp.CustomNioSocketReader;
@@ -118,6 +121,10 @@ public class ParserUnitTests {
 	@Qualifier(value="org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway#1")
 	SimpleTcpNetOutboundGateway simpleTcpNetOutboundGatewayClose;
 
+	@Autowired
+	@Qualifier(value="externalTE")
+	TaskExecutor taskExecutor;
+	
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
@@ -128,6 +135,7 @@ public class ParserUnitTests {
 		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
+		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 	}
 	
 	@Test
@@ -141,6 +149,7 @@ public class ParserUnitTests {
 		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
+		assertNotSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));		
 	}
 	
 	@Test
@@ -220,6 +229,7 @@ public class ParserUnitTests {
 		assertEquals(53, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
+		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 	}
 	
 	@Test
@@ -317,6 +327,8 @@ public class ParserUnitTests {
 		assertEquals(23, dfa.getPropertyValue("poolSize"));
 		assertEquals(false, dfa.getPropertyValue("close"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
+		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
+		assertSame(taskExecutor, delegateDfa.getPropertyValue("taskExecutor"));
 	}
 
 	@Test

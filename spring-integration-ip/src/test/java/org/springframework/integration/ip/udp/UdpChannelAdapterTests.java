@@ -64,6 +64,7 @@ public class UdpChannelAdapterTests {
 //				whichNic, 
 				SocketUtils.findAvailableUdpSocket(), 5000);
 //		handler.setLocalAddress(whichNic);
+		handler.afterPropertiesSet();
 		Message<byte[]> message = MessageBuilder.withPayload("ABCD".getBytes()).build();
 		handler.handleMessage(message);
 		Message<byte[]> receivedMessage = (Message<byte[]>) channel.receive(2000);

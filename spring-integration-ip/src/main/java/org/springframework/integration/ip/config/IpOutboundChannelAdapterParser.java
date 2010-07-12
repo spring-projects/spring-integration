@@ -98,6 +98,8 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.TASK_EXECUTOR);
 		return builder;
 	}
 

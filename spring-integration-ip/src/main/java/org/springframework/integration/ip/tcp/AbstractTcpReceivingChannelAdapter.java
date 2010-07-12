@@ -17,11 +17,8 @@ package org.springframework.integration.ip.tcp;
 
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * Abstract class for tcp/ip incoming channel adapters. Implementations
@@ -35,10 +32,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public abstract class AbstractTcpReceivingChannelAdapter extends
 		AbstractInternetProtocolReceivingChannelAdapter {
 
-	protected volatile ThreadPoolTaskScheduler threadPoolTaskScheduler;
-
-	protected volatile int poolSize = -1;
-	
 	protected volatile SocketMessageMapper mapper = new SocketMessageMapper();
 
 	protected volatile boolean soKeepAlive;
@@ -56,29 +49,14 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	}
 
 	/**
-	 * Creates the ThreadPoolTaskScheduler, if necessary, and calls 
+	 * Checks that we have a task executor and calls 
 	 * {@link #server()}.
 	 */
 	public void run() {
 		if (logger.isDebugEnabled()) {
 			logger.debug(this.getClass().getSimpleName() + " running on port: " + port);
 		}
-		if (this.active && this.threadPoolTaskScheduler == null) {
-			this.threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-			this.threadPoolTaskScheduler.setThreadFactory(new ThreadFactory() {
-				private AtomicInteger n = new AtomicInteger(); 
-				public Thread newThread(Runnable runner) {
-					Thread thread = new Thread(runner);
-					thread.setName("TCP-Incoming-Msg-Handler-" + n.getAndIncrement());
-					thread.setDaemon(true);
-					return thread;
-				}
-			});
-			if (this.poolSize > 0) {
-				this.threadPoolTaskScheduler.setPoolSize(this.poolSize);
-			}
-			this.threadPoolTaskScheduler.initialize();
-		}
+		checkTaskExecutor("TCP-Incoming-Msg-Handler");
 		server();
 	}
 
@@ -117,13 +95,6 @@ public abstract class AbstractTcpReceivingChannelAdapter extends
 	public void setMessageFormat(int messageFormat) {
 		this.messageFormat = messageFormat;
 		mapper.setMessageFormat(messageFormat);
-	}
-
-	/**
-	 * @param poolSize the poolSize to set
-	 */
-	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
 	}
 
 	/**

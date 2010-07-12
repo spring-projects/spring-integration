@@ -135,7 +135,7 @@ public class TcpNioReceivingChannelAdapter extends
 							}
 							key.attach(reader);
 						}
-						this.threadPoolTaskScheduler.execute(new Runnable() {
+						this.taskExecutor.execute(new Runnable() {
 							public void run() {
 								doRead(key);
 								if (key.channel().isOpen()) {

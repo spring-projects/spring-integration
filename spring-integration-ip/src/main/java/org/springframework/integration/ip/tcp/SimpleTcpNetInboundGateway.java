@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.concurrent.Executor;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
@@ -67,6 +68,8 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 	
 	protected String localAddress;
 	
+	protected Executor taskExecutor;
+	
 	@Override
 	protected void doStart() {
 		super.doStart();
@@ -81,18 +84,19 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 
 	@Override
 	protected void onInit() throws Exception {
-		this.delegate = new WriteCapableTcpNetReceivingChannelAdapter(port);
-		this.delegate.setMessageFormat(messageFormat);
-		this.delegate.setPoolSize(poolSize);
-		this.delegate.setReceiveBufferSize(receiveBufferSize);
-		this.delegate.setSoKeepAlive(soKeepAlive);
-		this.delegate.setSoReceiveBufferSize(soReceiveBufferSize);
-		this.delegate.setSoSendBufferSize(soSendBufferSize);
-		this.delegate.setSoTimeout(soTimeout);
+		this.delegate = new WriteCapableTcpNetReceivingChannelAdapter(this.port);
+		this.delegate.setMessageFormat(this.messageFormat);
+		this.delegate.setPoolSize(this.poolSize);
+		this.delegate.setReceiveBufferSize(this.receiveBufferSize);
+		this.delegate.setSoKeepAlive(this.soKeepAlive);
+		this.delegate.setSoReceiveBufferSize(this.soReceiveBufferSize);
+		this.delegate.setSoSendBufferSize(this.soSendBufferSize);
+		this.delegate.setSoTimeout(this.soTimeout);
 		this.delegate.setTaskScheduler(getTaskScheduler());
-		this.delegate.setCustomSocketReaderClassName(customSocketReaderClassName);
-		this.delegate.setClose(close);
-		this.delegate.setLocalAddress(localAddress);
+		this.delegate.setCustomSocketReaderClassName(this.customSocketReaderClassName);
+		this.delegate.setClose(this.close);
+		this.delegate.setLocalAddress(this.localAddress);
+		this.delegate.setTaskExecutor(this.taskExecutor);
 		super.onInit();
 	}
 
@@ -204,6 +208,10 @@ public class SimpleTcpNetInboundGateway extends AbstractMessagingGateway {
 		this.close = close;
 	}
 	
+	public void setTaskExecutor(Executor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
+
 	public boolean isListening() {
 		return delegate.isListening();
 	}

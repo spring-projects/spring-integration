@@ -28,7 +28,15 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="ipAdapterType">
-					<xsd:attribute name="pool-size" type="xsd:string" />
+					<xsd:attribute name="pool-size" type="xsd:string" >
+						<xsd:annotation>
+							<xsd:documentation>
+The number of threads that will be used for socket/channel handling. Only applies
+if an external task-executor is NOT being used. When using an external task executor,
+its configuration specifies the number of threads.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
 					<xsd:attribute name="multicast-address" type="xsd:string" />
 					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
@@ -45,6 +53,15 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 If true, the socket will be closed after a message is received and sent to the
 outbound channel. If false, the socket will remain open ready to receive the 
 next message.							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specifies a specific Executor to be used for socket handling. If not supplied, an internal
+	pooled executor will be used (See pool-size). Needed on some platforms that require the use of specific
+	task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -80,6 +97,15 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 					<xsd:attribute name="so-linger" type="xsd:string" />
 					<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
 					<xsd:attribute name="so-traffic-class" type="xsd:string" />
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+Specifies a specific Executor to be used for handling acknowledgments in the UDP adapter. If not supplied, an internal
+pooled executor will be used. Needed on some platforms that require the use of specific
+task executors such as a WorkManagerTaskExecutor.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -94,7 +120,15 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="pool-size" type="xsd:string" />
+					<xsd:attribute name="pool-size" type="xsd:string" >
+						<xsd:annotation>
+							<xsd:documentation>
+The number of threads that will be used for socket/channel handling. Only applies
+if an external task-executor is NOT being used. When using an external task executor,
+its configuration specifies the number of threads.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
 						<xsd:annotation>
 							<xsd:documentation>
@@ -108,6 +142,15 @@ the custom message format. See java docs for TcpNetReceivingChannelAdapter and T
 							<xsd:documentation>
 If message-format = 'custom' you must provide a sub class of the appropriate type to implement
 the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="task-executor" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+Specifies a specific Executor to be used for socket handling. If not supplied, an internal
+pooled executor will be used (See pool-size). Needed on some platforms that require the use of specific
+task executors such as a WorkManagerTaskExecutor.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>

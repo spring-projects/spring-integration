@@ -53,6 +53,8 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 				IpAdapterParserUtils.POOL_SIZE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
 				element, "channel", "outputChannel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.TASK_EXECUTOR);
 		return builder.getBeanDefinition();
 	}
 

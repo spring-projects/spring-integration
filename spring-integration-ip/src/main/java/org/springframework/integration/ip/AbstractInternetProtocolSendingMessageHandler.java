@@ -20,7 +20,6 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,8 +46,6 @@ public abstract class AbstractInternetProtocolSendingMessageHandler implements M
 
 	protected volatile int soTimeout = -1;
 
-	protected volatile ExecutorService executorService;
-	
 	public AbstractInternetProtocolSendingMessageHandler(String host, int port) {
 		Assert.notNull(host, "host must not be null");
 		this.destinationAddress = new InetSocketAddress(host, port);
