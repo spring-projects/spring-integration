@@ -44,6 +44,8 @@ public class ObjectToMapTransformer extends AbstractPayloadTransformer<Object, M
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)
 	 */
 	protected Map<String, Object> transformPayload(Object payload) throws Exception {
+		CycleDetector cycleDetector = new CycleDetector();
+		cycleDetector.detectCycle(payload);
 		ObjectToSpelMapBuilder builder = new ObjectToSpelMapBuilder();
 		return builder.buildSpelMap(payload);
 	}

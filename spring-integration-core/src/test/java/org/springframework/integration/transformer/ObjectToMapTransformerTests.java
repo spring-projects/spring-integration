@@ -62,6 +62,17 @@ public class ObjectToMapTransformerTests {
 			assertEquals(valueFromTheMap, valueFromExpression);
 		}		
 	}
+	@Test(expected=MessageTransformationException.class)
+	public void testObjectToSpelMapTransformerWithCycle(){
+		Employee employee = this.buildEmployee();
+		Child child = new Child();	
+		Person parent = employee.getPerson();
+		parent.setChild(child);
+		child.setParent(parent);
+		ObjectToMapTransformer transformer = new ObjectToMapTransformer();
+		Message<Employee> message = MessageBuilder.withPayload(employee).build();
+		transformer.transform(message);
+	}
 
 	@SuppressWarnings("unchecked")
 	public Employee buildEmployee(){
@@ -168,6 +179,13 @@ public class ObjectToMapTransformerTests {
 		private String lname;
 		private String[] akaNames;
 		private List<Map<String, Object>> remarks;
+		private Child child;
+		public Child getChild() {
+			return child;
+		}
+		public void setChild(Child child) {
+			this.child = child;
+		}
 		public List<Map<String, Object>> getRemarks() {
 			return remarks;
 		}
@@ -236,6 +254,18 @@ public class ObjectToMapTransformerTests {
 		}
 		public void setCoordinates(Map<String, Long[]> coordinates) {
 			this.coordinates = coordinates;
+		}
+	}
+	
+	public static class Child {
+		private Person parent;
+
+		public Person getParent() {
+			return parent;
+		}
+
+		public void setParent(Person parent) {
+			this.parent = parent;
 		}
 	}
 }
