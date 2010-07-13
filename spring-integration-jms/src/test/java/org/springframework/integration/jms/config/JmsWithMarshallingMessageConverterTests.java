@@ -33,8 +33,6 @@ import org.springframework.integration.message.StringMessage;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
-
-
 /**
  * @author Oleg Zhurakousky
  *
@@ -42,6 +40,7 @@ import org.springframework.oxm.XmlMappingException;
 public class JmsWithMarshallingMessageConverterTests {
 	
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void demoWithMarshallingConverter(){
 		ActiveMqTestUtils.prepare();
