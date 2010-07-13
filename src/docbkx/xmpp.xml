@@ -315,8 +315,8 @@ public class XmppMessageConsumer {
 
       </para>
       <para>
-        It's easy enough to use Java to handle this and this lets you update the target of the
-        XMPP message dynamically at runtime in Java code. If, however, the target is more static in nature, you can
+        It's easy enough to use Java to update the <code>XmppHeaders.CHAT_TO_USER</code> header,  and this has the advantage of dynamically updating the header at runtime in Java code.
+        If, however, the target is more static in nature, you can
         configure it using the
         XMPP enricher support. Here is an example using the enricher. The enricher enriches the Spring Integration
         message
