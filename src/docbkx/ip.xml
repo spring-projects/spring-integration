@@ -7,7 +7,8 @@
     (User Datagram Protocol)
     and TCP (Transmission Control Protocol) adapters are provided. Each adapter provides for one-way communication 
     over the underlying protocol.
-    In addition, a simple inbound tcp gateway is provided. 
+    In addition, simple inbound and outbound tcp gateways are provided. These are used when two-way communication is
+    needed. 
   </para>
   <section id="ip-intro">
     <title>Introduction</title>
