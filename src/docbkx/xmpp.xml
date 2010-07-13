@@ -4,7 +4,7 @@
 <chapter id="xmpp">
   <title>XMPP Support</title>
   <para>
-    Spring Integration provides Channel Adapters for<ulink url="http://www.xmpp.org">XMPP</ulink>.
+    Spring Integration provides Channel Adapters for <ulink url="http://www.xmpp.org">XMPP</ulink>.
   </para>
   <section id="xmpp-intro">
     <title>Introduction</title>
