@@ -463,6 +463,17 @@
                      the multicast packets will be sent over. Not applicable to the TCP
                      adapter.</entry>
             </row>
+            <row>
+              <entry>task-executor</entry>
+              <entry>N</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>
+                     Specifies a specific Executor to be used for acknowledgment handling. If not supplied, an internal
+                     single threaded executor will be used. Needed on some platforms that require the use of specific
+                     task executors such as a WorkManagerTaskExecutor. One thread will be dedicated to handling 
+                     acknowledgments (if the acknowledge option is true).</entry>
+            </row>
           </tbody>
         </tgroup>
       </table>
@@ -523,7 +534,19 @@
                      be handled concurrently. For tcp, not using nio, specifies the 
                      number of concurrent connections supported by the adapter. For tcp,
                      using nio, specifies the number of tcp fragments that are concurrently
-                     reassembled into complete messages.</entry>
+                     reassembled into complete messages. 
+                     Only applies if task-executor is not configured. Defaults to 5.</entry>
+            </row>
+            <row>
+              <entry>task-executor</entry>
+              <entry>Y</entry>
+              <entry>Y</entry>
+              <entry></entry>
+              <entry>
+                     Specifies a specific Executor to be used for socket handling. If not supplied, an internal
+                     pooled executor will be used. Needed on some platforms that require the use of specific
+                     task executors such as a WorkManagerTaskExecutor. See pool-size for thread 
+                     requirements, depending on other options.</entry>
             </row>
             <row>
               <entry>receive-buffer-size</entry>
@@ -652,8 +675,18 @@
             <row>
               <entry>pool-size</entry>
               <entry></entry>
-              <entry>Specifies the number of concurrent connections supported 
-                     by the gateway.</entry>
+              <entry>Specifies the number of concurrent connections supported
+                     by the gateway.
+                     Only applies if task-executor is not configured. Defaults to 5.</entry>
+            </row>
+            <row>
+              <entry>task-executor</entry>
+              <entry></entry>
+              <entry>
+                     Specifies a specific Executor to be used for socket handling. If not supplied, an internal
+                     pooled executor will be used. Needed on some platforms that require the use of specific
+                     task executors such as a WorkManagerTaskExecutor. See pool-size for thread 
+                     requirements.</entry>
             </row>
             <row>
               <entry>receive-buffer-size</entry>
