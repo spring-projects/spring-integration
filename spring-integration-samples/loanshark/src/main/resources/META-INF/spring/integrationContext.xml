@@ -24,7 +24,7 @@
 		input-channel="transformedChannel"
 		ref="accumulator" />
 		
-	<bean id="accumulator" class="com.springframework.integration.loanbroker.loanshark.biz.Accumulator" />
-	<bean id="transformer" class="com.springframework.integration.loanbroker.loanshark.biz.SharkTransformer" />
+	<bean id="accumulator" class="com.springframework.integration.loanbroker.samples.loanshark.biz.Accumulator" />
+	<bean id="transformer" class="com.springframework.integration.loanbroker.samples.loanshark.biz.SharkTransformer" />
 		
 </beans>

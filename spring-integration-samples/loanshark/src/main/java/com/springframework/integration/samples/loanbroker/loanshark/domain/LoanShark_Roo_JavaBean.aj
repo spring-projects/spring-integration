@@ -1,4 +1,4 @@
-package com.springframework.integration.loanbroker.loanshark.domain;
+package com.springframework.integration.samples.loanbroker.loanshark.domain;
 
 import java.lang.Double;
 import java.lang.Long;

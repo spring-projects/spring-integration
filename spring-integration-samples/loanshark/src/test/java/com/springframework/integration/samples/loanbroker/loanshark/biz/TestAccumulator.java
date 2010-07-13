@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.springframework.integration.loanbroker.loanshark.biz;
+package com.springframework.integration.samples.loanbroker.loanshark.biz;
 
 
 import static junit.framework.Assert.assertEquals;
@@ -25,7 +25,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.springframework.integration.loanbroker.loanshark.domain.LoanShark;
+import com.springframework.integration.samples.loanbroker.loanshark.biz.Accumulator;
+import com.springframework.integration.samples.loanbroker.loanshark.biz.SharkQuote;
+import com.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 
 
 /**

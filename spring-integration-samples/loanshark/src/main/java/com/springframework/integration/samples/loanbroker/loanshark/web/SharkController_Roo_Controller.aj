@@ -1,6 +1,7 @@
-package com.springframework.integration.loanbroker.loanshark.web;
+package com.springframework.integration.samples.loanbroker.loanshark.web;
 
-import com.springframework.integration.loanbroker.loanshark.domain.LoanShark;
+import com.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
+
 import java.lang.Long;
 import java.lang.String;
 import javax.validation.Valid;

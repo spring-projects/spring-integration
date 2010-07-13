@@ -46,7 +46,7 @@
 		The most commonly used annotation is @Autowired, which instructs Spring to
 		dependency inject an object into your class.
 	-->
-	<context:component-scan base-package="com.springframework.integration.loanbroker.loanshark">
+	<context:component-scan base-package="com.springframework.integration.samples.loanbroker.loanshark">
 		<context:exclude-filter expression=".*_Roo_.*" type="regex"/>
 		<context:exclude-filter expression="org.springframework.stereotype.Controller" type="annotation"/>
 	</context:component-scan>
