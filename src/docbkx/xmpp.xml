@@ -52,6 +52,49 @@
 
 
   </section>
+  <section id="xmpp-config">
+    <title>Using The Spring Integration XMPP Namespace
+    </title>
+    <para>
+      Using the Spring Integration XMPP namespace support is simple.
+
+      Its use is like any other module in the Spring framework: import the XML schema, and use it to define elements.
+
+      A prototypical XMPP-based integration might feature the following header. We won't repeat this in subsequent
+      examples, because it is uninteresting.
+
+
+      <programlisting lang="xml"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans
+    xmlns="http://www.springframework.org/schema/integration"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
+    xmlns:tool="http://www.springframework.org/schema/tool"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xsi:schemaLocation="
+http://www.springframework.org/schema/integration/xmpp
+http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
+http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/integration
+http://www.springframework.org/schema/integration/spring-integration.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context-3.0.xsd
+">
+    ...
+
+</beans:beans>
+]]></programlisting>
+
+    </para>
+
+  </section>
 
 
   <section id="xmpp-connection">
@@ -79,25 +122,21 @@
     <section id="xmpp-message-inbound-channel-adapter">
       <title>Inbound Message Adapter</title>
       <para>The Spring Integration adapters support receiving messages from other users in the system. To do this, the
-        adapter "logs in" as a user
-        on your behalf and receives the messages sent to that user. Those messages are then forwarded to your Spring
-        Integration
-        client.
-        The payload of the inbound Spring Integration message may be of the raw type
-        <code>org.jivesoftware.smack.packet.Message</code>, or of the type
-        <code>java.lang.String</code>
+        adapter "logs in" as a user on your behalf and receives the messages sent to that user. Those messages are then
+        forwarded to your Spring Integration client.
+        The payload of the inbound Spring Integration message may be of the raw type<classname>
+          org.jivesoftware.smack.packet.Message</classname>, or of the type
+        <classname>java.lang.String</classname>
         - which is the type of the raw<code>
           Message</code>'s
-        <code>
-          body
-        </code>
+        <code>body</code>
         property -
         depending on whether you specify
         <code>extract-payload</code>
         on the adapter's configuration or not.
         Inbound Messages are typically small and are text-oriented. Messages received using the adapter have
-        a pretty standard layout, with known headers (all headers have keys defined on<code>
-          org.springframework.integration.xmpp.XmppHeaders</code>):
+        a pretty standard layout, with known headers (all headers have keys defined on<classname>
+          org.springframework.integration.xmpp.XmppHeaders</classname>):
       </para>
 
       <table>
@@ -116,37 +155,33 @@
           </thead>
           <tbody>
             <row>
-            <entry>XmppHeaders.TYPE</entry>
-              <entry> The value of the
-          the <code>
-            org.jivesoftware.smack.packet.Message.Type </code> enum that describes the inbound message. Possible values are:
-           <code>normal</code>,
-           <code>chat</code>,
-           <code>groupchat</code>,
-           <code>headline</code>,
-           <code>error</code>.</entry>
+              <entry>XmppHeaders.TYPE</entry>
+              <entry>The value of the
+                the
+                <code>
+                  org.jivesoftware.smack.packet.Message.Type
+                </code>
+                enum that describes the inbound message. Possible values are:
+                <code>normal</code>,
+                <code>chat</code>,
+                <code>groupchat</code>,
+                <code>headline</code>,
+                <code>error</code>.
+              </entry>
 
             </row>
             <row>
-            <entry>XmppHeaders.CHAT</entry>
-              <entry> A reference to the <code>org.jivesoftware.smack.Chat</code> class which represents the
-                         threaded conversation containing the message.</entry>
+              <entry>XmppHeaders.CHAT</entry>
+              <entry>A reference to the
+                <code>org.jivesoftware.smack.Chat</code>
+                class which represents the
+                threaded conversation containing the message.
+              </entry>
 
             </row>
           </tbody>
         </tgroup>
-        <!-- <thead>
-           <tr>
-           <th>   Header Name</th> <th> What it Describes</th></tr>
-                      <tr><td></td>
-                       <td>
-                       </td>
-               </tr>       
-         </thead>
 
-         <tr> <td></td> <td>
-        </td>
-         </tr>-->
       </table>
 
 
@@ -160,24 +195,7 @@
 
         <programlisting lang="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 
-<beans:beans
-    xmlns="http://www.springframework.org/schema/integration"
-    xmlns:beans="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:p="http://www.springframework.org/schema/p"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:util="http://www.springframework.org/schema/util"
-    xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
-    xmlns:tool="http://www.springframework.org/schema/tool"
-    xmlns:lang="http://www.springframework.org/schema/lang"
-    xsi:schemaLocation="http://www.springframework.org/schema/integration/xmpp
-        http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-				http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
-        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
-				http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
-				http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
+<beans:beans ... >
 
   <context:component-scan
             base-package="com.myxmppclient.inbound"/>
@@ -190,12 +208,10 @@
   <xmpp:xmpp-connection
     id="testConnection"
       ...
-  />
-
-  <xmpp:message-inbound-channel-adapter
+  />                ]]><emphasis><![CDATA[<xmpp:message-inbound-channel-adapter
         channel="xmppInbound"
         xmpp-connection="testConnection"/>
-
+              ]]></emphasis><![CDATA[
   <service-activator input-channel="xmppInbound"
         ref="xmppMessageConsumer"/>
 
@@ -203,10 +219,122 @@
 
 
       </para>
+      <para>
+        In this example, the message is received from the XMPP adapter and passed to a
+        <code>service-activator</code>
+        component. Here's the declaration of the<code>service-activator</code>.
+        <programlisting lang="java">
+          <![CDATA[package com.myxmppclient.inbound ;
+
+import org.jivesoftware.smack.packet.Message;
+
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.stereotype.Component;
+
+@Component
+public class XmppMessageConsumer {
+
+   @ServiceActivator
+   public void consume(Message input) throws Throwable {
+      String text = input.getBody();
+      System.out.println( "Received message: " + text  ) ;
+   }
+   
+}
+]]></programlisting>
+      </para>
+
     </section>
     <section id="xmpp-message-outbound-channel-adapter">
       <title>Outbound Message Adapter</title>
-      <para>TBD</para>
+      <para>
+        You may also send messages to other users on XMPP using the
+        <code>outbound-message-channel-adapter</code>
+        adapter. The is configured like the
+
+        <link linkend="xmpp-message-inbound-channel-adapter">xmpp-message-inbound-channel-adapter</link>. The
+        adapter takes an
+        <code>xmpp-connection</code>
+        reference.
+
+
+        Here is a (necessarily) contrived example solution using the outbound adapter.
+
+        <programlisting lang="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+
+<beans:beans ... >
+
+    <context:component-scan
+        base-package="com.myxmppproducer.outbound"/>
+
+    <context:property-placeholder
+        location="#{ systemProperties['user.home'] }/xmpp/xmppclient.properties"/>
+
+    <beans:bean id="xmppProducer"
+      class="com.myxmppproducer.outbound.XmppMessageProducer"
+      p:recipient="${user.2.login}"/>
+
+    <poller default="true">
+        <interval-trigger fixed-rate="true"
+           interval="10" time-unit="SECONDS"/>
+    </poller>
+
+    <xmpp:xmpp-connection
+        id="testConnection"
+        ...
+    />
+
+    <inbound-channel-adapter ref="xmppProducer"
+      channel="outboundChannel"/>
+
+    <channel id="outboundChannel"/>
+
+    <xmpp:message-outbound-channel-adapter
+          channel="outboundChannel"
+          xmpp-connection="testConnection"/>
+
+</beans:beans>]]>
+</programlisting>
+      </para>
+      <para>
+
+        The adapter expects as its input - at a minimum - a payload of type<classname>java.lang.String</classname>, and
+        a header value
+        for
+        <code>XmppHeaders.CHAT_TO_USER</code>
+        that specifies to which the user the payload body should be sent to.
+        To create a message destined for the<code>outbound-message-channel-adapter</code>, you might use the following
+        Java code:
+
+        <programlisting lang="java">
+          <![CDATA[
+  Message<String> xmppOutboundMsg = MessageBuilder.withPayload("Hello, world!" )
+                                    .setHeader(XmppHeaders.CHAT_TO_USER, "userhandle")
+                                    .build();
+]]></programlisting>
+
+      </para>
+      <para>
+        It's easy enough to use Java to handle this and this lets you update the target of the
+        XMPP message dynamically at runtime in Java code. If, however, the target is more static in nature, you can
+        configure it using the
+        XMPP enricher support. Here is an example using the enricher. The enricher enriches the Spring Integration
+        message
+        to support the header values that the outbound XMPP adapters expect.
+        <programlisting lang="xml">
+          <![CDATA[
+<channel id="input"/>
+<channel id="output"/>
+
+<xmpp:header-enricher input-channel="input" output-channel="output">
+  <xmpp:message-to value="test1@example.org"/>
+</xmpp:header-enricher>
+]]></programlisting>
+      </para>
+      <para>
+
+
+      </para>
     </section>
   </section>
   <section id="xmpp-presence">
