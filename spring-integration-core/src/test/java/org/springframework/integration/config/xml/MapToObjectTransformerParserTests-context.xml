@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+
+	<int:channel id="input"/>
+	<int:channel id="output">
+		<int:queue/>
+	</int:channel>
+	
+	<int:map-to-object-transformer input-channel="input" 
+	                               output-channel="output" 
+	                               type="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$Person"/>
+	                               
+	<int:channel id="inputA"/>
+	<int:channel id="outputA">
+		<int:queue/>
+	</int:channel>
+	
+	<int:map-to-object-transformer input-channel="inputA" 
+	                               output-channel="outputA" 
+	                               ref="person"/>
+	                               
+	<bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+		<property name="converters">
+			<list>
+				<bean class="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$StringToAddressConverter" />
+			</list>
+		</property>
+	</bean>
+	                               
+	<bean id="person" class="org.springframework.integration.config.xml.MapToObjectTransformerParserTests$Person" scope="prototype"/>
+</beans>

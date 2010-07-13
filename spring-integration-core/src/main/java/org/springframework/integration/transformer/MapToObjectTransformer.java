@@ -58,7 +58,6 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 		this.targetClass = targetClass;
 		this.targetBeanName = null;
 	}
-
 	/**
 	 * @param beanName
 	 */
@@ -67,8 +66,6 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 		this.targetBeanName = beanName;
 		this.targetClass = null;
 	}
-
-
 	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.integration.transformer.AbstractPayloadTransformer#transformPayload(java.lang.Object)

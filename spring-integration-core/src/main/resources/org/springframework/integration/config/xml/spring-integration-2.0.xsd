@@ -1031,6 +1031,8 @@
 						<xsd:element ref="payload-serializing-transformer" />
 						<xsd:element ref="payload-deserializing-transformer" />
 						<xsd:element ref="object-to-string-transformer" />
+						<xsd:element ref="object-to-map-transformer"/>
+						<xsd:element ref="map-to-object-transformer" />
 						<xsd:element ref="filter" />
 						<xsd:element ref="splitter" />
 						<xsd:element ref="aggregator" />
@@ -1498,6 +1500,60 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	<xsd:element name="object-to-map-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Transformer that converts any Object payload to a SpEL Map.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:choice minOccurs="0" maxOccurs="unbounded">
+						<xsd:element ref="poller" />
+					</xsd:choice>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	<xsd:element name="map-to-object-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Transformer that converts SpEL-based Map to an object.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:choice minOccurs="0" maxOccurs="unbounded">
+						<xsd:element ref="poller" />
+					</xsd:choice>
+					<xsd:attribute name="type" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation source="java:java.lang.Class"><![CDATA[
+								Fully qulified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
+								NOTE: This attribute is mutually-exclusive with 'ref'.
+							]]></xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="ref" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+								The name of the bean to be produced by this transformer. The bean MUST BE of scope 'prototype'.
+								NOTE: This attribute is mutually-exclusive with 'type'.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="java.lang.Object" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
 
 	<xsd:element name="claim-check-in" type="claimCheckTransformerType">
 		<xsd:annotation>
