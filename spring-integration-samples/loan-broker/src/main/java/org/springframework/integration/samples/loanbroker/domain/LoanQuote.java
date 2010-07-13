@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker.domain;
+package org.springframework.integration.samples.loanbroker.domain;
 
 import java.text.DecimalFormat;
 import java.util.Date;

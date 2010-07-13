@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker;
+package org.springframework.integration.samples.loanbroker;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.loanbroker.domain.LoanQuote;
+import org.springframework.integration.samples.loanbroker.domain.LoanQuote;
 
 /**
  * Aggregates {@link LoanQuote}s based on the value of the 'RESPONSE_TYPE' message header.
  * When only the <i>best</i> quote is desired, the 'RESPONSE_TYPE' header should have a value
  * of 'BEST'. In this example, that value is set by the 'gateway' when the
- * {@link LoanBrokerGateway#getBestLoanQuote(org.springframework.integration.loanbroker.domain.LoanRequest)}
+ * {@link LoanBrokerGateway#getBestLoanQuote(org.springframework.integration.samples.loanbroker.domain.LoanRequest)}
  * method is invoked by the client.
  * 
  * @author Oleg Zhurakousky

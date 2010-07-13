@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker;
+package org.springframework.integration.samples.loanbroker;
 
 import java.util.List;
 
-import org.springframework.integration.loanbroker.domain.LoanQuote;
-import org.springframework.integration.loanbroker.domain.LoanRequest;
+import org.springframework.integration.samples.loanbroker.domain.LoanQuote;
+import org.springframework.integration.samples.loanbroker.domain.LoanRequest;
 
 /**
  * POJI Gateway that connects method invocations to the request-channel.

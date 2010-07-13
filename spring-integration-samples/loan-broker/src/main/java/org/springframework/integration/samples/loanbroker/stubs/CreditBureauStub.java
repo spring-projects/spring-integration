@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker.stubs;
+package org.springframework.integration.samples.loanbroker.stubs;
 
 import java.util.Random;
 
 import org.apache.log4j.Logger;
 
-import org.springframework.integration.loanbroker.domain.CreditScore;
-import org.springframework.integration.loanbroker.domain.LoanRequest;
+import org.springframework.integration.samples.loanbroker.domain.CreditScore;
+import org.springframework.integration.samples.loanbroker.domain.LoanRequest;
 
 /**
  * @author Oleg Zhurakousky

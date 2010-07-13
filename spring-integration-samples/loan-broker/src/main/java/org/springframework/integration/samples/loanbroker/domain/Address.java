@@ -14,30 +14,48 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker.domain;
+package org.springframework.integration.samples.loanbroker.domain;
 
 /**
  * @author Oleg Zhurakousky
  */
-public class LoanRequest {
+public class Address {
 
-	private Customer customer;
-	private float loanAmount;
+	private String street;
+	private String zip;
+	private String city;
+	private String state;
 
-	public Customer getCustomer() {
-		return customer;
+	public String getStreet() {
+		return street;
 	}
 	
-	public void setCustomer(Customer customer) {
-		this.customer = customer;
+	public void setStreet(String street) {
+		this.street = street;
 	}
 	
-	public float getLoanAmount() {
-		return loanAmount;
+	public String getZip() {
+		return zip;
 	}
-
-	public void setLoanAmount(float loanAmount) {
-		this.loanAmount = loanAmount;
+	
+	public void setZip(String zip) {
+		this.zip = zip;
+	}
+	
+	public String getCity() {
+		return city;
+	}
+	
+	public void setCity(String city) {
+		this.city = city;
+	}
+	
+	public String getState() {
+		return state;
+	}
+	
+	public void setState(String state) {
+		this.state = state;
 	}
 
 }

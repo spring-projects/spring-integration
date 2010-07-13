@@ -14,48 +14,30 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker.domain;
+package org.springframework.integration.samples.loanbroker.domain;
 
 /**
  * @author Oleg Zhurakousky
  */
-public class Address {
+public class CreditScore {
 
-	private String street;
-	private String zip;
-	private String city;
-	private String state;
+	private final int score;
+	private String creditHistory;
+	
+	public CreditScore(int score){
+		this.score = score;
+	}
+	
+	public String getCreditHistory() {
+		return creditHistory;
+	}
 
-	public String getStreet() {
-		return street;
+	public void setCreditHistory(String creditHistory) {
+		this.creditHistory = creditHistory;
 	}
-	
-	public void setStreet(String street) {
-		this.street = street;
-	}
-	
-	public String getZip() {
-		return zip;
-	}
-	
-	public void setZip(String zip) {
-		this.zip = zip;
-	}
-	
-	public String getCity() {
-		return city;
-	}
-	
-	public void setCity(String city) {
-		this.city = city;
-	}
-	
-	public String getState() {
-		return state;
-	}
-	
-	public void setState(String state) {
-		this.state = state;
+
+	public int getScore() {
+		return score;
 	}
 
 }

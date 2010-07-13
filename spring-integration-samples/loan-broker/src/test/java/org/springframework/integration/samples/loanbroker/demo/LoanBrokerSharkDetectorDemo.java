@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.loanbroker.demo;
+package org.springframework.integration.samples.loanbroker.demo;
 
 import java.util.List;
 
@@ -23,10 +23,10 @@ import org.junit.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.loanbroker.LoanBrokerGateway;
-import org.springframework.integration.loanbroker.domain.Customer;
-import org.springframework.integration.loanbroker.domain.LoanQuote;
-import org.springframework.integration.loanbroker.domain.LoanRequest;
+import org.springframework.integration.samples.loanbroker.LoanBrokerGateway;
+import org.springframework.integration.samples.loanbroker.domain.Customer;
+import org.springframework.integration.samples.loanbroker.domain.LoanQuote;
+import org.springframework.integration.samples.loanbroker.domain.LoanRequest;
 
 /**
  * @author Gary Russell
