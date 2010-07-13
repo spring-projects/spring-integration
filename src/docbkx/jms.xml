@@ -196,17 +196,43 @@
       <emphasis>sent as a request</emphasis>, and the 'extract-reply-payload' property value applies to the
       JMS Message that is <emphasis>received as a reply</emphasis> and then converted into a Spring Integration
       Message to be subsequently sent to the 'reply-channel' as shown in the example configuration above.
-      <note>
-        For all of these JMS adapters, you can also specify your own "message-converter" reference. Simply provide the
-        bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
-        ApplicationContext. Note, however, that when you provide your own MessageConverter instance, it will still
-        be wrapped within the HeaderMappingMessageConverter. This means that the 'extract-request-payload'
-        and 'extract-reply-payload' properties may effect what actual objects are passed to your converter. The
-        HeaderMappingMessageConverter itself simply delegates to a target MessageConverter while also mapping the
-        Spring Integration MessageHeaders to JMS Message properties and vice-versa.
-      </note>
     </para>
   </section>
+   <section id="jms-conversion-and-marshalling">
+    <title>Message Conversion, Marshalling and Unmarshalling</title>
+    <para>
+    	If you need to convert the message, all JMS adapters and gateways, allow you to 
+    	provide a <interfacename>MessageConverter</interfacename> via <emphasis>message-converter</emphasis> attribute. Simply provide the
+        bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
+        ApplicationContext. 
+        Also, to provide some consistency with Marshaller and Unmarshaller interfaces Spring provides <interfacename>MarshallingMessageConverter</interfacename>
+        which you can configure with your own custom Marshallers and Unmarshallers
+    </para>
+  <programlisting language="xml"><![CDATA[ <int-jms:inbound-gateway request-destination="requestQueue" 
+                             request-channel="inbound-gateway-channel"
+                             message-converter="marshallingMessageConverter"/>
+                             
+ <bean id="marshallingMessageConverter" 
+       class="org.springframework.jms.support.converter.MarshallingMessageConverter">
+   <constructor-arg>
+      <bean class="org.bar.SampleMarshaller"/>
+   </constructor-arg>
+   <constructor-arg>
+      <bean class="org.bar.SampleUnmarshaller"/>
+   </constructor-arg>
+ </bean>                                              
+ ]]></programlisting>   
+      
+        
+     <note>
+     Note, however, that when you provide your own MessageConverter instance, it will still
+     be wrapped within the HeaderMappingMessageConverter. This means that the 'extract-request-payload'
+     and 'extract-reply-payload' properties may effect what actual objects are passed to your converter. The
+     HeaderMappingMessageConverter itself simply delegates to a target MessageConverter while also mapping the
+     Spring Integration MessageHeaders to JMS Message properties and vice-versa.
+     </note>
+
+   </section>
 
   <section id="jms-channel">
     <title>JMS Backed Message Channels</title>
