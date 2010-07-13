@@ -66,6 +66,7 @@ public class JmsOutboundGatewayParserTests {
 		assertEquals("HELLO", result);
 	}
 	
+	
 	public static interface SampleGateway{
 		public String echo(String value);
 	}
