@@ -97,6 +97,68 @@
      <header name="bar" ref="someBean"/>
  </header-enricher>]]></programlisting>
     </para>
+    <para>
+    As added convenience, Spring Integration also provides <emphasis>Object-to-Map</emphasis> and <emphasis>Map-to-Object</emphasis> transformers which 
+    utilize Spring Expression Language (SpEL) to serialize and de-serialize the object graphs to the most primitive 
+    types (e.g., String, byte, int etc...). Object-to-Map transformer transforms Object graph to a Map where <emphasis>key</emphasis> is SpEL expression 
+    and <emphasis>value</emphasis> is primitive or String:
+    </para>
+    <para>
+    For example:
+    <programlisting language="java"><![CDATA[public class Parent{
+    private Child child;
+    private String name; 
+    // setters and getters are omitted
+}
+
+public class Child{
+   private String name; 
+   private List<String> nickNames;
+   // setters and getters are omitted
+}]]></programlisting>
+... will be transformed to a Map which looks like this:
+<code>{person.name=George, person.child.name=Jenna, person.child.nickNames[0]=Bimbo . . . etc}</code>
+    </para>
+    <para>
+    SpEL-based Map allows you to describe the object structure without sharing the actual types allowing 
+    you to restore/rebuild the object graph into a different types if you maintain the convention.
+    </para>
+    <para>
+    For example:
+    The above structure could be easily restored back to the following Object graph via Map-to-Object transformer:
+<programlisting language="java"><![CDATA[public class Father{
+    private Kid child;
+    private String name; 
+    // setters and getters are omitted
+}
+
+public class Kid{
+   private String name; 
+   private List<String> nickNames;
+   // setters and getters are omitted
+}]]></programlisting>
+    </para>
+    <para>
+    To configure these transformers, Spring Integration provides namespace support
+    Object-to-Map:
+<programlisting language="xml"><![CDATA[<object-to-map-transformer input-channel="directInput" output-channel="output"/>]]></programlisting>
+    Map-to-Object
+<programlisting language="xml"><![CDATA[<int:map-to-object-transformer input-channel="input" 
+	                       output-channel="output" 
+	                        type="org.foo.Person"/>]]></programlisting>
+	or
+<programlisting language="xml"><![CDATA[<int:map-to-object-transformer input-channel="inputA" 
+	                              output-channel="outputA" 
+	                              ref="person"/>
+<bean id="person" class="org.foo.Person" scope="prototype"/>	
+]]></programlisting>	
+
+    </para>
+    <note>
+    NOTE: 'ref' and 'type' attributes are mutually exclusive. You can only use either one. 
+    Also, if using 'ref' attribute you must point to a 'prototype' scoped bean, otherwise 
+    BeanCreationException will be thrown. 
+    </note>
   </section>
 
   <section id="transformer-annotation">
