@@ -99,9 +99,9 @@
     </para>
     <para>
     As added convenience, Spring Integration also provides <emphasis>Object-to-Map</emphasis> and <emphasis>Map-to-Object</emphasis> transformers which 
-    utilize Spring Expression Language (SpEL) to serialize and de-serialize the object graphs to the most primitive 
-    types (e.g., String, byte, int etc...). Object-to-Map transformer transforms Object graph to a Map where <emphasis>key</emphasis> is SpEL expression 
-    and <emphasis>value</emphasis> is primitive or String:
+    utilize Spring Expression Language (SpEL) to serialize and de-serialize the object graphs. Object hierarchy is introspected 
+    to the most primitive types (e.g., String, int etc.). The path to this type is described via SpEL, which becomes the <emphasis>key</emphasis>key in the 
+    transformed Map with primitive type being the value. 
     </para>
     <para>
     For example:
@@ -121,7 +121,7 @@ public class Child{
     </para>
     <para>
     SpEL-based Map allows you to describe the object structure without sharing the actual types allowing 
-    you to restore/rebuild the object graph into a different types if you maintain the convention.
+    you to restore/rebuild the object graph into a differently typed Object graph as long as you maintain the structure.
     </para>
     <para>
     For example:
