@@ -298,7 +298,7 @@ public class XmppMessageConsumer {
       </para>
       <para>
 
-        The adapter expects as its input - at a minimum - a payload of type<classname>java.lang.String</classname>, and
+        The adapter expects as its input - at a minimum - a payload of type <classname>java.lang.String</classname>, and
         a header value
         for
         <code>XmppHeaders.CHAT_TO_USER</code>
