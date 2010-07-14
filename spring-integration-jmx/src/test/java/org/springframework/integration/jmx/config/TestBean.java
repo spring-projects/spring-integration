@@ -25,6 +25,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ManagedResource
@@ -40,6 +41,12 @@ public class TestBean {
 	@ManagedOperation
 	public void test(String text) {
 		this.messages.add(text);
+	}
+	
+	@ManagedOperation
+	public List<String> testWithReturn(String text) {
+		this.messages.add(text);
+		return messages;
 	}
 
 }

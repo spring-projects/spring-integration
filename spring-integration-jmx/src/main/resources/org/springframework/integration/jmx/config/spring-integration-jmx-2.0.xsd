@@ -37,6 +37,21 @@
 			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
+	<xsd:element name="operation-invoking-outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an outbound Gateway which allows for Message-driven invocation of managed operations that return values
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="optional"/>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="reply-channel" type="xsd:string" use="optional"/>
+			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
+			<xsd:attribute name="default-object-name" type="xsd:string" use="optional"/>
+			<xsd:attribute name="default-operation-name" type="xsd:string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="operation-invoking-channel-adapter">
 		<xsd:annotation>
