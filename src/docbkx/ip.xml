@@ -536,7 +536,9 @@
                      number of concurrent connections supported by the adapter. For tcp,
                      using nio, specifies the number of tcp fragments that are concurrently
                      reassembled into complete messages. 
-                     Only applies if task-executor is not configured. Defaults to 5.</entry>
+                     It only applies in this sense if task-executor is not configured. 
+		     However, pool-size is also used for the server socket backlog, 
+                     regardless of whether an external task executor is used. Defaults to 5.</entry>
             </row>
             <row>
               <entry>task-executor</entry>
@@ -677,8 +679,10 @@
               <entry>pool-size</entry>
               <entry></entry>
               <entry>Specifies the number of concurrent connections supported
-                     by the gateway.
-                     Only applies if task-executor is not configured. Defaults to 5.</entry>
+                     by the gateway. A thread from the pool is used to handle each socket.
+                     It only applies in this sense if task-executor is not configured. 
+		     However, pool-size is also used for the server socket backlog, 
+                     regardless of whether an external task executor is used. Defaults to 5.</entry>
             </row>
             <row>
               <entry>task-executor</entry>
