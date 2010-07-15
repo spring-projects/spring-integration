@@ -16,6 +16,7 @@
 
 	<outbound-channel-adapter id="fullConfig"
 		url="http://localhost/test2"
+		parameter-mapper="testParameterMapper"
 		http-method="GET"
 		channel="requests"
 		charset="UTF-8"
@@ -27,6 +28,8 @@
 		auto-startup="false"/>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
+
+	<beans:bean id="testParameterMapper" class="org.springframework.integration.http.DefaultParameterMapper"/>
 
 	<util:list id="converterList">
 		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>

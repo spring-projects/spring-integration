@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.http.mapper;
+package org.springframework.integration.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

@@ -112,6 +112,15 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="parameter-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.http.ParameterMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="http-method">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -193,6 +202,15 @@
 							<xsd:documentation>
 	URL to be used as a fallback for any request Message does not contain the request URL Message header.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="parameter-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.http.ParameterMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="http-method">

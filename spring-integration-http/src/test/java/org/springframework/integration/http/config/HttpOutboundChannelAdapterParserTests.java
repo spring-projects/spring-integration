@@ -34,6 +34,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.DefaultOutboundRequestMapper;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.OutboundRequestMapper;
+import org.springframework.integration.http.ParameterMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -52,6 +53,9 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext applicationContext;
+
+	@Autowired
+	private ParameterMapper parameterMapper;
 
 
 	@Test
@@ -101,6 +105,7 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(HttpMethod.GET, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
+		assertEquals(parameterMapper, handlerAccessor.getPropertyValue("parameterMapper"));
 	}
 
 }

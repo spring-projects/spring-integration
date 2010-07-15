@@ -17,7 +17,6 @@
 package org.springframework.integration.http;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +56,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
+	private ParameterMapper parameterMapper = new DefaultParameterMapper();
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -142,12 +142,21 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	public void setRequestFactory(ClientHttpRequestFactory requestFactory) {
 		this.restTemplate.setRequestFactory(requestFactory);
 	}
+	
+	/**
+	 * Set the {@link ParameterMapper} for creating URI parameters from the outbound message.
+	 * 
+	 * @param parameterMapper the parameter mapper to set
+	 */
+	public void setParameterMapper(ParameterMapper parameterMapper) {
+		this.parameterMapper = parameterMapper;
+	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		try {
 			// TODO: allow a boolean flag for treating Map as queryParams vs. uriVariables?
-			Map<String, ?> uriVariables = this.determineUriVariables(requestMessage);
+			Map<String, ?> uriVariables = this.parameterMapper.fromMessage(requestMessage);
 			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
@@ -169,22 +178,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + this.uri + "]", e);
 		}
-	}
-
-	private Map<String, ?> determineUriVariables(Message<?> requestMessage) {
-		Map<String, Object> uriVariables = new HashMap<String, Object>();
-		if (requestMessage.getPayload() instanceof Map<?,?>) {
-			Map<?,?> payloadMap = (Map<?,?>) requestMessage.getPayload();
-			for (Object key : payloadMap.keySet()) {
-				if (key instanceof String) {
-					uriVariables.put((String) key, payloadMap.get(key).toString());
-				}
-				else if (logger.isDebugEnabled()) {
-					logger.debug("ignoring Map value for non-String key: " + key);
-				}
-			}
-		}
-		return uriVariables;
 	}
 
 }
