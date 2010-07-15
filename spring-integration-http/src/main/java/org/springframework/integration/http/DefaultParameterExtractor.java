@@ -29,9 +29,9 @@ import org.springframework.integration.core.Message;
  * @since 2.0
  *
  */
-public class DefaultParameterMapper implements ParameterMapper {
+public class DefaultParameterExtractor implements ParameterExtractor {
 	
-	private static Log logger = LogFactory.getLog(DefaultParameterMapper.class);
+	private static Log logger = LogFactory.getLog(DefaultParameterExtractor.class);
 	
 	private SpelExpressionParser parser = new SpelExpressionParser();
 	

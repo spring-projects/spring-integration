@@ -22,7 +22,7 @@
 
 	<outbound-gateway id="fullConfig"
 		url="http://localhost/test2"
-		parameter-mapper="testParameterMapper"
+		parameter-extractor="testParameterMapper"
 		http-method="PUT"
 		request-channel="requests"
 		request-factory="testRequestFactory"
@@ -37,7 +37,7 @@
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
 
-	<beans:bean id="testParameterMapper" class="org.springframework.integration.http.DefaultParameterMapper"/>
+	<beans:bean id="testParameterMapper" class="org.springframework.integration.http.DefaultParameterExtractor"/>
 
 	<util:list id="converterList">
 		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>

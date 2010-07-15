@@ -112,11 +112,11 @@
 					]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="parameter-mapper" type="xsd:string">
+			<xsd:attribute name="parameter-extractor" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.http.ParameterMapper"/>
+							<tool:expected-type type="org.springframework.integration.http.ParameterExtractor"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -204,11 +204,11 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="parameter-mapper" type="xsd:string">
+					<xsd:attribute name="parameter-extractor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.http.ParameterMapper"/>
+									<tool:expected-type type="org.springframework.integration.http.ParameterExtractor"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

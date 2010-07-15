@@ -36,7 +36,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.DefaultOutboundRequestMapper;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.OutboundRequestMapper;
-import org.springframework.integration.http.ParameterMapper;
+import org.springframework.integration.http.ParameterExtractor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -57,7 +57,7 @@ public class HttpOutboundGatewayParserTests {
 	private ApplicationContext applicationContext;
 
 	@Autowired
-	private ParameterMapper parameterMapper;
+	private ParameterExtractor parameterExtractor;
 
 	@Test
 	public void minimalConfig() {
@@ -114,7 +114,7 @@ public class HttpOutboundGatewayParserTests {
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);
-		assertEquals(parameterMapper, handlerAccessor.getPropertyValue("parameterMapper"));
+		assertEquals(parameterExtractor, handlerAccessor.getPropertyValue("parameterExtractor"));
 	}
 
 }

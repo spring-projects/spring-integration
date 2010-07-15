@@ -28,11 +28,11 @@ import org.springframework.integration.message.GenericMessage;
  * @since 2.0
  *
  */
-public class DefaultParameterMapperTests {
+public class DefaultParameterExtractorTests {
 
 	@Test
 	public void testFromMessage() throws Exception {
-		DefaultParameterMapper mapper = new DefaultParameterMapper();
+		DefaultParameterExtractor mapper = new DefaultParameterExtractor();
 		Map<String, ?> params = mapper.fromMessage(new GenericMessage<Object>(Collections.singletonMap("foo", "bar")));
 		assertEquals(1, params.size());
 		assertEquals("bar", params.get("foo"));
@@ -40,7 +40,7 @@ public class DefaultParameterMapperTests {
 
 	@Test
 	public void testFromMessageWithExpressions() throws Exception {
-		DefaultParameterMapper mapper = new DefaultParameterMapper();
+		DefaultParameterExtractor mapper = new DefaultParameterExtractor();
 		mapper.setDynamicParameterExpressions(Collections.singletonMap("foo", "payload"));
 		Map<String, ?> params = mapper.fromMessage(new GenericMessage<Object>("bar"));
 		assertEquals(1, params.size());

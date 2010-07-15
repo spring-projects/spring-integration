@@ -56,7 +56,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	private ParameterMapper parameterMapper = new DefaultParameterMapper();
+	private ParameterExtractor parameterExtractor = new DefaultParameterExtractor();
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -144,19 +144,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 	
 	/**
-	 * Set the {@link ParameterMapper} for creating URI parameters from the outbound message.
+	 * Set the {@link ParameterExtractor} for creating URI parameters from the outbound message.
 	 * 
-	 * @param parameterMapper the parameter mapper to set
+	 * @param parameterExtractor the parameter extractor to set
 	 */
-	public void setParameterMapper(ParameterMapper parameterMapper) {
-		this.parameterMapper = parameterMapper;
+	public void setParameterExtractor(ParameterExtractor parameterExtractor) {
+		this.parameterExtractor = parameterExtractor;
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		try {
 			// TODO: allow a boolean flag for treating Map as queryParams vs. uriVariables?
-			Map<String, ?> uriVariables = this.parameterMapper.fromMessage(requestMessage);
+			Map<String, ?> uriVariables = this.parameterExtractor.fromMessage(requestMessage);
 			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {

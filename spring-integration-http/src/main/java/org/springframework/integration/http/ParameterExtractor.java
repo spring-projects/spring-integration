@@ -25,7 +25,7 @@ import org.springframework.integration.core.Message;
  * @since 2.0
  *
  */
-public interface ParameterMapper {
+public interface ParameterExtractor {
 
 	/**
 	 * @param requestMessage
