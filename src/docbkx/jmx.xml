@@ -19,7 +19,8 @@
                    object-name="example.domain:name=publisher"/>
 ]]></programlisting>
       <tip>
-       The notification-listening-channel-adapter registers with an MBeanServer at startup, and
+      
+       The <emphasis>notification-listening-channel-adapter</emphasis> registers with an MBeanServer at startup, and
        the default bean name is "mbeanServer" which happens to be the same bean name generated
        when using Spring's &lt;context:mbean-server/&gt; element. If you need to use a different
        name be sure to include the "mbean-server" attribute.
@@ -101,16 +102,14 @@
   <section id="jmx-operation-invoking-channel-adapter">
     <title>Operation Invoking Channel Adapter</title>
     <para>
-      The operation-invoking-channel-adapter enables Message-driven invocation of
+      The <emphasis>operation-invoking-channel-adapter</emphasis> enables Message-driven invocation of
       any managed operation exposed by an MBean. Each invocation requires the
-      operation name to be invoked and the ObjectName of the target MBean. In each
-      case, the adapter will first check for header values on the Message itself.
-      The keys for these headers are defined as JmxHeaders.OPERATION_NAME and
-      JmxHeaders.OBJECT_NAME, respectively. If relying on those Message headers,
-      the configuration is trivial.
-      <programlisting language="xml"><![CDATA[ <jmx:operation-invoking-channel-adapter id="adapter"/>
+      operation name to be invoked and the ObjectName of the target MBean. Both of these must be explicitly provided via adapter configuration:
+      <programlisting language="xml"><![CDATA[ <jmx:operation-invoking-channel-adapter id="adapter"
+                default-object-name="example.domain:name=TestBean"
+                default-operation-name="ping"/>
 ]]></programlisting>
-      That adapter only needs to be able to discover the "mbeanServer" bean. If
+      Then the adapter only needs to be able to discover the "mbeanServer" bean. If
       a different bean name is required, then provide the "mbean-server" attribute
       with a reference.
     </para>
@@ -123,15 +122,23 @@
       would be ignored. 
     </para>
     <para>
-      Similar to the behavior described above for the Notification type resoltion,
-      the operation-invoking-channel-adapter will also fallback to default values if
-      provided:
-      <programlisting language="xml"><![CDATA[ <jmx:operation-invoking-channel-adapter id="adapter"
-                default-object-name="example.domain:name=TestBean"
-                default-operation-name="ping"/>
-]]></programlisting>
       If you want to expose a channel for a single common operation to be invoked
       by Messages that need not contain headers, then that option works well.
+    </para>
+  </section>
+  
+  <section id="jmx-operation-invoking-outbound-gateway">
+    <title>Operation Invoking outbound Gateway</title>
+    <para>
+      Similar to <emphasis>operation-invoking-channel-adapter</emphasis> Spring Integration also provides <emphasis>operation-invoking-outbound-gateway</emphasis> 
+      which could be used when dealing with non-void operations and return value is required.
+      Such return value will be sent as message payload to the 'reply-channel' specified by this Gateway. 
+      <programlisting language="xml"><![CDATA[ <jmx:operation-invoking-outbound-gateway request-channel="requestChannel"
+			reply-channel="replyChannel"
+			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
+			default-operation-name="testWithReturn"/>
+]]></programlisting>
+      Another way of provideing the 'reply-channel' is by setting <interfacename>MessageHeaders.REPLY_CHANNEL</interfacename> Message Header
     </para>
   </section>
 
