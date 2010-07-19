@@ -106,8 +106,8 @@
       any managed operation exposed by an MBean. Each invocation requires the
       operation name to be invoked and the ObjectName of the target MBean. Both of these must be explicitly provided via adapter configuration:
       <programlisting language="xml"><![CDATA[ <jmx:operation-invoking-channel-adapter id="adapter"
-                default-object-name="example.domain:name=TestBean"
-                default-operation-name="ping"/>
+                object-name="example.domain:name=TestBean"
+                operation-name="ping"/>
 ]]></programlisting>
       Then the adapter only needs to be able to discover the "mbeanServer" bean. If
       a different bean name is required, then provide the "mbean-server" attribute
@@ -135,8 +135,8 @@
       Such return value will be sent as message payload to the 'reply-channel' specified by this Gateway. 
       <programlisting language="xml"><![CDATA[ <jmx:operation-invoking-outbound-gateway request-channel="requestChannel"
 			reply-channel="replyChannel"
-			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
-			default-operation-name="testWithReturn"/>
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
+			operation-name="testWithReturn"/>
 ]]></programlisting>
       Another way of provideing the 'reply-channel' is by setting <interfacename>MessageHeaders.REPLY_CHANNEL</interfacename> Message Header
     </para>
