@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,17 +23,34 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
+/**
+ * Stub JMS Message implementation intended for testing purposes only.
+ * 
+ * @author Mark Fisher
+ */
 public class StubTextMessage implements TextMessage {
-
-	private String text;
-
-	private Destination replyTo;
 
 	private String messageId;
 
+	private String text;
+
+	private int deliveryMode = DEFAULT_DELIVERY_MODE;
+	
+	private Destination destination;
+
 	private String correlationId;
 
+	private Destination replyTo;
+
 	private String type;
+
+	private long timestamp = 0L;
+
+	private long expiration = 0L;
+
+	private int priority = DEFAULT_PRIORITY;
+
+	private boolean redelivered;
 
 	private ConcurrentHashMap<String, Object> properties = new ConcurrentHashMap<String, Object>();
 
@@ -55,32 +72,40 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void acknowledge() throws JMSException {
+		throw new UnsupportedOperationException();
 	}
 
 	public void clearBody() throws JMSException {
+		this.text = null;
 	}
 
 	public void clearProperties() throws JMSException {
+		this.properties.clear();
 	}
 
 	public boolean getBooleanProperty(String name) throws JMSException {
-		return false;
+		Object value = this.properties.get(name);
+		return (value instanceof Boolean) ? ((Boolean) value).booleanValue() : false;
 	}
 
 	public byte getByteProperty(String name) throws JMSException {
-		return 0;
+		Object value = this.properties.get(name);
+		return (value instanceof Byte) ? ((Byte) value).byteValue() : 0;
 	}
 
 	public double getDoubleProperty(String name) throws JMSException {
-		return 0;
+		Object value = this.properties.get(name);
+		return (value instanceof Double) ? ((Double) value).doubleValue() : 0;
 	}
 
 	public float getFloatProperty(String name) throws JMSException {
-		return 0;
+		Object value = this.properties.get(name);
+		return (value instanceof Float) ? ((Float) value).floatValue() : 0;
 	}
 
 	public int getIntProperty(String name) throws JMSException {
-		return 0;
+		Object value = this.properties.get(name);
+		return (value instanceof Integer) ? ((Integer) value).intValue() : 0;
 	}
 
 	public String getJMSCorrelationID() throws JMSException {
@@ -88,19 +113,19 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public byte[] getJMSCorrelationIDAsBytes() throws JMSException {
-		return null;
+		return this.correlationId.getBytes();
 	}
 
 	public int getJMSDeliveryMode() throws JMSException {
-		return 0;
+		return this.deliveryMode;
 	}
 
 	public Destination getJMSDestination() throws JMSException {
-		return null;
+		return this.destination;
 	}
 
 	public long getJMSExpiration() throws JMSException {
-		return 0;
+		return this.expiration;
 	}
 
 	public String getJMSMessageID() throws JMSException {
@@ -108,11 +133,11 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public int getJMSPriority() throws JMSException {
-		return 0;
+		return this.priority;
 	}
 
 	public boolean getJMSRedelivered() throws JMSException {
-		return false;
+		return this.redelivered;
 	}
 
 	public Destination getJMSReplyTo() throws JMSException {
@@ -120,7 +145,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public long getJMSTimestamp() throws JMSException {
-		return 0;
+		return this.timestamp;
 	}
 
 	public String getJMSType() throws JMSException {
@@ -128,7 +153,8 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public long getLongProperty(String name) throws JMSException {
-		return 0;
+		Object value = this.properties.get(name);
+		return (value instanceof Long) ? ((Long) value).longValue() : 0;
 	}
 
 	public Object getObjectProperty(String name) throws JMSException {
@@ -140,11 +166,13 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public short getShortProperty(String name) throws JMSException {
-		return 0;
+		Object value = this.properties.get(name);
+		return (value instanceof Short) ? ((Short) value).shortValue() : 0;
 	}
 
 	public String getStringProperty(String name) throws JMSException {
-		return null;
+		Object value = this.properties.get(name);
+		return (value instanceof String) ? (String) value : null;
 	}
 
 	public boolean propertyExists(String name) throws JMSException {
@@ -176,15 +204,19 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setJMSCorrelationIDAsBytes(byte[] correlationID) throws JMSException {
+		this.correlationId = new String(correlationID);
 	}
 
 	public void setJMSDeliveryMode(int deliveryMode) throws JMSException {
+		this.deliveryMode = deliveryMode;
 	}
 
 	public void setJMSDestination(Destination destination) throws JMSException {
+		this.destination = destination;
 	}
 
 	public void setJMSExpiration(long expiration) throws JMSException {
+		this.expiration = expiration;
 	}
 
 	public void setJMSMessageID(String id) throws JMSException {
@@ -192,9 +224,11 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setJMSPriority(int priority) throws JMSException {
+		this.priority = priority;
 	}
 
 	public void setJMSRedelivered(boolean redelivered) throws JMSException {
+		this.redelivered = redelivered;
 	}
 
 	public void setJMSReplyTo(Destination replyTo) throws JMSException {
@@ -202,6 +236,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setJMSTimestamp(long timestamp) throws JMSException {
+		this.timestamp = timestamp;
 	}
 
 	public void setJMSType(String type) throws JMSException {
