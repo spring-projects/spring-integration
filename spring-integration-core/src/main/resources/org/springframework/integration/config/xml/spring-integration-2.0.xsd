@@ -1024,7 +1024,7 @@
 				<xsd:extension base="inputOutputEndpointType">
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
 						<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
-						<xsd:element ref="service-activator" />
+						<xsd:element ref="service-activator"/>	
 						<xsd:element ref="header-enricher" />
 						<xsd:element ref="header-filter" />
 						<xsd:element ref="transformer" />
@@ -2321,6 +2321,28 @@
 						<![CDATA[
 	[OPTIONAL] points to a bean reference which implements this interceptor. Could also be defined as inner &lt;bean&gt; element.
 				]]>
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="converter">
+		<xsd:complexType>
+			<xsd:all minOccurs="0" maxOccurs="1">
+				<xsd:element ref="beans:bean" />
+			</xsd:all>
+			<xsd:attribute name="ref" type="xsd:string" use="optional">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="java.lang.Object"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+						<![CDATA[
+	[OPTIONAL] points to a bean reference which implements this Converter. Could also be defined as inner &lt;bean&gt; element.
+						]]>
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

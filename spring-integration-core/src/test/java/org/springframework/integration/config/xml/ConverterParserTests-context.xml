@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
+
+	<int:service-activator input-channel="serviceActivatorChannel" ref="testService" method="test"/>
+	
+	<int:service-activator input-channel="serviceActivatorChannel3" ref="testService" method="test3"/>
+
+	<int:transformer input-channel="transformerChannel" ref="testService" method="test"/>
+
+	<int:router input-channel="routerChannel" ref="testService" method="test"/>
+
+	<int:splitter input-channel="splitterChannel" ref="testService" method="test"/>
+
+	<int:filter input-channel="filterChannel" ref="testService" method="filter"/>
+
+	<int:channel id="ROUTER_TARGET_CHANNEL">
+		<int:queue/>
+	</int:channel>
+
+	<bean id="testService" class="org.springframework.integration.config.xml.ConverterParserTests$TestService"/>
+	
+	<int:converter ref="sampleConverter"/>
+
+	<bean id="sampleConverter" class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter"/>
+	
+	<int:converter>
+		<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
+	</int:converter>
+</beans>
