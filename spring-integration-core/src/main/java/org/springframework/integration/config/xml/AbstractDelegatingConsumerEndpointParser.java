@@ -16,10 +16,13 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
+
 import org.w3c.dom.Element;
 
 /**
@@ -41,6 +44,7 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
 		boolean hasRef = StringUtils.hasText(ref);
 		boolean hasExpression = StringUtils.hasText(expression);
+		Element scriptElement = DomUtils.getChildElementByTagName(element, "script");
 		if (innerDefinition != null) {
 			if (hasRef || hasExpression) {
 				parserContext.getReaderContext().error(
@@ -54,6 +58,10 @@ abstract class AbstractDelegatingConsumerEndpointParser extends AbstractConsumer
 		}
 		else if (hasExpression) {
 			builder.addPropertyValue("expression", expression);
+		}
+		else if (scriptElement != null) {
+			BeanDefinition scriptBeanDefinition = parserContext.getDelegate().parseCustomElement(scriptElement, builder.getBeanDefinition());
+			builder.addPropertyValue("targetObject", scriptBeanDefinition);
 		}
 		else if (!this.hasDefaultOption()) {
 			parserContext.getReaderContext().error("Exactly one of the 'ref' attribute, 'expression' attribute, " +

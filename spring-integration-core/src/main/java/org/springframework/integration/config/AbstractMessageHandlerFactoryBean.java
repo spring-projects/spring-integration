@@ -25,6 +25,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -124,7 +125,12 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 			if (this.targetObject != null) {
 				Assert.state(this.expression == null,
 						"The 'targetObject' and 'expression' properties are mutually exclusive.");
-				this.handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
+				if (this.targetObject instanceof MessageProcessor) {
+					this.handler = this.createMessageProcessingHandler((MessageProcessor) this.targetObject);
+				}
+				else {
+					this.handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
+				}
 			}
 			else if (this.expression != null) {
 				this.handler = this.createExpressionEvaluatingHandler(this.expression);
@@ -154,6 +160,10 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 
 	MessageHandler createExpressionEvaluatingHandler(String expression) {
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
+	}
+
+	MessageHandler createMessageProcessingHandler(MessageProcessor processor) {
+		return this.createMethodInvokingHandler(processor, "processMessage");
 	}
 
 	MessageHandler createDefaultHandler() {
