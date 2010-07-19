@@ -127,22 +127,47 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 	public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {
-			String messageId = jmsMessage.getJMSMessageID();
-			if (messageId != null) {
-				headers.put(JmsHeaders.MESSAGE_ID, messageId);
+			try {
+				String messageId = jmsMessage.getJMSMessageID();
+				if (messageId != null) {
+					headers.put(JmsHeaders.MESSAGE_ID, messageId);
+				}
 			}
-			String correlationId = jmsMessage.getJMSCorrelationID();
-			if (correlationId != null) {
-				headers.put(JmsHeaders.CORRELATION_ID, correlationId);
+			catch (Exception e) {
+				logger.info("failed to read JMSMessageID property, skipping", e);
 			}
-			Destination replyTo = jmsMessage.getJMSReplyTo();
-			if (replyTo != null) {
-				headers.put(JmsHeaders.REPLY_TO, replyTo);
+			try {
+				String correlationId = jmsMessage.getJMSCorrelationID();
+				if (correlationId != null) {
+					headers.put(JmsHeaders.CORRELATION_ID, correlationId);
+				}
 			}
-			headers.put(JmsHeaders.REDELIVERED, jmsMessage.getJMSRedelivered());
-			String type = jmsMessage.getJMSType();
-			if (type != null) {
-				headers.put(JmsHeaders.TYPE, type);
+			catch (Exception e) {
+				logger.info("failed to read JMSCorrelationID property, skipping", e);
+			}
+			try {
+				Destination replyTo = jmsMessage.getJMSReplyTo();
+				if (replyTo != null) {
+					headers.put(JmsHeaders.REPLY_TO, replyTo);
+				}
+			}
+			catch (Exception e) {
+				logger.info("failed to read JMSReplyTo property, skipping", e);
+			}
+			try {
+				headers.put(JmsHeaders.REDELIVERED, jmsMessage.getJMSRedelivered());
+			}
+			catch (Exception e) {
+				logger.info("failed to read JMSRedelivered property, skipping", e);
+			}
+			try {
+				String type = jmsMessage.getJMSType();
+				if (type != null) {
+					headers.put(JmsHeaders.TYPE, type);
+				}
+			}
+			catch (Exception e) {
+				logger.info("failed to read JMSType property, skipping", e);
 			}
 			Enumeration<?> jmsPropertyNames = jmsMessage.getPropertyNames();
 			if (jmsPropertyNames != null) {
