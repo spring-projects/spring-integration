@@ -934,7 +934,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:choice minOccurs="1" maxOccurs="unbounded">
-				<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:any processContents="strict" namespace="##local" minOccurs="0" maxOccurs="unbounded" />
 				<xsd:element ref="poller" />
 			</xsd:choice>
 			<xsd:attributeGroup ref="inputOutputChannelGroup"/>
@@ -959,7 +959,7 @@
 	
 	<xsd:complexType name="chain-type">
 		<xsd:choice minOccurs="1" maxOccurs="unbounded">
-			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:any processContents="strict" namespace="##local" minOccurs="0" maxOccurs="unbounded" />
 			
 			<xsd:element name="service-activator" type="expressionOrInnerEndpointDefinitionAware"/>					
 			<xsd:element name="splitter" type="expressionOrInnerEndpointDefinitionAware"/>					
@@ -981,6 +981,7 @@
 			<xsd:element name="object-to-string-transformer" type="specialized-transformer-type"/>
 			<xsd:element name="object-to-map-transformer" type="specialized-transformer-type"/>
 			<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type"/>
+			<xsd:element ref="beans:bean"/>
 						
 			<xsd:element name="chain" type="chain-type"/>
 		</xsd:choice>
@@ -1045,6 +1046,7 @@
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:sequence>
+<!--		<xsd:attribute name="ref" type="xsd:string" />-->
         <xsd:attribute name="trigger" type="xsd:string">
             <xsd:annotation>
 				<xsd:appinfo>
@@ -1578,7 +1580,7 @@
 	
 	<xsd:complexType name="specialized-transformer-type">
 		<xsd:choice minOccurs="1" maxOccurs="unbounded">
-			<xsd:any processContents="strict" namespace="##other" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:any processContents="strict" namespace="##local" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:element ref="poller" />
 		</xsd:choice>
 	</xsd:complexType>
