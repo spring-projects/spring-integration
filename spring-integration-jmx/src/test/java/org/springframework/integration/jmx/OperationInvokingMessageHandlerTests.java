@@ -69,9 +69,9 @@ public class OperationInvokingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
-		handler.setDefaultObjectName(this.objectName);
+		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
-		handler.setDefaultOperationName("x");
+		handler.setOperationName("x");
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("p1", "foo");
@@ -88,9 +88,9 @@ public class OperationInvokingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
-		handler.setDefaultObjectName(this.objectName);
+		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
-		handler.setDefaultOperationName("y");
+		handler.setOperationName("y");
 		handler.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		handler.handleMessage(message);
@@ -101,9 +101,9 @@ public class OperationInvokingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
-		handler.setDefaultObjectName(this.objectName);
+		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
-		handler.setDefaultOperationName("x");
+		handler.setOperationName("x");
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("p1", "foo");
@@ -119,9 +119,9 @@ public class OperationInvokingMessageHandlerTests {
 		QueueChannel outputChannel = new QueueChannel();
 		OperationInvokingMessageHandler handler = new OperationInvokingMessageHandler();
 		handler.setServer(this.server);
-		handler.setDefaultObjectName(this.objectName);
+		handler.setObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
-		handler.setDefaultOperationName("x");
+		handler.setOperationName("x");
 		handler.afterPropertiesSet();
 		List<Object> params = Arrays.asList(new Object[] { "foo", new Integer(123) });
 		Message<?> message = MessageBuilder.withPayload(params).build();

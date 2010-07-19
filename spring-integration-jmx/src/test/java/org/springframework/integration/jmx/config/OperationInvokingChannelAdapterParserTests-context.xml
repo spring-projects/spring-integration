@@ -17,8 +17,8 @@
 	<context:mbean-server/>
 
 	<jmx:operation-invoking-channel-adapter id="input"
-			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
-			default-operation-name="test"/>
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
+			operation-name="test"/>
 
 	<bean id="testBeanAdapter" class="org.springframework.integration.jmx.config.TestBean"/>
 

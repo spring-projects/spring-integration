@@ -63,9 +63,9 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 
 	private volatile MBeanServer server;
 
-	private volatile ObjectName defaultObjectName;
+	private volatile ObjectName objectName;
 
-	private volatile String defaultOperationName;
+	private volatile String operationName;
 
 
 	/**
@@ -80,10 +80,10 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	 * Specify a default ObjectName to use when no such header is
 	 * available on the Message being handled.
 	 */
-	public void setDefaultObjectName(String defaultObjectName) {
+	public void setObjectName(String objectName) {
 		try {
-			if (defaultObjectName != null) {
-				this.defaultObjectName = ObjectNameManager.getInstance(defaultObjectName);
+			if (objectName != null) {
+				this.objectName = ObjectNameManager.getInstance(objectName);
 			}
 		}
 		catch (MalformedObjectNameException e) {
@@ -92,11 +92,11 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	}
 
 	/**
-	 * Specify a default operation name to be invoked when no such
+	 * Specify an operation name to be invoked when no such
 	 * header is available on the Message being handled.
 	 */	
-	public void setDefaultOperationName(String defaultOperationName) {
-		this.defaultOperationName = defaultOperationName; 
+	public void setOperationName(String operationName) {
+		this.operationName = operationName; 
 	}
 
 	@Override
@@ -155,7 +155,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	 * First checks if defaultObjectName is set, otherwise falls back on  {@link JmxHeaders#OBJECT_NAME} header.
 	 */
 	private ObjectName resolveObjectName(Message<?> message) {
-		ObjectName objectName = this.defaultObjectName;
+		ObjectName objectName = this.objectName;
 		if (objectName == null){
 			Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
 			if (objectNameHeader instanceof ObjectName) {
@@ -178,7 +178,7 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	  * First checks if defaultOperationName is set, otherwise falls back on  {@link JmxHeaders#OPERATION_NAME} header.
 	 */
 	private String resolveOperationName(Message<?> message) {
-		String operationName = this.defaultOperationName;
+		String operationName = this.operationName;
 		if (operationName == null){
 			operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
 		}

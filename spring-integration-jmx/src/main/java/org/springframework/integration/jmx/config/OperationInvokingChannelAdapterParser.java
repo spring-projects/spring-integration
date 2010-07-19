@@ -35,8 +35,8 @@ public class OperationInvokingChannelAdapterParser extends AbstractOutboundChann
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
 				"org.springframework.integration.jmx.OperationInvokingMessageHandler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "mbean-server", "server");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-object-name");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-operation-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "operation-name");
 		return builder.getBeanDefinition();
 	}
 

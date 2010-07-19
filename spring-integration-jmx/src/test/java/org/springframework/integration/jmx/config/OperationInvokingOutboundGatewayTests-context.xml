@@ -30,12 +30,12 @@
 			
 	<jmx:operation-invoking-outbound-gateway request-channel="withReplyChannel"
 			reply-channel="withReplyChannelOutput"
-			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
-			default-operation-name="testWithReturn"/>
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
+			operation-name="testWithReturn"/>
 
 	<jmx:operation-invoking-outbound-gateway request-channel="withNoReplyChannel"
-			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
-			default-operation-name="testWithReturn"/>
+			object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
+			operation-name="testWithReturn"/>
 
 	<bean id="testBeanGateway" class="org.springframework.integration.jmx.config.TestBean"/>
 </beans>
