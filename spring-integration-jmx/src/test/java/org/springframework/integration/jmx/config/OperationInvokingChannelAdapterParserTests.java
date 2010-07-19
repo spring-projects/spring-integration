@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -33,6 +32,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 @ContextConfiguration
@@ -40,54 +40,39 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class OperationInvokingChannelAdapterParserTests {
 
 	@Autowired
-	private MessageChannel withDefaultsChannel;
+	private MessageChannel input;
 
 	@Autowired
-	private MessageChannel withoutDefaultsChannel;
-
-	@Autowired
-	private TestBean testBeanForDefaults;
-
-	@Autowired
-	private TestBean testBeanForNoDefaults;
-
+	private TestBean testBean;
 
 	@After
 	public void resetLists() {
-		testBeanForDefaults.messages.clear();
-		testBeanForNoDefaults.messages.clear();
+		testBean.messages.clear();
 	}
 
 
 	@Test
 	public void adapterWithDefaults() throws Exception {
-		assertEquals(0, testBeanForDefaults.messages.size());
-		assertEquals(0, testBeanForNoDefaults.messages.size());
-		withDefaultsChannel.send(new StringMessage("test1"));
-		withDefaultsChannel.send(new StringMessage("test2"));
-		withDefaultsChannel.send(new StringMessage("test3"));
-		assertEquals(3, testBeanForDefaults.messages.size());
-		assertEquals(0, testBeanForNoDefaults.messages.size());
+		assertEquals(0, testBean.messages.size());
+		input.send(new StringMessage("test1"));
+		input.send(new StringMessage("test2"));
+		input.send(new StringMessage("test3"));
+		assertEquals(3, testBean.messages.size());
 	}
-
+	
 	@Test
-	public void adapterWithoutDefaults() throws Exception {
-		assertEquals(0, testBeanForDefaults.messages.size());
-		assertEquals(0, testBeanForNoDefaults.messages.size());
-		withoutDefaultsChannel.send(createMessageWithHeaders("1"));
-		withoutDefaultsChannel.send(createMessageWithHeaders("2"));
-		withoutDefaultsChannel.send(createMessageWithHeaders("3"));
-		assertEquals(0, testBeanForDefaults.messages.size());
-		assertEquals(3, testBeanForNoDefaults.messages.size());
+	// Headers should be ignored
+	public void adapterWitJmxHeaders() throws Exception {
+		assertEquals(0, testBean.messages.size());
+		input.send(this.createMessage("1"));
+		input.send(this.createMessage("2"));
+		input.send(this.createMessage("3"));
+		assertEquals(3, testBean.messages.size());
 	}
-
-
-	private static Message<String> createMessageWithHeaders(String payload) {
-		String objectName = "org.springframework.integration.jmx.config:name=testBeanForNoDefaults,type=TestBean";
+	
+	private Message<?> createMessage(String payload){
 		return MessageBuilder.withPayload(payload)
-				.setHeader(JmxHeaders.OBJECT_NAME, objectName)
-				.setHeader(JmxHeaders.OPERATION_NAME, "test")
-				.build();
+			.setHeader(JmxHeaders.OBJECT_NAME, "org.springframework.integration.jmx.config:type=TestBean,name=foo")
+			.setHeader(JmxHeaders.OPERATION_NAME, "blah").build();
 	}
-
 }

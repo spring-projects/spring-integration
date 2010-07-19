@@ -16,14 +16,10 @@
 	<context:mbean-export/>
 	<context:mbean-server/>
 
-	<jmx:operation-invoking-channel-adapter id="withDefaultsChannel"
-			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanForDefaults"
+	<jmx:operation-invoking-channel-adapter id="input"
+			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanAdapter"
 			default-operation-name="test"/>
 
-	<jmx:operation-invoking-channel-adapter id="withoutDefaultsChannel"/>
-
-	<bean id="testBeanForDefaults" class="org.springframework.integration.jmx.config.TestBean"/>
-
-	<bean id="testBeanForNoDefaults" class="org.springframework.integration.jmx.config.TestBean"/>
+	<bean id="testBeanAdapter" class="org.springframework.integration.jmx.config.TestBean"/>
 
 </beans>

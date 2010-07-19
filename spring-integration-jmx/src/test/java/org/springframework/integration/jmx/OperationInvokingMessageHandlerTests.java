@@ -71,12 +71,12 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
+		handler.setDefaultOperationName("x");
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("p1", "foo");
 		params.put("p2", "bar");
-		Message<?> message = MessageBuilder.withPayload(params)
-				.setHeader(JmxHeaders.OPERATION_NAME, "x").build();
+		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
@@ -90,9 +90,9 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
+		handler.setDefaultOperationName("y");
 		handler.afterPropertiesSet();
-		Message<?> message = MessageBuilder.withPayload("foo")
-				.setHeader(JmxHeaders.OPERATION_NAME, "y").build();
+		Message<?> message = MessageBuilder.withPayload("foo").build();
 		handler.handleMessage(message);
 	}
 	
@@ -103,11 +103,11 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
+		handler.setDefaultOperationName("x");
 		handler.afterPropertiesSet();
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("p1", "foo");
-		Message<?> message = MessageBuilder.withPayload(params)
-				.setHeader(JmxHeaders.OPERATION_NAME, "x").build();
+		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
@@ -121,10 +121,10 @@ public class OperationInvokingMessageHandlerTests {
 		handler.setServer(this.server);
 		handler.setDefaultObjectName(this.objectName);
 		handler.setOutputChannel(outputChannel);
+		handler.setDefaultOperationName("x");
 		handler.afterPropertiesSet();
 		List<Object> params = Arrays.asList(new Object[] { "foo", new Integer(123) });
-		Message<?> message = MessageBuilder.withPayload(params)
-				.setHeader(JmxHeaders.OPERATION_NAME, "x").build();
+		Message<?> message = MessageBuilder.withPayload(params).build();
 		handler.handleMessage(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);

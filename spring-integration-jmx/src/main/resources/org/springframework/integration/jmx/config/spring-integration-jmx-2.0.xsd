@@ -26,15 +26,16 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:sequence minOccurs="0" maxOccurs="1">
-				<xsd:element ref="integration:poller"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string" use="optional"/>
-			<xsd:attribute name="channel" type="xsd:string" use="optional"/>
-			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
-			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
-			<xsd:attribute name="attribute-name" type="xsd:string" use="required"/>
-			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+			<xsd:complexContent>
+				<xsd:extension base="adapterType">
+					<xsd:sequence minOccurs="0" maxOccurs="1">
+						<xsd:element ref="integration:poller"/>
+					</xsd:sequence>
+					<xsd:attribute name="id" type="xsd:ID" />
+					<xsd:attribute name="attribute-name" type="xsd:string" use="required"/>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 	<xsd:element name="operation-invoking-outbound-gateway">
@@ -44,12 +45,13 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="optional"/>
-			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="reply-channel" type="xsd:string" use="optional"/>
-			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
-			<xsd:attribute name="default-object-name" type="xsd:string" use="optional"/>
-			<xsd:attribute name="default-operation-name" type="xsd:string" use="optional"/>
+			<xsd:complexContent>
+				<xsd:extension base="operationInvokingType">
+					<xsd:attribute name="id" type="xsd:ID"/>
+					<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+					<xsd:attribute name="reply-channel" type="xsd:string" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -60,11 +62,12 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="optional"/>
-			<xsd:attribute name="channel" type="xsd:string" use="optional"/>
-			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
-			<xsd:attribute name="default-object-name" type="xsd:string" use="optional"/>
-			<xsd:attribute name="default-operation-name" type="xsd:string" use="optional"/>
+			<xsd:complexContent>
+				<xsd:extension base="operationInvokingType">
+					<xsd:attribute name="id" type="xsd:ID"/>
+					<xsd:attribute name="channel" type="xsd:string" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -75,13 +78,14 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="optional"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer"/>
-			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
-			<xsd:attribute name="notification-filter" type="xsd:string" use="optional"/>
-			<xsd:attribute name="handback" type="xsd:string" use="optional"/>
-			<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
+			<xsd:complexContent>
+				<xsd:extension base="adapterType">
+					<xsd:attribute name="id" type="xsd:ID" />
+					<xsd:attribute name="notification-filter" type="xsd:string" use="optional"/>
+					<xsd:attribute name="handback" type="xsd:string" use="optional"/>
+					<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -92,10 +96,12 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:string" use="optional"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="object-name" type="xsd:string" use="required"/>
-			<xsd:attribute name="default-notification-type" type="xsd:string" use="optional"/>
+			<xsd:complexContent>
+				<xsd:extension base="adapterType">
+					<xsd:attribute name="id" type="xsd:ID" />
+					<xsd:attribute name="default-notification-type" type="xsd:string" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -107,35 +113,70 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:attribute name="id" use="optional"/>
-			<xsd:attribute name="mbean-server" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-	The MBeanServer to which this Control Bus should export MBeans.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="domain" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-	The domain name for the MBeans exported by this Control Bus.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="operation-channel" use="optional">
-				<xsd:annotation>
-					<xsd:documentation>
-	The Message Channel that can be used to send operation commands to
-	this Control Bus. It must implement SubscribableChannel.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<tool:annotation>
-							<tool:expected-type type="org.springframework.integration.channel.SubscribableChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
+			<xsd:complexContent>
+				<xsd:extension base="mbeanServerIdentifyerType">
+					<xsd:attribute name="id" type="xsd:ID" />
+					<xsd:attribute name="domain" use="optional">
+						<xsd:annotation>
+							<xsd:documentation>
+			The domain name for the MBeans exported by this Control Bus.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="operation-channel" use="optional">
+						<xsd:annotation>  
+							<xsd:documentation>
+			The Message Channel that can be used to send operation commands to
+			this Control Bus. It must implement SubscribableChannel.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation>
+									<tool:expected-type type="org.springframework.integration.channel.SubscribableChannel"/>
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:complexType name="adapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines inbound operation invoking type 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="mbeanServerIdentifyerType">
+				<xsd:attribute name="channel" type="xsd:string" use="required"/>
+				<xsd:attribute name="object-name" type="xsd:string" use="required"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="operationInvokingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines outbound operation invoking type 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="mbeanServerIdentifyerType">
+				<xsd:attribute name="default-object-name" type="xsd:string" use="required"/>
+				<xsd:attribute name="default-operation-name" type="xsd:string" use="required"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="mbeanServerIdentifyerType">
+		<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer">
+				<xsd:annotation>
+					<xsd:documentation>
+	Defines the name of the MBeanServer bean to connect to.
+					</xsd:documentation>
+				</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
 
 </xsd:schema>

@@ -16,39 +16,26 @@
 	<context:mbean-export/>
 	<context:mbean-server/>
 
-	<si:channel id="noDefaultInput"/>
+	<si:channel id="withReplyChannel"/>
 	
-	<si:channel id="noDefaultOutput">
+	<si:channel id="withReplyChannelOutput">
 		<si:queue/>
 	</si:channel>
 	
-	<si:channel id="noDefaultInputA"/>
+	<si:channel id="withNoReplyChannel"/>
 	
-	<si:channel id="noDefaultOutputA">
+	<si:channel id="withNoReplyChannelOutput">
 		<si:queue/>
 	</si:channel>
-	
-	<si:channel id="defaultInput"/>
-	
-	<si:channel id="defaultOutput">
-		<si:queue/>
-	</si:channel>
-	
-	
-	
 			
-	<jmx:operation-invoking-outbound-gateway request-channel="defaultInput"
-			reply-channel="defaultOutput"
-			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanForDefaultsGateway"
+	<jmx:operation-invoking-outbound-gateway request-channel="withReplyChannel"
+			reply-channel="withReplyChannelOutput"
+			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
 			default-operation-name="testWithReturn"/>
 
-	<jmx:operation-invoking-outbound-gateway request-channel="noDefaultInput"
-			reply-channel="noDefaultOutput"/>
-			
-	<jmx:operation-invoking-outbound-gateway request-channel="noDefaultInputA"/>
+	<jmx:operation-invoking-outbound-gateway request-channel="withNoReplyChannel"
+			default-object-name="org.springframework.integration.jmx.config:type=TestBean,name=testBeanGateway"
+			default-operation-name="testWithReturn"/>
 
-
-	<bean id="testBeanForNoDefaultsGateway" class="org.springframework.integration.jmx.config.TestBean"/>
-
-	<bean id="testBeanForDefaultsGateway" class="org.springframework.integration.jmx.config.TestBean"/>
+	<bean id="testBeanGateway" class="org.springframework.integration.jmx.config.TestBean"/>
 </beans>

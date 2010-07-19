@@ -152,38 +152,35 @@ public class OperationInvokingMessageHandler extends AbstractReplyProducingMessa
 	}
 
 	/**
-	 * First checks for the presence of a {@link JmxHeaders#OBJECT_NAME} header,
-	 * then falls back to this handler's {@link #defaultObjectName} if available.
+	 * First checks if defaultObjectName is set, otherwise falls back on  {@link JmxHeaders#OBJECT_NAME} header.
 	 */
 	private ObjectName resolveObjectName(Message<?> message) {
-		ObjectName objectName = null;
-		Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
-		if (objectNameHeader instanceof ObjectName) {
-			objectName = (ObjectName) objectNameHeader;
-		}
-		else if (objectNameHeader instanceof String) {
-			try {
-				objectName = ObjectNameManager.getInstance(objectNameHeader);
+		ObjectName objectName = this.defaultObjectName;
+		if (objectName == null){
+			Object objectNameHeader = message.getHeaders().get(JmxHeaders.OBJECT_NAME);
+			if (objectNameHeader instanceof ObjectName) {
+				objectName = (ObjectName) objectNameHeader;
 			}
-			catch (MalformedObjectNameException e) {
-				throw new IllegalArgumentException(e);
+			else if (objectNameHeader instanceof String) {
+				try {
+					objectName = ObjectNameManager.getInstance(objectNameHeader);
+				}
+				catch (MalformedObjectNameException e) {
+					throw new IllegalArgumentException(e);
+				}
 			}
-		}
-		else {
-			objectName = this.defaultObjectName;
 		}
 		Assert.notNull(objectName, "Failed to resolve ObjectName.");
 		return objectName;
 	}
 
 	/**
-	 * First checks for the presence of a {@link JmxHeaders#OPERATION_NAME} header,
-	 * then falls back to this handler's {@link #defaultOperationName} if available.
+	  * First checks if defaultOperationName is set, otherwise falls back on  {@link JmxHeaders#OPERATION_NAME} header.
 	 */
 	private String resolveOperationName(Message<?> message) {
-		String operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
-		if (operationName == null) {
-			operationName = this.defaultOperationName;
+		String operationName = this.defaultOperationName;
+		if (operationName == null){
+			operationName = message.getHeaders().get(JmxHeaders.OPERATION_NAME, String.class);
 		}
 		Assert.notNull(operationName, "Failed to resolve operation name.");
 		return operationName;

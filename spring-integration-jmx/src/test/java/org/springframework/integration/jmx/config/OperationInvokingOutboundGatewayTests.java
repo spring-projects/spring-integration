@@ -41,83 +41,54 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class OperationInvokingOutboundGatewayTests {
 	@Autowired
-	@Qualifier("noDefaultInput")
-	private MessageChannel noDefaultInput;
+	@Qualifier("withReplyChannel")
+	private MessageChannel withReplyChannel;
+	@Autowired
+	@Qualifier("withReplyChannelOutput")
+	private PollableChannel withReplyChannelOutput;
 	
 	@Autowired
-	@Qualifier("noDefaultOutput")
-	private PollableChannel noDefaultOutput;
+	@Qualifier("withNoReplyChannel")
+	private MessageChannel withNoReplyChannel;
 	@Autowired
-	@Qualifier("noDefaultInputA")
-	private MessageChannel noDefaultInputA;
+	@Qualifier("withNoReplyChannelOutput")
+	private PollableChannel withNoReplyChannelOutput;
 	
 	@Autowired
-	@Qualifier("noDefaultOutputA")
-	private PollableChannel noDefaultOutputA;
-	
-	@Autowired
-	@Qualifier("defaultInput")
-	private MessageChannel defaultInput;
-	
-	@Autowired
-	@Qualifier("defaultOutput")
-	private PollableChannel defaultOutput;
-	
-	@Autowired
-	private TestBean testBeanForDefaultsGateway;
+	private TestBean testBean;
 
-	@Autowired
-	private TestBean testBeanForNoDefaultsGateway;
 	@After
 	public void resetLists() {
-		testBeanForDefaultsGateway.messages.clear();
-		testBeanForNoDefaultsGateway.messages.clear();
+		testBean.messages.clear();
 	}
 	
 	@Test
-	public void adapterWithoutNoDefaultsAndReturn() throws Exception {
-		noDefaultInput.send(createMessageWithHeadersForReturnCase("1"));
-		assertEquals(1, ((List<?>)noDefaultOutput.receive().getPayload()).size());
-		noDefaultInput.send(createMessageWithHeadersForReturnCase("2"));
-		assertEquals(2, ((List<?>)noDefaultOutput.receive().getPayload()).size());
-		noDefaultInput.send(createMessageWithHeadersForReturnCase("3"));
-		assertEquals(3, ((List<?>)noDefaultOutput.receive().getPayload()).size());
+	public void gatewayWithReplyChannel() throws Exception {
+		withReplyChannel.send(new StringMessage("1"));
+		assertEquals(1, ((List<?>)withReplyChannelOutput.receive().getPayload()).size());
+		withReplyChannel.send(new StringMessage("2"));
+		assertEquals(2, ((List<?>)withReplyChannelOutput.receive().getPayload()).size());
+		withReplyChannel.send(new StringMessage("3"));
+		assertEquals(3, ((List<?>)withReplyChannelOutput.receive().getPayload()).size());
 	}
 	
-	@Test
-	public void adapterWithoutNoDefaultsAndReturnAndReplyChannel() throws Exception {
-		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("1", noDefaultOutputA));
-		assertEquals(1, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
-		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("2", noDefaultOutputA));
-		assertEquals(2, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
-		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("3", noDefaultOutputA));
-		assertEquals(3, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
-	}
-	
-	@Test
-	public void adapterWithoutDefaultsAndReturn() throws Exception {
-		defaultInput.send(new StringMessage("1"));
-		assertEquals(1, ((List<?>)defaultOutput.receive().getPayload()).size());
-		defaultInput.send(new StringMessage("2"));
-		assertEquals(2, ((List<?>)defaultOutput.receive().getPayload()).size());
-		defaultInput.send(new StringMessage("3"));
-		assertEquals(3, ((List<?>)defaultOutput.receive().getPayload()).size());
-	}
-	
-	private static Message<String> createMessageWithHeadersForReturnCase(String payload) {
-		String objectName = "org.springframework.integration.jmx.config:name=testBeanForNoDefaultsGateway,type=TestBean";
-		return MessageBuilder.withPayload(payload)
-				.setHeader(JmxHeaders.OBJECT_NAME, objectName)
-				.setHeader(JmxHeaders.OPERATION_NAME, "testWithReturn")
-				.build();
-	}
-	
-	private static Message<String> createMessageWithHeadersForReturnCaseAndReplyChannel(String payload, MessageChannel replyChannel) {
-		String objectName = "org.springframework.integration.jmx.config:name=testBeanForNoDefaultsGateway,type=TestBean";
-		return MessageBuilder.withPayload(payload)
-				.setHeader(JmxHeaders.OBJECT_NAME, objectName)
-				.setHeader(JmxHeaders.OPERATION_NAME, "testWithReturn")
-				.setReplyChannel(replyChannel)
-				.build();
-	}
+//	@Test
+//	public void adapterWithoutNoDefaultsAndReturnAndReplyChannel() throws Exception {
+//		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("1", noDefaultOutputA));
+//		assertEquals(1, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
+//		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("2", noDefaultOutputA));
+//		assertEquals(2, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
+//		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("3", noDefaultOutputA));
+//		assertEquals(3, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
+//	}
+//	
+//	@Test
+//	public void adapterWithoutDefaultsAndReturn() throws Exception {
+//		defaultInput.send(new StringMessage("1"));
+//		assertEquals(1, ((List<?>)defaultOutput.receive().getPayload()).size());
+//		defaultInput.send(new StringMessage("2"));
+//		assertEquals(2, ((List<?>)defaultOutput.receive().getPayload()).size());
+//		defaultInput.send(new StringMessage("3"));
+//		assertEquals(3, ((List<?>)defaultOutput.receive().getPayload()).size());
+//	}
 }
