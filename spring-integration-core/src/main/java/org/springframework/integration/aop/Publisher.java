@@ -41,12 +41,6 @@ public @interface Publisher {
 	String payload() default "";
 
 	/**
-	 * String representations of Spel Expressions to evaluate for adding any
-	 * headers to the Message. Optional.
-	 */
-	String[] headers() default "";
-
-	/**
 	 * Name of the Message Channel to which Messages will be published. 
 	 */
 	String channel() default "";

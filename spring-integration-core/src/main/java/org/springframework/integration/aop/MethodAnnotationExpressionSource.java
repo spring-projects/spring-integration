@@ -19,11 +19,14 @@ package org.springframework.integration.aop;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.annotation.Header;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,8 +65,24 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 		return this.getAnnotationValue(method, "payload", String.class);
 	}
 
-	public String[] getHeaderExpressions(Method method) {
-		return this.getAnnotationValue(method, "headers", String[].class);
+	public Map<String, String> getHeaderExpressions(Method method) {
+		Map<String, String> headerExpressions = new HashMap<String, String>();
+		String[] parameterNames = this.parameterNameDiscoverer.getParameterNames(method);
+		Annotation[][] annotationArray = method.getParameterAnnotations();
+		for (int i = 0; i < annotationArray.length; i++) {
+			Annotation[] parameterAnnotations = annotationArray[i];
+			for (Annotation currentAnnotation : parameterAnnotations) {
+				if (Header.class.equals(currentAnnotation.annotationType())) {
+					Header headerAnnotation = (Header) currentAnnotation;
+					String name = headerAnnotation.value();
+					if (!StringUtils.hasText(name)) {
+						name = parameterNames[i];
+					}
+					headerExpressions.put(name, "#" + this.getArgumentMapVariableName(method) + "['" + i + "']");
+				}
+			}
+		}
+		return headerExpressions;
 	}
 
 	public String getMethodNameVariableName(Method method) {

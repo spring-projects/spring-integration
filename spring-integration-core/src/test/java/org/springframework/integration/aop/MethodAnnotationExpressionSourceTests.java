@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -39,10 +40,9 @@ public class MethodAnnotationExpressionSourceTests {
 		assertEquals(2, source.getArgumentVariableNames(method).length);
 		assertEquals("arg1", source.getArgumentVariableNames(method)[0]);
 		assertEquals("arg2", source.getArgumentVariableNames(method)[1]);
-		String[] headerStrings = source.getHeaderExpressions(method);
-		assertNotNull(headerStrings);
-		assertEquals(1, headerStrings.length);
-		assertEquals("", headerStrings[0]);
+		Map<String, String> headerMap = source.getHeaderExpressions(method);
+		assertNotNull(headerMap);
+		assertEquals(0, headerMap.size());
 		assertEquals(ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME, source.getArgumentMapVariableName(method));
 		assertEquals(ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME, source.getExceptionVariableName(method));
 		assertEquals(ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME, source.getReturnValueVariableName(method));
@@ -83,7 +83,7 @@ public class MethodAnnotationExpressionSourceTests {
 	public void methodWithExpressionAnnotationOnly(String arg1, int arg2) {
 	}
 
-	@Publisher(payload="#return", channel="foo", headers="bar=123")
+	@Publisher(payload="#return", channel="foo")
 	public void methodWithChannelAndReturnAsPayload() {
 	}
 

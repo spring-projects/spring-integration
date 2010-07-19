@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 
@@ -66,8 +67,8 @@ public class PublisherExpressionTests {
 
 	static class TestBeanImpl implements TestBean {
 
-		@Publisher(payload="#return", headers="foo=#args.foo")
-		public String test(String foo) {
+		@Publisher(payload="#return")
+		public String test(@Header("foo") String foo) {
 			return "hello";
 		}
 	}

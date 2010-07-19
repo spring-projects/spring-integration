@@ -17,6 +17,7 @@
 package org.springframework.integration.aop;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Simple implementation of {@link ExpressionSource} that allows for
@@ -32,7 +33,7 @@ public class SimpleExpressionSource extends AbstractExpressionSource {
 
 	private volatile String payloadExpression;
 
-	private volatile String[] headerExpressions;
+	private volatile Map<String, String> headerExpressions;
 
 
 	public void setChannelName(String channelName) {
@@ -53,12 +54,12 @@ public class SimpleExpressionSource extends AbstractExpressionSource {
 		return this.payloadExpression;
 	}
 
-	public void setHeaderExpressions(String[] headerExpressions) {
+	public void setHeaderExpressions(Map<String, String> headerExpressions) {
 		this.headerExpressions = headerExpressions;
 	}
 
 	@Override
-	public String[] getHeaderExpressions(Method method) {
+	public Map<String, String> getHeaderExpressions(Method method) {
 		return this.headerExpressions;
 	}
 

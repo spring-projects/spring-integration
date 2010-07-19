@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,12 +48,12 @@ public class AnnotationConfigRegistrationTests {
 
 	@Test // INT-1200
 	public void verifyInterception() {
-		String name = testBean.setName("John", "Doe");
+		String name = testBean.setName("John", "Doe", 123);
 		Assert.assertNotNull(name);
 		Message<?> message = testChannel.receive(0);
 		Assert.assertNotNull(message);
 		Assert.assertEquals("John DoeDoe", message.getPayload());
-		Assert.assertEquals("123", message.getHeaders().get("x"));
+		Assert.assertEquals(123, message.getHeaders().get("x"));
 	}
 
 	@Test
@@ -68,8 +69,8 @@ public class AnnotationConfigRegistrationTests {
 
 	public static class TestBean {
 
-		@Publisher(channel="testChannel", payload="#return + #args.lname", headers="x='123'")
-		public String setName(String fname, String lname){
+		@Publisher(channel="testChannel", payload="#return + #args.lname")
+		public String setName(String fname, String lname, @Header("x") int num) {
 			return fname + " " + lname;
 		}
 

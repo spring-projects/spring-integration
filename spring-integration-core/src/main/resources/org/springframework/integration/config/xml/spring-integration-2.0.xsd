@@ -2259,9 +2259,17 @@ Name of the header whose value to use.
 			<xsd:sequence>
 				<xsd:element name="method" minOccurs="0" maxOccurs="unbounded">
 					<xsd:complexType>
+						<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+							<xsd:element name="header">
+								<xsd:complexType>
+									<xsd:attribute name="name" type="xsd:string" use="required"/>
+									<xsd:attribute name="value" type="xsd:string"/>
+									<xsd:attribute name="expression" type="xsd:string"/>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
 						<xsd:attribute name="pattern" type="xsd:string" />
 						<xsd:attribute name="payload" type="xsd:string" />
-						<xsd:attribute name="headers" type="xsd:string" />
 						<xsd:attribute name="channel" type="xsd:string">
 							<xsd:annotation>
 								<xsd:appinfo>

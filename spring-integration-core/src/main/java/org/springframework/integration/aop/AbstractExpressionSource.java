@@ -17,6 +17,7 @@
 package org.springframework.integration.aop;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
@@ -80,7 +81,7 @@ public abstract class AbstractExpressionSource implements ExpressionSource {
 
 	public abstract String[] getArgumentVariableNames(Method method);
 
-	public abstract String[] getHeaderExpressions(Method method);
+	public abstract Map<String, String> getHeaderExpressions(Method method);
 
 	public abstract String getChannelName(Method method);
 

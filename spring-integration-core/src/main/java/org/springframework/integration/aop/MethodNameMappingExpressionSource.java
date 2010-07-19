@@ -31,7 +31,7 @@ public class MethodNameMappingExpressionSource extends AbstractExpressionSource 
 
 	private final Map<String, String> payloadExpressionMap;
 
-	private volatile Map<String, String[]> headerExpressionMap = Collections.emptyMap();
+	private volatile Map<String, Map<String, String>> headerExpressionMap = Collections.emptyMap();
 
 	private volatile Map<String, String> channelMap = Collections.emptyMap();
 
@@ -47,7 +47,7 @@ public class MethodNameMappingExpressionSource extends AbstractExpressionSource 
 		this.argumentVariableNameMap = argumentVariableNameMap;
 	}
 
-	public void setHeaderExpressionMap(Map<String, String[]> headerExpressionMap) {
+	public void setHeaderExpressionMap(Map<String, Map<String, String>> headerExpressionMap) {
 		this.headerExpressionMap = headerExpressionMap;
 	}
 
@@ -75,8 +75,8 @@ public class MethodNameMappingExpressionSource extends AbstractExpressionSource 
 		return null;
 	}
 
-	public String[] getHeaderExpressions(Method method) {
-		for (Map.Entry<String, String[]> entry : this.headerExpressionMap.entrySet()) {
+	public Map<String, String> getHeaderExpressions(Method method) {
+		for (Map.Entry<String, Map<String, String>> entry : this.headerExpressionMap.entrySet()) {
 			if (PatternMatchUtils.simpleMatch(entry.getKey(), method.getName())) {
 				return entry.getValue();
 			}

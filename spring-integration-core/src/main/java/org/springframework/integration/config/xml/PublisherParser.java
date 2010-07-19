@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
 import java.util.HashMap;
@@ -35,65 +36,83 @@ import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class PublisherParser extends AbstractBeanDefinitionParser {
 
-	/**
-	 * 
-	 */
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.MessagePublishingInterceptor");
+		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodNameMappingExpressionSource.class.getName());
+		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
 		
-		BeanDefinitionBuilder spelSourceBilder = BeanDefinitionBuilder.genericBeanDefinition(MethodNameMappingExpressionSource.class.getName());
-		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"));
-		spelSourceBilder.addConstructorArgValue(mappings.get("payload"));
-		if (mappings.get("headers") != null){
-			spelSourceBilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
+		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
+		if (mappings.get("headers") != null) {
+			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}
 		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(MapBasedChannelResolver.class.getName());
 		if (mappings.get("channels") != null){
-			spelSourceBilder.addPropertyValue("channelMap", mappings.get("channels"));
+			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));
 			chResolverBuilder.addConstructorArgValue(mappings.get("resolvableChannels"));
 		}
 		String chResolverName = 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(chResolverBuilder.getBeanDefinition(), parserContext.getRegistry());
+				BeanDefinitionReaderUtils.registerWithGeneratedName(chResolverBuilder.getBeanDefinition(), parserContext.getRegistry());
 		String defaultChannel = StringUtils.hasText(element.getAttribute("default-channel")) ? 
 				element.getAttribute("default-channel") : IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME;
-				
-		String spelSourceName = 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(spelSourceBilder.getBeanDefinition(), parserContext.getRegistry());	
-		rootBuilder.addConstructorArgReference(spelSourceName);	
-		
-		rootBuilder.addPropertyReference("channelResolver", chResolverName);
-		
-		rootBuilder.addPropertyReference("defaultChannel", defaultChannel);
 
+		rootBuilder.addConstructorArgValue(spelSourceBuilder.getBeanDefinition());
+		rootBuilder.addPropertyReference("channelResolver", chResolverName);
+		rootBuilder.addPropertyReference("defaultChannel", defaultChannel);
 		return rootBuilder.getBeanDefinition();
 	}
-	
+
 	@SuppressWarnings("unchecked")
-	private Map<String,Map<?,?>> getMappings(Element element, String defaultChannel){
+	private Map<String,Map<?,?>> getMappings(Element element, String defaultChannel, ParserContext parserContext) {
 		List<Element> mappings = DomUtils.getChildElementsByTagName(element, "method");
 		Map<String, Map<?,?>> interceptorMappings = new HashMap<String, Map<?,?>>();
 		Map<String, String> payloadExpressionMap = new HashMap<String, String>();
-		Map<String, String[]> headersExpressionMap = new HashMap<String, String[]>();
+		Map<String, Map<String, String>> headersExpressionMap = new HashMap<String, Map<String, String>>();
 		Map<String, String> channelMap = new HashMap<String, String>();
 		ManagedMap resolvableChannelMap = new ManagedMap();
-		if (mappings != null && mappings.size() > 0){	
+		if (mappings != null && mappings.size() > 0) {	
 			for (Element mapping : mappings) {
+
 				// set payloadMap
 				String methodPattern = StringUtils.hasText(mapping.getAttribute("pattern")) ? 
-															mapping.getAttribute("pattern") : "*" ;
+						mapping.getAttribute("pattern") : "*";
 				String payloadExpression = StringUtils.hasText(mapping.getAttribute("payload")) ? 
-															mapping.getAttribute("payload") : "#return" ;
+						mapping.getAttribute("payload") : "#return";
 				payloadExpressionMap.put(methodPattern, payloadExpression);
+
 				// set headersMap
-				String headersExpression = mapping.getAttribute("headers");
-				if (StringUtils.hasText(headersExpression)){
-					headersExpressionMap.put(methodPattern, StringUtils.commaDelimitedListToStringArray(headersExpression));
+				List<Element> headerElements = DomUtils.getChildElementsByTagName(mapping, "header");
+				Map<String, String> headerExpressions = new HashMap<String, String>();
+				for (Element headerElement : headerElements) {
+					String name = headerElement.getAttribute("name");
+					if (!StringUtils.hasText(name)) {
+						parserContext.getReaderContext().error("the 'name' attribute is required on the <header> element",
+								parserContext.extractSource(headerElement));
+						continue;
+					}
+					String value = headerElement.getAttribute("value");
+					String expression = headerElement.getAttribute("expression");
+					boolean hasValue = StringUtils.hasText(value);
+					boolean hasExpression = StringUtils.hasText(expression);
+					if (!(hasValue ^ hasExpression)) {
+						parserContext.getReaderContext().error("exactly one of 'value' or 'expression' is required on the <header> element",
+								parserContext.extractSource(headerElement));
+						continue;
+					}
+					if (hasValue) {
+						expression = "'" + value + "'";
+					}
+					headerExpressions.put(name, expression);
 				}
+				if (headerExpressions.size() > 0) {
+					headersExpressionMap.put(methodPattern, headerExpressions);
+				}
+
 				// set channelMap
 				String tmpChannel = mapping.getAttribute("channel");
 				String channel = StringUtils.hasText(tmpChannel) ? tmpChannel : defaultChannel;
@@ -101,19 +120,18 @@ public class PublisherParser extends AbstractBeanDefinitionParser {
 				resolvableChannelMap.put(channel, new RuntimeBeanReference(channel));
 			}
 		} 
-		
-		if (payloadExpressionMap.size() == 0){
+		if (payloadExpressionMap.size() == 0) {
 			payloadExpressionMap.put("*", "#return");
-		} 
+		}
 		interceptorMappings.put("payload", payloadExpressionMap);
-		
-		if (headersExpressionMap.size() > 0){
+		if (headersExpressionMap.size() > 0) {
 			interceptorMappings.put("headers", headersExpressionMap);
 		}
-		if (channelMap.size() > 0){
+		if (channelMap.size() > 0) {
 			interceptorMappings.put("channels", channelMap);
 			interceptorMappings.put("resolvableChannels", resolvableChannelMap);
 		}
 		return interceptorMappings;
 	}
+
 }

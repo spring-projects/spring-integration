@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.test.context.ContextConfiguration;
@@ -29,6 +30,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 @ContextConfiguration
@@ -43,20 +45,35 @@ public class MessagePublishingAnnotationUsageTests {
 
 
 	@Test
-	public void demoMessagePublishingInterceptor() {
-		String name = testBean.setName("John", "Doe");
+	public void headerWithExplicitName() {
+		String name = testBean.setName1("John", "Doe");
 		Assert.assertNotNull(name);
 		Message<?> message = channel.receive(1000);
 		Assert.assertNotNull(message);
 		Assert.assertEquals("John Doe", message.getPayload());
-		Assert.assertEquals("123", message.getHeaders().get("bar"));
+		Assert.assertEquals("Doe", message.getHeaders().get("last"));
 	}
-	
-	
+
+	@Test
+	public void headerWithImplicitName() {
+		String name = testBean.setName2("John", "Doe");
+		Assert.assertNotNull(name);
+		Message<?> message = channel.receive(1000);
+		Assert.assertNotNull(message);
+		Assert.assertEquals("John Doe", message.getPayload());
+		Assert.assertEquals("Doe", message.getHeaders().get("lname"));
+	}
+
+
 	public static class TestBean {
 
-		@Publisher(channel="testChannel", payload="#return", headers="bar='123'")
-		public String setName(String fname, String lname){
+		@Publisher(channel="testChannel", payload="#return")
+		public String setName1(String fname, @Header("last") String lname) {
+			return fname + " " + lname;
+		}
+
+		@Publisher(channel="testChannel", payload="#return")
+		public String setName2(String fname, @Header String lname) {
 			return fname + " " + lname;
 		}
 	}

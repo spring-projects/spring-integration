@@ -71,12 +71,14 @@ public class MessagePublishingInterceptorTests {
 		Map<String, String> channelMap = new HashMap<String, String>();
 		channelMap.put("test", "c");
 		source.setChannelMap(channelMap);
-		
-		Map<String, String[]> headerExpressionMap = new HashMap<String, String[]>();
-		headerExpressionMap.put("test", new String[]{"bar=#return","name='oleg'"});
+
+		Map<String, Map<String, String>> headerExpressionMap = new HashMap<String, Map<String, String>>();
+		Map<String, String> headerExpressions = new HashMap<String, String>();
+		headerExpressions.put("bar", "#return");
+		headerExpressions.put("name", "'oleg'");
+		headerExpressionMap.put("test", headerExpressions);
 		source.setHeaderExpressionMap(headerExpressionMap);
-		
-		
+
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(source);
 		interceptor.setChannelResolver(channelResolver);
 		ProxyFactory pf = new ProxyFactory(new TestBeanImpl());
@@ -106,6 +108,7 @@ public class MessagePublishingInterceptorTests {
 
 	}
 
+
 	private static class TestExpressionSource implements ExpressionSource {
 
 		public String getMethodNameVariableName(Method method) {
@@ -132,7 +135,7 @@ public class MessagePublishingInterceptorTests {
 			return "#r";
 		}
 
-		public String[] getHeaderExpressions(Method method) {
+		public Map<String, String> getHeaderExpressions(Method method) {
 			return null;
 		}
 

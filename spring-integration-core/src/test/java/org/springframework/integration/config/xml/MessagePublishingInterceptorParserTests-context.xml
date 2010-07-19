@@ -21,7 +21,9 @@
 	</aop:config>
 	
 	<publisher id="interceptor" default-channel="defaultChannel">
-		<method pattern="echo" payload="'Echoing: ' + #return" headers="foo='bar'" channel="echoChannel"/>
+		<method pattern="echo" payload="'Echoing: ' + #return" channel="echoChannel">
+			<header name="foo" value="bar"/>
+		</method>
 		<method pattern="echoDef*" payload="#return"/>
 	</publisher>
 	

@@ -88,13 +88,14 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		String[] argumentNames = this.expressionSource.getArgumentVariableNames(method);
 		context.setVariable(this.expressionSource.getMethodNameVariableName(method), method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
-			int index = 0;
 			Map<String, Object> argumentMap = new HashMap<String, Object>();
-			for (String argumentName : argumentNames) {
-				if (invocation.getArguments().length <= index) {
+			for (int i = 0; i < argumentNames.length; i++) {
+				if (invocation.getArguments().length <= i) {
 					break;
 				}
-				argumentMap.put(argumentName, invocation.getArguments()[index++]);
+				Object argValue = invocation.getArguments()[i];
+				argumentMap.put("" + i, argValue);
+				argumentMap.put(argumentNames[i], argValue);
 			}
 			context.setVariable(this.expressionSource.getArgumentMapVariableName(method), argumentMap);
 		}
@@ -146,14 +147,17 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context)
 			throws ParseException, EvaluationException {
 
-		String[] headerExpressionStrings = this.expressionSource.getHeaderExpressions(method);
-		if (headerExpressionStrings != null) {
+		Map<String, String> headerExpressionMap = this.expressionSource.getHeaderExpressions(method);
+		if (headerExpressionMap != null) {
 			Map<String, Object> headers = new HashMap<String, Object>();
-			context.setRootObject(headers);
-			for (String headerExpression : headerExpressionStrings) {
+			for (Map.Entry<String, String> headerExpressionEntry : headerExpressionMap.entrySet()) {
+				String headerExpression = headerExpressionEntry.getValue();
 				if (StringUtils.hasText(headerExpression)) {
 					Expression expression = this.parser.parseExpression(headerExpression);
-					expression.getValue(context);
+					Object result = expression.getValue(context);
+					if (result != null) {
+						headers.put(headerExpressionEntry.getKey(), result);
+					}
 				}
 			}
 			if (headers.size() > 0) {

@@ -30,7 +30,9 @@
 				</constructor-arg>
 				<property name="headerExpressionMap">
 					<map>
-						<entry key="setName" value="foo='bar'" />
+						<entry key="setName">
+							<map><entry key="foo" value="'bar'"/></map>
+						</entry>
 					</map>
 				</property>
 				<property name="channelMap">

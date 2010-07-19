@@ -17,6 +17,7 @@
 package org.springframework.integration.aop;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Strategy for determining the expression string and evaluation context
@@ -43,10 +44,11 @@ interface ExpressionSource {
 	String getPayloadExpression(Method method);
 
 	/**
-	 * Returns the array of expression strings to be evaluated for any headers
-	 * that should be set on the published Message.
+	 * Returns the map of expression strings to be evaluated for any headers
+	 * that should be set on the published Message. The keys in the Map are
+	 * header names, the values are the expression strings.
 	 */
-	String[] getHeaderExpressions(Method method);
+	Map<String, String> getHeaderExpressions(Method method);
 
 	/**
 	 * Returns the variable name to be associated with the intercepted
