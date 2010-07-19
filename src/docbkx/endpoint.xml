@@ -269,4 +269,28 @@ consumer.setTransactionManager(txManager);</programlisting>
     </para>
 
   </section>
+  
+  <section id="payload-type-conversion">
+    <title>Payload Type Conversion</title>
+    <para>
+      Throughout the reference manual, you will also see specific configuration and implementation examples of various endpoints 
+      which can accept a Message or any arbitrary Object as an input parameter. In the case of an Object, such parameter will 
+      be mapped to a Message payload or part of the payload or header (when using Spring Expression Language). However there 
+      are times when the type of input parameter of the endpoint method does not match the type of the payload or its part. 
+      In this scenario we need to perform type conversion. Spring Integration provides a convenient way for registering type 
+      converters (using Spring 3.x ConversionService) within its own instance of the conversion service bean named <emphasis>integrationConversionService</emphasis>
+      which is automatically created as soon as the first converter is defined.
+
+      To register such converter all you need is to implement <interfacename> org.springframework.core.convert.converter.Converter</interfacename> and register via 
+      cionvinient namespace support:
+      <programlisting language="xml"><![CDATA[ <int:converter ref="sampleConverter"/>
+
+	<bean id="sampleConverter" class="foo.bar.TestConverter"/>]]></programlisting>
+      
+      or
+      <programlisting language="xml"><![CDATA[ <int:converter>
+		<bean class="org.springframework.integration.config.xml.ConverterParserTests$TestConverter3"/>
+	</int:converter>]]></programlisting>
+     </para>
+  </section>
 </chapter>
