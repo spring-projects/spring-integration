@@ -254,4 +254,80 @@ public class DefaultJmsHeaderMapperTests {
 		assertNull(bad);
 	}
 
+	@Test
+	public void attemptToWriteDisallowedReplyToPropertyIsNotFatal() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(JmsHeaders.REPLY_TO, new StubDestination())
+				.setHeader("foo", "bar")
+				.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage() {
+            @Override
+            public void setJMSReplyTo(Destination replyTo) throws JMSException {
+            	throw new IllegalArgumentException("illegal property");
+            }
+		};
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertNull(jmsMessage.getJMSReplyTo());
+		assertNotNull(jmsMessage.getStringProperty("foo"));
+		assertEquals("bar", jmsMessage.getStringProperty("foo"));
+	}
+
+	@Test
+	public void attemptToWriteDisallowedTypePropertyIsNotFatal() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(JmsHeaders.TYPE, "someType")
+				.setHeader("foo", "bar")
+				.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage() {
+            @Override
+            public void setJMSType(String type) throws JMSException {
+            	throw new IllegalArgumentException("illegal property");
+            }
+		};
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertNull(jmsMessage.getJMSType());
+		assertNotNull(jmsMessage.getStringProperty("foo"));
+		assertEquals("bar", jmsMessage.getStringProperty("foo"));
+	}
+
+	@Test
+	public void attemptToWriteDisallowedCorrelationIdStringPropertyIsNotFatal() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(JmsHeaders.CORRELATION_ID, "abc")
+				.setHeader("foo", "bar")
+				.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage() {
+            @Override
+            public void setJMSCorrelationID(String correlationId) throws JMSException {
+            	throw new IllegalArgumentException("illegal property");
+            }
+		};
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertNull(jmsMessage.getJMSCorrelationID());
+		assertNotNull(jmsMessage.getStringProperty("foo"));
+		assertEquals("bar", jmsMessage.getStringProperty("foo"));
+	}
+
+	@Test
+	public void attemptToWriteDisallowedCorrelationIdNumberPropertyIsNotFatal() throws JMSException {
+		Message<String> message = MessageBuilder.withPayload("test")
+				.setHeader(JmsHeaders.CORRELATION_ID, new Integer(123))
+				.setHeader("foo", "bar")
+				.build();
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage() {
+            @Override
+            public void setJMSCorrelationID(String correlationId) throws JMSException {
+            	throw new IllegalArgumentException("illegal property");
+            }
+		};
+		mapper.fromHeaders(message.getHeaders(), jmsMessage);
+		assertNull(jmsMessage.getJMSCorrelationID());
+		assertNotNull(jmsMessage.getStringProperty("foo"));
+		assertEquals("bar", jmsMessage.getStringProperty("foo"));
+	}
+
 }

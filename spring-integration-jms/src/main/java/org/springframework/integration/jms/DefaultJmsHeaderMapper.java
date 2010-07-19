@@ -67,15 +67,30 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 				jmsCorrelationId = ((Number) jmsCorrelationId).toString();
 			}
 			if (jmsCorrelationId instanceof String) {
-				jmsMessage.setJMSCorrelationID((String) jmsCorrelationId);
+				try {
+					jmsMessage.setJMSCorrelationID((String) jmsCorrelationId);
+				}
+				catch (Exception e) {
+					logger.info("failed to set JMSCorrelationID, skipping", e);
+				}
 			}
 			Object jmsReplyTo = headers.get(JmsHeaders.REPLY_TO);
 			if (jmsReplyTo instanceof Destination) {
-				jmsMessage.setJMSReplyTo((Destination) jmsReplyTo);
+				try {
+					jmsMessage.setJMSReplyTo((Destination) jmsReplyTo);
+				}
+				catch (Exception e) {
+					logger.info("failed to set JMSReplyTo, skipping", e);
+				}
 			}
 			Object jmsType = headers.get(JmsHeaders.TYPE);
 			if (jmsType instanceof String) {
-				jmsMessage.setJMSType((String) jmsType);
+				try {
+					jmsMessage.setJMSType((String) jmsType);
+				}
+				catch (Exception e) {
+					logger.info("failed to set JMSType, skipping", e);
+				}
 			}
 			Set<String> attributeNames = headers.keySet();
 			for (String attributeName : attributeNames) {
