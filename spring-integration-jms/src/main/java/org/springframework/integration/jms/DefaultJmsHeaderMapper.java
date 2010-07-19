@@ -30,7 +30,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.message.MessageMappingException;
 import org.springframework.util.StringUtils;
 
 /**
@@ -120,7 +119,7 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 		}
 		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("error occurred while mapping properties from MessageHeaders", e);
+				logger.warn("error occurred while mapping from MessageHeaders to JMS properties", e);
 			}
 		}
 	}
@@ -162,7 +161,9 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			}
 		}
 		catch (JMSException e) {
-			throw new MessageMappingException("failure occurred while mapping JMS properties to MessageHeaders", e);
+			if (logger.isWarnEnabled()) {
+				logger.warn("error occurred while mapping from JMS properties to MessageHeaders", e);
+			}
 		}
 		return headers;
 	}
