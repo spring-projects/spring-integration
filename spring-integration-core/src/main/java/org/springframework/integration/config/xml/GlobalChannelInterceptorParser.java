@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,43 +77,6 @@ public class GlobalChannelInterceptorParser extends AbstractBeanDefinitionParser
 			BeanDefinitionReaderUtils.generateBeanName(globalChannelInterceptorBuilder.getBeanDefinition(), parserContext.getRegistry());
 		parserContext.registerBeanComponent(new BeanComponentDefinition(globalChannelInterceptorBuilder.getBeanDefinition(), beanName));
 		globalInterceptors.add(new RuntimeBeanReference(beanName));
-//		
-//		
-//		*
-//		
-//		
-//		
-//		
-//		
-//		List<Element> interceptorElements = DomUtils.getChildElementsByTagName(element, new String[]{REF_ATTR, BEAN_ATTR});
-//		
-//		BeanDefinitionBuilder globalChannelInterceptorBuilder =
-//			BeanDefinitionBuilder.genericBeanDefinition(CONFIG_PACKAGE + INTERCEPTOR_CHAIN_CLASS);
-//		String[] channelPatterns = element.getAttribute(CHANNELL_NAME_PATTERN_ATTR).split(",");
-//		int order = this.getOrderAttribute(element);
-//		
-//		ManagedList<RuntimeBeanReference> adviceChain = new ManagedList<RuntimeBeanReference>();
-//		for (Element interceptorElement : interceptorElements) {
-//			if (interceptorElement.getNodeName().equals(BEAN_ATTR)){
-//				BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
-//				BeanDefinitionHolder holder = delegate.parseBeanDefinitionElement(interceptorElement);
-//				// needed for p: namespace
-//				holder = delegate.decorateBeanDefinitionIfRequired(interceptorElement, holder);
-//				parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
-//				adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
-//			} else if (interceptorElement.getNodeName().equals(REF_ATTR)) {
-//				String ref = interceptorElement.getAttribute(BEAN_ATTR);
-//				adviceChain.add(new RuntimeBeanReference(ref));
-//			}
-//		}
-//		globalChannelInterceptorBuilder.addConstructorArgValue(adviceChain);
-//		globalChannelInterceptorBuilder.addConstructorArgValue(channelPatterns);
-//		globalChannelInterceptorBuilder.addConstructorArgValue(order);
-//		AbstractBeanDefinition interceptorChainDef = globalChannelInterceptorBuilder.getBeanDefinition();
-//		String interceptorChainName = 
-//			BeanDefinitionReaderUtils.generateBeanName(interceptorChainDef, parserContext.getRegistry());
-//		parserContext.registerBeanComponent(new BeanComponentDefinition(interceptorChainDef, interceptorChainName));	
-//		globalInterceptorChains.add(new RuntimeBeanReference(interceptorChainName));
 		return null;
 	}
 	/*
