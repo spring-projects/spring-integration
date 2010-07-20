@@ -26,13 +26,7 @@
 
     <context:component-scan base-package="org.springframework.integration.xmpp"/>
 
-    <beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" p:ignoreUnresolvablePlaceholders="false">
-        <beans:property name="location">
-            <beans:bean class="org.springframework.core.io.FileSystemResource">
-                <beans:constructor-arg value="#{ systemProperties['user.home'] }/Desktop/test.properties"/>
-            </beans:bean>
-        </beans:property>
-    </beans:bean>
+    <context:property-placeholder location="file://${user.home}/Desktop/test.properties" ignore-unresolvable="true"/>
 
     <beans:bean id="xmppProducer" class="org.springframework.integration.xmpp.messages.XmppMessageProducer" p:recipient="${user.2.login}"/>
 
