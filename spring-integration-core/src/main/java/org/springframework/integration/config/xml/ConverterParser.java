@@ -21,10 +21,11 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.ManagedSet;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.context.support.ConversionServiceFactoryBean;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.util.ConverterRegistrar;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
@@ -34,16 +35,15 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class ConverterParser extends AbstractBeanDefinitionParser {
-	private final ManagedList<Object> converters = new ManagedList<Object>();
-	private final static String CONVERSION_SERVICE =  "integrationConversionService";
-
+	private final ManagedSet<Object> converters = new ManagedSet<Object>();
+	private String CONVERTER_REGISTRAR = "converterRegistrar";
 	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.AbstractBeanDefinitionParser#parseInternal(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
 	 */
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		if (!parserContext.getReaderContext().getRegistry().containsBeanDefinition(CONVERSION_SERVICE)){
-			this.defineConversionSesrvice(parserContext);
+		if (!parserContext.getRegistry().containsBeanDefinition(CONVERTER_REGISTRAR)){
+			this.defineConverterRegistrar(parserContext);
 		}
 		BeanComponentDefinition converterDefinition = IntegrationNamespaceUtils.parseInnerHandlerDefinition(element, parserContext);
 		if (converterDefinition == null){
@@ -58,10 +58,10 @@ public class ConverterParser extends AbstractBeanDefinitionParser {
 	/*
 	 * 
 	 */
-	private void defineConversionSesrvice(ParserContext parserContext){
-		BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(ConversionServiceFactoryBean.class);
-		conversionServiceBuilder.addPropertyValue("converters", converters);
-		BeanDefinitionHolder bdHolder = new BeanDefinitionHolder(conversionServiceBuilder.getBeanDefinition(), CONVERSION_SERVICE);
+	private void defineConverterRegistrar(ParserContext parserContext){
+		BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(ConverterRegistrar.class);
+		conversionServiceBuilder.addConstructorArgValue(converters);
+		BeanDefinitionHolder bdHolder = new BeanDefinitionHolder(conversionServiceBuilder.getBeanDefinition(), CONVERTER_REGISTRAR);
 		BeanDefinitionReaderUtils.registerBeanDefinition(bdHolder, parserContext.getRegistry());
 	}
 }
