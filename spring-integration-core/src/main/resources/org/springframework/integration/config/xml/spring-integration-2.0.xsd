@@ -2246,6 +2246,77 @@ Name of the header whose value to use.
 		</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:element name="publisher">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a component that evaluates an expression to generate a Message payload
+				(as well as optional expression evaluation for headers). The resulting Message
+				is then sent to a MessageChannel. Each execution is driven by a Trigger.
+				Exactly one of the trigger type attributes must be provided. The options are:
+				fixed-delay, fixed-rate, cron, or trigger (reference).
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="fixed-delay" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Fixed delay trigger (in milliseconds).</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="fixed-rate" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Fixed rate trigger (in milliseconds).</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="cron" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Cron trigger.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="trigger" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to a Trigger instance.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.scheduling.Trigger"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="payload" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						SpEL expression to be evaluated for each triggered execution.
+						The result of the evaluation will be passed as the payload of
+						the Message that is sent to the MessageChannel.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>
+						MessageChannel to which this publisher's output should be sent.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation>
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="auto-startup" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specify whether this publisher should start automatically.
+						By default it will. Set this to 'false' to require a manual start.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="publishing-interceptor">
 		<xsd:annotation>
 			<xsd:documentation>
