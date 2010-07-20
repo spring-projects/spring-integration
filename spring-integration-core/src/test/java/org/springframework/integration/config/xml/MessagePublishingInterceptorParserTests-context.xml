@@ -1,36 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:aop="http://www.springframework.org/schema/aop"
 	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd"
-	xmlns:beans="http://www.springframework.org/schema/beans">
-			
-	<beans:bean id="testBean"
-		class="org.springframework.integration.config.xml.MessagePublishingInterceptorParserTests$TestBean" />
-	<beans:bean id="defaultTestBean"
-		class="org.springframework.integration.config.xml.MessagePublishingInterceptorParserTests$DefaultTestBean" />
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
+		
+	<beans:bean id="testBean" class="org.springframework.integration.config.xml.MessagePublishingInterceptorParserTests$TestBean" />
+
+	<beans:bean id="defaultTestBean" class="org.springframework.integration.config.xml.MessagePublishingInterceptorParserTests$DefaultTestBean" />
 
 	<publish-subscribe-channel id="defaultChannel"/>  
 	<publish-subscribe-channel id="echoChannel"/>  
 	<publish-subscribe-channel id="echoUpperCaseChannel"/>  
-	
+
 	<aop:config>
 		<aop:advisor advice-ref="interceptor" pointcut="bean(testBean)" />
 	</aop:config>
-	
-	<publisher id="interceptor" default-channel="defaultChannel">
+
+	<publishing-interceptor id="interceptor" default-channel="defaultChannel">
 		<method pattern="echo" payload="'Echoing: ' + #return" channel="echoChannel">
 			<header name="foo" value="bar"/>
 		</method>
 		<method pattern="echoDef*" payload="#return"/>
-	</publisher>
-	
+	</publishing-interceptor>
+
 	<aop:config>
 		<aop:advisor advice-ref="anotherInterceptor" pointcut="bean(defaultTestBean)" />
 	</aop:config>
-	
-	<publisher id="anotherInterceptor"/>
+
+	<publishing-interceptor id="anotherInterceptor"/>
 
 </beans:beans>
