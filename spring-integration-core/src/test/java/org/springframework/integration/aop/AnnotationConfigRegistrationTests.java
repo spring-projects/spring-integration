@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,7 +70,8 @@ public class AnnotationConfigRegistrationTests {
 
 	public static class TestBean {
 
-		@Publisher(channel="testChannel", payload="#return + #args.lname")
+		@Publisher(channel="testChannel")
+		@Payload("#return + #args.lname")
 		public String setName(String fname, String lname, @Header("x") int num) {
 			return fname + " " + lname;
 		}

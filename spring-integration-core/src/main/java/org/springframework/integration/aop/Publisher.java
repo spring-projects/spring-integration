@@ -23,8 +23,8 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to indicate that a method, or all public methods if applied at
- * class-level, should publish Messages whose payloads will be determined by
- * the provided EL expression.
+ * class-level, should publish Messages. The  @Payload and @Header annotations
+ * can be used in conjunction with this to determine the content of the Message.
  * 
  * @author Mark Fisher
  * @since 2.0
@@ -32,13 +32,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Publisher {
-
-	/**
-	 * String representation of a Spel Expression to evaluate when creating the
-	 * Message payload. The default will be empty, thereby causing the return
-	 * value to be used as the payload.
-	 */
-	String payload() default "";
 
 	/**
 	 * Name of the Message Channel to which Messages will be published. 

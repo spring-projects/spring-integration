@@ -27,6 +27,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -62,7 +63,28 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 	}
 
 	public String getPayloadExpression(Method method) {
-		return this.getAnnotationValue(method, "payload", String.class);
+		String payloadExpression = null;
+		method.getAnnotation(Payload.class);
+		Payload methodPayloadAnnotation = AnnotationUtils.findAnnotation(method, Payload.class);
+		if (methodPayloadAnnotation != null) {
+			payloadExpression = StringUtils.hasText(methodPayloadAnnotation.value())
+					? methodPayloadAnnotation.value()
+					: "#" + this.getReturnValueVariableName(method);
+		}
+		Annotation[][] annotationArray = method.getParameterAnnotations();
+		for (int i = 0; i < annotationArray.length; i++) {
+			Annotation[] parameterAnnotations = annotationArray[i];
+			for (Annotation currentAnnotation : parameterAnnotations) {
+				if (Payload.class.equals(currentAnnotation.annotationType())) {
+					Assert.state(payloadExpression == null,
+							"@Payload can be used at most once on a @Publisher method, either at method-level or on a single parameter");
+					Assert.state("".equals(((Payload) currentAnnotation).value()),
+							"@Payload on a parameter for a @Publisher method may not contain an expression");
+					payloadExpression = "#" + this.getArgumentMapVariableName(method) + "[" + i + "]";
+				}
+			}
+		}
+		return payloadExpression;
 	}
 
 	public Map<String, String> getHeaderExpressions(Method method) {

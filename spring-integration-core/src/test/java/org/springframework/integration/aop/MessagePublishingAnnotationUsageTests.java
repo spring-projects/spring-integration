@@ -16,13 +16,15 @@
 
 package org.springframework.integration.aop;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,34 +48,51 @@ public class MessagePublishingAnnotationUsageTests {
 
 	@Test
 	public void headerWithExplicitName() {
-		String name = testBean.setName1("John", "Doe");
-		Assert.assertNotNull(name);
+		String name = testBean.defaultPayload("John", "Doe");
+		assertNotNull(name);
 		Message<?> message = channel.receive(1000);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("John Doe", message.getPayload());
-		Assert.assertEquals("Doe", message.getHeaders().get("last"));
+		assertNotNull(message);
+		assertEquals("John Doe", message.getPayload());
+		assertEquals("Doe", message.getHeaders().get("last"));
 	}
 
 	@Test
 	public void headerWithImplicitName() {
-		String name = testBean.setName2("John", "Doe");
-		Assert.assertNotNull(name);
+		String name = testBean.defaultPayloadButExplicitAnnotation("John", "Doe");
+		assertNotNull(name);
 		Message<?> message = channel.receive(1000);
-		Assert.assertNotNull(message);
-		Assert.assertEquals("John Doe", message.getPayload());
-		Assert.assertEquals("Doe", message.getHeaders().get("lname"));
+		assertNotNull(message);
+		assertEquals("John Doe", message.getPayload());
+		assertEquals("Doe", message.getHeaders().get("lname"));
+	}
+
+	@Test
+	public void payloadAsArgument() {
+		String name = testBean.argumentAsPayload("John", "Doe");
+		assertNotNull(name);
+		assertEquals("John Doe", name);
+		Message<?> message = channel.receive(1000);
+		assertNotNull(message);
+		assertEquals("John", message.getPayload());
+		assertEquals("Doe", message.getHeaders().get("lname"));
 	}
 
 
 	public static class TestBean {
 
-		@Publisher(channel="testChannel", payload="#return")
-		public String setName1(String fname, @Header("last") String lname) {
+		@Publisher(channel="testChannel")
+		public String defaultPayload(String fname, @Header("last") String lname) {
 			return fname + " " + lname;
 		}
 
-		@Publisher(channel="testChannel", payload="#return")
-		public String setName2(String fname, @Header String lname) {
+		@Publisher(channel="testChannel")
+		@Payload
+		public String defaultPayloadButExplicitAnnotation(String fname, @Header String lname) {
+			return fname + " " + lname;
+		}
+
+		@Publisher(channel="testChannel")
+		public String argumentAsPayload(@Payload String fname, @Header String lname) {
 			return fname + " " + lname;
 		}
 	}

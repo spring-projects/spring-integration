@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-@Target(ElementType.PARAMETER)
+@Target({ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Payload {

@@ -66,7 +66,7 @@ public class PublisherAnnotationAdvisorTests {
 
 	static class TestBeanImpl implements TestBean {
 
-		@Publisher(payload="#return")
+		@Publisher
 		public String test() {
 			return "foo";
 		}

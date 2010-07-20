@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.annotation.Payload;
+
 /**
  * @author Mark Fisher
  * @since 2.0
@@ -79,15 +81,18 @@ public class MethodAnnotationExpressionSourceTests {
 	}
 
 
-	@Publisher(payload="testExpression1")
+	@Publisher
+	@Payload("testExpression1")
 	public void methodWithExpressionAnnotationOnly(String arg1, int arg2) {
 	}
 
-	@Publisher(payload="#return", channel="foo")
+	@Publisher(channel="foo")
+	@Payload
 	public void methodWithChannelAndReturnAsPayload() {
 	}
 
-	@Publisher(payload="testExpression2")
+	@Publisher
+	@Payload("testExpression2")
 	@ExpressionBinding(argumentVariableNames="s, i", argumentMapVariableName="argz",
 			exceptionVariableName="x", returnValueVariableName="result")
 	public void methodWithExpressionBinding(String arg1, int arg2) {
