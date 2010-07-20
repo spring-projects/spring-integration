@@ -42,14 +42,15 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.integration.selector.MessageSelector;
-import org.springframework.security.ConfigAttribute;
-import org.springframework.security.ConfigAttributeDefinition;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @ContextConfiguration
 public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests {
@@ -73,8 +74,8 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
 		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
-		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
-		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		ConfigAttribute sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttribute receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
 		assertTrue("ROLE_ADMIN not found as send attribute", this.getRolesFromDefintion(sendDefinition).contains("ROLE_ADMIN"));
 		assertNull("Policy applies to receive", receiveDefinition);
 	}
@@ -91,8 +92,8 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
 		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
-		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
-		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		ConfigAttribute sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttribute receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
 		Collection<String> sendRoles = this.getRolesFromDefintion(sendDefinition);
 		assertTrue("ROLE_ADMIN not found as send attribute", sendRoles.contains("ROLE_ADMIN"));
 		assertTrue("ROLE_USER not found as send attribute", sendRoles.contains("ROLE_USER"));
@@ -111,8 +112,8 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
 		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
-		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
-		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		ConfigAttribute sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttribute receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
 		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
 		assertTrue("ROLE_ADMIN not found as receive attribute", receiveRoles.contains("ROLE_ADMIN"));
 		assertNull("Policy applies to send", sendDefinition);
@@ -130,8 +131,8 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
 		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
-		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
-		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		ConfigAttribute sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttribute receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
 		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
 		assertTrue("ROLE_ADMIN not found as receive attribute", receiveRoles.contains("ROLE_ADMIN"));
 		assertTrue("ROLE_USER not found as receive attribute", receiveRoles.contains("ROLE_USER"));
@@ -150,8 +151,8 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
 		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
 		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
-		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
-		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		ConfigAttribute sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttribute receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
 		assertNotNull("Pattern does not apply to 'send'", sendDefinition);
 		assertNotNull("Pattern does not apply to 'receive'", receiveDefinition);
 		Collection<String> sendRoles = this.getRolesFromDefintion(sendDefinition);
@@ -163,7 +164,7 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 
 	@SuppressWarnings("unchecked")
 	private ChannelAccessPolicy retrievePolicyForPatternString(String patternString, ChannelSecurityInterceptor interceptor) {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(interceptor.obtainObjectDefinitionSource());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(interceptor.obtainSecurityMetadataSource());
 		Map<Pattern, ChannelAccessPolicy> policies = (Map<Pattern, ChannelAccessPolicy>) accessor.getPropertyValue("patternMappings");
 		for (Map.Entry<Pattern, ChannelAccessPolicy> entry : policies.entrySet()) {
 			if (entry.getKey().pattern().equals(patternString)) {
@@ -174,9 +175,9 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 	}
 
 	@SuppressWarnings("unchecked")
-	private Collection<String> getRolesFromDefintion(ConfigAttributeDefinition definition) {
+	private Collection<String> getRolesFromDefintion(ConfigAttribute definition) {
 		Set<String> roles = new HashSet<String>();
-		Collection configAttributes = definition.getConfigAttributes();
+		Collection configAttributes = SecurityConfig.createListFromCommaDelimitedString(definition.getAttribute());
 		for (Object next : configAttributes) {
 			ConfigAttribute attribute = (ConfigAttribute) next;
 			roles.add(attribute.getAttribute());

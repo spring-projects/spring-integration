@@ -27,17 +27,17 @@ import java.util.regex.Pattern;
 
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.security.ConfigAttribute;
-import org.springframework.security.ConfigAttributeDefinition;
-import org.springframework.security.intercept.ObjectDefinitionSource;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityMetadataSource;
 import org.springframework.util.Assert;
 
 /**
  * The {@link ObjectDefinitionSource} implementation for secured {@link MessageChannel}s.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class ChannelInvocationDefinitionSource implements ObjectDefinitionSource {
+public class ChannelInvocationDefinitionSource implements SecurityMetadataSource {
 
 	private final Map<Pattern, ChannelAccessPolicy> patternMappings;
 
@@ -60,13 +60,7 @@ public class ChannelInvocationDefinitionSource implements ObjectDefinitionSource
 		return this.patternMappings.keySet();
 	}
 
-	@SuppressWarnings("unchecked")
-	public boolean supports(Class clazz) {
-		return ChannelInvocation.class.isAssignableFrom(clazz);
-	}
-
-	@SuppressWarnings("unchecked")
-	public ConfigAttributeDefinition getAttributes(Object object) throws IllegalArgumentException {
+	public Collection<ConfigAttribute> getAttributes(Object object) throws IllegalArgumentException {
 		Assert.isAssignable(ChannelInvocation.class, object.getClass());
 		ChannelInvocation invocation = (ChannelInvocation) object;
 		MessageChannel channel = invocation.getChannel();
@@ -78,35 +72,40 @@ public class ChannelInvocationDefinitionSource implements ObjectDefinitionSource
 			ChannelAccessPolicy accessPolicy = mapping.getValue();
 			if (pattern.matcher(channelName).matches()) {
 				if (invocation.isSend()) {
-					ConfigAttributeDefinition definition = accessPolicy.getConfigAttributeDefinitionForSend();
+					ConfigAttribute definition = accessPolicy.getConfigAttributeDefinitionForSend();
 					if (definition != null) {
-						attributes.addAll(definition.getConfigAttributes());
+						attributes.add(definition);
 					}
 				}
 				else if (invocation.isReceive()) {
-					ConfigAttributeDefinition definition = accessPolicy.getConfigAttributeDefinitionForReceive();
+					ConfigAttribute definition = accessPolicy.getConfigAttributeDefinitionForReceive();
 					if (definition != null) {
-						attributes.addAll(definition.getConfigAttributes());
+						attributes.add(definition);
 					}
 				}
 			}
 		}
-		return new ConfigAttributeDefinition(attributes);
+		return attributes;
 	}
 
-	public Collection<?> getConfigAttributeDefinitions() {
-		Set<ConfigAttributeDefinition> definitions = new HashSet<ConfigAttributeDefinition>();
-		for (ChannelAccessPolicy accessPolicy : this.patternMappings.values()) {
-			ConfigAttributeDefinition sendDefinition = accessPolicy.getConfigAttributeDefinitionForSend();
-			if (sendDefinition != null) {
-				definitions.add(sendDefinition);
-			}
-			ConfigAttributeDefinition receiveDefinition = accessPolicy.getConfigAttributeDefinitionForReceive();
-			if (receiveDefinition != null) {
-				definitions.add(receiveDefinition);
-			}
-		}
-		return definitions;
+	public Collection<ConfigAttribute> getAllConfigAttributes() {
+		Set<ConfigAttribute> allAttributes = new HashSet<ConfigAttribute>();
+
+        for (ChannelAccessPolicy policy : patternMappings.values()) {
+        	ConfigAttribute attribute = policy.getConfigAttributeDefinitionForReceive();
+        	if (attribute != null){
+        		allAttributes.add(attribute);
+        	}
+        	attribute = policy.getConfigAttributeDefinitionForSend();
+        	if (attribute != null){
+        		allAttributes.add(attribute);
+        	}        
+        }
+
+        return allAttributes;
 	}
 
+	public boolean supports(Class<?> clazz) {
+		return ChannelInvocation.class.isAssignableFrom(clazz);
+	}
 }

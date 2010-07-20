@@ -20,16 +20,16 @@ import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
-import org.springframework.security.intercept.AbstractSecurityInterceptor;
-import org.springframework.security.intercept.InterceptorStatusToken;
-import org.springframework.security.intercept.ObjectDefinitionSource;
+import org.springframework.security.access.SecurityMetadataSource;
+import org.springframework.security.access.intercept.AbstractSecurityInterceptor;
+import org.springframework.security.access.intercept.InterceptorStatusToken;
 import org.springframework.util.Assert;
-
+ 
 /**
  * An AOP interceptor that enforces authorization for MessageChannel send and/or receive calls.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ChannelSecurityInterceptor extends AbstractSecurityInterceptor implements MethodInterceptor {
 
@@ -47,10 +47,6 @@ public class ChannelSecurityInterceptor extends AbstractSecurityInterceptor impl
 		return ChannelInvocation.class;
 	}
 
-	@Override
-	public ObjectDefinitionSource obtainObjectDefinitionSource() {
-		return this.objectDefinitionSource;
-	}
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		Method method = invocation.getMethod();
@@ -70,6 +66,12 @@ public class ChannelSecurityInterceptor extends AbstractSecurityInterceptor impl
 			returnValue = super.afterInvocation(token, returnValue);
 		}
 		return returnValue;
+	}
+
+
+	@Override
+	public SecurityMetadataSource obtainSecurityMetadataSource() {
+		return this.objectDefinitionSource;
 	}
 
 }

@@ -19,7 +19,7 @@
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
 	<si-security:secured-channels>
-		<si-security:access-policy pattern="secured.*" send-access="ROLE_ADMIN"/>
+		<si-security:access-policy pattern="securedChannel.*" send-access="ROLE_ADMIN, ROLE_PRESIDENT"/>
 	</si-security:secured-channels>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.security.channel.TestHandler"/>

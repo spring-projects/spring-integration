@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * A {@link BeanPostProcessor} that proxies {@link MessageChannel}s to apply a {@link ChannelSecurityInterceptor}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProcessor {
 
@@ -50,7 +51,7 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MessageChannel && shouldProxy(beanName, (MessageChannel) bean,
-				(ChannelInvocationDefinitionSource) this.interceptor.obtainObjectDefinitionSource())) {
+				(ChannelInvocationDefinitionSource) this.interceptor.obtainSecurityMetadataSource())) {
 			ProxyFactory proxyFactory = new ProxyFactory(bean);
 			proxyFactory.addAdvisor(new DefaultPointcutAdvisor(this.interceptor));
 			return proxyFactory.getProxy();
@@ -59,7 +60,7 @@ public class ChannelSecurityInterceptorBeanPostProcessor implements BeanPostProc
 	}
 
 	private boolean shouldProxy(String beanName, MessageChannel channel, ChannelInvocationDefinitionSource definitionSource) {
-		Set<Pattern> patterns = ((ChannelInvocationDefinitionSource) this.interceptor.obtainObjectDefinitionSource()).getPatterns();
+		Set<Pattern> patterns = ((ChannelInvocationDefinitionSource) this.interceptor.obtainSecurityMetadataSource()).getPatterns();
 		for (Pattern pattern : patterns) {
 			if (pattern.matcher(beanName).matches()) {
 				return true;

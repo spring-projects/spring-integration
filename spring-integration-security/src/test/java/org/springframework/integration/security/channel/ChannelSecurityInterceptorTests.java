@@ -21,22 +21,23 @@ import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.security.MockAuthenticationManager;
 import org.springframework.integration.security.SecurityTestUtils;
-import org.springframework.security.AccessDeniedException;
-import org.springframework.security.AuthenticationException;
-import org.springframework.security.MockAuthenticationManager;
-import org.springframework.security.context.SecurityContext;
-import org.springframework.security.context.SecurityContextHolder;
-import org.springframework.security.vote.AffirmativeBased;
-import org.springframework.security.vote.RoleVoter;
+import org.springframework.security.access.AccessDecisionVoter;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.vote.AffirmativeBased;
+import org.springframework.security.access.vote.RoleVoter;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ChannelSecurityInterceptorTests {
 
@@ -81,7 +82,8 @@ public class ChannelSecurityInterceptorTests {
 		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new ChannelAccessPolicy(role, null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
 		AffirmativeBased accessDecisionManager = new AffirmativeBased();
-		accessDecisionManager.setDecisionVoters(Collections.singletonList(new RoleVoter()));
+		
+		accessDecisionManager.setDecisionVoters(Collections.singletonList((AccessDecisionVoter)new RoleVoter()));
 		accessDecisionManager.afterPropertiesSet();
 		interceptor.setAccessDecisionManager(accessDecisionManager);
 		interceptor.setAuthenticationManager(new MockAuthenticationManager(true));

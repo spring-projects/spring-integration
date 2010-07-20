@@ -16,17 +16,20 @@
 
 package org.springframework.integration.security;
 
-import org.springframework.security.GrantedAuthority;
-import org.springframework.security.GrantedAuthorityImpl;
-import org.springframework.security.context.SecurityContext;
-import org.springframework.security.context.SecurityContextImpl;
-import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
 public class SecurityTestUtils {
 
+	@SuppressWarnings("unchecked")
 	public static SecurityContext createContext(String username, String password, String... roles) {
 		SecurityContextImpl ctxImpl = new SecurityContextImpl();
 		UsernamePasswordAuthenticationToken authToken;
@@ -35,7 +38,7 @@ public class SecurityTestUtils {
 			for (int i = 0; i < roles.length; i++) {
 				authorities[i] = new GrantedAuthorityImpl(roles[i]);
 			}
-			authToken = new UsernamePasswordAuthenticationToken(username, password, authorities);
+			authToken = new UsernamePasswordAuthenticationToken(username, password, CollectionUtils.arrayToList(authorities));
 		}
 		else {
 			authToken = new UsernamePasswordAuthenticationToken(username, password);

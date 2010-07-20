@@ -20,22 +20,22 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtils;
-import org.springframework.security.AccessDeniedException;
-import org.springframework.security.AuthenticationException;
-import org.springframework.security.context.SecurityContext;
-import org.springframework.security.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @ContextConfiguration
 public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4SpringContextTests {
@@ -58,10 +58,17 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	}
 
 
+	@Test(expected = AccessDeniedException.class)
+	@DirtiesContext
+	public void testSecuredWithNotEnoughPermission() {
+		login("bob", "bobspassword", "ROLE_ADMIN");
+		securedChannelAdapter.send(new StringMessage("test"));
+	}
+	
 	@Test
 	@DirtiesContext
 	public void testSecuredWithPermission() {
-		login("bob", "bobspassword", "ROLE_ADMIN");
+		login("bob", "bobspassword", "ROLE_ADMIN, ROLE_PRESIDENT");
 		securedChannelAdapter.send(new StringMessage("test"));
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}

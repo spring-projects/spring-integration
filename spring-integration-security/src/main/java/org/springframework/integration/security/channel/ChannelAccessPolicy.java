@@ -16,7 +16,8 @@
 
 package org.springframework.integration.security.channel;
 
-import org.springframework.security.ConfigAttributeDefinition;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -25,12 +26,13 @@ import org.springframework.util.StringUtils;
  * send and receive operations based on simple String values.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ChannelAccessPolicy {
 
-	private final ConfigAttributeDefinition configAttributeDefinitionForSend;
+	private final ConfigAttribute configAttributeDefinitionForSend;
 
-	private final ConfigAttributeDefinition configAttributeDefinitionForReceive;
+	private final ConfigAttribute configAttributeDefinitionForReceive;
 
 
 	/**
@@ -42,22 +44,18 @@ public class ChannelAccessPolicy {
 	public ChannelAccessPolicy(String sendAccess, String receiveAccess) {
 		Assert.isTrue(sendAccess != null || receiveAccess != null,
 				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
-		String[] sendValues = StringUtils.trimArrayElements(
-				StringUtils.commaDelimitedListToStringArray(sendAccess));
-		String[] receiveValues = StringUtils.trimArrayElements(
-				StringUtils.commaDelimitedListToStringArray(receiveAccess));
-		this.configAttributeDefinitionForSend = (sendValues.length > 0)
-				? new ConfigAttributeDefinition(sendValues) : null;
-		this.configAttributeDefinitionForReceive = (receiveValues.length > 0)
-				? new ConfigAttributeDefinition(receiveValues) : null;
+		this.configAttributeDefinitionForSend = (StringUtils.hasText(sendAccess))
+				? new SecurityConfig(sendAccess) : null;
+		this.configAttributeDefinitionForReceive = (StringUtils.hasText(receiveAccess))
+				? new SecurityConfig(receiveAccess) : null;
 	}
 
 
-	public ConfigAttributeDefinition getConfigAttributeDefinitionForSend() {
+	public ConfigAttribute getConfigAttributeDefinitionForSend() {
 		return this.configAttributeDefinitionForSend;
 	}
 
-	public ConfigAttributeDefinition getConfigAttributeDefinitionForReceive() {
+	public ConfigAttribute getConfigAttributeDefinitionForReceive() {
 		return this.configAttributeDefinitionForReceive;
 	}
 
