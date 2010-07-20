@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.util;
-
-import java.util.Set;
+package org.springframework.integration.context;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -25,34 +23,17 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.support.ConversionServiceFactoryBean;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.support.ConversionServiceFactory;
-import org.springframework.core.convert.support.GenericConversionService;
 
 /**
  * @author Oleg Zhurakousky
- * @since 2.0
+ * @sini 2.0
  */
-public class ConverterRegistrar implements BeanFactoryPostProcessor {
-	private final Set<Converter<?, ?>> converters;
-	
-	public ConverterRegistrar(Set<Converter<?, ?>> converters){
-		this.converters = converters;
-	}
-	/**
-	 * This method will add converters to the SI's conversion service - {@link SI#CONVERSION_SERVICE}
-	 * If SI's conversion service does not exist, then an instance of the {@link ConversionService} will
-	 * be created and registered under the name {@link SI#CONVERSION_SERVICE}
-	 */
-	public void postProcessBeanFactory(
-			ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (!beanFactory.containsBean(SI.CONVERSION_SERVICE)){
+class ConversionServiceCreator implements BeanFactoryPostProcessor {
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		if (!beanFactory.containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)){
 			BeanDefinitionBuilder conversionServiceBuilder = BeanDefinitionBuilder.rootBeanDefinition(ConversionServiceFactoryBean.class);
-			BeanDefinitionHolder csHolder = new BeanDefinitionHolder(conversionServiceBuilder.getBeanDefinition(), SI.CONVERSION_SERVICE);
+			BeanDefinitionHolder csHolder = new BeanDefinitionHolder(conversionServiceBuilder.getBeanDefinition(), IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(csHolder, (BeanDefinitionRegistry) beanFactory);
 		}
-		GenericConversionService conversionService = beanFactory.getBean(SI.CONVERSION_SERVICE, GenericConversionService.class);
-		ConversionServiceFactory.registerConverters(converters, conversionService);
 	}
 }

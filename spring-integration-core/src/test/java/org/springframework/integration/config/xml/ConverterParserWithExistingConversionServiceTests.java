@@ -25,7 +25,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.integration.util.SI;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
@@ -42,12 +42,12 @@ public class ConverterParserWithExistingConversionServiceTests {
 	private ApplicationContext applicationContext;
 	
 	@Autowired
-	@Qualifier(SI.CONVERSION_SERVICE)
+	@Qualifier(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)
 	private ConversionService conversionService;
 	
 	@Test
 	public void testConversionServiceAvailability(){
-		Assert.isTrue(applicationContext.getBean(SI.CONVERSION_SERVICE).equals(conversionService));
+		Assert.isTrue(applicationContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME).equals(conversionService));
 		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean2.class));
 		Assert.isTrue(conversionService.canConvert(TestBean1.class, TestBean3.class));
 	}
@@ -58,8 +58,8 @@ public class ConverterParserWithExistingConversionServiceTests {
 		GenericApplicationContext childContext = new GenericApplicationContext();
 		childContext.setParent(parentContext);
 		
-		GenericConversionService conversionServiceParent = parentContext.getBean(SI.CONVERSION_SERVICE,GenericConversionService.class);
-		GenericConversionService conversionServiceChild = childContext.getBean(SI.CONVERSION_SERVICE,GenericConversionService.class);
+		GenericConversionService conversionServiceParent = parentContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
+		GenericConversionService conversionServiceChild = childContext.getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME,GenericConversionService.class);
 		Assert.isTrue(conversionServiceParent == conversionServiceChild); // validating that they are pointing to the same object
 		conversionServiceChild.addConverter(new TestConverter());
 		conversionServiceChild.addConverter(new TestConverter3());
