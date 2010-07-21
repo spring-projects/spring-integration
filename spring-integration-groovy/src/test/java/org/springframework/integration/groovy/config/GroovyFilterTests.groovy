@@ -1,0 +1,1 @@
+return headers.type == 'good'
