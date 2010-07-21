@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,16 @@ import javax.xml.transform.Transformer;
 
 /**
  * Message headers that can be used to configure the {@link Transformer}
- * instance used for Xsl transformation
+ * instance used for XSL transformation.
  * 
  * @author Jonas Partner
- * 
  */
 public abstract class XsltHeaders {
 
 	public static final String PREFIX = "xslt_";
-	
+
 	public static final String OUTPUT_PROPERTY = PREFIX +  "output_property_";
-	
+
 	public static final String PARAMETER = PREFIX +  "parameter_";
-	
-	
 
 }

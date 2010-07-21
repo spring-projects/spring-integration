@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,19 +21,15 @@ import javax.xml.transform.Transformer;
 import org.springframework.integration.core.Message;
 
 /**
- * Allows customistation of the transformer based on the recevied message prior
- * to transformation
+ * Allows customization of the transformer based on the received message prior to transformation.
  * 
  * @author Jonas Partner
- * 
  */
 public interface TransformerConfigurer {
 
 	/**
-	 * Callback method called by Xslt transfomer implementations after transformer is creates
-	 * @param message
-	 * @param transformer
+	 * Callback method called by XSLT transformer implementations after transformer is created.
 	 */
-	public void configureTransfomer(Message<?> message, Transformer transformer);
+	public void configureTransformer(Message<?> message, Transformer transformer);
 
 }
