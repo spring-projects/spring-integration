@@ -31,7 +31,7 @@ public abstract class XsltHeaders {
 	
 	public static final String OUTPUT_PROPERTY = PREFIX +  "output_property_";
 	
-	public static final String PARAMATER = PREFIX +  "parameter_";
+	public static final String PARAMETER = PREFIX +  "parameter_";
 	
 	
 

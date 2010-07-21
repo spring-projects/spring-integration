@@ -26,10 +26,10 @@ import org.springframework.integration.core.MessageHeaders;
 /**
  * {@link TransformerConfigurer} instance which looks for headers and uses them
  * to configure the provided {@link Transformer} instance. For example a header
- * names xslt_paramter_X will cause the transfomer to be configured with a
- * property names X with the value of the header. A property named
- * xslt_output_property_X will cause an output property on the transformer to be
- * set with this headers value.
+ * named 'xslt_paramter_X' will cause the transformer to be configured with a
+ * property named 'X' with the value of the header. A property named
+ * 'xslt_output_property_X' will cause an output property on the transformer to be
+ * set with this header's value.
  * 
  * 
  * @author Jonas Partner
@@ -59,7 +59,7 @@ public class DefaultTransformerConfigurer implements TransformerConfigurer {
 				Object headerValue = headers.get(key);
 				if (!(headerValue instanceof String)) {
 					throw new IllegalArgumentException(
-							"Xslt Transfomer only support String output properties received header of type"
+							"Xslt Transfomer only supports String output properties received header of type"
 									+ headerValue.getClass().getName()
 									+ " for header named " + key);
 				}
@@ -71,9 +71,9 @@ public class DefaultTransformerConfigurer implements TransformerConfigurer {
 
 	protected Map<String, Object> extractParameterHeaders(MessageHeaders headers) {
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		int prefixStringLength = XsltHeaders.PARAMATER.length();
+		int prefixStringLength = XsltHeaders.PARAMETER.length();
 		for (String key : headers.keySet()) {
-			if (key.startsWith(XsltHeaders.PARAMATER)) {
+			if (key.startsWith(XsltHeaders.PARAMETER)) {
 				parameters.put(key.substring(prefixStringLength), headers.get(key));
 			}
 		}
