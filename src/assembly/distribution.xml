@@ -64,6 +64,7 @@
 				<include>org.springframework.integration:spring-integration-core</include>
 				<include>org.springframework.integration:spring-integration-event</include>
 				<include>org.springframework.integration:spring-integration-file</include>
+				<include>org.springframework.integration:spring-integration-groovy</include>
 				<include>org.springframework.integration:spring-integration-http</include>
 				<include>org.springframework.integration:spring-integration-httpinvoker</include>
 				<include>org.springframework.integration:spring-integration-ip</include>
@@ -92,6 +93,7 @@
 				<include>org.springframework.integration:spring-integration-core</include>
 				<include>org.springframework.integration:spring-integration-event</include>
 				<include>org.springframework.integration:spring-integration-file</include>
+				<include>org.springframework.integration:spring-integration-groovy</include>
 				<include>org.springframework.integration:spring-integration-http</include>
 				<include>org.springframework.integration:spring-integration-httpinvoker</include>
 				<include>org.springframework.integration:spring-integration-ip</include>

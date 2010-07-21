@@ -12,6 +12,7 @@
 		<module>spring-integration-core</module>
 		<module>spring-integration-event</module>
 		<module>spring-integration-file</module>
+		<module>spring-integration-groovy</module>
 		<module>spring-integration-http</module>
 		<module>spring-integration-httpinvoker</module>
 		<module>spring-integration-ip</module>
