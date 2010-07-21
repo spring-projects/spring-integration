@@ -7,9 +7,9 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 		
-	<beans:bean id="testBean" class="org.springframework.integration.config.xml.MessagePublishingInterceptorParserTests$TestBean" />
+	<beans:bean id="testBean" class="org.springframework.integration.config.xml.PublishingInterceptorParserTests$TestBean" />
 
-	<beans:bean id="defaultTestBean" class="org.springframework.integration.config.xml.MessagePublishingInterceptorParserTests$DefaultTestBean" />
+	<beans:bean id="defaultTestBean" class="org.springframework.integration.config.xml.PublishingInterceptorParserTests$DefaultTestBean" />
 
 	<publish-subscribe-channel id="defaultChannel"/>  
 	<publish-subscribe-channel id="echoChannel"/>  
