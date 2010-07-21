@@ -22,7 +22,6 @@ import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 
-import org.springframework.integration.core.Message;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
@@ -30,16 +29,12 @@ import org.springframework.xml.transform.StringSource;
 /**
  * 
  * @author Jonas Partner
- * @author Oleg Zhurakousky
+ *
  */
 public class StubMarshaller implements Marshaller {
 
-	public void marshal(Object source, Result result) throws XmlMappingException, IOException {
+	public void marshal(Object graph, Result result) throws XmlMappingException, IOException {
 		try {
-			Object graph = source;
-			if (source instanceof Message<?>) {
-				graph = ((Message<?>)source).getPayload();
-			}
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			StringSource stringSource = new StringSource("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><root>" + graph.toString() + "</root>");
 			transformer.transform(stringSource, result);

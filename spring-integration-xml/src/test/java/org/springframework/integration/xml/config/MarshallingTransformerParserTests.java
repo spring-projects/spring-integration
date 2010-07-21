@@ -37,7 +37,6 @@ import org.springframework.xml.transform.StringResult;
 /**
  * @author Jonas Partner
  * @author Mark Fisher
- * @author Oleg Zhurakousky
  */
 public class MarshallingTransformerParserTests  {
 
@@ -112,7 +111,8 @@ public class MarshallingTransformerParserTests  {
 		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
-		assertEquals("Wrong payload", "hello", doc.getDocumentElement().getTextContent());
+		String expected = "[Payload=hello][Headers=";		
+		assertEquals("Wrong payload", expected, doc.getDocumentElement().getTextContent().substring(0, expected.length()));
 	}
 
 }
