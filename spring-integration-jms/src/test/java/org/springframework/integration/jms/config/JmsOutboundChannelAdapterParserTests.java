@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jms.JmsHeaderMapper;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 
 /**
@@ -87,6 +88,17 @@ public class JmsOutboundChannelAdapterParserTests {
 		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");
 		assertNotNull(headerMapper);
 		assertEquals(TestJmsHeaderMapper.class, headerMapper.getClass());
+	}
+
+	@Test
+	public void adapterWithJmsTemplate() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithJmsTemplate.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		JmsTemplate jmsTemplate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
+		assertNotNull(jmsTemplate);
+		assertEquals(context.getBean("template"), jmsTemplate);
 	}
 
 	@Test

@@ -35,6 +35,18 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 
+	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
+		super(jmsTemplate);
+	}
+
+	/**
+	 * No-arg constructor provided for convenience when configuring with
+	 * setters. Note that the initialization callback will validate.
+	 */
+	public JmsSendingMessageHandler() {
+		super();
+	}
+
 	/**
 	 * Specify whether the payload should be extracted from each Spring
 	 * Integration Message to be converted to the body of a JMS Message.

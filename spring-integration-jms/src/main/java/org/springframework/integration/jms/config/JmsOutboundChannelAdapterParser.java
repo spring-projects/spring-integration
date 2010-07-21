@@ -49,7 +49,7 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 				throw new BeanCreationException("When providing a 'jms-template' reference, none of " +
 						"'connection-factory', 'destination', or 'destination-name' should be provided.");
 			}
-			builder.addPropertyReference(JmsAdapterParserUtils.JMS_TEMPLATE_PROPERTY, jmsTemplate);
+			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else if (hasDestinationRef ^ hasDestinationName) {
 			builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
