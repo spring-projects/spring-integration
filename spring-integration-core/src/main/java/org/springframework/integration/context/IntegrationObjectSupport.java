@@ -79,11 +79,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	public final void afterPropertiesSet() {
-		if (beanFactory != null){
-			if (this.getBeanFactory().containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)){
-				this.setConversionService(this.getBeanFactory().getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));
-			}
-		}
 		try {
 			this.onInit();
 		}
