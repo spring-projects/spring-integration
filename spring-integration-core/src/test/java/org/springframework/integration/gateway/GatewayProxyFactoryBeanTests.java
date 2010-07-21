@@ -28,12 +28,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.ConversionServiceFactory;
+import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -45,6 +50,7 @@ import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class GatewayProxyFactoryBeanTests {
 
@@ -60,6 +66,33 @@ public class GatewayProxyFactoryBeanTests {
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReply("foo");
 		assertEquals("foobar", result);
+	}
+	
+	@Test
+	public void testRequestReplyWithAnonymousChannelConvertedTypeViaConversionService() throws Exception {
+		QueueChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GenericConversionService cs = ConversionServiceFactory.createDefaultConversionService();
+		Converter<String, byte[]> stringToByteConverter = new Converter<String, byte[]>() {
+			public byte[] convert(String source) {
+				return source.getBytes();
+			}
+		};	
+		stringToByteConverter = Mockito.spy(stringToByteConverter);
+		cs.addConverter(stringToByteConverter);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
+		bf.registerSingleton(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, cs);
+		
+		proxyFactory.setBeanFactory(bf);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setBeanName("testGateway");
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		byte[] result = service.requestReplyInBytes("foo");
+		assertEquals(6, result.length);
+		Mockito.verify(stringToByteConverter, Mockito.times(1)).convert(Mockito.any(String.class));
 	}
 
 	@Test

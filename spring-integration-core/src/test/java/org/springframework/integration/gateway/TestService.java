@@ -20,10 +20,13 @@ import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public interface TestService {
 
 	String requestReply(String input);
+	
+	byte[] requestReplyInBytes(String input);
 
 	void oneWay(String input);
 

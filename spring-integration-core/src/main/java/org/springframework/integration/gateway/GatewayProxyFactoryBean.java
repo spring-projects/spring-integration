@@ -29,8 +29,11 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -42,7 +45,11 @@ import org.springframework.util.StringUtils;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
- * with messaging components without application code being aware of them.
+ * with messaging components without application code being aware of them allowing 
+ * for POJO-style interaction. 
+ * This component is also aware of the {@link ConversionService} set on the enclosing {@link BeanFactory}
+ * under the name {@link IntegrationContextUtils#INTEGRATION_CONVERSION_SERVICE_BEAN_NAME} to 
+ * perform type conversions when necessary (thanks to Jon Schneider's contribution and suggestion in INT-1230).
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -238,7 +245,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 				response = null;
 			}
 		}
-		return (response != null) ? this.typeConverter.convertIfNecessary(response, returnType) : null;
+		return (response != null) ? this.convert(response, returnType) : null;
 	}
 
 	private void rethrowExceptionInThrowsClauseIfPossible(Throwable originalException, Method method) throws Throwable {
@@ -280,11 +287,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 				replyChannel = this.resolveChannel(replyChannel, replyChannelName);
 				String reqTimeout = gatewayDefinition.getRequestTimeout();
 				if (StringUtils.hasText(reqTimeout)){
-					requestTimeout = typeConverter.convertIfNecessary(reqTimeout, Long.class);
+					requestTimeout = this.convert(reqTimeout, Long.class);
 				}
 				String repTimeout = gatewayDefinition.getReplyTimeout();
 				if (StringUtils.hasText(repTimeout)){
-					replyTimeout = typeConverter.convertIfNecessary(repTimeout, Long.class);
+					replyTimeout = this.convert(repTimeout, Long.class);
 				}
 			}
 		}
@@ -345,4 +352,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		this.exceptionMapper = exceptionMapper;
 	}
 
+	private <T> T convert(Object source, Class<T> expectedReturnType) {
+		if (this.getConversionService() != null) {
+			return this.getConversionService().convert(source, expectedReturnType);
+		} else {
+			return typeConverter.convertIfNecessary(source, expectedReturnType);
+		}
+	}
 }

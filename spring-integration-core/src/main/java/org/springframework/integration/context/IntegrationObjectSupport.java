@@ -18,7 +18,6 @@ package org.springframework.integration.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -40,6 +39,7 @@ import org.springframework.util.Assert;
  * dependency injection.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent, BeanFactoryAware, InitializingBean {
 
@@ -79,6 +79,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	public final void afterPropertiesSet() {
+		if (beanFactory != null){
+			if (this.getBeanFactory().containsBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME)){
+				this.setConversionService(this.getBeanFactory().getBean(IntegrationContextUtils.INTEGRATION_CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));
+			}
+		}
 		try {
 			this.onInit();
 		}
