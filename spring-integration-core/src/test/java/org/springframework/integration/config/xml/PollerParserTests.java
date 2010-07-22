@@ -28,7 +28,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.config.TestTrigger;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.PollerMetadata;
-import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
