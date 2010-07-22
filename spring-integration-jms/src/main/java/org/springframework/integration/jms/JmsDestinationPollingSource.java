@@ -78,7 +78,7 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 		}
 		try {	
 			// Map headers
-			Map<String, Object> mappedHeaders = this.getHeaderMapper().toHeaders(jmsMessage);
+			Map<String, Object> mappedHeaders = (Map<String, Object>) this.getHeaderMapper().toHeaders(jmsMessage);
 			MessageConverter converter = this.getJmsTemplate().getMessageConverter();
 			Object convertedObject = converter.fromMessage(jmsMessage);
 			if (convertedObject instanceof Message) {
