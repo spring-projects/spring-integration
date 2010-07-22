@@ -1018,10 +1018,12 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
+            <!-- Poller sub-elements are deprecated since Spring Integration 2.0 -->
 			<xsd:choice minOccurs="0" maxOccurs="1">
 				<xsd:element name="interval-trigger" type="intervalTriggerType" />
 				<xsd:element name="cron-trigger" type="cronTriggerType" />
 			</xsd:choice>
+             <!-- Poller sub-elements are deprecated since Spring Integration 2.0 -->
 			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
 				<xsd:complexType>
@@ -1046,7 +1048,21 @@
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:sequence>
-<!--		<xsd:attribute name="ref" type="xsd:string" />-->
+        <xsd:attribute name="fixed-delay" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>Fixed delay trigger (in milliseconds).</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="fixed-rate" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>Fixed rate trigger (in milliseconds).</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="cron" type="xsd:string">
+            <xsd:annotation>
+                <xsd:documentation>Cron trigger.</xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="trigger" type="xsd:string">
             <xsd:annotation>
 				<xsd:appinfo>

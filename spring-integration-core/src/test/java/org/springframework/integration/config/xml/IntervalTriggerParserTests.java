@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,60 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
-import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class CronTriggerParserTests {
+public class IntervalTriggerParserTests {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    ApplicationContext context;
 
-	@Test
-	public void checkConfigWithSubElement() {
-		Object poller = context.getBean("pollerWithSubElement");
+    @Test
+    public void testFixedRateTrigger() {
+        Object poller = context.getBean("pollerWithFixedRateAttribute");
 		assertEquals(PollerMetadata.class, poller.getClass());
 		PollerMetadata metadata = (PollerMetadata) poller;
 		Trigger trigger = metadata.getTrigger();
-		assertEquals(CronTrigger.class, trigger.getClass());
+		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-		String expression = (String) new DirectFieldAccessor(
-				accessor.getPropertyValue("sequenceGenerator"))
-				.getPropertyValue("expression");
-		assertEquals("*/10 * 9-17 * * MON-FRI", expression);
-	}
-
-    @Test
-    public void checkConfigWithAttribute() {
-        Object poller = context.getBean("pollerWithAttribute");
-        assertEquals(PollerMetadata.class, poller.getClass());
-        PollerMetadata metadata = (PollerMetadata) poller;
-        Trigger trigger = metadata.getTrigger();
-        assertEquals(CronTrigger.class, trigger.getClass());
-        DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
-        String expression = (String) new DirectFieldAccessor(
-                accessor.getPropertyValue("sequenceGenerator"))
-                .getPropertyValue("expression");
-        assertEquals("*/10 * 9-17 * * MON-FRI", expression);
+		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
+        Long period = (Long) accessor.getPropertyValue("period");
+        assertEquals(fixedRate, true);
+		assertEquals(36l, period.longValue());
     }
 
+    @Test
+    public void testFixedDelayTrigger() {
+        Object poller = context.getBean("pollerWithFixedDelayAttribute");
+		assertEquals(PollerMetadata.class, poller.getClass());
+		PollerMetadata metadata = (PollerMetadata) poller;
+		Trigger trigger = metadata.getTrigger();
+		assertEquals(PeriodicTrigger.class, trigger.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
+		Boolean fixedRate = (Boolean) accessor.getPropertyValue("fixedRate");
+        Long period = (Long) accessor.getPropertyValue("period");
+        assertEquals(fixedRate, false);
+		assertEquals(37l, period.longValue());
+    }
 }
-
