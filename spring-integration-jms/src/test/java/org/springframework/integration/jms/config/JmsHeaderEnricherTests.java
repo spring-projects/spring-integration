@@ -22,20 +22,20 @@ import javax.jms.Destination;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.jms.HeaderMappingMessageConverter;
+import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.JmsHeaders;
-import org.springframework.integration.jms.StubSession;
+import org.springframework.integration.jms.StubTextMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -58,8 +58,9 @@ public class JmsHeaderEnricherTests {
 		valueTestInput.send(new StringMessage("test"));
 		Message<?> result = output.receive(0);
 		assertEquals(testDestination, result.getHeaders().get(JmsHeaders.REPLY_TO));
-		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
-		javax.jms.Message jmsMessage = converter.toMessage(result, new StubSession("foo"));
+		StubTextMessage jmsMessage = new StubTextMessage();
+		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
 		assertEquals(testDestination, jmsMessage.getJMSReplyTo());
 	}
 
@@ -68,8 +69,9 @@ public class JmsHeaderEnricherTests {
 		valueTestInput.send(new StringMessage("test"));
 		Message<?> result = output.receive(0);
 		assertEquals("ABC", result.getHeaders().get(JmsHeaders.CORRELATION_ID));
-		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
-		javax.jms.Message jmsMessage = converter.toMessage(result, new StubSession("foo"));
+		StubTextMessage jmsMessage = new StubTextMessage();
+		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
 		assertEquals("ABC", jmsMessage.getJMSCorrelationID());
 	}
 
@@ -78,8 +80,9 @@ public class JmsHeaderEnricherTests {
 		expressionTestInput.send(new StringMessage("test"));
 		Message<?> result = output.receive(0);
 		assertEquals(123, result.getHeaders().get(JmsHeaders.CORRELATION_ID));
-		HeaderMappingMessageConverter converter = new HeaderMappingMessageConverter();
-		javax.jms.Message jmsMessage = converter.toMessage(result, new StubSession("foo"));
+		StubTextMessage jmsMessage = new StubTextMessage();
+		DefaultJmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+		headerMapper.fromHeaders(result.getHeaders(), jmsMessage);
 		assertEquals("123", jmsMessage.getJMSCorrelationID());
 	}
 

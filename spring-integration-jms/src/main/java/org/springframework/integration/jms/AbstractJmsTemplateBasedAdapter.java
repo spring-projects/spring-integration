@@ -31,8 +31,11 @@ import org.springframework.util.Assert;
  * Base class for adapters that delegate to a {@link JmsTemplate}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBean {
+	
+	private volatile boolean extractPayload = true;
 
 	private volatile ConnectionFactory connectionFactory;
 
@@ -56,7 +59,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 
 	private volatile MessageConverter messageConverter;
 
-	private volatile JmsHeaderMapper headerMapper;
+	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 	private volatile boolean initialized;
 
@@ -84,7 +87,18 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	public AbstractJmsTemplateBasedAdapter() {
 	}
 
-
+	/**
+	 * Specify whether the payload should be extracted from each received JMS
+	 * Message to be used as the Spring Integration Message payload.
+	 * 
+	 * <p>The default value is <code>true</code>. To force creation of Spring
+	 * Integration Messages whose payload is the actual JMS Message, set this
+	 * to <code>false</code>.
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+	
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
@@ -105,19 +119,23 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	 * Provide a {@link MessageConverter} strategy to use for converting
 	 * between Spring Integration Messages and JMS Messages.
 	 * <p>
-	 * The default is a {@link HeaderMappingMessageConverter} that delegates to
+	 * The default is a {@link DefaultMessageConverter} that delegates to
 	 * a {@link SimpleMessageConverter}.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
 	}
-
+	
 	public void setDestinationResolver(DestinationResolver destinationResolver) {
 		this.destinationResolver = destinationResolver;
 	}
 
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
+	}
+	
+	JmsHeaderMapper getHeaderMapper(){
+		return this.headerMapper;
 	}
 
 	/**
@@ -182,7 +200,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 			if (this.messageConverter != null) {
 				this.jmsTemplate.setMessageConverter(this.messageConverter);
 			}
-			this.configureMessageConverter(this.jmsTemplate, this.headerMapper);
+			this.configureMessageConverter(this.jmsTemplate);
 			this.initialized = true;
 		}
 	}
@@ -203,6 +221,12 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		return jmsTemplate;
 	}
 
-	protected abstract void configureMessageConverter(JmsTemplate jmsTemplate, JmsHeaderMapper headerMapper);
-
+	protected void configureMessageConverter(JmsTemplate jmsTemplate) {
+		MessageConverter converter = jmsTemplate.getMessageConverter();
+		if (converter == null || !(converter instanceof DefaultMessageConverter)) {
+			DefaultMessageConverter dmc = new DefaultMessageConverter(converter);
+			dmc.setExtractIntegrationMessagePayload(this.extractPayload);
+			jmsTemplate.setMessageConverter(dmc);
+		}
+	}
 }

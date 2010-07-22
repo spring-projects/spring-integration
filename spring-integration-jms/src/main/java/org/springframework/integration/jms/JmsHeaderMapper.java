@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.springframework.integration.jms;
 
-import java.util.Map;
+import javax.jms.Message;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.HeaderMapper;
 
 /**
  * Strategy interface for mapping integration Message headers to an outbound
@@ -26,11 +26,7 @@ import org.springframework.integration.core.MessageHeaders;
  * header values from an inbound JMS Message.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public interface JmsHeaderMapper {
+public interface JmsHeaderMapper extends HeaderMapper<Message> {}
 
-	void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage);
-
-	Map<String, Object> toHeaders(javax.jms.Message jmsMessage);
-
-}

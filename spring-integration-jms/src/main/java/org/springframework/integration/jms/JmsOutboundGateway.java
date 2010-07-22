@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Arjen Poutsma
  * @author Juergen Hoeller
+ * @author Oleg Zhurakousky
  */
 public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
@@ -78,7 +79,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private volatile MessageConverter messageConverter;
 
-	private volatile JmsHeaderMapper headerMapper;
+	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 	private volatile boolean extractRequestPayload = true;
 
@@ -196,7 +197,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * Spring Integration request Message into a JMS Message and for converting
 	 * the JMS reply Messages back into Spring Integration Messages.
 	 * <p>
-	 * The default is a {@link HeaderMappingMessageConverter} that delegates to
+	 * The default is a {@link DefaultMessageConverter} that delegates to
 	 * a {@link SimpleMessageConverter}.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
@@ -211,7 +212,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * <p>This property will be ignored if a {@link MessageConverter} is
 	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
 	 * However, you may provide your own implementation of the delegating
-	 * {@link HeaderMappingMessageConverter} implementation.
+	 * {@link DefaultMessageConverter} implementation.
 	 */
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
@@ -220,11 +221,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * This property will take effect if no custom {@link MessageConverter}
 	 * has been provided to the {@link #setMessageConverter(MessageConverter)}
-	 * method. In that case, a {@link HeaderMappingMessageConverter} will be
+	 * method. In that case, a {@link DefaultMessageConverter} will be
 	 * used by default, and this value will be passed along to that converter's
 	 * 'extractIntegrationMessagePayload' property.
 	 * 
-	 * @see HeaderMappingMessageConverter#setExtractIntegrationMessagePayload(boolean)
+	 * @see DefaultMessageConverter#setExtractIntegrationMessagePayload(boolean)
 	 */
 	public void setExtractRequestPayload(boolean extractRequestPayload) {
 		this.extractRequestPayload = extractRequestPayload;
@@ -233,11 +234,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * This property will take effect if no custom {@link MessageConverter}
 	 * has been provided to the {@link #setMessageConverter(MessageConverter)}
-	 * method. In that case, a {@link HeaderMappingMessageConverter} will be
+	 * method. In that case, a {@link DefaultMessageConverter} will be
 	 * used by default, and this value will be passed along to that converter's
 	 * 'extractJmsMessageBody' property.
 	 * 
-	 * @see HeaderMappingMessageConverter#setExtractJmsMessageBody(boolean)
+	 * @see DefaultMessageConverter#setExtractJmsMessageBody(boolean)
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
@@ -284,7 +285,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			Assert.isTrue(this.requestDestination != null || this.requestDestinationName != null,
 					"Either a 'requestDestination' or 'requestDestinationName' is required.");
 			if (this.messageConverter == null) {
-				HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
+				DefaultMessageConverter hmmc = new DefaultMessageConverter(null);
 				hmmc.setExtractIntegrationMessagePayload(this.extractRequestPayload);
 				hmmc.setExtractJmsMessageBody(this.extractReplyPayload);
 				this.messageConverter = hmmc;
@@ -320,7 +321,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		Destination replyTo = null;
 		try {
 			session = createSession(connection);
+			// convert to JMS Message
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(requestMessage, session);
+			// map headers
+			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
+			// create JMS Producer and send
 			messageProducer = session.createProducer(this.getRequestDestination(session));
 			replyTo = this.getReplyDestination(session);
 			jmsRequest.setJMSReplyTo(replyTo);

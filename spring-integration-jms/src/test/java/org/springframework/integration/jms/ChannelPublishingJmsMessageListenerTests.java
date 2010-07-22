@@ -61,7 +61,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		ChannelPublishingJmsMessageListener listener = new ChannelPublishingJmsMessageListener();
 		listener.afterPropertiesSet();
 		Object converter = new DirectFieldAccessor(listener).getPropertyValue("messageConverter");
-		assertEquals(HeaderMappingMessageConverter.class, converter.getClass());
+		assertEquals(DefaultMessageConverter.class, converter.getClass());
 		Object wrappedConverter = new DirectFieldAccessor(converter).getPropertyValue("converter");
 		assertEquals(SimpleMessageConverter.class, wrappedConverter.getClass());
 	}
@@ -73,7 +73,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		listener.setMessageConverter(originalConverter);
 		listener.afterPropertiesSet();
 		Object converter = new DirectFieldAccessor(listener).getPropertyValue("messageConverter");
-		assertEquals(HeaderMappingMessageConverter.class, converter.getClass());
+		assertEquals(DefaultMessageConverter.class, converter.getClass());
 		Object wrappedConverter = new DirectFieldAccessor(converter).getPropertyValue("converter");
 		assertEquals(originalConverter, wrappedConverter);
 	}

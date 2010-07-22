@@ -66,7 +66,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
-	private volatile JmsHeaderMapper headerMapper;
+	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
 	/**
 	 * Specify whether a JMS reply Message is expected.
@@ -155,7 +155,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	/**
 	 * Provide a {@link MessageConverter} implementation to use when
 	 * converting between JMS Messages and Spring Integration Messages.
-	 * If none is provided, a {@link HeaderMappingMessageConverter} will
+	 * If none is provided, a {@link DefaultMessageConverter} will
 	 * be used and the {@link JmsHeaderMapper} instance provided to the
 	 * {@link #setHeaderMapper(JmsHeaderMapper)} method will be included
 	 * in the conversion process.
@@ -172,7 +172,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	 * <p>This property will be ignored if a {@link MessageConverter} is
 	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
 	 * However, you may provide your own implementation of the delegating
-	 * {@link HeaderMappingMessageConverter} implementation.
+	 * {@link DefaultMessageConverter} implementation.
 	 */
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
@@ -199,8 +199,8 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	}
 
 	public final void onInit() throws Exception {
-		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
-			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter, this.headerMapper);
+		if (!(this.messageConverter instanceof DefaultMessageConverter)) {
+			DefaultMessageConverter hmmc = new DefaultMessageConverter(this.messageConverter);
 			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
 			hmmc.setExtractIntegrationMessagePayload(this.extractReplyPayload);
 			this.messageConverter = hmmc;
@@ -220,7 +220,11 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 			if (replyMessage != null) {
 				Destination destination = this.getReplyDestination(jmsMessage, session);
 				if (destination != null){
+					// convert SI Message to JMS Message
 					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
+					// map SI Message Headers to JMS Message Properties/Headers
+					headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
+					
 					if (jmsReply.getJMSCorrelationID() == null) {
 						jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 					}

@@ -16,16 +16,12 @@
 
 package org.springframework.integration.jms;
 
-import java.util.Map;
-
 import javax.jms.JMSException;
 import javax.jms.Session;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -33,9 +29,8 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 /**
  * A {@link MessageConverter} implementation that is capable of delegating to
- * an existing converter instance and an existing {@link JmsHeaderMapper}. The
- * default MessageConverter implementation is {@link SimpleMessageConverter},
- * and the default header mapper implementation is {@link DefaultJmsHeaderMapper}.
+ * an existing converter instance. The default MessageConverter implementation 
+ * is {@link SimpleMessageConverter}.
  * 
  * <p>If 'extractJmsMessageBody' is <code>true</code> (the default), the body
  * of each received JMS Message will become the payload of a Spring Integration
@@ -51,14 +46,13 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
  * specified for Message extraction.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class HeaderMappingMessageConverter implements MessageConverter {
+public class DefaultMessageConverter implements MessageConverter {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final MessageConverter converter;
-
-	private final JmsHeaderMapper headerMapper;
 
 	private volatile boolean extractJmsMessageBody = true;
 
@@ -69,8 +63,8 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	 * Create a HeaderMappingMessageConverter instance that will rely on the
 	 * default {@link SimpleMessageConverter} and {@link DefaultJmsHeaderMapper}.
 	 */
-	public HeaderMappingMessageConverter() {
-		this(null, null);
+	public DefaultMessageConverter() {
+		this(null);
 	}
 
 	/**
@@ -78,26 +72,8 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	 * the provided {@link MessageConverter} instance and will use the default
 	 * implementation of the {@link JmsHeaderMapper} strategy.
 	 */
-	public HeaderMappingMessageConverter(MessageConverter converter) {
-		this(converter, null);
-	}
-
-	/**
-	 * Create a HeaderMappingMessageConverter instance that will delegate to
-	 * the provided {@link JmsHeaderMapper} instance and will use the default
-	 * {@link SimpleMessageConverter} implementation.
-	 */
-	public HeaderMappingMessageConverter(JmsHeaderMapper headerMapper) {
-		this(null, headerMapper);
-	}
-
-	/**
-	 * Create a HeaderMappingMessageConverter instance that will delegate to
-	 * the provided {@link MessageConverter} and {@link JmsHeaderMapper}.
-	 */
-	public HeaderMappingMessageConverter(MessageConverter converter, JmsHeaderMapper headerMapper) {
+	public DefaultMessageConverter(MessageConverter converter) {
 		this.converter = (converter != null ?  converter : new SimpleMessageConverter());
-		this.headerMapper = (headerMapper != null ? headerMapper : new DefaultJmsHeaderMapper());
 	}
 
 	/**
@@ -152,8 +128,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 		else {
 			builder = MessageBuilder.withPayload(jmsMessage);
 		}
-		Map<String, Object> headers = this.headerMapper.toHeaders(jmsMessage);
-		Message<?> message = builder.copyHeadersIfAbsent(headers).build();
+		Message<?> message = builder.build();
 		if (logger.isDebugEnabled()) {
 			logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message [" + message + "]");
 		}
@@ -164,18 +139,14 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	 * Converts from an integration Message to a JMS {@link javax.jms.Message}.
 	 */
 	public javax.jms.Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
-		MessageHeaders headers = null;
 		javax.jms.Message jmsMessage = null;
 		if (object instanceof Message<?>) {
-			headers = ((Message<?>) object).getHeaders();
 			if (this.extractIntegrationMessagePayload) {
 				object = ((Message<?>) object).getPayload();
 			}
 		}
 		jmsMessage = this.converter.toMessage(object, session);
-		if (headers != null) {
-			this.headerMapper.fromHeaders(headers, jmsMessage);
-		}
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("converted [" + object + "] to JMS Message [" + jmsMessage + "]");
 		}

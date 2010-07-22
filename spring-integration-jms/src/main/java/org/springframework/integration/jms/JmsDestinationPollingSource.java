@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.springframework.integration.jms;
 
+import java.util.Map;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -32,13 +35,11 @@ import org.springframework.jms.support.converter.MessageConverter;
  * support is a better option.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter implements MessageSource<Object> {
 
-	private volatile boolean extractPayload = true;
-
 	private volatile String messageSelector;
-
 
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -59,39 +60,35 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 	public void setMessageSelector(String messageSelector) {
 		this.messageSelector = messageSelector;
 	}
-
 	/**
-	 * Specify whether the payload should be extracted from each received JMS
-	 * Message to be used as the Spring Integration Message payload.
+	 * Will receive JMS {@link javax.jms.Message} converting and returning it as 
+	 * Spring Integration(SI) {@link Message}.
+	 * This method will also use the current instance of the {@link JmsHeaderMapper} to map
+	 * JMS headers to SI headers
 	 * 
-	 * <p>The default value is <code>true</code>. To force creation of Spring
-	 * Integration Messages whose payload is the actual JMS Message, set this
-	 * to <code>false</code>.
+	 * @return
 	 */
-	public void setExtractPayload(boolean extractPayload) {
-		this.extractPayload = extractPayload;
-	}
-
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
-		Object receivedObject = this.getJmsTemplate().receiveSelectedAndConvert(this.messageSelector);
-		if (receivedObject == null) {
+		Message<Object> convertedMessage = null;
+		// receive JMS Message
+		javax.jms.Message jmsMessage = this.getJmsTemplate().receiveSelected(this.messageSelector);
+		if (jmsMessage == null) {
 			return null;
 		}
-		if (receivedObject instanceof Message) {
-			return (Message) receivedObject;
+		try {	
+			// Map headers
+			Map<String, Object> mappedHeaders = this.getHeaderMapper().toHeaders(jmsMessage);
+			MessageConverter converter = this.getJmsTemplate().getMessageConverter();
+			Object convertedObject = converter.fromMessage(jmsMessage);
+			if (convertedObject instanceof Message) {
+				convertedMessage = MessageBuilder.fromMessage((Message<Object>) convertedObject).copyHeaders(mappedHeaders).build();
+			} else {
+				convertedMessage = MessageBuilder.withPayload(convertedObject).build();
+			}
+		} catch (Exception e) {
+			throw new MessagingException(e.getMessage(), e);
 		}
-		return new GenericMessage<Object>(receivedObject);
+		return convertedMessage;
 	}
-
-	@Override
-	protected void configureMessageConverter(JmsTemplate jmsTemplate, JmsHeaderMapper headerMapper) {
-		MessageConverter converter = jmsTemplate.getMessageConverter();
-		if (converter == null || !(converter instanceof HeaderMappingMessageConverter)) {
-			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(converter, headerMapper);
-			hmmc.setExtractJmsMessageBody(this.extractPayload);
-			jmsTemplate.setMessageConverter(hmmc);
-		}
-	}
-
 }

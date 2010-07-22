@@ -20,17 +20,15 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * A MessageConsumer that sends the converted Message payload within
  * a JMS Message.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter implements MessageHandler, Ordered {
-
-	private volatile boolean extractPayload = true;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -47,18 +45,6 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		super();
 	}
 
-	/**
-	 * Specify whether the payload should be extracted from each Spring
-	 * Integration Message to be converted to the body of a JMS Message.
-	 * 
-	 * <p>The default value is <code>true</code>. To force creation of JMS
-	 * Messages whose body is the actual Spring Integration Message instance,
-	 * set this to <code>false</code>.
-	 */
-	public void setExtractPayload(boolean extractPayload) {
-		this.extractPayload = extractPayload;
-	}
-
 	public void setOrder(int order) {
 		this.order = order;
 	}
@@ -73,15 +59,4 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		}
 		this.getJmsTemplate().convertAndSend(message);
 	}
-
-	@Override
-	protected void configureMessageConverter(JmsTemplate jmsTemplate, JmsHeaderMapper headerMapper) {
-		MessageConverter converter = jmsTemplate.getMessageConverter();
-		if (converter == null || !(converter instanceof HeaderMappingMessageConverter)) {
-			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(converter, headerMapper);
-			hmmc.setExtractIntegrationMessagePayload(this.extractPayload);
-			jmsTemplate.setMessageConverter(hmmc);
-		}
-	}
-
 }
