@@ -266,6 +266,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		MessageChannel replyChannel = this.defaultReplyChannel;
 		long requestTimeout = this.defaultRequestTimeout;
 		long replyTimeout = this.defaultReplyTimeout;
+		String payloadExpression = null;
 		Map<String, Object> staticHeaders = null;
 		if (gatewayAnnotation != null) {
 			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
@@ -280,6 +281,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());	
 			if (gatewayDefinition != null) {
+				payloadExpression = gatewayDefinition.getPayloadExpression();
 				staticHeaders = gatewayDefinition.getStaticHeaders();
 				String requestChannelName = gatewayDefinition.getRequestChannelName();
 				requestChannel = this.resolveChannel(requestChannel, requestChannelName);
@@ -296,7 +298,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			}
 		}
 		ArgumentArrayMessageMapper messageMapper = new ArgumentArrayMessageMapper(method, staticHeaders);
-		messageMapper.setBeanFactory(this.getBeanFactory());
+		if (StringUtils.hasText(payloadExpression)) {
+			messageMapper.setPayloadExpression(payloadExpression);
+		}
+ 		messageMapper.setBeanFactory(this.getBeanFactory());
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(messageMapper, new SimpleMessageMapper());
 		gateway.setExceptionMapper(exceptionMapper);
 		if (this.getTaskScheduler() != null) {

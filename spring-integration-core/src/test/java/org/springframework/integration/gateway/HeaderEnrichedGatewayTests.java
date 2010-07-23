@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.gateway;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 
@@ -22,10 +24,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
@@ -41,14 +41,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
 public class HeaderEnrichedGatewayTests {
+
 	@Autowired
-	@Qualifier("gateway")
 	private SampleGateway gateway;
+
 	@Autowired
-	@Qualifier("input")
 	private DirectChannel input;
-	
+
 	private Object testPayload;
+
 
 	@Test
 	public void validateStaticHeaderMappings() throws Exception {
@@ -70,19 +71,13 @@ public class HeaderEnrichedGatewayTests {
 		gateway.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void validateFailedGatewayHeaders() throws Exception {
-		new ClassPathXmlApplicationContext("HeaderEnrichedGatewayTests-failed-context.xml", HeaderEnrichedGatewayTests.class);
-	}
-	/*
-	 * 
-	 */
-	@SuppressWarnings("unchecked")
-	private void prepareHandlerForTest(MessageHandler handler){
+
+
+	private void prepareHandlerForTest(MessageHandler handler) {
 		Mockito.reset(handler);
-		Mockito.doAnswer(new Answer() {
+		Mockito.doAnswer(new Answer<Object>() {
 		      public Object answer(InvocationOnMock invocation) {
-		    	  Message message = (Message) invocation.getArguments()[0];
+		    	  Message<?> message = (Message<?>) invocation.getArguments()[0];
 		    	  assertEquals(testPayload, message.getPayload());
 		    	  assertEquals("foo", message.getHeaders().get("foo"));
 		    	  assertEquals("bar", message.getHeaders().get("bar"));
@@ -95,10 +90,10 @@ public class HeaderEnrichedGatewayTests {
 		      }})
 		  .when(handler).handleMessage(Mockito.any(Message.class));
 	}
-	/*
-	 * 
-	 */
+
+
 	public static interface SampleGateway {
+
 		public void sendString(String value);
 
 		public void sendInteger(Integer value);
@@ -106,4 +101,5 @@ public class HeaderEnrichedGatewayTests {
 		public void sendStringWithParameterHeaders(String value,
 				@Header("headerA") String headerA, @Header("headerB") String headerB);
 	}
+
 }

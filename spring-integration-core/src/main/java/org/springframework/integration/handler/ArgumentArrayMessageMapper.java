@@ -113,7 +113,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private final List<MethodParameter> parameterList;
 
-	private final Expression payloadExpression;
+	private volatile Expression payloadExpression;
 
 	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
 
@@ -134,6 +134,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		this.payloadExpression = parsePayloadExpression(method);
 	}
 
+
+	public void setPayloadExpression(String expressionString) {
+		this.payloadExpression = PARSER.parseExpression(expressionString);
+	}
 
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {

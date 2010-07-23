@@ -462,9 +462,9 @@
 						<xsd:attribute name="name" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>	
-										<![CDATA[  
-											The name of the method
-										]]>
+									<![CDATA[
+										The name of the method
+									]]>
 								</xsd:documentation>
 								<xsd:appinfo>
 									<tool:annotation>
@@ -473,12 +473,21 @@
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:attribute>
+						<xsd:attribute name="payload-expression" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>	
+									<![CDATA[  
+										Expression that should be evaluated to generate the payload.
+									]]>
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
 						<xsd:attribute name="request-channel" type="xsd:string">
 							<xsd:annotation>
 								<xsd:documentation>	
-										<![CDATA[  
-								Identifies channel the message will be sent to upon invocation of this method
-										]]>
+									<![CDATA[
+										Identifies channel the message will be sent to upon invocation of this method
+									]]>
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:attribute>

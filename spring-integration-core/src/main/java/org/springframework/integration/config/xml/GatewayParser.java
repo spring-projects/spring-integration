@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,15 @@ package org.springframework.integration.config.xml;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.gateway.GatewayMethodDefinition;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;gateway/&gt; element.
@@ -88,11 +87,13 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		}
 		for (Element methodElement : elements) {
 			String methodName = methodElement.getAttribute("name");
-			BeanDefinitionBuilder gatewayDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(GatewayMethodDefinition.class);
+			BeanDefinitionBuilder gatewayDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.gateway.GatewayMethodDefinition");
 			gatewayDefinitionBuilder.addPropertyValue("requestChannelName", methodElement.getAttribute("request-channel"));
 			gatewayDefinitionBuilder.addPropertyValue("replyChannelName", methodElement.getAttribute("reply-channel"));
 			gatewayDefinitionBuilder.addPropertyValue("requestTimeout", methodElement.getAttribute("request-timeout"));
 			gatewayDefinitionBuilder.addPropertyValue("replyTimeout", methodElement.getAttribute("reply-timeout"));
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(gatewayDefinitionBuilder, methodElement, "payload-expression");
 			List<Element> invocationHeaders = DomUtils.getChildElementsByTagName(methodElement, "header");
 			if (!CollectionUtils.isEmpty(invocationHeaders)){
 				this.setMethodInvocationHeaders(gatewayDefinitionBuilder, invocationHeaders);
@@ -101,20 +102,13 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		}
 		builder.addPropertyValue("methodToChannelMap", methodToChannelMap);
 	}
-	/*
-	 * 
-	 */
+
 	private void setMethodInvocationHeaders(BeanDefinitionBuilder gatewayDefinitionBuilder, List<Element> invocationHeaders){
 		Map<String, Object> methodInvocationHeaders = new ManagedMap<String, Object>();
 		for (Element headerElement : invocationHeaders) {
-			String name = headerElement.getAttribute("name");
-			if (name.startsWith(MessageHeaders.PREFIX)){
-				throw new IllegalArgumentException("Attempting to set header: " + name + ". Prefix: '" 
-						+ MessageHeaders.PREFIX + "' is reservered for SI internal use");
-			} else {
-				methodInvocationHeaders.put(name, headerElement.getAttribute("value"));
-			}
+			methodInvocationHeaders.put(headerElement.getAttribute("name"), headerElement.getAttribute("value"));
 		}
 		gatewayDefinitionBuilder.addPropertyValue("staticHeaders", methodInvocationHeaders);
 	}
+
 }
