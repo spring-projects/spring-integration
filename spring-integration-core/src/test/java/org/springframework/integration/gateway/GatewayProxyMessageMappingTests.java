@@ -144,6 +144,35 @@ public class GatewayProxyMessageMappingTests {
 		assertEquals("FOO!!!", result.getPayload());
 	}
 
+	@Test
+	public void payloadAnnotationWithExpression() throws Exception {
+		gateway.payloadAnnotationWithExpression("foo");
+		Message<?> result = channel.receive(0);
+		assertNotNull(result);
+		assertEquals("FOO", result.getPayload());
+	}
+
+	@Test
+	public void payloadAnnotationWithExpressionUsingBeanResolver() throws Exception {
+		GenericApplicationContext context = new GenericApplicationContext();
+		RootBeanDefinition gatewayDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class);
+		gatewayDefinition.getPropertyValues().add("defaultRequestChannel", channel);
+		gatewayDefinition.getPropertyValues().add("serviceInterface", TestGateway.class);
+		context.registerBeanDefinition("testGateway", gatewayDefinition);
+		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
+		context.refresh();
+		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
+		gateway.payloadAnnotationWithExpressionUsingBeanResolver("foo");
+		gateway.payloadAnnotationWithExpressionUsingBeanResolver("bar");
+		Message<?> fooResult = channel.receive(0);
+		assertNotNull(fooResult);
+		assertEquals(324, fooResult.getPayload());
+		Message<?> barResult = channel.receive(0);
+		assertNotNull(barResult);
+		assertEquals(309, barResult.getPayload());
+		assertNull(channel.receive(0));
+	}
+
 	@Test(expected = MessagingException.class)
 	public void twoMapsWithoutAnnotations() {
 		Map<String, Object> map1 = new HashMap<String, Object>();
@@ -168,11 +197,6 @@ public class GatewayProxyMessageMappingTests {
 		gateway.payloadAndHeadersAnnotationsOnSameParameter(new HashMap<String, Object>());
 	}
 
-	@Test(expected = MessagingException.class)
-	public void payloadWithExpression() throws Exception {
-		gateway.payloadWithExpression("test");
-	}
-
 
 	public static interface TestGateway {
 
@@ -192,6 +216,10 @@ public class GatewayProxyMessageMappingTests {
 		@Payload("@testBean.exclaim(#args[0])")
 		void payloadAnnotationAtMethodLevelUsingBeanResolver(String s);
 
+		void payloadAnnotationWithExpression(@Payload("toUpperCase()") String s);
+
+		void payloadAnnotationWithExpressionUsingBeanResolver(@Payload("@testBean.sum(#this)") String s);
+
 		// invalid
 		void twoMapsWithoutAnnotations(Map<String, Object> m1, Map<String, Object> m2);
 
@@ -204,9 +232,6 @@ public class GatewayProxyMessageMappingTests {
 		// invalid
 		void payloadAndHeadersAnnotationsOnSameParameter(@Payload @Headers Map<String, Object> map);
 
-		// invalid
-		void payloadWithExpression(@Payload("oops") String s);
-
 	}
 
 
@@ -214,6 +239,14 @@ public class GatewayProxyMessageMappingTests {
 
 		public String exclaim(String s) {
 			return s.toUpperCase() + "!!!";
+		}
+
+		public int sum(String s) {
+			int sum = 0;
+			for (byte b : s.getBytes()) {
+				sum += b;
+			}
+			return sum;
 		}
 	}
 

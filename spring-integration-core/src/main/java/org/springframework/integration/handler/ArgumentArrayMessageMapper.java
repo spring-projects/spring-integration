@@ -115,6 +115,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Expression payloadExpression;
 
+	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
+
+	private final StandardEvaluationContext staticEvaluationContext = new StandardEvaluationContext();
+
 	private volatile BeanResolver beanResolver;
 
 
@@ -138,6 +142,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 					return beanFactory.getBean(beanName);
 				}
 			};
+			this.staticEvaluationContext.setBeanResolver(beanResolver);
 		}
 	}
 
@@ -173,12 +178,14 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 					if (messageOrPayload != null) {
 						this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
 					}
-					if (((Payload) annotation).value().length() != 0) {
-						throw new MessagingException(
-								"The Payload annotation does not support an expression when mapping to a Message.");
+					String expression = ((Payload) annotation).value();
+					if (!StringUtils.hasText(expression)) {
+						messageOrPayload = argumentValue;
+					}
+					else {
+						messageOrPayload = this.evaluatePayloadExpression(expression, argumentValue);
 					}
 					foundPayloadAnnotation = true;
-					messageOrPayload = argumentValue;
 				}
 				else if (annotation.annotationType().equals(Header.class)) {
 					Header headerAnnotation = (Header) annotation;
@@ -225,6 +232,15 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 			builder.copyHeaders(staticHeaders);
 		}
 		return builder.build();
+	}
+
+	private Object evaluatePayloadExpression(String expressionString, Object argumentValue) {
+		Expression expression = this.parameterPayloadExpressions.get(expressionString);
+		if (expression == null) {
+			expression = PARSER.parseExpression(expressionString);
+			this.parameterPayloadExpressions.put(expressionString, expression);
+		}
+		return expression.getValue(this.staticEvaluationContext, argumentValue);
 	}
 
 	private Annotation findMappingAnnotation(Annotation[] annotations) {
