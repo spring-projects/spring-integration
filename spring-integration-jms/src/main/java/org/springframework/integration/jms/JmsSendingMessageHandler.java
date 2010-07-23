@@ -16,10 +16,16 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.JMSException;
+
 import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.HeaderMapper;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessagePostProcessor;
+
+import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
 
 /**
  * A MessageConsumer that sends the converted Message payload within
@@ -57,6 +63,12 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
-		this.getJmsTemplate().convertAndSend(message);
+		this.getJmsTemplate().convertAndSend(message, new MessagePostProcessor() {
+			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage)
+					throws JMSException {
+				getHeaderMapper().fromHeaders(message.getHeaders(), jmsMessage);
+				return jmsMessage;
+			}
+		});
 	}
 }
