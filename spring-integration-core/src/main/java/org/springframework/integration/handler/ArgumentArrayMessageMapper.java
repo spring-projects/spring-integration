@@ -23,9 +23,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.expression.AccessException;
+import org.springframework.expression.BeanResolver;
+import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -97,18 +102,20 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]> {
+public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 
-	private final Map<String, Object> staticHeaders;
-
 	private final Method method;
+
+	private final Map<String, Object> staticHeaders;
 
 	private final List<MethodParameter> parameterList;
 
 	private final Expression payloadExpression;
+
+	private volatile BeanResolver beanResolver;
 
 
 	public ArgumentArrayMessageMapper(Method method) {
@@ -124,7 +131,17 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	}
 
 
-	public Message<?> toMessage(Object[] arguments) {
+	public void setBeanFactory(final BeanFactory beanFactory) {
+		if (beanFactory != null) {
+			this.beanResolver = new BeanResolver() {
+				public Object resolve(EvaluationContext context, String beanName) throws AccessException {
+					return beanFactory.getBean(beanName);
+				}
+			};
+		}
+	}
+
+ 	public Message<?> toMessage(Object[] arguments) {
 		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length != this.parameterList.size()) {
 			String prefix = (arguments.length < this.parameterList.size()) ? "Not enough" : "Too many";
@@ -142,6 +159,9 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		if (this.payloadExpression != null) {
 			StandardEvaluationContext context = new StandardEvaluationContext();
 			context.setVariable("args", arguments);
+			if (this.beanResolver != null) {
+				context.setBeanResolver(this.beanResolver);
+			}
 			messageOrPayload = this.payloadExpression.getValue(context);
 		}
 		for (int i = 0; i < this.parameterList.size(); i++) {

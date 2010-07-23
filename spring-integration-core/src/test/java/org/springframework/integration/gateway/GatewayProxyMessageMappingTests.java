@@ -26,6 +26,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
@@ -126,6 +128,21 @@ public class GatewayProxyMessageMappingTests {
 		assertEquals("foobar!", result.getPayload());
 	}
 
+	@Test
+	public void payloadAnnotationAtMethodLevelUsingBeanResolver() throws Exception {
+		GenericApplicationContext context = new GenericApplicationContext();
+		RootBeanDefinition gatewayDefinition = new RootBeanDefinition(GatewayProxyFactoryBean.class);
+		gatewayDefinition.getPropertyValues().add("defaultRequestChannel", channel);
+		gatewayDefinition.getPropertyValues().add("serviceInterface", TestGateway.class);
+		context.registerBeanDefinition("testGateway", gatewayDefinition);
+		context.registerBeanDefinition("testBean", new RootBeanDefinition(TestBean.class));
+		context.refresh();
+		TestGateway gateway = context.getBean("testGateway", TestGateway.class);
+		gateway.payloadAnnotationAtMethodLevelUsingBeanResolver("foo");
+		Message<?> result = channel.receive(0);
+		assertNotNull(result);
+		assertEquals("FOO!!!", result.getPayload());
+	}
 
 	@Test(expected = MessagingException.class)
 	public void twoMapsWithoutAnnotations() {
@@ -172,6 +189,9 @@ public class GatewayProxyMessageMappingTests {
 		@Payload("#args[0] + #args[1] + '!'")
 		void payloadAnnotationAtMethodLevel(String a, String b);
 
+		@Payload("@testBean.exclaim(#args[0])")
+		void payloadAnnotationAtMethodLevelUsingBeanResolver(String s);
+
 		// invalid
 		void twoMapsWithoutAnnotations(Map<String, Object> m1, Map<String, Object> m2);
 
@@ -187,6 +207,14 @@ public class GatewayProxyMessageMappingTests {
 		// invalid
 		void payloadWithExpression(@Payload("oops") String s);
 
+	}
+
+
+	public static class TestBean {
+
+		public String exclaim(String s) {
+			return s.toUpperCase() + "!!!";
+		}
 	}
 
 }
