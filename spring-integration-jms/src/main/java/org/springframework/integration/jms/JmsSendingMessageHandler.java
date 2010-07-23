@@ -20,12 +20,9 @@ import javax.jms.JMSException;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.HeaderMapper;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
-
-import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
 
 /**
  * A MessageConsumer that sends the converted Message payload within
