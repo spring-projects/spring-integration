@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,15 @@ public class GatewayProxyMessageMappingTests {
 		assertNull(result.getHeaders().get("k1"));
 	}
 
+	@Test
+	public void payloadAnnotationAtMethodLevel() throws Exception {
+		gateway.payloadAnnotationAtMethodLevel("foo", "bar");
+		Message<?> result = channel.receive(0);
+		assertNotNull(result);
+		assertEquals("foobar!", result.getPayload());
+	}
+
+
 	@Test(expected = MessagingException.class)
 	public void twoMapsWithoutAnnotations() {
 		Map<String, Object> map1 = new HashMap<String, Object>();
@@ -159,6 +168,9 @@ public class GatewayProxyMessageMappingTests {
 		void mapOnly(Map<String, Object> map);
 
 		void twoMapsAndOneAnnotatedWithPayload(@Payload Map<String, Object> payload, Map<String, Object> headers);
+
+		@Payload("#args[0] + #args[1] + '!'")
+		void payloadAnnotationAtMethodLevel(String a, String b);
 
 		// invalid
 		void twoMapsWithoutAnnotations(Map<String, Object> m1, Map<String, Object> m2);

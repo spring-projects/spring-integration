@@ -26,6 +26,9 @@ import java.util.Map;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
@@ -96,11 +99,17 @@ import org.springframework.util.StringUtils;
  */
 public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]> {
 
-	private Map<String, Object> staticHeaders;
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
+
+	private final Map<String, Object> staticHeaders;
 
 	private final Method method;
 
 	private final List<MethodParameter> parameterList;
+
+	private final Expression payloadExpression;
+
 
 	public ArgumentArrayMessageMapper(Method method) {
 		this(method, null);
@@ -110,9 +119,11 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.staticHeaders = staticHeaders;
-		this.parameterList = this.getMethodParameterList(method);
+		this.parameterList = getMethodParameterList(method);
+		this.payloadExpression = parsePayloadExpression(method);
 	}
-	
+
+
 	public Message<?> toMessage(Object[] arguments) {
 		Assert.notNull(arguments, "cannot map null arguments to Message");
 		if (arguments.length != this.parameterList.size()) {
@@ -128,18 +139,23 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		Object messageOrPayload = null;
 		boolean foundPayloadAnnotation = false;
 		Map<String, Object> headers = new HashMap<String, Object>();
+		if (this.payloadExpression != null) {
+			StandardEvaluationContext context = new StandardEvaluationContext();
+			context.setVariable("args", arguments);
+			messageOrPayload = this.payloadExpression.getValue(context);
+		}
 		for (int i = 0; i < this.parameterList.size(); i++) {
 			Object argumentValue = arguments[i];		
 			MethodParameter methodParameter = this.parameterList.get(i);
 			Annotation annotation = this.findMappingAnnotation(methodParameter.getParameterAnnotations());
 			if (annotation != null) {
 				if (annotation.annotationType().equals(Payload.class)) {
+					if (messageOrPayload != null) {
+						this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
+					}
 					if (((Payload) annotation).value().length() != 0) {
 						throw new MessagingException(
 								"The Payload annotation does not support an expression when mapping to a Message.");
-					}
-					if (messageOrPayload != null) {
-						this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
 					}
 					foundPayloadAnnotation = true;
 					messageOrPayload = argumentValue;
@@ -176,7 +192,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 				}
 				this.copyHeaders((Map) argumentValue, headers);
 			}
-			else {
+			else if (this.payloadExpression == null) {
 				this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
 			}
 		}
@@ -223,8 +239,8 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private void throwExceptionForMultipleMessageOrPayloadParameters(MethodParameter methodParameter) {
 		throw new MessagingException(
-				"At most one parameter may be mapped to the payload or Message, " +
-				"found more than one on method [" + methodParameter.getMethod() + "]");
+				"At most one parameter (or expression via method-level @Payload) may be mapped to the " +
+				"payload or Message. Found more than one on method [" + methodParameter.getMethod() + "]");
 	}
 
 	private String determineHeaderName(Header headerAnnotation, MethodParameter methodParameter) {
@@ -235,7 +251,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		return headerName;
 	}
 
-	private List<MethodParameter> getMethodParameterList(Method method) {
+	private static List<MethodParameter> getMethodParameterList(Method method) {
 		List<MethodParameter> parameterList = new LinkedList<MethodParameter>();
 		ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer(); 
 		int parameterCount = method.getParameterTypes().length;
@@ -246,4 +262,17 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		}
 		return parameterList;
 	}
+
+	private static Expression parsePayloadExpression(Method method) {
+		Expression expression = null;
+		Payload payload = method.getAnnotation(Payload.class);
+		if (payload != null) {
+			String expressionString = payload.value();
+			Assert.hasText(expressionString,
+					"@Payload at method-level on a Gateway must provide a non-empty Expression.");
+			expression = PARSER.parseExpression(expressionString);
+		}
+		return expression;
+	}
+
 }
