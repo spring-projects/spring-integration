@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -47,6 +48,7 @@ import org.springframework.integration.message.HeaderMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.HttpRequestHandler;
 
 /**
@@ -102,17 +104,20 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	}
 
 
+	/**
+	 * Specify the type of payload to be generated when the inbound HTTP request content
+	 * is read by the {@link HttpMessageConverter}s. The default is <code>byte[].class</code>.
+	 */
 	public void setExpectedType(Class<?> expectedType) {
 		Assert.notNull(expectedType, "expectedType must not be null");
 		this.expectedType = expectedType;
 	}
 
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
-		this.doHandleRequest(new ServletServerHttpRequest(servletRequest), new ServletServerHttpResponse(servletResponse));
-	}
-
-	private void doHandleRequest(ServletServerHttpRequest request, ServletServerHttpResponse response) throws IOException {
-		Object payload = this.readPayload(request);
+		ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+		Object payload = (this.isReadable(request)) ? this.generatePayloadFromRequestBody(request)
+				: this.convertParameterMap(servletRequest.getParameterMap());
 		Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 		if (this.expectReply) {
@@ -128,8 +133,28 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		}
 	}
 
+	private boolean isReadable(ServletServerHttpRequest request) {
+		HttpMethod method = request.getMethod();
+		if (HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method) || HttpMethod.OPTIONS.equals(method)) {
+			return false;
+		}
+		return request.getHeaders().getContentType() != null;
+	}
+
 	@SuppressWarnings("unchecked")
-	private Object readPayload(ServletServerHttpRequest request) throws IOException {
+	private LinkedMultiValueMap<String, String> convertParameterMap(Map parameterMap) {
+		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>();
+		for (Object key : parameterMap.keySet()) {
+			String[] values = (String[]) parameterMap.get(key);
+			for (String value : values) {
+				convertedMap.add((String) key, value);
+			}
+		}
+		return convertedMap;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
 			if (converter.canRead(this.expectedType, contentType)) {
