@@ -45,7 +45,8 @@ public class SerializingHttpMessageConverter extends AbstractHttpMessageConverte
 
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return Serializable.class.isAssignableFrom(clazz);
+		return !(byte[].class.equals(clazz)) && !(String.class.equals(clazz))
+				&& (clazz != null && Serializable.class.isAssignableFrom(clazz));
 	}
 
 	@Override
