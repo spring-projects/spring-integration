@@ -16,6 +16,7 @@
 
 package org.springframework.integration.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -32,8 +35,6 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-//import org.springframework.http.converter.feed.AtomFeedHttpMessageConverter;
-//import org.springframework.http.converter.feed.RssChannelHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
@@ -49,7 +50,13 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * @author Mark Fisher
@@ -75,6 +82,12 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHeaderMapper();
 
 	private final boolean expectReply;
+
+	private volatile MultipartResolver multipartResolver;
+
+	private volatile String multipartCharset;
+
+	private volatile boolean uploadMultipartFiles;
 
 
 	public HttpRequestHandlingMessagingGateway() {
@@ -113,13 +126,72 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		this.expectedType = expectedType;
 	}
 
+	/**
+	 * Specify the {@link MultipartResolver} to use when checking requests.
+	 * If no resolver is provided, this mapper will not support multipart
+	 * requests.
+	 */
+	public void setMultipartResolver(MultipartResolver multipartResolver) {
+		this.multipartResolver = multipartResolver;
+	}
+
+	/**
+	 * Specify the charset name to use when converting multipart file content
+	 * into Strings.
+	 */
+	public void setMultipartCharset(String multipartCharset) {
+		this.multipartCharset = multipartCharset;
+	}
+
+	public void setUploadMultipartFiles(boolean uploadMultipartFiles) {
+		this.uploadMultipartFiles = uploadMultipartFiles;
+	}
+
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.multipartResolver == null && beanFactory != null) {
+			try {
+				MultipartResolver multipartResolver =
+						this.getBeanFactory().getBean(DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Using MultipartResolver [" + multipartResolver + "]");
+				}
+				this.multipartResolver = multipartResolver;
+			}
+			catch (NoSuchBeanDefinitionException e) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Unable to locate MultipartResolver with name '" + DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME +
+							"': no multipart request handling will be supported.");
+				}
+			}
+		}
+	}
+
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
 		ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
 		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-		Object payload = (this.isReadable(request)) ? this.generatePayloadFromRequestBody(request)
-				: this.convertParameterMap(servletRequest.getParameterMap());
+
+		servletRequest = this.checkMultipart(servletRequest);
+		Object payload = null;
+		if (servletRequest instanceof MultipartHttpServletRequest) {
+			payload = new MultipartPayloadConverter().read(this.expectedType, (MultipartHttpServletRequest) servletRequest);
+		}
+		else if (this.isReadable(request)) {
+			payload = this.generatePayloadFromRequestBody(request);
+		}
+		else {
+			payload = this.convertParameterMap(servletRequest.getParameterMap());
+		}
+
 		Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
-		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).build();
+		Message<?> message = MessageBuilder.withPayload(payload)
+				.copyHeaders(headers)
+				//.setHeader(HttpHeaders.REQUEST_URL, request.getURI().toString())
+				//.setHeader(HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
+				//.setHeader(HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
+				.build();
 		if (this.expectReply) {
 			Message<?> reply = this.sendAndReceiveMessage(message);
 			this.headerMapper.fromHeaders(reply.getHeaders(), response.getHeaders());
@@ -139,6 +211,25 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 			return false;
 		}
 		return request.getHeaders().getContentType() != null;
+	}
+
+	/**
+	 * Convert the request into a multipart request to make multiparts available.
+	 * If no multipart resolver is set, simply use the existing request.
+	 * @param request current HTTP request
+	 * @return the processed request (multipart wrapper if necessary)
+	 * @see MultipartResolver#resolveMultipart
+	 */
+	private HttpServletRequest checkMultipart(HttpServletRequest request) throws MultipartException {
+		if (this.multipartResolver != null && this.multipartResolver.isMultipart(request)) {
+			if (request instanceof MultipartHttpServletRequest) {
+				logger.debug("Request is already a MultipartHttpServletRequest");
+			}
+			else {
+				return this.multipartResolver.resolveMultipart(request);
+			}
+		}
+		return request;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -193,6 +284,73 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 		public Map<String, ?> toHeaders(HttpHeaders source) {
 			return source;
+		}
+	}
+
+
+	private class MultipartPayloadConverter {
+
+		public Object read(Class<?> expectedType, MultipartHttpServletRequest multipartRequest) {
+			Object payload = this.createPayload(expectedType, multipartRequest);
+			this.cleanupMultipart(multipartRequest);
+			return payload;
+		}
+
+		@SuppressWarnings("unchecked")
+		private Object createPayload(Class<?> expectedType, MultipartHttpServletRequest multipartRequest) {
+			MultiValueMap<String, Object> payloadMap = new LinkedMultiValueMap<String, Object>();
+			Map parameterMap = multipartRequest.getParameterMap();
+			for (Object key : parameterMap.keySet()) {
+				payloadMap.add((String) key, parameterMap.get(key));
+			}
+			Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
+			for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
+				MultipartFile multipartFile = entry.getValue();
+				if (multipartFile.isEmpty()) {
+					continue;
+				}
+				try {
+					if (uploadMultipartFiles) {
+						String filename = multipartFile.getOriginalFilename();
+						// TODO: add filename post-processor, also consider names with path separators (e.g. from Opera)?
+						String tmpdir = System.getProperty("java.io.tmpdir");
+						File upload = (filename == null) ? File.createTempFile("si_", ".tmp") : new File(tmpdir, filename);
+						multipartFile.transferTo(upload);
+						payloadMap.add(entry.getKey(), upload);
+						if (logger.isDebugEnabled()) {
+							logger.debug("copied uploaded file [" + multipartFile.getOriginalFilename() +
+									"] to [" + upload.getAbsolutePath() + "]");
+						}
+					}
+					// TODO: try to read charset from multipart's Content-Type header, fallback to *defaultMultipartCharset*
+					else if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
+						// TODO: use FileCopyUtils?
+						String multipartFileAsString = multipartCharset != null ?
+								new String(multipartFile.getBytes(), multipartCharset) :
+								new String(multipartFile.getBytes());
+						payloadMap.add(entry.getKey(), multipartFileAsString);
+					}
+					else {
+						// TODO: use FileCopyUtils?
+						payloadMap.add(entry.getKey(), multipartFile.getBytes());
+					}
+				}
+				catch (IOException e) {
+					throw new IllegalArgumentException("Cannot read contents of multipart file", e);
+				}
+			}
+			return payloadMap;
+		}
+
+		/**
+		 * Clean up any resources used by the given multipart request (if any).
+		 * @param request current HTTP request
+		 * @see MultipartResolver#cleanupMultipart
+		 */
+		private void cleanupMultipart(HttpServletRequest request) {
+			if (multipartResolver != null && request instanceof MultipartHttpServletRequest) {
+				multipartResolver.cleanupMultipart((MultipartHttpServletRequest) request);
+			}
 		}
 	}
 
