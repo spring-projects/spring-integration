@@ -18,7 +18,9 @@ package org.springframework.integration.http;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +61,27 @@ import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
 
 /**
+ * Inbound Messaging Gateway that handles HTTP Requests. May be configured as a bean in the
+ * Application Context and delegated to from a simple HttpRequestHandlerServlet in
+ * <code>web.xml</code> where the servlet and bean both have the same name. If the
+ * {@link #expectReply} property is set to true, a response can generated from a
+ * reply Message. Otherwise, the gateway will play the role of a unidirectional
+ * Channel Adapter with a simple status-based response (e.g. 200 OK).
+ * <p/>
+ * The default supported request methods are GET and POST, but the list of values can
+ * be configured with the {@link #supportedMethods} property. The payload generated from
+ * a GET request (or HEAD or OPTIONS if supported) will be a {@link MultiValueMap} 
+ * containing the parameter values. For a request containing a body (e.g. a POST),
+ * the type of the payload is determined by the {@link #conversionTargetType} property.
+ * <p/>
+ * If the HTTP request is a multipart, a {@link MultiValueMap} payload will be generated. If
+ * this gateway's {@link #uploadMultipartFiles} property is set to true, any files included
+ * in that multipart request will be copied to the temporary directory. The corresponding
+ * values for those files within the payload map will be {@link java.io.File} instances.
+ * <p/>
+ * By default a number of {@link HttpMessageConverter}s are already configured. The list
+ * can be overridden by calling the {@link #setMessageConverters(List)} method.
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
@@ -75,9 +98,11 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 			ClassUtils.isPresent("com.sun.syndication.feed.WireFeed", HttpRequestHandlingMessagingGateway.class.getClassLoader());
 
 
-	private volatile Class<?> expectedType = byte[].class;
+	private volatile Class<?> conversionTargetType = byte[].class;
 
-	private final List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
+	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
+
+	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHeaderMapper();
 
@@ -85,7 +110,7 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 	private volatile MultipartResolver multipartResolver;
 
-	private volatile String multipartCharset;
+	private volatile Charset defaultMultipartCharset = Charset.forName("UTF-8");
 
 	private volatile boolean uploadMultipartFiles;
 
@@ -118,12 +143,30 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 
 	/**
+	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
+	 * responses.
+	 */
+	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
+		Assert.notEmpty(messageConverters, "'messageConverters' must not be empty");
+		this.messageConverters = messageConverters;
+	}
+
+	/**
+	 * Specify the supported request methods for this gateway.
+	 * By default, only GET and POST are supported.
+	 */
+	public void setSupportedMethods(HttpMethod... supportedMethods) {
+		Assert.notEmpty(supportedMethods, "at least one supported method is required");
+		this.supportedMethods = Arrays.asList(supportedMethods);
+	}
+
+	/**
 	 * Specify the type of payload to be generated when the inbound HTTP request content
 	 * is read by the {@link HttpMessageConverter}s. The default is <code>byte[].class</code>.
 	 */
-	public void setExpectedType(Class<?> expectedType) {
-		Assert.notNull(expectedType, "expectedType must not be null");
-		this.expectedType = expectedType;
+	public void setConversionTargetType(Class<?> conversionTargetType) {
+		Assert.notNull(conversionTargetType, "conversionTargetType must not be null");
+		this.conversionTargetType = conversionTargetType;
 	}
 
 	/**
@@ -136,17 +179,27 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	}
 
 	/**
-	 * Specify the charset name to use when converting multipart file content
-	 * into Strings.
+	 * Specify the default charset name to use when converting multipart file
+	 * content into Strings if the multipart itself does not provide a charset.
 	 */
-	public void setMultipartCharset(String multipartCharset) {
-		this.multipartCharset = multipartCharset;
+	public void setDefaultMultipartCharset(String defaultMultipartCharset) {
+		this.defaultMultipartCharset = Charset.forName(
+				defaultMultipartCharset != null ? defaultMultipartCharset : "UTF-8");
 	}
 
+	/**
+	 * Specify whether files in a multipart request should be "uploaded"
+	 * to the temporary directory instead of being read directly into
+	 * a value in the payload map. By default this is 'false'.
+	 */
 	public void setUploadMultipartFiles(boolean uploadMultipartFiles) {
 		this.uploadMultipartFiles = uploadMultipartFiles;
 	}
 
+	/**
+	 * Locates the {@link MultipartResolver} bean based on the default name defined by
+	 * the {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
+	 */
 	@Override
 	protected void onInit() throws Exception {
 		super.onInit();
@@ -169,14 +222,20 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		}
 	}
 
+	/**
+	 * Handles the HTTP request by generating a Message and sending it to the request channel.
+	 * If this gateway's 'expectReply' property is true, it will also generate a response from
+	 * the reply Message once received.
+	 */
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
 		ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
 		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-
+		Assert.isTrue(this.supportedMethods.contains(request.getMethod()),
+				"unsupported request method [" + request.getMethod() + "]");
 		servletRequest = this.checkMultipart(servletRequest);
 		Object payload = null;
 		if (servletRequest instanceof MultipartHttpServletRequest) {
-			payload = new MultipartPayloadConverter().read(this.expectedType, (MultipartHttpServletRequest) servletRequest);
+			payload = new MultipartPayloadConverter().read((MultipartHttpServletRequest) servletRequest);
 		}
 		else if (this.isReadable(request)) {
 			payload = this.generatePayloadFromRequestBody(request);
@@ -184,7 +243,6 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		else {
 			payload = this.convertParameterMap(servletRequest.getParameterMap());
 		}
-
 		Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
 		Message<?> message = MessageBuilder.withPayload(payload)
 				.copyHeaders(headers)
@@ -205,6 +263,10 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		}
 	}
 
+	/**
+	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request)
+	 * and a Content-Type header.
+	 */
 	private boolean isReadable(ServletServerHttpRequest request) {
 		HttpMethod method = request.getMethod();
 		if (HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method) || HttpMethod.OPTIONS.equals(method)) {
@@ -232,6 +294,9 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		return request;
 	}
 
+	/**
+	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
+	 */
 	@SuppressWarnings("unchecked")
 	private LinkedMultiValueMap<String, String> convertParameterMap(Map parameterMap) {
 		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>();
@@ -248,12 +313,12 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
-			if (converter.canRead(this.expectedType, contentType)) {
-				return converter.read((Class) this.expectedType, request);
+			if (converter.canRead(this.conversionTargetType, contentType)) {
+				return converter.read((Class) this.conversionTargetType, request);
 			}
 		}
 		throw new MessagingException("Could not convert request: no suitable HttpMessageConverter found for expected type [" +
-				this.expectedType.getName() + "] and content type [" + contentType + "]");
+				this.conversionTargetType.getName() + "] and content type [" + contentType + "]");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -290,14 +355,14 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 	private class MultipartPayloadConverter {
 
-		public Object read(Class<?> expectedType, MultipartHttpServletRequest multipartRequest) {
-			Object payload = this.createPayload(expectedType, multipartRequest);
+		public Object read(MultipartHttpServletRequest multipartRequest) {
+			Object payload = this.createPayload(multipartRequest);
 			this.cleanupMultipart(multipartRequest);
 			return payload;
 		}
 
 		@SuppressWarnings("unchecked")
-		private Object createPayload(Class<?> expectedType, MultipartHttpServletRequest multipartRequest) {
+		private Object createPayload(MultipartHttpServletRequest multipartRequest) {
 			MultiValueMap<String, Object> payloadMap = new LinkedMultiValueMap<String, Object>();
 			Map parameterMap = multipartRequest.getParameterMap();
 			for (Object key : parameterMap.keySet()) {
@@ -322,13 +387,14 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 									"] to [" + upload.getAbsolutePath() + "]");
 						}
 					}
-					// TODO: try to read charset from multipart's Content-Type header, fallback to *defaultMultipartCharset*
 					else if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
 						// TODO: use FileCopyUtils?
-						String multipartFileAsString = multipartCharset != null ?
-								new String(multipartFile.getBytes(), multipartCharset) :
-								new String(multipartFile.getBytes());
-						payloadMap.add(entry.getKey(), multipartFileAsString);
+						MediaType contentType = MediaType.parseMediaType(multipartFile.getContentType());
+						Charset charset = contentType.getCharSet();
+						if (charset == null) {
+							charset = defaultMultipartCharset;
+						}
+						payloadMap.add(entry.getKey(), new String(multipartFile.getBytes(), charset));
 					}
 					else {
 						// TODO: use FileCopyUtils?
