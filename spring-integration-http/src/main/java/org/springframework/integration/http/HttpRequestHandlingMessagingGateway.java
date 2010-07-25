@@ -16,9 +16,7 @@
 
 package org.springframework.integration.http;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +38,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
-import org.springframework.http.converter.xml.XmlAwareFormHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.core.Message;
@@ -54,8 +51,6 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.multipart.MultipartException;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -110,10 +105,6 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 	private volatile MultipartResolver multipartResolver;
 
-	private volatile Charset defaultMultipartCharset = Charset.forName("UTF-8");
-
-	private volatile boolean uploadMultipartFiles;
-
 
 	public HttpRequestHandlingMessagingGateway() {
 		this(true);
@@ -122,12 +113,12 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	@SuppressWarnings("unchecked")
 	public HttpRequestHandlingMessagingGateway(boolean expectReply) {
 		this.expectReply = expectReply;
+		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
 		this.messageConverters.add(new SerializingHttpMessageConverter());
 		this.messageConverters.add(new ByteArrayHttpMessageConverter());
 		this.messageConverters.add(new StringHttpMessageConverter());
 		this.messageConverters.add(new ResourceHttpMessageConverter());
 		this.messageConverters.add(new SourceHttpMessageConverter());
-		this.messageConverters.add(new XmlAwareFormHttpMessageConverter());
 		if (jaxb2Present) {
 			this.messageConverters.add(new Jaxb2RootElementHttpMessageConverter());
 		}
@@ -179,24 +170,6 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	}
 
 	/**
-	 * Specify the default charset name to use when converting multipart file
-	 * content into Strings if the multipart itself does not provide a charset.
-	 */
-	public void setDefaultMultipartCharset(String defaultMultipartCharset) {
-		this.defaultMultipartCharset = Charset.forName(
-				defaultMultipartCharset != null ? defaultMultipartCharset : "UTF-8");
-	}
-
-	/**
-	 * Specify whether files in a multipart request should be "uploaded"
-	 * to the temporary directory instead of being read directly into
-	 * a value in the payload map. By default this is 'false'.
-	 */
-	public void setUploadMultipartFiles(boolean uploadMultipartFiles) {
-		this.uploadMultipartFiles = uploadMultipartFiles;
-	}
-
-	/**
 	 * Locates the {@link MultipartResolver} bean based on the default name defined by
 	 * the {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
 	 */
@@ -228,16 +201,13 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	 * the reply Message once received.
 	 */
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
-		ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+		ServletServerHttpRequest request = this.prepareRequest(servletRequest);
 		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 		Assert.isTrue(this.supportedMethods.contains(request.getMethod()),
 				"unsupported request method [" + request.getMethod() + "]");
-		servletRequest = this.checkMultipart(servletRequest);
+
 		Object payload = null;
-		if (servletRequest instanceof MultipartHttpServletRequest) {
-			payload = new MultipartPayloadConverter().read((MultipartHttpServletRequest) servletRequest);
-		}
-		else if (this.isReadable(request)) {
+		if (this.isReadable(request)) {
 			payload = this.generatePayloadFromRequestBody(request);
 		}
 		else {
@@ -261,6 +231,25 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 			this.send(message);
 			// will be a status response for now... add an optional ResponseGenerator strategy?
 		}
+		this.postProcessRequest(servletRequest);
+	}
+
+	/**
+	 * Prepares an instance of {@link ServletServerHttpRequest} from the raw {@link HttpServletRequest}.
+	 * Also converts the request into a multipart request to make multiparts available if necessary.
+	 * If no multipart resolver is set, simply returns the existing request.
+	 * @param request current HTTP request
+	 * @return the processed request (multipart wrapper if necessary)
+	 * @see MultipartResolver#resolveMultipart
+	 */
+	private ServletServerHttpRequest prepareRequest(HttpServletRequest servletRequest) {
+		if (servletRequest instanceof MultipartHttpServletRequest) {
+			return new MultipartHttpInputMessage((MultipartHttpServletRequest) servletRequest);
+		}
+		if (this.multipartResolver != null && this.multipartResolver.isMultipart(servletRequest)) {
+			return new MultipartHttpInputMessage(this.multipartResolver.resolveMultipart(servletRequest));
+		}
+		return new ServletServerHttpRequest(servletRequest);
 	}
 
 	/**
@@ -276,22 +265,14 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	}
 
 	/**
-	 * Convert the request into a multipart request to make multiparts available.
-	 * If no multipart resolver is set, simply use the existing request.
+	 * Clean up any resources used by the given multipart request (if any).
 	 * @param request current HTTP request
-	 * @return the processed request (multipart wrapper if necessary)
-	 * @see MultipartResolver#resolveMultipart
+	 * @see MultipartResolver#cleanupMultipart
 	 */
-	private HttpServletRequest checkMultipart(HttpServletRequest request) throws MultipartException {
-		if (this.multipartResolver != null && this.multipartResolver.isMultipart(request)) {
-			if (request instanceof MultipartHttpServletRequest) {
-				logger.debug("Request is already a MultipartHttpServletRequest");
-			}
-			else {
-				return this.multipartResolver.resolveMultipart(request);
-			}
+	private void postProcessRequest(HttpServletRequest request) {
+		if (this.multipartResolver != null && request instanceof MultipartHttpServletRequest) {
+			this.multipartResolver.cleanupMultipart((MultipartHttpServletRequest) request);
 		}
-		return request;
 	}
 
 	/**
@@ -349,74 +330,6 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 		public Map<String, ?> toHeaders(HttpHeaders source) {
 			return source;
-		}
-	}
-
-
-	private class MultipartPayloadConverter {
-
-		public Object read(MultipartHttpServletRequest multipartRequest) {
-			Object payload = this.createPayload(multipartRequest);
-			this.cleanupMultipart(multipartRequest);
-			return payload;
-		}
-
-		@SuppressWarnings("unchecked")
-		private Object createPayload(MultipartHttpServletRequest multipartRequest) {
-			MultiValueMap<String, Object> payloadMap = new LinkedMultiValueMap<String, Object>();
-			Map parameterMap = multipartRequest.getParameterMap();
-			for (Object key : parameterMap.keySet()) {
-				payloadMap.add((String) key, parameterMap.get(key));
-			}
-			Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
-			for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
-				MultipartFile multipartFile = entry.getValue();
-				if (multipartFile.isEmpty()) {
-					continue;
-				}
-				try {
-					if (uploadMultipartFiles) {
-						String filename = multipartFile.getOriginalFilename();
-						// TODO: add filename post-processor, also consider names with path separators (e.g. from Opera)?
-						String tmpdir = System.getProperty("java.io.tmpdir");
-						File upload = (filename == null) ? File.createTempFile("si_", ".tmp") : new File(tmpdir, filename);
-						multipartFile.transferTo(upload);
-						payloadMap.add(entry.getKey(), upload);
-						if (logger.isDebugEnabled()) {
-							logger.debug("copied uploaded file [" + multipartFile.getOriginalFilename() +
-									"] to [" + upload.getAbsolutePath() + "]");
-						}
-					}
-					else if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
-						// TODO: use FileCopyUtils?
-						MediaType contentType = MediaType.parseMediaType(multipartFile.getContentType());
-						Charset charset = contentType.getCharSet();
-						if (charset == null) {
-							charset = defaultMultipartCharset;
-						}
-						payloadMap.add(entry.getKey(), new String(multipartFile.getBytes(), charset));
-					}
-					else {
-						// TODO: use FileCopyUtils?
-						payloadMap.add(entry.getKey(), multipartFile.getBytes());
-					}
-				}
-				catch (IOException e) {
-					throw new IllegalArgumentException("Cannot read contents of multipart file", e);
-				}
-			}
-			return payloadMap;
-		}
-
-		/**
-		 * Clean up any resources used by the given multipart request (if any).
-		 * @param request current HTTP request
-		 * @see MultipartResolver#cleanupMultipart
-		 */
-		private void cleanupMultipart(HttpServletRequest request) {
-			if (multipartResolver != null && request instanceof MultipartHttpServletRequest) {
-				multipartResolver.cleanupMultipart((MultipartHttpServletRequest) request);
-			}
 		}
 	}
 
