@@ -176,6 +176,11 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		this.multipartResolver = multipartResolver;
 	}
 
+	@Override
+	public String getComponentType() {
+		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter"; 
+	}
+
 	/**
 	 * Locates the {@link MultipartResolver} bean based on the default name defined by
 	 * the {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
