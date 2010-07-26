@@ -21,14 +21,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
-import org.springframework.util.Assert;
+
+import java.io.File;
 
 /**
  * @author Mark Fisher
@@ -43,7 +42,7 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 
 	private volatile BeanFactory beanFactory;
 
-	private volatile String directory;
+	private volatile File directory;
 
 	private volatile MessageChannel outputChannel;
 
@@ -74,11 +73,7 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 		this.beanFactory = beanFactory;
 	}
 
-	public void setDirectory(String directory) {
-		Assert.hasText(directory, "directory must not be empty");
-		if (directory.indexOf(':') == -1) {
-			directory = "file:" + directory;
-		}
+	public void setDirectory(File directory) {
 		this.directory = directory;
 	}
 
@@ -138,9 +133,7 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 			if (this.handler != null) {
 				return;
 			}
-			ResourceEditor editor = new ResourceEditor(this.resourceLoader);
-			editor.setAsText(this.directory);			
-			this.handler = new FileWritingMessageHandler((Resource) editor.getValue());
+			this.handler = new FileWritingMessageHandler(this.directory);
 			if (this.outputChannel != null) {
 				this.handler.setOutputChannel(this.outputChannel);
 			}

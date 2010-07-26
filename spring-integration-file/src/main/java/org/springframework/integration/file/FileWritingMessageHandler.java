@@ -16,16 +16,8 @@
 
 package org.springframework.integration.file;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageBuilder;
@@ -33,6 +25,12 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 
 /**
  * A {@link MessageHandler} implementation that writes the Message payload to a
@@ -74,23 +72,9 @@ public class FileWritingMessageHandler extends AbstractReplyProducingMessageHand
 	private volatile Charset charset = Charset.defaultCharset();
 
 
-	public FileWritingMessageHandler(Resource destinationDirectory) {
+	public FileWritingMessageHandler(File destinationDirectory) {
 		Assert.notNull(destinationDirectory, "Destination directory must not be null.");
-		File dir = null;
-		try {
-			dir = destinationDirectory.getFile();
-		}
-		catch (IOException ioe) {
-			try {
-				// fallback to the URI
-				dir = new File(destinationDirectory.getURI());
-			}
-			catch (Exception e) {
-				throw new IllegalArgumentException(
-					"Unexpected IOException when looking for destination directory: " + destinationDirectory, ioe);
-			}
-		}
-		this.destinationDirectory = dir;
+		this.destinationDirectory = destinationDirectory;
 	}
 
 

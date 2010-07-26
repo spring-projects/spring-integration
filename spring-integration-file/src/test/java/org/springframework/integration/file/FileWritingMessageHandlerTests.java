@@ -16,24 +16,8 @@
 
 package org.springframework.integration.file;
 
-import static org.easymock.EasyMock.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import org.springframework.core.io.Resource;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -41,6 +25,14 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.FileCopyUtils;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -56,18 +48,18 @@ public class FileWritingMessageHandlerTests {
 
 	private File sourceFile;
 
-	private Resource outputDirectory = createMock(Resource.class);
+	@Rule
+	public TemporaryFolder temp = new TemporaryFolder() {
+		public void create() throws IOException {
+			super.create();
+			outputDirectory = temp.newFolder("outputDirectory");
+			handler = new FileWritingMessageHandler(outputDirectory);
+		}
+	};
+
+	private File outputDirectory;
 
 	private FileWritingMessageHandler handler;
-
-	private static File outputDirectoryFile = new File(System.getProperty("java.io.tmpdir") + "/"
-			+ FileWritingMessageHandlerTests.class.getSimpleName());;
-
-	@BeforeClass
-	public static void setupOutputDir() throws Exception {
-		outputDirectoryFile.mkdir();
-		outputDirectoryFile.deleteOnExit();
-	}
 
 	@Before
 	public void setup() throws Exception {
@@ -75,34 +67,21 @@ public class FileWritingMessageHandlerTests {
 		sourceFile.deleteOnExit();
 		FileCopyUtils.copy(SAMPLE_CONTENT.getBytes(DEFAULT_ENCODING),
 				new FileOutputStream(sourceFile, false));
-		expect(outputDirectory.getFile()).andReturn(outputDirectoryFile).anyTimes();
-		expect(outputDirectory.exists()).andReturn(true).anyTimes();
-		replay(outputDirectory);
+		outputDirectory = temp.newFolder("outputDirectory");
 		handler = new FileWritingMessageHandler(outputDirectory);
 	}
-
-	@After
-	public void emptyOutputDir() {
-		File[] files = outputDirectoryFile.listFiles();
-		if (files != null) {
-			for (File file : files) {
-				file.delete();
-			}
-		}
-	}
-
 
 	@Test(expected = MessageHandlingException.class)
 	public void unsupportedType() throws Exception {
 		handler.handleMessage(new GenericMessage<Integer>(99));
-		assertThat(outputDirectoryFile.listFiles()[0], nullValue());
+		assertThat(outputDirectory.listFiles()[0], nullValue());
 	}
 
 	@Test
 	public void supportedType() throws Exception {
 		handler.setOutputChannel(new NullChannel());
 		handler.handleMessage(new GenericMessage<String>("test"));
-		assertThat(outputDirectoryFile.listFiles()[0], notNullValue());
+		assertThat(outputDirectory.listFiles()[0], notNullValue());
 	}
 
 	@Test

@@ -19,7 +19,6 @@ package org.springframework.integration.file;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.core.io.FileSystemResource;
 
 import java.io.File;
 
@@ -74,7 +73,7 @@ public class AutoCreateDirectoryTests {
 	@Test
 	public void autoCreateForOutboundEnabledByDefault() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
-				new FileSystemResource(OUTBOUND_PATH));
+				new File(OUTBOUND_PATH));
 		handler.afterPropertiesSet();
 		assertTrue(new File(OUTBOUND_PATH).exists());
 	}
@@ -82,7 +81,7 @@ public class AutoCreateDirectoryTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void autoCreateForOutboundDisabled() {
 		FileWritingMessageHandler handler = new FileWritingMessageHandler(
-				new FileSystemResource(OUTBOUND_PATH));
+				new File(OUTBOUND_PATH));
 		handler.setAutoCreateDirectory(false);
 		handler.afterPropertiesSet();
 	}
