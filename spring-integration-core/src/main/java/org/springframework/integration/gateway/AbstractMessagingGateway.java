@@ -62,6 +62,10 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
+	@Override
+	public String getComponentType(){
+		return "gateway";
+	}
 
 	/**
 	 * Set the request channel.
@@ -272,5 +276,4 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 			this.replyMessageCorrelator.stop();
 		}
 	}
-
 }

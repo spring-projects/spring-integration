@@ -26,6 +26,7 @@ import org.springframework.util.ErrorHandler;
  * A channel that sends Messages to each of its subscribers. 
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
@@ -39,7 +40,9 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 
 	private volatile boolean applySequence;
 
-
+	public String getComponentType(){
+		return "pub-sub-channel";
+	}
 	/**
 	 * Create a PublishSubscribeChannel that will use an {@link Executor}
 	 * to invoke the handlers. If this is null, each invocation will occur in

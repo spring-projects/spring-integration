@@ -22,7 +22,9 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.core.Message;
 import org.springframework.util.StringUtils;
 
 /**
@@ -76,4 +78,14 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	public String toString() {
         return new ArrayList<MessageHistoryEvent>(events).toString();
     }
+	
+	public static void writeMessageHistory(Message<?> message, NamedComponent component, BeanFactory beanFactory){
+		if (beanFactory != null){
+			if (beanFactory.containsBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME)){
+				MessageHistoryWriter writer = 
+					beanFactory.getBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME, MessageHistoryWriter.class);
+				writer.writeHistory(component, message);
+			}	
+		}
+	}
 }

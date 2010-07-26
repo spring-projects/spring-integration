@@ -73,7 +73,6 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendMessage() {
-		expect(messageMock.getHeaders()).andReturn(new MessageHeaders(null));
 		expect(requestChannel.send(messageMock)).andReturn(true);
 		replay(allmocks);
 		this.simpleMessagingGateway.send(messageMock);

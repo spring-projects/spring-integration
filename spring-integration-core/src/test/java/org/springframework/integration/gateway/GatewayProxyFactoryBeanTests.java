@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -44,6 +45,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.history.MessageHistoryEvent;
+import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.ReflectionUtils;
@@ -296,15 +298,21 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testHistory() throws Exception {
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.getBeanFactory().registerSingleton("historyWriter", new MessageHistoryWriter());
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setBeanFactory(context);
 		proxyFactory.setBeanName("testGateway");
 		DirectChannel channel = new DirectChannel();
 		channel.setBeanName("testChannel");
+		channel.setBeanFactory(context);
 		channel.afterPropertiesSet();
 		BridgeHandler bridgeHandler = new BridgeHandler();
+		bridgeHandler.setBeanFactory(context);
 		bridgeHandler.afterPropertiesSet();
+		bridgeHandler.setBeanName("testBridge");
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, bridgeHandler);
-		consumer.setBeanName("testBridge");
+		consumer.setBeanFactory(context);
 		consumer.afterPropertiesSet();
 		consumer.start();
 		proxyFactory.setDefaultRequestChannel(channel);
@@ -316,7 +324,9 @@ public class GatewayProxyFactoryBeanTests {
 		MessageHistoryEvent event1 = historyIterator.next();
 		MessageHistoryEvent event2 = historyIterator.next();
 		MessageHistoryEvent event3 = historyIterator.next();
+		
 		//assertEquals("echo", event1.getAttribute("method", String.class));
+		assertEquals("gateway", event1.getType());
 		assertEquals("testGateway", event1.getName());
 		assertEquals("channel", event2.getType());
 		assertEquals("testChannel", event2.getName());

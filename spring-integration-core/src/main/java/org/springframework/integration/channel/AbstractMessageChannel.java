@@ -23,13 +23,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
  * of any {@link ChannelInterceptor ChannelInterceptors}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel {
 
@@ -54,10 +55,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	private volatile Class<?>[] datatypes = new Class<?>[] { Object.class };
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
-
-
-	@Override
-	public String getComponentType() {
+	
+	public String getComponentType(){
 		return "channel";
 	}
 
@@ -159,10 +158,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * time or the sending thread is interrupted.
 	 */
 	public final boolean send(Message<?> message, long timeout) {
+		MessageHistory.writeMessageHistory(message, this, this.getBeanFactory());
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);
-		message.getHeaders().getHistory().addEvent(this);
 		message = this.interceptors.preSend(message, this);
 		if (message == null) {
 			return false;
@@ -287,5 +286,4 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 			return message;
 		}
 	}
-
 }

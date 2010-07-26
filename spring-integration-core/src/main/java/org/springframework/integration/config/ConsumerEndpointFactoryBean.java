@@ -26,6 +26,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -36,6 +37,7 @@ import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, InitializingBean, SmartLifecycle {
@@ -94,6 +96,9 @@ public class ConsumerEndpointFactoryBean
 
 	public void afterPropertiesSet() throws Exception {
 		this.initializeEndpoint();
+		if (this.handler instanceof IntegrationObjectSupport){
+			((IntegrationObjectSupport)this.handler).setComponentName(this.beanName);
+		}
 	}
 
 	public boolean isSingleton() {
@@ -149,7 +154,7 @@ public class ConsumerEndpointFactoryBean
 				throw new IllegalArgumentException(
 						"unsupported channel type: [" + channel.getClass() + "]");
 			}
-			this.endpoint.setBeanName(this.beanName);
+			//this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
 			this.endpoint.setAutoStartup(this.autoStartup);
 			this.endpoint.afterPropertiesSet();

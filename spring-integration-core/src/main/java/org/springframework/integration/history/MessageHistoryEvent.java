@@ -23,6 +23,7 @@ import java.io.Serializable;
  * with a timestamp that is generated when this event is created.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MessageHistoryEvent implements Serializable {
@@ -68,7 +69,7 @@ public class MessageHistoryEvent implements Serializable {
 		}
 		if (this.name != null) {
 			if (this.type != null) {
-				sb.append(':');
+				sb.append('@');
 			}
 			sb.append(name);
 			//sb.append("[" + timestamp + "]");

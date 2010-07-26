@@ -25,17 +25,13 @@ import org.springframework.util.Assert;
  * to a {@link SubscribableChannel}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class EventDrivenConsumer extends AbstractEndpoint {
 
 	private final SubscribableChannel inputChannel;
 
 	private final MessageHandler handler;
-
-	private volatile HandlerInvocationChain handlerInvocationChain;
-
-	private final Object initializationMonitor = new Object();
-
 
 	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
@@ -45,20 +41,13 @@ public class EventDrivenConsumer extends AbstractEndpoint {
 		this.setPhase(Integer.MIN_VALUE);
 	}
 
-
-	@Override // guarded by super#lifecycleLock
+	@Override // 
 	protected void doStart() {
-		synchronized (this.initializationMonitor) {
-			if (this.handlerInvocationChain == null) {
-				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getComponentName());
-			}
-		}
-		this.inputChannel.subscribe(this.handlerInvocationChain);
+		this.inputChannel.subscribe(this.handler);
 	}
 
-	@Override // guarded by super#lifecycleLock
+	@Override 
 	protected void doStop() {
-		this.inputChannel.unsubscribe(this.handlerInvocationChain);
+		this.inputChannel.unsubscribe(this.handler);
 	}
-
 }

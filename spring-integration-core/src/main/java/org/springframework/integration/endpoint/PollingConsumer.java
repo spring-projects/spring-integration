@@ -26,6 +26,7 @@ import org.springframework.util.Assert;
  * to a {@link PollableChannel}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class PollingConsumer extends AbstractPollingEndpoint {
 
@@ -33,15 +34,8 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 
 	private final MessageHandler handler;
 
-	private volatile MessageHandler handlerInvocationChain;
-
 	private volatile long receiveTimeout = 1000;
-
-	private volatile boolean initialized;
-
-	private final Object initializationMonitor = new Object();
-
-
+	
 	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
@@ -53,18 +47,6 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
 	}
-
-	@Override
-	protected void onInit() {
-		synchronized (this.initializationMonitor) {
-			if (!this.initialized) {
-				this.handlerInvocationChain = new HandlerInvocationChain(this.handler, this.getComponentName());
-			}
-			this.initialized = true;
-		}
-		super.onInit();
-	}
-
 	@Override
 	protected boolean doPoll() {
 		Message<?> message = (this.receiveTimeout >= 0)
@@ -73,8 +55,7 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 		if (message == null) {
 			return false;
 		}
-		this.handlerInvocationChain.handleMessage(message);
+		this.handler.handleMessage(message);
 		return true;
 	}
-
 }

@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
@@ -26,6 +25,7 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * checked exceptions into runtime {@link MessagingException}s.
  *
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, Ordered {
 
@@ -52,10 +53,16 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
     public int getOrder() {
         return this.order;
     }
+    
+    @Override
+	public String getComponentType() {
+		return "message-handler";
+	}
 
     public final void handleMessage(Message<?> message) {
         Assert.notNull(message, "Message must not be null");
         Assert.notNull(message.getPayload(), "Message payload must not be null");
+        MessageHistory.writeMessageHistory(message, this, this.getBeanFactory());
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(this + " received message: " + message);
         }

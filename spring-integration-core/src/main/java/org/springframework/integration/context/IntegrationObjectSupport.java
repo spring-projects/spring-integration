@@ -28,6 +28,7 @@ import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A base class that provides convenient access to the bean factory as
@@ -47,6 +48,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile String beanName;
+	
+	private volatile String componentName;
 
 	private volatile BeanFactory beanFactory;
 
@@ -61,11 +64,21 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		this.beanName = beanName;
 	}
 
-
-	public final String getComponentName() {
-		return this.beanName;
+	/**
+	 * Will return the name of this component identified by {@link this#componentName} field. 
+	 * If {@link this#componentName} was not set this method will default to the 'beanName' of this component;
+	 */
+	public final String getComponentName() {	
+		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}
-
+	/**
+	 * Sets the name of this component. 
+	 * 
+	 * @param componentName
+	 */
+	public void setComponentName(String componentName) {
+		this.componentName = componentName;
+	}
 	/**
 	 * Subclasses may implement this method to provide component type information.
 	 */
