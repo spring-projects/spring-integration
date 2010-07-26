@@ -208,42 +208,45 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	 * the reply Message once received.
 	 */
 	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
-		ServletServerHttpRequest request = this.prepareRequest(servletRequest);
-		if (!this.supportedMethods.contains(request.getMethod())) {
-			servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			this.postProcessRequest(servletRequest);
-			return null;
-		}
-		Object payload = null;
-		if (this.isReadable(request)) {
-			payload = this.generatePayloadFromRequestBody(request);
-		}
-		else {
-			payload = this.convertParameterMap(servletRequest.getParameterMap());
-		}
-		Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
-		Message<?> message = MessageBuilder.withPayload(payload)
-				.copyHeaders(headers)
-				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
-				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
-				.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
-				.build();
-		Object reply = null;
-		if (this.expectReply) {
-			reply = this.sendAndReceiveMessage(message);
-			if (reply != null) {
-				ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-				this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
-				if (this.extractReplyPayload) {
-					reply = ((Message<?>) reply).getPayload();
+		try {
+			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
+			if (!this.supportedMethods.contains(request.getMethod())) {
+				servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+				return null;
+			}
+			Object payload = null;
+			if (this.isReadable(request)) {
+				payload = this.generatePayloadFromRequestBody(request);
+			}
+			else {
+				payload = this.convertParameterMap(servletRequest.getParameterMap());
+			}
+			Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
+			Message<?> message = MessageBuilder.withPayload(payload)
+					.copyHeaders(headers)
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
+					.build();
+			Object reply = null;
+			if (this.expectReply) {
+				reply = this.sendAndReceiveMessage(message);
+				if (reply != null) {
+					ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+					this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
+					if (this.extractReplyPayload) {
+						reply = ((Message<?>) reply).getPayload();
+					}
 				}
 			}
+			else {
+				this.send(message);
+			}
+			return reply;
 		}
-		else {
-			this.send(message);
+		finally {
+			this.postProcessRequest(servletRequest);
 		}
-		this.postProcessRequest(servletRequest);
-		return reply;
 	}
 
 	/**
