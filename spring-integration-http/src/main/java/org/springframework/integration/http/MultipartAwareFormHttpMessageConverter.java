@@ -16,14 +16,10 @@
 
 package org.springframework.integration.http;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
@@ -36,44 +32,35 @@ import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.util.WebUtils;
 
 /**
- * An extension of {@link XmlAwareFormHttpMessageConverter} that adds the capability
- * to <i>read</i> <code>multipart/form-data</code> content in an HTTP request.
+ * An {@link HttpMessageConverter} implementation that delegates to an instance of
+ * {@link XmlAwareFormHttpMessageConverter} while adding the capability to <i>read</i>
+ * <code>multipart/form-data</code> content in an HTTP request.
  * 
  * @author Mark Fisher
  * @since 2.0
  */
 public class MultipartAwareFormHttpMessageConverter implements HttpMessageConverter<MultiValueMap<String, ?>> {
 
-	private static final Log logger = LogFactory.getLog(MultipartAwareFormHttpMessageConverter.class);
-
-
-	private volatile Charset defaultMultipartCharset = Charset.forName(WebUtils.DEFAULT_CHARACTER_ENCODING);
-
-	private volatile boolean uploadMultipartFiles = true;
+	private volatile MultipartFileReader<?> multipartFileReader = new DefaultMultipartFileReader();
 
 	private final XmlAwareFormHttpMessageConverter wrappedConverter = new XmlAwareFormHttpMessageConverter();
 
 
 	/**
-	 * Specify the default charset name to use when converting multipart file
-	 * content into Strings if the multipart itself does not provide a charset.
+	 * Sets the character set used for writing form data.
 	 */
-	public void setDefaultMultipartCharset(String defaultMultipartCharset) {
-		this.defaultMultipartCharset = Charset.forName(
-				defaultMultipartCharset != null ? defaultMultipartCharset : WebUtils.DEFAULT_CHARACTER_ENCODING);
-		this.wrappedConverter.setCharset(this.defaultMultipartCharset);
+	public void setCharset(Charset charset) {
+		this.wrappedConverter.setCharset(charset);
 	}
 
 	/**
-	 * Specify whether files in a multipart request should be "uploaded"
-	 * to the temporary directory instead of being read directly into
-	 * a value in the payload map. By default this is <code>true</code>.
+	 * Specify the {@link MultipartFileReader} to use when reading {@link MultipartFile} content.
 	 */
-	public void setUploadMultipartFiles(boolean uploadMultipartFiles) {
-		this.uploadMultipartFiles = uploadMultipartFiles;
+	public void setMultipartFileReader(MultipartFileReader<?> multipartFileReader) {
+		Assert.notNull(multipartFileReader, "multipartFileReader must not be null");
+		this.multipartFileReader = multipartFileReader;
 	}
 
 	public List<MediaType> getSupportedMediaTypes() {
@@ -104,17 +91,19 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 		if (!MediaType.MULTIPART_FORM_DATA.includes(contentType)) {
 			return this.wrappedConverter.read(clazz, inputMessage);
 		}
-		Assert.state(inputMessage instanceof MultipartHttpInputMessage, "request must be a MultipartHttpInputMessage");
+		Assert.state(inputMessage instanceof MultipartHttpInputMessage,
+				"A request with 'multipart/form-data' Content-Type must be a MultipartHttpInputMessage. "
+				+ "Be sure to provide a 'multipartResolver' bean in the ApplicationContext.");
 		MultipartHttpInputMessage multipartInputMessage = (MultipartHttpInputMessage) inputMessage;
 		return this.readMultipart(multipartInputMessage);
 	}
 
 	@SuppressWarnings("unchecked")
-	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) {
-		MultiValueMap<String, Object> payloadMap = new LinkedMultiValueMap<String, Object>();
+	private MultiValueMap<String, ?> readMultipart(MultipartHttpInputMessage multipartRequest) throws IOException {
+		MultiValueMap<String, Object> resultMap = new LinkedMultiValueMap<String, Object>();
 		Map parameterMap = multipartRequest.getParameterMap();
 		for (Object key : parameterMap.keySet()) {
-			payloadMap.add((String) key, parameterMap.get(key));
+			resultMap.add((String) key, parameterMap.get(key));
 		}
 		Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
 		for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
@@ -122,39 +111,9 @@ public class MultipartAwareFormHttpMessageConverter implements HttpMessageConver
 			if (multipartFile.isEmpty()) {
 				continue;
 			}
-			try {
-				if (this.uploadMultipartFiles) {
-					//payloadMap.add(entry.getKey(), multipartFile);
-					String filename = multipartFile.getOriginalFilename();
-					// TODO: add filename post-processor, also consider names with path separators (e.g. from Opera)?
-					String tmpdir = System.getProperty("java.io.tmpdir");
-					File upload = (filename == null) ? File.createTempFile("si_", ".tmp") : new File(tmpdir, filename);
-					multipartFile.transferTo(upload);
-					payloadMap.add(entry.getKey(), upload);
-					if (logger.isDebugEnabled()) {
-						logger.debug("copied uploaded file [" + multipartFile.getOriginalFilename() +
-								"] to [" + upload.getAbsolutePath() + "]");
-					}
-				}
-				else if (multipartFile.getContentType() != null && multipartFile.getContentType().startsWith("text")) {
-					// TODO: use FileCopyUtils?
-					MediaType contentType = MediaType.parseMediaType(multipartFile.getContentType());
-					Charset charset = contentType.getCharSet();
-					if (charset == null) {
-						charset = defaultMultipartCharset;
-					}
-					payloadMap.add(entry.getKey(), new String(multipartFile.getBytes(), charset));
-				}
-				else {
-					// TODO: use FileCopyUtils?
-					payloadMap.add(entry.getKey(), multipartFile.getBytes());
-				}
-			}
-			catch (IOException e) {
-				throw new IllegalArgumentException("Cannot read contents of multipart file", e);
-			}
+			resultMap.add(entry.getKey(), this.multipartFileReader.readMultipartFile(multipartFile));
 		}
-		return payloadMap;
+		return resultMap;
 	}
 
 	public void write(MultiValueMap<String, ?> map, MediaType contentType, HttpOutputMessage outputMessage)
