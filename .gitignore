@@ -4,3 +4,5 @@ target
 .settings
 spring-integration-samples/loanshark/application.log*
 integration-repo
+spring-integration-jms/activemq-data/
+si.java.hsp
