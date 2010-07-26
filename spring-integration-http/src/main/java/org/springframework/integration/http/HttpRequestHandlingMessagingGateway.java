@@ -17,42 +17,20 @@
 package org.springframework.integration.http;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.ResourceHttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJacksonHttpMessageConverter;
-import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
-import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.gateway.AbstractMessagingGateway;
-import org.springframework.integration.message.HeaderMapper;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * Inbound Messaging Gateway that handles HTTP Requests. May be configured as a bean in the
@@ -79,132 +57,28 @@ import org.springframework.web.servlet.DispatcherServlet;
  * @author Mark Fisher
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGateway implements HttpRequestHandler {
+public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements HttpRequestHandler {
 
-	private static final boolean jaxb2Present =
-			ClassUtils.isPresent("javax.xml.bind.Binder", HttpRequestHandlingMessagingGateway.class.getClassLoader());
-
-	private static final boolean jacksonPresent =
-			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", HttpRequestHandlingMessagingGateway.class.getClassLoader()) &&
-					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingMessagingGateway.class.getClassLoader());
-
-	private static boolean romePresent =
-			ClassUtils.isPresent("com.sun.syndication.feed.WireFeed", HttpRequestHandlingMessagingGateway.class.getClassLoader());
-
-
-	private volatile Class<?> conversionTargetType = byte[].class;
-
-	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
-
-	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
-
-	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
-
-	private final boolean expectReply;
-
-	private volatile MultipartResolver multipartResolver;
+	private volatile boolean extractReplyPayload = true;
 
 
 	public HttpRequestHandlingMessagingGateway() {
 		this(true);
 	}
 
-	@SuppressWarnings("unchecked")
 	public HttpRequestHandlingMessagingGateway(boolean expectReply) {
-		this.expectReply = expectReply;
-		this.messageConverters.add(new MultipartAwareFormHttpMessageConverter());
-		this.messageConverters.add(new SerializingHttpMessageConverter());
-		this.messageConverters.add(new ByteArrayHttpMessageConverter());
-		this.messageConverters.add(new StringHttpMessageConverter());
-		this.messageConverters.add(new ResourceHttpMessageConverter());
-		this.messageConverters.add(new SourceHttpMessageConverter());
-		if (jaxb2Present) {
-			this.messageConverters.add(new Jaxb2RootElementHttpMessageConverter());
-		}
-		if (jacksonPresent) {
-			this.messageConverters.add(new MappingJacksonHttpMessageConverter());
-		}
-		if (romePresent) {
-			// TODO add deps for:
-			//this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			//this.messageConverters.add(new RssChannelHttpMessageConverter());
-		}
+		super(expectReply);
 	}
 
 
 	/**
-	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
-	 * responses.
+	 * Specify whether the reply Message's payload should be passed in
+	 * the response. If this is set to 'false', the entire Message will
+	 * be processed by the {@link HttpMessageConverter}s. Otherwise, the
+	 * reply Message payload will be processed. The default is 'true'.
 	 */
-	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
-		Assert.notEmpty(messageConverters, "'messageConverters' must not be empty");
-		this.messageConverters = messageConverters;
-	}
-
-	/**
-	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
-	 */
-	public void setHeaderMapper(HeaderMapper<HttpHeaders> headerMapper) {
-		Assert.notNull(headerMapper, "headerMapper must not be null");
-		this.headerMapper = headerMapper;
-	}
-
-	/**
-	 * Specify the supported request methods for this gateway.
-	 * By default, only GET and POST are supported.
-	 */
-	public void setSupportedMethods(HttpMethod... supportedMethods) {
-		Assert.notEmpty(supportedMethods, "at least one supported method is required");
-		this.supportedMethods = Arrays.asList(supportedMethods);
-	}
-
-	/**
-	 * Specify the type of payload to be generated when the inbound HTTP request content
-	 * is read by the {@link HttpMessageConverter}s. The default is <code>byte[].class</code>.
-	 */
-	public void setConversionTargetType(Class<?> conversionTargetType) {
-		Assert.notNull(conversionTargetType, "conversionTargetType must not be null");
-		this.conversionTargetType = conversionTargetType;
-	}
-
-	/**
-	 * Specify the {@link MultipartResolver} to use when checking requests.
-	 * If no resolver is provided, this mapper will not support multipart
-	 * requests.
-	 */
-	public void setMultipartResolver(MultipartResolver multipartResolver) {
-		this.multipartResolver = multipartResolver;
-	}
-
-	@Override
-	public String getComponentType() {
-		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter"; 
-	}
-
-	/**
-	 * Locates the {@link MultipartResolver} bean based on the default name defined by
-	 * the {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
-	 */
-	@Override
-	protected void onInit() throws Exception {
-		super.onInit();
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (this.multipartResolver == null && beanFactory != null) {
-			try {
-				MultipartResolver multipartResolver =
-						this.getBeanFactory().getBean(DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Using MultipartResolver [" + multipartResolver + "]");
-				}
-				this.multipartResolver = multipartResolver;
-			}
-			catch (NoSuchBeanDefinitionException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("Unable to locate MultipartResolver with name '" + DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME +
-							"': no multipart request handling will be supported.");
-				}
-			}
-		}
+	public void setExtractReplyPayload(boolean extractReplyPayload) {
+		this.extractReplyPayload = extractReplyPayload; 
 	}
 
 	/**
@@ -213,119 +87,32 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	 * the reply Message once received.
 	 */
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
-		ServletServerHttpRequest request = this.prepareRequest(servletRequest);
+		Object responseContent = super.handleRequest(servletRequest);
 		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-		Assert.isTrue(this.supportedMethods.contains(request.getMethod()),
-				"unsupported request method [" + request.getMethod() + "]");
-
-		Object payload = null;
-		if (this.isReadable(request)) {
-			payload = this.generatePayloadFromRequestBody(request);
-		}
-		else {
-			payload = this.convertParameterMap(servletRequest.getParameterMap());
-		}
-		Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
-		Message<?> message = MessageBuilder.withPayload(payload)
-				.copyHeaders(headers)
-				//.setHeader(HttpHeaders.REQUEST_URL, request.getURI().toString())
-				//.setHeader(HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
-				//.setHeader(HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
-				.build();
-		if (this.expectReply) {
-			Message<?> reply = this.sendAndReceiveMessage(message);
-			this.headerMapper.fromHeaders(reply.getHeaders(), response.getHeaders());
-			if (reply.getPayload() != null) {
-				this.writePayload(reply.getPayload(), response, request.getHeaders().getAccept());
+		if (responseContent instanceof Message<?>) {
+			this.getHeaderMapper().fromHeaders(((Message<?>) responseContent).getHeaders(), response.getHeaders());
+			if (this.extractReplyPayload) {
+				responseContent = ((Message<?>) responseContent).getPayload();
 			}
 		}
-		else {
-			this.send(message);
-			// will be a status response for now... add an optional ResponseGenerator strategy?
+		if (responseContent != null) {
+			ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+			this.writeResponse(responseContent, response, request.getHeaders().getAccept());
 		}
-		this.postProcessRequest(servletRequest);
-	}
-
-	/**
-	 * Prepares an instance of {@link ServletServerHttpRequest} from the raw {@link HttpServletRequest}.
-	 * Also converts the request into a multipart request to make multiparts available if necessary.
-	 * If no multipart resolver is set, simply returns the existing request.
-	 * @param request current HTTP request
-	 * @return the processed request (multipart wrapper if necessary)
-	 * @see MultipartResolver#resolveMultipart
-	 */
-	private ServletServerHttpRequest prepareRequest(HttpServletRequest servletRequest) {
-		if (servletRequest instanceof MultipartHttpServletRequest) {
-			return new MultipartHttpInputMessage((MultipartHttpServletRequest) servletRequest);
-		}
-		if (this.multipartResolver != null && this.multipartResolver.isMultipart(servletRequest)) {
-			return new MultipartHttpInputMessage(this.multipartResolver.resolveMultipart(servletRequest));
-		}
-		return new ServletServerHttpRequest(servletRequest);
-	}
-
-	/**
-	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request)
-	 * and a Content-Type header.
-	 */
-	private boolean isReadable(ServletServerHttpRequest request) {
-		HttpMethod method = request.getMethod();
-		if (HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method) || HttpMethod.OPTIONS.equals(method)) {
-			return false;
-		}
-		return request.getHeaders().getContentType() != null;
-	}
-
-	/**
-	 * Clean up any resources used by the given multipart request (if any).
-	 * @param request current HTTP request
-	 * @see MultipartResolver#cleanupMultipart
-	 */
-	private void postProcessRequest(HttpServletRequest request) {
-		if (this.multipartResolver != null && request instanceof MultipartHttpServletRequest) {
-			this.multipartResolver.cleanupMultipart((MultipartHttpServletRequest) request);
-		}
-	}
-
-	/**
-	 * Converts a servlet request's parameterMap to a {@link MultiValueMap}.
-	 */
-	@SuppressWarnings("unchecked")
-	private LinkedMultiValueMap<String, String> convertParameterMap(Map parameterMap) {
-		LinkedMultiValueMap<String, String> convertedMap = new LinkedMultiValueMap<String, String>();
-		for (Object key : parameterMap.keySet()) {
-			String[] values = (String[]) parameterMap.get(key);
-			for (String value : values) {
-				convertedMap.add((String) key, value);
-			}
-		}
-		return convertedMap;
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
-		MediaType contentType = request.getHeaders().getContentType();
-		for (HttpMessageConverter<?> converter : this.messageConverters) {
-			if (converter.canRead(this.conversionTargetType, contentType)) {
-				return converter.read((Class) this.conversionTargetType, request);
-			}
-		}
-		throw new MessagingException("Could not convert request: no suitable HttpMessageConverter found for expected type [" +
-				this.conversionTargetType.getName() + "] and content type [" + contentType + "]");
-	}
-
-	@SuppressWarnings("unchecked")
-	private void writePayload(Object payload, ServletServerHttpResponse response, List<MediaType> acceptTypes) throws IOException {
-		for (HttpMessageConverter converter : this.messageConverters) {
+	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes) throws IOException {
+		for (HttpMessageConverter converter : this.getMessageConverters()) {
 			for (MediaType acceptType : acceptTypes) {
-				if (converter.canWrite(payload.getClass(), acceptType)) {
-					converter.write(payload, acceptType, response);
+				if (converter.canWrite(content.getClass(), acceptType)) {
+					converter.write(content, acceptType, response);
 					return;
 				}
 			}
 		}
 		throw new MessagingException("Could not convert reply: no suitable HttpMessageConverter found for result type [" +
-				payload.getClass().getName() + "] and content types [" + acceptTypes + "]");
+				content.getClass().getName() + "] and content types [" + acceptTypes + "]");
 	}
 
 }
