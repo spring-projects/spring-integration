@@ -84,12 +84,9 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			Map<String, Object> mappedHeaders = (Map<String, Object>) this.getHeaderMapper().toHeaders(jmsMessage);
 			MessageConverter converter = this.getJmsTemplate().getMessageConverter();
 			Object convertedObject = converter.fromMessage(jmsMessage);
-			if (convertedObject instanceof Message) {
-				convertedMessage = MessageBuilder.fromMessage((Message<Object>) convertedObject).copyHeaders(mappedHeaders).build();
-			}
-			else {
-				convertedMessage = MessageBuilder.withPayload(convertedObject).build();
-			}
+			MessageBuilder<Object> builder = (convertedObject instanceof Message)
+					? MessageBuilder.fromMessage((Message<Object>) convertedObject) : MessageBuilder.withPayload(convertedObject);
+			convertedMessage = builder.copyHeadersIfAbsent(mappedHeaders).build();
 			this.writeMessageHistory(convertedMessage);
 		}
 		catch (Exception e) {
