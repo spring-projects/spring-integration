@@ -345,6 +345,38 @@ abstract class MessageListenerContainerConfigurationSupport implements Initializ
 		return this.initialized && this.container.isRunning();
 	}
 
+	/**
+	 * Blocks until the listener container has subscribed; if the container does not support
+	 * this test, or the caching mode is incompatible, true is returned. Otherwise blocks
+	 * until timeout milliseconds have passed, or the consumer has registered.
+	 * @see DefaultMessageListenerContainer.isRegisteredWithDestination()
+	 * @param timeout Timeout in milliseconds.
+	 * @return True if a subscriber has connected or the container/attributes does not support
+	 * the test. False if a valid container does not have a registered consumer within 
+	 * timeout milliseconds.
+	 */
+	public boolean waitRegisteredWithDestination(long timeout) {
+		AbstractMessageListenerContainer container = this.getListenerContainer();
+		if (container instanceof DefaultMessageListenerContainer) {
+			DefaultMessageListenerContainer listenerContainer = 
+				(DefaultMessageListenerContainer) container;
+			if (listenerContainer.getCacheLevel() != DefaultMessageListenerContainer.CACHE_CONSUMER) {
+				return true;
+			}
+			while (timeout > 0) {
+				if (listenerContainer.isRegisteredWithDestination()) {
+					return true;
+				}
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) { }
+				timeout -= 100;
+			}
+			return false;
+		}
+		return true;
+	}
+	
 	public void start() {
 		this.getListenerContainer().start();
 	}
