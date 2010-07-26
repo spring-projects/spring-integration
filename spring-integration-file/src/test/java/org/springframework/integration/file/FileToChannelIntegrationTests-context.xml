@@ -11,7 +11,7 @@
 
 	<!-- under test -->
 	<file:inbound-channel-adapter
-		directory="file:${java.io.tmpdir}/FileToChannelIntegrationTests"
+		directory="${java.io.tmpdir}/FileToChannelIntegrationTests"
 		channel="fileMessages" filter="compositeFilter" />
 
 	<si:channel id="fileMessages">
