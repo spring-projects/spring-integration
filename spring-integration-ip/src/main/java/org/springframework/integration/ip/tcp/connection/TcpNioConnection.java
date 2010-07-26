@@ -1,0 +1,353 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.ip.tcp.connection;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import org.springframework.integration.core.Message;
+import org.springframework.integration.ip.tcp.SocketIoUtils;
+import org.springframework.integration.ip.tcp.converter.SoftEndOfStreamException;
+
+/**
+ * A TcpConnection that uses and underlying {@link SocketChannel}.
+ * 
+ * @author Gary Russell
+ * @since 2.0
+ *
+ */
+public class TcpNioConnection extends AbstractTcpConnection {
+
+	private final SocketChannel socketChannel;
+	
+	private final boolean server;
+	
+	private OutputStream channelOutputStream;
+	
+	private PipedOutputStream pipedOutputStream;
+	
+	private PipedInputStream pipedInputStream;
+
+	private boolean usingDirectBuffers;
+	
+	private Executor taskExecutor;
+	
+	private ByteBuffer rawBuffer;
+	
+	private int maxMessageSize = 60 * 1024;
+	
+	private boolean active = true;
+	
+	private long lastRead;
+	
+	/**
+	 * Constructs a TcpNetConnection for the SocketChannel.
+	 * @param socketChannel the socketChannel
+	 * @param server if true this connection was created as
+	 * a result of an incoming request.
+	 */
+	public TcpNioConnection(SocketChannel socketChannel, boolean server) throws Exception {
+		this.socketChannel = socketChannel;
+		this.server = server;
+		this.pipedInputStream = new PipedInputStream();
+		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
+		this.channelOutputStream = new ChannelOutputStream();
+	}
+	
+	public void close() {
+		doClose();
+	}
+
+	private void doClose() {
+		this.active = false;
+		if (pipedOutputStream != null) {
+			try {
+				pipedOutputStream.close();
+			} catch (IOException e) {}
+		}
+		try {
+			this.socketChannel.close();
+		} catch (Exception e) {}
+		super.close();
+	}
+
+	public boolean isOpen() {
+		return this.socketChannel.isOpen();
+	}
+
+	@SuppressWarnings("unchecked")
+	public void send(Message<?> message) throws Exception {
+		Object object = mapper.fromMessage(message);
+		this.outputConverter.convert(object, this.channelOutputStream);
+	}
+
+	public String getHostAddress() {
+		return this.socketChannel.socket().getInetAddress().getHostAddress();
+	}
+
+	public String getHostName() {
+		return this.socketChannel.socket().getInetAddress().getHostName();
+	}
+
+	public Object getPayload() throws Exception {
+		return this.inputConverter.convert(pipedInputStream);
+	}
+
+	public int getPort() {
+		return this.socketChannel.socket().getPort();
+	}
+	
+	/**
+	 * Allocates a ByteBuffer of the requested length using normal or
+	 * direct buffers, depending on the usingDirectBuffers field.
+	 */
+	protected ByteBuffer allocate(int length) {
+		ByteBuffer buffer;
+		if (this.usingDirectBuffers) {
+			buffer = ByteBuffer.allocateDirect(length);
+		} else {
+			buffer = ByteBuffer.allocate(length);
+		}
+		return buffer;
+	}
+	
+	/**
+	 * If there is no listener, and this connection is not for single use, 
+	 * this method exits. When there is a listener, this method assembles
+	 * data into messages by invoking convertAndSend whenever there is 
+	 * data in the input Stream. Method exits when a message is complete
+	 * and there is no more data; thus freeing the thread to work on other
+	 * sockets.
+	 */
+	public void run() {
+		logger.debug("Nio message assembler running...");
+		try {
+			if (this.listener == null && !this.singleUse) {
+				logger.debug("TcpListener exiting - no listener and not single use");			
+				return;
+			}
+			if (active) {
+				try {
+					while (pipedInputStream.available() > 0) {
+						convertAndSend();
+					}
+				} catch (IOException e) {
+					logger.error("Unexpected exception, exiting...", e);
+					return;
+				}
+			}
+		} finally {
+			logger.debug("Nio message assembler exiting...");
+		}
+	}
+
+	private synchronized void convertAndSend() throws IOException {
+		if (this.pipedInputStream.available() <= 0) {
+			System.err.println("NO WORK");
+			return;
+		}
+		Message<?> message = null;
+		try {
+			message = this.mapper.toMessage(this);
+		} catch (Exception e) {
+			this.close();
+			if (e instanceof SocketTimeoutException && this.singleUse) {
+				logger.debug("Closing single use socket after timeout");				
+			} else {
+				if (!(e instanceof SoftEndOfStreamException)) {
+					logger.error("Read exception " +
+							 	 this.getConnectionId() + " " +							
+							     e.getClass().getSimpleName() + 
+								 ":" + e.getCause() + ":" + e.getMessage());
+
+				}
+			}
+			return;
+		}			
+		/*
+		 * For single use sockets, we close after receipt if we are on the client
+		 * side, or the server side has no outbound adapter registered
+		 */
+		if (this.singleUse && (!this.server || this.sender == null)) {
+			logger.debug("Closing single use socket after inbound message");
+			this.close();
+		}
+		try {
+			if (message != null) {
+				listener.onMessage(message);
+			}
+		} catch (Exception e) {
+			logger.error("Exception sending meeeage: " + message, e);
+		}
+	}
+	
+	private void doRead() throws Exception {
+		if (rawBuffer == null) {
+			rawBuffer = allocate(maxMessageSize);
+		}
+		rawBuffer.clear();
+		int len = socketChannel.read(rawBuffer);
+		if (len < 0) {
+			this.close();
+			throw new IOException("Channel closed");
+		}
+		rawBuffer.flip();
+		if (logger.isDebugEnabled()) {
+			logger.debug("Read " + rawBuffer.limit() + " into raw buffer");
+		}
+		pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
+		pipedOutputStream.flush();
+
+		if (!socketChannel.isBlocking()) {
+			if (this.taskExecutor == null) {
+				this.taskExecutor = Executors.newSingleThreadExecutor();
+			}
+			this.taskExecutor.execute(this);
+		}
+	}
+
+	/**
+	 * Invoked by the factory when there is data to be read.
+	 */
+	public void readPacket() {
+		try {
+			doRead();
+		} catch (Exception e) {
+			logger.error("Exception on Read " + 
+					     this.getConnectionId() + " " + 
+					     e.getMessage());
+			this.close();
+		}
+	}
+	
+	/**
+	 * Close the socket due to timeout.
+	 */
+	void timeout() {
+		this.close();
+	}
+	
+	/**
+	 * 
+	 * @param taskExecutor the taskExecutor to set
+	 */
+	public void setTaskExecutor(Executor taskExecutor) {
+		this.taskExecutor = taskExecutor;
+	}
+	
+	/**
+	 * If true, connection will attempt to use direct buffers where
+	 * possible.
+	 * @param usingDirectBuffers
+	 */
+	public void setUsingDirectBuffers(boolean usingDirectBuffers) {
+		this.usingDirectBuffers = usingDirectBuffers;
+	}
+
+	public String getConnectionId() {
+		return SocketIoUtils.getSocketId(this.socketChannel.socket());
+	}
+
+	/**
+	 * 
+	 * @return Time of last read.
+	 */
+	public long getLastRead() {
+		return lastRead;
+	}
+
+	/**
+	 * 
+	 * @param lastRead The time of the last read.
+	 */
+	public void setLastRead(long lastRead) {
+		this.lastRead = lastRead;
+	}
+
+	/**
+	 * OutputStream to wrap a SocketChannel; implements timeout on write. 
+	 *
+	 */
+	class ChannelOutputStream extends OutputStream {
+
+		private Selector selector;
+		
+		private int soTimeout;
+		
+		@Override
+		public void write(int b) throws IOException {
+			byte[] bytes = new byte[1];
+			bytes[0] = (byte) b;
+			ByteBuffer buffer = ByteBuffer.wrap(bytes);
+			doWrite(buffer);
+		}
+
+		@Override
+		public void close() throws IOException {
+			doClose();
+		}
+
+		@Override
+		public void flush() throws IOException {
+		}
+
+		@Override
+		public void write(byte[] b, int off, int len) throws IOException {
+			ByteBuffer buffer = ByteBuffer.wrap(b, off, len);
+			doWrite(buffer);
+		}
+
+		@Override
+		public void write(byte[] b) throws IOException {
+			ByteBuffer buffer = ByteBuffer.wrap(b);
+			doWrite(buffer);
+		}
+		
+		private void doWrite(ByteBuffer buffer) throws IOException {
+			socketChannel.write(buffer);
+			int remaining = buffer.remaining();
+			if (remaining == 0) {
+				return;
+			}
+			if (this.selector == null) {
+				this.selector = Selector.open();
+				this.soTimeout = socketChannel.socket().getSoTimeout();
+			}
+			socketChannel.register(selector, SelectionKey.OP_WRITE);
+			while (remaining > 0) {
+				int selectionCount = this.selector.select(this.soTimeout);
+				if (selectionCount == 0) {
+					throw new SocketTimeoutException("Timeout on write");
+				}
+				selector.selectedKeys().clear();
+				socketChannel.write(buffer);
+				remaining = buffer.remaining();
+			}
+		}
+
+	}
+	
+}

@@ -277,5 +277,64 @@
 		so-timeout="226"
 		close="true"
 		/>		
+
+	<ip:tcp-connection-factory
+		id="client1"
+		type="client"
+		host="localhost"
+		port="9876"
+		input-converter="serial"
+		output-converter="serial"
+		so-keep-alive="true"
+		so-linger="54"
+		so-receive-buffer-size="1234"
+		so-send-buffer-size="1235"
+		so-tcp-no-delay="true"
+		so-timeout="1236"
+		so-traffic-class="12"
+		using-nio="true"
+		single-use="true"
+		task-executor="externalTE"
+		pool-size="321"		
+	/>
 	
+	<ip:tcp-connection-factory
+		id="server1"
+		type="server"
+		port="9876"
+		local-address="127.0.0.1"
+		input-converter="serial"
+		output-converter="serial"
+		so-keep-alive="true"
+		so-linger="55"
+		so-receive-buffer-size="1234"
+		so-send-buffer-size="1235"
+		so-tcp-no-delay="true"
+		so-timeout="1236"
+		so-traffic-class="12"
+		using-nio="true"
+		single-use="true"
+		task-executor="externalTE"
+		pool-size="123"
+	/>
+	
+	<bean id="serial" class="org.springframework.commons.serializer.JavaSerializationConverter" />
+	
+	<ip:tcp-outbound-channel-adapter id="tcpNewOut1"
+		channel="tcpChannel"
+		connection-factory="client1" />
+		
+	<ip:tcp-outbound-channel-adapter id="tcpNewOut2"
+		channel="tcpChannel"
+		connection-factory="server1" />
+		
+	<ip:tcp-inbound-channel-adapter id="tcpNewIn1"
+		channel="tcpChannel"
+		connection-factory="client1" />
+		
+	<ip:tcp-inbound-channel-adapter id="tcpNewIn2"
+		channel="tcpChannel"
+		connection-factory="server1" />
+		
+
 </beans>

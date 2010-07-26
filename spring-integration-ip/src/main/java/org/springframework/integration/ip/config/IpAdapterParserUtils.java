@@ -93,6 +93,15 @@ public abstract class IpAdapterParserUtils {
 
 	static final String TASK_EXECUTOR = "task-executor";
 
+	static final String TCP_CONNECTION_TYPE = "type";
+	
+	static final String INPUT_CONVERTER = "input-converter";
+	
+	static final String OUTPUT_CONVERTER = "output-converter";
+
+	static final String SINGLE_USE = "single-use";
+
+	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 
@@ -129,6 +138,17 @@ public abstract class IpAdapterParserUtils {
 		builder.addConstructorArgValue(port);
 	}
 
+	/**
+	 * @param element
+	 * @param builder
+	 * @param parserContext 
+	 */
+	public static void addPortToConstructor(Element element,
+			BeanDefinitionBuilder builder, ParserContext parserContext) {
+		String port = IpAdapterParserUtils.getPort(element, parserContext);
+		builder.addConstructorArgValue(port);
+	}
+	
 	/**
 	 * Asserts that a protocol attribute (udp or tcp) is supplied,
 	 * @param element

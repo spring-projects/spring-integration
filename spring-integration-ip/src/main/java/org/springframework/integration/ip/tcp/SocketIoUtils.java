@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.tcp;
 
 import java.lang.reflect.Constructor;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
@@ -122,4 +123,14 @@ public class SocketIoUtils {
 		return writer;
 	}
 
+	public static String getSocketId(Socket socket) {
+		InetAddress inetAddress = socket.getInetAddress();
+		String hostName = "";
+		if (inetAddress != null) {
+			hostName = inetAddress.getHostName();
+		}
+		return hostName + ":" + socket.getPort() + ":" +
+		       socket.hashCode();
+	}
+	
 }

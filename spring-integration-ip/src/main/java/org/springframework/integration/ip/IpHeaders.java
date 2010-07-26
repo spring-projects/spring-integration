@@ -44,4 +44,6 @@ public abstract class IpHeaders {
 
 	public static final String REMOTE_PORT = TCP + "remote_port";
 
+	public static final String CONNECTION_ID = IP + "connection_id";
+
 }

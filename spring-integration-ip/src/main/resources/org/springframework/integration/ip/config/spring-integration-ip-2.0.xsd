@@ -189,6 +189,183 @@ the custom message format. See java docs for TcpNetSendingChannelAdapter and Tcp
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="tcp-outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+A connection factory is needed by an outbound adapter. If the connection factory has a type 'client',
+the factory is 'owned' by this adapter. If it has a type 'server', it is owned by an inbound channel
+adapter and this adapter will attempt to correlate messages to the connection on which an original
+inbound message was received. 						 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="tcp-inbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+A connection factory is needed by an inbound adapter. If the connection factory has a type 'server',
+the factory is 'owned' by this adapter. If it has a type 'client', it is owned by an outbound channel
+adapter and this adapter will receive any incoming messages on the connection created by the outbound
+adapter. 						 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="tcp-connection-factory">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="type">
+				<xsd:annotation>
+					<xsd:documentation>
+Connection factories can be 'client' or 'server'. Client factories
+open a connection to a server using a host and port. Server factories
+listen on a port and create a separate connection for each incoming
+connection request.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:NMTOKEN">
+						<xsd:enumeration value="client" />
+						<xsd:enumeration value="server" />
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="host" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+The host to which a client connection factory will connect.					
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="port" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+For client factories, the port to which a client connection factory will connect.
+For server factories, the port on which the factory will listen for incoming
+connections. 					
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="using-nio" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+If true, the factory will use java.nio.channel.SocketChannel for communication; 
+for a large number of connections on the server side, this can provide better
+performance and may use fewer threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="so-keep-alive" type="xsd:string" />
+			<xsd:attribute name="so-linger" type="xsd:string" />
+			<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
+			<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
+			<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
+			<xsd:attribute name="so-timeout" type="xsd:string" />
+			<xsd:attribute name="so-traffic-class" type="xsd:string" />
+			<xsd:attribute name="single-use" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+If true, a new connection will be created for each use. For inbound adapters
+where there is no outbound adapter sharing the factory, the connection will
+be closed after a message is received. For outbound adapters where there is
+no inbound adapter sharing the factory, or for inbound adapters where an
+outbound adapter shares the factory, the connection will be closed after
+so-timeout milliseconds. For outbound adapters where an inbound adapter shares
+the factory, the connection will be closed after a response is received. 					
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="input-converter" type="xsd:string" >
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.serializer.InputStreamingConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+An InputStreamingConverter that converts message payloads to/from output streams/input streams
+associated with the connection. Default is ByteArrayCrLfConverter. Input and output converters
+would normally be the same but this is not required.					
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="output-converter" type="xsd:string" >
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.serializer.OutputStreamingConverter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+An OutputStreamingConverter that converts message payloads to/from output streams/input streams
+associated with the connection. Default is ByteArrayCrLfConverter. Input and output converters
+would normally be the same but this is not required.									
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="local-address" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+On a multi-homed system, specifies the ip address of the network interface used to communicate.
+For inbound adapters and gateways, specifies the interface used to listen for incoming connections.
+If omitted, the endpoint will listen on all available adapters. For the UDP multicast outbound adapter
+specifies the interface to which multicast packets will be sent. For UDP unicast and multicast
+adapters, specifies which interface to which the acknowledgment socket will be bound. Does not
+apply to TCP outbound adapters and gateways.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="task-executor" type="xsd:string" />
+			<xsd:attribute name="pool-size" type="xsd:string" >
+				<xsd:annotation>
+					<xsd:documentation>
+The number of threads that will be used for socket/channel handling. Only applies
+if an external task-executor is NOT being used. When using an external task executor,
+its configuration specifies the number of threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:complexType name="ipAdapterType">
 		<xsd:annotation>

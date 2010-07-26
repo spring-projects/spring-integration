@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.commons.serializer.InputStreamingConverter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ip.tcp.CustomNetSocketReader;
@@ -38,6 +39,11 @@ import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler;
+import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
+import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
+import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
@@ -49,6 +55,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Gary Russell
+ * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -125,6 +132,33 @@ public class ParserUnitTests {
 	@Qualifier(value="externalTE")
 	TaskExecutor taskExecutor;
 	
+	@Autowired
+	@Qualifier(value="client1")
+	AbstractConnectionFactory client1;
+
+	@Autowired
+	InputStreamingConverter<byte[]> converter;
+	
+	@Autowired
+	@Qualifier(value="server1")
+	AbstractConnectionFactory server1;
+
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#0")
+	TcpSendingMessageHandler tcpNewOut1;
+
+	@Autowired
+	@Qualifier(value="org.springframework.integration.ip.tcp.TcpSendingMessageHandler#1")
+	TcpSendingMessageHandler tcpNewOut2;
+
+	@Autowired
+	@Qualifier(value="tcpNewIn1")
+	TcpReceivingChannelAdapter tcpNewIn1;
+
+	@Autowired
+	@Qualifier(value="tcpNewIn2")
+	TcpReceivingChannelAdapter tcpNewIn2;
+
 	@Test
 	public void testInUdp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(udpIn);
@@ -383,4 +417,66 @@ public class ParserUnitTests {
 		assertEquals(226, delegateDfa.getPropertyValue("soTimeout"));
 		assertEquals(true, dfa.getPropertyValue("close"));
 	}
+
+	@Test
+	public void testConnClient1() {
+		assertTrue(client1 instanceof TcpNioClientConnectionFactory);
+		assertEquals("localhost", client1.getHost());
+		assertEquals(9876, client1.getPort());
+		assertEquals(54, client1.getSoLinger());
+		assertEquals(1234, client1.getSoReceiveBufferSize());
+		assertEquals(1235, client1.getSoSendBufferSize());
+		assertEquals(1236, client1.getSoTimeout());
+		assertEquals(12, client1.getSoTrafficClass());
+		DirectFieldAccessor dfa = new DirectFieldAccessor(client1);
+		assertSame(converter, dfa.getPropertyValue("inputConverter"));
+		assertSame(converter, dfa.getPropertyValue("outputConverter"));
+		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
+		assertEquals(true, dfa.getPropertyValue("singleUse"));
+		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
+		assertEquals(321, dfa.getPropertyValue("poolSize"));
+	}
+
+	@Test
+	public void testConnServer1() {
+		assertTrue(server1 instanceof TcpNioServerConnectionFactory);
+		assertEquals(9876, server1.getPort());
+		assertEquals(55, server1.getSoLinger());
+		assertEquals(1234, server1.getSoReceiveBufferSize());
+		assertEquals(1235, server1.getSoSendBufferSize());
+		assertEquals(1236, server1.getSoTimeout());
+		assertEquals(12, server1.getSoTrafficClass());
+		DirectFieldAccessor dfa = new DirectFieldAccessor(server1);
+		assertSame(converter, dfa.getPropertyValue("inputConverter"));
+		assertSame(converter, dfa.getPropertyValue("outputConverter"));
+		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
+		assertEquals(true, dfa.getPropertyValue("singleUse"));
+		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
+		assertEquals(123, dfa.getPropertyValue("poolSize"));
+	}
+
+	@Test
+	public void testNewOut1() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut1);
+		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
+	}
+	
+	@Test
+	public void testNewOut2() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewOut2);
+		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
+	}
+	
+	@Test
+	public void testNewIn1() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn1);
+		assertSame(client1, dfa.getPropertyValue("clientConnectionFactory"));
+	}
+	
+	@Test
+	public void testNewIn2() {
+		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpNewIn2);
+		assertSame(server1, dfa.getPropertyValue("serverConnectionFactory"));
+	}
+	
 }
