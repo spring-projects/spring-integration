@@ -15,9 +15,9 @@
  */
 package org.springframework.integration.file.locking;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.integration.file.FileListFilter;
 
 import java.io.File;
@@ -33,20 +33,16 @@ import static org.junit.Assert.assertThat;
  */
 public class NioFileLockerTests {
 
-    private static File workdir = new File(new File(System.getProperty("java.io.tmpdir")), NioFileLockerTests.class.getSimpleName());
+    private File workdir;
 
-    @BeforeClass
-    public static void setupWorkDir() {
-        workdir.mkdir();
-    }
-
-    @Before
-    public void cleanDirectory() {
-        File[] files = workdir.listFiles();
-        for (File file : files) {
-            file.delete();
-        }
-    }
+	@Rule
+	public TemporaryFolder temp = new TemporaryFolder() {
+		@Override
+		public void create() throws IOException {
+			super.create();
+			workdir = temp.newFolder(NioFileLockerTests.class.getSimpleName());
+		}
+	};
 
     @Test
     public void fileListedByFirstFilter() throws IOException {
