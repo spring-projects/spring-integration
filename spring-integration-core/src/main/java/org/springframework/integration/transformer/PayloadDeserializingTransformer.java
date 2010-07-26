@@ -16,39 +16,35 @@
 
 package org.springframework.integration.transformer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
+import org.springframework.commons.serializer.JavaDeserializingConverter;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.util.Assert;
 
 /**
- * Transformer that deserializes the inbound byte array payload to an object.
- * <p>The byte array payload must be a result of serialization.
+ * Transformer that deserializes the inbound byte array payload to an object by delegating to a
+ * Converter&lt;byte[], Object&gt;. Default delegate is a {@link JavaDeserializingConverter}.
+ * <p>The byte array payload must be a result of equivalent serialization.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 1.0.1
  */
-public class PayloadDeserializingTransformer extends AbstractPayloadTransformer<byte[], Object> {
-
+public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransformer<byte[], Object> {
+	
+	public PayloadDeserializingTransformer() {
+		this.converter = new JavaDeserializingConverter();
+	}
+	
 	@Override
 	protected Object transformPayload(byte[] payload) throws Exception {
-		ByteArrayInputStream byteStream = new ByteArrayInputStream(payload);
-		ObjectInputStream objectStream = null;
-		try {
-			objectStream = new ObjectInputStream(byteStream);
-			return objectStream.readObject();
-		}
-		catch (ObjectStreamException e) {
-			throw new IllegalArgumentException(
-					"Failed to deserialize payload. Is the byte array a result of Object serialization?", e);
-		}
-		finally {
-			try {
-				objectStream.close();
-			}
-			catch (Exception e) {
-				// ignore
-			}
-		}
+		Assert.notNull(this.converter, this.getClass().getName() + " needs a Converter<byte[], Object>");
+		return converter.convert(payload);
 	}
+
+	@Override
+	public void setConverter(Converter<byte[], Object> converter) {
+		this.converter = converter;
+	}
+	
 
 }

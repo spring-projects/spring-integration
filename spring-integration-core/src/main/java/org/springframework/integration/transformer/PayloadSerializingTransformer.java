@@ -16,31 +16,36 @@
 
 package org.springframework.integration.transformer;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
+import org.springframework.commons.serializer.JavaSerializingConverter;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
 /**
- * Transformer that serializes the inbound payload into a byte array.
- * <p>The payload instance must be Serializable.
+ * Transformer that serializes the inbound payload into a byte array by delegating to a 
+ * Converter&lt;Object, byte[]&gt;. Default delegate is a {@link JavaSerializingConverter}.
+ * 
+ * <p>The payload instance must be Serializable if the default converter is used.
  * 
  * @author Mark Fisher
+ * @author Gary Russell
  * @since 1.0.1
  */
-public class PayloadSerializingTransformer extends AbstractPayloadTransformer<Object, byte[]> {
+public class PayloadSerializingTransformer extends PayloadTypeConvertingTransformer<Object, byte[]> {
+
+	
+	public PayloadSerializingTransformer() {
+		this.converter = new JavaSerializingConverter();
+	}
 
 	@Override
 	protected byte[] transformPayload(Object payload) throws Exception {
-		Assert.isTrue(payload instanceof Serializable, this.getClass().getName()
-				+ " requires a Serializable payload, but received [" + payload.getClass().getName() + "]");
-		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-		ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
-		objectStream.writeObject(payload);
-		objectStream.flush();
-		objectStream.close();
-		return byteStream.toByteArray();
+		Assert.notNull(this.converter, this.getClass().getName() + " needs a Converter<Object, byte[]>");
+		return converter.convert(payload);
 	}
 
+	@Override
+	public void setConverter(Converter<Object, byte[]> converter) {
+		this.converter = converter;
+	}
+	
 }
