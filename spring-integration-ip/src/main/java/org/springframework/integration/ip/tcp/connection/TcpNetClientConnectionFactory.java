@@ -21,7 +21,7 @@ import java.net.Socket;
 import javax.net.SocketFactory;
 
 /**
- * A client connection factory that creates {@link TcpNetConection}s. 
+ * A client connection factory that creates {@link TcpNetConnection}s. 
  * @author Gary Russell
  * @since 2.0
  *

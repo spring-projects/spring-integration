@@ -166,7 +166,7 @@ public class TcpNioClientConnectionFactory extends
 													e.getMessage());
 											connection.close();
 										} else {
-											logger.debug("Conection closed");
+											logger.debug("Connection closed");
 										}
 									}
 									if (key.channel().isOpen()) {

@@ -55,7 +55,7 @@ public interface TcpConnection extends Runnable {
 	/**
 	 * Uses the input converter to obtain the message payload
 	 * from the connection's input stream.
-	 * @return
+	 * @return The payload
 	 * @throws Exception 
 	 */
 	public Object getPayload() throws Exception;
@@ -77,7 +77,7 @@ public interface TcpConnection extends Runnable {
 
 	/**
 	 * Sets the listener that will receive incoming Messages. 
-	 * @param listener
+	 * @param listener The listener
 	 */
 	public void registerListener(TcpListener listener);
 
@@ -96,7 +96,7 @@ public interface TcpConnection extends Runnable {
 	
 	/**
 	 * When true, the socket is used once and discarded.
-	 * @param singleUse
+	 * @param singleUse the singleUse
 	 */
 	public void setSingleUse(boolean singleUse);
 

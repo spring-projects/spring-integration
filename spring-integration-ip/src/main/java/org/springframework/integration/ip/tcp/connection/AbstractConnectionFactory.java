@@ -232,7 +232,7 @@ public abstract class AbstractConnectionFactory
 	 * Registers a TcpSender; for server sockets, used to 
 	 * provide connection information so a sender can be used
 	 * to reply to incoming messages.
-	 * @param tcpSendingMessageHandler
+	 * @param sender The sender
 	 */
 	public void registerSender(TcpSender sender) {
 		Assert.isNull(this.sender, this.getClass().getName() +

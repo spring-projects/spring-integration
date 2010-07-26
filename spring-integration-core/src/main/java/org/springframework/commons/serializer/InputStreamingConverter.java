@@ -31,7 +31,7 @@ public interface InputStreamingConverter<T> {
 	
 	/**
 	 * Read (assemble an object of type T) from an InputStream.
-	 * @param is The InputStream.
+	 * @param inputStream The InputStream.
 	 * @return The object.
 	 * @throws IOException
 	 */

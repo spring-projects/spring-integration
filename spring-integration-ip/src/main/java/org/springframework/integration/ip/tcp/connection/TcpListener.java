@@ -37,7 +37,7 @@ public interface TcpListener {
 	/**
 	 * Return true if the connection factory is a server
 	 * and it is listening.
-	 * @return
+	 * @return true if listening
 	 */
 	public boolean isListening();
 

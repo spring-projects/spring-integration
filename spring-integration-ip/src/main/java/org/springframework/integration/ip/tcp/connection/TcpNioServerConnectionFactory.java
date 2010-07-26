@@ -167,7 +167,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 										logger.error("Exception on read " + e.getMessage());
 										connection.close();
 									} else {
-										logger.debug("Conection closed");
+										logger.debug("Connection closed");
 									}
 								}
 								if (key.channel().isOpen()) {

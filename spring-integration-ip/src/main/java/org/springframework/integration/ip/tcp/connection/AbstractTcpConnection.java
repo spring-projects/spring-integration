@@ -79,14 +79,14 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * @param converter the input converter to set
+	 * @param inputConverter the input converter to set
 	 */
 	public void setInputConverter(InputStreamingConverter<?> inputConverter) {
 		this.inputConverter = inputConverter;
 	}
 
 	/**
-	 * @param converter the output converter to set 
+	 * @param outputConverter the output converter to set 
 	 */
 	public void setOutputConverter(OutputStreamingConverter<?> outputConverter) {
 		this.outputConverter = outputConverter;
@@ -96,7 +96,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
-	 * @param sender the listener to set
+	 * @param listener the listener to set
 	 */
 	public void registerListener(TcpListener listener) {
 		this.listener = listener;
