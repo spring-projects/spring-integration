@@ -41,7 +41,6 @@ import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
 import org.springframework.integration.message.HeaderMapper;
@@ -99,7 +98,7 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
-	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHeaderMapper();
+	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
 
 	private final boolean expectReply;
 
@@ -140,6 +139,14 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 	public void setMessageConverters(List<HttpMessageConverter<?>> messageConverters) {
 		Assert.notEmpty(messageConverters, "'messageConverters' must not be empty");
 		this.messageConverters = messageConverters;
+	}
+
+	/**
+	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
+	 */
+	public void setHeaderMapper(HeaderMapper<HttpHeaders> headerMapper) {
+		Assert.notNull(headerMapper, "headerMapper must not be null");
+		this.headerMapper = headerMapper;
 	}
 
 	/**
@@ -314,23 +321,6 @@ public class HttpRequestHandlingMessagingGateway extends AbstractMessagingGatewa
 		}
 		throw new MessagingException("Could not convert reply: no suitable HttpMessageConverter found for result type [" +
 				payload.getClass().getName() + "] and content types [" + acceptTypes + "]");
-	}
-
-
-	private static class DefaultHeaderMapper implements HeaderMapper<HttpHeaders> {
-
-		public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
-			for (String name : headers.keySet()) {
-				Object value = headers.get(name);
-				if (value instanceof String) {
-					target.add(name, (String) value);
-				}
-			}
-		}
-
-		public Map<String, ?> toHeaders(HttpHeaders source) {
-			return source;
-		}
 	}
 
 }
