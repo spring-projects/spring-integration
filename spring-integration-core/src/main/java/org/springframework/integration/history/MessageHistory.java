@@ -78,14 +78,4 @@ public class MessageHistory implements Iterable<MessageHistoryEvent>, Serializab
 	public String toString() {
         return new ArrayList<MessageHistoryEvent>(events).toString();
     }
-	
-	public static void writeMessageHistory(Message<?> message, NamedComponent component, BeanFactory beanFactory){
-		if (beanFactory != null){
-			if (beanFactory.containsBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME)){
-				MessageHistoryWriter writer = 
-					beanFactory.getBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME, MessageHistoryWriter.class);
-				writer.writeHistory(component, message);
-			}	
-		}
-	}
 }

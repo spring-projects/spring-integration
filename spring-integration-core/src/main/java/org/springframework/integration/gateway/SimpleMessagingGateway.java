@@ -81,7 +81,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		Message<?> message = null;
 		try {
 			message = this.inboundMapper.toMessage(object);
-			MessageHistory.writeMessageHistory(message, this, this.getBeanFactory());
+			this.writeMessageHistory(message, this);
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {

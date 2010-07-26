@@ -315,6 +315,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		if (this.getBeanFactory() != null) {
 			gateway.setBeanFactory(this.getBeanFactory());
 		}
+		gateway.afterPropertiesSet();
 		return gateway;
 	}
 	

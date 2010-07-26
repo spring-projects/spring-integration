@@ -26,6 +26,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.core.Message;
+import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -46,6 +48,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	/** Logger that is available to subclasses */
 	protected final Log logger = LogFactory.getLog(getClass());
+	
+	private volatile MessageHistoryWriter historyWriter;
 
 	private volatile String beanName;
 	
@@ -100,6 +104,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 				throw (RuntimeException) e;
 			}
 			throw new BeanInitializationException("failed to initialize", e);
+		}
+		if (this.beanFactory != null){
+			if (this.beanFactory.containsBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME)){
+				historyWriter = this.beanFactory.getBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME, MessageHistoryWriter.class);
+			}	
 		}
 	}
 
@@ -157,5 +166,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public String toString() {
 		return (this.beanName != null) ? this.beanName : super.toString();
 	}
-
+	
+	protected void writeMessageHistory(Message<?> message, NamedComponent component){
+		if (historyWriter != null){
+			historyWriter.writeHistory(component, message);
+		}
+	}
 }
