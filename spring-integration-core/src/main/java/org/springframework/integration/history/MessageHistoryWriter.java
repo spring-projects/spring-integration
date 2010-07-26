@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.history;
 
 import org.springframework.integration.context.NamedComponent;
@@ -23,9 +24,13 @@ import org.springframework.integration.core.Message;
  * @since 2.0
  */
 public class MessageHistoryWriter {
+
 	public final static String HISTORY_WRITER_BEAN_NAME = "historyWriter";
-	
-	public void writeHistory(NamedComponent component, Message<?> message){
-		message.getHeaders().getHistory().addEvent(component);
+
+	public void writeHistory(NamedComponent component, Message<?> message) {
+		if (message != null) {
+			message.getHeaders().getHistory().addEvent(component);
+		}
 	}
+
 }

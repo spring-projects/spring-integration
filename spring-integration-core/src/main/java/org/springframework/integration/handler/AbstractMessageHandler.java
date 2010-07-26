@@ -25,7 +25,6 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -62,7 +61,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
     public final void handleMessage(Message<?> message) {
         Assert.notNull(message, "Message must not be null");
         Assert.notNull(message.getPayload(), "Message payload must not be null");
-        this.writeMessageHistory(message, this);
+        this.writeMessageHistory(message);
         if (this.logger.isDebugEnabled()) {
             this.logger.debug(this + " received message: " + message);
         }

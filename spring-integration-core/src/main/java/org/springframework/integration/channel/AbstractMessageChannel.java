@@ -26,11 +26,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
@@ -159,7 +157,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	 * time or the sending thread is interrupted.
 	 */
 	public final boolean send(Message<?> message, long timeout) {
-		this.writeMessageHistory(message, this);
+		this.writeMessageHistory(message);
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		message = this.convertPayloadIfNecessary(message);

@@ -105,10 +105,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			}
 			throw new BeanInitializationException("failed to initialize", e);
 		}
-		if (this.beanFactory != null){
-			if (this.beanFactory.containsBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME)){
+		if (this.beanFactory != null) {
+			if (this.beanFactory.containsBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME)) {
 				historyWriter = this.beanFactory.getBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME, MessageHistoryWriter.class);
-			}	
+			}
 		}
 	}
 
@@ -166,10 +166,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public String toString() {
 		return (this.beanName != null) ? this.beanName : super.toString();
 	}
-	
-	protected void writeMessageHistory(Message<?> message, NamedComponent component){
-		if (historyWriter != null){
-			historyWriter.writeHistory(component, message);
+
+	protected void writeMessageHistory(Message<?> message) {
+		if (historyWriter != null) {
+			historyWriter.writeHistory(this, message);
 		}
 	}
+
 }

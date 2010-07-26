@@ -18,7 +18,6 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.util.Assert;
@@ -81,7 +80,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		Message<?> message = null;
 		try {
 			message = this.inboundMapper.toMessage(object);
-			this.writeMessageHistory(message, this);
+			this.writeMessageHistory(message);
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {
