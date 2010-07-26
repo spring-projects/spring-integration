@@ -20,7 +20,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBean {
+public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectSupport {
 	
 	private volatile boolean extractPayload = true;
 
@@ -181,7 +181,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		return this.jmsTemplate;
 	}
 
-	public void afterPropertiesSet() {
+	public void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;

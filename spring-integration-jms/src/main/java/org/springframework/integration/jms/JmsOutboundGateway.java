@@ -88,6 +88,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
+	
+	public String getComponentType(){
+		return "jms:outbound-gateway";
+	}
 
 
 	/**

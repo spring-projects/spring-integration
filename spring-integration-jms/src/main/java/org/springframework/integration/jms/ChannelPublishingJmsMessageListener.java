@@ -16,6 +16,8 @@
 
 package org.springframework.integration.jms;
 
+import java.util.Map;
+
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.InvalidDestinationException;
@@ -67,6 +69,10 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+	
+	public String getComponentType(){
+		return "jms:inbound-gateway";
+	}
 
 	/**
 	 * Specify whether a JMS reply Message is expected.
@@ -208,10 +214,15 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 		super.onInit();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 		Object object = this.messageConverter.fromMessage(jmsMessage);
+		
+		Map<String, Object> headers = (Map<String, Object>) headerMapper.toHeaders(jmsMessage);
 		Message<?> requestMessage = (object instanceof Message<?>) ?
-				(Message<?>) object : MessageBuilder.withPayload(object).build();
+				MessageBuilder.fromMessage((Message<?>) object).copyHeaders(headers).build() : 
+				MessageBuilder.withPayload(object).copyHeaders(headers).build();
+		this.writeMessageHistory(requestMessage, this);		
 		if (!this.expectReply) {
 			this.send(requestMessage);
 		}

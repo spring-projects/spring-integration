@@ -35,7 +35,9 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
-
+	public String getComponentType(){
+		return "jms:outbound-channel-adapter";
+	}
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 	}
@@ -60,6 +62,7 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
+		this.writeMessageHistory(message, this);
 		this.getJmsTemplate().convertAndSend(message, new MessagePostProcessor() {
 			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage)
 					throws JMSException {

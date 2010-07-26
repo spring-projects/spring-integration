@@ -48,6 +48,10 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.jms.JmsDestinationPollingSource");
+		String componentName =  this.resolveId(element, builder.getBeanDefinition(), parserContext);
+		if (StringUtils.hasText(componentName)){
+			builder.addPropertyValue("componentName", componentName);
+		}
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);

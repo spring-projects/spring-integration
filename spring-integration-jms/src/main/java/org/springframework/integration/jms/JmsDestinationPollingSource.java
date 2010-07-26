@@ -53,13 +53,16 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 		super(connectionFactory, destinationName);
 	}
 
-
+	public String getComponentType(){
+		return "jms:inbound-channel-adapter";
+	}
 	/**
 	 * Specify a JMS Message Selector expression to use when receiving Messages.
 	 */
 	public void setMessageSelector(String messageSelector) {
 		this.messageSelector = messageSelector;
 	}
+	
 	/**
 	 * Will receive JMS {@link javax.jms.Message} converting and returning it as 
 	 * Spring Integration(SI) {@link Message}.
@@ -86,6 +89,7 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			} else {
 				convertedMessage = MessageBuilder.withPayload(convertedObject).build();
 			}
+			this.writeMessageHistory(convertedMessage, this);
 		} catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);
 		}
