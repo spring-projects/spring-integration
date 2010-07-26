@@ -36,7 +36,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
  * @author Mark Fisher
  * @since 2.0
  */
-public class TriggeredMessagePublisherTests {
+public class ScheduledMessageProducerTests {
 
 	private static final AtomicInteger counter = new AtomicInteger();
 
@@ -45,17 +45,17 @@ public class TriggeredMessagePublisherTests {
 	public void test() throws Exception {
 		QueueChannel channel = new QueueChannel();
 		Trigger trigger = new PeriodicTrigger(100);
-		String payloadExpression = "'test-' + T(org.springframework.integration.endpoint.TriggeredMessagePublisherTests).next()";
+		String payloadExpression = "'test-' + T(org.springframework.integration.endpoint.ScheduledMessageProducerTests).next()";
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
 		Map<String, String> headerExpressions = new HashMap<String, String>();
 		headerExpressions.put("foo", "'x'");
 		headerExpressions.put("bar", "7 * 6");
-		TriggeredMessagePublisher publisher = new TriggeredMessagePublisher(trigger, payloadExpression);
-		publisher.setHeaderExpressions(headerExpressions);
-		publisher.setTaskScheduler(scheduler);
-		publisher.setOutputChannel(channel);
-		publisher.start();
+		ScheduledMessageProducer producer = new ScheduledMessageProducer(trigger, payloadExpression);
+		producer.setHeaderExpressions(headerExpressions);
+		producer.setTaskScheduler(scheduler);
+		producer.setOutputChannel(channel);
+		producer.start();
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		for (int i = 0; i < 3; i++) {
 			messages.add(channel.receive(1000));

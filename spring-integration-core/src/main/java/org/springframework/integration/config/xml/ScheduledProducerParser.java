@@ -25,16 +25,16 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;publisher&gt; element.
+ * Parser for the &lt;scheduled-producer&gt; element.
  * 
  * @author Mark Fisher
  * @since 2.0
  */
-public class PublisherParser extends AbstractSingleBeanDefinitionParser {
+public class ScheduledProducerParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.TriggeredMessagePublisher";
+		return IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.ScheduledMessageProducer";
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class PublisherParser extends AbstractSingleBeanDefinitionParser {
 			return;
 		}
 		builder.addPropertyReference("outputChannel", element.getAttribute("channel"));
-		builder.addConstructorArgValue(element.getAttribute("payload"));
+		builder.addConstructorArgValue(element.getAttribute("payload-expression"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		// TODO: add support for header expression sub-elements
 	}

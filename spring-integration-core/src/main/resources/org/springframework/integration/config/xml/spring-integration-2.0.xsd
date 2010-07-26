@@ -2274,7 +2274,7 @@ Name of the header whose value to use.
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="publisher">
+	<xsd:element name="scheduled-producer">
 		<xsd:annotation>
 			<xsd:documentation>
 				Defines a component that evaluates an expression to generate a Message payload
@@ -2313,7 +2313,7 @@ Name of the header whose value to use.
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="payload" type="xsd:string" use="required">
+			<xsd:attribute name="payload-expression" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
 						SpEL expression to be evaluated for each triggered execution.
@@ -2325,7 +2325,7 @@ Name of the header whose value to use.
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
-						MessageChannel to which this publisher's output should be sent.
+						MessageChannel to which this producer's output should be sent.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation>
@@ -2337,11 +2337,12 @@ Name of the header whose value to use.
 			<xsd:attribute name="auto-startup" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-						Specify whether this publisher should start automatically.
+						Specify whether this producer should start automatically.
 						By default it will. Set this to 'false' to require a manual start.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<!-- TODO: add support for header sub-elements -->
 		</xsd:complexType>
 	</xsd:element>
 

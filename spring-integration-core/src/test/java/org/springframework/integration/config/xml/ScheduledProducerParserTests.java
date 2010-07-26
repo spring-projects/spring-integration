@@ -27,7 +27,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
-import org.springframework.integration.endpoint.TriggeredMessagePublisher;
+import org.springframework.integration.endpoint.ScheduledMessageProducer;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class PublisherParserTests {
+public class ScheduledProducerParserTests {
 
 	@Autowired
 	private ApplicationContext context;
@@ -48,61 +48,61 @@ public class PublisherParserTests {
 
 	@Test
 	public void fixedDelay() {
-		TriggeredMessagePublisher publisher = context.getBean("fixedDelayPublisher", TriggeredMessagePublisher.class);
-		assertFalse(publisher.isAutoStartup());
-		DirectFieldAccessor publisherAccessor = new DirectFieldAccessor(publisher);
-		Trigger trigger = (Trigger) publisherAccessor.getPropertyValue("trigger");
+		ScheduledMessageProducer producer = context.getBean("fixedDelayProducer", ScheduledMessageProducer.class);
+		assertFalse(producer.isAutoStartup());
+		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
+		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(1234L, triggerAccessor.getPropertyValue("period"));
 		assertEquals(Boolean.FALSE, triggerAccessor.getPropertyValue("fixedRate"));
-		assertEquals(context.getBean("fixedDelayChannel"), publisherAccessor.getPropertyValue("outputChannel"));
+		assertEquals(context.getBean("fixedDelayChannel"), producerAccessor.getPropertyValue("outputChannel"));
 		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				publisherAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
+				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
 		assertEquals("'fixedDelayTest'", payloadExpression.getExpressionString());
 	}
 
 	@Test
 	public void fixedRate() {
-		TriggeredMessagePublisher publisher = context.getBean("fixedRatePublisher", TriggeredMessagePublisher.class);
-		assertFalse(publisher.isAutoStartup());
-		DirectFieldAccessor publisherAccessor = new DirectFieldAccessor(publisher);
-		Trigger trigger = (Trigger) publisherAccessor.getPropertyValue("trigger");
+		ScheduledMessageProducer producer = context.getBean("fixedRateProducer", ScheduledMessageProducer.class);
+		assertFalse(producer.isAutoStartup());
+		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
+		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
 		assertEquals(PeriodicTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(5678L, triggerAccessor.getPropertyValue("period"));
 		assertEquals(Boolean.TRUE, triggerAccessor.getPropertyValue("fixedRate"));
-		assertEquals(context.getBean("fixedRateChannel"), publisherAccessor.getPropertyValue("outputChannel"));
+		assertEquals(context.getBean("fixedRateChannel"), producerAccessor.getPropertyValue("outputChannel"));
 		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				publisherAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
+				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
 		assertEquals("'fixedRateTest'", payloadExpression.getExpressionString());
 	}
 
 	@Test
 	public void cron() {
-		TriggeredMessagePublisher publisher = context.getBean("cronPublisher", TriggeredMessagePublisher.class);
-		assertFalse(publisher.isAutoStartup());
-		DirectFieldAccessor publisherAccessor = new DirectFieldAccessor(publisher);
-		Trigger trigger = (Trigger) publisherAccessor.getPropertyValue("trigger");
+		ScheduledMessageProducer producer = context.getBean("cronProducer", ScheduledMessageProducer.class);
+		assertFalse(producer.isAutoStartup());
+		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
+		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
 		assertEquals(CronTrigger.class, trigger.getClass());
 		assertEquals("7 6 5 4 3 ?", new DirectFieldAccessor(new DirectFieldAccessor(
 				trigger).getPropertyValue("sequenceGenerator")).getPropertyValue("expression"));
-		assertEquals(context.getBean("cronChannel"), publisherAccessor.getPropertyValue("outputChannel"));
+		assertEquals(context.getBean("cronChannel"), producerAccessor.getPropertyValue("outputChannel"));
 		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				publisherAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
+				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
 		assertEquals("'cronTest'", payloadExpression.getExpressionString());
 	}
 
 	@Test
 	public void triggerRef() {
-		TriggeredMessagePublisher publisher = context.getBean("triggerRefPublisher", TriggeredMessagePublisher.class);
-		assertTrue(publisher.isAutoStartup());
-		DirectFieldAccessor publisherAccessor = new DirectFieldAccessor(publisher);
-		Trigger trigger = (Trigger) publisherAccessor.getPropertyValue("trigger");
+		ScheduledMessageProducer producer = context.getBean("triggerRefProducer", ScheduledMessageProducer.class);
+		assertTrue(producer.isAutoStartup());
+		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
+		Trigger trigger = (Trigger) producerAccessor.getPropertyValue("trigger");
 		assertEquals(context.getBean("customTrigger"), trigger);
-		assertEquals(context.getBean("triggerRefChannel"), publisherAccessor.getPropertyValue("outputChannel"));
+		assertEquals(context.getBean("triggerRefChannel"), producerAccessor.getPropertyValue("outputChannel"));
 		Expression payloadExpression = (Expression) new DirectFieldAccessor(
-				publisherAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
+				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
 		assertEquals("'triggerRefTest'", payloadExpression.getExpressionString());
 	}
 

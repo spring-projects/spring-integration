@@ -37,14 +37,14 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class TriggeredMessagePublisher extends MessageProducerSupport {
+public class ScheduledMessageProducer extends MessageProducerSupport {
 
 	private static final ExpressionParser PARSER = new SpelExpressionParser();
 
 
 	private final Trigger trigger;
 
-	private final MessagePublishingTask task;
+	private final MessageProducingTask task;
 
 	private volatile ScheduledFuture<?> future;
 
@@ -53,11 +53,11 @@ public class TriggeredMessagePublisher extends MessageProducerSupport {
 	private final StandardEvaluationContext context = new StandardEvaluationContext();
 
 
-	public TriggeredMessagePublisher(Trigger trigger, String payloadExpression) {
+	public ScheduledMessageProducer(Trigger trigger, String payloadExpression) {
 		Assert.notNull(trigger, "trigger must not be null");
 		Assert.hasText(payloadExpression, "payloadExpression is required");
 		this.trigger = trigger;
-		this.task = new MessagePublishingTask(PARSER.parseExpression(payloadExpression));
+		this.task = new MessageProducingTask(PARSER.parseExpression(payloadExpression));
 	}
 
 
@@ -105,12 +105,12 @@ public class TriggeredMessagePublisher extends MessageProducerSupport {
 	}
 
 
-	private class MessagePublishingTask implements Runnable {
+	private class MessageProducingTask implements Runnable {
 
 		private final Expression payloadExpression;
 
 
-		private MessagePublishingTask(Expression payloadExpression) {
+		private MessageProducingTask(Expression payloadExpression) {
 			this.payloadExpression = payloadExpression;
 		}
 
