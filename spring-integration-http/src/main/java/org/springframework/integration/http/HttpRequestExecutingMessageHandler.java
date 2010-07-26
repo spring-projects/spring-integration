@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -28,6 +29,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.message.HeaderMapper;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -53,6 +55,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private volatile Class<?> expectedResponseType;
 
 	private final DefaultOutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
+
+	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
@@ -136,6 +140,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 
 	/**
+	 * Set the {@link HeaderMapper} to use when mapping between HTTP headers and MessageHeaders.
+	 */
+	public void setHeaderMapper(HeaderMapper<HttpHeaders> headerMapper) {
+		Assert.notNull(headerMapper, "headerMapper must not be null");
+		this.headerMapper = headerMapper;
+	}
+
+	/**
 	 * Set the {@link ClientHttpRequestFactory} for the underlying {@link RestTemplate}.
 	 * @see RestTemplate#setRequestFactory(ClientHttpRequestFactory)
 	 */
@@ -160,14 +172,15 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
+				Map<String, ?> headers = this.headerMapper.toHeaders(httpResponse.getHeaders());
 				if (httpResponse.hasBody()) {
 					Object responseBody = httpResponse.getBody();
 					MessageBuilder<?> replyBuilder = (responseBody instanceof Message<?>) ?
 							MessageBuilder.fromMessage((Message<?>) responseBody) : MessageBuilder.withPayload(responseBody);
-							return replyBuilder.copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+							return replyBuilder.copyHeaders(headers).build();
 				}
 				else {
-					return MessageBuilder.withPayload(httpResponse.getStatusCode()).copyHeaders(httpResponse.getHeaders().toSingleValueMap()).build();
+					return MessageBuilder.withPayload(httpResponse.getStatusCode()).copyHeaders(headers).build();
 				}
 			}
 			return null;
