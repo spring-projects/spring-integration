@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -37,6 +38,7 @@ import org.springframework.http.converter.json.MappingJacksonHttpMessageConverte
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.http.converter.xml.SourceHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
@@ -78,6 +80,8 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
 
 	private final boolean expectReply;
+
+	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
 
@@ -130,10 +134,6 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 		this.headerMapper = headerMapper;
 	}
 
-	protected HeaderMapper<HttpHeaders> getHeaderMapper() {
-		return this.headerMapper;
-	}
-
 	/**
 	 * Specify the supported request methods for this gateway.
 	 * By default, only GET and POST are supported.
@@ -153,9 +153,19 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
+	 * Specify whether only the reply Message's payload should be passed
+	 * in the response. If this is set to 'false', the entire Message will
+	 * be used to generate the response. The default is 'true'.
+	 */
+	public void setExtractReplyPayload(boolean extractReplyPayload) {
+		this.extractReplyPayload = extractReplyPayload; 
+	}
+
+	/**
 	 * Specify the {@link MultipartResolver} to use when checking requests.
-	 * If no resolver is provided, this mapper will not support multipart
-	 * requests.
+	 * If no resolver is provided, the "multipartResolver" bean in the context
+	 * will be used as a fallback. If that is not available either, this endpoint
+	 * will not support multipart requests.
 	 */
 	public void setMultipartResolver(MultipartResolver multipartResolver) {
 		this.multipartResolver = multipartResolver;
@@ -197,10 +207,13 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	 * If this gateway's 'expectReply' property is true, it will also generate a response from
 	 * the reply Message once received.
 	 */
-	protected final Object handleRequest(HttpServletRequest servletRequest) throws IOException {
+	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
 		ServletServerHttpRequest request = this.prepareRequest(servletRequest);
-		Assert.isTrue(this.supportedMethods.contains(request.getMethod()),
-				"unsupported request method [" + request.getMethod() + "]");
+		if (!this.supportedMethods.contains(request.getMethod())) {
+			servletResponse.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+			this.postProcessRequest(servletRequest);
+			return null;
+		}
 		Object payload = null;
 		if (this.isReadable(request)) {
 			payload = this.generatePayloadFromRequestBody(request);
@@ -211,19 +224,26 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 		Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
 		Message<?> message = MessageBuilder.withPayload(payload)
 				.copyHeaders(headers)
-				//.setHeader(HttpHeaders.REQUEST_URL, request.getURI().toString())
-				//.setHeader(HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
-				//.setHeader(HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
+				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
+				.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
+				.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
 				.build();
-		Object result = null;
+		Object reply = null;
 		if (this.expectReply) {
-			result = this.sendAndReceiveMessage(message); 
+			reply = this.sendAndReceiveMessage(message);
+			if (reply != null) {
+				ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
+				this.headerMapper.fromHeaders(((Message<?>) reply).getHeaders(), response.getHeaders());
+				if (this.extractReplyPayload) {
+					reply = ((Message<?>) reply).getPayload();
+				}
+			}
 		}
 		else {
 			this.send(message);
 		}
 		this.postProcessRequest(servletRequest);
-		return result;
+		return reply;
 	}
 
 	/**

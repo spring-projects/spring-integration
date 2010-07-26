@@ -27,7 +27,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
@@ -59,9 +58,6 @@ import org.springframework.web.HttpRequestHandler;
  */
 public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements HttpRequestHandler {
 
-	private volatile boolean extractReplyPayload = true;
-
-
 	public HttpRequestHandlingMessagingGateway() {
 		this(true);
 	}
@@ -72,31 +68,15 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 
 
 	/**
-	 * Specify whether the reply Message's payload should be passed in
-	 * the response. If this is set to 'false', the entire Message will
-	 * be processed by the {@link HttpMessageConverter}s. Otherwise, the
-	 * reply Message payload will be processed. The default is 'true'.
-	 */
-	public void setExtractReplyPayload(boolean extractReplyPayload) {
-		this.extractReplyPayload = extractReplyPayload; 
-	}
-
-	/**
 	 * Handles the HTTP request by generating a Message and sending it to the request channel.
 	 * If this gateway's 'expectReply' property is true, it will also generate a response from
-	 * the reply Message once received.
+	 * the reply Message once received. That response will be written by the {@link HttpMessageConverter}s.
 	 */
 	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
-		Object responseContent = super.handleRequest(servletRequest);
-		ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
-		if (responseContent instanceof Message<?>) {
-			this.getHeaderMapper().fromHeaders(((Message<?>) responseContent).getHeaders(), response.getHeaders());
-			if (this.extractReplyPayload) {
-				responseContent = ((Message<?>) responseContent).getPayload();
-			}
-		}
+		Object responseContent = super.doHandleRequest(servletRequest, servletResponse);
 		if (responseContent != null) {
 			ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
+			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
 			this.writeResponse(responseContent, response, request.getHeaders().getAccept());
 		}
 	}
@@ -111,8 +91,8 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 				}
 			}
 		}
-		throw new MessagingException("Could not convert reply: no suitable HttpMessageConverter found for result type [" +
-				content.getClass().getName() + "] and content types [" + acceptTypes + "]");
+		throw new MessagingException("Could not convert reply: no suitable HttpMessageConverter found for type [" +
+				content.getClass().getName() + "] and accept types [" + acceptTypes + "]");
 	}
 
 }
