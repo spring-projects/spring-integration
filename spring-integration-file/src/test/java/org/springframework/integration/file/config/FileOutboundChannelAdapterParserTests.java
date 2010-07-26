@@ -20,7 +20,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
@@ -30,37 +29,32 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.io.File;
 import java.nio.charset.Charset;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Iwein Fuld
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileOutboundChannelAdapterParserTests {
 
     @Autowired
-    @Qualifier("simpleAdapter")
     EventDrivenConsumer simpleAdapter;
 
     @Autowired
-    @Qualifier("adapterWithCustomNameGenerator")
     EventDrivenConsumer adapterWithCustomNameGenerator;
 
     @Autowired
-    @Qualifier("adapterWithDeleteFlag")
     EventDrivenConsumer adapterWithDeleteFlag;
 
     @Autowired
-    @Qualifier("adapterWithOrder")
     EventDrivenConsumer adapterWithOrder;
 
     @Autowired
-    @Qualifier("adapterWithCharset")
     EventDrivenConsumer adapterWithCharset;
-
 
     @Test
     public void simpleAdapter() {
@@ -70,8 +64,8 @@ public class FileOutboundChannelAdapterParserTests {
         DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
         File expected = new File(System.getProperty("java.io.tmpdir"));
         File actual = (File) handlerAccessor.getPropertyValue("destinationDirectory");
-        assertEquals(expected, actual);
-        assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
+        assertThat(actual, is(expected));
+        assertThat(handlerAccessor.getPropertyValue("fileNameGenerator"), is(DefaultFileNameGenerator.class));
         assertEquals(Boolean.FALSE, handlerAccessor.getPropertyValue("deleteSourceFiles"));
     }
 
