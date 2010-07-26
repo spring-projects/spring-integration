@@ -62,7 +62,7 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
-		this.writeMessageHistory(message, this);
+		this.writeMessageHistory(message);
 		this.getJmsTemplate().convertAndSend(message, new MessagePostProcessor() {
 			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage)
 					throws JMSException {

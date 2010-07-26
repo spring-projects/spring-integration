@@ -86,11 +86,13 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			Object convertedObject = converter.fromMessage(jmsMessage);
 			if (convertedObject instanceof Message) {
 				convertedMessage = MessageBuilder.fromMessage((Message<Object>) convertedObject).copyHeaders(mappedHeaders).build();
-			} else {
+			}
+			else {
 				convertedMessage = MessageBuilder.withPayload(convertedObject).build();
 			}
-			this.writeMessageHistory(convertedMessage, this);
-		} catch (Exception e) {
+			this.writeMessageHistory(convertedMessage);
+		}
+		catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);
 		}
 		return convertedMessage;
