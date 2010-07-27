@@ -112,6 +112,7 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd
   host="host"
   port="port"
   resource="theNameOfTheResource"
+  subscription-mode="accept_all"
 />
       ]]></programlisting>
     </para>
@@ -208,7 +209,9 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd
   <xmpp:xmpp-connection
     id="testConnection"
       ...
-  />                ]]><emphasis><![CDATA[<xmpp:message-inbound-channel-adapter
+  />                ]]>
+
+    <emphasis><![CDATA[<xmpp:message-inbound-channel-adapter
         channel="xmppInbound"
         xmpp-connection="testConnection"/>
               ]]></emphasis><![CDATA[
@@ -223,8 +226,7 @@ http://www.springframework.org/schema/context/spring-context-3.0.xsd
         In this example, the message is received from the XMPP adapter and passed to a
         <code>service-activator</code>
         component. Here's the declaration of the<code>service-activator</code>.
-        <programlisting lang="java">
-          <![CDATA[package com.myxmppclient.inbound ;
+<programlisting lang="java"><![CDATA[package com.myxmppclient.inbound ;
 
 import org.jivesoftware.smack.packet.Message;
 
@@ -331,17 +333,89 @@ public class XmppMessageConsumer {
 </xmpp:header-enricher>
 ]]></programlisting>
       </para>
-      <para>
 
-
-      </para>
     </section>
   </section>
   <section id="xmpp-presence">
     <title>XMPP Presence</title>
+
+        <para>
+
+        XMPP also supports broadcasting state. You can use this capability to
+        let people who have you on their roster see your state changes. This happens all the time with your IM clients -  you
+        change your away status, and then set an away message, and everybody who has you on their roster sees your icon or username change to reflect this new state, and
+          additionally might see your new "away" message.
+     
+
+        If you would like to receive notification, or notify others, of state changes,   you can use Spring Integration's "presence" adapters.
+
+       </para>                 <para>
+    The most important data for these adapters resides in the headers. The header keys are enumerated on
+    the <code>org.springframework.integration.xmpp.XmppHeaders</code> class.      The header keys specific to these "presence" adapters start with the token "PRESENCE_".
+
+    
+
+       </para>    <table>
+        <title>Header Values</title>
+
+        <tgroup cols="2">
+
+          <colspec colname="c1"/>
+          <colspec colname="c2"/>
+
+          <thead>
+            <row>
+              <entry>Header Name</entry>
+              <entry>What It Describes</entry>
+            </row>
+          </thead>
+
+          <!--
+
+    public static final String PRESENCE_LANGUAGE = PRESENCE + "language" ;
+    public static final String PRESENCE_PRIORITY = PRESENCE + "priority" ;
+    public static final String PRESENCE_MODE = PRESENCE + "mode" ;
+    public static final String PRESENCE_TYPE = PRESENCE + "type" ;
+    public static final String PRESENCE_STATUS = PRESENCE + "status" ;
+    public static final String PRESENCE_FROM = PRESENCE+ "from";
+          -->
+          <tbody>
+            <row>
+              <entry>XmppHeaders.TYPE</entry>
+              <entry>The value of the
+                the
+                <code>
+                  org.jivesoftware.smack.packet.Message.Type
+                </code>
+                enum that describes the inbound message. Possible values are:
+                <code>normal</code>,
+                <code>chat</code>,
+                <code>groupchat</code>,
+                <code>headline</code>,
+                <code>error</code>.
+              </entry>
+
+            </row>
+            <row>
+              <entry>XmppHeaders.CHAT</entry>
+              <entry>A reference to the
+                <code>org.jivesoftware.smack.Chat</code>
+                class which represents the
+                threaded conversation containing the message.
+              </entry>
+
+            </row>
+          </tbody>
+        </tgroup>
+
+      </table>
     <section id="xmpp-presence-inbound-channel-adapter">
       <title>Inbound Presence Adapter</title>
-      <para>TBD</para>
+    <para>
+      The first adapter supports receiving    messages whenever an agent on your roster has updated its
+      state. Most of the important data comes in through the headers.
+
+    </para>
     </section>
     <section id="xmpp-presence-outbound-channel-adapter">
       <title>Outbound Presence Adapter</title>
