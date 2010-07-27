@@ -267,6 +267,12 @@
       <classname>connection-factory</classname> and <classname>channel</classname>.
       The channel attribute specifies the channel on which messages arrive at an
       outbound adapter and on which messages are placed by an inbound adapter.
+      The connection factory indicates which connection factory is to be used to
+      manage connections for the adapter. While both inbound and outbound adapters
+      can share a connection factory, server connection factories are always 'owned'
+      by an inbound adapter; client connection factories are always 'owned' by an
+      outbound adapter. One, and only one, adapter of each type may get a reference
+      to a connection factory.
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
@@ -459,8 +465,8 @@
         <tgroup cols="5">
           <colspec align="left" />
           <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="0.3*" align="center"/>
-          <colspec colnum="3" colname="col3" colwidth="0.3*" align="center"/>
+          <colspec colnum="2" colname="col2" colwidth="0.4*" align="center"/>
+          <colspec colnum="3" colname="col3" colwidth="0.4*" align="center"/>
           <colspec colnum="4" colname="col4" colwidth="1*"/>
           <colspec colnum="5" colname="col5" colwidth="2*"/>
           <thead>
@@ -500,7 +506,7 @@
               <entry>Y</entry>
               <entry>true, false</entry>
               <entry>Whether or not the tcp adapter is using NIO. Refer to the java.nio
-                     package for more information.i Default false.</entry>
+                     package for more information. Default false.</entry>
             </row>
             <row>
               <entry>using-direct-buffers</entry>
@@ -597,8 +603,7 @@
               <entry>Y</entry>
               <entry>Y</entry>
               <entry></entry>
-              <entry>Specifies the concurrency. 
-                     be handled concurrently. For tcp, not using nio, specifies the 
+              <entry>Specifies the concurrency.  For tcp, not using nio, specifies the 
                      number of concurrent connections supported by the adapter. For tcp,
                      using nio, specifies the number of tcp fragments that are concurrently
                      reassembled into complete messages. 
