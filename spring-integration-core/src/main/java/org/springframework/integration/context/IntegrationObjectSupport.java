@@ -69,8 +69,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	/**
-	 * Will return the name of this component identified by {@link this#componentName} field. 
-	 * If {@link this#componentName} was not set this method will default to the 'beanName' of this component;
+	 * Will return the name of this component identified by {@link #componentName} field. 
+	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
 	 */
 	public final String getComponentName() {	
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
@@ -83,6 +83,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public void setComponentName(String componentName) {
 		this.componentName = componentName;
 	}
+
 	/**
 	 * Subclasses may implement this method to provide component type information.
 	 */
