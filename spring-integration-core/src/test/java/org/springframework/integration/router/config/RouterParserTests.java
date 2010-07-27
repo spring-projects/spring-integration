@@ -132,7 +132,7 @@ public class RouterParserTests {
 		Object endpoint = context.getBean("routerWithTimeout");
 		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
 		MessagingTemplate template = (MessagingTemplate)
-				new DirectFieldAccessor(router).getPropertyValue("channelTemplate");
+				new DirectFieldAccessor(router).getPropertyValue("messagingTemplate");
 		Long timeout = (Long) new DirectFieldAccessor(template).getPropertyValue("sendTimeout");
 		assertEquals(new Long(1234), timeout);
 	}

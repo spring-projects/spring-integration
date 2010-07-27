@@ -97,7 +97,7 @@ public class AggregatorParserTests {
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
 				discardChannel, accessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value",
-				86420000l, TestUtils.getPropertyValue(consumer, "channelTemplate.sendTimeout"));
+				86420000l, TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"));
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, accessor.getPropertyValue("sendPartialResultOnExpiry"));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class AggregatorAnnotationTests {
 		assertNull(getPropertyValue(aggregator, "outputChannel"));
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
 		assertEquals(CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT,
-				getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
+				getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 
@@ -74,7 +74,7 @@ public class AggregatorAnnotationTests {
 				getPropertyValue(aggregator, "outputChannel"));
 		assertEquals(channelResolver.resolveChannelName("discardChannel"),
 				getPropertyValue(aggregator, "discardChannel"));
-		assertEquals(98765432l, getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
+		assertEquals(98765432l, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 

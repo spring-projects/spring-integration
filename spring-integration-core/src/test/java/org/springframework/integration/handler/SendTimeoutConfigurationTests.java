@@ -66,7 +66,7 @@ public class SendTimeoutConfigurationTests {
 
 	private long getTimeout(String endpointName) {
 		return TestUtils.getPropertyValue(context.getBean(endpointName),
-				"handler.channelTemplate.sendTimeout", Long.class).longValue();
+				"handler.messagingTemplate.sendTimeout", Long.class).longValue();
 	}
 
 }

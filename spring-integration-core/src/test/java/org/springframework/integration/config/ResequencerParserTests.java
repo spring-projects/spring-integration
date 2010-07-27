@@ -84,7 +84,7 @@ public class ResequencerParserTests {
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
 		assertTrue(getPropertyValue(resequencer, "discardChannel") instanceof NullChannel);
 		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", 1000l, getPropertyValue(
-				resequencer, "channelTemplate.sendTimeout"));
+				resequencer, "messagingTemplate.sendTimeout"));
 		assertEquals(
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				false, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));
@@ -104,7 +104,7 @@ public class ResequencerParserTests {
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel", discardChannel,
 				getPropertyValue(resequencer, "discardChannel"));
 		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value", 86420000l,
-				getPropertyValue(resequencer, "channelTemplate.sendTimeout"));
+				getPropertyValue(resequencer, "messagingTemplate.sendTimeout"));
 		assertEquals(
 				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, getPropertyValue(resequencer, "sendPartialResultOnExpiry"));

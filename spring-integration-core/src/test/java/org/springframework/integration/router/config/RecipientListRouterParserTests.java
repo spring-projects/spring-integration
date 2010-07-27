@@ -74,7 +74,7 @@ public class RecipientListRouterParserTests {
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
 		assertEquals(new Long(-1), new DirectFieldAccessor(
-				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
+				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("applySequence"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("ignoreSendFailures"));
 	}
@@ -87,7 +87,7 @@ public class RecipientListRouterParserTests {
 		RecipientListRouter router = (RecipientListRouter) handler;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(router);
 		assertEquals(new Long(1234), new DirectFieldAccessor(
-				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
+				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("applySequence"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("ignoreSendFailures"));
 	}

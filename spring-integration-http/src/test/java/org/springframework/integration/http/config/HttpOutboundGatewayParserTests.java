@@ -112,7 +112,7 @@ public class HttpOutboundGatewayParserTests {
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertEquals(requestFactoryBean, requestFactory);
 		Object sendTimeout = new DirectFieldAccessor(
-				handlerAccessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout");
+				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);
 		assertEquals(parameterExtractor, handlerAccessor.getPropertyValue("parameterExtractor"));
 	}

@@ -56,7 +56,7 @@ public class DelayerParserTests {
 		assertEquals(new Long(1234), accessor.getPropertyValue("defaultDelay"));
 		assertEquals("foo", accessor.getPropertyValue("delayHeaderName"));
 		assertEquals(new Long(987), new DirectFieldAccessor(
-				accessor.getPropertyValue("channelTemplate")).getPropertyValue("sendTimeout"));
+				accessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout"));
 		assertEquals(Boolean.TRUE, new DirectFieldAccessor(
 				accessor.getPropertyValue("taskScheduler")).getPropertyValue("waitForTasksToCompleteOnShutdown"));
 	}
