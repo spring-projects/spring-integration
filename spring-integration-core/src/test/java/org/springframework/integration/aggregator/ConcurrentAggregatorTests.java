@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -344,21 +344,19 @@ public class ConcurrentAggregatorTests {
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
 		public void processAndSend(MessageGroup group,
-				MessageChannelTemplate channelTemplate,
+				MessagingTemplate messagingTemplate,
 				MessageChannel outputChannel) {
 			Integer product = 1;
 			for (Message<?> message : group.getUnmarked()) {
 				product *= (Integer) message.getPayload();
 			}
-			channelTemplate.send(MessageBuilder.withPayload(product).build(),
-					outputChannel);
+			messagingTemplate.send(MessageBuilder.withPayload(product).build(), outputChannel);
 		}
 	}
 
-	private class NullReturningMessageProcessor implements
-			MessageGroupProcessor {
+	private class NullReturningMessageProcessor implements MessageGroupProcessor {
 		public void processAndSend(MessageGroup group,
-				MessageChannelTemplate channelTemplate,
+				MessagingTemplate messagingTemplate,
 				MessageChannel outputChannel) {
 			// noop
 		}

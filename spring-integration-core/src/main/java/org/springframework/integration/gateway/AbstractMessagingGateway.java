@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
@@ -52,7 +52,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 
 	private volatile long replyTimeout = 1000;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile boolean shouldThrowErrors = true;
 
@@ -93,7 +93,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 	 * @param requestTimeout the timeout value in milliseconds
 	 */
 	public void setRequestTimeout(long requestTimeout) {
-		this.channelTemplate.setSendTimeout(requestTimeout);
+		this.messagingTemplate.setSendTimeout(requestTimeout);
 	}
 
 	/**
@@ -104,7 +104,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 	 */
 	public void setReplyTimeout(long replyTimeout) {
 		this.replyTimeout = replyTimeout;
-		this.channelTemplate.setReceiveTimeout(replyTimeout);
+		this.messagingTemplate.setReceiveTimeout(replyTimeout);
 	}
 
 	/**
@@ -144,7 +144,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 				"send is not supported, because no request channel has been configured");
 		Message<?> message = this.toMessage(object);
 		Assert.notNull(message, "message must not be null");
-		if (!this.channelTemplate.send(message, this.requestChannel)) {
+		if (!this.messagingTemplate.send(message, this.requestChannel)) {
 			throw new MessageDeliveryException(message, "failed to send Message to channel");
 		}
 	}
@@ -153,7 +153,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		this.initializeIfNecessary();
 		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
-		Message<?> message = this.channelTemplate.receive((PollableChannel) this.replyChannel);
+		Message<?> message = this.messagingTemplate.receive((PollableChannel) this.replyChannel);
 		try {
 			return this.fromMessage(message);
 		}
@@ -195,7 +195,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		Message<?> reply = null;
 		Throwable error = null;
 		try {
-			reply = this.channelTemplate.sendAndReceive(message, this.requestChannel);
+			reply = this.messagingTemplate.sendAndReceive(message, this.requestChannel);
 			if (reply instanceof ErrorMessage) {
 				error = ((ErrorMessage) reply).getPayload();
 			}	

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.jdbc.config;
 
 import static org.junit.Assert.assertEquals;
@@ -14,7 +30,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
@@ -33,7 +49,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	
 	private SimpleJdbcTemplate jdbcTemplate;
 	
-	private MessageChannelTemplate channelTemplate;
+	private MessagingTemplate messagingTemplate;
 	
 	private ConfigurableApplicationContext appCtx;
 
@@ -43,7 +59,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void testSimpleInboundChannelAdapter(){
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
-		Message<?> message = channelTemplate.receive();
+		Message<?> message = messagingTemplate.receive();
 		assertNotNull("No message found ", message);
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
 	}
@@ -53,27 +69,27 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void testSimpleInboundChannelAdapterWithUpdate(){
 		setUp("pollingForMapJdbcInboundChannelAdapterWithUpdateTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
-		Message<?> message = channelTemplate.receive();
+		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
-		message = channelTemplate.receive();
-		assertNull(channelTemplate.receive());
+		message = messagingTemplate.receive();
+		assertNull(messagingTemplate.receive());
 	}
 	
 	@Test
 	public void testSimpleInboundChannelAdapterWithNestedUpdate(){
 		setUp("pollingForMapJdbcInboundChannelAdapterWithNestedUpdateTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
-		Message<?> message = channelTemplate.receive();
+		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
-		message = channelTemplate.receive();
-		assertNull(channelTemplate.receive());
+		message = messagingTemplate.receive();
+		assertNull(messagingTemplate.receive());
 	}
 	
 	@Test
 	public void testExtendedInboundChannelAdapter(){
 		setUp("pollingWithJdbcOperationsJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
-		Message<?> message = channelTemplate.receive();
+		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
 	}
 	
@@ -81,7 +97,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void testParameterSourceFactoryInboundChannelAdapter(){
 		setUp("pollingWithParameterSourceJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
-		Message<?> message = channelTemplate.receive();
+		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
 		List<Map<String, Object>> list = jdbcTemplate.queryForList("SELECT * FROM item WHERE status=1");
 		assertEquals(1, list.size());
@@ -92,7 +108,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	public void testParameterSourceInboundChannelAdapter(){
 		setUp("pollingWithParametersForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
-		Message<?> message = channelTemplate.receive();
+		Message<?> message = messagingTemplate.receive();
 		assertNotNull(message);
 	}
 	
@@ -109,14 +125,14 @@ public class JdbcPollingChannelAdapterParserTests {
 			}
 		});
 		@SuppressWarnings("unchecked")
-		Message<List<?>> message = (Message<List<?>>) channelTemplate.receive();
+		Message<List<?>> message = (Message<List<?>>) messagingTemplate.receive();
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().size());
 	}
 	
 	@After
-	public void tearDown(){
-		if(appCtx != null){
+	public void tearDown() {
+		if(appCtx != null) {
 			appCtx.close();
 		}
 	}
@@ -126,35 +142,34 @@ public class JdbcPollingChannelAdapterParserTests {
 		setupJdbcTemplate();
 		jdbcTemplate.update("delete from item");
 		setupTransactionManager();
-		setupMessageChannelTemplate();
+		setupMessagingTemplate();
 	}
 	
 	
-	protected void setupMessageChannelTemplate(){
+	protected void setupMessagingTemplate() {
 		PollableChannel pollableChannel = this.appCtx.getBean("target", PollableChannel.class);
-		this.channelTemplate =  new MessageChannelTemplate(pollableChannel);
-		this.channelTemplate.setReceiveTimeout(500);
+		this.messagingTemplate =  new MessagingTemplate(pollableChannel);
+		this.messagingTemplate.setReceiveTimeout(500);
 	}
 	
-	protected void setupJdbcTemplate(){
+	protected void setupJdbcTemplate() {
 		this.jdbcTemplate = new SimpleJdbcTemplate(this.appCtx.getBean("dataSource",DataSource.class));
 	}
 	
-	protected void setupTransactionManager(){
+	protected void setupTransactionManager() {
 		this.transactionManager = this.appCtx.getBean("transactionManager",PlatformTransactionManager.class);
 	}
 	
 	public static class TestSqlParameterSource extends AbstractSqlParameterSource {
 
-		public Object getValue(String paramName)
-				throws IllegalArgumentException {
+		public Object getValue(String paramName) throws IllegalArgumentException {
 			return 2;
 		}
 
 		public boolean hasValue(String paramName) {
 			return true;
 		}
-		
+
 	}
 
 }

@@ -26,7 +26,7 @@ import org.jivesoftware.smack.packet.Presence;
 
 import org.springframework.context.Lifecycle;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -44,11 +44,18 @@ import java.util.Collection;
  * @since 2.0
  */
 public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint implements Lifecycle {
+
     private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
+
+
     private volatile MessageChannel requestChannel;
+
     private volatile XMPPConnection xmppConnection;
+
     private InboundMessageMapper<Presence> messageMapper;
-    private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+
+    private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+
 
     /**
      * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
@@ -63,7 +70,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
      * @param requestChannel the channel on which the inbound message should be sent
      */
     public void setRequestChannel(final MessageChannel requestChannel) {
-        this.channelTemplate.setDefaultChannel(requestChannel);
+        this.messagingTemplate.setDefaultChannel(requestChannel);
         this.requestChannel = requestChannel;
     }
 
@@ -88,7 +95,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
             this.messageMapper = new XmppPresenceMessageMapper();
         }
 
-        this.channelTemplate.afterPropertiesSet();
+        this.messagingTemplate.afterPropertiesSet();
         this.xmppConnection.getRoster().addRosterListener(new EventForwardingRosterListener());
     }
 
@@ -100,7 +107,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
     protected void forwardRosterEventMessage(Presence presence) {
         try {
             Message<?> msg = this.messageMapper.toMessage(presence);
-            channelTemplate.send(msg, requestChannel);
+            messagingTemplate.send(msg, requestChannel);
         } catch (Exception e) {
             logger.error("Failed to map packet to message ", e);
         }
@@ -131,4 +138,5 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
             forwardRosterEventMessage(presence);
         }
     }
+  
 }

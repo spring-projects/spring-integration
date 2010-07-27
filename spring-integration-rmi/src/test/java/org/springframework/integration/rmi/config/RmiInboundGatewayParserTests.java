@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.rmi.RmiInboundGateway;
 
@@ -42,8 +42,8 @@ public class RmiInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageChannelTemplate template = (MessageChannelTemplate)
-				accessor.getPropertyValue("channelTemplate");
+		MessagingTemplate template = (MessagingTemplate)
+				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
@@ -58,8 +58,8 @@ public class RmiInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageChannelTemplate template = (MessageChannelTemplate)
-				accessor.getPropertyValue("channelTemplate");
+		MessagingTemplate template = (MessagingTemplate)
+				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(456L, templateAccessor.getPropertyValue("receiveTimeout"));

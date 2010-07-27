@@ -25,15 +25,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.*;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-
-
 
 /**
  * @author Mark Fisher
@@ -55,8 +52,7 @@ public class XmppHeaderEnricherParserTests {
 
     @Test
     public void to() {
-        MessageChannelTemplate messageChannelTemplate = new MessageChannelTemplate();
-
+        MessagingTemplate messagingTemplate = new MessagingTemplate();
         output.subscribe(new MessageHandler() {
                 public void handleMessage(Message<?> message)
                     throws MessageRejectedException, MessageHandlingException,
@@ -65,6 +61,7 @@ public class XmppHeaderEnricherParserTests {
                          logger.debug(String.format("%s=%s (class: %s)", h, message.getHeaders().get(h), message.getHeaders().get(h).getClass().toString()));
                 }
             });
-        messageChannelTemplate.send(MessageBuilder.withPayload("foo").build(), input);
+        messagingTemplate.send(MessageBuilder.withPayload("foo").build(), input);
     }
+
 }

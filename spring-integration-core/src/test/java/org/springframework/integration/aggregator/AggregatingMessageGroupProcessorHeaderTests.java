@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -42,7 +42,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 
 	private final QueueChannel outputChannel = new QueueChannel(1);
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private final DefaultAggregatingMessageGroupProcessor defaultProcessor = new DefaultAggregatingMessageGroupProcessor();
 
@@ -107,7 +107,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message = correlatedMessage(1, 1, 1, headers);
 		List<Message<?>> messages = Collections.<Message<?>>singletonList(message);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, channelTemplate, outputChannel);
+		processor.processAndSend(group, messagingTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("value1", result.getHeaders().get("k1"));
@@ -122,7 +122,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, channelTemplate, outputChannel);
+		processor.processAndSend(group, messagingTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("value1", result.getHeaders().get("k1"));
@@ -140,7 +140,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers2);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, channelTemplate, outputChannel);
+		processor.processAndSend(group, messagingTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertNull(result.getHeaders().get("k1"));
@@ -170,7 +170,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, channelTemplate, outputChannel);
+		processor.processAndSend(group, messagingTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("value1", result.getHeaders().get("only1"));
@@ -198,7 +198,7 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, channelTemplate, outputChannel);
+		processor.processAndSend(group, messagingTemplate, outputChannel);
 		Message<?> result = outputChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("valueForAll", result.getHeaders().get("common"));

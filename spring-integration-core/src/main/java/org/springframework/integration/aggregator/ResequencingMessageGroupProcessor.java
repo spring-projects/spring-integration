@@ -19,7 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.store.MessageGroup;
@@ -45,13 +45,13 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 		this.comparator = comparator;
 	}
 
-	public void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate, MessageChannel outputChannel) {
+	public void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate, MessageChannel outputChannel) {
 		Collection<Message<?>> messages = group.getUnmarked();
 		if (messages.size() > 0) {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, comparator);
 			for (Message<?> message : sorted) {
-				channelTemplate.send(message, outputChannel);
+				messagingTemplate.send(message, outputChannel);
 			}
 		}
 	}

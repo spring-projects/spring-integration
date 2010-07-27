@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.mail.MailHeaders;
@@ -48,7 +48,7 @@ public class MailHeaderEnricherTests {
 
 	@Test
 	public void literalValues() {
-		MessageChannelTemplate template = new MessageChannelTemplate(literalValuesInput);
+		MessagingTemplate template = new MessagingTemplate(literalValuesInput);
 		Message<?> result = template.sendAndReceive(new StringMessage("test"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("test.to", headers.get(MailHeaders.TO));
@@ -61,7 +61,7 @@ public class MailHeaderEnricherTests {
 
 	@Test
 	public void expressions() {
-		MessageChannelTemplate template = new MessageChannelTemplate(expressionsInput);
+		MessagingTemplate template = new MessagingTemplate(expressionsInput);
 		Message<?> result = template.sendAndReceive(new StringMessage("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("foo.to", headers.get(MailHeaders.TO));

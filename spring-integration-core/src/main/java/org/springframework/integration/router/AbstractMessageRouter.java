@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.util.Collection;
 import java.util.UUID;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -42,7 +42,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile boolean applySequence;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
 	/**
@@ -60,7 +60,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	 * default, there is no timeout, meaning the send will block indefinitely.
 	 */
 	public void setTimeout(long timeout) {
-		this.channelTemplate.setSendTimeout(timeout);
+		this.messagingTemplate.setSendTimeout(timeout);
 	}
 
 	/**
@@ -116,7 +116,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 								.setHeader(MessageHeaders.ID, UUID.randomUUID())
 								.build();
 				if (channel != null) {
-					if (this.channelTemplate.send(messageToSend, channel)) {
+					if (this.messagingTemplate.send(messageToSend, channel)) {
 						sent = true;
 					}
 					else if (!this.ignoreSendFailures) {
@@ -128,7 +128,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
-				sent = this.channelTemplate.send(message, this.defaultOutputChannel);
+				sent = this.messagingTemplate.send(message, this.defaultOutputChannel);
 			}
 			else if (this.resolutionRequired) {
 				throw new MessageDeliveryException(message,

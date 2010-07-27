@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 /**
  * @author Mark Fisher
  */
-public class MessageChannelTemplateTests {
+public class MessagingTemplateTests {
 
 	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
@@ -78,7 +78,7 @@ public class MessageChannelTemplateTests {
 
 	@Test
 	public void send() {
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		QueueChannel channel = new QueueChannel();
 		template.send(new StringMessage("test"), channel);
 		Message<?> reply = channel.receive(0);
@@ -89,7 +89,7 @@ public class MessageChannelTemplateTests {
 	@Test
 	public void sendWithDefaultChannelProvidedBySetter() {
 		QueueChannel channel = new QueueChannel();
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultChannel(channel);
 		template.send(new StringMessage("test"));
 		Message<?> reply = channel.receive(0);
@@ -100,7 +100,7 @@ public class MessageChannelTemplateTests {
 	@Test
 	public void sendWithDefaultChannelProvidedByConstructor() {
 		QueueChannel channel = new QueueChannel();
-		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+		MessagingTemplate template = new MessagingTemplate(channel);
 		template.send(new StringMessage("test"));
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
@@ -111,7 +111,7 @@ public class MessageChannelTemplateTests {
 	public void sendWithExplicitChannelTakesPrecedenceOverDefault() {
 		QueueChannel explicitChannel = new QueueChannel();
 		QueueChannel defaultChannel = new QueueChannel();
-		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		MessagingTemplate template = new MessagingTemplate(defaultChannel);
 		template.send(new StringMessage("test"), explicitChannel);
 		Message<?> reply = explicitChannel.receive(0);
 		assertNotNull(reply);
@@ -121,7 +121,7 @@ public class MessageChannelTemplateTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void sendWithoutChannelArgFailsIfNoDefaultAvailable() {
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.send(new StringMessage("test"));
 	}
 
@@ -129,7 +129,7 @@ public class MessageChannelTemplateTests {
 	public void receive() {
 		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test"));
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		Message<?> reply = template.receive(channel);
 		assertEquals("test", reply.getPayload());
 	}
@@ -138,7 +138,7 @@ public class MessageChannelTemplateTests {
 	public void receiveWithDefaultChannelProvidedBySetter() {
 		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test"));
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultChannel(channel);
 		Message<?> reply = template.receive();
 		assertEquals("test", reply.getPayload());
@@ -148,7 +148,7 @@ public class MessageChannelTemplateTests {
 	public void receiveWithDefaultChannelProvidedByConstructor() {
 		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test"));
-		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+		MessagingTemplate template = new MessagingTemplate(channel);
 		Message<?> reply = template.receive();
 		assertEquals("test", reply.getPayload());
 	}
@@ -158,7 +158,7 @@ public class MessageChannelTemplateTests {
 		QueueChannel explicitChannel = new QueueChannel();
 		QueueChannel defaultChannel = new QueueChannel();
 		explicitChannel.send(new StringMessage("test"));
-		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		MessagingTemplate template = new MessagingTemplate(defaultChannel);
 		template.setReceiveTimeout(0);
 		Message<?> reply = template.receive(explicitChannel);
 		assertEquals("test", reply.getPayload());
@@ -167,20 +167,20 @@ public class MessageChannelTemplateTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void receiveWithoutChannelArgFailsIfNoDefaultAvailable() {
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.receive();
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void receiveWithNonPollableDefaultFails() {
 		DirectChannel channel = new DirectChannel();
-		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+		MessagingTemplate template = new MessagingTemplate(channel);
 		template.receive();
 	}
 
 	@Test
 	public void sendAndReceive() {
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setReceiveTimeout(3000);
 		Message<?> reply = template.sendAndReceive(new StringMessage("test"), this.requestChannel);
 		assertEquals("TEST", reply.getPayload());
@@ -188,7 +188,7 @@ public class MessageChannelTemplateTests {
 
 	@Test
 	public void sendAndReceiveWithDefaultChannel() {
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.setReceiveTimeout(3000);
 		template.setDefaultChannel(this.requestChannel);
 		Message<?> reply = template.sendAndReceive(new StringMessage("test"));
@@ -198,7 +198,7 @@ public class MessageChannelTemplateTests {
 	@Test
 	public void sendAndReceiveWithExplicitChannelTakesPrecedenceOverDefault() {
 		QueueChannel defaultChannel = new QueueChannel();
-		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		MessagingTemplate template = new MessagingTemplate(defaultChannel);
 		template.setReceiveTimeout(3000);
 		Message<?> message = new StringMessage("test");
 		Message<?> reply = template.sendAndReceive(message, this.requestChannel);
@@ -208,7 +208,7 @@ public class MessageChannelTemplateTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void sendAndReceiveWithoutChannelArgFailsIfNoDefaultAvailable() {
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		template.sendAndReceive(new StringMessage("test"));
 	}
 
@@ -224,7 +224,7 @@ public class MessageChannelTemplateTests {
 				return true;
 			}
 		};
-		MessageChannelTemplate template = new MessageChannelTemplate();
+		MessagingTemplate template = new MessagingTemplate();
 		Message<String> message1 = MessageBuilder.withPayload("test1").setReplyChannel(replyChannel).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2").setReplyChannel(replyChannel).build();
 		Message<String> message3 = MessageBuilder.withPayload("test3").setReplyChannel(replyChannel).build();

@@ -25,7 +25,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.MessageBuilder;
@@ -63,7 +63,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * @see ChatManager the ChatManager class that
  *      keeps watch over all Chats between the client and any other
  *      participants.
- * @see MessageChannelTemplate
+ * @see MessagingTemplate
  *      handles all interesing operations on any Spring Integration channels.
  * @see XMPPConnection the XMPPConnection (as
  *      created by {@link XmppConnectionFactory}
@@ -72,13 +72,14 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
 
 	private static final Log logger = LogFactory.getLog(XmppMessageDrivenEndpoint.class);
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile MessageChannel requestChannel;
 
 	private volatile XMPPConnection xmppConnection;
 
 	private volatile boolean extractPayload = true;
+
 
     /**
      * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
@@ -93,7 +94,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
      * @param requestChannel the channel on which the inbound message should be sent
      */
 	public void setRequestChannel(final MessageChannel requestChannel) {
-		this.channelTemplate.setDefaultChannel(requestChannel);
+		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.requestChannel = requestChannel;
 	}
 
@@ -123,7 +124,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
 
 	@Override
 	protected void onInit() throws Exception {
-		channelTemplate.afterPropertiesSet();
+		messagingTemplate.afterPropertiesSet();
 		xmppConnection.addPacketListener(new PacketListener() {
 			public void processPacket(final Packet packet) {
 				org.jivesoftware.smack.packet.Message message = (org.jivesoftware.smack.packet.Message) packet;
@@ -137,7 +138,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
 		MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
 				.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
 				.setHeader(XmppHeaders.CHAT, chat);
-		channelTemplate.send(messageBuilder.build(), requestChannel);
+		messagingTemplate.send(messageBuilder.build(), requestChannel);
 	}
 
 }

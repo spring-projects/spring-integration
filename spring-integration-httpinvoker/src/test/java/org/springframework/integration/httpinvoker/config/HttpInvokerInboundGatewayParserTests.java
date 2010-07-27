@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 
@@ -42,7 +42,7 @@ public class HttpInvokerInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageChannelTemplate template = (MessageChannelTemplate)
+		MessagingTemplate template = (MessagingTemplate)
 				accessor.getPropertyValue("channelTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
@@ -58,7 +58,7 @@ public class HttpInvokerInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageChannelTemplate template = (MessageChannelTemplate)
+		MessagingTemplate template = (MessagingTemplate)
 				accessor.getPropertyValue("channelTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
@@ -74,7 +74,7 @@ public class HttpInvokerInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageChannelTemplate template = (MessageChannelTemplate)
+		MessagingTemplate template = (MessagingTemplate)
 				accessor.getPropertyValue("channelTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));

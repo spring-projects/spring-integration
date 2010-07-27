@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
@@ -32,7 +32,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	private volatile MessageChannel outputChannel;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -40,7 +40,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 	}
 
 	public void setSendTimeout(long sendTimeout) {
-		this.channelTemplate.setSendTimeout(sendTimeout);
+		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		if (message != null) {
 			message.getHeaders().getHistory().addEvent(this);
 		}
-		return this.channelTemplate.send(message, this.outputChannel);
+		return this.messagingTemplate.send(message, this.outputChannel);
 	}
 
 }

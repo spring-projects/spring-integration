@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageSource;
@@ -34,7 +34,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 
 	private volatile MessageChannel outputChannel;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
 	/**
@@ -56,7 +56,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 	 * output channel.
 	 */
 	public void setSendTimeout(long sendTimeout) {
-		this.channelTemplate.setSendTimeout(sendTimeout);
+		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 	protected boolean doPoll() {
 		Message<?> message = this.source.receive();
 		if (message != null) {
-			return this.channelTemplate.send(message, this.outputChannel);
+			return this.messagingTemplate.send(message, this.outputChannel);
 		}
 		return false;
 	}

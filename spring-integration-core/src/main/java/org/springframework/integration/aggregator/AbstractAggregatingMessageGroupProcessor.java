@@ -20,7 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -41,7 +41,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@SuppressWarnings("unchecked")
-	public final void processAndSend(MessageGroup group, MessageChannelTemplate channelTemplate,
+	public final void processAndSend(MessageGroup group, MessagingTemplate channelTemplate,
 			MessageChannel outputChannel) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");

@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
@@ -75,7 +75,7 @@ public class CorrelatingMessageHandlerTests {
 				ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
 		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(SimpleMessageGroup.class),
-				isA(MessageChannelTemplate.class), eq(outputChannel));
+				isA(MessagingTemplate.class), eq(outputChannel));
 	}
 
 	@Test
@@ -94,7 +94,7 @@ public class CorrelatingMessageHandlerTests {
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessageChannelTemplate.class), eq(outputChannel));
+		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
 	}
 
 	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
@@ -105,7 +105,7 @@ public class CorrelatingMessageHandlerTests {
 	public void bufferCompletesWithException() throws Exception {
 
 		doAnswer(new ThrowsException(new RuntimeException("Planned test exception"))).when(processor).processAndSend(isA(SimpleMessageGroup.class),
-				isA(MessageChannelTemplate.class), eq(outputChannel));
+				isA(MessagingTemplate.class), eq(outputChannel));
 
 		String correlationKey = "key";
 		Message<?> message1 = testMessage(correlationKey, 1, 2);
@@ -124,7 +124,7 @@ public class CorrelatingMessageHandlerTests {
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessageChannelTemplate.class), eq(outputChannel));
+		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
 	}
 
 	/*

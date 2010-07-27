@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageChannelTemplate implements InitializingBean {
+public class MessagingTemplate implements InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -79,13 +79,13 @@ public class MessageChannelTemplate implements InitializingBean {
 	 * Create a MessageChannelTemplate with no default channel. Note, that one
 	 * may be provided by invoking {@link #setDefaultChannel(MessageChannel)}.
 	 */
-	public MessageChannelTemplate() {
+	public MessagingTemplate() {
 	}
 
 	/**
 	 * Create a MessageChannelTemplate with the given default channel.
 	 */
-	public MessageChannelTemplate(MessageChannel defaultChannel) {
+	public MessagingTemplate(MessageChannel defaultChannel) {
 		this.defaultChannel = defaultChannel;
 	}
 

@@ -30,7 +30,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -131,7 +131,7 @@ public class RouterParserTests {
 				"routerParserTests.xml", this.getClass());
 		Object endpoint = context.getBean("routerWithTimeout");
 		MethodInvokingRouter router = TestUtils.getPropertyValue(endpoint, "handler", MethodInvokingRouter.class);
-		MessageChannelTemplate template = (MessageChannelTemplate)
+		MessagingTemplate template = (MessagingTemplate)
 				new DirectFieldAccessor(router).getPropertyValue("channelTemplate");
 		Long timeout = (Long) new DirectFieldAccessor(template).getPropertyValue("sendTimeout");
 		assertEquals(new Long(1234), timeout);

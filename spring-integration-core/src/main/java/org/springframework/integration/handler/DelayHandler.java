@@ -27,7 +27,7 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
@@ -86,7 +86,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	private volatile MessageStore messageStore;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -152,7 +152,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 	 * Set the timeout for sending reply Messages.
 	 */
 	public void setSendTimeout(long sendTimeout) {
-		this.channelTemplate.setSendTimeout(sendTimeout);
+		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
 	/**
@@ -241,7 +241,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 					MessageChannel errorChannel = resolveErrorChannelIfPossible(message);
 					if (errorChannel != null) {
 						ErrorMessage errorMessage = new ErrorMessage(exception);
-						boolean sent = channelTemplate.send(errorMessage, errorChannel);
+						boolean sent = messagingTemplate.send(errorMessage, errorChannel);
 						if (!sent && logger.isWarnEnabled()) {
 							logger.warn("Failed to send MessageDeliveryException to error channel.", exception);
 						}
@@ -263,7 +263,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	private void sendMessageToReplyChannel(Message<?> message) {
 		MessageChannel replyChannel = this.resolveReplyChannel(message);
-		this.channelTemplate.send(message, replyChannel);
+		this.messagingTemplate.send(message, replyChannel);
 	}
 
 	private MessageChannel resolveReplyChannel(Message<?> message) {

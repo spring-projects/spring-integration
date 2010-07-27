@@ -33,7 +33,7 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
@@ -51,7 +51,7 @@ import org.springframework.util.StringUtils;
  */
 public class MessagePublishingInterceptor implements MethodInterceptor {
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private volatile ExpressionSource expressionSource;
 
@@ -72,7 +72,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.channelTemplate.setDefaultChannel(defaultChannel);
+		this.messagingTemplate.setDefaultChannel(defaultChannel);
 	}
 
 	public void setChannelResolver(ChannelResolver channelResolver) {
@@ -136,10 +136,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				channel = this.channelResolver.resolveChannelName(channelName);
 			}
 			if (channel != null) {
-				this.channelTemplate.send(message, channel);
+				this.messagingTemplate.send(message, channel);
 			}
 			else {
-				this.channelTemplate.send(message);
+				this.messagingTemplate.send(message);
 			}
 		}
 	}

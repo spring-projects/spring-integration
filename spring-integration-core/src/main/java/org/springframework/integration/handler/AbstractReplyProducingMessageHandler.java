@@ -17,7 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
@@ -34,8 +34,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler
-		implements MessageProducer {
+public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler implements MessageProducer {
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -44,12 +43,12 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private volatile boolean requiresReply = false;
 
-	private final MessageChannelTemplate channelTemplate;
+	private final MessagingTemplate messagingTemplate;
 
 
 	public AbstractReplyProducingMessageHandler() {
-		this.channelTemplate = new MessageChannelTemplate();
-		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+		this.messagingTemplate = new MessagingTemplate();
+		this.messagingTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
 
@@ -65,7 +64,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * Set the timeout for sending reply Messages.
 	 */
 	public void setSendTimeout(long sendTimeout) {
-		this.channelTemplate.setSendTimeout(sendTimeout);
+		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
 	/**
@@ -129,7 +128,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		return this.channelTemplate.send(replyMessage, replyChannel);
+		return this.messagingTemplate.send(replyMessage, replyChannel);
 	}
 
 	/**

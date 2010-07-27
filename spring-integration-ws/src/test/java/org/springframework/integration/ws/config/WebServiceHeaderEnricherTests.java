@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
@@ -49,7 +49,7 @@ public class WebServiceHeaderEnricherTests {
 
 	@Test
 	public void literalValue() {
-		MessageChannelTemplate template = new MessageChannelTemplate(literalValueInput);
+		MessagingTemplate template = new MessagingTemplate(literalValueInput);
 		Message<?> result = template.sendAndReceive(new StringMessage("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("http://test", headers.get(WebServiceHeaders.SOAP_ACTION));
@@ -57,7 +57,7 @@ public class WebServiceHeaderEnricherTests {
 
 	@Test
 	public void expression() {
-		MessageChannelTemplate template = new MessageChannelTemplate(expressionInput);
+		MessagingTemplate template = new MessagingTemplate(expressionInput);
 		Message<?> result = template.sendAndReceive(new StringMessage("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("http://foo", headers.get(WebServiceHeaders.SOAP_ACTION));
