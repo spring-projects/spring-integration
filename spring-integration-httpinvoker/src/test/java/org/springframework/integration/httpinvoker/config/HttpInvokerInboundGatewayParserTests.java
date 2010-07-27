@@ -43,7 +43,7 @@ public class HttpInvokerInboundGatewayParserTests {
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
 		MessagingTemplate template = (MessagingTemplate)
-				accessor.getPropertyValue("channelTemplate");
+				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
@@ -59,7 +59,7 @@ public class HttpInvokerInboundGatewayParserTests {
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
 		MessagingTemplate template = (MessagingTemplate)
-				accessor.getPropertyValue("channelTemplate");
+				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
@@ -75,7 +75,7 @@ public class HttpInvokerInboundGatewayParserTests {
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
 		MessagingTemplate template = (MessagingTemplate)
-				accessor.getPropertyValue("channelTemplate");
+				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(456L, templateAccessor.getPropertyValue("receiveTimeout"));
