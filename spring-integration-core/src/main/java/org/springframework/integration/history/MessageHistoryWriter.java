@@ -26,33 +26,35 @@ import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.util.Assert;
 
 /**
- * This components is responsible for maintaining the history of {@link MessageChannel}s and 
- * {@link MessageHandler}s
- * There can only be ine instance of this class per ApplicationContext hierarchy 
- * otherwise the Exception will be thrown.
+ * This component is responsible for maintaining the history of {@link MessageChannel}s and 
+ * {@link MessageHandler}s. There can only be one instance of this class per ApplicationContext
+ * hierarchy otherwise an Exception will be thrown.
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class MessageHistoryWriter implements BeanFactoryAware, InitializingBean{
 
-	private BeanFactory beanFactory;
+	private volatile BeanFactory beanFactory;
 
-	public void writeHistory(NamedComponent component, Message<?> message) {
-		if (message != null) {
-			message.getHeaders().getHistory().addEvent(component);
-		}
-	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class).size() > 1){
-			throw new IllegalArgumentException("Attempt to register more then one MessageHistoryWriter");
+		Assert.notNull(this.beanFactory, "BeanFactory is required");
+		if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory) this.beanFactory, MessageHistoryWriter.class).size() > 1) {
+			throw new IllegalArgumentException("more than one MessageHistoryWriter exists in the context");
+		}
+	}
+
+	public void writeHistory(NamedComponent component, Message<?> message) {
+		if (message != null) {
+			message.getHeaders().getHistory().addEvent(component);
 		}
 	}
 
