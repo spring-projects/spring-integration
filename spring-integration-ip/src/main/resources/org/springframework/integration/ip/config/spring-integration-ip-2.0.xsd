@@ -285,7 +285,7 @@ connections.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="using-nio" type="xsd:string">
+			<xsd:attribute name="using-nio" type="xsd:string" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
 If true, the factory will use java.nio.channel.SocketChannel for communication; 
@@ -301,6 +301,14 @@ performance and may use fewer threads.
 			<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
 			<xsd:attribute name="so-timeout" type="xsd:string" />
 			<xsd:attribute name="so-traffic-class" type="xsd:string" />
+			<xsd:attribute name="using-direct-buffers" type="xsd:string" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+If true, instructs the factory to use direct buffers if possible; only applies if
+using-nio is true. Refer to ByteBuffer javadocs for more information.		
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>			
 			<xsd:attribute name="single-use" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>

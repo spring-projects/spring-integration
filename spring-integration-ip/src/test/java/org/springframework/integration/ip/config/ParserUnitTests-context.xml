@@ -296,6 +296,7 @@
 		single-use="true"
 		task-executor="externalTE"
 		pool-size="321"		
+		using-direct-buffers="true"
 	/>
 	
 	<ip:tcp-connection-factory
@@ -316,6 +317,7 @@
 		single-use="true"
 		task-executor="externalTE"
 		pool-size="123"
+		using-direct-buffers="true"
 	/>
 	
 	<bean id="serial" class="org.springframework.commons.serializer.JavaSerializationConverter" />
