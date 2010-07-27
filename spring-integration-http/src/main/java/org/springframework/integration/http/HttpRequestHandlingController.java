@@ -55,7 +55,7 @@ public class HttpRequestHandlingController extends HttpRequestHandlingEndpointSu
 	/**
 	 * Specify the key to be used when adding the reply Message or payload
 	 * to the model map (will be payload only unless the value of
-	 * {@link #setExtractReplyPayload(boolean extractReplyPayload} is <code>false</code>).
+	 * {@link HttpRequestHandlingController#setExtractReplyPayload(boolean)} is <code>false</code>).
 	 * The default key is "reply".
 	 */
 	public void setReplyKey(String replyKey) {
