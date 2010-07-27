@@ -107,8 +107,9 @@ public class ConsumerEndpointFactoryBean
 		 */
 		Map<String, MessageHistoryWriter> historyWriters = BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class);
 		if (historyWriters.size() == 1){
+			MessageHistoryWriter writer = historyWriters.values().iterator().next();
 			if (!beanName.startsWith("org.springframework")  && this.handler instanceof IntegrationObjectSupport){
-				this.handler = new MessageHistoryAwareMessageHandler(this.beanFactory.getBean(MessageHistoryWriter.class), this.beanName, this.handler);
+				this.handler = new MessageHistoryAwareMessageHandler(writer, this.beanName, this.handler);
 			}
 		} 
 		this.initializeEndpoint();

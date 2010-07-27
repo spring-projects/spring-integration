@@ -32,22 +32,22 @@ import org.springframework.integration.message.MessageRejectedException;
  * @since 2.0
  */
 public class MessageHistoryAwareMessageHandler implements NamedComponent, MessageHandler, Ordered {
-	private MessageHandler parentHandler;
+	private MessageHandler targetHandler;
 	private String componentName;
 	private MessageHistoryWriter historyWriter;
-	private int order;
+	private int order = Ordered.LOWEST_PRECEDENCE;
 	/**
 	 * 
 	 * @param historyWriter
 	 * @param endpointName
 	 * @param parentHandler
 	 */
-	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler parentHandler){
+	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler targetHandler){
 		this.historyWriter = historyWriter;
 		this.componentName = endpointName;
-		this.parentHandler = parentHandler;
-		if (parentHandler instanceof Ordered){
-			this.order = ((Ordered)parentHandler).getOrder();
+		this.targetHandler = targetHandler;
+		if (targetHandler instanceof Ordered){
+			this.order = ((Ordered)targetHandler).getOrder();
 		}
 	}
 
@@ -58,11 +58,11 @@ public class MessageHistoryAwareMessageHandler implements NamedComponent, Messag
 			throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		historyWriter.writeHistory(this, message);
-		parentHandler.handleMessage(message);
+		targetHandler.handleMessage(message);
 	}
 
 	public String getComponentType() {
-		return ((NamedComponent)parentHandler).getComponentType();
+		return ((NamedComponent)targetHandler).getComponentType();
 	}
 
 	public int getOrder() {
