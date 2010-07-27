@@ -182,6 +182,7 @@ public class PriorityChannelTests {
 			}
 		});
 		assertFalse(sentSecondMessage.get());
+		Thread.sleep(500);
 		Message<?> message1 = channel.receive();
 		assertNotNull(message1);
 		assertEquals("test-1", message1.getPayload());
