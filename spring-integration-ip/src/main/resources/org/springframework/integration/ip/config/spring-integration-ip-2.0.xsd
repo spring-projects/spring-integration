@@ -301,7 +301,7 @@ performance and may use fewer threads.
 			<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
 			<xsd:attribute name="so-timeout" type="xsd:string" />
 			<xsd:attribute name="so-traffic-class" type="xsd:string" />
-			<xsd:attribute name="using-direct-buffers" type="xsd:string" default="false">
+			<xsd:attribute name="using-direct-buffers" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 If true, instructs the factory to use direct buffers if possible; only applies if
