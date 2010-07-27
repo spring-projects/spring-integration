@@ -13,62 +13,66 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.history;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.util.Assert;
 
 /**
  * Wrapper class to be used when a particular MessageHandler needs to be tracked in MessageHistory.
  * Note, any MessageHandler that is wrapped by this class will be tracked in MessageHistory
- * only when MessageHistoryWriter is present.ï¿½
+ * only when a MessageHistoryWriter is present in the ApplicationContext.Ê
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class MessageHistoryAwareMessageHandler implements NamedComponent, MessageHandler, Ordered {
+
 	private MessageHandler targetHandler;
+
 	private String componentName;
+
 	private MessageHistoryWriter historyWriter;
-	private int order = Ordered.LOWEST_PRECEDENCE;
+
+
 	/**
-	 * 
 	 * @param historyWriter
 	 * @param endpointName
+	 * @param parentHandler
 	 */
-	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler targetHandler){
+	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler targetHandler) {
+		Assert.notNull(targetHandler, "targetHandler must not be null");
+		Assert.notNull(historyWriter, "historyWriter must not be null");
 		this.historyWriter = historyWriter;
 		this.componentName = endpointName;
 		this.targetHandler = targetHandler;
-		if (targetHandler instanceof Ordered){
-			this.order = ((Ordered)targetHandler).getOrder();
-		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.integration.message.MessageHandler#handleMessage(org.springframework.integration.core.Message)
-	 */
-	public void handleMessage(Message<?> message)
-			throws MessageRejectedException, MessageHandlingException,
-			MessageDeliveryException {
-		historyWriter.writeHistory(this, message);
-		targetHandler.handleMessage(message);
-	}
-
-	public String getComponentType() {
-		return ((NamedComponent)targetHandler).getComponentType();
-	}
-
-	public int getOrder() {
-		return this.order;
-	}
 
 	public String getComponentName() {
 		return this.componentName;
 	}
+
+	public String getComponentType() {
+		return (targetHandler instanceof NamedComponent) ? ((NamedComponent) targetHandler).getComponentType() : null;
+	}
+
+	public int getOrder() {
+		return (targetHandler instanceof Ordered) ? ((Ordered) targetHandler).getOrder() : Ordered.LOWEST_PRECEDENCE;
+	}
+
+
+	/**
+	 * Writes the MessageHistory event and then invokes the target handler.
+	 */
+	public void handleMessage(Message<?> message) {
+		this.historyWriter.writeHistory(this, message);
+		this.targetHandler.handleMessage(message);
+	}
+
 }
