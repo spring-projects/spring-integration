@@ -184,6 +184,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
+			<xsd:attribute name="header-mapper" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.message.HeaderMapper"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="request-factory" type="xsd:string">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -251,6 +260,15 @@
 	Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
 	all of the default converters that would normally be present on the underlying RestTemplate.
 							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="header-mapper" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.integration.message.HeaderMapper"/>
+								</tool:annotation>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
