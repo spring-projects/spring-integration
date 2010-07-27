@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,16 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Comparator;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
@@ -111,6 +118,78 @@ public class PriorityChannelTests {
 		assertEquals("test-HIGH", channel.receive(0).getPayload());
 		assertEquals("test-NULL", channel.receive(0).getPayload());
 		assertEquals("test-LOW", channel.receive(0).getPayload());
+	}
+
+	@Test
+	public void testTimeoutElapses() throws InterruptedException {
+		final PriorityChannel channel = new PriorityChannel(1);
+		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
+		final CountDownLatch latch = new CountDownLatch(1);
+		Executor executor = Executors.newSingleThreadScheduledExecutor();
+		channel.send(new StringMessage("test-1"));
+		executor.execute(new Runnable() {
+			public void run() {
+				sentSecondMessage.set(channel.send(new StringMessage("test-2"), 10));
+				latch.countDown();
+			}
+		});
+		assertFalse(sentSecondMessage.get());
+		Thread.sleep(500);
+		Message<?> message1 = channel.receive();
+		assertNotNull(message1);
+		assertEquals("test-1", message1.getPayload());
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertFalse(sentSecondMessage.get());
+		assertNull(channel.receive(0));
+	}
+
+	@Test
+	public void testTimeoutDoesNotElapse() throws InterruptedException {
+		final PriorityChannel channel = new PriorityChannel(1);
+		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
+		final CountDownLatch latch = new CountDownLatch(1);
+		Executor executor = Executors.newSingleThreadScheduledExecutor();
+		channel.send(new StringMessage("test-1"));
+		executor.execute(new Runnable() {
+			public void run() {
+				sentSecondMessage.set(channel.send(new StringMessage("test-2"), 3000));
+				latch.countDown();
+			}
+		});
+		assertFalse(sentSecondMessage.get());
+		Thread.sleep(500);
+		Message<?> message1 = channel.receive();
+		assertNotNull(message1);
+		assertEquals("test-1", message1.getPayload());
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertTrue(sentSecondMessage.get());
+		Message<?> message2 = channel.receive();
+		assertNotNull(message2);
+		assertEquals("test-2", message2.getPayload());
+	}
+
+	@Test
+	public void testIndefiniteTimeout() throws InterruptedException {
+		final PriorityChannel channel = new PriorityChannel(1);
+		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
+		final CountDownLatch latch = new CountDownLatch(1);
+		Executor executor = Executors.newSingleThreadScheduledExecutor();
+		channel.send(new StringMessage("test-1"));
+		executor.execute(new Runnable() {
+			public void run() {
+				sentSecondMessage.set(channel.send(new StringMessage("test-2"), -1));
+				latch.countDown();
+			}
+		});
+		assertFalse(sentSecondMessage.get());
+		Message<?> message1 = channel.receive();
+		assertNotNull(message1);
+		assertEquals("test-1", message1.getPayload());
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertTrue(sentSecondMessage.get());
+		Message<?> message2 = channel.receive();
+		assertNotNull(message2);
+		assertEquals("test-2", message2.getPayload());
 	}
 
 
