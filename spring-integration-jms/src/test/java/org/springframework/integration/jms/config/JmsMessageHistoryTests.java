@@ -29,6 +29,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.history.MessageHistory;
@@ -61,7 +62,7 @@ public class JmsMessageHistoryTests {
 		assertEquals("jms:inbound-channel-adapter", event.getType());
 		assertEquals("sampleJmsInboundAdapter", event.getName());
 		event = historyIterator.next();
-		assertEquals("queue-channel", event.getType());
+		assertEquals("channel", event.getType());
 		assertEquals("jmsInputChannel", event.getName());
 	}
 	@SuppressWarnings("unchecked")
@@ -73,6 +74,7 @@ public class JmsMessageHistoryTests {
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
 		input.send(new StringMessage("hello"));
 		Message<String> message = (Message<String>) jmsInputChannel.receive(50000);
+		System.out.println(message);
 		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
 		MessageHistoryEvent event = historyIterator.next();
 		assertEquals("channel", event.getType());
@@ -84,10 +86,10 @@ public class JmsMessageHistoryTests {
 		assertEquals("jms:inbound-channel-adapter", event.getType());
 		assertEquals("sampleJmsInboundAdapter", event.getName());
 		event = historyIterator.next();
-		assertEquals("queue-channel", event.getType());
+		assertEquals("channel", event.getType());
 		assertEquals("jmsInputChannel", event.getName());
 	}
-	@SuppressWarnings("unchecked")
+
 	@Test
 	public void testWithHeaderMapperPropagatingOutboundHistoryWithGateways() throws Exception{
 		ActiveMqTestUtils.prepare();
@@ -103,7 +105,7 @@ public class JmsMessageHistoryTests {
 				assertEquals("gateway", event.getType());
 				assertEquals("sampleGateway", event.getName());
 				event = historyIterator.next();
-				assertEquals("pub-sub-channel", event.getType());
+				assertEquals("publish-subscribe-channel", event.getType());
 				assertEquals("channel-a", event.getName());
 				event = historyIterator.next();
 				assertEquals("jms:outbound-gateway", event.getType());
@@ -112,11 +114,11 @@ public class JmsMessageHistoryTests {
 				assertEquals("jms:inbound-gateway", event.getType());
 				assertEquals("jmsInbound", event.getName());
 				event = historyIterator.next();
-				assertEquals("pub-sub-channel", event.getType());
+				assertEquals("publish-subscribe-channel", event.getType());
 				assertEquals("inbound-jms-channel", event.getName());
-				event = historyIterator.next();
-				assertEquals("service-activator", event.getType());
-				assertEquals("sampleService-a", event.getName());
+				
+				MessageChannel channel = (MessageChannel) message.getHeaders().getReplyChannel();
+				channel.send(new StringMessage("OK"));
 			}
 		};
 		handler = Mockito.spy(handler);
@@ -132,6 +134,7 @@ public class JmsMessageHistoryTests {
 	
 	public static class SampleService{
 		public Message<?> echoMessage(String value){
+			System.out.println("IN SampleService");
 			return new StringMessage(value);
 		}
 	}
@@ -156,7 +159,7 @@ public class JmsMessageHistoryTests {
 			StringTokenizer tok = new StringTokenizer(outboundHistory, ",[] ");
 			while (tok.hasMoreTokens()) {
 				String historyItem = tok.nextToken();
-				String[] parsedHistory = StringUtils.split(historyItem, "@");
+				String[] parsedHistory = StringUtils.split(historyItem, "#");
 				String type = null;
 				String name = historyItem;
 				if (parsedHistory != null){

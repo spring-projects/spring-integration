@@ -16,11 +16,15 @@
 
 package org.springframework.integration.config;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.channel.PollableChannel;
@@ -31,6 +35,8 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.history.MessageHistoryAwareMessageHandler;
+import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
@@ -95,10 +101,17 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	public void afterPropertiesSet() throws Exception {
+		/*
+		 * Will check if this.handler needs to be wrapped in MessageHistoryAwareMessageHandler.
+		 * Such wrapping is only required if this.beanFactory contains bean of type MessageHistoryWriter.class
+		 */
+		Map<String, MessageHistoryWriter> historyWriters = BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class);
+		if (historyWriters.size() == 1){
+			if (!beanName.startsWith("org.springframework")  && this.handler instanceof IntegrationObjectSupport){
+				this.handler = new MessageHistoryAwareMessageHandler(this.beanFactory.getBean(MessageHistoryWriter.class), this.beanName, this.handler);
+			}
+		} 
 		this.initializeEndpoint();
-		if (this.handler instanceof IntegrationObjectSupport){
-			((IntegrationObjectSupport)this.handler).setComponentName(this.beanName);
-		}
 	}
 
 	public boolean isSingleton() {
@@ -154,7 +167,7 @@ public class ConsumerEndpointFactoryBean
 				throw new IllegalArgumentException(
 						"unsupported channel type: [" + channel.getClass() + "]");
 			}
-			//this.endpoint.setBeanName(this.beanName);
+			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
 			this.endpoint.setAutoStartup(this.autoStartup);
 			this.endpoint.afterPropertiesSet();

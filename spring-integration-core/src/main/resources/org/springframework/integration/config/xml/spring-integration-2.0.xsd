@@ -2464,6 +2464,17 @@ Name of the header whose value to use.
 		</xsd:complexType>
 	</xsd:element>
 	
+	<xsd:element name="message-history">
+		<xsd:annotation>
+			<xsd:documentation>
+				<![CDATA[
+Will register Message History writer which will track message hostory. There can 
+only be one Message History writer per ApplicationContext hierarchy.
+					]]>
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	
 	<xsd:attributeGroup name="inputOutputChannelGroup">
 		<xsd:attribute name="id" type="xsd:ID" />
 		<xsd:attribute name="output-channel" type="xsd:string">

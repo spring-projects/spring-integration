@@ -69,7 +69,7 @@ public class MessageHistoryEvent implements Serializable {
 		}
 		if (this.name != null) {
 			if (this.type != null) {
-				sb.append('@');
+				sb.append('#');
 			}
 			sb.append(name);
 			//sb.append("[" + timestamp + "]");

@@ -40,10 +40,6 @@ public class QueueChannel extends AbstractPollableChannel {
 
 	private final BlockingQueue<Message<?>> queue;
 
-
-	public String getComponentType(){
-		return "queue-channel";
-	}
 	/**
 	 * Create a channel with the specified queue.
 	 */

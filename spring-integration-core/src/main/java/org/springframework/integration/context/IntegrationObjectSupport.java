@@ -20,9 +20,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
@@ -107,8 +109,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			throw new BeanInitializationException("failed to initialize", e);
 		}
 		if (this.beanFactory != null) {
-			if (this.beanFactory.containsBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME)) {
-				historyWriter = this.beanFactory.getBean(MessageHistoryWriter.HISTORY_WRITER_BEAN_NAME, MessageHistoryWriter.class);
+			if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class).size() == 1){
+				this.historyWriter = this.beanFactory.getBean(MessageHistoryWriter.class);
 			}
 		}
 	}
@@ -173,5 +175,4 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 			historyWriter.writeHistory(this, message);
 		}
 	}
-
 }

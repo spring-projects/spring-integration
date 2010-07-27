@@ -16,20 +16,43 @@
 
 package org.springframework.integration.history;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.MessageHandler;
 
 /**
+ * This components is responsible for maintaining the history of {@link MessageChannel}s and 
+ * {@link MessageHandler}s
+ * There can only be ine instance of this class per ApplicationContext hierarchy 
+ * otherwise the Exception will be thrown.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class MessageHistoryWriter {
+public class MessageHistoryWriter implements BeanFactoryAware, InitializingBean{
 
-	public final static String HISTORY_WRITER_BEAN_NAME = "historyWriter";
+	private BeanFactory beanFactory;
 
 	public void writeHistory(NamedComponent component, Message<?> message) {
 		if (message != null) {
 			message.getHeaders().getHistory().addEvent(component);
+		}
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.beanFactory = beanFactory;
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class).size() > 1){
+			throw new IllegalArgumentException("Attempt to register more then one MessageHistoryWriter");
 		}
 	}
 

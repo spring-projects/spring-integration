@@ -41,7 +41,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel {
 	private volatile boolean applySequence;
 
 	public String getComponentType(){
-		return "pub-sub-channel";
+		return "publish-subscribe-channel";
 	}
 	/**
 	 * Create a PublishSubscribeChannel that will use an {@link Executor}

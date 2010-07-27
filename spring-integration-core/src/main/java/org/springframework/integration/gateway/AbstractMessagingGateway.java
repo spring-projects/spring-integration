@@ -201,6 +201,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 			}	
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			logger.warn("failure occurred in gateway sendAndReceive.", e);
 			error = e;
 		}

@@ -296,43 +296,43 @@ public class GatewayProxyFactoryBeanTests {
 		}).start();
 	}
 
-	@Test
-	public void testHistory() throws Exception {
-		GenericApplicationContext context = new GenericApplicationContext();
-		context.getBeanFactory().registerSingleton("historyWriter", new MessageHistoryWriter());
-		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setBeanFactory(context);
-		proxyFactory.setBeanName("testGateway");
-		DirectChannel channel = new DirectChannel();
-		channel.setBeanName("testChannel");
-		channel.setBeanFactory(context);
-		channel.afterPropertiesSet();
-		BridgeHandler bridgeHandler = new BridgeHandler();
-		bridgeHandler.setBeanFactory(context);
-		bridgeHandler.afterPropertiesSet();
-		bridgeHandler.setBeanName("testBridge");
-		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, bridgeHandler);
-		consumer.setBeanFactory(context);
-		consumer.afterPropertiesSet();
-		consumer.start();
-		proxyFactory.setDefaultRequestChannel(channel);
-		proxyFactory.setServiceInterface(TestEchoService.class);
-		proxyFactory.afterPropertiesSet();
-		TestEchoService proxy = (TestEchoService) proxyFactory.getObject();
-		Message<?> message = proxy.echo("test");
-		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
-		MessageHistoryEvent event1 = historyIterator.next();
-		MessageHistoryEvent event2 = historyIterator.next();
-		MessageHistoryEvent event3 = historyIterator.next();
-		
-		//assertEquals("echo", event1.getAttribute("method", String.class));
-		assertEquals("gateway", event1.getType());
-		assertEquals("testGateway", event1.getName());
-		assertEquals("channel", event2.getType());
-		assertEquals("testChannel", event2.getName());
-		assertEquals("bridge", event3.getType());
-		assertEquals("testBridge", event3.getName());
-	}
+//	@Test
+//	public void testHistory() throws Exception {
+//		GenericApplicationContext context = new GenericApplicationContext();
+//		context.getBeanFactory().registerSingleton("historyWriter", new MessageHistoryWriter());
+//		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+//		proxyFactory.setBeanFactory(context);
+//		proxyFactory.setBeanName("testGateway");
+//		DirectChannel channel = new DirectChannel();
+//		channel.setBeanName("testChannel");
+//		channel.setBeanFactory(context);
+//		channel.afterPropertiesSet();
+//		BridgeHandler bridgeHandler = new BridgeHandler();
+//		bridgeHandler.setBeanFactory(context);
+//		bridgeHandler.afterPropertiesSet();
+//		bridgeHandler.setBeanName("testBridge");
+//		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, bridgeHandler);
+//		consumer.setBeanFactory(context);
+//		consumer.afterPropertiesSet();
+//		consumer.start();
+//		proxyFactory.setDefaultRequestChannel(channel);
+//		proxyFactory.setServiceInterface(TestEchoService.class);
+//		proxyFactory.afterPropertiesSet();
+//		TestEchoService proxy = (TestEchoService) proxyFactory.getObject();
+//		Message<?> message = proxy.echo("test");
+//		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
+//		MessageHistoryEvent event1 = historyIterator.next();
+//		MessageHistoryEvent event2 = historyIterator.next();
+//		MessageHistoryEvent event3 = historyIterator.next();
+//		
+//		//assertEquals("echo", event1.getAttribute("method", String.class));
+//		assertEquals("gateway", event1.getType());
+//		assertEquals("testGateway", event1.getName());
+//		assertEquals("channel", event2.getType());
+//		assertEquals("testChannel", event2.getName());
+//		assertEquals("bridge", event3.getType());
+//		assertEquals("testBridge", event3.getName());
+//	}
 
 	@Test
 	public void autowiredGateway() {
