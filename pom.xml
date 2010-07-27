@@ -185,6 +185,7 @@
 							<excludePackageNames>org.springframework.integration.samples</excludePackageNames>
 							<links>
 								<link>http://static.springframework.org/spring/docs/3.0.3.RELEASE/javadoc-api</link>
+								<link>http://static.springsource.org/spring-integration/sites/${project.version}/apidocs</link>
 								<link>http://java.sun.com/javase/6/docs/api</link>
 							</links>
 						</configuration>

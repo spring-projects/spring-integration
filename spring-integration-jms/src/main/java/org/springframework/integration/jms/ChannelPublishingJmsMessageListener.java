@@ -259,14 +259,12 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 
 	/**
 	 * Determine a reply destination for the given message.
-	 * <p>This implementation first checks the boolean 'error' flag which signifies that the reply is an error message. 
-	 * If it is it will attempt to get the destination value from {@link JmsHeaders#SEND_ERROR_TO}. 
-	 * If reply is not an error it will first check the JMS Reply-To {@link Destination}
-	 * of the supplied request message; if that is not <code>null</code> it is
-	 * returned; if it is <code>null</code>, then the configured
-	 * {@link #resolveDefaultReplyDestination default reply destination}
-	 * is returned; if this too is <code>null</code>, then an
-	 * {@link InvalidDestinationException} is thrown.
+	 * <p>
+	 * This implementation first checks the boolean 'error' flag which signifies that the reply is an error message. If
+	 * reply is not an error it will first check the JMS Reply-To {@link Destination} of the supplied request message;
+	 * if that is not <code>null</code> it is returned; if it is <code>null</code>, then the configured
+	 * {@link #resolveDefaultReplyDestination default reply destination} is returned; if this too is <code>null</code>,
+	 * then an {@link InvalidDestinationException} is thrown.
 	 * @param request the original incoming JMS message
 	 * @param session the JMS Session to operate on
 	 * @return the reply destination (never <code>null</code>)

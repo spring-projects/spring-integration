@@ -185,6 +185,7 @@ public class GatewayInvokingMessageHandlerTests {
 		
 	}
 	
+	@SuppressWarnings("serial")
 	public static class SampleCheckedException extends Exception {
 		public SampleCheckedException(String message){
 			super(message);
