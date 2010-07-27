@@ -33,6 +33,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.support.destination.JmsDestinationAccessor;
 
 /**
  * @author Mark Fisher
@@ -285,6 +286,15 @@ public class JmsInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(gateway).getPropertyValue("listener"));
 		assertEquals(false, accessor.getPropertyValue("explicitQosEnabledForReplies"));
+	}
+
+	@Test
+	public void gatewayWithPubSubDomain() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithPubSubDomain.xml", this.getClass());
+		JmsMessageDrivenEndpoint endpoint = context.getBean("gateway", JmsMessageDrivenEndpoint.class);
+		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		assertEquals(Boolean.TRUE, container.isPubSubDomain());
 	}
 
 }

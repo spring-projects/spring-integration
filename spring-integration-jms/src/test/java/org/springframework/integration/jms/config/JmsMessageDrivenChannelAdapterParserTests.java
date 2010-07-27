@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,12 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.jms.support.destination.JmsDestinationAccessor;
 
 /**
  * @author Mark Fisher
@@ -40,6 +43,15 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		Message<?> message = output.receive(timeoutOnReceive);
 		assertNotNull("message should not be null", message);
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
+	}
+
+	@Test
+	public void adapterWithPubSubDomain() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithPubSubDomain.xml", this.getClass());
+		JmsMessageDrivenEndpoint endpoint = context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
+		JmsDestinationAccessor container = (JmsDestinationAccessor) new DirectFieldAccessor(endpoint).getPropertyValue("listenerContainer");
+		assertEquals(Boolean.TRUE, container.isPubSubDomain());
 	}
 
 }

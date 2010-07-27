@@ -107,6 +107,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				"org.springframework.jms.listener.DefaultMessageListenerContainer");
 		String destinationAttribute = this.expectReply ? "request-destination" : "destination";
 		String destinationNameAttribute = this.expectReply ? "request-destination-name" : "destination-name";
+		String pubSubDomainAttribute = this.expectReply ? "request-pub-sub-domain" : "pub-sub-domain";
 		String destination = element.getAttribute(destinationAttribute);
 		String destinationName = element.getAttribute(destinationNameAttribute);
 		boolean hasDestination = StringUtils.hasText(destination);
@@ -123,8 +124,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		else {
 			builder.addPropertyValue("destinationName", destinationName);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
-					"request-pub-sub-domain", "pubSubDomain");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, pubSubDomainAttribute, "pubSubDomain");
 		}
 		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element, parserContext);
 		if (acknowledgeMode != null) {
