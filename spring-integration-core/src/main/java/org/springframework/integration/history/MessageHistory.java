@@ -22,9 +22,7 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.context.NamedComponent;
-import org.springframework.integration.core.Message;
 import org.springframework.util.StringUtils;
 
 /**

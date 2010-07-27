@@ -53,7 +53,7 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
     /**
      * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
      *
-     * @param xmppConnection
+     * @param xmppConnection the connection
      */
     public void setXmppConnection(final XMPPConnection xmppConnection) {
         this.xmppConnection = xmppConnection;

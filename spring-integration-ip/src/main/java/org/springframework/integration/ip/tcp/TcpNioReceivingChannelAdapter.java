@@ -172,8 +172,6 @@ public class TcpNioReceivingChannelAdapter extends
 	 * and calls its {@link NetSocketReader#assembledData}
 	 * method; if a message is fully assembled,  calls {@link #sendMessage(Message)} with the
 	 * mapped message.
-	 * 
-	 * @param channel
 	 */
 	private void doRead(SelectionKey key) {
 		NioSocketReader reader = (NioSocketReader) key.attachment();

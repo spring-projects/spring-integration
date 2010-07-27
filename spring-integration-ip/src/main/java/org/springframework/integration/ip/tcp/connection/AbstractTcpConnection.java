@@ -36,10 +36,10 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 	
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings("unchecked")
 	protected InputStreamingConverter inputConverter;
 	
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings("unchecked")
 	protected OutputStreamingConverter outputConverter;
 	
 	protected TcpMessageMapper mapper;

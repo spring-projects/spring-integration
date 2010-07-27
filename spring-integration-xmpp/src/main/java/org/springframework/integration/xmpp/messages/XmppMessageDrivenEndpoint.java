@@ -18,27 +18,26 @@ package org.springframework.integration.xmpp.messages;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
-
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.xmpp.XmppConnectionFactory;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 /**
  * This component logs in as a user and forwards any messages <em>to</em> that
  * user on to downstream components. The component is an endpoint that has its
- * own lifecycle and does not need any
- * {@link org.springframework.integration.endpoint.AbstractPollingEndpoint.Poller}
+ * own lifecycle and does not need any poller
  * to work. It takes any message from a given XMPP session (as established by
- * the current {@link org.jivesoftware.smack.XMPPConnection}) and forwards the
+ * the current {@link XMPPConnection}) and forwards the
  * {@link org.jivesoftware.smack.packet.Message} as the payload of the Spring
  * Integration {@link org.springframework.integration.core.Message}. The
  * {@link org.jivesoftware.smack.Chat} instance that's used is passed along as a
@@ -60,14 +59,14 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * 
  * @author Josh Long
  * @author Mark Fisher
- * @see {@link org.jivesoftware.smack.ChatManager} the ChatManager class that
+ * 
+ * @see ChatManager the ChatManager class that
  *      keeps watch over all Chats between the client and any other
  *      participants.
- * @see {@link org.springframework.integration.channel.MessageChannelTemplate}
+ * @see MessageChannelTemplate
  *      handles all interesing operations on any Spring Integration channels.
- * @see {@link org.jivesoftware.smack.XMPPConnection} the XMPPConnection (as
- *      created by
- *      {@link org.springframework.integration.xmpp.XmppConnectionFactory}
+ * @see XMPPConnection the XMPPConnection (as
+ *      created by {@link XmppConnectionFactory}
  */
 public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifecycle {
 
@@ -84,7 +83,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
     /**
      * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
      *
-     * @param xmppConnection
+     * @param xmppConnection the connection
      */
 	public void setXmppConnection(final XMPPConnection xmppConnection) {
 		this.xmppConnection = xmppConnection;

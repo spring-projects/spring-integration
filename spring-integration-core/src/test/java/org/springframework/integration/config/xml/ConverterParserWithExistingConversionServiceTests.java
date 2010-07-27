@@ -72,6 +72,7 @@ public class ConverterParserWithExistingConversionServiceTests {
 
 		private String text;
 
+		@SuppressWarnings("unused")
 		public TestBean1(String text) {
 			this.text = text;
 		}
@@ -105,14 +106,13 @@ public class ConverterParserWithExistingConversionServiceTests {
 		}
 	}
 	
-	@SuppressWarnings("unused")
 	private static class TestConverter implements Converter<TestBean1, TestBean2> {
 
 		public TestBean2 convert(TestBean1 source) {
 			return new TestBean2(source.text.toUpperCase());
 		}
 	}
-	@SuppressWarnings("unused")
+
 	private static class TestConverter3 implements Converter<TestBean1, TestBean3> {
 
 		public TestBean3 convert(TestBean1 source) {

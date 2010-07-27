@@ -32,7 +32,7 @@ import org.springframework.security.access.SecurityMetadataSource;
 import org.springframework.util.Assert;
 
 /**
- * The {@link ObjectDefinitionSource} implementation for secured {@link MessageChannel}s.
+ * The {@link SecurityMetadataSource} implementation for secured {@link MessageChannel}s.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky

@@ -22,7 +22,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Creates the {@link ConfigAttributeDefinition}s for secured channel
+ * Creates the {@link ConfigAttribute}s for secured channel
  * send and receive operations based on simple String values.
  * 
  * @author Mark Fisher

@@ -18,6 +18,7 @@ package org.springframework.integration.history;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -135,6 +136,7 @@ public class MessageHistoryIntegrationTests {
 		endOfThePipeChannel.subscribe(handler);
 		Message<?> result = gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
+		assertNotNull(result);
 		//assertEquals("hello", result);
 	}
 	

@@ -50,6 +50,17 @@
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
+		<profile>
+			<id>release</id>
+			<build>
+			  <plugins>
+				<plugin>
+				  <groupId>com.agilejava.docbkx</groupId>
+				  <artifactId>docbkx-maven-plugin</artifactId>
+				</plugin>
+			  </plugins>
+			</build>
+		</profile>
 	</profiles>
 	<distributionManagement>
 		<!-- see 'staging' profile for dry-run deployment settings -->
@@ -77,7 +88,8 @@
 				<version>3.0.0.RELEASE</version>
 			</extension>
 		</extensions>
-		<plugins>
+		<pluginManagement>
+		  <plugins>
 			<plugin>
 				<groupId>com.agilejava.docbkx</groupId>
 				<artifactId>docbkx-maven-plugin</artifactId>
@@ -139,6 +151,9 @@
 					</postProcess>
 				</configuration>
 			</plugin>
+		  </plugins>
+		</pluginManagement>
+		<plugins>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.5</version>

@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.commons.serializer.InputStreamingConverter;
 import org.springframework.commons.serializer.OutputStreamingConverter;
 import org.springframework.context.Lifecycle;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.util.Assert;
 

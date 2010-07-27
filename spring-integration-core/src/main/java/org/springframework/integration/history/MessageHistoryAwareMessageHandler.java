@@ -26,7 +26,7 @@ import org.springframework.integration.message.MessageRejectedException;
 /**
  * Wrapper class to be used when a particular MessageHandler needs to be tracked in MessageHistory.
  * Note, any MessageHandler that is wrapped by this class will be tracked in MessageHistory
- * only when MessageHistoryWriter is present.Ê
+ * only when MessageHistoryWriter is present.ï¿½
  * 
  * @author Oleg Zhurakousky
  * @since 2.0
@@ -40,7 +40,6 @@ public class MessageHistoryAwareMessageHandler implements NamedComponent, Messag
 	 * 
 	 * @param historyWriter
 	 * @param endpointName
-	 * @param parentHandler
 	 */
 	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler targetHandler){
 		this.historyWriter = historyWriter;

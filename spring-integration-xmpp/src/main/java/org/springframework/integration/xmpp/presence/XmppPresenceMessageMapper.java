@@ -65,7 +65,7 @@ public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence
      *
      * @param message the Message whose headers and payload willl b
      * @return    the presence object as constructed from the {@link org.springframework.integration.core.Message} object
-     * @throws Exception
+     * @throws Exception if there is a problem
      */
     public Presence fromMessage(Message<?> message) throws Exception {
         MessageHeaders messageHeaders = message.getHeaders();

@@ -173,10 +173,6 @@ public class MultiClientTests {
 		adapter.stop();
 	}
 
-	/**
-	 * @param i
-	 * @return
-	 */
 	private String largePayload(int n) {
 		StringBuilder sb = new StringBuilder(n);
 		for (int i = 0; i < n; i++) {

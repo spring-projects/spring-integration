@@ -19,8 +19,6 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -38,9 +36,8 @@ import org.springframework.util.Assert;
  * A Message Router that sends Messages to a list of recipient channels. The
  * recipients can be provided as a static list of {@link MessageChannel}
  * instances via the {@link #setChannels(List)} method, or for dynamic
- * behavior, a map with {@link MessageSelector} instances as the keys and
- * collections of channels as the values can be provided via the
- * {@link #setChannelMap(Map)} method.
+ * behavior, the values can be provided via the
+ * {@link #setRecipients(List)} method.
  * <p/>
  * For more advanced, programmatic control
  * of dynamic recipient lists, consider using the @Router annotation or

@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * String, character array, and byte array payloads will be written directly,
  * but for other payload types, the result of the object's {@link #toString()}
  * method will be written. To append a new-line after each write, set the
- * {@link #shouldAppendNewLine} flag to 'true'. It is 'false' by default.
+ * {@link #setShouldAppendNewLine(boolean) shouldAppendNewLine} flag to 'true'. It is 'false' by default.
  * 
  * @author Mark Fisher
  */

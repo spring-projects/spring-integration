@@ -349,7 +349,7 @@ abstract class MessageListenerContainerConfigurationSupport implements Initializ
 	 * Blocks until the listener container has subscribed; if the container does not support
 	 * this test, or the caching mode is incompatible, true is returned. Otherwise blocks
 	 * until timeout milliseconds have passed, or the consumer has registered.
-	 * @see DefaultMessageListenerContainer.isRegisteredWithDestination()
+	 * @see DefaultMessageListenerContainer#isRegisteredWithDestination()
 	 * @param timeout Timeout in milliseconds.
 	 * @return True if a subscriber has connected or the container/attributes does not support
 	 * the test. False if a valid container does not have a registered consumer within 

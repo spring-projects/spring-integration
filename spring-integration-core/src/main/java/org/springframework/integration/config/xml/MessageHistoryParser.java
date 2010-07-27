@@ -16,8 +16,6 @@
 package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
-import org.springframework.beans.factory.parsing.Problem;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;

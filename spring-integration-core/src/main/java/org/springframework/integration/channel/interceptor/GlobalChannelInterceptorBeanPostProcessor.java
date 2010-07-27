@@ -50,10 +50,7 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 
 	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
 	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
-	/**
-	 *   
-	 * @param globalInterceptors
-	 */
+
 	GlobalChannelInterceptorBeanPostProcessor(List<GlobalChannelInterceptorWrapper> channelInterceptors){
 		this.channelInterceptors = channelInterceptors;
 	}

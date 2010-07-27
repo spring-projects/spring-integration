@@ -65,7 +65,7 @@ public class MultipleEndpointGatewayTests {
 		public Object echo(Object value){
 			return "R:" + value;
 		}
-		public Message echoAsMessage(Object value){
+		public Message<?> echoAsMessage(Object value){
 			return MessageBuilder.withPayload("R:" + value).build();
 		}
 	}

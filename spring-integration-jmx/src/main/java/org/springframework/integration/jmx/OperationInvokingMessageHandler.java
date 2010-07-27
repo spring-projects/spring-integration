@@ -48,7 +48,7 @@ import org.springframework.util.ObjectUtils;
  * defined as {@link JmxHeaders#OBJECT_NAME} and {@link JmxHeaders#OPERATION_NAME},
  * respectively. In either case, if no header is present, the value resolution
  * will fallback to the defaults, if any have been configured on this instance via
- * {@link #setDefaultObjectName(String)} and {@link #setDefaultOperationName(String)},
+ * {@link #setObjectName(String)} and {@link #setOperationName(String)},
  * respectively.
  * 
  * <p>The operation parameter(s), if any, must be available within the payload of the

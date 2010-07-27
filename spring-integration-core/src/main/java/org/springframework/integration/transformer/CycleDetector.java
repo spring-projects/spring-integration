@@ -52,7 +52,6 @@ class CycleDetector {
 	 * 
 	 * @param target
 	 * @param ignorePakages
-	 * @return
 	 */
 	public void detectCycle(Object target, String... ignorePakages){
 		Map<Object, Set<Object>> objectReferenceMap = new HashMap<Object, Set<Object>>();

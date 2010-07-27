@@ -25,16 +25,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.message.MessageBuilder;
 

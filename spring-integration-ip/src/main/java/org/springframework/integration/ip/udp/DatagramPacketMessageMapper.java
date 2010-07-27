@@ -112,7 +112,6 @@ public class DatagramPacketMessageMapper implements InboundMessageMapper<Datagra
 	/**
 	 * Prefix raw byte[] from message with 'acknowledge to' and 'message id' "headers".
 	 * @param message
-	 * @param ackTo
 	 * @return
 	 * @throws Exception
 	 */

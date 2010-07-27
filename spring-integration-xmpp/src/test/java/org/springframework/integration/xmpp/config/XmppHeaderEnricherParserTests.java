@@ -29,7 +29,6 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.*;
 
-import org.springframework.integration.xmpp.messages.XmppMessageSendingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

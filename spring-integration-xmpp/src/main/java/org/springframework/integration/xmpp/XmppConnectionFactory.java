@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Josh Long
  * @author Mark Fisher
- * @see {@link org.jivesoftware.smack.XMPPConnection}
+ * @see org.jivesoftware.smack.XMPPConnection
  * @since 2.0
  */
 public class XmppConnectionFactory extends AbstractFactoryBean<XMPPConnection> {
