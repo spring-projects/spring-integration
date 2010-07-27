@@ -25,17 +25,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.jmx.JmxHeaders;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * 
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,17 +40,15 @@ public class OperationInvokingOutboundGatewayTests {
 	@Autowired
 	@Qualifier("withReplyChannel")
 	private MessageChannel withReplyChannel;
+
 	@Autowired
 	@Qualifier("withReplyChannelOutput")
 	private PollableChannel withReplyChannelOutput;
-	
+
 	@Autowired
 	@Qualifier("withNoReplyChannel")
 	private MessageChannel withNoReplyChannel;
-	@Autowired
-	@Qualifier("withNoReplyChannelOutput")
-	private PollableChannel withNoReplyChannelOutput;
-	
+
 	@Autowired
 	private TestBean testBean;
 
@@ -61,34 +56,25 @@ public class OperationInvokingOutboundGatewayTests {
 	public void resetLists() {
 		testBean.messages.clear();
 	}
-	
+
 	@Test
 	public void gatewayWithReplyChannel() throws Exception {
 		withReplyChannel.send(new StringMessage("1"));
-		assertEquals(1, ((List<?>)withReplyChannelOutput.receive().getPayload()).size());
+		assertEquals(1, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 		withReplyChannel.send(new StringMessage("2"));
-		assertEquals(2, ((List<?>)withReplyChannelOutput.receive().getPayload()).size());
+		assertEquals(2, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 		withReplyChannel.send(new StringMessage("3"));
-		assertEquals(3, ((List<?>)withReplyChannelOutput.receive().getPayload()).size());
+		assertEquals(3, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 	}
-	
-//	@Test
-//	public void adapterWithoutNoDefaultsAndReturnAndReplyChannel() throws Exception {
-//		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("1", noDefaultOutputA));
-//		assertEquals(1, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
-//		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("2", noDefaultOutputA));
-//		assertEquals(2, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
-//		noDefaultInputA.send(createMessageWithHeadersForReturnCaseAndReplyChannel("3", noDefaultOutputA));
-//		assertEquals(3, ((List<?>)noDefaultOutputA.receive().getPayload()).size());
-//	}
-//	
-//	@Test
-//	public void adapterWithoutDefaultsAndReturn() throws Exception {
-//		defaultInput.send(new StringMessage("1"));
-//		assertEquals(1, ((List<?>)defaultOutput.receive().getPayload()).size());
-//		defaultInput.send(new StringMessage("2"));
-//		assertEquals(2, ((List<?>)defaultOutput.receive().getPayload()).size());
-//		defaultInput.send(new StringMessage("3"));
-//		assertEquals(3, ((List<?>)defaultOutput.receive().getPayload()).size());
-//	}
+
+	@Test
+	public void gatewayWithNoReplyChannel() throws Exception {
+		withNoReplyChannel.send(new StringMessage("1"));
+		assertEquals(1, testBean.messages.size());
+		withNoReplyChannel.send(new StringMessage("2"));
+		assertEquals(2, testBean.messages.size());
+		withNoReplyChannel.send(new StringMessage("3"));
+		assertEquals(3, testBean.messages.size());
+	}
+
 }
