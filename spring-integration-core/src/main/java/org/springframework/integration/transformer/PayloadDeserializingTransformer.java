@@ -16,13 +16,13 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.commons.serializer.JavaDeserializingConverter;
+import org.springframework.commons.serializer.java.DeserializingConverter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
 /**
  * Transformer that deserializes the inbound byte array payload to an object by delegating to a
- * Converter&lt;byte[], Object&gt;. Default delegate is a {@link JavaDeserializingConverter}.
+ * Converter&lt;byte[], Object&gt;. Default delegate is a {@link DeserializingConverter}.
  * <p>The byte array payload must be a result of equivalent serialization.
  * 
  * @author Mark Fisher
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
 public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransformer<byte[], Object> {
 	
 	public PayloadDeserializingTransformer() {
-		this.converter = new JavaDeserializingConverter();
+		this.converter = new DeserializingConverter();
 	}
 	
 	@Override

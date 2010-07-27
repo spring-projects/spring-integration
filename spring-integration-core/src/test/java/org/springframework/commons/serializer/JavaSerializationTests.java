@@ -22,6 +22,8 @@ import static org.junit.Assert.fail;
 import java.io.Serializable;
 
 import org.junit.Test;
+import org.springframework.commons.serializer.java.DeserializingConverter;
+import org.springframework.commons.serializer.java.SerializingConverter;
 
 
 /**
@@ -33,15 +35,15 @@ public class JavaSerializationTests {
 
 	@Test
 	public void testGood() {
-		JavaSerializingConverter toBytes = new JavaSerializingConverter();
+		SerializingConverter toBytes = new SerializingConverter();
 		byte[] bytes = toBytes.convert("Testing");
-		JavaDeserializingConverter fromBytes = new JavaDeserializingConverter();
+		DeserializingConverter fromBytes = new DeserializingConverter();
 		assertEquals("Testing", fromBytes.convert(bytes));
 	}
 	
 	@Test
 	public void testBadSerializeNotSerializable() {
-		JavaSerializingConverter toBytes = new JavaSerializingConverter();
+		SerializingConverter toBytes = new SerializingConverter();
 		try {
 			toBytes.convert(new Object());
 			fail("Expected IllegalArgumentException");
@@ -51,7 +53,7 @@ public class JavaSerializationTests {
 
 	@Test
 	public void testBadSerializeNotSerializableField() {
-		JavaSerializingConverter toBytes = new JavaSerializingConverter();
+		SerializingConverter toBytes = new SerializingConverter();
 		try {
 			toBytes.convert(new UnSerializable());
 			fail("Expected SerializationFailureException");
@@ -61,7 +63,7 @@ public class JavaSerializationTests {
 
 	@Test
 	public void testBadDeserialize() {
-		JavaDeserializingConverter fromBytes = new JavaDeserializingConverter();
+		DeserializingConverter fromBytes = new DeserializingConverter();
 		try {
 			fromBytes.convert("Junk".getBytes());
 			fail("Expected DeserializationFailureException");

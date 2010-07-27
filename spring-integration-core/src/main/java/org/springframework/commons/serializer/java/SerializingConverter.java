@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.commons.serializer;
+package org.springframework.commons.serializer.java;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 
+import org.springframework.commons.serializer.SerializationFailureException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
 /**
- * Delegates to a {@link JavaSerializationConverter} to serialize an object
+ * Delegates to a {@link JavaStreamingConverter} to serialize an object
  * to a byte[]. Source object must implement {@link Serializable}.
  * 
  * @author Gary Russell
  * @since 2.0
  *
  */
-public class JavaSerializingConverter implements Converter<Object, byte[]> {
+public class SerializingConverter implements Converter<Object, byte[]> {
 
-	private JavaSerializationConverter converter = new JavaSerializationConverter();
+	private JavaStreamingConverter converter = new JavaStreamingConverter();
 	
 	public byte[] convert(Object source) {
 		Assert.isTrue(source instanceof Serializable, this.getClass().getName()

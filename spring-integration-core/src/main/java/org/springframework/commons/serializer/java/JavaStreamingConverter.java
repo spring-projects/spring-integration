@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.commons.serializer;
+package org.springframework.commons.serializer.java;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+
+import org.springframework.commons.serializer.InputStreamingConverter;
+import org.springframework.commons.serializer.OutputStreamingConverter;
 
 
 /**
@@ -31,7 +34,7 @@ import java.io.OutputStream;
  * @since 2.0
  *
  */
-public class JavaSerializationConverter 
+public class JavaStreamingConverter 
 		implements InputStreamingConverter<Object>, 
 		           OutputStreamingConverter<Object> {
 

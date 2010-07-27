@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-import org.springframework.commons.serializer.JavaSerializationConverter;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -548,7 +548,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		JavaSerializationConverter converter = new JavaSerializationConverter();
+		JavaStreamingConverter converter = new JavaStreamingConverter();
 		ccf.setInputConverter(converter);
 		ccf.setOutputConverter(converter);
 		ccf.setSoTimeout(10000);
@@ -597,7 +597,7 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
-		JavaSerializationConverter converter = new JavaSerializationConverter();
+		JavaStreamingConverter converter = new JavaStreamingConverter();
 		ccf.setInputConverter(converter);
 		ccf.setOutputConverter(converter);
 		ccf.setSoTimeout(10000);

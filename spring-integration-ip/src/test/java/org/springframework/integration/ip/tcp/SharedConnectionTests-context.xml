@@ -10,7 +10,7 @@
 
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 	
-	<bean id="serializer" class="org.springframework.commons.serializer.JavaSerializationConverter" />
+	<bean id="serializer" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"

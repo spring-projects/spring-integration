@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.commons.serializer;
+package org.springframework.commons.serializer.java;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import org.springframework.commons.serializer.DeserializationFailureException;
 import org.springframework.core.convert.converter.Converter;
 
 /**
- * Delegates to a {@link JavaSerializationConverter} to deserialize data
+ * Delegates to a {@link JavaStreamingConverter} to deserialize data
  * in a byte[] to an object.
  * 
  * @author Gary Russell
  * @since 2.0
  *
  */
-public class JavaDeserializingConverter implements Converter<byte[], Object> {
+public class DeserializingConverter implements Converter<byte[], Object> {
 
-	private JavaSerializationConverter converter = new JavaSerializationConverter();
+	private JavaStreamingConverter converter = new JavaStreamingConverter();
 	
 	public Object convert(byte[] source) {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(source);

@@ -320,7 +320,7 @@
 		using-direct-buffers="true"
 	/>
 	
-	<bean id="serial" class="org.springframework.commons.serializer.JavaSerializationConverter" />
+	<bean id="serial" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
 	
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut1"
 		channel="tcpChannel"
