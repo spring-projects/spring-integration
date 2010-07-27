@@ -351,7 +351,12 @@ public class XmppMessageConsumer {
 
        </para>                 <para>
     The most important data for these adapters resides in the headers. The header keys are enumerated on
-    the <code>org.springframework.integration.xmpp.XmppHeaders</code> class.      The header keys specific to these "presence" adapters start with the token "PRESENCE_".
+    the <code>org.springframework.integration.xmpp.XmppHeaders</code> class.
+
+    The header keys specific to these "presence" adapters start with the token "PRESENCE_".
+
+    Not all headers are available for both inbound and outbound.  
+
 
     
 
@@ -370,41 +375,52 @@ public class XmppMessageConsumer {
             </row>
           </thead>
 
-          <!--
 
-    public static final String PRESENCE_LANGUAGE = PRESENCE + "language" ;
-    public static final String PRESENCE_PRIORITY = PRESENCE + "priority" ;
-    public static final String PRESENCE_MODE = PRESENCE + "mode" ;
-    public static final String PRESENCE_TYPE = PRESENCE + "type" ;
-    public static final String PRESENCE_STATUS = PRESENCE + "status" ;
-    public static final String PRESENCE_FROM = PRESENCE+ "from";
-          -->
           <tbody>
             <row>
-              <entry>XmppHeaders.TYPE</entry>
-              <entry>The value of the
-                the
-                <code>
-                  org.jivesoftware.smack.packet.Message.Type
-                </code>
-                enum that describes the inbound message. Possible values are:
-                <code>normal</code>,
-                <code>chat</code>,
-                <code>groupchat</code>,
-                <code>headline</code>,
-                <code>error</code>.
+              <entry>XmppHeaders.PRESENCE_LANGUAGE</entry>
+              <entry> The <code>java.lang.String</code> language in which the message was written.
               </entry>
-
             </row>
             <row>
-              <entry>XmppHeaders.CHAT</entry>
-              <entry>A reference to the
-                <code>org.jivesoftware.smack.Chat</code>
-                class which represents the
-                threaded conversation containing the message.
+              <entry>XmppHeaders.PRESENCE_PRIORITY</entry>
+              <entry>
+                The priority (int) of the message. Arbitrary, but it can be used to help assign relevance to  a message  which
+                in turn might be used in its handling.
               </entry>
 
+            </row><row>
+              <entry>XmppHeaders.PRESENCE_MODE</entry>
+              <entry>
+                An instance of the enum  <code>org.jivesoftware.smack.packet.Presence.Mode</code> that has one of the following values:
+                 <code>chat,</code> <code>available,</code> <code>away,</code>
+                <code>xa,</code> <code>dnd</code>
+              </entry>
             </row>
+            <row>
+                          <entry>XmppHeaders.PRESENCE_TYPE</entry>
+                          <entry>
+      An instance of the enum  <code>org.jivesoftware.smack.packet.Presence.Type</code>
+                       that has one of the following values:
+      <code>available,</code> <code>unavailable,</code> <code>subscribe,</code> <code>subscribed,</code>
+                            <code>unsubscribe,</code> <code>unsubscribed,</code> and <code>error</code>.
+
+
+                          </entry>
+                        </row> <row>
+                          <entry>XmppHeaders.PRESENCE_STATUS</entry>
+                          <entry>
+   A <code>java.lang.String</code> string representing the status of the agent. This corresponds to an agents "away" message.
+                          </entry>
+                        </row>
+            <row>
+                                      <entry>XmppHeaders.PRESENCE_FROM</entry>
+                                      <entry>
+               A <code>java.lang.String</code> string representing the handle of the user whose state is being received.
+                                      </entry>
+                                    </row>
+
+
           </tbody>
         </tgroup>
 
