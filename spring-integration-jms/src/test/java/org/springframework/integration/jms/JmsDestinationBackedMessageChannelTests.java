@@ -188,6 +188,9 @@ public class JmsDestinationBackedMessageChannelTests {
 				new JmsDestinationBackedMessageChannel(this.connectionFactory, "dynamicTopic", true);
 		channel.afterPropertiesSet();
 		channel.start();
+        if (!channel.waitRegisteredWithDestination(10000)) {
+        	fail("Listener failed to subscribe to topic");
+        }
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
 		channel.send(new StringMessage("foo"));
