@@ -33,11 +33,11 @@ import org.springframework.util.Assert;
  */
 public class MessageHistoryAwareMessageHandler implements NamedComponent, MessageHandler, Ordered {
 
-	private MessageHandler targetHandler;
+	private final MessageHandler targetHandler;
 
-	private String componentName;
+	private final MessageHistoryWriter historyWriter;
 
-	private MessageHistoryWriter historyWriter;
+	private final String componentName;
 
 
 	/**
@@ -45,12 +45,12 @@ public class MessageHistoryAwareMessageHandler implements NamedComponent, Messag
 	 * @param endpointName
 	 * @param targetHandler
 	 */
-	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler targetHandler) {
+	public MessageHistoryAwareMessageHandler(MessageHandler targetHandler, MessageHistoryWriter historyWriter,  String endpointName) {
 		Assert.notNull(targetHandler, "targetHandler must not be null");
 		Assert.notNull(historyWriter, "historyWriter must not be null");
+		this.targetHandler = targetHandler;
 		this.historyWriter = historyWriter;
 		this.componentName = endpointName;
-		this.targetHandler = targetHandler;
 	}
 
 

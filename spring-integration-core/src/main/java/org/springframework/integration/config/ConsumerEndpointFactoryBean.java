@@ -101,15 +101,14 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		/*
-		 * Will check if this.handler needs to be wrapped in MessageHistoryAwareMessageHandler.
-		 * Such wrapping is only required if this.beanFactory contains bean of type MessageHistoryWriter.class
-		 */
-		Map<String, MessageHistoryWriter> historyWriters = BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class);
-		if (historyWriters.size() == 1){
+		// Will check if this.handler needs to be wrapped in a MessageHistoryAwareMessageHandler.
+		// Such wrapping is only required if this.beanFactory contains a bean of type MessageHistoryWriter.
+		Map<String, MessageHistoryWriter> historyWriters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
+				(ListableBeanFactory) this.beanFactory, MessageHistoryWriter.class);
+		if (historyWriters.size() == 1) {
 			MessageHistoryWriter writer = historyWriters.values().iterator().next();
-			if (!beanName.startsWith("org.springframework")  && this.handler instanceof IntegrationObjectSupport){
-				this.handler = new MessageHistoryAwareMessageHandler(writer, this.beanName, this.handler);
+			if (!this.beanName.startsWith("org.springframework")  && this.handler instanceof IntegrationObjectSupport) {
+				this.handler = new MessageHistoryAwareMessageHandler(this.handler, writer, this.beanName);
 			}
 		} 
 		this.initializeEndpoint();
