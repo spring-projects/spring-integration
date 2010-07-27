@@ -10,12 +10,13 @@
 			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
 	<si:publish-subscribe-channel id="requests"/>
-	
-	<si:bridge output-channel="responses" input-channel="requests"/>
-	
-	<si:channel id="responses"/>
-	
-	<inbound-gateway id="inboundGateway" request-channel="requests"
-		reply-channel="responses" />
+
+	<si:bridge input-channel="requests" output-channel="responses"/>
+
+	<si:channel id="responses">
+		<si:queue/>
+	</si:channel>
+
+	<inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>
 
 </beans:beans>

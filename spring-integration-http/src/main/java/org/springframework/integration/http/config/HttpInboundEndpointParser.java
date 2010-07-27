@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,9 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.http.HttpInboundEndpoint";
+		return element.hasAttribute("view-name")
+				? "org.springframework.integration.http.HttpRequestHandlingController"
+				: "org.springframework.integration.http.HttpRequestHandlingMessagingGateway";
 	}
 
 	@Override
@@ -64,6 +66,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		builder.addConstructorArgValue(this.expectReply);
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		String inputChannelRef = element.getAttribute(inputChannelAttributeName);
 		if (!StringUtils.hasText(inputChannelRef)) {
@@ -71,7 +74,6 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 					"a '" + inputChannelAttributeName + "' reference is required", element);
 		}
 		builder.addPropertyReference("requestChannel", inputChannelRef);
-		builder.addPropertyValue("expectReply", this.expectReply);
 		if (this.expectReply) {
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
@@ -83,10 +85,11 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(
 					builder, element, "send-timeout", "requestTimeout");
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "supported-methods");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "view");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-key");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-mapper");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "supported-methods", "supportedMethodNames");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "conversion-target-type");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "view-name");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
 	}
 
 	private String getInputChannelAttributeName() {

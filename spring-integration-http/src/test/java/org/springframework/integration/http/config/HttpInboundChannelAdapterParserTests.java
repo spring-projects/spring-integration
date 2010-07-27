@@ -33,11 +33,11 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpMethod;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.http.HttpInboundEndpoint;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
+import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -50,17 +50,17 @@ import org.springframework.util.MultiValueMap;
 @ContextConfiguration
 public class HttpInboundChannelAdapterParserTests {
 
-	@Autowired @Qualifier("requests")
+	@Autowired
 	private PollableChannel requests;
 
-	@Autowired @Qualifier("defaultAdapter")
-	private HttpInboundEndpoint defaultAdapter;
+	@Autowired
+	private HttpRequestHandlingMessagingGateway defaultAdapter;
 
-	@Autowired @Qualifier("postOnlyAdapter")
-	private HttpInboundEndpoint postOnlyAdapter;
+	@Autowired
+	private HttpRequestHandlingMessagingGateway postOnlyAdapter;
 
-	@Autowired @Qualifier("putOrDeleteAdapter")
-	private HttpInboundEndpoint putOrDeleteAdapter;
+	@Autowired
+	private HttpRequestHandlingMessagingGateway putOrDeleteAdapter;
 
 
 	@Test
@@ -133,8 +133,8 @@ public class HttpInboundChannelAdapterParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(putOrDeleteAdapter);
 		List<String> supportedMethods = (List<String>) accessor.getPropertyValue("supportedMethods");
 		assertEquals(2, supportedMethods.size());
-		assertTrue(supportedMethods.contains("PUT"));
-		assertTrue(supportedMethods.contains("DELETE"));
+		assertTrue(supportedMethods.contains(HttpMethod.PUT));
+		assertTrue(supportedMethods.contains(HttpMethod.DELETE));
 	}
 
 
