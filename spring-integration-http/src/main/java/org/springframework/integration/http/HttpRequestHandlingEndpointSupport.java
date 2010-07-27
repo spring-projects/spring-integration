@@ -71,7 +71,7 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 			ClassUtils.isPresent("com.sun.syndication.feed.WireFeed", HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 
-	private volatile Class<?> conversionTargetType = byte[].class;
+	private volatile Class<?> conversionTargetType = null;
 
 	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
 
@@ -135,6 +135,19 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
+	 * Specify the supported request method names for this gateway.
+	 * By default, only GET and POST are supported.
+	 */
+	public void setSupportedMethodNames(String... supportedMethods) {
+		Assert.notEmpty(supportedMethods, "at least one supported method is required");
+		HttpMethod[] methodArray = new HttpMethod[supportedMethods.length];
+		for (int i = 0; i < methodArray.length; i++) {
+			methodArray[i] = HttpMethod.valueOf(supportedMethods[i].toUpperCase());
+		}
+		this.supportedMethods = Arrays.asList(methodArray);
+	}
+
+	/**
 	 * Specify the supported request methods for this gateway.
 	 * By default, only GET and POST are supported.
 	 */
@@ -145,10 +158,11 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 
 	/**
 	 * Specify the type of payload to be generated when the inbound HTTP request content
-	 * is read by the {@link HttpMessageConverter}s. The default is <code>byte[].class</code>.
+	 * is read by the {@link HttpMessageConverter}s. By default this value is null which
+	 * means at runtime any "text" Content-Type will result in String while all others
+	 * default to <code>byte[].class</code>.
 	 */
 	public void setConversionTargetType(Class<?> conversionTargetType) {
-		Assert.notNull(conversionTargetType, "conversionTargetType must not be null");
 		this.conversionTargetType = conversionTargetType;
 	}
 
@@ -308,13 +322,17 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	@SuppressWarnings("unchecked")
 	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
+		Class<?> targetType = this.conversionTargetType;
+		if (targetType == null) {
+			targetType = ("text".equals(contentType.getType())) ? String.class : byte[].class;
+		}
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
-			if (converter.canRead(this.conversionTargetType, contentType)) {
-				return converter.read((Class) this.conversionTargetType, request);
+			if (converter.canRead(targetType, contentType)) {
+				return converter.read((Class) targetType, request);
 			}
 		}
 		throw new MessagingException("Could not convert request: no suitable HttpMessageConverter found for expected type [" +
-				this.conversionTargetType.getName() + "] and content type [" + contentType + "]");
+				targetType.getName() + "] and content type [" + contentType + "]");
 	}
 
 }
