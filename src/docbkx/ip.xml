@@ -230,7 +230,9 @@
       supply your own by implementing the <classname>InputStreamingConverter</classname> and
       <classname>OutputStreamingConverter</classname> interfaces. If you do not wish to use
       the default converters, you must supply <classname>input-converter</classname> and 
-      <classname>output-converter</classname> attributes on the connection factory:
+      <classname>output-converter</classname> attributes on the connection factory (example below).
+      <tip>This converter mechanism replaces the previous mechanism of subclassing the 
+      NxxSocketReader and NxxSocketWriter</tip>
     </para>
     <para>
       <programlisting language="xml"><![CDATA[
@@ -756,7 +758,7 @@
               <entry>N</entry>
               <entry>Subclass of TcpNetSocket- Writer or TcpNioSocket- Writer</entry>
               <entry>When message-format is 'custom' the name of the class that
-                     implements the custom format. Must be a subclass of the TcpNxxSocketWriter,
+                     implements the custom format. Must be a subclass of the NxxSocketWriter,
                      depending on whether using-nio is false or true.</entry>
             </row>
             <row>
@@ -961,7 +963,7 @@
               <entry>N</entry>
               <entry>Subclass of TcpNetSocket- Reader or TcpNioSocket- Reader</entry>
               <entry>When message-format is 'custom' the name of the class that
-                     implements the custom format. Must be a subclass of the TcpNxxSocketReader,
+                     implements the custom format. Must be a subclass of the NxxSocketReader,
                      depending on whether using-nio is false or true.</entry>
             </row>
             <row>
