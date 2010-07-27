@@ -37,16 +37,28 @@ import org.springframework.util.FileCopyUtils;
  */
 public class SerializingHttpMessageConverter extends AbstractHttpMessageConverter<Serializable> {
 
+	private static final MediaType APPLICATION_JAVA_SERIALIZED_OBJECT = new MediaType("application", "x-java-serialized-object");
+
+
 	/** Creates a new instance of the {@code SerializingHttpMessageConverter}. */
 	public SerializingHttpMessageConverter() {
-		super(new MediaType("application", "x-java-serialized-object"));
+		super(APPLICATION_JAVA_SERIALIZED_OBJECT);
 	}
 
 
 	@Override
 	public boolean supports(Class<?> clazz) {
-		return !(byte[].class.equals(clazz)) && !(String.class.equals(clazz))
-				&& (clazz != null && Serializable.class.isAssignableFrom(clazz));
+		return Serializable.class.isAssignableFrom(clazz);
+	}
+
+	@Override
+	public boolean canRead(Class<?> clazz, MediaType mediaType) {
+		return (Serializable.class.isAssignableFrom(clazz) && APPLICATION_JAVA_SERIALIZED_OBJECT.includes(mediaType));
+	}
+
+	@Override
+	public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+		return (Serializable.class.isAssignableFrom(clazz) && APPLICATION_JAVA_SERIALIZED_OBJECT.includes(mediaType));
 	}
 
 	@Override
