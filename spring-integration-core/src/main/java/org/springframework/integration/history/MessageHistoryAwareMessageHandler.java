@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 /**
  * Wrapper class to be used when a particular MessageHandler needs to be tracked in MessageHistory.
  * Note, any MessageHandler that is wrapped by this class will be tracked in MessageHistory
- * only when a MessageHistoryWriter is present in the ApplicationContext.Ê
+ * only when a MessageHistoryWriter is present in the ApplicationContext.
  * 
  * @author Oleg Zhurakousky
  * @author Mark Fisher
@@ -43,7 +43,7 @@ public class MessageHistoryAwareMessageHandler implements NamedComponent, Messag
 	/**
 	 * @param historyWriter
 	 * @param endpointName
-	 * @param parentHandler
+	 * @param targetHandler
 	 */
 	public MessageHistoryAwareMessageHandler(MessageHistoryWriter historyWriter,  String endpointName, MessageHandler targetHandler) {
 		Assert.notNull(targetHandler, "targetHandler must not be null");
