@@ -34,7 +34,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="conversion-target-type" type="xsd:string">
+			<xsd:attribute name="request-payload-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						Target type for payload that is the conversion result of the request.
@@ -88,7 +88,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="conversion-target-type" type="xsd:string">
+					<xsd:attribute name="request-payload-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								Target type for payload that is the conversion result of the request.

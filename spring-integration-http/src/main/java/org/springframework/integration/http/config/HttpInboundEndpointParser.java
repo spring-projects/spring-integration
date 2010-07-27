@@ -86,7 +86,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 					builder, element, "send-timeout", "requestTimeout");
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "supported-methods", "supportedMethodNames");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "conversion-target-type");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "view-name");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");

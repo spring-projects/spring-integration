@@ -54,6 +54,29 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 /**
  * Base class for HTTP request handling endpoints.
+ * <p/>
+ * By default GET and POST requests are accepted, but the 'supportedMethods'
+ * property may be set to include others or limit the options (e.g. POST only).
+ * A GET request will generate a payload containing its 'parameterMap' while
+ * a POST request will be converted to a Message payload according to
+ * the registered {@link HttpMessageConverter}s. Several are registered
+ * by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
+ * <p/>
+ * To customize the mapping of request headers to the MessageHeaders, provide
+ * a reference to a {@link HeaderMapper HeaderMapper<HttpHeaders>} implementation
+ * to the {@link #setHeaderMapper(HeaderMapper)} method.
+ * <p/>
+ * The behavior is "request/reply" by default. Pass <code>false</code>
+ * to the constructor to force send-only as opposed to sendAndReceive.
+ * Send-only means that as soon as the Message is created and passed to the
+ * {@link #setRequestChannel(org.springframework.integration.core.MessageChannel) request channel},
+ * a response will be generated. Subclasses determine how that response is
+ * generated (e.g. simple status response or rendering a View).
+ * <p/>
+ * In a request-reply scenario, the reply Message's payload will be
+ * extracted prior to generating a response by default. To have the entire
+ * serialized Message available for the response, switch the
+ * {@link #extractReplyPayload} value to <code>false</code>.
  * 
  * @author Mark Fisher
  * @since 2.0
@@ -71,9 +94,9 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 			ClassUtils.isPresent("com.sun.syndication.feed.WireFeed", HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 
-	private volatile Class<?> conversionTargetType = null;
-
 	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
+
+	private volatile Class<?> requestPayloadType = null;
 
 	private volatile List<HttpMessageConverter<?>> messageConverters = new ArrayList<HttpMessageConverter<?>>();
 
@@ -162,8 +185,8 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	 * means at runtime any "text" Content-Type will result in String while all others
 	 * default to <code>byte[].class</code>.
 	 */
-	public void setConversionTargetType(Class<?> conversionTargetType) {
-		this.conversionTargetType = conversionTargetType;
+	public void setRequestPayloadType(Class<?> requestPayloadType) {
+		this.requestPayloadType = requestPayloadType;
 	}
 
 	/**
@@ -322,17 +345,17 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	@SuppressWarnings("unchecked")
 	private Object generatePayloadFromRequestBody(ServletServerHttpRequest request) throws IOException {
 		MediaType contentType = request.getHeaders().getContentType();
-		Class<?> targetType = this.conversionTargetType;
-		if (targetType == null) {
-			targetType = ("text".equals(contentType.getType())) ? String.class : byte[].class;
+		Class<?> expectedType = this.requestPayloadType;
+		if (expectedType == null) {
+			expectedType = ("text".equals(contentType.getType())) ? String.class : byte[].class;
 		}
 		for (HttpMessageConverter<?> converter : this.messageConverters) {
-			if (converter.canRead(targetType, contentType)) {
-				return converter.read((Class) targetType, request);
+			if (converter.canRead(expectedType, contentType)) {
+				return converter.read((Class) expectedType, request);
 			}
 		}
 		throw new MessagingException("Could not convert request: no suitable HttpMessageConverter found for expected type [" +
-				targetType.getName() + "] and content type [" + contentType + "]");
+				expectedType.getName() + "] and content type [" + contentType + "]");
 	}
 
 }
