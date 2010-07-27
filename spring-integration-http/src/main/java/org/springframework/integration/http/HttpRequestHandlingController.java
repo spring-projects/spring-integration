@@ -23,6 +23,20 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.Controller;
 
 /**
+ * Inbound HTTP endpoint that implements Spring's {@link Controller}
+ * interface to be used with a DispatcherServlet front controller.
+ * <p/>
+ * The {@link #setViewName(String) viewName} will be passed into the 
+ * ModelAndView return value.
+ * <p/>
+ * This endpoint will have request/reply behavior by default. That
+ * can be overridden by passing <code>false</code> to the constructor.
+ * In the request/reply case, the model map will be passed to the view, and it
+ * will contain either the reply Message or payload depending on the value of
+ * {@link #extractReplyPayload} (true by default, meaning just the payload).
+ * The corresponding key in the map is determined by the {@link #replyKey}
+ * property (with a default of "reply").
+ * 
  * @author Mark Fisher
  * @since 2.0
  */
