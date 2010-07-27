@@ -13,22 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.samples.jms;
 
-package org.springframework.integration.samples.cafe.annotation;
-
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Router;
-import org.springframework.integration.samples.cafe.OrderItem;
+import java.io.File;
 
 /**
- * @author Mark Fisher
+ * @author Oleg Zhurakousky
+ *
  */
-@MessageEndpoint
-public class DrinkRouter {
+public class ActiveMqTestUtils {
 
-	@Router(inputChannel="drinks")
-	public String resolveOrderItemChannel(OrderItem orderItem) {
-		return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
+	public static void prepare() {
+		System.out.println("####### Refreshing ActiveMq ########");
+		File activeMqTempDir = new File("activemq-data");
+		deleteDir(activeMqTempDir);
+		
 	}
-
+	/*
+	 * 
+	 */
+	private static void deleteDir(File directory){
+		if (directory.exists()){
+			String[] children = directory.list();
+			if (children != null){
+				 for (int i=0; i < children.length; i++) {
+			         deleteDir(new File(directory, children[i]));
+			     }
+			}
+		}
+		directory.delete();
+	}
 }
