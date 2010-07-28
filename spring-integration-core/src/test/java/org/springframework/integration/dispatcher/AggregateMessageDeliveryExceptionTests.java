@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.matchers.JUnitMatchers;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 import java.util.Arrays;
 import java.util.List;

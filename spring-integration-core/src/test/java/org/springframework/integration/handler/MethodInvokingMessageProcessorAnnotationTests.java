@@ -34,7 +34,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher

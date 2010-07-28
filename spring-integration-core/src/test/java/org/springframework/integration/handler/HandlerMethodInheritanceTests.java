@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.util.ReflectionUtils;
 
 /**

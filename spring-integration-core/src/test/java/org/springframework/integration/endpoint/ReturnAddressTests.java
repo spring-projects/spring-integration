@@ -28,7 +28,7 @@ import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher

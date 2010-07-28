@@ -18,7 +18,7 @@ package org.springframework.integration.xml.selector;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * 

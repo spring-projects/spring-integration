@@ -24,7 +24,7 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;

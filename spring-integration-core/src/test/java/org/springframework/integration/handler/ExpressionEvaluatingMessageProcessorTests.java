@@ -28,7 +28,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Dave Syer

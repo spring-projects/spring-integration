@@ -34,12 +34,12 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryEvent;
 import org.springframework.integration.history.NamedComponent;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.util.StringUtils;
 
 /**

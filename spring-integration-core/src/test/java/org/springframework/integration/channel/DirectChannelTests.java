@@ -27,9 +27,9 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

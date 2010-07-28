@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher

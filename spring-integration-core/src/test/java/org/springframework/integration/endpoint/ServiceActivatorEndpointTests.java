@@ -29,8 +29,8 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

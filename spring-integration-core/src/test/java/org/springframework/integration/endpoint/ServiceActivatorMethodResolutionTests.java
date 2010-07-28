@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

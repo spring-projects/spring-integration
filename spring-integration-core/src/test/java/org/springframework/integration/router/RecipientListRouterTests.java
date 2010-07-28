@@ -32,7 +32,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.router.RecipientListRouter.Recipient;
 
 /**

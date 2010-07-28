@@ -30,7 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher

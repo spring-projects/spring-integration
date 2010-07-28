@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.selector.UnexpiredMessageSelector;
 
 /**

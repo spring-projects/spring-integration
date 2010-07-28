@@ -16,7 +16,7 @@
 
 package org.springframework.integration.test;
 
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher

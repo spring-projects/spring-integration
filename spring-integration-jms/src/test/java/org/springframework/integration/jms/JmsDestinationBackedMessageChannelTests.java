@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 import javax.jms.Destination;
 import java.util.ArrayList;

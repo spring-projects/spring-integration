@@ -28,8 +28,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.gateway.TestService;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

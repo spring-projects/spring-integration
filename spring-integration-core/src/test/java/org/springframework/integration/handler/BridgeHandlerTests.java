@@ -27,8 +27,8 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.message.MessageMatcher;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

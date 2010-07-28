@@ -33,9 +33,9 @@ import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

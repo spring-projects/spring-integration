@@ -28,9 +28,9 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSelector;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

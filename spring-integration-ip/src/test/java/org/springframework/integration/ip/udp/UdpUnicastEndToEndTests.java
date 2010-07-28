@@ -33,7 +33,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.

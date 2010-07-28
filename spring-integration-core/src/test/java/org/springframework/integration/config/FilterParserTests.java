@@ -30,7 +30,7 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;

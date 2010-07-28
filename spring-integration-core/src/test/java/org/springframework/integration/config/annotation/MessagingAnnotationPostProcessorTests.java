@@ -39,8 +39,8 @@ import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 
