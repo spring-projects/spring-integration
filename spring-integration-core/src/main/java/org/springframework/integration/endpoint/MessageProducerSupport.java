@@ -16,10 +16,10 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;
 
 /**

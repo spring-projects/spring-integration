@@ -27,9 +27,9 @@ import org.jivesoftware.smack.packet.Presence;
 
 import org.springframework.context.Lifecycle;
 
-import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.InboundMessageMapper;
 

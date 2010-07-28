@@ -25,8 +25,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.message.*;
 
 import org.springframework.test.context.ContextConfiguration;

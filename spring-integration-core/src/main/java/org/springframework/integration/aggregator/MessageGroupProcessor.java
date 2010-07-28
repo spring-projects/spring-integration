@@ -13,8 +13,8 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;
 
 /**
