@@ -131,7 +131,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation>
-									<tool:expected-type type="org.springframework.integration.channel.SubscribableChannel"/>
+									<tool:expected-type type="org.springframework.integration.core.SubscribableChannel"/>
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>

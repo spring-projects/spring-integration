@@ -373,7 +373,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.channel.ChannelResolver"/>
+							<tool:expected-type type="org.springframework.integration.core.ChannelResolver"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -515,7 +515,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.channel.ChannelResolver"/>
+							<tool:expected-type type="org.springframework.integration.core.ChannelResolver"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
