@@ -34,8 +34,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;

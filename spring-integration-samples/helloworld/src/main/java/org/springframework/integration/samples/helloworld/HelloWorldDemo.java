@@ -18,8 +18,8 @@ package org.springframework.integration.samples.helloworld;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.StringMessage;
 
 /**

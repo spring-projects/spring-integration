@@ -27,10 +27,10 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.transformer.MessageTransformationException;

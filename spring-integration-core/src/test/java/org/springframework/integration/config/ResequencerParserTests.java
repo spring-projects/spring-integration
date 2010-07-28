@@ -33,10 +33,10 @@ import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
 import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 

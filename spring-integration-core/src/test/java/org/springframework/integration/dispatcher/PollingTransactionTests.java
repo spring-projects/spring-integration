@@ -23,9 +23,9 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;

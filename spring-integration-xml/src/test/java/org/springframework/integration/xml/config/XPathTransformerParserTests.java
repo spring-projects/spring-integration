@@ -33,10 +33,10 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

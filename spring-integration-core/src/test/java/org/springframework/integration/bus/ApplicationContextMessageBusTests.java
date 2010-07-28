@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
@@ -35,6 +34,7 @@ import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;

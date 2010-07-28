@@ -27,10 +27,10 @@ import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.xml.transform.StringResult;
 
