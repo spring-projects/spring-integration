@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
 
 /**
  * @author Mark Fisher
