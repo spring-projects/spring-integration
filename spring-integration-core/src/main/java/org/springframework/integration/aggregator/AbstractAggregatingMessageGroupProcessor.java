@@ -50,7 +50,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		MessageBuilder<?> builder = (payload instanceof Message) ? MessageBuilder.fromMessage((Message<?>) payload)
 				: MessageBuilder.withPayload(payload);
 		Message<?> message = builder.copyHeadersIfAbsent(headers).build();
-		channelTemplate.send(message, outputChannel);
+		channelTemplate.send(outputChannel, message);
 	}
 
 	/**

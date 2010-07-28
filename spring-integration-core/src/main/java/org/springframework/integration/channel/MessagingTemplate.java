@@ -76,14 +76,14 @@ public class MessagingTemplate implements InitializingBean {
 
 
 	/**
-	 * Create a MessageChannelTemplate with no default channel. Note, that one
+	 * Create a MessagingTemplate with no default channel. Note, that one
 	 * may be provided by invoking {@link #setDefaultChannel(MessageChannel)}.
 	 */
 	public MessagingTemplate() {
 	}
 
 	/**
-	 * Create a MessageChannelTemplate with the given default channel.
+	 * Create a MessagingTemplate with the given default channel.
 	 */
 	public MessagingTemplate(MessageChannel defaultChannel) {
 		this.defaultChannel = defaultChannel;
@@ -166,19 +166,19 @@ public class MessagingTemplate implements InitializingBean {
 	}
 
 	public boolean send(final Message<?> message) {
-		return this.send(message, this.getRequiredDefaultChannel());
+		return this.send(this.getRequiredDefaultChannel(), message);
 	}
 
-	public boolean send(final Message<?> message, final MessageChannel channel) {
+	public boolean send(final MessageChannel channel, final Message<?> message) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return txTemplate.execute(new TransactionCallback<Boolean>() {
 				public Boolean doInTransaction(TransactionStatus status) {
-					return doSend(message, channel);
+					return doSend(channel, message);
 				}
 			});
 		}
-		return this.doSend(message, channel);
+		return this.doSend(channel, message);
 	}
 
 	public Message<?> receive() {
@@ -201,22 +201,22 @@ public class MessagingTemplate implements InitializingBean {
 	}
 
 	public Message<?> sendAndReceive(final Message<?> request) {
-		return this.sendAndReceive(request, this.getRequiredDefaultChannel());
+		return this.sendAndReceive(this.getRequiredDefaultChannel(), request);
 	}
 
-	public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) {
+	public Message<?> sendAndReceive(final MessageChannel channel, final Message<?> request) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return txTemplate.execute(new TransactionCallback<Message<?>>() {
 				public Message<?> doInTransaction(TransactionStatus status) {
-					return doSendAndReceive(request, channel);
+					return doSendAndReceive(channel, request);
 				}
 			});
 		}
-		return this.doSendAndReceive(request, channel);
+		return this.doSendAndReceive(channel, request);
 	}
 
-	private boolean doSend(Message<?> message, MessageChannel channel) {
+	private boolean doSend(MessageChannel channel, Message<?> message) {
 		Assert.notNull(channel, "channel must not be null");
 		long timeout = this.sendTimeout;
 		boolean sent = (timeout >= 0)
@@ -240,7 +240,7 @@ public class MessagingTemplate implements InitializingBean {
 		return message;
 	}
 
-	private Message<?> doSendAndReceive(Message<?> request, MessageChannel channel) {
+	private Message<?> doSendAndReceive(MessageChannel channel, Message<?> request) {
 		Object originalReplyChannelHeader = request.getHeaders().getReplyChannel();
 		Object originalErrorChannelHeader = request.getHeaders().getErrorChannel();
 		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout);
@@ -248,7 +248,7 @@ public class MessagingTemplate implements InitializingBean {
 				.setReplyChannel(replyChannel)
 				.setErrorChannel(replyChannel)
 				.build();
-		if (!this.doSend(request, channel)) {
+		if (!this.doSend(channel, request)) {
 			throw new MessageDeliveryException(request, "failed to send message to channel");
 		}
 		Message<?> reply = this.doReceive(replyChannel);

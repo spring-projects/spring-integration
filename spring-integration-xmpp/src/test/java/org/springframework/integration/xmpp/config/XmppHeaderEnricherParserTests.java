@@ -61,7 +61,7 @@ public class XmppHeaderEnricherParserTests {
                          logger.debug(String.format("%s=%s (class: %s)", h, message.getHeaders().get(h), message.getHeaders().get(h).getClass().toString()));
                 }
             });
-        messagingTemplate.send(MessageBuilder.withPayload("foo").build(), input);
+        messagingTemplate.send(input, MessageBuilder.withPayload("foo").build());
     }
 
 }

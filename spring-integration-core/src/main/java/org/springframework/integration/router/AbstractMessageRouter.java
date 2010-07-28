@@ -116,7 +116,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 								.setHeader(MessageHeaders.ID, UUID.randomUUID())
 								.build();
 				if (channel != null) {
-					if (this.messagingTemplate.send(messageToSend, channel)) {
+					if (this.messagingTemplate.send(channel, messageToSend)) {
 						sent = true;
 					}
 					else if (!this.ignoreSendFailures) {
@@ -128,7 +128,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
-				sent = this.messagingTemplate.send(message, this.defaultOutputChannel);
+				sent = this.messagingTemplate.send(this.defaultOutputChannel, message);
 			}
 			else if (this.resolutionRequired) {
 				throw new MessageDeliveryException(message,

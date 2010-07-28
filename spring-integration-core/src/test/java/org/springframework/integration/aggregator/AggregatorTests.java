@@ -237,7 +237,7 @@ public class AggregatorTests {
 			for (Message<?> message : group.getUnmarked()) {
 				product *= (Integer) message.getPayload();
 			}
-			messagingTemplate.send(MessageBuilder.withPayload(product).build(), outputChannel);
+			messagingTemplate.send(outputChannel, MessageBuilder.withPayload(product).build());
 		}
 	}
 

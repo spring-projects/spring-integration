@@ -138,7 +138,7 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
 		MessageBuilder<?> messageBuilder = MessageBuilder.withPayload(payload)
 				.setHeader(XmppHeaders.TYPE, xmppMessage.getType())
 				.setHeader(XmppHeaders.CHAT, chat);
-		messagingTemplate.send(messageBuilder.build(), requestChannel);
+		messagingTemplate.send(requestChannel, messageBuilder.build());
 	}
 
 }

@@ -51,7 +51,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, comparator);
 			for (Message<?> message : sorted) {
-				messagingTemplate.send(message, outputChannel);
+				messagingTemplate.send(outputChannel, message);
 			}
 		}
 	}

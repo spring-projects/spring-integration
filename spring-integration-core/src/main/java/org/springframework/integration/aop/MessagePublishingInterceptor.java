@@ -136,7 +136,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				channel = this.channelResolver.resolveChannelName(channelName);
 			}
 			if (channel != null) {
-				this.messagingTemplate.send(message, channel);
+				this.messagingTemplate.send(channel, message);
 			}
 			else {
 				this.messagingTemplate.send(message);

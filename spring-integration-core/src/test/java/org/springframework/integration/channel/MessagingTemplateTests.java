@@ -80,7 +80,7 @@ public class MessagingTemplateTests {
 	public void send() {
 		MessagingTemplate template = new MessagingTemplate();
 		QueueChannel channel = new QueueChannel();
-		template.send(new StringMessage("test"), channel);
+		template.send(channel, new StringMessage("test"));
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -112,7 +112,7 @@ public class MessagingTemplateTests {
 		QueueChannel explicitChannel = new QueueChannel();
 		QueueChannel defaultChannel = new QueueChannel();
 		MessagingTemplate template = new MessagingTemplate(defaultChannel);
-		template.send(new StringMessage("test"), explicitChannel);
+		template.send(explicitChannel, new StringMessage("test"));
 		Message<?> reply = explicitChannel.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -182,7 +182,7 @@ public class MessagingTemplateTests {
 	public void sendAndReceive() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setReceiveTimeout(3000);
-		Message<?> reply = template.sendAndReceive(new StringMessage("test"), this.requestChannel);
+		Message<?> reply = template.sendAndReceive(this.requestChannel, new StringMessage("test"));
 		assertEquals("TEST", reply.getPayload());
 	}
 
@@ -201,7 +201,7 @@ public class MessagingTemplateTests {
 		MessagingTemplate template = new MessagingTemplate(defaultChannel);
 		template.setReceiveTimeout(3000);
 		Message<?> message = new StringMessage("test");
-		Message<?> reply = template.sendAndReceive(message, this.requestChannel);
+		Message<?> reply = template.sendAndReceive(this.requestChannel, message);
 		assertEquals("TEST", reply.getPayload());
 		assertNull(defaultChannel.receive(0));
 	}
@@ -228,9 +228,9 @@ public class MessagingTemplateTests {
 		Message<String> message1 = MessageBuilder.withPayload("test1").setReplyChannel(replyChannel).build();
 		Message<String> message2 = MessageBuilder.withPayload("test2").setReplyChannel(replyChannel).build();
 		Message<String> message3 = MessageBuilder.withPayload("test3").setReplyChannel(replyChannel).build();
-		template.send(message1, this.requestChannel);
-		template.send(message2, this.requestChannel);
-		template.send(message3, this.requestChannel);
+		template.send(this.requestChannel, message1);
+		template.send(this.requestChannel, message2);
+		template.send(this.requestChannel, message3);
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertTrue(replies.contains("TEST1"));

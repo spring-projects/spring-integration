@@ -75,7 +75,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 	protected boolean doPoll() {
 		Message<?> message = this.source.receive();
 		if (message != null) {
-			return this.messagingTemplate.send(message, this.outputChannel);
+			return this.messagingTemplate.send(this.outputChannel, message);
 		}
 		return false;
 	}

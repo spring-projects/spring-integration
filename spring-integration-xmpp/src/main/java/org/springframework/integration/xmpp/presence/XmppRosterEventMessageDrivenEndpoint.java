@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xmpp.presence;
 
 import org.apache.commons.lang.StringUtils;
@@ -107,8 +108,9 @@ public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint imple
     protected void forwardRosterEventMessage(Presence presence) {
         try {
             Message<?> msg = this.messageMapper.toMessage(presence);
-            messagingTemplate.send(msg, requestChannel);
-        } catch (Exception e) {
+            messagingTemplate.send(requestChannel, msg);
+        }
+        catch (Exception e) {
             logger.error("Failed to map packet to message ", e);
         }
     }

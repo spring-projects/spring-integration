@@ -30,7 +30,7 @@ public class PassThroughMessageGroupProcessor implements MessageGroupProcessor {
 
     public void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate, MessageChannel outputChannel) {
         for (Message<?> message : group.getUnmarked()) {
-            messagingTemplate.send(message, outputChannel);
+            messagingTemplate.send(outputChannel, message);
         }
     }
 

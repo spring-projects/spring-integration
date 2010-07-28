@@ -241,7 +241,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 					MessageChannel errorChannel = resolveErrorChannelIfPossible(message);
 					if (errorChannel != null) {
 						ErrorMessage errorMessage = new ErrorMessage(exception);
-						boolean sent = messagingTemplate.send(errorMessage, errorChannel);
+						boolean sent = messagingTemplate.send(errorChannel, errorMessage);
 						if (!sent && logger.isWarnEnabled()) {
 							logger.warn("Failed to send MessageDeliveryException to error channel.", exception);
 						}
@@ -263,7 +263,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	private void sendMessageToReplyChannel(Message<?> message) {
 		MessageChannel replyChannel = this.resolveReplyChannel(message);
-		this.messagingTemplate.send(message, replyChannel);
+		this.messagingTemplate.send(replyChannel, message);
 	}
 
 	private MessageChannel resolveReplyChannel(Message<?> message) {

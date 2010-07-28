@@ -52,7 +52,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		if (message != null) {
 			message.getHeaders().getHistory().addEvent(this);
 		}
-		return this.messagingTemplate.send(message, this.outputChannel);
+		return this.messagingTemplate.send(this.outputChannel, message);
 	}
 
 }

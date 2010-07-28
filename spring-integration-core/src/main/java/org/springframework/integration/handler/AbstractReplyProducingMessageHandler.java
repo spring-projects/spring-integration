@@ -128,7 +128,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		return this.messagingTemplate.send(replyMessage, replyChannel);
+		return this.messagingTemplate.send(replyChannel, replyMessage);
 	}
 
 	/**

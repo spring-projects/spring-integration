@@ -96,7 +96,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
 		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
 		// verify
-		verify(messagingTemplate).send(messageCaptor.capture(), eq(outputChannel));
+		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
 		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
 	}
 
@@ -120,7 +120,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
 		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
 		// verify
-		verify(messagingTemplate).send(messageCaptor.capture(), eq(outputChannel));
+		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
 		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
 	}
 
@@ -155,7 +155,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
 		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
 		// verify
-		verify(messagingTemplate).send(messageCaptor.capture(), eq(outputChannel));
+		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
 		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
 	}
 
@@ -186,7 +186,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
 		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
 		// verify
-		verify(messagingTemplate).send(messageCaptor.capture(), eq(outputChannel));
+		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
 		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
 	}
 
