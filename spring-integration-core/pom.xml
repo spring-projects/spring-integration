@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.integration</groupId>
 		<artifactId>spring-integration-parent</artifactId>
-		<version>2.0.0.BUILD-SNAPSHOT</version>
+		<version>2.0.0.M6</version>
 		<relativePath>../spring-integration-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-integration-core</artifactId>

@@ -5,7 +5,7 @@
 	<groupId>org.springframework.integration</groupId>
 	<artifactId>spring-integration</artifactId>
 	<name>Spring Integration</name>
-	<version>2.0.0.BUILD-SNAPSHOT</version>
+	<version>2.0.0.M6</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>spring-integration-parent</module>
@@ -36,7 +36,7 @@
 		<dist.name>Spring Integration</dist.name>
 		<dist.key>INT</dist.key>
 		<dist.version>${project.version}</dist.version>
-		<dist.releaseType>snapshot</dist.releaseType>
+		<dist.releaseType>milestone</dist.releaseType>
 		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
 		<dist.fileName>${dist.finalName}.zip</dist.fileName>
 		<dist.filePath>target/${dist.fileName}</dist.filePath>
@@ -181,7 +181,7 @@
 								</group>
 								<!-- TODO: fill in other groups -->
 							</groups>
-							<excludePackageNames>org.springframework.integration.samples</excludePackageNames>
+							<excludePackageNames>org.springframework.integration.samples:com.springframework.integration.samples</excludePackageNames>
 							<links>
 								<link>http://static.springframework.org/spring/docs/3.0.3.RELEASE/javadoc-api</link>
 								<link>http://static.springsource.org/spring-integration/sites/${project.version}/apidocs</link>
