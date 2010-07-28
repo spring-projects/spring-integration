@@ -65,10 +65,10 @@
 	<distributionManagement>
 		<!-- see 'staging' profile for dry-run deployment settings -->
 		<downloadUrl>http://static.springframework.org/spring-integration/site/downloads/releases.html</downloadUrl>
-        <repository>
-            <id>local</id>
-            <url>file://${java.io.tmpdir}/spring-integration-repo</url>
-        </repository>
+		<repository>
+			<id>local</id>
+			<url>file://${java.io.tmpdir}/spring-integration-repo</url>
+		</repository>
 		<snapshotRepository>
 			<id>spring-snapshot</id>
 			<name>Spring Snapshot Repository</name>
@@ -89,69 +89,69 @@
 			</extension>
 		</extensions>
 		<pluginManagement>
-		  <plugins>
-			<plugin>
-				<groupId>com.agilejava.docbkx</groupId>
-				<artifactId>docbkx-maven-plugin</artifactId>
-				<version>2.0.6</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate-html</goal>
-							<goal>generate-pdf</goal>
-						</goals>
-						<phase>package</phase>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.docbook</groupId>
-						<artifactId>docbook-xml</artifactId>
-						<version>4.4</version>
-						<scope>runtime</scope>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<includes>index.xml</includes>
-					<xincludeSupported>true</xincludeSupported>
-					<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
-					<!-- original spring-build fopdf xsl
-					<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization> -->
-					<htmlStylesheet>css/html.css</htmlStylesheet>
-					<!-- produce single-page html output -->
-					<chunkedOutput>false</chunkedOutput>
-					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
-					<!-- produce multi-page html output
-					<chunkedOutput>false</chunkedOutput>
-					<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization> -->
-					<entities>
-						<entity>
-							<name>version</name>
-							<value>${pom.version}</value>
-						</entity>
-					</entities>
-					<postProcess>
-						<copy todir="${project.basedir}/target/site/reference">
-							<fileset dir="${project.basedir}/target/docbkx">
-								<include name="**/*.html" />
-								<include name="**/*.pdf" />
-							</fileset>
-						</copy>
-						<copy todir="${project.basedir}/target/site/reference/html">
-							<fileset dir="${project.basedir}/src/docbkx/resources">
-								<include name="**/*.css" />
-								<include name="**/*.png" />
-								<include name="**/*.gif" />
-								<include name="**/*.jpg" />
-							</fileset>
-						</copy>
-						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
-							tofile="${project.basedir}/target/site/reference/pdf/spring-integration-reference.pdf"
-							failonerror="false" />
-					</postProcess>
-				</configuration>
-			</plugin>
-		  </plugins>
+			<plugins>
+				<plugin>
+					<groupId>com.agilejava.docbkx</groupId>
+					<artifactId>docbkx-maven-plugin</artifactId>
+					<version>2.0.6</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>generate-html</goal>
+								<goal>generate-pdf</goal>
+							</goals>
+							<phase>package</phase>
+						</execution>
+					</executions>
+					<dependencies>
+						<dependency>
+							<groupId>org.docbook</groupId>
+							<artifactId>docbook-xml</artifactId>
+							<version>4.4</version>
+							<scope>runtime</scope>
+						</dependency>
+					</dependencies>
+					<configuration>
+						<includes>index.xml</includes>
+						<xincludeSupported>true</xincludeSupported>
+						<foCustomization>${project.basedir}/src/docbkx/resources/xsl/fopdf.xsl</foCustomization>
+						<!-- original spring-build fopdf xsl
+						<foCustomization>src/docbkx/resources/xsl/pdf/fopdf.xsl</foCustomization> -->
+						<htmlStylesheet>css/html.css</htmlStylesheet>
+						<!-- produce single-page html output -->
+						<chunkedOutput>false</chunkedOutput>
+						<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html.xsl</htmlCustomization>
+						<!-- produce multi-page html output
+						<chunkedOutput>false</chunkedOutput>
+						<htmlCustomization>${project.basedir}/src/docbkx/resources/xsl/html_chunk.xsl</htmlCustomization> -->
+						<entities>
+							<entity>
+								<name>version</name>
+								<value>${pom.version}</value>
+							</entity>
+						</entities>
+						<postProcess>
+							<copy todir="${project.basedir}/target/site/reference">
+								<fileset dir="${project.basedir}/target/docbkx">
+									<include name="**/*.html" />
+									<include name="**/*.pdf" />
+								</fileset>
+							</copy>
+							<copy todir="${project.basedir}/target/site/reference/html">
+								<fileset dir="${project.basedir}/src/docbkx/resources">
+									<include name="**/*.css" />
+									<include name="**/*.png" />
+									<include name="**/*.gif" />
+									<include name="**/*.jpg" />
+								</fileset>
+							</copy>
+							<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
+								tofile="${project.basedir}/target/site/reference/pdf/spring-integration-reference.pdf"
+								failonerror="false" />
+						</postProcess>
+					</configuration>
+				</plugin>
+			</plugins>
 		</pluginManagement>
 		<plugins>
 			<plugin>

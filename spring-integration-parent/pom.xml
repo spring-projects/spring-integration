@@ -62,10 +62,10 @@
 	<distributionManagement>
 		<!-- see 'staging' profile for dry-run deployment settings -->
 		<downloadUrl>http://static.springframework.org/spring-integration/site/downloads/releases.html</downloadUrl>
-        <repository>
-            <id>local</id>
-            <url>file://${java.io.tmpdir}/spring-integration-repo</url>
-        </repository>
+		<repository>
+			<id>local</id>
+			<url>file://${java.io.tmpdir}/spring-integration-repo</url>
+		</repository>
 		<snapshotRepository>
 			<id>spring-snapshot</id>
 			<name>Spring Snapshot Repository</name>
@@ -207,12 +207,12 @@
 				<version>${org.mockito.version}</version>
 				<scope>test</scope>
 			</dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-all</artifactId>
-                <version>${org.hamcrest.version}</version>
-                <scope>test</scope>
-            </dependency>
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-all</artifactId>
+				<version>${org.hamcrest.version}</version>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>hsqldb</groupId>
 				<artifactId>hsqldb</artifactId>
