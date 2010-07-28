@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 		String methodName = element.getAttribute("method");
 		if (StringUtils.hasText(methodName)) {
 			BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".message.MethodInvokingMessageSource");
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".endpoint.MethodInvokingMessageSource");
 			invokerBuilder.addPropertyReference("object", sourceRef);
 			invokerBuilder.addPropertyValue("methodName", methodName);
 			sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
