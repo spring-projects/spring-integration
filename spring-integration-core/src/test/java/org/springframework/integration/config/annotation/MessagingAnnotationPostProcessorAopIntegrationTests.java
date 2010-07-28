@@ -72,7 +72,7 @@ public class MessagingAnnotationPostProcessorAopIntegrationTests {
 	@Aspect
 	public static class HandlerAspect {
 
-		@Before("execution(* org.springframework.integration.message.MessageHandler+.*(..)) && args(message)")
+		@Before("execution(* org.springframework.integration.core.MessageHandler+.*(..)) && args(message)")
 		public void addOneHundred(Message<?> message) {
 			((AtomicInteger) message.getPayload()).addAndGet(100);
 		}
