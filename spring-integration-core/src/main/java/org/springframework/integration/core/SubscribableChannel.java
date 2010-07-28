@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.core;
 
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
 
 /**

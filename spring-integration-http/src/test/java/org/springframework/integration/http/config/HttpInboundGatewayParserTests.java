@@ -29,9 +29,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.integration.http.MockHttpServletResponse;
