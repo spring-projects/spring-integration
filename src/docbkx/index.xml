@@ -44,6 +44,10 @@
         <firstname>Gary</firstname>
         <surname>Russell</surname>
       </author>
+      <author>
+        <firstname>Josh</firstname>
+        <surname>Long</surname>
+      </author>
     </authorgroup>
 
     <legalnotice><para>&copy; SpringSource Inc., 2010</para></legalnotice>
