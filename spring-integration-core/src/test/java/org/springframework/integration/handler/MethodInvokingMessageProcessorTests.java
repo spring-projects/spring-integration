@@ -38,7 +38,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**

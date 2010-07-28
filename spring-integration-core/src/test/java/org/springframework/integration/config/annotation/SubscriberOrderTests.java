@@ -32,8 +32,8 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
-import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 
 /**

@@ -24,15 +24,15 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageHandlingException;
+import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.ConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.ip.tcp.connection.TcpSender;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingException;
-import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * Tcp outbound channel adapter using a TcpConnection to 

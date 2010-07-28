@@ -29,7 +29,9 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
@@ -37,8 +39,6 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.history.MessageHistoryEvent;
 import org.springframework.integration.history.NamedComponent;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.StringUtils;
 

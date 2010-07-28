@@ -36,8 +36,8 @@ import org.junit.Test;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;

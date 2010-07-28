@@ -25,8 +25,8 @@ import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**

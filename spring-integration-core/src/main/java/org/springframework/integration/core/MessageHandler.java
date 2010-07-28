@@ -16,8 +16,6 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * Base interface for any component that handles Messages.

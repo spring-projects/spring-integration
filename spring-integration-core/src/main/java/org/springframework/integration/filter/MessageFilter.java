@@ -21,9 +21,9 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.util.Assert;
 
 /**

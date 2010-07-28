@@ -17,6 +17,7 @@
 package org.springframework.integration.message;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHandlingException;
 
 /**
  * @author Mark Fisher
