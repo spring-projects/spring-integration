@@ -29,7 +29,6 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
@@ -145,7 +144,7 @@ public class HeaderEnricherOverwriteTests {
 		gateway.setRequestChannel(context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class));
 		Message<?> result = gateway.sendAndReceiveMessage("test");
 		assertNotNull(result);
-		assertEquals(MessagePriority.HIGH, result.getHeaders().getPriority());
+		assertEquals(new Integer(42), result.getHeaders().getPriority());
 	}
 
 	@Test
@@ -154,12 +153,12 @@ public class HeaderEnricherOverwriteTests {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReplyChannel(replyChannel)
-				.setPriority(MessagePriority.HIGHEST)
+				.setPriority(77)
 				.build();
 		input.send(message);
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
-		assertEquals(MessagePriority.HIGHEST, result.getHeaders().getPriority());
+		assertEquals(new Integer(77), result.getHeaders().getPriority());
 	}
 
 	@Test

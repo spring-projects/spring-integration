@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -127,7 +126,7 @@ public class HeaderEnricherTests {
 		gateway.setRequestChannel(context.getBean("priorityInput", MessageChannel.class));
 		Message<?> result = gateway.sendAndReceiveMessage("test");
 		assertNotNull(result);
-		assertEquals(MessagePriority.HIGH, result.getHeaders().getPriority());
+		assertEquals(new Integer(42), result.getHeaders().getPriority());
 	}
 
 	@Test

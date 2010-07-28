@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessagePriority;
 
 /**
  * @author Mark Fisher
@@ -120,18 +119,18 @@ public class MessageBuilderTests {
 	@Test
 	public void testPriority() {
 		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
-			.setPriority(MessagePriority.HIGHEST).build();
-		assertEquals(MessagePriority.HIGHEST, importantMessage.getHeaders().getPriority());
+			.setPriority(123).build();
+		assertEquals(new Integer(123), importantMessage.getHeaders().getPriority());
 	}
 
 	@Test
 	public void testNonDestructiveSet() {
 		Message<Integer> message1 = MessageBuilder.withPayload(1)
-			.setPriority(MessagePriority.HIGHEST).build();
+			.setPriority(42).build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
-			.setHeaderIfAbsent(MessageHeaders.PRIORITY, MessagePriority.LOW)
+			.setHeaderIfAbsent(MessageHeaders.PRIORITY, 13)
 			.build();
-		assertEquals(MessagePriority.HIGHEST, message2.getHeaders().getPriority());
+		assertEquals(new Integer(42), message2.getHeaders().getPriority());
 	}
 
 	@Test

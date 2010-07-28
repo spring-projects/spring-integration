@@ -25,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -44,13 +43,13 @@ public class GatewayWithHeaderAnnotations {
 	@Test // INT-1205
 	public void priorityAsArgument() {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
-		String result = gateway.test("foo", MessagePriority.HIGH);
-		assertEquals("fooHIGH", result);
+		String result = gateway.test("foo", 99);
+		assertEquals("foo99", result);
 	}
 
 
 	public static interface TestService {
-		public String test(String str, @Header(MessageHeaders.PRIORITY) MessagePriority priority);
+		public String test(String str, @Header(MessageHeaders.PRIORITY) int priority);
 	}
 
 }

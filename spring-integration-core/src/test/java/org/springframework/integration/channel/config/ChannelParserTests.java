@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.message.GenericMessage;
@@ -203,14 +202,11 @@ public class ChannelParserTests {
 
 	@Test
 	public void testPriorityChannelWithDefaultComparator() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this
-				.getClass());
+		ApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithDefaultComparator");
-		Message<String> lowPriorityMessage = MessageBuilder.withPayload("low").setPriority(MessagePriority.LOW).build();
-		Message<String> midPriorityMessage = MessageBuilder.withPayload("mid").setPriority(MessagePriority.NORMAL)
-				.build();
-		Message<String> highPriorityMessage = MessageBuilder.withPayload("high").setPriority(MessagePriority.HIGH)
-				.build();
+		Message<String> lowPriorityMessage = MessageBuilder.withPayload("low").setPriority(-14).build();
+		Message<String> midPriorityMessage = MessageBuilder.withPayload("mid").setPriority(0).build();
+		Message<String> highPriorityMessage = MessageBuilder.withPayload("high").setPriority(99).build();
 		channel.send(lowPriorityMessage);
 		channel.send(highPriorityMessage);
 		channel.send(midPriorityMessage);

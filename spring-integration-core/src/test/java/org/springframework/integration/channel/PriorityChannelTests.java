@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
@@ -55,21 +54,21 @@ public class PriorityChannelTests {
 	@Test
 	public void testDefaultComparator() {
 		PriorityChannel channel = new PriorityChannel(5);
-		Message<?> priority1 = createPriorityMessage(MessagePriority.HIGHEST);
-		Message<?> priority2 = createPriorityMessage(MessagePriority.HIGH);
-		Message<?> priority3 = createPriorityMessage(MessagePriority.NORMAL);
-		Message<?> priority4 = createPriorityMessage(MessagePriority.LOW);
-		Message<?> priority5 = createPriorityMessage(MessagePriority.LOWEST);
+		Message<?> priority1 = createPriorityMessage(10);
+		Message<?> priority2 = createPriorityMessage(7);
+		Message<?> priority3 = createPriorityMessage(0);
+		Message<?> priority4 = createPriorityMessage(-3);
+		Message<?> priority5 = createPriorityMessage(-99);
 		channel.send(priority4);
 		channel.send(priority3);
 		channel.send(priority5);
 		channel.send(priority1);
 		channel.send(priority2);
-		assertEquals("test-HIGHEST", channel.receive(0).getPayload());
-		assertEquals("test-HIGH", channel.receive(0).getPayload());
-		assertEquals("test-NORMAL", channel.receive(0).getPayload());
-		assertEquals("test-LOW", channel.receive(0).getPayload());
-		assertEquals("test-LOWEST", channel.receive(0).getPayload());
+		assertEquals("test:10", channel.receive(0).getPayload());
+		assertEquals("test:7", channel.receive(0).getPayload());
+		assertEquals("test:0", channel.receive(0).getPayload());
+		assertEquals("test:-3", channel.receive(0).getPayload());
+		assertEquals("test:-99", channel.receive(0).getPayload());
 	}
 
 	@Test
@@ -95,29 +94,29 @@ public class PriorityChannelTests {
 	@Test
 	public void testNullPriorityIsConsideredNormal() {
 		PriorityChannel channel = new PriorityChannel(5);
-		Message<?> highPriority = createPriorityMessage(MessagePriority.HIGH);
-		Message<?> lowPriority = createPriorityMessage(MessagePriority.LOW);
-		Message<?> nullPriority = new StringMessage("test-NULL");
+		Message<?> highPriority = createPriorityMessage(5);
+		Message<?> lowPriority = createPriorityMessage(-5);
+		Message<?> nullPriority = new StringMessage("test:NULL");
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
-		assertEquals("test-HIGH", channel.receive(0).getPayload());
-		assertEquals("test-NULL", channel.receive(0).getPayload());
-		assertEquals("test-LOW", channel.receive(0).getPayload());
+		assertEquals("test:5", channel.receive(0).getPayload());
+		assertEquals("test:NULL", channel.receive(0).getPayload());
+		assertEquals("test:-5", channel.receive(0).getPayload());
 	}
 
 	@Test
 	public void testUnboundedCapacity() {
 		PriorityChannel channel = new PriorityChannel();
-		Message<?> highPriority = createPriorityMessage(MessagePriority.HIGH);
-		Message<?> lowPriority = createPriorityMessage(MessagePriority.LOW);
-		Message<?> nullPriority = new StringMessage("test-NULL");
+		Message<?> highPriority = createPriorityMessage(5);
+		Message<?> lowPriority = createPriorityMessage(-5);
+		Message<?> nullPriority = new StringMessage("test:NULL");
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
-		assertEquals("test-HIGH", channel.receive(0).getPayload());
-		assertEquals("test-NULL", channel.receive(0).getPayload());
-		assertEquals("test-LOW", channel.receive(0).getPayload());
+		assertEquals("test:5", channel.receive(0).getPayload());
+		assertEquals("test:NULL", channel.receive(0).getPayload());
+		assertEquals("test:-5", channel.receive(0).getPayload());
 	}
 
 	@Test
@@ -194,8 +193,8 @@ public class PriorityChannelTests {
 	}
 
 
-	private static Message<String> createPriorityMessage(MessagePriority priority) {
-		return MessageBuilder.withPayload("test-" + priority).setPriority(priority).build(); 
+	private static Message<String> createPriorityMessage(int priority) {
+		return MessageBuilder.withPayload("test:" + priority).setPriority(priority).build(); 
 	}
 
 

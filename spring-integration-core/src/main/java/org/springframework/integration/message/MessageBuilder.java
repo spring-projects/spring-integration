@@ -25,7 +25,6 @@ import java.util.UUID;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -193,7 +192,7 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
 	}
 
-	public MessageBuilder<T> setPriority(MessagePriority priority) {
+	public MessageBuilder<T> setPriority(Integer priority) {
 		return this.setHeader(MessageHeaders.PRIORITY, priority);
 	}
 

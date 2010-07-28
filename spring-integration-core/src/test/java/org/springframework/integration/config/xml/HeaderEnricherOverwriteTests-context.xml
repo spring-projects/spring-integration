@@ -56,11 +56,11 @@
 	</channel>
 
 	<header-enricher input-channel="priorityExplicitOverwriteTrueInput" output-channel="echo"> 
-		<priority value="HIGH" overwrite="true"/>
+		<priority value="42" overwrite="true"/>
 	</header-enricher>
 
 	<header-enricher input-channel="priorityExplicitOverwriteFalseInput" output-channel="echo"> 
-		<priority value="LOW" overwrite="false"/>
+		<priority value="9999" overwrite="false"/>
 	</header-enricher>
 
 	<header-enricher input-channel="customExplicitOverwriteTrueInput" output-channel="echo"> 

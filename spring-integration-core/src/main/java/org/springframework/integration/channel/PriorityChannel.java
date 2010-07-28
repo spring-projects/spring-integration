@@ -21,7 +21,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.util.UpperBound;
 
 /**
@@ -96,11 +95,11 @@ public class PriorityChannel extends QueueChannel {
 	private static class MessagePriorityComparator implements Comparator<Message<?>> {
 
 		public int compare(Message<?> message1, Message<?> message2) {
-			MessagePriority priority1 = message1.getHeaders().getPriority();
-			MessagePriority priority2 = message2.getHeaders().getPriority();
-			priority1 = priority1 != null ? priority1 : MessagePriority.NORMAL;
-			priority2 = priority2 != null ? priority2 : MessagePriority.NORMAL;
-			return priority1.compareTo(priority2);
+			Integer priority1 = message1.getHeaders().getPriority();
+			Integer priority2 = message2.getHeaders().getPriority();
+			priority1 = priority1 != null ? priority1 : 0;
+			priority2 = priority2 != null ? priority2 : 0;
+			return priority2.compareTo(priority1);
 		}
 	}
 

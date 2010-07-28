@@ -63,7 +63,7 @@
 	</beans:bean>
 
 	<header-enricher input-channel="priorityInput">
-		<priority value="HIGH"/>
+		<priority value="42"/>
 	</header-enricher>
 
 	<header-enricher input-channel="payloadExpressionInput">
