@@ -27,7 +27,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.Document;
 
 import org.springframework.expression.ExpressionException;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.gateway.SimpleMessagingGateway;

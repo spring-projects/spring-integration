@@ -17,9 +17,9 @@
 package org.springframework.integration.xmpp.presence;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 /**

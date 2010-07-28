@@ -34,7 +34,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;

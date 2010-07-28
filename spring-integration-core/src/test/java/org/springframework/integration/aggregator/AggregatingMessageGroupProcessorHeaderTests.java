@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;

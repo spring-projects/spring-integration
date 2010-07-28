@@ -20,8 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.springframework.core.Ordered;
+import org.springframework.integration.Message;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageHandlingException;

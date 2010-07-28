@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * This defines the lowest-level strategy of processing a Message and returning

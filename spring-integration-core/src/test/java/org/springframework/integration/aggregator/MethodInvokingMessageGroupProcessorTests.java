@@ -38,11 +38,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;

@@ -10,8 +10,8 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Matcher to make assertions about message equality easier. Usage:

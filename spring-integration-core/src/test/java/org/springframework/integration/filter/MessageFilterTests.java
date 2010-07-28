@@ -23,9 +23,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.endpoint.EventDrivenConsumer;

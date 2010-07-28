@@ -18,7 +18,7 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Strategy interface for resolving a Method that should be responsible for

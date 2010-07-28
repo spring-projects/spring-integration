@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 

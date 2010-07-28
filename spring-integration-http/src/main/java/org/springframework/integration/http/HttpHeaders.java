@@ -16,7 +16,7 @@
 
 package org.springframework.integration.http;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * @author Mark Fisher

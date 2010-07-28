@@ -16,9 +16,9 @@
 
 package org.springframework.integration.transformer;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 
 /**

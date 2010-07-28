@@ -29,7 +29,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Tcp Receiving Channel adapter that uses a {@link java.nio.channels.SocketChannel}.

@@ -21,8 +21,8 @@ import java.util.Map;
 
 import javax.xml.transform.Transformer;
 
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * {@link TransformerConfigurer} instance which looks for headers and uses them

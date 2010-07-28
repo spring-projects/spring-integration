@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration;
+
 
 /**
  * The central interface that any Message type must implement.

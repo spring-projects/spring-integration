@@ -21,7 +21,7 @@ import groovy.lang.GString;
 import groovy.lang.GroovyObject;
 import groovy.lang.Script;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.handler.AbstractScriptExecutingMessageProcessor;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.groovy.GroovyObjectCustomizer;

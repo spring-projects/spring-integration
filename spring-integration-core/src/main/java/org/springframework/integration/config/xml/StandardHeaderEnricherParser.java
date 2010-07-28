@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**

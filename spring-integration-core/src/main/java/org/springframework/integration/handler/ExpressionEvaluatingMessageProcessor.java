@@ -27,7 +27,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * A {@link MessageProcessor} implementation that evaluates a SpEL expression

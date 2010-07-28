@@ -20,9 +20,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.jivesoftware.smack.packet.Presence;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
@@ -43,7 +43,7 @@ public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence
     private static final Log logger = LogFactory.getLog(XmppPresenceMessageMapper.class);
 
     /**
-     * Returns a {@link org.springframework.integration.core.Message} with payload {@link org.jivesoftware.smack.packet.Presence}
+     * Returns a {@link org.springframework.integration.Message} with payload {@link org.jivesoftware.smack.packet.Presence}
      *
      * @param presence the presence object that can be used to present the priority, status, mode, and type of a given roster entry. This will be decomposed into a series of headers, as well as a payload
      * @return the Message
@@ -64,7 +64,7 @@ public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence
      * Builds a {@link org.jivesoftware.smack.packet.Presence} object from the inbound Message headers, if possible.
      *
      * @param message the Message whose headers and payload willl b
-     * @return    the presence object as constructed from the {@link org.springframework.integration.core.Message} object
+     * @return    the presence object as constructed from the {@link org.springframework.integration.Message} object
      * @throws Exception if there is a problem
      */
     public Presence fromMessage(Message<?> message) throws Exception {

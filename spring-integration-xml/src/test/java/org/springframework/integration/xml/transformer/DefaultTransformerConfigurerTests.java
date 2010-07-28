@@ -31,7 +31,7 @@ import javax.xml.transform.URIResolver;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 
 /**

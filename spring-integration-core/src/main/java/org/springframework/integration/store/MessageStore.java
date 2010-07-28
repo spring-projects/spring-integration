@@ -18,7 +18,7 @@ package org.springframework.integration.store;
 
 import java.util.UUID;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Strategy interface for storing and retrieving messages.

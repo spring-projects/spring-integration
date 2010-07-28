@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandlingException;

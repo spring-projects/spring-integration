@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Interface for a request/reply Message exchange. This will be used as a default

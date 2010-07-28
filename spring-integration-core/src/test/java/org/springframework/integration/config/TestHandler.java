@@ -18,8 +18,8 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher

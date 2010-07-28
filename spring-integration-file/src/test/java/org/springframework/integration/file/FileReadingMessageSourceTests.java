@@ -21,7 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 import java.io.File;
 import java.io.IOException;

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.OutboundMessageMapper;

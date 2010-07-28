@@ -39,7 +39,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * to work. It takes any message from a given XMPP session (as established by
  * the current {@link XMPPConnection}) and forwards the
  * {@link org.jivesoftware.smack.packet.Message} as the payload of the Spring
- * Integration {@link org.springframework.integration.core.Message}. The
+ * Integration {@link org.springframework.integration.Message}. The
  * {@link org.jivesoftware.smack.Chat} instance that's used is passed along as a
  * header (under {@link org.springframework.integration.xmpp.XmppHeaders#CHAT}).
  * Additionally, the {@link org.jivesoftware.smack.packet.Message.Type} is

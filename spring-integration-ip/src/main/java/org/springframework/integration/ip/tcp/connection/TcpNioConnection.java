@@ -28,7 +28,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.SocketIoUtils;
 import org.springframework.integration.ip.tcp.converter.SoftEndOfStreamException;
 

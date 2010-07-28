@@ -37,8 +37,8 @@ import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
 import org.springframework.commons.serializer.java.JavaStreamingConverter;
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;

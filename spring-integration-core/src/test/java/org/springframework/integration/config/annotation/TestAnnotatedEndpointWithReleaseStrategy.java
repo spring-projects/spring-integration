@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Classes that implement this interface may register with a 

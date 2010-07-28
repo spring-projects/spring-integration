@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;

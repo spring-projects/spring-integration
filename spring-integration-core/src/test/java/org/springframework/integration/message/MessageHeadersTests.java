@@ -32,7 +32,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * @author Mark Fisher

@@ -19,8 +19,8 @@ package org.springframework.integration.channel;
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.util.UpperBound;
 
 /**

@@ -18,7 +18,7 @@ package org.springframework.integration.ip.tcp;
 import java.io.IOException;
 import java.net.Socket;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;

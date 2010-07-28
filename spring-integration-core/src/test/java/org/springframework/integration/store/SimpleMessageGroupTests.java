@@ -6,7 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.util.Collections;
 
 import org.junit.Test;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 
 /**

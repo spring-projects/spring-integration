@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jms;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Pre-defined names and prefixes to be used for setting and/or retrieving JMS

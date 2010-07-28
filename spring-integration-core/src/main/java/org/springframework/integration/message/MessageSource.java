@@ -16,7 +16,7 @@
 
 package org.springframework.integration.message;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Base interface for any source of {@link Message Messages} that can be polled. 

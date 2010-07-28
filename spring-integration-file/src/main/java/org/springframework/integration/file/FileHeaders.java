@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Pre-defined header names to be used when storing or retrieving

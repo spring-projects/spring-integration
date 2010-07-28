@@ -42,7 +42,7 @@ public class XmppMessageSendingMessageHandler implements MessageHandler, Lifecyc
 		this.xmppConnection = xmppConnection;
 	}
 
-	public void handleMessage(final org.springframework.integration.core.Message<?> message) {
+	public void handleMessage(final org.springframework.integration.Message<?> message) {
 		try {
 			// pre-reqs: user to send, string to send as msg body
 			String messageBody = null;

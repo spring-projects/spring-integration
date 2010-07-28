@@ -33,10 +33,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.test.util.TestUtils;
 

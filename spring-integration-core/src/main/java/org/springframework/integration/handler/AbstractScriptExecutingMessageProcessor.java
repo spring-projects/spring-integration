@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.util.Assert;

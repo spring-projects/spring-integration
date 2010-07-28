@@ -21,7 +21,7 @@ import static org.springframework.integration.ip.util.RegexUtils.escapeRegExSpec
 
 import org.junit.Test;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * @author Gary Russell

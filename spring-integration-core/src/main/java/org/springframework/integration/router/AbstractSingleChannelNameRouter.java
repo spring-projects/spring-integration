@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Extends {@link AbstractChannelNameResolvingMessageRouter} to support router

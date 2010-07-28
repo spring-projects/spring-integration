@@ -19,7 +19,7 @@ package org.springframework.integration.xml.router;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;

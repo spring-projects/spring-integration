@@ -16,8 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.core.Message;
 
 /**
  * @author Marius Bogoevici

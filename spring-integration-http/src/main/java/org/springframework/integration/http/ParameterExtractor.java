@@ -17,7 +17,7 @@ package org.springframework.integration.http;
 
 import java.util.Map;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * @author Dave Syer

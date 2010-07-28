@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
 
 /**

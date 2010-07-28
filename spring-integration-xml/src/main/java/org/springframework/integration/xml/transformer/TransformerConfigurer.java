@@ -18,7 +18,7 @@ package org.springframework.integration.xml.transformer;
 
 import javax.xml.transform.Transformer;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Allows customization of the transformer based on the received message prior to transformation.

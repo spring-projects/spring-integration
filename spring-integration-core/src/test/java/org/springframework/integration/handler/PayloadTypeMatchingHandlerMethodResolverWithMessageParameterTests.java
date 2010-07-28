@@ -24,9 +24,9 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 

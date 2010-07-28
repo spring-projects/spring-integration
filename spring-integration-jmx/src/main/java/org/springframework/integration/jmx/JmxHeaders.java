@@ -16,7 +16,7 @@
 
 package org.springframework.integration.jmx;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Constants for JMX related Message Header keys.

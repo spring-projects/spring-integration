@@ -19,7 +19,7 @@ package org.springframework.integration.dispatcher;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.matchers.JUnitMatchers;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 

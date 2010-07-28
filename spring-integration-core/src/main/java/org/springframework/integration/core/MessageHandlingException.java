@@ -16,6 +16,8 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.integration.Message;
+
 
 /**
  * Exception that indicates an error during message handling.

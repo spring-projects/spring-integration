@@ -1,6 +1,6 @@
 package org.springframework.integration.store;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 import java.util.Collection;
 

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.ip;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Headers for Messages mapped from IP datagram packets.

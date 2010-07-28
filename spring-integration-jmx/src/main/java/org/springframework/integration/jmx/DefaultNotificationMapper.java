@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.management.Notification;
 import javax.management.ObjectName;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.util.Assert;
 

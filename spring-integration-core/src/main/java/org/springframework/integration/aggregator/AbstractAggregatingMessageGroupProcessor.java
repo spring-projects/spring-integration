@@ -20,10 +20,10 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.util.Assert;

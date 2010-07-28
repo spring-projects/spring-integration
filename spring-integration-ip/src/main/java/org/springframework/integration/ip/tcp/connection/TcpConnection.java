@@ -21,7 +21,7 @@ import java.nio.channels.SocketChannel;
 
 import org.springframework.commons.serializer.InputStreamingConverter;
 import org.springframework.commons.serializer.OutputStreamingConverter;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * An abstraction over {@link Socket} and {@link SocketChannel} that

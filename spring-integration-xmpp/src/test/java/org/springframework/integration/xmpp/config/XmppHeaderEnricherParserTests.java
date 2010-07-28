@@ -24,8 +24,8 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

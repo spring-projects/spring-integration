@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xml.router;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.router.AbstractSingleChannelNameRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;

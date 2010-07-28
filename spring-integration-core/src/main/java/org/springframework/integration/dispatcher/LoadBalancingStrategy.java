@@ -18,7 +18,7 @@ package org.springframework.integration.dispatcher;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
 
 /**

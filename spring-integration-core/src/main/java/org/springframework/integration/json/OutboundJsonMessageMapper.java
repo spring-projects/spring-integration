@@ -3,7 +3,7 @@ package org.springframework.integration.json;
 import java.io.StringWriter;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.message.OutboundMessageMapper;
 
 /**

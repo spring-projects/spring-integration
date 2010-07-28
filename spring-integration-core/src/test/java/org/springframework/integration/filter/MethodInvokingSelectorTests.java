@@ -23,8 +23,8 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**

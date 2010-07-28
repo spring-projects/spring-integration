@@ -110,7 +110,7 @@ public class ExceptionHandlingSiConsumerTests {
 	}
 	
 	public static class SampleErrorMessageMapper implements InboundMessageMapper<Throwable>{
-		public org.springframework.integration.core.Message<?> toMessage(
+		public org.springframework.integration.Message<?> toMessage(
 				Throwable t) throws Exception {
 			return MessageBuilder.withPayload(t.getCause().getMessage()).build();
 		}

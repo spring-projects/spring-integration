@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.http.DataBindingInboundRequestMapper;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.bind.support.ConfigurableWebBindingInitializer;

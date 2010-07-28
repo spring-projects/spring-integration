@@ -18,7 +18,7 @@ package org.springframework.integration.message;
 
 import java.util.Map;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 /**
  * Generic strategy interface for mapping {@link MessageHeaders} to and from other

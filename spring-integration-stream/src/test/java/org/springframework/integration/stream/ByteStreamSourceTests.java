@@ -23,7 +23,7 @@ import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * @author Mark Fisher

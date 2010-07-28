@@ -35,9 +35,9 @@ import org.codehaus.jackson.type.TypeReference;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageMatcher;
 
 /**

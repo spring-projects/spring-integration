@@ -16,6 +16,8 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.integration.Message;
+
 /**
  * Base channel interface defining common behavior for message sending and receiving.
  * 

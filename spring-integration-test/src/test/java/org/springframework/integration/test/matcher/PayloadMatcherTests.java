@@ -25,7 +25,7 @@ import static org.springframework.integration.test.matcher.PayloadMatcher.hasPay
 import java.math.BigDecimal;
 
 import org.junit.Test;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 
 /**

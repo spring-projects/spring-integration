@@ -23,8 +23,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageHeaders;
 
 /**
  * @author Mark Fisher

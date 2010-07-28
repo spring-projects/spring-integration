@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageDeliveryException;
 
 import java.util.Collections;

@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.util.ClassUtils;
 import org.springframework.util.Assert;

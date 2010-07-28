@@ -25,9 +25,9 @@ import java.util.UUID;
 
 import org.junit.Test;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHeaders;
 
 /**
  * @author Mark Fisher

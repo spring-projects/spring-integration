@@ -15,7 +15,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.Comparator;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * @author Dave Syer

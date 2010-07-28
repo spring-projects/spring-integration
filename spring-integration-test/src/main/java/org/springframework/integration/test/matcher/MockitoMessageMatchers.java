@@ -23,7 +23,7 @@ import java.util.Map;
 
 import org.hamcrest.Matcher;
 import org.mockito.Mockito;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * <h2>Mockito matcher factory for {@link Message} matcher creation.</h2>

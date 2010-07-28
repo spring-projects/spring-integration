@@ -15,7 +15,7 @@ package org.springframework.integration.jdbc;
 
 import javax.sql.DataSource;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageHandlingException;

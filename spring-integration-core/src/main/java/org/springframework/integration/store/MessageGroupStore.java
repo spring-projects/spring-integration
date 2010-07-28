@@ -12,7 +12,7 @@
  */
 package org.springframework.integration.store;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Interface for storage operations on groups of messages linked by a group id.

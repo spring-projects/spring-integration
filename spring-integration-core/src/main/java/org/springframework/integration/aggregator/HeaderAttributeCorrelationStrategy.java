@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 
 /**
  * Default implementation of {@link CorrelationStrategy}. Uses a header

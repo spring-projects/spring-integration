@@ -15,12 +15,12 @@
  */
 package org.springframework.integration.xmpp;
 
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.MessageHeaders;
 
 
 /**
  *
- * Used as keys for {@link org.springframework.integration.core.Message} objects
+ * Used as keys for {@link org.springframework.integration.Message} objects
  * that handle XMPP events. 
  *
  * @author Mario Gray

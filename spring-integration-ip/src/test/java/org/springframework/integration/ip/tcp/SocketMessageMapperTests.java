@@ -23,7 +23,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import org.junit.Test;
-import org.springframework.integration.core.Message;
+import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
 
@@ -56,7 +56,7 @@ public class SocketMessageMapperTests {
 	}
 
 	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#fromMessage(org.springframework.integration.core.Message)}.
+	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#fromMessage(org.springframework.integration.Message)}.
 	 * @throws Exception 
 	 */
 	@Test
