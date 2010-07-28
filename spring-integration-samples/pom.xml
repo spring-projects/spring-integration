@@ -27,6 +27,23 @@
 		<module>ws-outbound-gateway</module>
 		<module>xml</module>
 	</modules>
+	<build>
+		<plugins>
+			<plugin><!--
+				overrides jar plugin configuration in parent pom that looks for
+				a bundlor-generated MANIFEST.MF.  The manifest specified here
+				is intentionally empty. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<archive>
+						<manifestFile>../src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
