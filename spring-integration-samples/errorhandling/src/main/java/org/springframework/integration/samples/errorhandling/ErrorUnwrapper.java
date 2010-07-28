@@ -16,10 +16,10 @@
 package org.springframework.integration.samples.errorhandling;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.core.ErrorMessage;
 
 /**
  * @author Iwein Fuld
