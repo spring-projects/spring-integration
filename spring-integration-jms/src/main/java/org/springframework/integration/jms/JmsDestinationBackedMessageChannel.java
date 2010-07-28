@@ -25,6 +25,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
@@ -33,7 +34,6 @@ import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrateg
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.gateway.SimpleMessageMapper;
 import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;

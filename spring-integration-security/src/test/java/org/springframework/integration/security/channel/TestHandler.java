@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 
 /**
  * @author Mark Fisher

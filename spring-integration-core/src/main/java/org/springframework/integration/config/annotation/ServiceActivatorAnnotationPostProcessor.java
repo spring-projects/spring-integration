@@ -20,8 +20,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.StringUtils;
 
 /**

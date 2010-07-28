@@ -37,8 +37,8 @@ import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolver;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

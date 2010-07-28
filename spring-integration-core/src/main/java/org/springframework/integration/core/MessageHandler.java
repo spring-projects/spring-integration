@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.core;
 
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageDeliveryException;
+import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * Base interface for any component that handles Messages.

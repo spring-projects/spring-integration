@@ -17,11 +17,11 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.filter.ExpressionEvaluatingSelector;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.StringUtils;
 
 /**

@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 

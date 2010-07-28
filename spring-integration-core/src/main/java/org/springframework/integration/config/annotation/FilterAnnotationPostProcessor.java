@@ -20,9 +20,9 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

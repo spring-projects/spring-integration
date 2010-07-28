@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

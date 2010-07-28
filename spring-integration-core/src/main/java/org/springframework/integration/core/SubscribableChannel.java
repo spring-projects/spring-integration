@@ -16,7 +16,6 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.integration.message.MessageHandler;
 
 /**
  * Interface for any MessageChannel implementation that accepts subscribers.

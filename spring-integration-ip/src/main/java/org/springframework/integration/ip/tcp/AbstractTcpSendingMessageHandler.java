@@ -92,7 +92,7 @@ public abstract class AbstractTcpSendingMessageHandler extends
 	/**
 	 * Writes the message payload to the underlying socket, using the specified
 	 * message format. 
-	 * @see org.springframework.integration.message.MessageHandler#handleMessage(org.springframework.integration.core.Message)
+	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.core.Message)
 	 */
 	public void handleMessage(final Message<?> message) throws MessageRejectedException,
 			MessageHandlingException, MessageDeliveryException {

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.ExpressionEvaluatingSplitter;

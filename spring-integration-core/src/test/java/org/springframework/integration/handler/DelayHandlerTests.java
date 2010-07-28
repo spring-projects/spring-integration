@@ -34,7 +34,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;

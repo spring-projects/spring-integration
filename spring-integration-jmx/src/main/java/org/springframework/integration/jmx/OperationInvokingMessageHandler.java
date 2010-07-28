@@ -32,9 +32,9 @@ import javax.management.ObjectName;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.util.Assert;

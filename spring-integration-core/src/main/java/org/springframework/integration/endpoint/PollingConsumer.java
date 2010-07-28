@@ -17,8 +17,8 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**

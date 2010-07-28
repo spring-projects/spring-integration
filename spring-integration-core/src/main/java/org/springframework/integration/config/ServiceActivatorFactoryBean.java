@@ -16,10 +16,10 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.ServiceActivatingHandler;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.StringUtils;
 
 /**

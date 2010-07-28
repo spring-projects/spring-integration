@@ -28,7 +28,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.FilterFactoryBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 
 /**
  * @author Mark Fisher

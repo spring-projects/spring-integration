@@ -20,7 +20,7 @@ import javax.jms.JMSException;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
 

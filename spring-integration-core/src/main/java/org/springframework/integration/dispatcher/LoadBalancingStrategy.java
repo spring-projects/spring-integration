@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 
 /**
  * Strategy for determining the iteration order of a MessageHandler list.

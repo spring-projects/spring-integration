@@ -16,8 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**

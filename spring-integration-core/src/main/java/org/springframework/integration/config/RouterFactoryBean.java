@@ -18,7 +18,7 @@ package org.springframework.integration.config;
 
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;

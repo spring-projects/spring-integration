@@ -7,7 +7,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.OutboundMessageMapper;
