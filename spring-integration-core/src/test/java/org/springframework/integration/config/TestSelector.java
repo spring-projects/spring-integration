@@ -17,7 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.core.MessageSelector;
 
 /**
  * @author Mark Fisher

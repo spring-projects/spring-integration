@@ -16,8 +16,8 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.selector.MessageSelector;
 
 /**
  * A {@link MessageSelector} implementation that evaluates a SpEL expression.

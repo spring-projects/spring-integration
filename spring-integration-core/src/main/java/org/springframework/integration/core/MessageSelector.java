@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.selector;
+package org.springframework.integration.core;
 
-import org.springframework.integration.core.Message;
 
 /**
  * Strategy interface for message selection.

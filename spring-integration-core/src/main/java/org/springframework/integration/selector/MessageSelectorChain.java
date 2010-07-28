@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.util.Assert;
 
 /**

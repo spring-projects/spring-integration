@@ -19,7 +19,7 @@ package org.springframework.integration.xml.selector;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.XPathExpression;

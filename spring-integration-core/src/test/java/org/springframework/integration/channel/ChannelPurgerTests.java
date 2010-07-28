@@ -25,8 +25,8 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher

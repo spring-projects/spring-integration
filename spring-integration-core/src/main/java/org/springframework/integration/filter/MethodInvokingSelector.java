@@ -19,8 +19,8 @@ package org.springframework.integration.filter;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Filter;
+import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**

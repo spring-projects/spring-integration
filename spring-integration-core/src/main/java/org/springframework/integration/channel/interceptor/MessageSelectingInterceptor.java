@@ -22,7 +22,7 @@ import java.util.List;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.core.MessageSelector;
 
 /**
  * A {@link org.springframework.integration.channel.ChannelInterceptor} that
