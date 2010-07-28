@@ -30,7 +30,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 

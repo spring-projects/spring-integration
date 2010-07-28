@@ -20,7 +20,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.message.HeaderMapper;
+import org.springframework.integration.mapping.HeaderMapper;
 
 /**
  * Default {@link HeaderMapper} implementation for HTTP.

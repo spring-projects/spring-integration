@@ -23,15 +23,15 @@ import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 import org.springframework.util.StringUtils;
 
 
 /**
- * Implementation of the strategy interface {@link org.springframework.integration.message.OutboundMessageMapper}. This is the hook that lets the adapter receive various payloads from
+ * Implementation of the strategy interface {@link org.springframework.integration.mapping.OutboundMessageMapper}. This is the hook that lets the adapter receive various payloads from
  * components inside Spring Integration and forward them correctly as {@link org.jivesoftware.smack.packet.Presence} instances.
  *
  * @author Josh Long

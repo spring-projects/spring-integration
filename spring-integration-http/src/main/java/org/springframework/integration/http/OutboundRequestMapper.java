@@ -17,7 +17,7 @@
 package org.springframework.integration.http;
 
 import org.springframework.http.HttpEntity;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 
 /**
  * Strategy for mapping to an {@link HttpEntity} from a message.

@@ -33,7 +33,7 @@ import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.gateway.SimpleMessageMapper;
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;

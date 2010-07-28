@@ -32,7 +32,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.message.HeaderMapper;
+import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;

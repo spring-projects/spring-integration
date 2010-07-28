@@ -21,7 +21,7 @@ import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.integration.message.MessageMappingException;
+import org.springframework.integration.mapping.MessageMappingException;
 
 /**
  * @author Gary Russell

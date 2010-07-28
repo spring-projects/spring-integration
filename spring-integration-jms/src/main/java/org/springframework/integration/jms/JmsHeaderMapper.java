@@ -18,7 +18,7 @@ package org.springframework.integration.jms;
 
 import javax.jms.Message;
 
-import org.springframework.integration.message.HeaderMapper;
+import org.springframework.integration.mapping.HeaderMapper;
 
 /**
  * Strategy interface for mapping integration Message headers to an outbound

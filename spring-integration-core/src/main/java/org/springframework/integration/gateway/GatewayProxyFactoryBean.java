@@ -38,7 +38,7 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.ArgumentArrayMessageMapper;
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;

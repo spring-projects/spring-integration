@@ -22,7 +22,7 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
-import org.springframework.integration.message.MessageMappingException;
+import org.springframework.integration.mapping.MessageMappingException;
 
 /**
  * Simple implementation of a TCP/IP inbound gateway; uses {@link java.net.Socket}

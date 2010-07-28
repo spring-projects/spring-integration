@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.mapping;
 
 import org.springframework.integration.Message;
 
 /**
- * Strategy interface for mapping from a {@link Message} to an Object.
+ * Strategy interface for mapping from an Object to a{@link Message}.
  * 
  * @author Mark Fisher
  */
-public interface OutboundMessageMapper<T> {
+public interface InboundMessageMapper<T> {
 
-	T fromMessage(Message<?> message) throws Exception;
+	Message<?> toMessage(T object) throws Exception;
 
 }

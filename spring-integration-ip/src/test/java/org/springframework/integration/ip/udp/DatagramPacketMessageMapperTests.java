@@ -30,7 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.udp.DatagramPacketMessageMapper;
-import org.springframework.integration.message.MessageMappingException;
+import org.springframework.integration.mapping.MessageMappingException;
 
 /**
  * @author Gary Russell

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.springframework.integration.message.MessageMappingException;
+import org.springframework.integration.mapping.MessageMappingException;
 
 /**
  * Converts data in an InputStream to a byte[]; data is prefixed by &lt;stx&gt; and

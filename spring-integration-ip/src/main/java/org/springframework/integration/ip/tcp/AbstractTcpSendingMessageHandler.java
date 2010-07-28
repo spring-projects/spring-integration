@@ -24,7 +24,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
-import org.springframework.integration.message.MessageMappingException;
+import org.springframework.integration.mapping.MessageMappingException;
 
 /**
  * Abstract class for TCP sending message handlers. Implementations

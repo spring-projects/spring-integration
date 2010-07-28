@@ -24,7 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.gateway.SimpleMessageMapper;
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.util.Assert;
 

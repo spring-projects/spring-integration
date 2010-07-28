@@ -4,7 +4,7 @@ import java.io.StringWriter;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.integration.Message;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 
 /**
  * {@link OutboundMessageMapper} implementation the converts a {@link Message} to a JSON string representation.

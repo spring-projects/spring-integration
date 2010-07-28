@@ -21,8 +21,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 
 /**
  * Maps incoming data from a {@link TcpConnection} to a {@link Message}.

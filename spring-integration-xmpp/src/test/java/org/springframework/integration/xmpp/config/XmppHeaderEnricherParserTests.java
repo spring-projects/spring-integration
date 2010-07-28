@@ -32,7 +32,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.message.*;
+import org.springframework.integration.mapping.*;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

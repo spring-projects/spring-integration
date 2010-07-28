@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 

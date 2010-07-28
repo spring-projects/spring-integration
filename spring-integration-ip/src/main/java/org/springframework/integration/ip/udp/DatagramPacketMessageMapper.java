@@ -29,9 +29,9 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.RegexUtils;
-import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.MessageMappingException;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.MessageMappingException;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.Assert;
 
 /**

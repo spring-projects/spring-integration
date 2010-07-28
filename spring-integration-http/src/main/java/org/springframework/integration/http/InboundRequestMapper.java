@@ -18,7 +18,7 @@ package org.springframework.integration.http;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.mapping.InboundMessageMapper;
 
 /**
  * Strategy interface for mapping from an inbound {@link HttpServletRequest}

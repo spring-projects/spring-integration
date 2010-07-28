@@ -10,7 +10,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.message.OutboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 
 /**
  * This class will facilitate publishing updated presence values for a given connection. This change happens on the
