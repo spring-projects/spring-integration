@@ -27,7 +27,7 @@ import javax.xml.transform.TransformerException;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.support.destination.DestinationProvider;

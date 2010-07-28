@@ -26,7 +26,7 @@ import javax.xml.transform.Source;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;

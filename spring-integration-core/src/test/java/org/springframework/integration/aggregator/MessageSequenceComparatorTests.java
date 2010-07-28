@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**

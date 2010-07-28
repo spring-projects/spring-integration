@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

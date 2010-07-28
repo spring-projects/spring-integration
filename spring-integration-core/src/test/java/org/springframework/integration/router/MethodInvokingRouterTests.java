@@ -30,10 +30,10 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**

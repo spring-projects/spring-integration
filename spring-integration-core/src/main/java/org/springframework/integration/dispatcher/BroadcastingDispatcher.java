@@ -21,9 +21,9 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
 /**

@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.message.MessageBuilder;
 
 /**
  * Base class for Message-splitting handlers.

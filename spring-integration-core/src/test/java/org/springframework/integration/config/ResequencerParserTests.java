@@ -35,9 +35,9 @@ import org.springframework.integration.aggregator.ResequencingMessageGroupProces
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

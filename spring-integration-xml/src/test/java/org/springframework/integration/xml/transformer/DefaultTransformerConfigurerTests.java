@@ -32,7 +32,7 @@ import javax.xml.transform.URIResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 
 /**
  * @author Jonas Partner

@@ -30,9 +30,9 @@ import org.codehaus.jackson.map.type.TypeFactory;
 import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**

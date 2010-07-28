@@ -26,9 +26,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.*;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.MethodInvoker;
 

@@ -25,11 +25,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
-import org.springframework.integration.message.MessageBuilder;
 
 /**
  * A Transformer that adds statically configured header values to a Message.

@@ -24,11 +24,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.RegexUtils;
 import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingException;
 import org.springframework.integration.message.OutboundMessageMapper;

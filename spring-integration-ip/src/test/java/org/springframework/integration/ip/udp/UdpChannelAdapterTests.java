@@ -13,8 +13,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.util.SocketUtils;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 

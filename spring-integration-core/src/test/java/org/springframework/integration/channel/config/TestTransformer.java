@@ -17,7 +17,7 @@
 package org.springframework.integration.channel.config;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.transformer.Transformer;
 
 /**

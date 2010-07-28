@@ -26,9 +26,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Iwein Fuld

@@ -28,9 +28,9 @@ import org.w3c.dom.Document;
 
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;

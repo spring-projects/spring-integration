@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Mark Fisher

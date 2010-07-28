@@ -30,7 +30,7 @@ import javax.mail.internet.MimeMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;
 
 /**

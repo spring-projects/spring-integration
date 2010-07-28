@@ -21,9 +21,9 @@ import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.packet.Presence;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.InboundMessageMapper;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
 

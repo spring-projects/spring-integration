@@ -26,8 +26,8 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.xml.transformer.XPathHeaderEnricher;
 import org.springframework.integration.xml.transformer.XPathHeaderEnricher.XPathExpressionEvaluatingHeaderValueMessageProcessor;
 import org.springframework.integration.xml.xpath.XPathEvaluationType;

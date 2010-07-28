@@ -24,8 +24,8 @@ import java.net.UnknownHostException;
 
 import org.junit.Test;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
-import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Gary Russell

@@ -17,7 +17,7 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 
 /**
  * A base class for {@link Transformer} implementations.

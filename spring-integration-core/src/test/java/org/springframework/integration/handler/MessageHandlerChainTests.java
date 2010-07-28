@@ -25,9 +25,9 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 
 /**

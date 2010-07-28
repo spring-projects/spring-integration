@@ -25,13 +25,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
 import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.util.SocketUtils;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

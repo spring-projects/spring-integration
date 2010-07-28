@@ -21,9 +21,9 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.handler.AbstractMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**

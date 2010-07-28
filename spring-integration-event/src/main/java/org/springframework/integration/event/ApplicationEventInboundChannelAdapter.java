@@ -21,8 +21,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.endpoint.MessageProducerSupport;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 

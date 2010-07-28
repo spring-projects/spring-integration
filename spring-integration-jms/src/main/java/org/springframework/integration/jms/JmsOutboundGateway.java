@@ -30,9 +30,9 @@ import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageTimeoutException;
 import org.springframework.jms.connection.ConnectionFactoryUtils;

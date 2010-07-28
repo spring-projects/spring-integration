@@ -43,10 +43,10 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.store.MessageGroup;
 
 @RunWith(MockitoJUnitRunner.class)

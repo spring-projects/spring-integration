@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
@@ -46,7 +47,6 @@ import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter;
 import org.springframework.integration.ip.util.SocketUtils;
-import org.springframework.integration.message.MessageBuilder;
 
 
 /**

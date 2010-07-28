@@ -19,7 +19,7 @@ package org.springframework.integration.transformer;
 import java.util.UUID;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.util.Assert;
 
