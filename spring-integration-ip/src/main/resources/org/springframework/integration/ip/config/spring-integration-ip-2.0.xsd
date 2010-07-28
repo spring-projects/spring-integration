@@ -326,7 +326,7 @@ the factory, the connection will be closed after a response is received.
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.serializer.InputStreamingConverter"/>
+							<tool:expected-type type="org.springframework.commons.serializer.InputStreamingConverter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
@@ -340,7 +340,7 @@ would normally be the same but this is not required.
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.serializer.OutputStreamingConverter"/>
+							<tool:expected-type type="org.springframework.commons.serializer.OutputStreamingConverter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
