@@ -41,6 +41,7 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 
 	private volatile String messageSelector;
 
+
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 	}
@@ -53,9 +54,11 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 		super(connectionFactory, destinationName);
 	}
 
-	public String getComponentType(){
+
+	public String getComponentType() {
 		return "jms:inbound-channel-adapter";
 	}
+
 	/**
 	 * Specify a JMS Message Selector expression to use when receiving Messages.
 	 */
@@ -64,12 +67,9 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 	}
 	
 	/**
-	 * Will receive JMS {@link javax.jms.Message} converting and returning it as 
-	 * Spring Integration(SI) {@link Message}.
-	 * This method will also use the current instance of the {@link JmsHeaderMapper} to map
-	 * JMS headers to SI headers
-	 * 
-	 * @return
+	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as 
+	 * a Spring Integration {@link Message}. This method will also use the current
+	 * {@link JmsHeaderMapper} instance to map JMS properties to the MessageHeaders.
 	 */
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
@@ -94,4 +94,5 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 		}
 		return convertedMessage;
 	}
+
 }
