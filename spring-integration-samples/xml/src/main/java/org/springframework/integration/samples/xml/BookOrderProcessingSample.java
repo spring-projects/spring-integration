@@ -25,9 +25,8 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
-
 /**
  * This example demonstrates the processing of an order for books using 
  * several of the components provided by the Spring Integration Xml 
