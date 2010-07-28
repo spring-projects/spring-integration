@@ -24,8 +24,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 
 /**

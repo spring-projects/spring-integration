@@ -29,8 +29,8 @@ import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

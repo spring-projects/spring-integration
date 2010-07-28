@@ -20,9 +20,9 @@ import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.FileCopyUtils;
 

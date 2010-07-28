@@ -23,10 +23,10 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ChannelResolver;
+import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.ErrorMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 

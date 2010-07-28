@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Test;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Dave Syer

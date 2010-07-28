@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.w3c.dom.Document;
 
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.integration.xml.util.XmlTestUtil;
 

@@ -20,7 +20,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.matchers.JUnitMatchers;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 
 import java.util.Arrays;

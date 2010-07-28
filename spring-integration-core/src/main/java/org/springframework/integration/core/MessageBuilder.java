@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

@@ -28,7 +28,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 

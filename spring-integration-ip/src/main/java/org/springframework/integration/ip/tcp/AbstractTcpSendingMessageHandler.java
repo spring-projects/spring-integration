@@ -20,8 +20,8 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingException;
 import org.springframework.integration.message.MessageRejectedException;

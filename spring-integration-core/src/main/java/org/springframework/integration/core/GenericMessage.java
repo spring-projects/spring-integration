@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.core;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 

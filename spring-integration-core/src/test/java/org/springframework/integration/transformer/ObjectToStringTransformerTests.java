@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 
 /**

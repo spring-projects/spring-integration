@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.MessageSelector;
 

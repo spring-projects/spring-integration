@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.core.GenericMessage;
+
 /**
  * A message implementation that accepts a String payload. 
  * 

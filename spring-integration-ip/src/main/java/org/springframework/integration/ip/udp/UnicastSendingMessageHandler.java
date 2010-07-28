@@ -34,9 +34,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;

@@ -33,11 +33,11 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.ErrorMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 
 /**
