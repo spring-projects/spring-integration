@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.message.MethodInvokingMessageSource;
+import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 
 /**
  * @author Mark Fisher
