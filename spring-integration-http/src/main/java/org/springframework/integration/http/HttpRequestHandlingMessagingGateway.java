@@ -43,12 +43,12 @@ import org.springframework.web.HttpRequestHandler;
  * be configured with the {@link #supportedMethods} property. The payload generated from
  * a GET request (or HEAD or OPTIONS if supported) will be a {@link MultiValueMap} 
  * containing the parameter values. For a request containing a body (e.g. a POST),
- * the type of the payload is determined by the {@link #conversionTargetType} property.
+ * the type of the payload is determined by the {@link #setRequestPayloadType(Class) request payload type}.
  * <p/>
- * If the HTTP request is a multipart, a {@link MultiValueMap} payload will be generated. If
- * this gateway's {@link #uploadMultipartFiles} property is set to true, any files included
- * in that multipart request will be copied to the temporary directory. The corresponding
- * values for those files within the payload map will be {@link java.io.File} instances.
+ * If the HTTP request is a multipart and a "multipartResolver" bean has been defined
+ * in the context, then it will be converted by the {@link MultipartAwareFormHttpMessageConverter}
+ * as long as the default message converters have not been overwritten (although
+ * providing a customized instance of the Multipart-aware converter is also an option).
  * <p/>
  * By default a number of {@link HttpMessageConverter}s are already configured. The list
  * can be overridden by calling the {@link #setMessageConverters(List)} method.
