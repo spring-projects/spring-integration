@@ -39,7 +39,6 @@ public class CorrelationStrategyAdapter implements CorrelationStrategy {
 	public CorrelationStrategyAdapter(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
-		Assert.isTrue(method.getParameterTypes().length == 1, "Method must accept exactly one parameter");
 		Assert.isTrue(!Void.TYPE.equals(method.getReturnType()), "Method return type must not be void");
 		this.processor = new MethodInvokingMessageProcessor(object, method);
 	}

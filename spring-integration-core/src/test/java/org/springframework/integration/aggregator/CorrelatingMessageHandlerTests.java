@@ -71,8 +71,7 @@ public class CorrelatingMessageHandlerTests {
 
 	@Before
 	public void initializeSubject() {
-		handler = new CorrelatingMessageHandler(processor, store, correlationStrategy,
-				ReleaseStrategy);
+		handler = new CorrelatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
 		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(SimpleMessageGroup.class),
 				isA(MessagingTemplate.class), eq(outputChannel));
@@ -94,7 +93,8 @@ public class CorrelatingMessageHandlerTests {
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
+		verify(processor)
+				.processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
 	}
 
 	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
@@ -104,8 +104,8 @@ public class CorrelatingMessageHandlerTests {
 	@Test
 	public void bufferCompletesWithException() throws Exception {
 
-		doAnswer(new ThrowsException(new RuntimeException("Planned test exception"))).when(processor).processAndSend(isA(SimpleMessageGroup.class),
-				isA(MessagingTemplate.class), eq(outputChannel));
+		doAnswer(new ThrowsException(new RuntimeException("Planned test exception"))).when(processor).processAndSend(
+				isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
 
 		String correlationKey = "key";
 		Message<?> message1 = testMessage(correlationKey, 1, 2);
@@ -114,17 +114,19 @@ public class CorrelatingMessageHandlerTests {
 		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(correlationKey);
 
 		handler.handleMessage(message1);
-		
+
 		try {
 			handler.handleMessage(message2);
 			fail("Expected MessageHandlingException");
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			assertEquals(0, store.getMessageGroup(correlationKey).size());
 		}
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor).processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
+		verify(processor)
+				.processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
 	}
 
 	/*
@@ -159,6 +161,22 @@ public class CorrelatingMessageHandlerTests {
 
 		bothMessagesHandled.await();
 
+	}
+
+	@Test
+	public void testNullCorrelationKey() throws Exception {
+		final Message<?> message1 = MessageBuilder.withPayload("foo").build();
+		when(correlationStrategy.getCorrelationKey(isA(Message.class))).thenReturn(null);
+		try {
+			handler.handleMessage(message1);
+			fail("Expected MessageHandlingException");
+		} catch (MessageHandlingException e) {
+			Throwable cause = e.getCause();
+			boolean pass = cause instanceof IllegalStateException && cause.getMessage().toLowerCase().contains("null correlation");
+			if (!pass) {
+				throw e;
+			}
+		}
 	}
 
 	private Message<?> testMessage(String correlationKey, int sequenceNumber, int sequenceSize) {

@@ -154,6 +154,9 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			logger.debug("Handling message with correlationKey ["
 					+ correlationKey + "]: " + message);
 		}
+		if (correlationKey==null) {
+			throw new IllegalStateException("Null correlation not allowed.  Maybe the CorrelationStrategy is failing?");
+		}
 
 		// TODO: INT-1117 - make the lock global?
 		Object lock = getLock(correlationKey);
