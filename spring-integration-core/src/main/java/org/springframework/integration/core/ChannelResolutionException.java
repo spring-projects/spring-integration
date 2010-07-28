@@ -16,6 +16,8 @@
 
 package org.springframework.integration.core;
 
+import org.springframework.integration.MessagingException;
+
 /**
  * Thrown by a ChannelResolver when it cannot resolve a channel name.
  * 

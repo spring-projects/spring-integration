@@ -21,7 +21,7 @@ import java.io.IOException;
 import javax.xml.transform.Source;
 
 import org.springframework.core.io.Resource;
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.xml.validation.XmlValidationException;
 import org.springframework.xml.validation.XmlValidatorFactory;
 import org.xml.sax.SAXParseException;

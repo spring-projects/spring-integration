@@ -30,12 +30,12 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 

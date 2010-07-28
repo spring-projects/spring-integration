@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.OutboundMessageMapper;

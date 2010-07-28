@@ -19,11 +19,11 @@ package org.springframework.integration.file;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.File;

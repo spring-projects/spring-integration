@@ -240,7 +240,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 			return copiedMessages;
 		}
 		catch (Exception e) {
-			throw new org.springframework.integration.core.MessagingException(
+			throw new org.springframework.integration.MessagingException(
 					"failure occurred while receiving from folder", e);
 		}
 		finally {

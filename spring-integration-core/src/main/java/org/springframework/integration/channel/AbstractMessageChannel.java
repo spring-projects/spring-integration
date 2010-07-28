@@ -26,11 +26,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

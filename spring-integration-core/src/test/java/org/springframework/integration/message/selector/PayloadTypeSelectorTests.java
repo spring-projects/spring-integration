@@ -21,9 +21,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.PayloadTypeSelector;
 

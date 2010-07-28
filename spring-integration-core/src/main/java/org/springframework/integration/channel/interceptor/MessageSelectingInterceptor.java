@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageSelector;
 
 /**

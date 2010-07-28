@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.XPathExpression;

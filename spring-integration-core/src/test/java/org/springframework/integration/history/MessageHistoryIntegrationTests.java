@@ -33,13 +33,13 @@ import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
-import org.springframework.integration.core.MessageRejectedException;
 
 /**
  * @author Oleg Zhurakousky

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.file;
 
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 
 import java.io.File;
 import java.util.List;

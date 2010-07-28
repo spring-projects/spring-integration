@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.IpHeaders;
 

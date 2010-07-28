@@ -19,8 +19,8 @@ package org.springframework.integration.ws;
 import java.io.IOException;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

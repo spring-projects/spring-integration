@@ -20,13 +20,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.util.Assert;
 
 /**

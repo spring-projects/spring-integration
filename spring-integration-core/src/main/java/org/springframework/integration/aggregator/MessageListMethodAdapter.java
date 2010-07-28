@@ -17,7 +17,7 @@
 package org.springframework.integration.aggregator;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;

@@ -22,7 +22,7 @@ import java.io.BufferedReader;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;

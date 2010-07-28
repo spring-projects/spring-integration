@@ -6,10 +6,10 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageDeliveryException;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
-import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.message.OutboundMessageMapper;
 
 /**

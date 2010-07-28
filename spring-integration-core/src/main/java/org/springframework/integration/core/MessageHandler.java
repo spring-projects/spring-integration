@@ -17,6 +17,9 @@
 package org.springframework.integration.core;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 
 
 /**

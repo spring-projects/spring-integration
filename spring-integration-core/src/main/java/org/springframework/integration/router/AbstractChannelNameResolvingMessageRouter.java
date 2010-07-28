@@ -24,10 +24,10 @@ import java.util.List;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

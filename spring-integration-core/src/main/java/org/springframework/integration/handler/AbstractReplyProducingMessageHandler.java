@@ -17,12 +17,12 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.util.Assert;

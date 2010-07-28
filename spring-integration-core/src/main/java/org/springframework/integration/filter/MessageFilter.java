@@ -18,10 +18,10 @@ package org.springframework.integration.filter;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageDeliveryException;
-import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;

@@ -21,7 +21,7 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.SimpleMessageMapper;
 import org.springframework.integration.message.InboundMessageMapper;
 import org.springframework.integration.message.MessageSource;

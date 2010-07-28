@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.message.StringMessage;
 

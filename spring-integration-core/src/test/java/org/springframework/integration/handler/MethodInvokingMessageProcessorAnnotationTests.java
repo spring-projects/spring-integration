@@ -28,12 +28,12 @@ import org.junit.Assert;
 import org.junit.Test; 
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header; 
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHandlingException;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**

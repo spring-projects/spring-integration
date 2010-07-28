@@ -24,7 +24,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.xml.transform.StringResult;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;

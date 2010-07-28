@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
-
-import org.springframework.integration.Message;
-
+package org.springframework.integration;
 
 /**
  * Exception that indicates a message has been rejected by a selector.

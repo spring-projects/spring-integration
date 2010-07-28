@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
-
-import org.springframework.integration.Message;
-
+package org.springframework.integration;
 
 /**
  * Exception that indicates an error during message delivery.

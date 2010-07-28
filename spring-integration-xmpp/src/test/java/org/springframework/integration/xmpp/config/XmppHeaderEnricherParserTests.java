@@ -25,12 +25,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
-import org.springframework.integration.core.MessageRejectedException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.message.*;
 

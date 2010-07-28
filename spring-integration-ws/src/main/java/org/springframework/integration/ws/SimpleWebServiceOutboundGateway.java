@@ -25,7 +25,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;

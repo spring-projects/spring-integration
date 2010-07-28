@@ -24,9 +24,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageDeliveryException;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingException;
 
 /**
  * Implementation of {@link MessageDispatcher} that will attempt to send a

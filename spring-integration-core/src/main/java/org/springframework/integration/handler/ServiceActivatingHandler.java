@@ -19,8 +19,8 @@ package org.springframework.integration.handler;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.MessageHandlingException;
 
 /**
  * @author Mark Fisher

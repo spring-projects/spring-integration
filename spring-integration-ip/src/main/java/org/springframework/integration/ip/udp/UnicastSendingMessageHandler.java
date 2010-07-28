@@ -34,11 +34,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageDeliveryException;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
-import org.springframework.integration.core.MessageRejectedException;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.ip.AbstractInternetProtocolSendingMessageHandler;
 import org.springframework.util.Assert;
 

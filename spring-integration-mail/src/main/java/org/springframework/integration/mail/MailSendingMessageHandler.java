@@ -21,9 +21,9 @@ import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingException;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;

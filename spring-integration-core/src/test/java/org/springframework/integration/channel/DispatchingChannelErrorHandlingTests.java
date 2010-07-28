@@ -29,12 +29,12 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageDeliveryException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingException;
 
 /**
  * @author Mark Fisher

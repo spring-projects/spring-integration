@@ -17,7 +17,7 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 
 /**
  * Base Exception type for Message transformation errors.

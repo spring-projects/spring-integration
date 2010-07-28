@@ -21,8 +21,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.MethodValidator;

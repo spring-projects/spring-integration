@@ -30,11 +30,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**

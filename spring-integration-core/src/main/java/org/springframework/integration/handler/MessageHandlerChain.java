@@ -21,10 +21,10 @@ import java.util.List;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.util.Assert;

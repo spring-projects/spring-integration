@@ -34,11 +34,11 @@ import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**

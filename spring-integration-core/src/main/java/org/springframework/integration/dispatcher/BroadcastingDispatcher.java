@@ -22,9 +22,9 @@ import java.util.concurrent.Executor;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingException;
 
 /**
  * A broadcasting dispatcher implementation. If the 'ignoreFailures' property

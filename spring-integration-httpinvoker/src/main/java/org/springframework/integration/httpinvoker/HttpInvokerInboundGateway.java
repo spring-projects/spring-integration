@@ -22,7 +22,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.RemotingInboundGatewaySupport;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
