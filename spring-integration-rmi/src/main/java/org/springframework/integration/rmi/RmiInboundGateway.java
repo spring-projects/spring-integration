@@ -19,10 +19,10 @@ package org.springframework.integration.rmi;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.gateway.RemotingInboundGatewaySupport;
 import org.springframework.integration.gateway.RequestReplyExchanger;
+import org.springframework.integration.history.NamedComponent;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
 import org.springframework.util.Assert;

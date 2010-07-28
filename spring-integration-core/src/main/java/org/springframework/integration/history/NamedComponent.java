@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.history;
 
 /**
  * @author Mark Fisher

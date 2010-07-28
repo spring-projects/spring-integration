@@ -30,6 +30,7 @@ import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.history.MessageHistoryWriter;
+import org.springframework.integration.history.NamedComponent;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -171,8 +172,8 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	}
 
 	protected void writeMessageHistory(Message<?> message) {
-		if (historyWriter != null) {
-			historyWriter.writeHistory(this, message);
+		if (historyWriter != null && message != null) {
+			historyWriter.writeHistory(this, message.getHeaders().getHistory());
 		}
 	}
 }

@@ -41,33 +41,37 @@ import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class MessageHistoryIntegrationTests {
+
 	@Test
-	public void testHistoryAwareMessageHandler(){
+	public void testHistoryAwareMessageHandler() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter.xml", MessageHistoryIntegrationTests.class);
 		Map<String, ConsumerEndpointFactoryBean> cefBeans = ac.getBeansOfType(ConsumerEndpointFactoryBean.class);
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
-			assertTrue(bridgeAccessor.getPropertyValue("handler") instanceof MessageHistoryAwareMessageHandler);
+			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
+			assertEquals("org.springframework.integration.config.MessageHistoryAwareMessageHandler", handlerClassName);
 		}
 	}
+
 	@Test
-	public void testNoHistoryAwareMessageHandler(){
+	public void testNoHistoryAwareMessageHandler() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithoutHistoryWriter.xml", MessageHistoryIntegrationTests.class);
 		Map<String, ConsumerEndpointFactoryBean> cefBeans = ac.getBeansOfType(ConsumerEndpointFactoryBean.class);
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
-			assertFalse(bridgeAccessor.getPropertyValue("handler") instanceof MessageHistoryAwareMessageHandler);
+			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
+			assertFalse("org.springframework.integration.config.MessageHistoryAwareMessageHandler".equals(handlerClassName));
 		}
 	}
+
 	@Test
-	public void tetsMessageHistoryWithHistoryWriter(){
+	public void tetsMessageHistoryWithHistoryWriter() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
-		MessageHandler handler = Mockito.spy(new MessageHandler() {	
+		MessageHandler handler = Mockito.spy(new MessageHandler() {
 			public void handleMessage(Message<?> message)
 								throws MessageRejectedException, MessageHandlingException,MessageDeliveryException {
 				System.out.println(message);
@@ -141,7 +145,7 @@ public class MessageHistoryIntegrationTests {
 	}
 	
 	@Test
-	public void tetsMessageHistoryWithoutHistoryWriter(){
+	public void tetsMessageHistoryWithoutHistoryWriter() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithoutHistoryWriter.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
@@ -160,8 +164,9 @@ public class MessageHistoryIntegrationTests {
 		gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 	}
+
 	@Test
-	public void testMessageHistoryParser(){
+	public void testMessageHistoryParser() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace.xml", MessageHistoryIntegrationTests.class);
 		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
@@ -179,16 +184,19 @@ public class MessageHistoryIntegrationTests {
 		gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 	}
+
 	@Test(expected=BeanDefinitionParsingException.class)
-	public void testMessageHistoryMoreThenOneNamespaceFail(){
+	public void testMessageHistoryMoreThenOneNamespaceFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
 	}
+
 	@Test(expected=BeanCreationException.class)
-	public void testMessageHistoryMoreThenOneFail(){
+	public void testMessageHistoryMoreThenOneFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter-fail.xml", MessageHistoryIntegrationTests.class);
 	}
-	
-	public static interface SampleGateway{
+
+
+	public static interface SampleGateway {
 		public Message<?> echo(String value);
 	}
 }

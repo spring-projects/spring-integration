@@ -22,8 +22,6 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.integration.context.NamedComponent;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -52,9 +50,9 @@ public class MessageHistoryWriter implements BeanFactoryAware, InitializingBean{
 		}
 	}
 
-	public void writeHistory(NamedComponent component, Message<?> message) {
-		if (message != null) {
-			message.getHeaders().getHistory().addEvent(component);
+	public void writeHistory(NamedComponent component, MessageHistory history) {
+		if (history != null) {
+			history.addEvent(component);
 		}
 	}
 

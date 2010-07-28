@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.history;
+package org.springframework.integration.config;
 
 import org.springframework.core.Ordered;
-import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.history.MessageHistoryWriter;
+import org.springframework.integration.history.NamedComponent;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MessageHistoryAwareMessageHandler implements NamedComponent, MessageHandler, Ordered {
+class MessageHistoryWritingMessageHandler implements NamedComponent, MessageHandler, Ordered {
 
 	private final MessageHandler targetHandler;
 
@@ -45,7 +46,7 @@ public class MessageHistoryAwareMessageHandler implements NamedComponent, Messag
 	 * @param endpointName
 	 * @param targetHandler
 	 */
-	public MessageHistoryAwareMessageHandler(MessageHandler targetHandler, MessageHistoryWriter historyWriter,  String endpointName) {
+	public MessageHistoryWritingMessageHandler(MessageHandler targetHandler, MessageHistoryWriter historyWriter,  String endpointName) {
 		Assert.notNull(targetHandler, "targetHandler must not be null");
 		Assert.notNull(historyWriter, "historyWriter must not be null");
 		this.targetHandler = targetHandler;
@@ -71,7 +72,9 @@ public class MessageHistoryAwareMessageHandler implements NamedComponent, Messag
 	 * Writes the MessageHistory event and then invokes the target handler.
 	 */
 	public void handleMessage(Message<?> message) {
-		this.historyWriter.writeHistory(this, message);
+		if (message != null) {
+			this.historyWriter.writeHistory(this, message.getHeaders().getHistory());
+		}
 		this.targetHandler.handleMessage(message);
 	}
 

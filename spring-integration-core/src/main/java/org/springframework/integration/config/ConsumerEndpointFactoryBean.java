@@ -35,7 +35,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.history.MessageHistoryAwareMessageHandler;
 import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -108,7 +107,7 @@ public class ConsumerEndpointFactoryBean
 		if (historyWriters.size() == 1) {
 			MessageHistoryWriter writer = historyWriters.values().iterator().next();
 			if (!this.beanName.startsWith("org.springframework")  && this.handler instanceof IntegrationObjectSupport) {
-				this.handler = new MessageHistoryAwareMessageHandler(this.handler, writer, this.beanName);
+				this.handler = new MessageHistoryWritingMessageHandler(this.handler, writer, this.beanName);
 			}
 		} 
 		this.initializeEndpoint();
