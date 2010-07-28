@@ -18,8 +18,8 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
 /**

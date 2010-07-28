@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.util.Assert;
 
 /**

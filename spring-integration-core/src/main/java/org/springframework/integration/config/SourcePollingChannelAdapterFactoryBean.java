@@ -26,8 +26,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 

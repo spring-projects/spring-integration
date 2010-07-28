@@ -29,7 +29,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;

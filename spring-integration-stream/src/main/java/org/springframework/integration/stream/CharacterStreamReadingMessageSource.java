@@ -23,7 +23,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.Assert;
 
