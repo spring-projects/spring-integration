@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.history;
 
 import static junit.framework.Assert.assertEquals;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
@@ -51,7 +53,7 @@ public class MessageHistoryIntegrationTests {
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
 			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
-			assertEquals("org.springframework.integration.config.MessageHistoryAwareMessageHandler", handlerClassName);
+			assertEquals("org.springframework.integration.config.MessageHistoryWritingMessageHandler", handlerClassName);
 		}
 	}
 
@@ -62,7 +64,7 @@ public class MessageHistoryIntegrationTests {
 		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
 			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
 			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
-			assertFalse("org.springframework.integration.config.MessageHistoryAwareMessageHandler".equals(handlerClassName));
+			assertFalse("org.springframework.integration.config.MessageHistoryWritingMessageHandler".equals(handlerClassName));
 		}
 	}
 

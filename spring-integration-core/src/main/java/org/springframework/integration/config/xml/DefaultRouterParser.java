@@ -74,7 +74,7 @@ public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParse
 		}
 		else {
 			RootBeanDefinition resolverBeanDefintion = new RootBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.BeanFactoryChannelResolver");
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".context.BeanFactoryChannelResolver");
 			builder.addPropertyValue(CHANNEL_RESOLVER_PROPERTY, resolverBeanDefintion);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");

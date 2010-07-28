@@ -23,8 +23,8 @@ import java.util.List;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
-import org.springframework.integration.channel.ChannelResolutionException;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.core.ChannelResolutionException;
+import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;

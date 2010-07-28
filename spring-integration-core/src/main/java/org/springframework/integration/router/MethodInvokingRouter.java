@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 
 /**

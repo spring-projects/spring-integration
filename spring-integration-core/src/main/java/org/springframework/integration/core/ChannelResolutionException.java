@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
-
-import org.springframework.integration.core.MessagingException;
+package org.springframework.integration.core;
 
 /**
  * Thrown by a ChannelResolver when it cannot resolve a channel name.

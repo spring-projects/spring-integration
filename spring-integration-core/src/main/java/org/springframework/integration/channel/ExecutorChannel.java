@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.LoadBalancingStrategy;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;

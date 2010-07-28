@@ -16,8 +16,8 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessagingTemplate;
+import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;

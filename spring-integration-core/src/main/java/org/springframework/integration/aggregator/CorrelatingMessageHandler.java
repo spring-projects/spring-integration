@@ -18,9 +18,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.channel.ChannelResolver;
+
 import org.springframework.integration.channel.MessagingTemplate;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
