@@ -31,22 +31,36 @@
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- dist.* properties are used by the antrun tasks below -->
+		<dist.id>spring-integration</dist.id>
+		<dist.name>Spring Integration</dist.name>
+		<dist.key>INT</dist.key>
+		<dist.version>${project.version}</dist.version>
+		<dist.releaseType>snapshot</dist.releaseType>
+		<dist.finalName>${dist.id}-${dist.version}</dist.finalName>
+		<dist.fileName>${dist.finalName}.zip</dist.fileName>
+		<dist.filePath>target/${dist.fileName}</dist.filePath>
+		<dist.bucketName>dist.springframework.org</dist.bucketName>
+		<!-- these properties should be in ~/.m2/settings.xml
+		<dist.accessKey>s3 access key</dist.accessKey>
+		<dist.secretKey>s3 secret key</dist.secretKey>
+		-->
 	</properties>
 	<profiles>
 		<profile>
 			<id>staging</id>
 			<distributionManagement>
 				<site>
-					<id>staging</id>
-					<url>file:///${java.io.tmpdir}/target/site</url>
+					<id>spring-site-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-integration/docs/${project.version}</url>
 				</site>
 				<repository>
-					<id>staging</id>
-					<url>file:///${java.io.tmpdir}/target/repository</url>
+					<id>spring-milestone-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-integration/milestone</url>
 				</repository>
 				<snapshotRepository>
-					<id>staging</id>
-					<url>file:///${java.io.tmpdir}/target/snapshotRepository</url>
+					<id>spring-snapshot-staging</id>
+					<url>file:///${java.io.tmpdir}/spring-integration/snapshot</url>
 				</snapshotRepository>
 			</distributionManagement>
 		</profile>
@@ -213,6 +227,39 @@
 							</configuration>
 						</execution>
 					</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>upload-dist</id>
+						<phase>deploy</phase>
+						<configuration>
+							<tasks>
+								<ant antfile="${basedir}/src/ant/upload-dist.xml">
+									<target name="upload-dist"/>
+								</ant>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.springframework.build</groupId>
+						<artifactId>org.springframework.build.aws.ant</artifactId>
+						<version>3.0.5.RELEASE</version>
+					</dependency>
+					<dependency>
+						<groupId>net.java.dev.jets3t</groupId>
+						<artifactId>jets3t</artifactId>
+						<version>0.7.2</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 	</build>
