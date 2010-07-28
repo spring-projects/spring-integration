@@ -12,6 +12,11 @@
 	<packaging>war</packaging>
 	<dependencies>
 		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>3.3.2.GA</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 		</dependency>
@@ -23,7 +28,7 @@
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 			<version>2.5</version>
-			<scope>provided</scope>   
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<!-- available only in EBR. see <repositories> section at bottom -->
@@ -116,7 +121,9 @@
 			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<!-- available only in JBoss repository. see <repositories> section below -->
+			<!--
+				available only in JBoss repository. see <repositories> section below
+			-->
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>4.0.0.GA</version>
@@ -184,7 +191,10 @@
 			<version>3.1.0</version>
 		</dependency>
 		<dependency>
-			<!-- available only in glassfish repository. see <repositories> section below -->
+			<!--
+				available only in glassfish repository. see <repositories> section
+				below
+			-->
 			<groupId>javax.servlet.jsp.jstl</groupId>
 			<artifactId>jstl-api</artifactId>
 			<version>1.2</version>
@@ -240,7 +250,10 @@
 				<artifactId>aspectj-maven-plugin</artifactId>
 				<version>1.0</version>
 				<dependencies>
-					<!-- NB: You must use Maven 2.0.9 or above or these are ignored (see MNG-2972) -->
+					<!--
+						NB: You must use Maven 2.0.9 or above or these are ignored (see
+						MNG-2972)
+					-->
 					<dependency>
 						<groupId>org.aspectj</groupId>
 						<artifactId>aspectjrt</artifactId>
@@ -359,15 +372,21 @@
 			<id>repository.jboss</id>
 			<name>JBoss Repository</name>
 			<url>http://repository.jboss.org/maven2</url>
-			<releases><enabled>true</enabled></releases>
-			<snapshots><enabled>false</enabled></snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<!-- necessary for jstl-api dependency -->
 			<id>repository.glassfish</id>
 			<name>Glassfish Repository</name>
 			<url>http://download.java.net/maven/glassfish</url>
-			<snapshots><enabled>false</enabled></snapshots>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<id>repository.springframework.maven.release</id>

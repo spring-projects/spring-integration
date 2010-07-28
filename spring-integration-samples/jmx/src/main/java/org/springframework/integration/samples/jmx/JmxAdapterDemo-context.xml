@@ -30,8 +30,8 @@
 
 	<si:filter input-channel="seconds" expression="payload >= 10" output-channel="reset"/>
 
-	<jmx:operation-invoking-channel-adapter id="reset"
-			default-object-name="org.springframework.integration.samples.jmx:type=StopWatch,name=stopWatch"
-			default-operation-name="reset"/>
+	<jmx:operation-invoking-channel-adapter id="reset" 
+			object-name="org.springframework.integration.samples.jmx:type=StopWatch,name=stopWatch"
+			operation-name="reset"/>
 
 </beans>
