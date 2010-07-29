@@ -20,7 +20,7 @@ import java.util.Collection;
 import org.springframework.integration.Message;
 
 /**
- * @author dsyer
+ * @author Dave Syer
  *
  */
 public interface MessageListProcessor {

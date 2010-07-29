@@ -38,13 +38,13 @@ import org.springframework.util.ReflectionUtils;
  * @author Iwein Fuld
  * @author Dave Syer
  */
-public class MessageListMethodAdapter implements MessageListProcessor {
+public class MethodInvokingMessageListProcessor implements MessageListProcessor {
 
     private final DefaultMethodInvoker invoker;
 
     protected final Method method;
 
-    public MessageListMethodAdapter(Object object, String methodName) {
+    public MethodInvokingMessageListProcessor(Object object, String methodName) {
         Assert.notNull(object, "'object' must not be null");
         Assert.notNull(methodName, "'methodName' must not be null");
         this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[]{List.class});
@@ -53,7 +53,7 @@ public class MessageListMethodAdapter implements MessageListProcessor {
         this.invoker = new DefaultMethodInvoker(object, this.method);
     }
 
-    public MessageListMethodAdapter(Object object, Method method) {
+    public MethodInvokingMessageListProcessor(Object object, Method method) {
         Assert.notNull(object, "'object' must not be null");
         Assert.notNull(method, "'method' must not be null");
         Assert.isTrue(method.getParameterTypes().length == 1

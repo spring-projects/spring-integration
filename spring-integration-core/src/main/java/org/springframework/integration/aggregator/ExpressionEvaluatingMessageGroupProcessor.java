@@ -1,7 +1,8 @@
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;
 
@@ -14,20 +15,33 @@ import org.springframework.integration.store.MessageGroup;
  * @author Dave Syer
  * 
  */
-public class ExpressionEvaluatingMessageGroupProcessor extends AbstractExpressionEvaluatingMessageListProcessor
-		implements MessageGroupProcessor {
+public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor implements BeanFactoryAware {
+	
+	private final ExpressionEvaluatingMessageListProcessor processor;
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		processor.setBeanFactory(beanFactory);
+	}
+
+	public void setConversionService(ConversionService conversionService) {
+		processor.setConversionService(conversionService);
+	}
+
+	public void setExpectedType(Class<?> expectedType) {
+		processor.setExpectedType(expectedType);
+	}
 
 	public ExpressionEvaluatingMessageGroupProcessor(String expression) {
-		super(expression);
+		processor = new ExpressionEvaluatingMessageListProcessor(expression);
 	}
 
 	/**
 	 * Evaluate the expression provided on the unmarked messages (a collection) in the group, and delegate to the
 	 * {@link MessagingTemplate} to send dowstream.
 	 */
-	public void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate, MessageChannel outputChannel) {
-		Object newPayload = process(group.getUnmarked());
-		messagingTemplate.send(outputChannel, MessageBuilder.withPayload(newPayload).build());
+	@Override
+	protected Object aggregatePayloads(MessageGroup group) {
+		return processor.process(group.getUnmarked());
 	}
 
 }

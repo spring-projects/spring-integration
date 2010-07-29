@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.hamcrest.collection.IsMapContaining;
 import org.hamcrest.core.IsEqual;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +22,7 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;
@@ -45,11 +47,10 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 	List<Message<?>> messages = new ArrayList<Message<?>>();
 
 	@Before
-	@SuppressWarnings("unchecked")
 	public void setup() {
 		messages.clear();
 		for (int i = 0; i < 5; i++) {
-			messages.add(new GenericMessage(i + 1));
+			messages.add(MessageBuilder.withPayload(i + 1).setHeader("foo", "bar").build());
 		}
 	}
 
@@ -59,6 +60,14 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		processor = new ExpressionEvaluatingMessageGroupProcessor("#root.size()");
 		processor.processAndSend(group, template, outputChannel);
 		verify(outputChannel).send(messageWithPayload(5));
+	}
+
+	@Test
+	public void testProcessAndCheckHeaders() throws Exception {
+		when(group.getUnmarked()).thenReturn(messages);
+		processor = new ExpressionEvaluatingMessageGroupProcessor("#root");
+		processor.processAndSend(group, template, outputChannel);
+		verify(outputChannel).send(messageWithHeader("foo", "bar"));
 	}
 
 	@Test
@@ -86,12 +95,16 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		verify(outputChannel).send(messageWithPayload(3 + 4 + 5));
 	}
 
+	private Message<?> messageWithHeader(String key, Object value) {
+		return Matchers.argThat(MessageMatcher.hasHeader(IsMapContaining.hasEntry(key, value)));
+	}
+
 	private Message<?> messageWithPayload(Matcher<?> matcher) {
-		return Matchers.argThat(PayloadMatcher.hasPayload(matcher));
+		return Matchers.argThat(MessageMatcher.hasPayload(matcher));
 	}
 
 	private Message<?> messageWithPayload(int i) {
-		return Matchers.argThat(PayloadMatcher.hasPayload(IsEqual.equalTo(i)));
+		return Matchers.argThat(MessageMatcher.hasPayload(IsEqual.equalTo(i)));
 	}
 
 	/*
@@ -105,16 +118,19 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		return result;
 	}
 	
-	private static class PayloadMatcher extends TypeSafeMatcher<Message<?>> {
+	private static class MessageMatcher extends TypeSafeMatcher<Message<?>> {
 
-		private final Matcher<?> matcher;
+		private final Matcher<?> payloadMatcher;
+
+		private final Matcher<?> headerMatcher;
 
 		/**
 		 * @param matcher
 		 */
-		PayloadMatcher(Matcher<?> matcher) {
+		MessageMatcher(Matcher<?> matcher, Matcher<?> headerMatcher) {
 			super();
-			this.matcher = matcher;
+			this.payloadMatcher = matcher;
+			this.headerMatcher = headerMatcher;
 		}
 
 		/**
@@ -122,7 +138,7 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		 */
 		@Override
 		public boolean matchesSafely(Message<?> message) {
-			return matcher.matches(message.getPayload());
+			return payloadMatcher.matches(message.getPayload()) && headerMatcher.matches(message.getHeaders());
 		}
 
 		/**
@@ -130,13 +146,18 @@ public class ExpressionEvaluatingMessageGroupProcessorTests {
 		 */
 		//@Override
 		public void describeTo(Description description) {
-			description.appendText("a Message with payload: ").appendDescriptionOf(matcher);
-
+			description.appendText("a Message with payload: ").appendDescriptionOf(payloadMatcher);
+			description.appendText(" and headers: ").appendDescriptionOf(headerMatcher);
 		}
 
 		@Factory
 		public static <T> Matcher<Message<?>> hasPayload(Matcher<T> payloadMatcher) {
-			return new PayloadMatcher(payloadMatcher);
+			return new MessageMatcher(payloadMatcher, CoreMatchers.anything());
+		}
+
+		@Factory
+		public static <T> Matcher<Message<?>> hasHeader(Matcher<T> headerMatcher) {
+			return new MessageMatcher(CoreMatchers.anything(), headerMatcher);
 		}
 	}
 

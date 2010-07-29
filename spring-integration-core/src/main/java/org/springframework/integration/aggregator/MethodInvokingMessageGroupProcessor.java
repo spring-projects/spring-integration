@@ -43,7 +43,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param target the object to wrap
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target) {
-		this.adapter = new MessageListMethodAdapterHelper().getAdapter(target, Aggregator.class);
+		this.adapter = getAdapter(target, Aggregator.class);
 		Assert.notNull(this.adapter, "No aggregator method could be found for object of type: "+target.getClass());
 	}
 
@@ -55,7 +55,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param methodName the name of the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, String methodName) {
-		this.adapter = new MessageListMethodAdapter(target, methodName);
+		this.adapter = new MethodInvokingMessageListProcessor(target, methodName);
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param method the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, Method method) {
-		this.adapter = new MessageListMethodAdapter(target, method);
+		this.adapter = new MethodInvokingMessageListProcessor(target, method);
 	}
 
 	@Override

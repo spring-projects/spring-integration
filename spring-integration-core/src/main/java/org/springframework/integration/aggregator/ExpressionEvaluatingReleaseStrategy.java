@@ -23,7 +23,7 @@ import org.springframework.integration.store.MessageGroup;
  * 
  * @author Dave Syer
  */
-public class ExpressionEvaluatingReleaseStrategy extends AbstractExpressionEvaluatingMessageListProcessor implements
+public class ExpressionEvaluatingReleaseStrategy extends ExpressionEvaluatingMessageListProcessor implements
 		ReleaseStrategy {
 
 	public ExpressionEvaluatingReleaseStrategy(String expression) {

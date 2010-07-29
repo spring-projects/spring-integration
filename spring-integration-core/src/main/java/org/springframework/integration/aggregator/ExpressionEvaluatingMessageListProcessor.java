@@ -44,7 +44,7 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
  * @author Dave Syer
  * @since 2.0
  */
-public class AbstractExpressionEvaluatingMessageListProcessor implements BeanFactoryAware {
+public class ExpressionEvaluatingMessageListProcessor implements BeanFactoryAware, MessageListProcessor {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -57,7 +57,7 @@ public class AbstractExpressionEvaluatingMessageListProcessor implements BeanFac
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
 	 */
-	public AbstractExpressionEvaluatingMessageListProcessor(String expression) {
+	public ExpressionEvaluatingMessageListProcessor(String expression) {
 		try {
 			this.expression = parser.parseExpression(expression);
 			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
@@ -116,7 +116,7 @@ public class AbstractExpressionEvaluatingMessageListProcessor implements BeanFac
 	 * Processes the Message by evaluating the expression with that Message as the root object. The expression
 	 * evaluation result Object will be returned.
 	 */
-	protected Object process(Collection<? extends Message<?>> messages) {
+	public Object process(Collection<? extends Message<?>> messages) {
 		return this.evaluateExpression(this.expression, messages, this.expectedType);
 	}
 

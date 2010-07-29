@@ -38,7 +38,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.MessageListMethodAdapter;
+import org.springframework.integration.aggregator.MethodInvokingMessageListProcessor;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.core.MessageBuilder;
@@ -114,7 +114,7 @@ public class AggregatorParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
 		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method",
-				expectedMethod, ((MessageListMethodAdapter) new DirectFieldAccessor(accessor
+				expectedMethod, ((MethodInvokingMessageListProcessor) new DirectFieldAccessor(accessor
 						.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
 				releaseStrategy, accessor.getPropertyValue("releaseStrategy"));

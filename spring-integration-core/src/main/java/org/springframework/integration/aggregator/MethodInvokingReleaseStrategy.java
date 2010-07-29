@@ -32,15 +32,15 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingReleaseStrategy implements ReleaseStrategy {
 
-	private final MessageListMethodAdapter adapter;
+	private final MethodInvokingMessageListProcessor adapter;
 
 	public MethodInvokingReleaseStrategy(Object object, Method method) {
-		adapter = new MessageListMethodAdapter(object, method);
+		adapter = new MethodInvokingMessageListProcessor(object, method);
 		this.assertMethodReturnsBoolean();
 	}
 
 	public MethodInvokingReleaseStrategy(Object object, String methodName) {
-		adapter = new MessageListMethodAdapter(object, methodName);
+		adapter = new MethodInvokingMessageListProcessor(object, methodName);
 		this.assertMethodReturnsBoolean();
 	}
 
