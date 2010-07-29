@@ -28,28 +28,31 @@ import org.springframework.util.Assert;
  * attribute (e.g. &lt;release-strategy ref="beanReference" method="methodName"/&gt;).
  * 
  * @author Marius Bogoevici
+ * @author Dave Syer
  */
-public class ReleaseStrategyAdapter extends MessageListMethodAdapter implements ReleaseStrategy {
+public class ReleaseStrategyAdapter implements ReleaseStrategy {
+
+	private final MessageListMethodAdapter adapter;
 
 	public ReleaseStrategyAdapter(Object object, Method method) {
-		super(object, method);
+		adapter = new MessageListMethodAdapter(object, method);
 		this.assertMethodReturnsBoolean();
 	}
 
 	public ReleaseStrategyAdapter(Object object, String methodName) {
-		super(object, methodName);
+		adapter = new MessageListMethodAdapter(object, methodName);
 		this.assertMethodReturnsBoolean();
 	}
 
 
 	public boolean canRelease(MessageGroup messages) {
-		return ((Boolean) executeMethod(messages.getUnmarked())).booleanValue() && messages.getMarked().isEmpty();
+		return ((Boolean) adapter.executeMethod(messages.getUnmarked())).booleanValue() && messages.getMarked().isEmpty();
 	}
 	
 	private void assertMethodReturnsBoolean() {
-		Assert.isTrue(Boolean.class.equals(this.getMethod().getReturnType())
-				|| boolean.class.equals(this.getMethod().getReturnType()),
-				"Method '" + getMethod().getName() + "' does not return a boolean value");
+		Assert.isTrue(Boolean.class.equals(adapter.getMethod().getReturnType())
+				|| boolean.class.equals(adapter.getMethod().getReturnType()),
+				"Method '" + adapter.getMethod().getName() + "' does not return a boolean value");
 	}
 
 }

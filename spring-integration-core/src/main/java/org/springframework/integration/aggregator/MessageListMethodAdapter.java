@@ -16,12 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.util.DefaultMethodInvoker;
-import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -30,18 +24,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.util.DefaultMethodInvoker;
+import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
+
 /**
  * Base class for implementing adapters for methods which take as an argument a
  * list of {@link Message Message} instances or payloads.
  *
  * @author Marius Bogoevici
+ * @author Iwein Fuld
+ * @author Dave Syer
  */
 public class MessageListMethodAdapter {
 
     private final DefaultMethodInvoker invoker;
 
     protected final Method method;
-
 
     public MessageListMethodAdapter(Object object, String methodName) {
         Assert.notNull(object, "'object' must not be null");
@@ -67,12 +68,7 @@ public class MessageListMethodAdapter {
         return method;
     }
 
-    private static boolean isActualTypeParameterizedMessage(Method method) {
-        return (getCollectionActualType(method) instanceof ParameterizedType)
-                && Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
-    }
-
-    protected final Object executeMethod(Collection<? extends Message<?>> messages) {
+    public final Object executeMethod(Collection<? extends Message<?>> messages) {
         try {
             if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
                     && (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
@@ -87,6 +83,11 @@ public class MessageListMethodAdapter {
         catch (Exception e) {
             throw new MessagingException("Failed to invoke method '" + this.method + "'.");
         }
+    }
+
+    private static boolean isActualTypeParameterizedMessage(Method method) {
+        return (getCollectionActualType(method) instanceof ParameterizedType)
+                && Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
     }
 
     private List<?> extractPayloadsFromMessages(Collection<? extends Message<?>> messages) {

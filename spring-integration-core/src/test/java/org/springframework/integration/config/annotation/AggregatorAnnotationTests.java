@@ -56,8 +56,8 @@ public class AggregatorAnnotationTests {
 		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
 		assertNull(getPropertyValue(aggregator, "outputChannel"));
 		assertTrue(getPropertyValue(aggregator, "discardChannel") instanceof NullChannel);
-		assertEquals(CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT,
-				getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
+		assertEquals(CorrelatingMessageHandler.DEFAULT_SEND_TIMEOUT, getPropertyValue(aggregator,
+				"messagingTemplate.sendTimeout"));
 		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
 
@@ -67,13 +67,11 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		assertTrue(getPropertyValue(aggregator, "releaseStrategy")
-				instanceof SequenceSizeReleaseStrategy);
+		assertTrue(getPropertyValue(aggregator, "releaseStrategy") instanceof SequenceSizeReleaseStrategy);
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
-		assertEquals(channelResolver.resolveChannelName("outputChannel"),
-				getPropertyValue(aggregator, "outputChannel"));
-		assertEquals(channelResolver.resolveChannelName("discardChannel"),
-				getPropertyValue(aggregator, "discardChannel"));
+		assertEquals(channelResolver.resolveChannelName("outputChannel"), getPropertyValue(aggregator, "outputChannel"));
+		assertEquals(channelResolver.resolveChannelName("discardChannel"), getPropertyValue(aggregator,
+				"discardChannel"));
 		assertEquals(98765432l, getPropertyValue(aggregator, "messagingTemplate.sendTimeout"));
 		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnExpiry"));
 	}
@@ -86,40 +84,38 @@ public class AggregatorAnnotationTests {
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object ReleaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
 		Assert.assertTrue(ReleaseStrategy instanceof ReleaseStrategyAdapter);
-		ReleaseStrategyAdapter ReleaseStrategyAdapter = (ReleaseStrategyAdapter) ReleaseStrategy;
-		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(ReleaseStrategyAdapter).getPropertyValue("invoker"));
+		ReleaseStrategyAdapter releaseStrategyAdapter = (ReleaseStrategyAdapter) ReleaseStrategy;
+		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(
+				releaseStrategyAdapter).getPropertyValue("adapter")).getPropertyValue("invoker"));
 		Object targetObject = invokerAccessor.getPropertyValue("object");
 		assertSame(context.getBean(endpointName), targetObject);
 		Method completionCheckerMethod = (Method) invokerAccessor.getPropertyValue("method");
 		assertEquals("completionChecker", completionCheckerMethod.getName());
 	}
 
-    @Test
-    public void testAnnotationWithCustomCorrelationStrategy() throws Exception {
-        ApplicationContext context = new ClassPathXmlApplicationContext(
-                new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
-        final String endpointName = "endpointWithCorrelationStrategy";
-        MessageHandler aggregator = this.getAggregator(context, endpointName);
-        Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
-        Assert.assertTrue(correlationStrategy instanceof CorrelationStrategyAdapter);
-        CorrelationStrategyAdapter ReleaseStrategyAdapter = (CorrelationStrategyAdapter) correlationStrategy;
-        DirectFieldAccessor processorAccessor = new DirectFieldAccessor(
-                new DirectFieldAccessor(ReleaseStrategyAdapter).getPropertyValue("processor"));
-        Object targetObject = processorAccessor.getPropertyValue("targetObject");
-        assertSame(context.getBean(endpointName), targetObject);
-        Map<?, ?> handlerMethods = (Map<?, ?>) processorAccessor.getPropertyValue("handlerMethods");
-        assertEquals(1, handlerMethods.size());
-        DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethods.values().iterator().next());
-        Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("method");
-		assertEquals("correlate", completionCheckerMethod.getName());                
-    }
-
-
+	@Test
+	public void testAnnotationWithCustomCorrelationStrategy() throws Exception {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
+		final String endpointName = "endpointWithCorrelationStrategy";
+		MessageHandler aggregator = this.getAggregator(context, endpointName);
+		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
+		Assert.assertTrue(correlationStrategy instanceof CorrelationStrategyAdapter);
+		CorrelationStrategyAdapter ReleaseStrategyAdapter = (CorrelationStrategyAdapter) correlationStrategy;
+		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(new DirectFieldAccessor(ReleaseStrategyAdapter)
+				.getPropertyValue("processor"));
+		Object targetObject = processorAccessor.getPropertyValue("targetObject");
+		assertSame(context.getBean(endpointName), targetObject);
+		Map<?, ?> handlerMethods = (Map<?, ?>) processorAccessor.getPropertyValue("handlerMethods");
+		assertEquals(1, handlerMethods.size());
+		DirectFieldAccessor handlerMethodAccessor = new DirectFieldAccessor(handlerMethods.values().iterator().next());
+		Method completionCheckerMethod = (Method) handlerMethodAccessor.getPropertyValue("method");
+		assertEquals("correlate", completionCheckerMethod.getName());
+	}
 
 	private MessageHandler getAggregator(ApplicationContext context, final String endpointName) {
-		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean(
-				endpointName + ".aggregatingMethod.aggregator");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean(endpointName
+				+ ".aggregatingMethod.aggregator");
 		return TestUtils.getPropertyValue(endpoint, "handler", MessageHandler.class);
 	}
 

@@ -38,7 +38,7 @@ public class CorrelationStrategyAdapterTests {
 	}
 
 	@Test
-	public void testCorrelationStrategyAdapterObjectString() {
+	public void testMethodName() {
 		CorrelationStrategyAdapter adapter = new CorrelationStrategyAdapter(new SimpleMessageCorrelator(), "getKey");
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}

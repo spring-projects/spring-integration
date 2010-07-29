@@ -50,10 +50,10 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation) {
-		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method.getName());
-		ReleaseStrategyAdapter ReleaseStrategy = getReleaseStrategy(bean);
+		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method);
+		ReleaseStrategyAdapter releaseStrategy = getReleaseStrategy(bean);
 		CorrelationStrategyAdapter correlationStrategy = getCorrelationStrategy(bean);
-		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, ReleaseStrategy);
+		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.channelResolver.resolveChannelName(discardChannelName);

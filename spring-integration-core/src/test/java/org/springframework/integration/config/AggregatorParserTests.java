@@ -16,6 +16,14 @@
 
 package org.springframework.integration.config;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,21 +32,17 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.aggregator.*;
+import org.springframework.integration.aggregator.CorrelatingMessageHandler;
+import org.springframework.integration.aggregator.CorrelationStrategy;
+import org.springframework.integration.aggregator.MessageListMethodAdapter;
+import org.springframework.integration.aggregator.ReleaseStrategy;
+import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.MethodInvoker;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author Marius Bogoevici
@@ -77,7 +81,7 @@ public class AggregatorParserTests {
     public void testPropertyAssignment() throws Exception {
         EventDrivenConsumer endpoint =
                 (EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
-        ReleaseStrategy ReleaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
+        ReleaseStrategy releaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
         CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
         MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
         MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
@@ -89,7 +93,7 @@ public class AggregatorParserTests {
                 expectedMethod, ((MessageListMethodAdapter) new DirectFieldAccessor(accessor.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
         assertEquals(
                 "The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
-                ReleaseStrategy, accessor.getPropertyValue("releaseStrategy"));
+                releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
         assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
                 correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
@@ -135,13 +139,13 @@ public class AggregatorParserTests {
         MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInput");
         EventDrivenConsumer endpoint =
                 (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
-        ReleaseStrategy ReleaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(
+        ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(
                 new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("releaseStrategy");
-        Assert.assertTrue(ReleaseStrategy instanceof ReleaseStrategyAdapter);
-        DirectFieldAccessor ReleaseStrategyAccessor = new DirectFieldAccessor(ReleaseStrategy);
-        MethodInvoker invoker = (MethodInvoker) ReleaseStrategyAccessor.getPropertyValue("invoker");
+        Assert.assertTrue(releaseStrategy instanceof ReleaseStrategyAdapter);
+        DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy).getPropertyValue("adapter"));
+        MethodInvoker invoker = (MethodInvoker) releaseStrategyAccessor.getPropertyValue("invoker");
         Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueReleaseStrategy);
-        Assert.assertTrue(((Method) ReleaseStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
+        Assert.assertTrue(((Method) releaseStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
         input.send(createMessage(1l, "correllationId", 4, 0, null));
         input.send(createMessage(2l, "correllationId", 4, 1, null));
         input.send(createMessage(3l, "correllationId", 4, 2, null));

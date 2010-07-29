@@ -16,6 +16,12 @@
 
 package org.springframework.integration.aggregator.integration;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +32,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Iwein Fuld
@@ -51,7 +51,7 @@ public class AggregatorIntegrationTests {
 	private PollableChannel output;
 
 	@Test(timeout=5000)
-	public void aggregate() throws Exception {
+	public void testVanillaAggregation() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			input.send(new GenericMessage<Integer>(i, headers));

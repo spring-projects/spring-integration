@@ -26,11 +26,11 @@ import org.springframework.util.Assert;
  * {@link CorrelationStrategy} implementation that works as an adapter to another bean.
  *
  * @author Marius Bogoevici
+ * @author Dave Syer
  */
 public class CorrelationStrategyAdapter implements CorrelationStrategy {
 
 	private final MethodInvokingMessageProcessor processor;
-
 
 	public CorrelationStrategyAdapter(Object object, String methodName) {
 		this.processor = new MethodInvokingMessageProcessor(object, methodName, true);

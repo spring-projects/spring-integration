@@ -125,7 +125,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 	}
 
 	@SuppressWarnings("unused")
-	private class UnnanotatedAggregator {
+	private class UnannotatedAggregator {
 		public Integer and(List<Integer> flags) {
 			int result = 0;
 			for (Integer flag : flags) {
@@ -146,7 +146,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 	@Test
 	public void shouldFindFittingMethodAmongMultipleUnannotated() {
-		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnnanotatedAggregator());
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
 
 		@SuppressWarnings("unchecked")
 		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);

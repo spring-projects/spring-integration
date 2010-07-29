@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
+
+	<channel id="output">
+		<queue/>
+	</channel>
+
+	<aggregator input-channel="input" output-channel="output" method="aggregate">
+		<beans:bean class="org.springframework.integration.aggregator.integration.AnnotationAggregatorTests$TestAggregator"/>
+	</aggregator>
+
+</beans:beans>
