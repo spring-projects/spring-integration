@@ -144,9 +144,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 				"send is not supported, because no request channel has been configured");
 		Message<?> message = this.toMessage(object);
 		Assert.notNull(message, "message must not be null");
-		if (!this.messagingTemplate.send(this.requestChannel, message)) {
-			throw new MessageDeliveryException(message, "failed to send Message to channel");
-		}
+		this.messagingTemplate.send(this.requestChannel, message);
 	}
 
 	protected Object receive() {

@@ -49,7 +49,7 @@ public interface MessagingOperations {
 	 * @param message the message to send
 	 * @throws MessagingException if an error occurs during message sending
 	 */
-	<P> boolean send(Message<P> message) throws MessagingException;
+	<P> void send(Message<P> message) throws MessagingException;
 
 	/**
 	 * Send a message to the specified channel.
@@ -57,7 +57,7 @@ public interface MessagingOperations {
 	 * @param message the message to send
 	 * @throws MessagingException if an error occurs during message sending
 	 */
-	<P> boolean send(MessageChannel channel, Message<P> message) throws MessagingException;
+	<P> void send(MessageChannel channel, Message<P> message) throws MessagingException;
 
 	/**
 	 * Send a message to the specified channel.
@@ -66,7 +66,7 @@ public interface MessagingOperations {
 	 * @param message the message to send
 	 * @throws MessagingException if an error occurs during message sending
 	 */
-	//TODO: <P> boolean send(String channelName, Message<P> message) throws MessagingException;
+	//TODO: <P> void send(String channelName, Message<P> message) throws MessagingException;
 
 
 	//-------------------------------------------------------------------------

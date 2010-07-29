@@ -18,7 +18,6 @@ package org.springframework.integration.filter;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageChannel;
@@ -105,11 +104,7 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 			return message;
 		}
 		if (this.discardChannel != null) {
-			boolean discarded = this.sendReplyMessage(message, this.discardChannel);
-			if (!discarded) {
-				throw new MessageDeliveryException(message,
-						"failed to send rejected Message to the discard channel");
-			}
+			this.sendReplyMessage(message, this.discardChannel);
 		}
 		if (this.throwExceptionOnRejection) {
 			throw new MessageRejectedException(message);
@@ -117,11 +112,9 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 		return null;
 	}
 
+	@Override
 	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders, MessageChannel replyChannel) {
-		if (!this.sendReplyMessage((Message<?>) replyMessage, replyChannel)) {
-			throw new MessageDeliveryException((Message<?>) replyMessage,
-					"failed to send reply Message to channel '" + replyChannel + "'. Consider increasing the " +
-                            "send timeout of this endpoint.");
-		}
+		this.sendReplyMessage((Message<?>) replyMessage, replyChannel);
 	}
+
 }

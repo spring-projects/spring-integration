@@ -17,7 +17,6 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.ChannelResolver;
@@ -106,11 +105,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	protected void handleResult(Object result, MessageHeaders requestHeaders, MessageChannel replyChannel) {
 		Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
-		if (!this.sendReplyMessage(replyMessage, replyChannel)) {
-			throw new MessageDeliveryException(replyMessage,
-					"failed to send reply Message to channel '" + replyChannel + "'. Consider increasing the " +
-                            "send timeout of this endpoint.");
-		}
+		this.sendReplyMessage(replyMessage, replyChannel);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -124,11 +119,11 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		return builder.build();
 	}
 
-	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+	protected void sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		return this.messagingTemplate.send(replyChannel, replyMessage);
+		this.messagingTemplate.send(replyChannel, replyMessage);
 	}
 
 	/**

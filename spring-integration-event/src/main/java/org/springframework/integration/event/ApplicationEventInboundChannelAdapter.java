@@ -63,8 +63,8 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 		}
 	}
 
-	private boolean sendEventAsMessage(ApplicationEvent event) {
-		return this.sendMessage(MessageBuilder.withPayload(event).build());
+	private void sendEventAsMessage(ApplicationEvent event) {
+		this.sendMessage(MessageBuilder.withPayload(event).build());
 	}
 
 	@Override

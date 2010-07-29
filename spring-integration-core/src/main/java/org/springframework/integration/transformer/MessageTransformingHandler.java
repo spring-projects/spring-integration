@@ -18,7 +18,6 @@ package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -72,12 +71,10 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 			throw new MessageTransformationException(message, e);
 		}
 	}
-	
+
+	@Override
 	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders, MessageChannel replyChannel) {
-		if (!this.sendReplyMessage((Message<?>) replyMessage, replyChannel)) {
-			throw new MessageDeliveryException((Message<?>) replyMessage,
-					"failed to send reply Message to channel '" + replyChannel + "'. Consider increasing the " +
-                            "send timeout of this endpoint.");
-		}
+		this.sendReplyMessage((Message<?>) replyMessage, replyChannel);
 	}
+
 }

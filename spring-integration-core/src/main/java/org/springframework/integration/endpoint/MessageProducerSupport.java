@@ -48,11 +48,11 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		Assert.notNull(this.outputChannel, "outputChannel is required");
 	}
 
-	protected boolean sendMessage(Message<?> message) {
+	protected void sendMessage(Message<?> message) {
 		if (message != null) {
 			message.getHeaders().getHistory().addEvent(this);
 		}
-		return this.messagingTemplate.send(this.outputChannel, message);
+		this.messagingTemplate.send(this.outputChannel, message);
 	}
 
 }

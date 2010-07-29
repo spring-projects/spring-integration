@@ -162,20 +162,21 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 		}
 	}
 
-	public <P> boolean send(final Message<P> message) {
-		return this.send(this.getRequiredDefaultChannel(), message);
+	public <P> void send(final Message<P> message) {
+		this.send(this.getRequiredDefaultChannel(), message);
 	}
 
-	public <P> boolean send(final MessageChannel channel, final Message<P> message) {
+	public <P> void send(final MessageChannel channel, final Message<P> message) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
-			return txTemplate.execute(new TransactionCallback<Boolean>() {
-				public Boolean doInTransaction(TransactionStatus status) {
-					return doSend(channel, message);
+			txTemplate.execute(new TransactionCallback<Object>() {
+				public Object doInTransaction(TransactionStatus status) {
+					doSend(channel, message);
+					return null;
 				}
 			});
 		}
-		return this.doSend(channel, message);
+		this.doSend(channel, message);
 	}
 
 	public <P> Message<P> receive() {
@@ -213,16 +214,16 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 		return this.doSendAndReceive(channel, request);
 	}
 
-	private boolean doSend(MessageChannel channel, Message<?> message) {
+	private void doSend(MessageChannel channel, Message<?> message) {
 		Assert.notNull(channel, "channel must not be null");
 		long timeout = this.sendTimeout;
 		boolean sent = (timeout >= 0)
 				? channel.send(message, timeout)
 				: channel.send(message);
-		if (!sent && this.logger.isTraceEnabled()) {
-			this.logger.trace("failed to send message to channel '" + channel + "' within timeout: " + timeout);
+		if (!sent) {
+			throw new MessageDeliveryException(message,
+					"failed to send message to channel '" + channel + "' within timeout: " + timeout);
 		}
-		return sent;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -246,9 +247,7 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 				.setReplyChannel(replyChannel)
 				.setErrorChannel(replyChannel)
 				.build();
-		if (!this.doSend(channel, request)) {
-			throw new MessageDeliveryException(request, "failed to send message to channel");
-		}
+		this.doSend(channel, request);
 		Message<?> reply = this.doReceive(replyChannel);
 		if (reply != null) {
 			reply = MessageBuilder.fromMessage(reply)

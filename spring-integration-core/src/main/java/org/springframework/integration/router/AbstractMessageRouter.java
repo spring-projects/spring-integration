@@ -22,6 +22,7 @@ import java.util.UUID;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -116,19 +117,24 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 								.setHeader(MessageHeaders.ID, UUID.randomUUID())
 								.build();
 				if (channel != null) {
-					if (this.messagingTemplate.send(channel, messageToSend)) {
+					try {
+						this.messagingTemplate.send(channel, messageToSend);
 						sent = true;
 					}
-					else if (!this.ignoreSendFailures) {
-						throw new MessageDeliveryException(message,
-								"Router failed to send to channel: " + channel);
+					catch (MessagingException e) {
+						if (!this.ignoreSendFailures) {
+							throw e;
+						}
+						else if (this.logger.isDebugEnabled()) {
+							this.logger.debug(e);
+						}
 					}
 				}
 			}
 		}
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
-				sent = this.messagingTemplate.send(this.defaultOutputChannel, message);
+				this.messagingTemplate.send(this.defaultOutputChannel, message);
 			}
 			else if (this.resolutionRequired) {
 				throw new MessageDeliveryException(message,

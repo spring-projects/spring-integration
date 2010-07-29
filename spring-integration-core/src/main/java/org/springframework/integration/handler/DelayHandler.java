@@ -241,13 +241,17 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 					MessageChannel errorChannel = resolveErrorChannelIfPossible(message);
 					if (errorChannel != null) {
 						ErrorMessage errorMessage = new ErrorMessage(exception);
-						boolean sent = messagingTemplate.send(errorChannel, errorMessage);
-						if (!sent && logger.isWarnEnabled()) {
-							logger.warn("Failed to send MessageDeliveryException to error channel.", exception);
+						try {
+							messagingTemplate.send(errorChannel, errorMessage);
+						}
+						catch (Exception e2) {
+							if (logger.isWarnEnabled()) {
+								logger.warn("Failed to send MessagingException to error channel.", exception);
+							}
 						}
 					}
 					else if (logger.isWarnEnabled()) {
-						logger.warn("No error channel available. MessageDeliveryException will be ignored.", exception);
+						logger.warn("No error channel available. MessagingException will be ignored.", exception);
 					}
 				}
 			}

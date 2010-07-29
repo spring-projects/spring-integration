@@ -16,12 +16,15 @@
 
 package org.springframework.integration.aggregator;
 
+import static org.mockito.Mockito.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
@@ -40,6 +43,7 @@ public class CorrelatingMessageHandlerIntegrationTests {
 
 	@Before
 	public void setupHandler() {
+		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		defaultHandler.setOutputChannel(outputChannel);
 		defaultHandler.setSendTimeout(-1);
 	}
