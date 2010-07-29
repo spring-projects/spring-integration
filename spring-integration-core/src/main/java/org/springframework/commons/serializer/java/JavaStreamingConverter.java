@@ -21,9 +21,11 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 
 import org.springframework.commons.serializer.InputStreamingConverter;
 import org.springframework.commons.serializer.OutputStreamingConverter;
+import org.springframework.util.Assert;
 
 
 /**
@@ -51,8 +53,14 @@ public class JavaStreamingConverter
 		}
 	}
 
+	/**
+	 * Source object must implement {@link Serializable}.
+	 */
 	public void convert(Object object, OutputStream outputStream)
 			throws IOException {
+		Assert.isTrue(object instanceof Serializable, this.getClass().getName()
+				+ " requires a Serializable payload, but received [" + 
+				object.getClass().getName() + "]");
 		ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
 		objectOutputStream.writeObject(object);
 		objectOutputStream.flush();

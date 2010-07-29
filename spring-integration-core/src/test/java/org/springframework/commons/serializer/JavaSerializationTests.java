@@ -22,8 +22,6 @@ import static org.junit.Assert.fail;
 import java.io.Serializable;
 
 import org.junit.Test;
-import org.springframework.commons.serializer.java.DeserializingConverter;
-import org.springframework.commons.serializer.java.SerializingConverter;
 
 
 /**

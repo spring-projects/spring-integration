@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.commons.serializer.java;
+package org.springframework.commons.serializer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 
-import org.springframework.commons.serializer.SerializationFailureException;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
 /**
- * Delegates to a {@link JavaStreamingConverter} to serialize an object
- * to a byte[]. Source object must implement {@link Serializable}.
+ * Delegates to a {@link OutputStreamingConverter} (default is
+ * {@link JavaStreamingConverter}) to serialize an object
+ * to a byte[]. 
  * 
  * @author Gary Russell
  * @since 2.0
@@ -33,18 +34,26 @@ import org.springframework.util.Assert;
  */
 public class SerializingConverter implements Converter<Object, byte[]> {
 
-	private JavaStreamingConverter converter = new JavaStreamingConverter();
+	private OutputStreamingConverter<Object> streamingConverter 
+				= new JavaStreamingConverter();
 	
 	public byte[] convert(Object source) {
-		Assert.isTrue(source instanceof Serializable, this.getClass().getName()
-				+ " requires a Serializable payload, but received [" + source.getClass().getName() + "]");
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
 		try  {
-			this.converter.convert(source, byteStream);
+			this.streamingConverter.convert(source, byteStream);
 			return byteStream.toByteArray();
 		} catch (Exception e) {
 			throw new SerializationFailureException("Failed to serialize", e);
 		}
+	}
+
+	/**
+	 * Override the default {@link JavaStreamingConverter}
+	 * @param streamingConverter the streamingConverter to set
+	 */
+	public void setStreamingConverter(
+			OutputStreamingConverter<Object> streamingConverter) {
+		this.streamingConverter = streamingConverter;
 	}
 
 }

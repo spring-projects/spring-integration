@@ -16,13 +16,14 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.commons.serializer.java.SerializingConverter;
+import org.springframework.commons.serializer.SerializingConverter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.util.Assert;
 
 /**
  * Transformer that serializes the inbound payload into a byte array by delegating to a 
- * Converter&lt;Object, byte[]&gt;. Default delegate is a {@link SerializingConverter}.
+ * Converter&lt;Object, byte[]&gt;. Default delegate is a {@link SerializingConverter} using
+ * Java serialization.
  * 
  * <p>The payload instance must be Serializable if the default converter is used.
  * 

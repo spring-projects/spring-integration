@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.commons.serializer.java;
+package org.springframework.commons.serializer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import org.springframework.commons.serializer.DeserializationFailureException;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.core.convert.converter.Converter;
 
 /**
- * Delegates to a {@link JavaStreamingConverter} to deserialize data
+ * Delegates to a {@link InputStreamingConverter} (default is 
+ * {@link JavaStreamingConverter}} to deserialize data
  * in a byte[] to an object.
  * 
  * @author Gary Russell
@@ -32,12 +33,13 @@ import org.springframework.core.convert.converter.Converter;
  */
 public class DeserializingConverter implements Converter<byte[], Object> {
 
-	private JavaStreamingConverter converter = new JavaStreamingConverter();
+	private InputStreamingConverter<Object> streamingConverter 
+				= new JavaStreamingConverter();
 	
 	public Object convert(byte[] source) {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(source);
 		try {
-			return converter.convert(byteStream);
+			return streamingConverter.convert(byteStream);
 		}
 		catch (Exception e) {
 			try {
@@ -46,6 +48,14 @@ public class DeserializingConverter implements Converter<byte[], Object> {
 			throw new DeserializationFailureException(
 					"Failed to deserialize payload. Is the byte array a result of Object serialization?", e);
 		}
+	}
+
+	/**
+	 * Override the default {@link JavaStreamingConverter}
+	 * @param streamingConverter the streamingConverter to set
+	 */
+	public void setStreamingConverter(InputStreamingConverter<Object> streamingConverter) {
+		this.streamingConverter = streamingConverter;
 	}
 
 
