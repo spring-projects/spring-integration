@@ -13,9 +13,7 @@
 	<annotation-config/>
 
 	<inbound-channel-adapter ref="tickerStream" method="nextTicker" channel="tickers">
-		<poller max-messages-per-poll="1">
-			<interval-trigger interval="300"/>
-		</poller>
+		<poller fixed-delay="300" max-messages-per-poll="1"/>
 	</inbound-channel-adapter>
 
 	<channel id="tickers"/>
