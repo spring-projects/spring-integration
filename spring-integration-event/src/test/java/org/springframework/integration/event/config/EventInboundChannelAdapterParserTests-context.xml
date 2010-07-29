@@ -7,10 +7,10 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event-2.0.xsd">
 
-	
 	<int-event:inbound-channel-adapter id="eventAdapter" channel="input"/>
-	
-	<int:publish-subscribe-channel id="input"/>
-	
+
+	<int:channel id="input">
+		<int:queue/>
+	</int:channel>
 
 </beans>
