@@ -28,15 +28,11 @@
     <channel id="preparedDrinks"/>
 
 	<bridge input-channel="coldDrinks" output-channel="coldDrinkBarista">
-		<poller>
-			<interval-trigger interval="1000"/>
-		</poller>
+		<poller fixed-delay="1000"/>
 	</bridge>
 
 	<bridge input-channel="hotDrinks" output-channel="hotDrinkBarista">
-		<poller>
-			<interval-trigger interval="1000"/>
-		</poller>
+		<poller fixed-delay="1000"/>
 	</bridge>
 
 	<stream:stdout-channel-adapter id="deliveries"/>

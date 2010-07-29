@@ -37,8 +37,6 @@
 
 	<beans:bean id="barista" class="org.springframework.integration.samples.cafe.xml.Barista"/>
 
-	<poller id="poller" default="true">
-		<interval-trigger interval="1000"/>
-	</poller>
+	<poller id="poller" default="true" fixed-delay="1000"/>
 
 </beans:beans>
