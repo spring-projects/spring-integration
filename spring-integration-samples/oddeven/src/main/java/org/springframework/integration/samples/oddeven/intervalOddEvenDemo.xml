@@ -13,9 +13,7 @@
 	<channel id="odd"/>
 
 	<inbound-channel-adapter id="numbers" ref="counter" method="next">
-		<poller max-messages-per-poll="1">
-			<interval-trigger interval="3" time-unit="SECONDS"/>
-		</poller>
+		<poller max-messages-per-poll="1" fixed-delay="3000"/>
 	</inbound-channel-adapter>
 
 	<filter input-channel="numbers" output-channel="positives"

@@ -13,9 +13,7 @@
 	<channel id="odd"/>
 
 	<inbound-channel-adapter id="numbers" ref="counter" method="next">
-		<poller max-messages-per-poll="1">
-			<cron-trigger expression="1,2,3,5,8,13,21,34,55 * * * * ?"/>
-		</poller>
+		<poller max-messages-per-poll="1" cron="1,2,3,5,8,13,21,34,55 * * * * ?"/>
 	</inbound-channel-adapter>
 
 	<filter input-channel="numbers" output-channel="positives"
