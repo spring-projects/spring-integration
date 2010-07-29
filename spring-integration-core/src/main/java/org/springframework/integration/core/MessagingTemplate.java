@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessagingTemplate implements InitializingBean {
+public class MessagingTemplate implements MessagingOperations, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -162,11 +162,11 @@ public class MessagingTemplate implements InitializingBean {
 		}
 	}
 
-	public boolean send(final Message<?> message) {
+	public <P> boolean send(final Message<P> message) {
 		return this.send(this.getRequiredDefaultChannel(), message);
 	}
 
-	public boolean send(final MessageChannel channel, final Message<?> message) {
+	public <P> boolean send(final MessageChannel channel, final Message<P> message) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return txTemplate.execute(new TransactionCallback<Boolean>() {
@@ -178,18 +178,18 @@ public class MessagingTemplate implements InitializingBean {
 		return this.doSend(channel, message);
 	}
 
-	public Message<?> receive() {
+	public <P> Message<P> receive() {
 		MessageChannel channel = this.getRequiredDefaultChannel();
 		Assert.state(channel instanceof PollableChannel,
 				"The 'defaultChannel' must be a PollableChannel for receive operations.");
 		return this.receive((PollableChannel) channel);
 	}
 
-	public Message<?> receive(final PollableChannel channel) {
+	public <P> Message<P> receive(final PollableChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
-			return txTemplate.execute(new TransactionCallback<Message<?>>() {
-				public Message<?> doInTransaction(TransactionStatus status) {
+			return txTemplate.execute(new TransactionCallback<Message<P>>() {
+				public Message<P> doInTransaction(TransactionStatus status) {
 					return doReceive(channel);
 				}
 			});
@@ -225,7 +225,8 @@ public class MessagingTemplate implements InitializingBean {
 		return sent;
 	}
 
-	private Message<?> doReceive(PollableChannel channel) {
+	@SuppressWarnings("unchecked")
+	private <P> Message<P> doReceive(PollableChannel channel) {
 		Assert.notNull(channel, "channel must not be null");
 		long timeout = this.receiveTimeout;
 		Message<?> message = (timeout >= 0)
@@ -234,7 +235,7 @@ public class MessagingTemplate implements InitializingBean {
 		if (message == null && this.logger.isTraceEnabled()) {
 			this.logger.trace("failed to receive message from channel '" + channel + "' within timeout: " + timeout);
 		}
-		return message;
+		return (Message<P>) message;
 	}
 
 	private Message<?> doSendAndReceive(MessageChannel channel, Message<?> request) {

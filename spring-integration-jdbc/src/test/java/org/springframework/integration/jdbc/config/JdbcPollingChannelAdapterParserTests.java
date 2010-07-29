@@ -124,8 +124,7 @@ public class JdbcPollingChannelAdapterParserTests {
 				return null;
 			}
 		});
-		@SuppressWarnings("unchecked")
-		Message<List<?>> message = (Message<List<?>>) messagingTemplate.receive();
+		Message<List<?>> message = messagingTemplate.receive();
 		assertNotNull(message);
 		assertEquals(2, message.getPayload().size());
 	}
