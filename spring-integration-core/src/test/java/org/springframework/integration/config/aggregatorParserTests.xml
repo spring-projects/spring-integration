@@ -29,6 +29,15 @@
 		send-timeout="86420000"
 		send-partial-result-on-expiry="true"/>
 
+	<channel id="aggregatorWithExpressionsInput"/>
+	<channel id="aggregatorWithExpressionsOutput"/>
+	<aggregator id="aggregatorWithExpressions"
+		input-channel="aggregatorWithExpressionsInput"
+		output-channel="aggregatorWithExpressionsOutput"
+		expression="?[payload.startsWith('1')].![payload]"
+		release-strategy-expression="#root.size()>2"
+        correlation-strategy-expression="headers['foo']"/>
+
 	<channel id="aggregatorWithReferenceAndMethodInput"/>
 	<aggregator id="aggregatorWithReferenceAndMethod"
 		ref="adderBean"

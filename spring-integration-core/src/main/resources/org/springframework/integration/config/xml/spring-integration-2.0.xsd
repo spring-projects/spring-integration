@@ -1950,6 +1950,13 @@ Name of the header whose value to use.
 	<xsd:complexType name="aggregator-type">
 			<xsd:complexContent>
 				<xsd:extension base="innerEndpointDefinitionAware">
+					<xsd:attribute name="expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								A SpEL expression to be evaluated against the input message list as its root object.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="release-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1968,6 +1975,11 @@ Name of the header whose value to use.
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="release-strategy-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>An expression to apply to the message group</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="correlation-strategy" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -1984,6 +1996,11 @@ Name of the header whose value to use.
 									<tool:expected-method type-ref="@correlation-strategy" />
 								</tool:annotation>
 							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="correlation-strategy-expression" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>An expression to apply to the message group</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="discard-channel" type="xsd:string">

@@ -30,9 +30,9 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
-import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
@@ -83,8 +83,8 @@ public class AggregatorAnnotationTests {
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object ReleaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
-		Assert.assertTrue(ReleaseStrategy instanceof ReleaseStrategyAdapter);
-		ReleaseStrategyAdapter releaseStrategyAdapter = (ReleaseStrategyAdapter) ReleaseStrategy;
+		Assert.assertTrue(ReleaseStrategy instanceof MethodInvokingReleaseStrategy);
+		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) ReleaseStrategy;
 		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(
 				releaseStrategyAdapter).getPropertyValue("adapter")).getPropertyValue("invoker"));
 		Object targetObject = invokerAccessor.getPropertyValue("object");
@@ -100,8 +100,8 @@ public class AggregatorAnnotationTests {
 		final String endpointName = "endpointWithCorrelationStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
-		Assert.assertTrue(correlationStrategy instanceof CorrelationStrategyAdapter);
-		CorrelationStrategyAdapter ReleaseStrategyAdapter = (CorrelationStrategyAdapter) correlationStrategy;
+		Assert.assertTrue(correlationStrategy instanceof MethodInvokingCorrelationStrategy);
+		MethodInvokingCorrelationStrategy ReleaseStrategyAdapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
 		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(new DirectFieldAccessor(ReleaseStrategyAdapter)
 				.getPropertyValue("processor"));
 		Object targetObject = processorAccessor.getPropertyValue("targetObject");

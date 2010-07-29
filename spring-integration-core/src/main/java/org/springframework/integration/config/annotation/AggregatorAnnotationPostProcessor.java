@@ -23,9 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
-import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingMessageGroupProcessor;
-import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
@@ -51,8 +51,8 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 	@Override
 	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation) {
 		MethodInvokingMessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(bean, method);
-		ReleaseStrategyAdapter releaseStrategy = getReleaseStrategy(bean);
-		CorrelationStrategyAdapter correlationStrategy = getCorrelationStrategy(bean);
+		MethodInvokingReleaseStrategy releaseStrategy = getReleaseStrategy(bean);
+		MethodInvokingCorrelationStrategy correlationStrategy = getCorrelationStrategy(bean);
 		CorrelatingMessageHandler handler = new CorrelatingMessageHandler(processor, new SimpleMessageStore(), correlationStrategy, releaseStrategy);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
@@ -71,26 +71,26 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		return handler;
 	}
 
-	private ReleaseStrategyAdapter getReleaseStrategy(final Object bean) {
-    	final AtomicReference<ReleaseStrategyAdapter> reference = new AtomicReference<ReleaseStrategyAdapter>();
+	private MethodInvokingReleaseStrategy getReleaseStrategy(final Object bean) {
+    	final AtomicReference<MethodInvokingReleaseStrategy> reference = new AtomicReference<MethodInvokingReleaseStrategy>();
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, ReleaseStrategy.class);
 				if (annotation != null) {
-	                  reference.set(new ReleaseStrategyAdapter(bean, method));
+	                  reference.set(new MethodInvokingReleaseStrategy(bean, method));
 				}
 			}
 		});
         return reference.get();
 	}
 
-    private CorrelationStrategyAdapter getCorrelationStrategy(final Object bean) {
-    	final AtomicReference<CorrelationStrategyAdapter> reference = new AtomicReference<CorrelationStrategyAdapter>();
+    private MethodInvokingCorrelationStrategy getCorrelationStrategy(final Object bean) {
+    	final AtomicReference<MethodInvokingCorrelationStrategy> reference = new AtomicReference<MethodInvokingCorrelationStrategy>();
         ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
             public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
                 Annotation annotation = AnnotationUtils.getAnnotation(method, CorrelationStrategy.class);
                 if (annotation != null) {
-                    reference.set(new CorrelationStrategyAdapter(bean, method));
+                    reference.set(new MethodInvokingCorrelationStrategy(bean, method));
                 }
             }
         });

@@ -30,23 +30,23 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Dave Syer
  */
-public class ReleaseStrategyAdapter implements ReleaseStrategy {
+public class MethodInvokingReleaseStrategy implements ReleaseStrategy {
 
 	private final MessageListMethodAdapter adapter;
 
-	public ReleaseStrategyAdapter(Object object, Method method) {
+	public MethodInvokingReleaseStrategy(Object object, Method method) {
 		adapter = new MessageListMethodAdapter(object, method);
 		this.assertMethodReturnsBoolean();
 	}
 
-	public ReleaseStrategyAdapter(Object object, String methodName) {
+	public MethodInvokingReleaseStrategy(Object object, String methodName) {
 		adapter = new MessageListMethodAdapter(object, methodName);
 		this.assertMethodReturnsBoolean();
 	}
 
 
 	public boolean canRelease(MessageGroup messages) {
-		return ((Boolean) adapter.executeMethod(messages.getUnmarked())).booleanValue() && messages.getMarked().isEmpty();
+		return ((Boolean) adapter.process(messages.getUnmarked())).booleanValue();
 	}
 	
 	private void assertMethodReturnsBoolean() {

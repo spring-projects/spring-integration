@@ -42,21 +42,21 @@ public class ReleaseStrategyAdapterTests {
 
 	@Test
 	public void testTrueConvertedProperly() {
-		ReleaseStrategyAdapter adapter = new ReleaseStrategyAdapter(new AlwaysTrueReleaseStrategy(),
+		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new AlwaysTrueReleaseStrategy(),
 				"checkCompleteness");
 		Assert.assertTrue(adapter.canRelease(createListOfMessages(0)));
 	}
 
 	@Test
 	public void testFalseConvertedProperly() {
-		ReleaseStrategyAdapter adapter = new ReleaseStrategyAdapter(new AlwaysFalseReleaseStrategy(),
+		MethodInvokingReleaseStrategy adapter = new MethodInvokingReleaseStrategy(new AlwaysFalseReleaseStrategy(),
 				"checkCompleteness");
 		Assert.assertTrue(!adapter.canRelease(createListOfMessages(0)));
 	}
 
 	@Test
 	public void testAdapterWithNonParameterizedMessageListBasedMethod() {
-		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy,
+		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(simpleReleaseStrategy,
 				"checkCompletenessOnNonParameterizedListOfMessages");
 		MessageGroup messages = createListOfMessages(3);
 		Assert.assertTrue(adapter.canRelease(messages));
@@ -64,7 +64,7 @@ public class ReleaseStrategyAdapterTests {
 
 	@Test
 	public void testAdapterWithWildcardParametrizedMessageBasedMethod() {
-		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy,
+		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(simpleReleaseStrategy,
 				"checkCompletenessOnListOfMessagesParametrizedWithWildcard");
 		MessageGroup messages = createListOfMessages(3);
 		Assert.assertTrue(adapter.canRelease(messages));
@@ -72,7 +72,7 @@ public class ReleaseStrategyAdapterTests {
 
 	@Test
 	public void testAdapterWithTypeParametrizedMessageBasedMethod() {
-		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy,
+		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(simpleReleaseStrategy,
 				"checkCompletenessOnListOfMessagesParametrizedWithString");
 		MessageGroup messages = createListOfMessages(3);
 		Assert.assertTrue(adapter.canRelease(messages));
@@ -80,69 +80,69 @@ public class ReleaseStrategyAdapterTests {
 
 	@Test
 	public void testAdapterWithPojoBasedMethod() {
-		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy, "checkCompletenessOnListOfStrings");
+		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "checkCompletenessOnListOfStrings");
 		MessageGroup messages = createListOfMessages(3);
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test
 	public void testAdapterWithPojoBasedMethodReturningObject() {
-		ReleaseStrategy adapter = new ReleaseStrategyAdapter(simpleReleaseStrategy, "checkCompletenessOnListOfStrings");
+		ReleaseStrategy adapter = new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "checkCompletenessOnListOfStrings");
 		MessageGroup messages = createListOfMessages(3);
 		Assert.assertTrue(adapter.canRelease(messages));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testAdapterWithWrongMethodName() {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, "methodThatDoesNotExist");
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "methodThatDoesNotExist");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, "invalidParameterType");
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "invalidParameterType");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testTooManyParametersUsingMethodName() {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, "tooManyParameters");
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "tooManyParameters");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNotEnoughParametersUsingMethodName() {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, "notEnoughParameters");
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "notEnoughParameters");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testListSubclassParameterUsingMethodName() {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, "ListSubclassParameter");
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "ListSubclassParameter");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongReturnType() throws SecurityException, NoSuchMethodError {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, "wrongReturnType");
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, "wrongReturnType");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
 				"tooManyParameters", List.class, List.class));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
 				"notEnoughParameters", new Class[] {}));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testListSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod(
 				"ListSubclassParameter", new Class[] { LinkedList.class }));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testWrongReturnTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new ReleaseStrategyAdapter(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod("wrongReturnType",
+		new MethodInvokingReleaseStrategy(simpleReleaseStrategy, simpleReleaseStrategy.getClass().getMethod("wrongReturnType",
 				new Class[] { List.class }));
 	}
 

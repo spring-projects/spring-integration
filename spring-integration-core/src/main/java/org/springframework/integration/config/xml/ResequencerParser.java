@@ -112,7 +112,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 			if (StringUtils.hasText(method)) {
 				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-								+ ".aggregator.CorrelationStrategyAdapter");
+								+ ".aggregator.MethodInvokingCorrelationStrategy");
 				adapterBuilder.addConstructorArgReference(ref);
 				adapterBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method,
 						"java.lang.String");
@@ -133,7 +133,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 			if (StringUtils.hasText(method)) {
 				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-								+ ".aggregator.ReleaseStrategyAdapter");
+								+ ".aggregator.MethodInvokingReleaseStrategy");
 				adapterBuilder.addConstructorArgReference(ref);
 				adapterBuilder.getRawBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(method,
 						"java.lang.String");

@@ -54,7 +54,7 @@ public class DefaultMessageAggregatorIntegrationTests {
 
 	@SuppressWarnings("unchecked")
 	@Test(timeout = 1000)
-	public void aggregate() throws Exception {
+	public void testAggregation() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
 			input.send(new GenericMessage<Integer>(i, headers));

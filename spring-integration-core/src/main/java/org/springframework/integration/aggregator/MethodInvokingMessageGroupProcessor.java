@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
 
-	private final MessageListMethodAdapter adapter;
+	private final MessageListProcessor adapter;
 
 	/**
 	 * Creates a wrapper around the object passed in. This constructor will look for a method that can process
@@ -71,7 +71,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	@Override
 	protected final Object aggregatePayloads(MessageGroup group) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getUnmarked();
-		Object result = this.adapter.executeMethod(messagesUpForProcessing);
+		Object result = this.adapter.process(messagesUpForProcessing);
 		return result;
 	}
 

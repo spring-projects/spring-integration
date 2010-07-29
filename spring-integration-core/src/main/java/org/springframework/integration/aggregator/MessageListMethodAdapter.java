@@ -38,7 +38,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Iwein Fuld
  * @author Dave Syer
  */
-public class MessageListMethodAdapter {
+public class MessageListMethodAdapter implements MessageListProcessor {
 
     private final DefaultMethodInvoker invoker;
 
@@ -68,7 +68,10 @@ public class MessageListMethodAdapter {
         return method;
     }
 
-    public final Object executeMethod(Collection<? extends Message<?>> messages) {
+    /* (non-Javadoc)
+	 * @see org.springframework.integration.aggregator.MessageListProcessor#executeMethod(java.util.Collection)
+	 */
+    public final Object process(Collection<? extends Message<?>> messages) {
         try {
             if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
                     && (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {

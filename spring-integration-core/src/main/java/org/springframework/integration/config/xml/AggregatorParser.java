@@ -39,9 +39,13 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 
 	private static final String RELEASE_STRATEGY_METHOD_ATTRIBUTE = "release-strategy-method";
 
+	private static final String RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE = "release-strategy-expression";
+
 	private static final String CORRELATION_STRATEGY_REF_ATTRIBUTE = "correlation-strategy";
 
 	private static final String CORRELATION_STRATEGY_METHOD_ATTRIBUTE = "correlation-strategy-method";
+
+	private static final String CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE = "correlation-strategy-expression";
 
 	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
 
@@ -82,9 +86,18 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 			processorBuilder.addConstructorArgValue(processor);
 		}
 		else {
-			builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultAggregatingMessageGroupProcessor")
-					.getBeanDefinition());
+			if (StringUtils.hasText(element.getAttribute(EXPRESSION_ATTRIBUTE))) {
+				String expression = element.getAttribute(EXPRESSION_ATTRIBUTE);
+				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
+						+ ".aggregator.ExpressionEvaluatingMessageGroupProcessor");
+				adapterBuilder.addConstructorArgValue(expression);
+				builder.addConstructorArgValue(adapterBuilder.getBeanDefinition());
+			}
+			else {
+				builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.DefaultAggregatingMessageGroupProcessor")
+						.getBeanDefinition());
+			}
 		}
 
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
@@ -99,26 +112,34 @@ public class AggregatorParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		this.injectPropertyWithBean(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
-				RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy", element, builder, processor, parserContext);
-		this
-				.injectPropertyWithBean(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
-						CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy", element, builder, processor,
-						parserContext);
+		this.injectPropertyWithAdapter(RELEASE_STRATEGY_REF_ATTRIBUTE, RELEASE_STRATEGY_METHOD_ATTRIBUTE,
+				RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE, RELEASE_STRATEGY_PROPERTY, "ReleaseStrategy", element, builder,
+				processor, parserContext);
+		this.injectPropertyWithAdapter(CORRELATION_STRATEGY_REF_ATTRIBUTE, CORRELATION_STRATEGY_METHOD_ATTRIBUTE,
+				CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE, CORRELATION_STRATEGY_PROPERTY, "CorrelationStrategy",
+				element, builder, processor, parserContext);
 		return builder;
 	}
 
-	private void injectPropertyWithBean(String beanRefAttribute, String methodRefAttribute, String beanProperty,
-			String adapterClass, Element element, BeanDefinitionBuilder builder,
-			BeanMetadataElement processor, ParserContext parserContext) {
+	private void injectPropertyWithAdapter(String beanRefAttribute, String methodRefAttribute,
+			String expressionAttribute, String beanProperty, String adapterClass, Element element,
+			BeanDefinitionBuilder builder, BeanMetadataElement processor, ParserContext parserContext) {
 		final String beanRef = element.getAttribute(beanRefAttribute);
 		final String beanMethod = element.getAttribute(methodRefAttribute);
+		final String expression = element.getAttribute(expressionAttribute);
 		BeanMetadataElement adapter = null;
 		if (StringUtils.hasText(beanRef)) {
 			adapter = this.createAdapter(new RuntimeBeanReference(beanRef), beanMethod, adapterClass, parserContext);
 		}
 		else if (processor != null) {
 			adapter = this.createAdapter(processor, beanMethod, adapterClass, parserContext);
+		}
+		else if (StringUtils.hasText(expression)) {
+			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE + ".aggregator.ExpressionEvaluating"
+							+ adapterClass);
+			adapterBuilder.addConstructorArgValue(expression);
+			adapter = adapterBuilder.getBeanDefinition();
 		}
 		else {
 			adapter = this.createAdapter(null, beanMethod, adapterClass, parserContext);

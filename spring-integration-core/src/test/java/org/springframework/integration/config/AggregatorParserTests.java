@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,14 +33,19 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MessageListMethodAdapter;
 import org.springframework.integration.aggregator.ReleaseStrategy;
-import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.MethodInvoker;
@@ -51,57 +57,75 @@ import org.springframework.integration.util.MethodInvoker;
  */
 public class AggregatorParserTests {
 
-    private ApplicationContext context;
+	private ApplicationContext context;
 
+	@Before
+	public void setUp() {
+		this.context = new ClassPathXmlApplicationContext("aggregatorParserTests.xml", this.getClass());
+	}
 
-    @Before
-    public void setUp() {
-        this.context = new ClassPathXmlApplicationContext("aggregatorParserTests.xml", this.getClass());
-    }
+	@Test
+	public void testAggregation() {
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceInput");
+		TestAggregatorBean aggregatorBean = (TestAggregatorBean) context.getBean("aggregatorBean");
+		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
+		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
+		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
+		for (Message<?> message : outboundMessages) {
+			input.send(message);
+		}
+		assertEquals("One and only one message must have been aggregated", 1, aggregatorBean.getAggregatedMessages()
+				.size());
+		Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
+		assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage.getPayload());
+	}
 
-    @Test
-    public void testAggregation() {
-        MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceInput");
-        TestAggregatorBean aggregatorBean = (TestAggregatorBean) context.getBean("aggregatorBean");
-        List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-        outboundMessages.add(createMessage("123", "id1", 3, 1, null));
-        outboundMessages.add(createMessage("789", "id1", 3, 3, null));
-        outboundMessages.add(createMessage("456", "id1", 3, 2, null));
-        for (Message<?> message : outboundMessages) {
-            input.send(message);
-        }
-        assertEquals("One and only one message must have been aggregated", 1, aggregatorBean
-                .getAggregatedMessages().size());
-        Message<?> aggregatedMessage = aggregatorBean.getAggregatedMessages().get("id1");
-        assertEquals("The aggregated message payload is not correct", "123456789", aggregatedMessage
-                .getPayload());
-    }
+	@Test
+	public void testAggregationByExpression() {
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithExpressionsInput");
+		SubscribableChannel outputChannel = (SubscribableChannel) context.getBean("aggregatorWithExpressionsOutput");
+		final AtomicReference<Message<?>> aggregatedMessage = new AtomicReference<Message<?>>();
+		outputChannel.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
+					MessageDeliveryException {
+				aggregatedMessage.set(message);
+			}
+		});
+		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		outboundMessages.add(MessageBuilder.withPayload("123").setHeader("foo", "1").build());
+		outboundMessages.add(MessageBuilder.withPayload("456").setHeader("foo", "1").build());
+		outboundMessages.add(MessageBuilder.withPayload("789").setHeader("foo", "1").build());
+		for (Message<?> message : outboundMessages) {
+			input.send(message);
+		}
+		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload().toString());
+	}
 
-    @Test
-    public void testPropertyAssignment() throws Exception {
-        EventDrivenConsumer endpoint =
-                (EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
-        ReleaseStrategy releaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
-        CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
-        MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
-        MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-        Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-        assertThat(consumer, is(CorrelatingMessageHandler.class));
-        DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
-        Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
-        assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method",
-                expectedMethod, ((MessageListMethodAdapter) new DirectFieldAccessor(accessor.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
-        assertEquals(
-                "The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
-                releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
-        assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
-                correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
+	@Test
+	public void testPropertyAssignment() throws Exception {
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
+		ReleaseStrategy releaseStrategy = (ReleaseStrategy) context.getBean("releaseStrategy");
+		CorrelationStrategy correlationStrategy = (CorrelationStrategy) context.getBean("correlationStrategy");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
+		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+		assertThat(consumer, is(CorrelatingMessageHandler.class));
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
+		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method",
+				expectedMethod, ((MessageListMethodAdapter) new DirectFieldAccessor(accessor
+						.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
+		assertEquals("The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
+				releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
+		assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
+				correlationStrategy, accessor.getPropertyValue("correlationStrategy"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
 				outputChannel, accessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
 				discardChannel, accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value",
-				86420000l, TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"));
+		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value", 86420000l,
+				TestUtils.getPropertyValue(consumer, "messagingTemplate.sendTimeout"));
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, accessor.getPropertyValue("sendPartialResultOnExpiry"));
@@ -110,8 +134,7 @@ public class AggregatorParserTests {
 	@Test
 	public void testSimpleJavaBeanAggregator() {
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-		MessageChannel input =
-				(MessageChannel) context.getBean("aggregatorWithReferenceAndMethodInput");
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceAndMethodInput");
 		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
 		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
 		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
@@ -123,54 +146,51 @@ public class AggregatorParserTests {
 		Assert.assertEquals(6l, response.getPayload());
 	}
 
-	@Test(expected=BeanCreationException.class)
+	@Test(expected = BeanCreationException.class)
 	public void testMissingMethodOnAggregator() {
-		context = new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass());		
+		context = new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass());
 	}
 
-	@Test(expected=BeanCreationException.class)
+	@Test(expected = BeanCreationException.class)
 	public void testDuplicateReleaseStrategyDefinition() {
-		context = new ClassPathXmlApplicationContext(
-				"ReleaseStrategyMethodWithMissingReference.xml", this.getClass());		
+		context = new ClassPathXmlApplicationContext("ReleaseStrategyMethodWithMissingReference.xml", this.getClass());
 	}
 
-    @Test
-    public void testAggregatorWithPojoReleaseStrategy() {
-        MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInput");
-        EventDrivenConsumer endpoint =
-                (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
-        ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(
-                new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("releaseStrategy");
-        Assert.assertTrue(releaseStrategy instanceof ReleaseStrategyAdapter);
-        DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy).getPropertyValue("adapter"));
-        MethodInvoker invoker = (MethodInvoker) releaseStrategyAccessor.getPropertyValue("invoker");
-        Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueReleaseStrategy);
-        Assert.assertTrue(((Method) releaseStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
-        input.send(createMessage(1l, "correllationId", 4, 0, null));
-        input.send(createMessage(2l, "correllationId", 4, 1, null));
-        input.send(createMessage(3l, "correllationId", 4, 2, null));
-        PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-        Message<?> reply = outputChannel.receive(0);
-        Assert.assertNull(reply);
-        input.send(createMessage(5l, "correllationId", 4, 3, null));
-        reply = outputChannel.receive(0);
-        Assert.assertNotNull(reply);
-        assertEquals(11l, reply.getPayload());
-    }
+	@Test
+	public void testAggregatorWithPojoReleaseStrategy() {
+		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoReleaseStrategyInput");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("aggregatorWithPojoReleaseStrategy");
+		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
+				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
+		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
+				.getPropertyValue("adapter"));
+		MethodInvoker invoker = (MethodInvoker) releaseStrategyAccessor.getPropertyValue("invoker");
+		Assert
+				.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueReleaseStrategy);
+		Assert.assertTrue(((Method) releaseStrategyAccessor.getPropertyValue("method")).getName().equals(
+				"checkCompleteness"));
+		input.send(createMessage(1l, "correllationId", 4, 0, null));
+		input.send(createMessage(2l, "correllationId", 4, 1, null));
+		input.send(createMessage(3l, "correllationId", 4, 2, null));
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
+		Message<?> reply = outputChannel.receive(0);
+		Assert.assertNull(reply);
+		input.send(createMessage(5l, "correllationId", 4, 3, null));
+		reply = outputChannel.receive(0);
+		Assert.assertNotNull(reply);
+		assertEquals(11l, reply.getPayload());
+	}
 
-    @Test(expected = BeanCreationException.class)
-    public void testAggregatorWithInvalidReleaseStrategyMethod() {
-        context = new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass());
-    }
+	@Test(expected = BeanCreationException.class)
+	public void testAggregatorWithInvalidReleaseStrategyMethod() {
+		context = new ClassPathXmlApplicationContext("invalidReleaseStrategyMethod.xml", this.getClass());
+	}
 
-
-    private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
-                                                MessageChannel outputChannel) {
-        return MessageBuilder.withPayload(payload)
-                .setCorrelationId(correlationId)
-                .setSequenceSize(sequenceSize)
-                .setSequenceNumber(sequenceNumber)
-                .setReplyChannel(outputChannel).build();
-    }
+	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
+			MessageChannel outputChannel) {
+		return MessageBuilder.withPayload(payload).setCorrelationId(correlationId).setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber).setReplyChannel(outputChannel).build();
+	}
 
 }

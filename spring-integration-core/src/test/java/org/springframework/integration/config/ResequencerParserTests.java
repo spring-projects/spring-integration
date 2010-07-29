@@ -30,8 +30,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.CorrelationStrategyAdapter;
-import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageBuilder;
@@ -130,8 +130,8 @@ public class ResequencerParserTests {
 				CorrelatingMessageHandler.class);
 		Object correlationStrategy = getPropertyValue(resequencer, "correlationStrategy");
 		assertEquals("The ResequencerEndpoint is not configured with a CorrelationStrategy adapter",
-				CorrelationStrategyAdapter.class, correlationStrategy.getClass());
-		CorrelationStrategyAdapter adapter = (CorrelationStrategyAdapter) correlationStrategy;
+				MethodInvokingCorrelationStrategy.class, correlationStrategy.getClass());
+		MethodInvokingCorrelationStrategy adapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
 		assertEquals("foo", adapter.getCorrelationKey(MessageBuilder.withPayload("not important").build()));
 	}
 
@@ -153,7 +153,7 @@ public class ResequencerParserTests {
 		CorrelatingMessageHandler handler = TestUtils.getPropertyValue(endpoint, "handler",
 				CorrelatingMessageHandler.class);
 		Object releaseStrategy = getPropertyValue(handler, "releaseStrategy");
-		assertEquals("The Resequencer is not configured with an adapter", ReleaseStrategyAdapter.class, releaseStrategy
+		assertEquals("The Resequencer is not configured with an adapter", MethodInvokingReleaseStrategy.class, releaseStrategy
 				.getClass());
 	}
 

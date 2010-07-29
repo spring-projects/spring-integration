@@ -38,7 +38,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class MessageListMethodAdapterHelper {
 
-	public MessageListMethodAdapter getAdapter(Object candidate, Class<? extends Annotation> annotationType) {
+	public MessageListProcessor getAdapter(Object candidate, Class<? extends Annotation> annotationType) {
 		Method method = findAggregatorMethod(candidate, annotationType);
 		if (method == null) {
 			return null;

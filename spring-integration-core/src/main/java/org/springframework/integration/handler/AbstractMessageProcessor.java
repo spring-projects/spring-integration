@@ -51,10 +51,10 @@ public abstract class AbstractMessageProcessor implements MessageProcessor {
 		}
 		catch (EvaluationException e) {
 			Throwable cause = e.getCause();
-			throw new MessageHandlingException(message, "Expression evaluation failed.", cause==null ? e : cause);
+			throw new MessageHandlingException(message, "Expression evaluation failed: "+expression.getExpressionString(), cause==null ? e : cause);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException(message, "Expression evaluation failed.", e);
+			throw new MessageHandlingException(message, "Expression evaluation failed: "+expression.getExpressionString(), e);
 		}
 	}
 

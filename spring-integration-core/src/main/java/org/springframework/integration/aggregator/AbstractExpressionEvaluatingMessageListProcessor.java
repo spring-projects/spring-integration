@@ -14,30 +14,37 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.aggregator;
+
+import java.util.Collection;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.BeanResolver;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
-import org.springframework.util.Assert;
+import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.integration.transformer.MessageTransformationException;
 
 /**
- * A {@link MessageProcessor} implementation that evaluates a SpEL expression
- * with the Message itself as the root object within the evaluation context.
+ * A base class for aggregators that evaluates a SpEL expression with the message list as the root object within the
+ * evaluation context.
  * 
- * @author Mark Fisher
+ * @author Dave Syer
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor implements BeanFactoryAware {
+public class AbstractExpressionEvaluatingMessageListProcessor implements BeanFactoryAware {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -45,12 +52,12 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 
 	private volatile Class<?> expectedType = null;
 
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
 	 */
-	public ExpressionEvaluatingMessageProcessor(String expression) {
-		Assert.hasLength(expression, "The expression must be non empty");
+	public AbstractExpressionEvaluatingMessageListProcessor(String expression) {
 		try {
 			this.expression = parser.parseExpression(expression);
 			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
@@ -59,7 +66,6 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 			throw new IllegalArgumentException("Failed to parse expression.", e);
 		}
 	}
-
 
 	/**
 	 * Set the result type expected from evaluation of the expression.
@@ -81,12 +87,37 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 		}
 	}
 
+	public void setConversionService(ConversionService conversionService) {
+		if (conversionService != null) {
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
+	}
+
+	protected StandardEvaluationContext getEvaluationContext() {
+		return this.evaluationContext;
+	}
+
+	protected Object evaluateExpression(Expression expression, Collection<? extends Message<?>> messages,
+			Class<?> expectedType) {
+		try {
+			return (expectedType != null) ? expression.getValue(this.evaluationContext, messages, expectedType)
+					: expression.getValue(this.evaluationContext, messages);
+		}
+		catch (EvaluationException e) {
+			Throwable cause = e.getCause();
+			throw new MessageTransformationException("Expression evaluation failed.", cause == null ? e : cause);
+		}
+		catch (Exception e) {
+			throw new MessageTransformationException("Expression evaluation failed.", e);
+		}
+	}
+
 	/**
-	 * Processes the Message by evaluating the expression with that Message as the
-	 * root object. The expression evaluation result Object will be returned.
+	 * Processes the Message by evaluating the expression with that Message as the root object. The expression
+	 * evaluation result Object will be returned.
 	 */
-	public Object processMessage(Message<?> message) {
-		return this.evaluateExpression(this.expression, message, this.expectedType);
+	protected Object process(Collection<? extends Message<?>> messages) {
+		return this.evaluateExpression(this.expression, messages, this.expectedType);
 	}
 
 }

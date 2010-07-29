@@ -39,32 +39,32 @@ public class CorrelationStrategyAdapterTests {
 
 	@Test
 	public void testMethodName() {
-		CorrelationStrategyAdapter adapter = new CorrelationStrategyAdapter(new SimpleMessageCorrelator(), "getKey");
+		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(), "getKey");
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}
 
 	@Test
 	public void testCorrelationStrategyAdapterObjectMethod() {
-		CorrelationStrategyAdapter adapter = new CorrelationStrategyAdapter(new SimpleMessageCorrelator(),
+		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new SimpleMessageCorrelator(),
 				ReflectionUtils.findMethod(SimpleMessageCorrelator.class, "getKey", Message.class));
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}
 
 	@Test
 	public void testCorrelationStrategyAdapterPojoMethod() {
-		CorrelationStrategyAdapter adapter = new CorrelationStrategyAdapter(new SimplePojoCorrelator(), "getKey");
+		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new SimplePojoCorrelator(), "getKey");
 		assertEquals("foo", adapter.getCorrelationKey(message));
 	}
 
 	@Test
 	public void testHeaderPojoMethod() {
-		CorrelationStrategyAdapter adapter = new CorrelationStrategyAdapter(new SimpleHeaderCorrelator(), "getKey");
+		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new SimpleHeaderCorrelator(), "getKey");
 		assertEquals("b", adapter.getCorrelationKey(message));
 	}
 
 	@Test
 	public void testHeadersPojoMethod() {
-		CorrelationStrategyAdapter adapter = new CorrelationStrategyAdapter(new MultiHeaderCorrelator(),
+		MethodInvokingCorrelationStrategy adapter = new MethodInvokingCorrelationStrategy(new MultiHeaderCorrelator(),
 				ReflectionUtils.findMethod(MultiHeaderCorrelator.class, "getKey", String.class, String.class));
 		assertEquals("bd", adapter.getCorrelationKey(message));
 	}

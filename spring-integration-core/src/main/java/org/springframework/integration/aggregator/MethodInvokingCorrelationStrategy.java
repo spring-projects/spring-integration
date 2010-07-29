@@ -28,15 +28,15 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Dave Syer
  */
-public class CorrelationStrategyAdapter implements CorrelationStrategy {
+public class MethodInvokingCorrelationStrategy implements CorrelationStrategy {
 
 	private final MethodInvokingMessageProcessor processor;
 
-	public CorrelationStrategyAdapter(Object object, String methodName) {
+	public MethodInvokingCorrelationStrategy(Object object, String methodName) {
 		this.processor = new MethodInvokingMessageProcessor(object, methodName, true);
 	}
 
-	public CorrelationStrategyAdapter(Object object, Method method) {
+	public MethodInvokingCorrelationStrategy(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		Assert.isTrue(!Void.TYPE.equals(method.getReturnType()), "Method return type must not be void");

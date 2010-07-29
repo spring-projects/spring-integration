@@ -19,7 +19,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.aggregator.ReleaseStrategy;
-import org.springframework.integration.aggregator.ReleaseStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.util.StringUtils;
 
@@ -56,12 +56,12 @@ public class ReleaseStrategyFactoryBean implements FactoryBean<ReleaseStrategy> 
 		}
 		if (target != null) {
 			if (StringUtils.hasText(methodName)) {
-				delegate = new ReleaseStrategyAdapter(target, methodName);
+				delegate = new MethodInvokingReleaseStrategy(target, methodName);
 			}
 			else {
 				Method method = AnnotationFinder.findAnnotatedMethod(target, org.springframework.integration.annotation.ReleaseStrategy.class);
 				if (method != null) {
-					delegate = new ReleaseStrategyAdapter(target, method);
+					delegate = new MethodInvokingReleaseStrategy(target, method);
 				}
 			}
 		}
