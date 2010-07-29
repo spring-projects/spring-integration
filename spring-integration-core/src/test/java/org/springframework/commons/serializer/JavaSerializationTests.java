@@ -17,8 +17,11 @@
 package org.springframework.commons.serializer;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.NotSerializableException;
 import java.io.Serializable;
 
 import org.junit.Test;
@@ -45,7 +48,10 @@ public class JavaSerializationTests {
 		try {
 			toBytes.convert(new Object());
 			fail("Expected IllegalArgumentException");
-		} catch (IllegalArgumentException e) { }
+		} catch (SerializationFailureException e) {
+			assertNotNull(e.getCause());
+			assertTrue(e.getCause() instanceof IllegalArgumentException);
+		}
 		
 	}
 
@@ -55,7 +61,10 @@ public class JavaSerializationTests {
 		try {
 			toBytes.convert(new UnSerializable());
 			fail("Expected SerializationFailureException");
-		} catch (SerializationFailureException e) { }
+		} catch (SerializationFailureException e) {
+			assertNotNull(e.getCause());
+			assertTrue(e.getCause() instanceof NotSerializableException);
+		}
 		
 	}
 
