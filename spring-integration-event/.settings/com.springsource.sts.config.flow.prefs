@@ -1,0 +1,3 @@
+#Thu Jul 29 17:49:43 EDT 2010
+//com.springsource.sts.config.flow.coordinates\:http\://www.springframework.org/schema/integration\:/spring-integration-event/src/test/java/org/springframework/integration/event/config/EventInboundChannelAdapterParserTests-context.xml=<?xml version\="1.0" encoding\="UTF-8"?>\n<graph>\n<element clazz\="ChannelModelElement" type\="channel">\n<structure end\="829" endstart\="815" start\="774" startend\="798"/>\n<bounds height\="112" width\="116" x\="19" y\="17"/>\n</element>\n</graph>
+eclipse.preferences.version=1
