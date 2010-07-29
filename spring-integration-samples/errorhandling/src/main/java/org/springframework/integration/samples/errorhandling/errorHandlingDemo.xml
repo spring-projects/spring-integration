@@ -12,12 +12,9 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
-	<context:component-scan
-		base-package="org.springframework.integration.samples.errorhandling" />
+	<context:component-scan base-package="org.springframework.integration.samples.errorhandling" />
 
-	<poller default="true" max-messages-per-poll="1">
-		<interval-trigger interval="1000" />
-	</poller>
+	<poller default="true" fixed-delay="1000" max-messages-per-poll="1"/>
 
 	<inbound-channel-adapter ref="partyHost"
 		method="nextInvitation" channel="invitations" />
@@ -46,7 +43,6 @@
 		is recommended to have a generic error handler in your configuration
 		to prevent this.
 	-->
-	<stream:stderr-channel-adapter channel="errorChannel"
-		append-newline="true" />
+	<stream:stderr-channel-adapter channel="errorChannel" append-newline="true" />
 
 </beans:beans>
