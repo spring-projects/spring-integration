@@ -17,8 +17,10 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
@@ -71,7 +73,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		super.setChannelResolver(channelResolver);
+		this.messagingTemplate.setChannelResolver(channelResolver);
 	}
 
 	/**
@@ -80,6 +82,20 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 */
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
+	}
+
+	/**
+	 * Provides access to the {@link MessagingTemplate} for subclasses.
+	 */
+	protected MessagingTemplate getMessagingTemplate() {
+		return this.messagingTemplate;
+	}
+
+	@Override
+	protected void onInit() {
+		if (this.getBeanFactory() != null) {
+			this.messagingTemplate.setBeanFactory(getBeanFactory());
+		}
 	}
 
 	/**
@@ -98,14 +114,13 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			}
 			return;
 		}
-		MessageChannel replyChannel = resolveReplyChannel(message, this.outputChannel);
 		MessageHeaders requestHeaders = message.getHeaders();
-		this.handleResult(result, requestHeaders, replyChannel);
+		this.handleResult(result, requestHeaders);
 	}
 
-	protected void handleResult(Object result, MessageHeaders requestHeaders, MessageChannel replyChannel) {
+	protected void handleResult(Object result, MessageHeaders requestHeaders) {
 		Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
-		this.sendReplyMessage(replyMessage, replyChannel);
+		this.sendReplyMessage(replyMessage, requestHeaders.getReplyChannel());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -119,11 +134,44 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		return builder.build();
 	}
 
-	protected void sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+	/**
+	 * Send a reply Message. The 'replyChannelHeaderValue' will be considered only if this handler's
+	 * 'outputChannel' is <code>null</code>. In that case, the header value must not also be
+	 * <code>null</code>, and it must be an instance of either String or {@link MessageChannel}.
+	 * @param replyMessage the reply Message to send
+	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request 
+	 */
+	protected final void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		this.messagingTemplate.send(replyChannel, replyMessage);
+		MessageChannel outputChannel = this.getOutputChannel();
+		if (outputChannel != null) {
+			this.sendMessage(replyMessage, outputChannel);
+		}
+		else if (replyChannelHeaderValue != null) {
+			this.sendMessage(replyMessage, replyChannelHeaderValue);
+		}
+		else {
+			throw new ChannelResolutionException("no output-channel or replyChannel header available");
+		}
+	}
+
+	/**
+	 * Send the message to the given channel. The channel must be a String or
+	 * {@link MessageChannel} instance, never <code>null</code>.
+	 */
+	private void sendMessage(final Message<?> message, final Object channel) {
+		if (channel instanceof MessageChannel) {
+			this.messagingTemplate.send((MessageChannel) channel, message);
+		}
+		else if (channel instanceof String) {
+			this.messagingTemplate.send((String) channel, message);
+		}
+		else {
+			throw new MessageDeliveryException(message,
+					"a non-null reply channel value of type MesssageChannel or String is required");
+		}
 	}
 
 	/**

@@ -19,7 +19,6 @@ package org.springframework.integration.transformer;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
@@ -54,6 +53,7 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	@Override
 	protected void onInit() {
+		super.onInit();
 		if (this.getBeanFactory() != null && this.transformer instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.transformer).setBeanFactory(this.getBeanFactory());
 		}
@@ -73,8 +73,8 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	}
 
 	@Override
-	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders, MessageChannel replyChannel) {
-		this.sendReplyMessage((Message<?>) replyMessage, replyChannel);
+	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders) {
+		this.sendReplyMessage((Message<?>) replyMessage, requestHeaders.getReplyChannel());
 	}
 
 }

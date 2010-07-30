@@ -101,6 +101,13 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		return "router";
 	}
 
+	/**
+	 * Provides {@link MessagingTemplate} access for subclasses.
+	 */
+	protected MessagingTemplate getMessagingTemplate() {
+		return this.messagingTemplate;
+	}
+
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
 		boolean sent = false;

@@ -66,6 +66,7 @@ public class ApplicationContextMessageBusTests {
 			}
 		};
 		handler.setBeanFactory(context);
+		handler.afterPropertiesSet();
 		PollingConsumer endpoint = new PollingConsumer(sourceChannel, handler);
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();

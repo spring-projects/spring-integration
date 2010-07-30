@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
@@ -267,6 +268,31 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private MessageGroup store(Object correlationKey, Message<?> message) {
 		return messageStore.addMessageToGroup(correlationKey, message);
+	}
+
+	private MessageChannel resolveReplyChannel(Message<?> requestMessage, MessageChannel defaultOutputChannel) {
+		ChannelResolver channelResolver = this.getChannelResolver();
+		MessageChannel replyChannel = defaultOutputChannel;
+		if (replyChannel == null) {
+			Object replyChannelHeader = requestMessage.getHeaders().getReplyChannel();
+			if (replyChannelHeader instanceof MessageChannel) {
+				replyChannel = (MessageChannel) replyChannelHeader;
+			}
+			else if (replyChannelHeader instanceof String) {
+				Assert.state(channelResolver != null,
+						"ChannelResolver is required for resolving a reply channel by name");
+				replyChannel = channelResolver.resolveChannelName((String) replyChannelHeader);
+			}
+			else if (replyChannelHeader != null) {
+				throw new ChannelResolutionException(
+						"expected a MessageChannel or String for 'replyChannel' header, " +
+						"but type is [" + replyChannelHeader.getClass() + "]");
+			}
+		}
+		if (replyChannel == null) {
+			throw new ChannelResolutionException("unable to resolve reply channel for message: " + requestMessage);
+		}
+		return replyChannel;
 	}
 
 }

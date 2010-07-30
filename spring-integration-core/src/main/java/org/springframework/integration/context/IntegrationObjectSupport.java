@@ -18,6 +18,7 @@ package org.springframework.integration.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -36,7 +37,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * A base class that provides convenient access to the bean factory as
- * well as {@link ChannelResolver} and {@link TaskScheduler} instances.
+ * well as {@link TaskScheduler} and {@link ConversionService} instances.
  * 
  * <p>This is intended to be used as a base class for internal framework
  * components whereas code built upon the integration framework should not
@@ -59,11 +60,11 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	private volatile BeanFactory beanFactory;
 
-	private volatile ChannelResolver channelResolver;
-
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ConversionService conversionService;
+
+	private volatile ChannelResolver channelResolver;
 
 
 	public final void setBeanName(String beanName) {

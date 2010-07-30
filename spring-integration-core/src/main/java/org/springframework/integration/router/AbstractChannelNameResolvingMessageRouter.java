@@ -52,7 +52,9 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	 * The default is a BeanFactoryChannelResolver.
 	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		super.setChannelResolver(channelResolver);
+		this.getMessagingTemplate().setChannelResolver(channelResolver);
 	}
 
 	/**
@@ -86,17 +88,17 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
 		Assert.state(this.getChannelResolver() != null,
 				"unable to resolve channel names, no ChannelResolver available");
-
 		MessageChannel channel = null;
 		try {
 			channel = this.getChannelResolver().resolveChannelName(channelName);
 		}
 		catch (ChannelResolutionException e) {
-			if (!ignoreChannelNameResolutionFailures)
+			if (!this.ignoreChannelNameResolutionFailures) {
 				throw new MessagingException(message,
 						"failed to resolve channel name '" + channelName + "'", e);
+			}
 		}
-		if (channel == null && !ignoreChannelNameResolutionFailures) {
+		if (channel == null && !this.ignoreChannelNameResolutionFailures) {
 			throw new MessagingException(message,
 					"failed to resolve channel name '" + channelName + "'");
 		}

@@ -72,8 +72,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 
 	private volatile boolean readOnly = false;
 
-	private volatile BeanFactory beanFactory;
-
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
@@ -164,16 +162,15 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
+		if (this.channelResolver == null && beanFactory != null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
 	}
 
 	public void afterPropertiesSet() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
-			}
-			if (this.channelResolver == null && this.beanFactory != null) {
-				this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
 			}
 			if (this.transactionManager != null) {
 				TransactionTemplate template = new TransactionTemplate(this.transactionManager);

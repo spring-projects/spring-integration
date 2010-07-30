@@ -24,7 +24,6 @@ import java.util.UUID;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 
 /**
@@ -79,14 +78,14 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void handleResult(Object result, MessageHeaders requestHeaders, MessageChannel replyChannel) {
+	protected void handleResult(Object result, MessageHeaders requestHeaders) {
 		if (result instanceof Iterable) {
 			for (Object o : (Iterable<?>) result) {
-				super.handleResult(o, requestHeaders, replyChannel);
+				super.handleResult(o, requestHeaders);
 			}
 		}
 		else {
-			super.handleResult(result, requestHeaders, replyChannel);
+			super.handleResult(result, requestHeaders);
 		}
 	}
 

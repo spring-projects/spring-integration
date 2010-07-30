@@ -90,6 +90,7 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	public final void onInit() {
+		super.onInit();
 		if (this.selector instanceof AbstractMessageProcessingSelector) {
 			((AbstractMessageProcessingSelector) this.selector).setConversionService(this.getConversionService());
 		}
@@ -104,7 +105,7 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 			return message;
 		}
 		if (this.discardChannel != null) {
-			this.sendReplyMessage(message, this.discardChannel);
+			this.getMessagingTemplate().send(this.discardChannel, message);
 		}
 		if (this.throwExceptionOnRejection) {
 			throw new MessageRejectedException(message);
@@ -113,8 +114,9 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders, MessageChannel replyChannel) {
-		this.sendReplyMessage((Message<?>) replyMessage, replyChannel);
+	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders) {
+		Assert.isInstanceOf(Message.class, replyMessage);
+		this.sendReplyMessage((Message<?>) replyMessage, requestHeaders.getReplyChannel());
 	}
 
 }

@@ -54,6 +54,7 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 	@Override
 	public final void onInit() {
+		super.onInit();
 		this.processor.setConversionService(this.getConversionService());
 	}
 
