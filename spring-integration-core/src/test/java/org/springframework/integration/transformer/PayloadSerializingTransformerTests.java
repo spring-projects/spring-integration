@@ -26,8 +26,10 @@ import java.io.Serializable;
 
 import org.junit.Test;
 
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.StringMessage;
 
 /**
@@ -67,6 +69,18 @@ public class PayloadSerializingTransformerTests {
 	public void invalidPayload() {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
 		transformer.transform(new GenericMessage<Object>(new Object()));
+	}
+	
+	@Test
+	public void customSerializer() {
+		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
+		transformer.setConverter(new Converter<Object, byte[]>(){
+			public byte[] convert(Object source) {
+				return "Converted".getBytes();
+			}
+		});
+		Message<?> message = transformer.transform(MessageBuilder.withPayload("Test").build());
+		assertEquals("Converted", new String((byte[]) message.getPayload()));
 	}
 
 

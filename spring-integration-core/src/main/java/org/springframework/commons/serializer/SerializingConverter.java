@@ -17,16 +17,12 @@
 package org.springframework.commons.serializer;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Serializable;
 
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.util.Assert;
 
 /**
- * Delegates to a {@link OutputStreamingConverter} (default is
- * {@link JavaStreamingConverter}) to serialize an object
- * to a byte[]. 
+ * A {@Link Converter} that delegates to a {@link OutputStreamingConverter}
+ * to convert an object to a byte[]. 
  * 
  * @author Gary Russell
  * @since 2.0
@@ -34,26 +30,23 @@ import org.springframework.util.Assert;
  */
 public class SerializingConverter implements Converter<Object, byte[]> {
 
-	private OutputStreamingConverter<Object> streamingConverter 
-				= new JavaStreamingConverter();
+	private OutputStreamingConverter<Object> streamingConverter; 
+	
+	/**
+	 * @param streamingConverter the OutputStreamingConverter
+	 */
+	public SerializingConverter(OutputStreamingConverter<Object> streamingConverter) {
+		this.streamingConverter = streamingConverter;
+	}
 	
 	public byte[] convert(Object source) {
-		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream(128);
 		try  {
 			this.streamingConverter.convert(source, byteStream);
 			return byteStream.toByteArray();
 		} catch (Exception e) {
 			throw new SerializationFailureException("Failed to serialize", e);
 		}
-	}
-
-	/**
-	 * Override the default {@link JavaStreamingConverter}
-	 * @param streamingConverter the streamingConverter to set
-	 */
-	public void setStreamingConverter(
-			OutputStreamingConverter<Object> streamingConverter) {
-		this.streamingConverter = streamingConverter;
 	}
 
 }
