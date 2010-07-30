@@ -19,9 +19,11 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.NullChannel;
+import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
@@ -76,11 +78,14 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
+	private volatile ChannelResolver channelResolver;
+
 	private volatile MessageChannel discardChannel = new NullChannel();
 
 	private boolean sendPartialResultOnExpiry = false;
 
 	private final ConcurrentMap<Object, Object> locks = new ConcurrentHashMap<Object, Object>();
+
 
 	public CorrelatingMessageHandler(MessageGroupProcessor processor, MessageGroupStore store,
 			CorrelationStrategy correlationStrategy, ReleaseStrategy releaseStrategy) {
@@ -101,6 +106,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	public CorrelatingMessageHandler(MessageGroupProcessor processor) {
 		this(processor, new SimpleMessageStore(0), null, null);
 	}
+
 
 	public void setMessageStore(MessageGroupStore store) {
 		this.messageStore = store;
@@ -126,8 +132,13 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		this.outputChannel = outputChannel;
 	}
 
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		super.setChannelResolver(channelResolver);
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.channelResolver == null && beanFactory != null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
 	}
 
 	public void setDiscardChannel(MessageChannel discardChannel) {
@@ -271,7 +282,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	}
 
 	private MessageChannel resolveReplyChannel(Message<?> requestMessage, MessageChannel defaultOutputChannel) {
-		ChannelResolver channelResolver = this.getChannelResolver();
 		MessageChannel replyChannel = defaultOutputChannel;
 		if (replyChannel == null) {
 			Object replyChannelHeader = requestMessage.getHeaders().getReplyChannel();
@@ -281,7 +291,7 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			else if (replyChannelHeader instanceof String) {
 				Assert.state(channelResolver != null,
 						"ChannelResolver is required for resolving a reply channel by name");
-				replyChannel = channelResolver.resolveChannelName((String) replyChannelHeader);
+				replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
 			}
 			else if (replyChannelHeader != null) {
 				throw new ChannelResolutionException(

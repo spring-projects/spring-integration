@@ -21,10 +21,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
@@ -44,6 +46,8 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 
 	private volatile String suffix;
 
+	private volatile ChannelResolver channelResolver;
+
 	private volatile boolean ignoreChannelNameResolutionFailures;
 
 
@@ -53,8 +57,7 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
-		super.setChannelResolver(channelResolver);
-		this.getMessagingTemplate().setChannelResolver(channelResolver);
+		this.channelResolver = channelResolver;
 	}
 
 	/**
@@ -81,16 +84,18 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 
 	@Override
 	public void onInit() {
-		Assert.notNull(this.getChannelResolver(),
-				"either a ChannelResolver or BeanFactory is required");
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.channelResolver == null && beanFactory != null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
 	}
 
 	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
-		Assert.state(this.getChannelResolver() != null,
+		Assert.state(this.channelResolver != null,
 				"unable to resolve channel names, no ChannelResolver available");
 		MessageChannel channel = null;
 		try {
-			channel = this.getChannelResolver().resolveChannelName(channelName);
+			channel = this.channelResolver.resolveChannelName(channelName);
 		}
 		catch (ChannelResolutionException e) {
 			if (!this.ignoreChannelNameResolutionFailures) {

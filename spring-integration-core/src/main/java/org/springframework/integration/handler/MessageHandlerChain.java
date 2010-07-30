@@ -19,10 +19,13 @@ package org.springframework.integration.handler;
 import java.util.HashSet;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
@@ -75,6 +78,8 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
+	private volatile ChannelResolver channelResolver;
+
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
@@ -111,6 +116,10 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 			if (!this.initialized) {
 				Assert.notEmpty(this.handlers, "handler list must not be empty");
 				this.configureChain();
+				BeanFactory beanFactory = this.getBeanFactory();
+				if (this.channelResolver == null && beanFactory != null) {
+					this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+				}
 				this.initialized = true;
 			}
 		}
@@ -177,8 +186,8 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 				replyChannel = (MessageChannel) replyChannelHeader;
 			}
 			else if (replyChannelHeader instanceof String) {
-				Assert.notNull(getChannelResolver(), "ChannelResolver is required");
-				replyChannel = getChannelResolver().resolveChannelName((String) replyChannelHeader);
+				Assert.notNull(channelResolver, "ChannelResolver is required");
+				replyChannel = channelResolver.resolveChannelName((String) replyChannelHeader);
 			}
 			else {
 				throw new MessageHandlingException(message,

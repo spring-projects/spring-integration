@@ -34,7 +34,9 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
+import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.ArgumentArrayMessageMapper;
@@ -67,6 +69,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	private volatile long defaultRequestTimeout = -1;
 
 	private volatile long defaultReplyTimeout = -1;
+
+	private volatile ChannelResolver channelResolver;
 
 	private volatile TypeConverter typeConverter = new SimpleTypeConverter();
 
@@ -164,6 +168,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
+			}
+			BeanFactory beanFactory = this.getBeanFactory();
+			if (this.channelResolver == null && beanFactory != null) {
+				this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 			}
 			Class<?> proxyInterface = this.determineServiceInterface();
 			Method[] methods = proxyInterface.getDeclaredMethods();
@@ -269,24 +277,30 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		String payloadExpression = null;
 		Map<String, Object> staticHeaders = null;
 		if (gatewayAnnotation != null) {
-			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			String requestChannelName = gatewayAnnotation.requestChannel();
-			requestChannel = this.resolveChannel(requestChannel, requestChannelName);
+			if (StringUtils.hasText(requestChannelName)) {
+				requestChannel = this.resolveChannelName(requestChannelName);
+			}
 			String replyChannelName = gatewayAnnotation.replyChannel();
-			replyChannel = this.resolveChannel(replyChannel, replyChannelName);
+			if (StringUtils.hasText(replyChannelName)) {
+				replyChannel = this.resolveChannelName(replyChannelName);
+			}
 			requestTimeout = gatewayAnnotation.requestTimeout();
 			replyTimeout = gatewayAnnotation.replyTimeout();
 		}
 		else if (methodToChannelMap != null && methodToChannelMap.size() > 0) {	
-			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());	
 			if (gatewayDefinition != null) {
 				payloadExpression = gatewayDefinition.getPayloadExpression();
 				staticHeaders = gatewayDefinition.getStaticHeaders();
 				String requestChannelName = gatewayDefinition.getRequestChannelName();
-				requestChannel = this.resolveChannel(requestChannel, requestChannelName);
+				if (StringUtils.hasText(requestChannelName)) {
+					requestChannel = this.resolveChannelName(requestChannelName);
+				}
 				String replyChannelName = gatewayDefinition.getReplyChannelName();
-				replyChannel = this.resolveChannel(replyChannel, replyChannelName);
+				if (StringUtils.hasText(replyChannelName)) {
+					replyChannel = this.resolveChannelName(replyChannelName);
+				}
 				String reqTimeout = gatewayDefinition.getRequestTimeout();
 				if (StringUtils.hasText(reqTimeout)){
 					requestTimeout = this.convert(reqTimeout, Long.class);
@@ -319,11 +333,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		return gateway;
 	}
 	
-	private MessageChannel resolveChannel(MessageChannel channel, String channelName) {
-		if (StringUtils.hasText(channelName)) {
-			channel = this.getChannelResolver().resolveChannelName(channelName);
-			Assert.notNull(channel, "failed to resolve channel '" + channelName + "'");
-		}
+	private MessageChannel resolveChannelName(String channelName) {
+		Assert.state(this.channelResolver != null, "ChannelResolver is required");
+		MessageChannel channel = this.channelResolver.resolveChannelName(channelName);
+		Assert.notNull(channel, "failed to resolve channel '" + channelName + "'");
 		return channel;
 	}
 

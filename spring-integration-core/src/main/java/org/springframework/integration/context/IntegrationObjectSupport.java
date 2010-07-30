@@ -28,7 +28,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.integration.history.NamedComponent;
 import org.springframework.scheduling.TaskScheduler;
@@ -63,8 +62,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ConversionService conversionService;
-
-	private volatile ChannelResolver channelResolver;
 
 
 	public final void setBeanName(String beanName) {
@@ -124,18 +121,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 
 	protected final BeanFactory getBeanFactory() {
 		return this.beanFactory;
-	}
-
-	protected ChannelResolver getChannelResolver() {
-		if (this.channelResolver == null && this.beanFactory != null) {
-			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
-		}
-		return this.channelResolver;
-	}
-
-	protected void setChannelResolver(ChannelResolver channelResolver) {
-		Assert.notNull(channelResolver, "channelResolver must not be null");
-		this.channelResolver = channelResolver;
 	}
 
 	protected TaskScheduler getTaskScheduler() {
