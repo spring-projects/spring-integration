@@ -23,10 +23,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -45,11 +48,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessagingTemplate implements MessagingOperations, InitializingBean {
+public class MessagingTemplate implements MessagingOperations, BeanFactoryAware, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile MessageChannel defaultChannel;
+
+	private volatile ChannelResolver channelResolver;
 
 	private volatile long sendTimeout = -1;
 
@@ -66,6 +71,8 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 	private volatile int transactionTimeout = -1;
 
 	private volatile boolean readOnly = false;
+
+	private volatile BeanFactory beanFactory;
 
 	private volatile boolean initialized;
 
@@ -93,6 +100,17 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 	 */
 	public void setDefaultChannel(MessageChannel defaultChannel) {
 		this.defaultChannel = defaultChannel;
+	}
+
+	/**
+	 * Set the {@link ChannelResolver} that is to be used to resolve
+	 * {@link MessageChannel} references for this template.
+	 * <p>When running within an application context, the default resolver is a
+	 * {@link BeanFactoryChannelResolver}.
+	 */
+	public void setChannelResolver(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
 	}
 
 	/**
@@ -145,10 +163,17 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 		return this.transactionTemplate;
 	}
 
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
+
 	public void afterPropertiesSet() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
+			}
+			if (this.channelResolver == null && this.beanFactory != null) {
+				this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
 			}
 			if (this.transactionManager != null) {
 				TransactionTemplate template = new TransactionTemplate(this.transactionManager);
@@ -179,6 +204,10 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 		this.doSend(channel, message);
 	}
 
+	public <P> void send(final String channelName, final Message<P> message) {
+		this.send(this.resolveChannelName(channelName), message);
+	}
+
 	public <P> Message<P> receive() {
 		MessageChannel channel = this.getRequiredDefaultChannel();
 		Assert.state(channel instanceof PollableChannel,
@@ -196,6 +225,13 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 			});
 		}
 		return this.doReceive(channel);
+	}
+
+	public <P> Message<P> receive(String channelName) {
+		MessageChannel channel = this.resolveChannelName(channelName);
+		Assert.isInstanceOf(PollableChannel.class, channel,
+				"A PollableChannel is required for receive operations. ");
+		return this.receive((PollableChannel) channel);
 	}
 
 	public Message<?> sendAndReceive(final Message<?> request) {
@@ -260,9 +296,29 @@ public class MessagingTemplate implements MessagingOperations, InitializingBean 
 
 	private MessageChannel getRequiredDefaultChannel() {
 		Assert.state(this.defaultChannel != null,
-				"No 'defaultChannel' specified for MessageChannelTemplate. "
-				+ "Unable to invoke methods without a channel argument.");
+				"No 'defaultChannel' specified for MessagingTemplate. "
+				+ "Unable to invoke methods without an explicit channel argument.");
 		return this.defaultChannel;
+	}
+
+	private ChannelResolver getRequiredChannelResolver() {
+		Assert.state(this.channelResolver != null,
+				"No 'channelResolver' specified for MessagingTemplate. "
+				+ "Unable to invoke methods with a channel name argument.");
+		return this.channelResolver;
+	}
+
+	/**
+	 * Resolve the given channel name into a {@link MessageChannel},
+	 * via this template's {@link ChannelResolver} if available.
+	 * @param channelName the name of the channel
+	 * @return the resolved {@link MessageChannel}
+	 * @throws IllegalStateException if this template does not have a ChannelResolver
+	 * @throws ChannelResolutionException if the channel name cannot be resolved
+	 * @see #setChannelResolver
+	 */
+	protected MessageChannel resolveChannelName(String channelName) {
+		return getRequiredChannelResolver().resolveChannelName(channelName);
 	}
 
 

@@ -22,7 +22,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -30,10 +32,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -237,6 +242,108 @@ public class MessagingTemplateTests {
 		assertTrue(replies.contains("TEST1"));
 		assertTrue(replies.contains("TEST2"));
 		assertTrue(replies.contains("TEST3"));
+	}
+
+	@Test
+	public void sendByChannelName() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		template.send("testChannel", message);
+		PollableChannel channel = context.getBean("testChannel", PollableChannel.class);
+		assertEquals(message, channel.receive(0));
+	}
+
+	@Test
+	public void sendByChannelNameWithCustomChannelResolver() {
+		QueueChannel testChannel = new QueueChannel();
+		Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
+		channelMap.put("testChannel", testChannel);
+		MapBasedChannelResolver channelResolver = new MapBasedChannelResolver(channelMap);
+		MessagingTemplate template = new MessagingTemplate();
+		template.setChannelResolver(channelResolver);
+		template.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		template.send("testChannel", message);
+		assertEquals(message, testChannel.receive(0));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void sendByChannelNameWithoutChannelResolver() {
+		MessagingTemplate template = new MessagingTemplate();
+		template.send("testChannel", MessageBuilder.withPayload("test").build());
+	}
+
+	@Test(expected = ChannelResolutionException.class)
+	public void sendByChannelNameWithUnresolvableChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		template.send("noSuchChannel", message);
+	}
+
+	@Test
+	public void receiveByChannelName() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		PollableChannel channel = context.getBean("testChannel", PollableChannel.class);
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		channel.send(message);
+		assertEquals(message, template.receive("testChannel"));
+	}
+
+	@Test
+	public void receiveByChannelNameWithCustomChannelResolver() {
+		QueueChannel testChannel = new QueueChannel();
+		Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
+		channelMap.put("testChannel", testChannel);
+		MapBasedChannelResolver channelResolver = new MapBasedChannelResolver(channelMap);
+		MessagingTemplate template = new MessagingTemplate();
+		template.setChannelResolver(channelResolver);
+		template.afterPropertiesSet();
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		testChannel.send(message);
+		assertEquals(message, template.receive("testChannel"));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void receiveByChannelNameWithNonPollableChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", DirectChannel.class);
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		template.receive("testChannel");
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void receiveByChannelNameWithoutChannelResolver() {
+		MessagingTemplate template = new MessagingTemplate();
+		template.receive("testChannel");
+	}
+
+	@Test(expected = ChannelResolutionException.class)
+	public void receiveByChannelNameWithUnresolvableChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		template.receive("noSuchChannel");
 	}
 
 }

@@ -64,9 +64,10 @@ public interface MessagingOperations {
 	 * @param channelName the name of the channel to which the message will be sent
 	 * (to be resolved to an actual channel by a ChannelResolver)
 	 * @param message the message to send
+	 * @throws ChannelResolutionException if the channel name cannot be resolved
 	 * @throws MessagingException if an error occurs during message sending
 	 */
-	//TODO: <P> void send(String channelName, Message<P> message) throws MessagingException;
+	<P> void send(String channelName, Message<P> message) throws MessagingException;
 
 
 	//-------------------------------------------------------------------------
@@ -159,9 +160,10 @@ public interface MessagingOperations {
 	 * @param channelName the name of the channel from which a message should be received
 	 * (to be resolved to an actual channel by a ChannelResolver)
 	 * @return the message received from the channel or <code>null</code> if the timeout expires
+	 * @throws ChannelResolutionException if the channel name cannot be resolved
 	 * @throws MessagingException if an error occurs during message reception
 	 */
-	// TODO: <P> Message<P> receive(String channelName) throws MessagingException;
+	<P> Message<P> receive(String channelName) throws MessagingException;
 
 
 	// TODO: receiveSelected(selector), receiveSelected(channel, selector), receiveSelected(channelName, selector) ? 
