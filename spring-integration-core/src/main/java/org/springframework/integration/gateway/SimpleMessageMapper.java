@@ -34,7 +34,7 @@ public class SimpleMessageMapper implements InboundMessageMapper<Object>, Outbou
 	 * Returns the Message payload (or null if the Message is null).
 	 */
 	public Object fromMessage(Message<?> message) {
-		if (message == null || message.getPayload() == null) {
+		if (message == null) {
 			return null;
 		}
 		return message.getPayload();
