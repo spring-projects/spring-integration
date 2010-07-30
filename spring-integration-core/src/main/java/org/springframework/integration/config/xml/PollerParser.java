@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,17 +48,22 @@ import org.springframework.util.xml.DomUtils;
  */
 public class PollerParser extends AbstractBeanDefinitionParser {
 
-    public static final String MULTIPLE_TRIGGER_DEFINITIONS = "A <poller> cannot specify more than one trigger configuration.";
+	private static final String MULTIPLE_TRIGGER_DEFINITIONS = "A <poller> cannot specify more than one trigger configuration.";
 
-    public static final String NO_TRIGGER_DEFINITIONS = "A <poller> must have a one and only one trigger configuration.";
+	private static final String NO_TRIGGER_DEFINITIONS = "A <poller> must have a one and only one trigger configuration.";
+
+	private static final String PERIODIC_TRIGGER_CLASSNAME = "org.springframework.scheduling.support.PeriodicTrigger";
+
+	private static final String CRON_TRIGGER_CLASSNAME = "org.springframework.scheduling.support.CronTrigger";
 
 
-    @Override
+	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
 		String id = super.resolveId(element, definition, parserContext);
 		if (element.getAttribute("default").equals("true")) {
 			if (parserContext.getRegistry().isBeanNameInUse(IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME)) {
-				parserContext.getReaderContext().error("Only one default <poller/> element is allowed per context.", element);
+				parserContext.getReaderContext().error(
+						"Only one default <poller/> element is allowed per context.", element);
 			}
 			if (StringUtils.hasText(id)) {
 				parserContext.getRegistry().registerAlias(id, IntegrationContextUtils.DEFAULT_POLLER_METADATA_BEAN_NAME);
@@ -69,7 +74,8 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		}
 		else if (!StringUtils.hasText(id)) {
 			parserContext.getReaderContext().error(
-					"The 'id' attribute is required for a top-level poller element unless it is the default poller.", element);
+					"The 'id' attribute is required for a top-level poller element unless it is the default poller.",
+					element);
 		}
 		return id;
 	}
@@ -98,59 +104,66 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	}
 
 	private void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
-        // Polling frequency can be configured either through attributes or by using sub-elements
-        // Since Spring Integration 2.0 trigger sub-elements are deprecated
-        String triggerAttribute = pollerElement.getAttribute("trigger");
-        String fixedRateAttribute = pollerElement.getAttribute("fixed-rate");
-        String fixedDelayAttribute = pollerElement.getAttribute("fixed-delay");
-        String cronAttribute = pollerElement.getAttribute("cron");
+		// Polling frequency can be configured either through attributes or by using sub-elements
+		// However, since Spring Integration 2.0 the trigger sub-elements are deprecated
+		String triggerAttribute = pollerElement.getAttribute("trigger");
+		String fixedRateAttribute = pollerElement.getAttribute("fixed-rate");
+		String fixedDelayAttribute = pollerElement.getAttribute("fixed-delay");
+		String cronAttribute = pollerElement.getAttribute("cron");
 
 		List<String> triggerBeanNames = new ArrayList<String>();
-        if (StringUtils.hasText(triggerAttribute)) {
-            triggerBeanNames.add(triggerAttribute);
-        } else if (StringUtils.hasText(fixedRateAttribute)) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-                    "org.springframework.scheduling.support.PeriodicTrigger");
-            builder.addConstructorArgValue(fixedRateAttribute);
-            builder.addPropertyValue("fixedRate", Boolean.TRUE);
-            String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-            triggerBeanNames.add(triggerBeanName);
-        } else if (StringUtils.hasText(fixedDelayAttribute)) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-                    "org.springframework.scheduling.support.PeriodicTrigger");
-            builder.addConstructorArgValue(fixedDelayAttribute);
-            builder.addPropertyValue("fixedRate", Boolean.FALSE);
-            String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-            triggerBeanNames.add(triggerBeanName);
-        } else if (StringUtils.hasText(cronAttribute)) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-                    "org.springframework.scheduling.support.CronTrigger");
-            builder.addConstructorArgValue(cronAttribute);
-            String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-            triggerBeanNames.add(triggerBeanName);
-        }
+		if (StringUtils.hasText(triggerAttribute)) {
+			triggerBeanNames.add(triggerAttribute);
+		}
+		else if (StringUtils.hasText(fixedRateAttribute)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
+			builder.addConstructorArgValue(fixedRateAttribute);
+			builder.addPropertyValue("fixedRate", Boolean.TRUE);
+			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					builder.getBeanDefinition(), parserContext.getRegistry());
+			triggerBeanNames.add(triggerBeanName);
+		}
+		else if (StringUtils.hasText(fixedDelayAttribute)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder
+					.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
+			builder.addConstructorArgValue(fixedDelayAttribute);
+			builder.addPropertyValue("fixedRate", Boolean.FALSE);
+			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					builder.getBeanDefinition(), parserContext.getRegistry());
+			triggerBeanNames.add(triggerBeanName);
+		}
+		else if (StringUtils.hasText(cronAttribute)) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder
+					.genericBeanDefinition(CRON_TRIGGER_CLASSNAME);
+			builder.addConstructorArgValue(cronAttribute);
+			String triggerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					builder.getBeanDefinition(), parserContext.getRegistry());
+			triggerBeanNames.add(triggerBeanName);
+		}
 		Element intervalElement = DomUtils.getChildElementByTagName(pollerElement, "interval-trigger");
 		if (intervalElement != null) {
-            parserContext.getReaderContext().warning("Poller configuration via 'interval-trigger' subelements is deprecated, use attributes instead", pollerElement);
+			parserContext.getReaderContext().warning(
+					"Poller configuration via 'interval-trigger' subelements is deprecated, " +
+					"use the 'fixed-delay' or 'fixed-rate' attribute instead.", pollerElement);
 			triggerBeanNames.add(parseIntervalTrigger(intervalElement, parserContext));
 		}
 		else {
 			Element cronElement = DomUtils.getChildElementByTagName(pollerElement, "cron-trigger");
-            parserContext.getReaderContext().warning("Poller configuration via 'cron-trigger' subelements is deprecated, use attributes instead", pollerElement);            
-            if (cronElement != null) {
-                triggerBeanNames.add(parseCronTrigger(cronElement, parserContext));
-            }
+			if (cronElement != null) {
+				parserContext.getReaderContext().warning(
+						"Poller configuration via 'cron-trigger' subelements is deprecated, " +
+						"use the 'cron' attribute instead.", pollerElement);
+				triggerBeanNames.add(parseCronTrigger(cronElement, parserContext));
+			}
 		}
-        if (triggerBeanNames.isEmpty()) {
-            parserContext.getReaderContext().error(
-                    NO_TRIGGER_DEFINITIONS, pollerElement);
-        }
-        if (triggerBeanNames.size() > 1) {
-            parserContext.getReaderContext().error(
-                    MULTIPLE_TRIGGER_DEFINITIONS, pollerElement);
-        }
-        targetBuilder.addPropertyReference("trigger", triggerBeanNames.get(0));
-    }
+		if (triggerBeanNames.isEmpty()) {
+			parserContext.getReaderContext().error(NO_TRIGGER_DEFINITIONS, pollerElement);
+		}
+		if (triggerBeanNames.size() > 1) {
+			parserContext.getReaderContext().error(MULTIPLE_TRIGGER_DEFINITIONS, pollerElement);
+		}
+		targetBuilder.addPropertyReference("trigger", triggerBeanNames.get(0));
+	}
 
 	/**
 	 * Parse an "interval-trigger" element
@@ -158,11 +171,11 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	private String parseIntervalTrigger(Element element, ParserContext parserContext) {
 		String interval = element.getAttribute("interval");
 		if (!StringUtils.hasText(interval)) {
-			parserContext.getReaderContext().error("the 'interval' attribute is required for an <interval-trigger/>", element);
+			parserContext.getReaderContext().error(
+					"the 'interval' attribute is required for an <interval-trigger/>", element);
 		}
 		TimeUnit timeUnit = TimeUnit.valueOf(element.getAttribute("time-unit"));
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.scheduling.support.PeriodicTrigger");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PERIODIC_TRIGGER_CLASSNAME);
 		builder.addConstructorArgValue(interval);
 		builder.addConstructorArgValue(timeUnit);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "initial-delay");
@@ -176,17 +189,17 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	private String parseCronTrigger(Element element, ParserContext parserContext) {
 		String cronExpression = element.getAttribute("expression");
 		if (!StringUtils.hasText(cronExpression)) {
-			parserContext.getReaderContext().error("the 'expression' attribute is required for a <cron-trigger/>", element);
+			parserContext.getReaderContext().error(
+					"the 'expression' attribute is required for a <cron-trigger/>", element);
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.scheduling.support.CronTrigger");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CRON_TRIGGER_CLASSNAME);
 		builder.addConstructorArgValue(cronExpression);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 	/**
-	 * Parse a "transactional" element and configure the "transactionManager" and "transactionDefinition"
-	 * properties for the target builder.
+	 * Parse a "transactional" element and configure the "transactionManager"
+	 * and "transactionDefinition" properties for the target builder.
 	 */
 	private void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder) {
 		targetBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
