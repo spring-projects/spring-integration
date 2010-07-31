@@ -844,8 +844,8 @@ public class TcpSendingMessageHandlerTests {
 		ccf.setInputConverter(converter);
 		ccf.setOutputConverter(converter);
 		ccf.setSoTimeout(10000);
-		ccf.start();
 		ccf.setSingleUse(true);
+		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
@@ -856,10 +856,10 @@ public class TcpSendingMessageHandlerTests {
 		for (int i = 100; i < 200; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("Test" + i).build());
 		}
-		assertTrue(semaphore.tryAcquire(10, 10000, TimeUnit.MILLISECONDS));
+		assertTrue(semaphore.tryAcquire(100, 20000, TimeUnit.MILLISECONDS));
 		Set<String> replies = new HashSet<String>();
 		for (int i = 100; i < 200; i++) {
-			Message<?> mOut = channel.receive(10000);
+			Message<?> mOut = channel.receive(20000);
 			assertNotNull(mOut);
 			replies.add(new String((byte[])mOut.getPayload()));
 		}

@@ -99,7 +99,13 @@ public class TcpNioConnectionTests {
 		try {
 			TcpNioConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
-			Thread.sleep(2000);
+			int n = 0;
+			while (connection.isOpen()) {
+				Thread.sleep(100);
+				if (n++ > 200) {
+					break;
+				}
+			}
 			assertTrue(!connection.isOpen());
 		} catch (Exception e) {
 			fail("Unexptected exception " + e);
