@@ -150,7 +150,7 @@ public class NetSocketReader extends AbstractSocketReader {
 		} catch (EOFException ee) {
 			return SOCKET_CLOSED;
 		} catch (ClassNotFoundException e) {
-			throw new IOException(e);
+			throw new IOException(e.getMessage());
 		}
 		return SocketReader.MESSAGE_COMPLETE;
 	}

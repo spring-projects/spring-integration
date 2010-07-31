@@ -34,16 +34,8 @@ public class SoftEndOfStreamException extends IOException {
 		super();
 	}
 
-	public SoftEndOfStreamException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
 	public SoftEndOfStreamException(String message) {
 		super(message);
-	}
-
-	public SoftEndOfStreamException(Throwable cause) {
-		super(cause);
 	}
 
 }

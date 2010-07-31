@@ -338,17 +338,17 @@ public class SocketUtils {
 	}
 	
 	public static String chooseANic(boolean multicast) throws Exception {
-		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();	
-		while (interfaces.hasMoreElements()) {
-			NetworkInterface intface = interfaces.nextElement();
-			if (intface.isLoopback() || (multicast && !intface.supportsMulticast()))
-				continue;
-			Enumeration<InetAddress> inet = intface.getInetAddresses();
-			if (!inet.hasMoreElements()) 
-				continue;
-			String address = inet.nextElement().getHostAddress();
-			return address;
-		}
+//		Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();	
+//		while (interfaces.hasMoreElements()) {
+//			NetworkInterface intface = interfaces.nextElement();
+//			if (intface.isLoopback() || (multicast && !intface.supportsMulticast()))
+//				continue;
+//			Enumeration<InetAddress> inet = intface.getInetAddresses();
+//			if (!inet.hasMoreElements()) 
+//				continue;
+//			String address = inet.nextElement().getHostAddress();
+//			return address;
+//		}
 		return null;
 	}
 	
