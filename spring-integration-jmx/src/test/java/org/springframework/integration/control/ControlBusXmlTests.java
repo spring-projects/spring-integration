@@ -72,7 +72,7 @@ public class ControlBusXmlTests {
 	@Test
 	public void anonymousConsumerRegistered() throws Exception {
 		Set<ObjectInstance> instances = mbeanServer.queryMBeans(
-				ObjectNameManager.getInstance(DOMAIN + ":type=endpoint,name=anonymous,generated=*"), null);
+				ObjectNameManager.getInstance(DOMAIN + ":type=endpoint,name=anonymous,*"), null);
 		assertEquals(1, instances.size());
 		assertEquals(EventDrivenConsumer.class.getName(), instances.iterator().next().getClassName());
 	}
