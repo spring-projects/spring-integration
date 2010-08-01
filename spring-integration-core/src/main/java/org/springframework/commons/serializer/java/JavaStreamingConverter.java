@@ -49,7 +49,7 @@ public class JavaStreamingConverter
 			if (objectInputStream != null) {
 				objectInputStream.close();
 			}
-			throw new IOException(e);
+			throw new IOException(e.getMessage());
 		}
 	}
 
