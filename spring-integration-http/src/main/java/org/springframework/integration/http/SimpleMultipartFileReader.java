@@ -52,7 +52,7 @@ public class SimpleMultipartFileReader implements MultipartFileReader<Object> {
 			if (charset == null) {
 				charset = defaultCharset;
 			}
-			return new String(multipartFile.getBytes(), charset);
+			return new String(multipartFile.getBytes(), charset.name());
 		}
 		else {
 			return multipartFile.getBytes();
