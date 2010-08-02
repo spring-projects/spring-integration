@@ -19,15 +19,13 @@ package org.springframework.integration.handler;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.MapAccessor;
-import org.springframework.expression.AccessException;
-import org.springframework.expression.BeanResolver;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.SimpleBeanResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -73,11 +71,7 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	 */
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			this.getEvaluationContext().setBeanResolver(new BeanResolver() {
-				public Object resolve(EvaluationContext context, String beanName) throws AccessException {
-					return beanFactory.getBean(beanName);
-				}
-			});
+			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
 		}
 	}
 

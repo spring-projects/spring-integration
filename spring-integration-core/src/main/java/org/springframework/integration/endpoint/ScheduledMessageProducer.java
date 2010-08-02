@@ -21,13 +21,11 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.expression.AccessException;
-import org.springframework.expression.BeanResolver;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.integration.context.SimpleBeanResolver;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
@@ -85,11 +83,9 @@ public class ScheduledMessageProducer extends MessageProducerSupport {
 	protected void onInit() {
 		super.onInit();
 		final BeanFactory beanFactory = this.getBeanFactory();
-		this.context.setBeanResolver(new BeanResolver() {
-			public Object resolve(EvaluationContext context, String beanName) throws AccessException {
-				return beanFactory.getBean(beanName);
-			}
-		});
+		if (beanFactory != null) {
+			this.context.setBeanResolver(new SimpleBeanResolver(beanFactory));
+		}
 	}
 
 	@Override

@@ -22,9 +22,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.expression.AccessException;
-import org.springframework.expression.BeanResolver;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -34,6 +31,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.SimpleBeanResolver;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.transformer.MessageTransformationException;
 
@@ -79,11 +77,7 @@ public class ExpressionEvaluatingMessageListProcessor implements BeanFactoryAwar
 	 */
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			this.getEvaluationContext().setBeanResolver(new BeanResolver() {
-				public Object resolve(EvaluationContext context, String beanName) throws AccessException {
-					return beanFactory.getBean(beanName);
-				}
-			});
+			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
 		}
 	}
 

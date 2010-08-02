@@ -28,9 +28,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
-import org.springframework.expression.AccessException;
 import org.springframework.expression.BeanResolver;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -39,6 +37,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.context.SimpleBeanResolver;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
@@ -141,11 +140,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			this.beanResolver = new BeanResolver() {
-				public Object resolve(EvaluationContext context, String beanName) throws AccessException {
-					return beanFactory.getBean(beanName);
-				}
-			};
+			this.beanResolver = new SimpleBeanResolver(beanFactory);
 			this.staticEvaluationContext.setBeanResolver(beanResolver);
 		}
 	}
