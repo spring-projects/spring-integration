@@ -16,18 +16,20 @@
 
 package org.springframework.integration.ws;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.ws.server.endpoint.AbstractMarshallingPayloadEndpoint;
 
 /**
@@ -35,8 +37,9 @@ import org.springframework.ws.server.endpoint.AbstractMarshallingPayloadEndpoint
  * @since 1.0.2
  */
 public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayloadEndpoint
-		implements BeanNameAware, BeanFactoryAware, InitializingBean, Lifecycle {
+		implements BeanNameAware, BeanFactoryAware, InitializingBean, SmartLifecycle {
 
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
 	private final SimpleMessagingGateway gatewayDelegate = new SimpleMessagingGateway();
 
 
@@ -127,15 +130,61 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 	// Lifecycle implementation
 
 	public boolean isRunning() {
-		return this.gatewayDelegate.isRunning();
+		this.lifecycleLock.lock();
+		try {
+			return this.gatewayDelegate.isRunning();
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
 	public void start() {
-		this.gatewayDelegate.start();
+		this.lifecycleLock.lock();
+		try {
+			if (!gatewayDelegate.isRunning()) {
+				this.gatewayDelegate.start();
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
 	public void stop() {
-		this.gatewayDelegate.stop();
+		this.lifecycleLock.lock();
+		try {
+			if (gatewayDelegate.isRunning()) {
+				this.gatewayDelegate.stop();
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
+	public boolean isAutoStartup() {
+		return true;
+	}
+
+	public void stop(Runnable callback) {
+		this.lifecycleLock.lock();
+		try {
+			this.stop();
+			callback.run();
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public int getPhase() {
+		return 0;
+	}
 }

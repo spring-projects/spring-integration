@@ -17,6 +17,7 @@ package org.springframework.integration.ws.config;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,5 +88,6 @@ public class WebServiceInboundGatewayParserTests {
 				is(marshaller));
 		assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
 				is(marshaller));
+		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
 	}
 }
