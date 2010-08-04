@@ -14,6 +14,9 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,10 +25,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationException;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.StringMessage;
@@ -48,6 +51,28 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	public void testProcessMessage() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload");
 		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+	}
+
+	@Test
+	public void testProcessMessageWithParameterCoercion() {
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.stringify(payload)");
+		processor.getEvaluationContext().setVariable("target", new TestTarget());
+		assertEquals("2", processor.processMessage(new StringMessage("2")));
+	}
+
+	@Test
+	public void testProcessMessageWithVoidResult() {
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.ping(payload)");
+		processor.getEvaluationContext().setVariable("target", new TestTarget());
+		assertEquals(null, processor.processMessage(new StringMessage("2")));
+	}
+
+	@Test
+	public void testProcessMessageWithParameterCoercionToNonPrimitive() {
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.find(payload)");
+		processor.getEvaluationContext().setVariable("target", new TestTarget());
+		String result = (String) processor.processMessage(new StringMessage("classpath:*.properties"));
+		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
 	}
 
 	@Test
@@ -162,6 +187,22 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private static class TestTarget {
+
+		public String stringify(int number) {
+			return number+"";
+		}
+
+		public String find(Resource[] resources) {
+			return Arrays.asList(resources).toString();
+		}
+
+		public void ping(String input) {
+		}
+
+	}
+
 
 	@SuppressWarnings("serial")
 	private static final class CheckedException extends Exception {
@@ -169,5 +210,5 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			super(string);
 		}
 	}
-
+ 
 }

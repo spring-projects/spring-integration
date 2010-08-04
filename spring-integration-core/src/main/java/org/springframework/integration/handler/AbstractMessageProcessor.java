@@ -16,26 +16,38 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.util.BeanFactoryTypeConverter;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
-public abstract class AbstractMessageProcessor implements MessageProcessor {
+public abstract class AbstractMessageProcessor implements MessageProcessor, BeanFactoryAware {
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-
+	
+	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
+	
+	public AbstractMessageProcessor() {
+		evaluationContext.setTypeConverter(typeConverter);
+	}
+	
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		typeConverter.setBeanFactory(beanFactory);
+	}
 
 	public void setConversionService(ConversionService conversionService) {
 		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+			typeConverter.setConversionService(conversionService);
 		}
 	}
 

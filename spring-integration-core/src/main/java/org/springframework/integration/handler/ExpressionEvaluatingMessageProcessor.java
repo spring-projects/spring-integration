@@ -70,6 +70,7 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
 	 */
 	public void setBeanFactory(final BeanFactory beanFactory) {
+		super.setBeanFactory(beanFactory);
 		if (beanFactory != null) {
 			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
 		}

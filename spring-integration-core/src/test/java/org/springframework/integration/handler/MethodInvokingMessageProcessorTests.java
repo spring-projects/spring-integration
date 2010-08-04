@@ -32,7 +32,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
-import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
@@ -151,6 +150,14 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	@Test
+	public void testPayloadCoercedToString() {
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
+				new TestBean(), "acceptPayloadAndReturnObject");
+		Object result = processor.processMessage(new GenericMessage<Integer>(123456789));
+		assertEquals("123456789-1", result);
+	}
+
+	@Test
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
 				new TestBean(), "acceptPayloadAndReturnMessage");
@@ -260,7 +267,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageBadExpression() throws Exception {
-		expected.expect(new ExceptionCauseMatcher(ConversionFailedException.class));
+		expected.expect(new ExceptionCauseMatcher(NumberFormatException.class));
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
@@ -310,7 +317,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void filterSelectsAnnotationMethodsOnly() {
-		AmbiguousMethodBean bean = new AmbiguousMethodBean();
+		OverloadedMethodBean bean = new OverloadedMethodBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, ServiceActivator.class);
 		processor.processMessage(MessageBuilder.withPayload(123).build());
 		assertNotNull(bean.lastArg);
@@ -320,7 +327,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void filterSelectsNonVoidReturningMethodsOnly() {
-		AmbiguousMethodBean bean = new AmbiguousMethodBean();
+		OverloadedMethodBean bean = new OverloadedMethodBean();
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo", true);
 		processor.processMessage(MessageBuilder.withPayload(true).build());
 		assertNotNull(bean.lastArg);
@@ -328,7 +335,16 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals("true", bean.lastArg);
 	}
 	
-	
+	@Test
+	public void testOverloadedNonVoidReturningMethodsWithExactMatchForType() {
+		AmbiguousMethodBean bean = new AmbiguousMethodBean();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(bean, "foo", true);
+		processor.processMessage(MessageBuilder.withPayload("true").build());
+		assertNotNull(bean.lastArg);
+		assertEquals(String.class, bean.lastArg.getClass());
+		assertEquals("true", bean.lastArg);
+	}
+		
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
 		private Class<? extends Exception> type;
@@ -462,7 +478,6 @@ public class MethodInvokingMessageProcessorTests {
 			this.lastArg = b;
 		}
 
-		@ServiceActivator
 		public String foo(String s) {
 			this.lastArg = s;
 			return s;
@@ -475,4 +490,24 @@ public class MethodInvokingMessageProcessorTests {
 
 	}
 
+	/**
+	 * Method names create ambiguities, but the MethodResolver implementation
+	 * should filter out based on the annotation or the 'requiresReply' flag.
+	 */
+	@SuppressWarnings("unused")
+	private static class OverloadedMethodBean {
+
+		private volatile Object lastArg = null;
+
+		public void foo(boolean b) {
+			this.lastArg = b;
+		}
+
+		@ServiceActivator
+		public String foo(String s) {
+			this.lastArg = s;
+			return s;
+		}
+
+	}
 }
