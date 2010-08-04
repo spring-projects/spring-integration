@@ -6,3 +6,5 @@ spring-integration-samples/loanshark/application.log*
 integration-repo
 spring-integration-jms/activemq-data/
 si.java.hsp
+*/src/main/java/META-INF
+spring-integration-parent/.project

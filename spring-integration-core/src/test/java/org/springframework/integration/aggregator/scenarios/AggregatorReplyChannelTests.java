@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.aggregator;
+package org.springframework.integration.aggregator.scenarios;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
