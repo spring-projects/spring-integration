@@ -15,10 +15,13 @@ package org.springframework.integration.aggregator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,6 +36,7 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -50,8 +54,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	@SuppressWarnings("unchecked")
-	public final void processAndSend(MessageGroup group, MessagingTemplate channelTemplate,
-			MessageChannel outputChannel) {
+	public final void processAndSend(MessageGroup group, MessagingTemplate channelTemplate, MessageChannel outputChannel) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		Object payload = this.aggregatePayloads(group);
@@ -74,13 +77,31 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 			MessageHeaders currentHeaders = message.getHeaders();
 			for (String key : currentHeaders.keySet()) {
 				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
-						|| MessageHeaders.SEQUENCE_SIZE.equals(key)) {
+						|| MessageHeaders.SEQUENCE_SIZE.equals(key) || MessageHeaders.SEQUENCE_NUMBER.equals(key)
+						|| MessageHeaders.CORRELATION_ID.equals(key)) {
+					continue;
+				}
+				if (AbstractMessageSplitter.SEQUENCE_DETAILS.equals(key) && !aggregatedHeaders.containsKey(MessageHeaders.CORRELATION_ID)) {
+					@SuppressWarnings("unchecked")
+					List<Object[]> incomingSequenceDetails = new ArrayList<Object[]>(currentHeaders
+							.get(key, List.class));
+					Object[] sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
+					Assert.state(sequenceDetails.length == 3, "Wrong sequence details (not created by splitter?): "
+							+ Arrays.asList(sequenceDetails));
+					aggregatedHeaders.put(MessageHeaders.CORRELATION_ID, sequenceDetails[0]);
+					aggregatedHeaders.put(MessageHeaders.SEQUENCE_NUMBER, sequenceDetails[1]);
+					aggregatedHeaders.put(MessageHeaders.SEQUENCE_SIZE, sequenceDetails[2]);
+					if (!incomingSequenceDetails.isEmpty()) {
+						aggregatedHeaders.put(AbstractMessageSplitter.SEQUENCE_DETAILS, incomingSequenceDetails);
+					}
+					System.err.println(aggregatedHeaders);
 					continue;
 				}
 				Object value = currentHeaders.get(key);
 				if (!aggregatedHeaders.containsKey(key)) {
 					aggregatedHeaders.put(key, value);
-				} else if (!value.equals(aggregatedHeaders.get(key))) {
+				}
+				else if (!value.equals(aggregatedHeaders.get(key))) {
 					conflictKeys.add(key);
 				}
 			}

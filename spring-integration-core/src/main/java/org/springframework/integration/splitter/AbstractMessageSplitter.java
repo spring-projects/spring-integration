@@ -18,6 +18,7 @@ package org.springframework.integration.splitter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,8 +31,11 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
  * Base class for Message-splitting handlers.
  * 
  * @author Mark Fisher
+ * @author Dave Syer
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
+
+	public static final String SEQUENCE_DETAILS = MessageHeaders.PREFIX + "sequenceDetails";
 
 	@Override
 	@SuppressWarnings("unchecked")
@@ -40,15 +44,29 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		if (result == null) {
 			return null;
 		}
-		Object correlationId = (message.getHeaders().getCorrelationId() != null) ? 
-				message.getHeaders().getCorrelationId() : message.getHeaders().getId();
+		MessageHeaders headers = message.getHeaders();
+		Object incomingCorrelationId = headers.getCorrelationId();
+		List<Object[]> incomingSequenceDetails = headers.get(SEQUENCE_DETAILS, List.class);
+		if (incomingCorrelationId != null) {
+			if (incomingSequenceDetails == null) {
+				incomingSequenceDetails = new ArrayList<Object[]>();
+			}
+			else {
+				incomingSequenceDetails = new ArrayList<Object[]>(incomingSequenceDetails);
+			}
+			incomingSequenceDetails.add(new Object[] { incomingCorrelationId, headers.getSequenceNumber(),
+					headers.getSequenceSize() });
+			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
+		}
+		Object correlationId = headers.getId();
 		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(item, correlationId, ++sequenceNumber, sequenceSize));
+				messageBuilders.add(this.createBuilder(item, incomingSequenceDetails, correlationId, ++sequenceNumber,
+						sequenceSize));
 			}
 		}
 		else if (result.getClass().isArray()) {
@@ -56,23 +74,26 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.length;
 			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(item, correlationId, ++sequenceNumber, sequenceSize));
+				messageBuilders.add(this.createBuilder(item, incomingSequenceDetails, correlationId, ++sequenceNumber,
+						sequenceSize));
 			}
 		}
 		else {
-			messageBuilders.add(this.createBuilder(result, correlationId, 1, 1));
+			messageBuilders.add(this.createBuilder(result, incomingSequenceDetails, correlationId, 1, 1));
 		}
 		return messageBuilders;
 	}
 
 	@SuppressWarnings("unchecked")
-	private MessageBuilder createBuilder(Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
-		MessageBuilder builder = (item instanceof Message) ?
-				MessageBuilder.fromMessage((Message) item) : MessageBuilder.withPayload(item);
-		builder.setCorrelationId(correlationId)
-				.setSequenceNumber(sequenceNumber)
-				.setSequenceSize(sequenceSize)
+	private MessageBuilder createBuilder(Object item, List<Object[]> incomingSequenceDetails, Object correlationId,
+			int sequenceNumber, int sequenceSize) {
+		MessageBuilder builder = (item instanceof Message) ? MessageBuilder.fromMessage((Message) item)
+				: MessageBuilder.withPayload(item);
+		builder.setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize)
 				.setHeader(MessageHeaders.ID, UUID.randomUUID());
+		if (incomingSequenceDetails != null) {
+			builder.setHeader(SEQUENCE_DETAILS, incomingSequenceDetails);
+		}
 		return builder;
 	}
 
@@ -95,12 +116,10 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	/**
-	 * Subclasses must override this method to split the received Message. The
-	 * return value may be a Collection or Array. The individual elements may
-	 * be Messages, but it is not necessary. If the elements are not Messages,
-	 * each will be provided as the payload of a Message. It is also acceptable
-	 * to return a single Object or Message. In that case, a single reply
-	 * Message will be produced.
+	 * Subclasses must override this method to split the received Message. The return value may be a Collection or
+	 * Array. The individual elements may be Messages, but it is not necessary. If the elements are not Messages, each
+	 * will be provided as the payload of a Message. It is also acceptable to return a single Object or Message. In that
+	 * case, a single reply Message will be produced.
 	 */
 	protected abstract Object splitMessage(Message<?> message);
 

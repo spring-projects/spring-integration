@@ -20,13 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 
 /**
@@ -123,8 +123,10 @@ public class CorrelationIdTests {
 		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(correlationIdForTest, reply1.getHeaders().getCorrelationId());
-		assertEquals(correlationIdForTest, reply2.getHeaders().getCorrelationId());		
+		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());		
+		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(AbstractMessageSplitter.SEQUENCE_DETAILS));
+		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(AbstractMessageSplitter.SEQUENCE_DETAILS));
 	}
 
 	@SuppressWarnings("unused")
