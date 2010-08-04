@@ -81,7 +81,8 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 						|| MessageHeaders.CORRELATION_ID.equals(key)) {
 					continue;
 				}
-				if (AbstractMessageSplitter.SEQUENCE_DETAILS.equals(key) && !aggregatedHeaders.containsKey(MessageHeaders.CORRELATION_ID)) {
+				if (AbstractMessageSplitter.SEQUENCE_DETAILS.equals(key)
+						&& !aggregatedHeaders.containsKey(MessageHeaders.CORRELATION_ID)) {
 					@SuppressWarnings("unchecked")
 					List<Object[]> incomingSequenceDetails = new ArrayList<Object[]>(currentHeaders
 							.get(key, List.class));
@@ -89,12 +90,15 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 					Assert.state(sequenceDetails.length == 3, "Wrong sequence details (not created by splitter?): "
 							+ Arrays.asList(sequenceDetails));
 					aggregatedHeaders.put(MessageHeaders.CORRELATION_ID, sequenceDetails[0]);
-					aggregatedHeaders.put(MessageHeaders.SEQUENCE_NUMBER, sequenceDetails[1]);
-					aggregatedHeaders.put(MessageHeaders.SEQUENCE_SIZE, sequenceDetails[2]);
+					Integer sequenceNumber = (Integer) sequenceDetails[1];
+					Integer sequenceSize = (Integer) sequenceDetails[2];
+					if (sequenceSize > 0) {
+						aggregatedHeaders.put(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
+						aggregatedHeaders.put(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
+					}
 					if (!incomingSequenceDetails.isEmpty()) {
 						aggregatedHeaders.put(AbstractMessageSplitter.SEQUENCE_DETAILS, incomingSequenceDetails);
 					}
-					System.err.println(aggregatedHeaders);
 					continue;
 				}
 				Object value = currentHeaders.get(key);
