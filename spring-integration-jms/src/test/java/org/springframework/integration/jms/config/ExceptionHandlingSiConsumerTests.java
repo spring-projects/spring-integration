@@ -23,6 +23,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -37,7 +38,7 @@ import org.springframework.jms.core.MessageCreator;
  */
 public class ExceptionHandlingSiConsumerTests {
 	
-	@Test
+	@Test @Ignore
 	public void nonSiProducer_siConsumer_sync_withReturn() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
@@ -57,7 +58,7 @@ public class ExceptionHandlingSiConsumerTests {
 		Assert.assertNotNull(message);
 		applicationContext.close();  
 	}
-	@Test
+	@Test @Ignore
 	public void nonSiProducer_siConsumer_sync_withReturnNoException() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
@@ -78,7 +79,7 @@ public class ExceptionHandlingSiConsumerTests {
 		applicationContext.close();  
 	}
 
-	@Test
+	@Test @Ignore
 	public void nonSiProducer_siConsumer_sync_withOutboundGateway() throws Exception{
 		ActiveMqTestUtils.prepare();
 		final ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
