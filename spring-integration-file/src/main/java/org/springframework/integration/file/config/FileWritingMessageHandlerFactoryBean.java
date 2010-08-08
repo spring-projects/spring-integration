@@ -20,8 +20,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.file.FileNameGenerator;
@@ -31,14 +29,13 @@ import java.io.File;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  * @since 1.0.3
  */
 public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWritingMessageHandler>,
-		BeanFactoryAware, ResourceLoaderAware {
+		BeanFactoryAware {
 
 	private volatile FileWritingMessageHandler handler;
-
-	private volatile ResourceLoader resourceLoader;
 
 	private volatile BeanFactory beanFactory;
 
@@ -63,11 +60,6 @@ public class FileWritingMessageHandlerFactoryBean implements FactoryBean<FileWri
 	private volatile Integer order;
 
 	private final Object initializationMonitor = new Object();
-
-
-	public void setResourceLoader(ResourceLoader resourceLoader) {
-		this.resourceLoader = resourceLoader;
-	}
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
