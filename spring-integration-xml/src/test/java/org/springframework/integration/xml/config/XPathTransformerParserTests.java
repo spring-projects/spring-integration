@@ -139,7 +139,6 @@ public class XPathTransformerParserTests {
 	@SuppressWarnings("unused")
 	private static class TestNodeMapper implements NodeMapper {
 
-		@Override
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent() + "-mapped";
 		}
