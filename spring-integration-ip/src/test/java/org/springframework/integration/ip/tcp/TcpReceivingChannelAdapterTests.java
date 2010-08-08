@@ -22,7 +22,11 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,10 +38,14 @@ import java.util.concurrent.Executors;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
 import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
@@ -575,6 +583,190 @@ public class TcpReceivingChannelAdapterTests {
 			readFully(sockets.remove(0).getInputStream(), b);
 			assertEquals("Test" + i + "\r\n", new String(b));
 		}
+	}
+	
+	@Test
+	public void newTestNetInterceptors() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		interceptorsGuts(port, scf);
+	}
+
+	@Test
+	public void newTestNetSingleNoOutboundInterceptors() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		singleNoOutboundInterceptorsGuts(port, scf);
+	}
+
+	@Test
+	public void newTestNetSingleSharedInterceptors() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNetServerConnectionFactory(port);
+		singleSharedInterceptorsGuts(port, scf);
+	}
+	
+	@Test
+	public void newTestNioInterceptors() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
+		interceptorsGuts(port, scf);
+	}
+
+	@Test
+	public void newTestNioSingleNoOutboundInterceptors() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
+		singleNoOutboundInterceptorsGuts(port, scf);
+	}
+
+	@Test
+	public void newTestNioSingleSharedInterceptors() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
+		singleSharedInterceptorsGuts(port, scf);
+	}
+
+	private void interceptorsGuts(final int port,
+			AbstractServerConnectionFactory scf) throws Exception {
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		scf.setInputConverter(converter);
+		scf.setOutputConverter(converter);
+		scf.setSingleUse(false);		
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+            		     {new HelloWorldInterceptorFactory(),
+               		      new HelloWorldInterceptorFactory()});
+		scf.setInterceptorFactoryChain(fc);
+		scf.setSoTimeout(10000);
+		scf.start();
+		int n = 0;
+		while (!scf.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				fail("Failed to start listening");
+			}
+		}
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.setSoTimeout(10000);
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test2");
+		Message<?> message = channel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Test1", message.getPayload());
+		message = channel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Test2", message.getPayload());
+	}
+
+	private void singleNoOutboundInterceptorsGuts(final int port,
+			AbstractServerConnectionFactory scf) throws Exception {
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		scf.setInputConverter(converter);
+		scf.setOutputConverter(converter);
+		scf.setSingleUse(true);
+		scf.setSoTimeout(10000);
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+            		     {new HelloWorldInterceptorFactory(),
+               		      new HelloWorldInterceptorFactory()});
+		scf.setInterceptorFactoryChain(fc);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		scf.start();
+		int n = 0;
+		while (!scf.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				fail("Failed to start listening");
+			}
+		}
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
+		socket.setSoTimeout(10000);
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
+		socket = SocketFactory.getDefault().createSocket("localhost", port);
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
+		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test2");
+		Message<?> message = channel.receive(10000);
+		assertNotNull(message);
+		// with single use, results may come back in a different order
+		Set<Object> results = new HashSet<Object>();
+		results.add(message.getPayload());
+		message = channel.receive(10000);
+		assertNotNull(message);
+		results.add(message.getPayload());
+		assertTrue(results.contains("Test1"));
+		assertTrue(results.contains("Test2"));
+	}
+
+	private void singleSharedInterceptorsGuts(final int port,
+			AbstractServerConnectionFactory scf) throws Exception {
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		scf.setInputConverter(converter);
+		scf.setOutputConverter(converter);
+		scf.setSingleUse(true);
+		scf.setSoTimeout(60000);
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+            		     {new HelloWorldInterceptorFactory(),
+               		      new HelloWorldInterceptorFactory()});
+		scf.setInterceptorFactoryChain(fc);
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(scf);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(scf);
+		scf.start();
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		int n = 0;
+		while (!scf.isListening()) {
+			Thread.sleep(100);
+			if (n++ > 100) {
+				fail("Failed to listen");
+			}
+		}
+		Socket socket1 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket1.setSoTimeout(60000);
+		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket1.getInputStream()).readObject());
+		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket1.getInputStream()).readObject());
+		new ObjectOutputStream(socket1.getOutputStream()).writeObject("Test1");
+
+		Socket socket2 = SocketFactory.getDefault().createSocket("localhost", port);
+		socket2.setSoTimeout(60000);
+		new ObjectOutputStream(socket2.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket2.getInputStream()).readObject());
+		new ObjectOutputStream(socket2.getOutputStream()).writeObject("Hello");
+		assertEquals("world!", new ObjectInputStream(socket2.getInputStream()).readObject());
+		new ObjectOutputStream(socket2.getOutputStream()).writeObject("Test2");
+
+		Message<?> message = channel.receive(10000);
+		assertNotNull(message);
+		handler.handleMessage(message);
+		message = channel.receive(10000);
+		assertNotNull(message);
+		handler.handleMessage(message);
+		
+		assertEquals("Test1", new ObjectInputStream(socket1.getInputStream()).readObject());
+		assertEquals("Test2", new ObjectInputStream(socket2.getInputStream()).readObject());
 	}
 	
 	

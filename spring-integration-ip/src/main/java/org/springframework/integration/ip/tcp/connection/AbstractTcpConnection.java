@@ -36,10 +36,10 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected InputStreamingConverter inputConverter;
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	protected OutputStreamingConverter outputConverter;
 	
 	protected TcpMessageMapper mapper;
@@ -49,7 +49,15 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	protected TcpSender sender;
 
 	protected boolean singleUse;
+
+	protected final boolean server;
+
+	protected String connectionId;
 	
+	public AbstractTcpConnection(boolean server) {
+		this.server = server;
+	}
+
 	/**
 	 * Closes this connection.
 	 */
@@ -79,10 +87,26 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	}
 
 	/**
+	 * 
+	 * @return the input converter
+	 */
+	public InputStreamingConverter<?> getInputConverter() {
+		return inputConverter;
+	}
+
+	/**
 	 * @param inputConverter the input converter to set
 	 */
 	public void setInputConverter(InputStreamingConverter<?> inputConverter) {
 		this.inputConverter = inputConverter;
+	}
+
+	/**
+	 * 
+	 * @return the output converter
+	 */
+	public OutputStreamingConverter<?> getOutputConverter() {
+		return outputConverter;
 	}
 
 	/**
@@ -133,6 +157,10 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	 */
 	public boolean isSingleUse() {
 		return this.singleUse;
+	}
+
+	public boolean isServer() {
+		return server;
 	}
 
 }

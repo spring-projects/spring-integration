@@ -79,6 +79,8 @@ public abstract class AbstractConnectionFactory
 
 	protected boolean active;
 
+	protected TcpConnectionInterceptorFactoryChain interceptorFactoryChain;
+
 	/**
 	 * Sets socket attributes on the socket.
 	 * @param socket The socket.
@@ -271,6 +273,13 @@ public abstract class AbstractConnectionFactory
 	}
 
 	/**
+	 * @return the singleUse
+	 */
+	public boolean isSingleUse() {
+		return singleUse;
+	}
+
+	/**
 	 * If true, sockets created by this factory will be used once.
 	 * @param singleUse
 	 */
@@ -278,8 +287,13 @@ public abstract class AbstractConnectionFactory
 		this.singleUse = singleUse;
 	}
 
+	
 	public void setPoolSize(int poolSize) {
 		this.poolSize = poolSize;
+	}
+
+	public void setInterceptorFactoryChain(TcpConnectionInterceptorFactoryChain interceptorFactoryChain) {
+		this.interceptorFactoryChain = interceptorFactoryChain;
 	}
 
 	/**
@@ -305,6 +319,23 @@ public abstract class AbstractConnectionFactory
 	public void stop() {
 		this.active = false;
 		this.close();
+	}
+
+	protected TcpConnection wrapConnection(TcpConnection connection) throws Exception {
+		if (this.interceptorFactoryChain == null) {
+			return connection;
+		}
+		for (TcpConnectionInterceptorFactory factory :
+				this.interceptorFactoryChain.getInterceptorFactories()) {
+			TcpConnectionInterceptor wrapper = factory.getInterceptor();
+			wrapper.setTheConnection(connection);
+			// if no ultimate listener, register each wrapper in turn
+			if (this.listener == null) {
+				connection.registerListener(wrapper);
+			}
+			connection = wrapper;
+		}
+		return connection;
 	}
 
 	

@@ -107,9 +107,21 @@ public interface TcpConnection extends Runnable {
 	public boolean isSingleUse(); 
 	
 	/**
+	 * 
+	 * @return True if connection is used once.
+	 */
+	public boolean isServer(); 
+	
+	/**
 	 * @param mapper the mapper
 	 */
 	public void setMapper(TcpMessageMapper mapper);
+
+	/**
+	 * 
+	 * @return the input converter
+	 */
+	public InputStreamingConverter<?> getInputConverter();
 
 	/**
 	 * @param inputConverter the inputConverter to set
@@ -117,8 +129,19 @@ public interface TcpConnection extends Runnable {
 	public void setInputConverter(InputStreamingConverter<?> inputConverter);
 
 	/**
+	 * 
+	 * @return the output converter
+	 */
+	public OutputStreamingConverter<?> getOutputConverter();
+	
+	/**
 	 * @param outputConverter the outputConverter to set
 	 */
 	public void setOutputConverter(OutputStreamingConverter<?> outputConverter);
+	
+	/**
+	 * @return this connection's listener
+	 */
+	public TcpListener getListener();
 	
 }

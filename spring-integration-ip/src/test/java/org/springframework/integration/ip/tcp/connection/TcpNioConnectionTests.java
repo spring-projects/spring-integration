@@ -64,7 +64,7 @@ public class TcpNioConnectionTests {
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		try {
-			TcpNioConnection connection = factory.getConnection();
+			TcpConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload(new byte[1000000]).build());
 		} catch (Exception e) {
 			assertTrue("Expected SocketTimeoutException, got " + e.getClass().getSimpleName() + 
@@ -97,7 +97,7 @@ public class TcpNioConnectionTests {
 		});
 		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		try {
-			TcpNioConnection connection = factory.getConnection();
+			TcpConnection connection = factory.getConnection();
 			connection.send(MessageBuilder.withPayload("Test").build());
 			int n = 0;
 			while (connection.isOpen()) {
@@ -108,7 +108,7 @@ public class TcpNioConnectionTests {
 			}
 			assertTrue(!connection.isOpen());
 		} catch (Exception e) {
-			fail("Unexptected exception " + e);
+			fail("Unexpected exception " + e);
 		}
 
 	}

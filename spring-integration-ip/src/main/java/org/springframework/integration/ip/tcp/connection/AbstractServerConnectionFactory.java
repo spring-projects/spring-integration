@@ -65,7 +65,9 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	 * @param socket The new socket. 
 	 */
 	protected void initializeConnection(TcpConnection connection, Socket socket) {
-		connection.registerListener(this.listener);
+		if (this.listener != null) {
+			connection.registerListener(this.listener);
+		}
 		connection.registerSender(this.sender);
 		connection.setMapper(this.mapper);
 		connection.setInputConverter(this.inputConverter);

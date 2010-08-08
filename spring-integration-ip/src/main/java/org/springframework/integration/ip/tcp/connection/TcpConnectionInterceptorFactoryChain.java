@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.Message;
-
 /**
- * Classes that implement this interface may register with a 
- * connection factory to receive messages retrieved from a 
- * {@link TcpConnection}
  * @author Gary Russell
  * @since 2.0
  *
  */
-public interface TcpListener {
+public class TcpConnectionInterceptorFactoryChain {
 
-	/**
-	 * Called by a TCPConnection when a new message arrives.
-	 * @param message The message.
-	 */
-	public abstract void onMessage(Message<?> message);
+	private TcpConnectionInterceptorFactory[] interceptorFactories;
+
+	public TcpConnectionInterceptorFactory[] getInterceptorFactories() {
+		return interceptorFactories;
+	}
+
+	public void setInterceptors(TcpConnectionInterceptorFactory[] interceptorFactories) {
+		this.interceptorFactories = interceptorFactories;
+	}
 	
 }

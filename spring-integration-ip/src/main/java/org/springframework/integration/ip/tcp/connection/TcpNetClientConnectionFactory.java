@@ -29,8 +29,6 @@ import javax.net.SocketFactory;
 public class TcpNetClientConnectionFactory extends
 		AbstractClientConnectionFactory {
 
-	protected TcpNetConnection theConnection;
-	
 	/**
 	 * Creates a TcpNetClientConnectionFactory for connections to the host and port.
 	 * @param host the host
@@ -45,14 +43,15 @@ public class TcpNetClientConnectionFactory extends
 	 * true, a new connection is returned; otherwise a single connection is
 	 * reused for all requests while the connection remains open.
 	 */
-	public TcpNetConnection getConnection() throws Exception {
+	public TcpConnection getConnection() throws Exception {
 		if (this.theConnection != null && this.theConnection.isOpen()) {
 			return this.theConnection;
 		}
 		logger.debug("Opening new socket connection to " + this.host + ":" + this.port);
 		Socket socket = SocketFactory.getDefault().createSocket(this.host, this.port);
 		setSocketAttributes(socket);
-		TcpNetConnection connection = new TcpNetConnection(socket, false);
+		TcpConnection connection = new TcpNetConnection(socket, false);
+		connection = wrapConnection(connection);
 		initializeConnection(connection, socket);
 		this.taskExecutor.execute(connection);
 		if (!this.singleUse) {

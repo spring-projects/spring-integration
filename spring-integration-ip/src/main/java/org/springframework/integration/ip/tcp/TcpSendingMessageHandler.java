@@ -103,6 +103,7 @@ public class TcpSendingMessageHandler implements MessageHandler, TcpSender {
 		} catch (MessageMappingException e) {
 			// retry - socket may have closed
 			if (e.getCause() instanceof IOException) {
+				logger.debug("Fail on first write attempt", e);
 				doWrite(message);
 			} else {
 				throw e;
@@ -120,13 +121,20 @@ public class TcpSendingMessageHandler implements MessageHandler, TcpSender {
 			if (connection == null) {
 				throw new MessageMappingException(message, "Failed to create connection");
 			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Got Connection " + connection.getConnectionId());
+			}
 			connection.send(message);
 		} catch (Exception e) {
+			String connectionId = null; 
+			if (this.connection != null) {
+				connectionId = this.connection.getConnectionId();
+			}
 			this.connection = null;
 			if (e instanceof MessageMappingException) {
 				throw (MessageMappingException) e;
 			}
-			throw new MessageMappingException(message, "Failed to map message", e);
+			throw new MessageMappingException(message, "Failed to map message using " + connectionId, e);
 		}
 	}
 

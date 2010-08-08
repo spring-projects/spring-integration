@@ -103,6 +103,8 @@ public abstract class IpAdapterParserUtils {
 
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
+	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
+
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 
 	 * with the value of the attribute whose name is provided if that

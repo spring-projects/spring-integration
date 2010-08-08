@@ -16,6 +16,7 @@
 package org.springframework.integration.ip.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -436,6 +437,7 @@ public class ParserUnitTests {
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 		assertEquals(321, dfa.getPropertyValue("poolSize"));
 		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
+		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));
 	}
 
 	@Test
@@ -454,7 +456,8 @@ public class ParserUnitTests {
 		assertEquals(true, dfa.getPropertyValue("singleUse"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 		assertEquals(123, dfa.getPropertyValue("poolSize"));
-		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));		
+		assertEquals(true, dfa.getPropertyValue("usingDirectBuffers"));
+		assertNotNull(dfa.getPropertyValue("interceptorFactoryChain"));		
 	}
 
 	@Test

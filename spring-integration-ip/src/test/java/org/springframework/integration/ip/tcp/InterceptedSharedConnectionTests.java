@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class SharedConnectionTests {
+public class InterceptedSharedConnectionTests {
 	
 	@Autowired
 	AbstractApplicationContext ctx;
@@ -62,6 +62,7 @@ public class SharedConnectionTests {
 	@Test
 	public void test1() throws Exception {
 		int n = 0;
+		Object o = ctx.getBean("inboundServer");
 		while (!listener.isListening()) {
 			Thread.sleep(100);
 			if (n++ > 100) {

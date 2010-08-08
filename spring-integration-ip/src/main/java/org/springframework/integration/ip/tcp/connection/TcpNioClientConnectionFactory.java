@@ -39,8 +39,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TcpNioClientConnectionFactory extends
 		AbstractClientConnectionFactory {
 
-	protected TcpNioConnection theConnection;
-	
 	protected boolean usingDirectBuffers;
 	
 	private Selector selector;
@@ -63,7 +61,7 @@ public class TcpNioClientConnectionFactory extends
 	 * true, a new connection is returned; otherwise a single connection is
 	 * reused for all requests while the connection remains open.
 	 */
-	public TcpNioConnection getConnection() throws Exception {
+	public TcpConnection getConnection() throws Exception {
 		int n = 0;
 		while (this.selector == null) {
 			Thread.sleep(100);
@@ -78,13 +76,14 @@ public class TcpNioClientConnectionFactory extends
 		SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(this.host, this.port));
 		setSocketAttributes(socketChannel.socket());
 		TcpNioConnection connection = new TcpNioConnection(socketChannel, false);
+		connection.setUsingDirectBuffers(this.usingDirectBuffers);
 		if (this.taskExecutor == null) {
 			connection.setTaskExecutor(Executors.newSingleThreadExecutor());
 		} else {
 			connection.setTaskExecutor(this.taskExecutor);
 		}
-		initializeConnection(connection, socketChannel.socket());
-		connection.setUsingDirectBuffers(this.usingDirectBuffers);
+		TcpConnection wrappedConnection = wrapConnection(connection);
+		initializeConnection(wrappedConnection, socketChannel.socket());
 		socketChannel.configureBlocking(false);
 		if (this.soTimeout > 0) {
 			connection.setLastRead(System.currentTimeMillis());
@@ -93,9 +92,9 @@ public class TcpNioClientConnectionFactory extends
 		newChannels.add(socketChannel);
 		selector.wakeup();
 		if (!this.singleUse) {
-			this.theConnection = connection;
+			this.theConnection = wrappedConnection;
 		}
-		return connection;
+		return wrappedConnection;
 	}
 
 	/**

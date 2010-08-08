@@ -35,8 +35,6 @@ public class TcpNetConnection extends AbstractTcpConnection {
 
 	private final Socket socket; 
 	
-	private final boolean server;
-	
 	/**
 	 * Constructs a TcpNetConnection for the socket.
 	 * @param socket the socket
@@ -44,8 +42,9 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 * a result of an incoming request.
 	 */
 	public TcpNetConnection(Socket socket, boolean server) {
+		super(server);
 		this.socket = socket;
-		this.server = server;
+		getConnectionId();
 	}
 	
 	/**
@@ -121,15 +120,6 @@ public class TcpNetConnection extends AbstractTcpConnection {
 				}
 				break;
 			}
-			/*
-			 * For single use sockets, we close after receipt if we are on the client
-			 * side, or the server side has no outbound adapter registered
-			 */
-			if (this.singleUse && (!this.server || this.sender == null)) {
-				logger.debug("Closing single use socket after inbound message");
-				this.close();
-				okToRun = false;
-			}
 			if (logger.isDebugEnabled())
 				logger.debug("Message received " + message);
 			try {
@@ -139,13 +129,35 @@ public class TcpNetConnection extends AbstractTcpConnection {
 				}
 				listener.onMessage(message);
 			} catch (Exception e) {
-				logger.error("Exception sending meeeage: " + message, e);				
+				if (e instanceof NoListenerException) {
+					if (this.singleUse) {
+						logger.debug("Closing single use socket after inbound message " + this.connectionId);
+						this.close();
+						okToRun = false;
+					} else {
+						logger.warn("Unexpected message - no inbound adapter registered with connection " + message);
+					}
+				} else {
+					logger.error("Exception sending meeeage: " + message, e);				
+				}
+			}
+			/*
+			 * For single use sockets, we close after receipt if we are on the client
+			 * side, or the server side has no outbound adapter registered
+			 */
+			if (this.singleUse && this.server && this.sender == null) {
+				logger.debug("Closing single use socket after inbound message " + this.connectionId);
+				this.close();
+				okToRun = false;
 			}
 		}
 	}
 
 	public String getConnectionId() {
-		return SocketIoUtils.getSocketId(this.socket);
+		if (this.connectionId == null) {
+			this.connectionId = SocketIoUtils.getSocketId(this.socket);
+		}
+		return this.connectionId;
 	}
 
 

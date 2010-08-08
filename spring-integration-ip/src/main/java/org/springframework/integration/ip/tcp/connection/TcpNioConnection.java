@@ -43,8 +43,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private final SocketChannel socketChannel;
 	
-	private final boolean server;
-	
 	private OutputStream channelOutputStream;
 	
 	private PipedOutputStream pipedOutputStream;
@@ -62,7 +60,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	private boolean active = true;
 	
 	private long lastRead;
-	
+
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
 	 * @param socketChannel the socketChannel
@@ -70,11 +68,15 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * a result of an incoming request.
 	 */
 	public TcpNioConnection(SocketChannel socketChannel, boolean server) throws Exception {
+		super(server);
 		this.socketChannel = socketChannel;
-		this.server = server;
 		this.pipedInputStream = new PipedInputStream();
 		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
 		this.channelOutputStream = new ChannelOutputStream();
+		getConnectionId();
+		if (this.connectionId == null) {
+			throw new Exception("Null id");
+		}
 	}
 	
 	public void close() {
@@ -166,7 +168,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	private synchronized void convertAndSend() throws IOException {
 		if (this.pipedInputStream.available() <= 0) {
-			System.err.println("NO WORK");
 			return;
 		}
 		Message<?> message = null;
@@ -175,7 +176,9 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		} catch (Exception e) {
 			this.close();
 			if (e instanceof SocketTimeoutException && this.singleUse) {
-				logger.debug("Closing single use socket after timeout");				
+				if (logger.isDebugEnabled()) {
+					logger.debug("Closing single use socket after timeout " + this.connectionId);				
+				}
 			} else {
 				if (!(e instanceof SoftEndOfStreamException)) {
 					logger.error("Read exception " +
@@ -187,20 +190,30 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			}
 			return;
 		}			
-		/*
-		 * For single use sockets, we close after receipt if we are on the client
-		 * side, or the server side has no outbound adapter registered
-		 */
-		if (this.singleUse && (!this.server || this.sender == null)) {
-			logger.debug("Closing single use socket after inbound message");
-			this.close();
-		}
+
 		try {
 			if (message != null) {
 				listener.onMessage(message);
 			}
 		} catch (Exception e) {
-			logger.error("Exception sending meeeage: " + message, e);
+			if (e instanceof NoListenerException) {
+				if (this.singleUse) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("Closing single use channel after inbound message " + this.connectionId);
+					}
+					this.close();
+				}
+			} else {
+				logger.error("Exception sending meeeage: " + message, e);
+			}
+		}
+		/*
+		 * For single use sockets, we close after receipt if we are on the client
+		 * side, or the server side has no outbound adapter registered
+		 */
+		if (this.singleUse && this.server && this.sender == null) {
+			logger.debug("Closing single use cbannel after inbound message " + this.connectionId);
+			this.close();
 		}
 	}
 	
@@ -268,7 +281,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	public String getConnectionId() {
-		return SocketIoUtils.getSocketId(this.socketChannel.socket());
+		if (this.connectionId == null) {
+			this.connectionId = SocketIoUtils.getSocketId(this.socketChannel.socket());			
+		}
+		return this.connectionId;
 	}
 
 	/**
@@ -326,7 +342,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			doWrite(buffer);
 		}
 		
-		private void doWrite(ByteBuffer buffer) throws IOException {
+		private synchronized void doWrite(ByteBuffer buffer) throws IOException {
 			socketChannel.write(buffer);
 			int remaining = buffer.remaining();
 			if (remaining == 0) {

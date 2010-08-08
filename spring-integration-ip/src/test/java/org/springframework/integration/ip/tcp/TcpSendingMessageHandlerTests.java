@@ -18,6 +18,7 @@ package org.springframework.integration.ip.tcp;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +42,9 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
+import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
+import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
@@ -272,7 +276,7 @@ public class TcpSendingMessageHandlerTests {
 	}
 
 	@Test
-	public void newTestNio() throws Exception {
+	public void newTestNioCrLf() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -827,7 +831,7 @@ public class TcpSendingMessageHandlerTests {
 					while (true) {
 						Socket socket = server.accept();
 						semaphore.release();
-						byte[] b = new byte[8];
+						byte[] b = new byte[9];
 						readFully(socket.getInputStream(), b);
 						b = ("Reply" + (i++) + "\r\n").getBytes();
 						socket.getOutputStream().write(b);
@@ -853,19 +857,267 @@ public class TcpSendingMessageHandlerTests {
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));
-		for (int i = 100; i < 200; i++) {
-			handler.handleMessage(MessageBuilder.withPayload("Test" + i).build());
+		int i = 0;
+		try {
+			for (i = 100; i < 200; i++) {
+				handler.handleMessage(MessageBuilder.withPayload("Test" + i).build());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("Exception at " + i);
 		}
 		assertTrue(semaphore.tryAcquire(100, 20000, TimeUnit.MILLISECONDS));
 		Set<String> replies = new HashSet<String>();
-		for (int i = 100; i < 200; i++) {
+		for (i = 100; i < 200; i++) {
 			Message<?> mOut = channel.receive(20000);
 			assertNotNull(mOut);
 			replies.add(new String((byte[])mOut.getPayload()));
 		}
-		for (int i = 0; i < 100; i++) {
+		for (i = 0; i < 100; i++) {
 			assertTrue("Reply" + i + " missing", replies.remove("Reply" + i));
 		}
 		done.set(true);
 	}
+
+	@Test
+	public void newTestNetNegotiate() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					Socket socket = server.accept();
+					int i = 0;
+					while (true) {
+						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+						Object in;
+						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+						if (i == 0) {
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+						}
+						in = ois.readObject();
+						oos.writeObject("Reply" + (++i));
+					}
+				} catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		ccf.setInputConverter(converter);
+		ccf.setOutputConverter(converter);
+		ccf.setSoTimeout(10000);		
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+		     {new HelloWorldInterceptorFactory(),
+		      new HelloWorldInterceptorFactory()});
+		ccf.setInterceptorFactoryChain(fc);
+		ccf.start();
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(ccf);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(ccf);
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		Message<?> mOut = channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("Reply1", mOut.getPayload());
+		mOut = channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("Reply2", mOut.getPayload());
+		done.set(true);
+	}
+
+	@Test
+	public void newTestNioNegotiate() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					Socket socket = server.accept();
+					int i = 0;
+					while (true) {
+						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+						Object in;
+						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+						if (i == 0) {
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+						}
+						in = ois.readObject();
+						oos.writeObject("Reply" + (++i));
+					}
+				} catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		ccf.setInputConverter(converter);
+		ccf.setOutputConverter(converter);
+		ccf.setSoTimeout(10000);		
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {new HelloWorldInterceptorFactory()});
+		ccf.setInterceptorFactoryChain(fc);
+		ccf.start();
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(ccf);
+		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
+		adapter.setConnectionFactory(ccf);
+		QueueChannel channel = new QueueChannel();
+		adapter.setOutputChannel(channel);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		Message<?> mOut = channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("Reply1", mOut.getPayload());
+		mOut = channel.receive(10000);
+		assertNotNull(mOut);
+		assertEquals("Reply2", mOut.getPayload());
+		done.set(true);
+	}
+
+	@Test
+	public void newTestNetNegotiateSingleNoListen() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					Socket socket = server.accept();
+					int i = 0;
+					while (true) {
+						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+						Object in;
+						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+						if (i == 0) {
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+						}
+						in = ois.readObject();
+						oos.writeObject("Reply" + (++i));
+					}
+				} catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		ccf.setInputConverter(converter);
+		ccf.setOutputConverter(converter);
+		ccf.setSoTimeout(10000);		
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+            		     {new HelloWorldInterceptorFactory(),
+               		      new HelloWorldInterceptorFactory()});
+		ccf.setInterceptorFactoryChain(fc);
+		ccf.setSingleUse(true);
+		ccf.start();
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(ccf);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		done.set(true);
+	}
+
+	@Test
+	public void newTestNioNegotiateSingleNoListen() throws Exception {
+		final int port = SocketUtils.findAvailableServerSocket();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicBoolean done = new AtomicBoolean();
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					latch.countDown();
+					Socket socket = server.accept();
+					int i = 0;
+					while (true) {
+						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+						Object in;
+						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+						if (i == 0) {
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+							in = ois.readObject();
+//							System.out.println(in);
+							oos.writeObject("world!");
+							ois = new ObjectInputStream(socket.getInputStream());
+							oos = new ObjectOutputStream(socket.getOutputStream());
+						}
+						in = ois.readObject();
+						oos.writeObject("Reply" + (++i));
+					}
+				} catch (Exception e) {
+					if (!done.get()) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		ccf.setInputConverter(converter);
+		ccf.setOutputConverter(converter);
+		ccf.setSoTimeout(10000);		
+		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
+		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
+            		     {new HelloWorldInterceptorFactory(),
+               		      new HelloWorldInterceptorFactory()});
+		ccf.setInterceptorFactoryChain(fc);
+		ccf.setSingleUse(true);
+		ccf.start();
+		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
+		handler.setConnectionFactory(ccf);
+		assertTrue(latch.await(10, TimeUnit.SECONDS));		
+		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		done.set(true);
+	}
+
 }

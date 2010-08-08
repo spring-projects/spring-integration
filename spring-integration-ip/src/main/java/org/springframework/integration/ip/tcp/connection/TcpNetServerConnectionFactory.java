@@ -69,11 +69,12 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				final Socket socket = serverSocket.accept();
 				logger.debug("Accepted connection from " + socket.getInetAddress().getHostAddress());
 				setSocketAttributes(socket);
-				TcpNetConnection connection = new TcpNetConnection(socket, true);
+				TcpConnection connection = new TcpNetConnection(socket, true);
+				connection = wrapConnection(connection);
 				this.initializeConnection(connection, socket);
 				this.taskExecutor.execute(connection);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			this.listening = false;
 			if (this.active) {
 				logger.error("Error on ServerSocket", e);

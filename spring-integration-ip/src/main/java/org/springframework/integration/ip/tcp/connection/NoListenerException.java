@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.Message;
+import org.springframework.core.NestedRuntimeException;
 
 /**
- * Classes that implement this interface may register with a 
- * connection factory to receive messages retrieved from a 
- * {@link TcpConnection}
  * @author Gary Russell
  * @since 2.0
  *
  */
-public interface TcpListener {
+public class NoListenerException extends NestedRuntimeException {
 
-	/**
-	 * Called by a TCPConnection when a new message arrives.
-	 * @param message The message.
-	 */
-	public abstract void onMessage(Message<?> message);
-	
+	private static final long serialVersionUID = -5644042657316429223L;
+
+	public NoListenerException(String msg, Throwable cause) {
+		super(msg, cause);
+	}
+
+	public NoListenerException(String msg) {
+		super(msg);
+	}
+
 }

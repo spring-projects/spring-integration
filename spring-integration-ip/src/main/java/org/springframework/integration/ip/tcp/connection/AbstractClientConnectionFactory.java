@@ -31,6 +31,8 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractClientConnectionFactory extends AbstractConnectionFactory {
 
+	protected TcpConnection theConnection;
+
 	/**
 	 * Constructs a factory that will established connections to the host and port.
 	 * @param host The host.

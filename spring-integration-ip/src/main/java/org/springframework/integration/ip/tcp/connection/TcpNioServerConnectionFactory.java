@@ -187,8 +187,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 	private TcpNioConnection createTcpNioConnection(SocketChannel socketChannel) {
 		try {
 			TcpNioConnection connection = new TcpNioConnection(socketChannel, true);
-			this.initializeConnection(connection, socketChannel.socket());
 			connection.setUsingDirectBuffers(this.usingDirectBuffers);
+			TcpConnection wrappedConnection = wrapConnection(connection);
+			this.initializeConnection(wrappedConnection, socketChannel.socket());
 			return connection;
 		} catch (Exception e) {
 			logger.error("Failed to establish new incoming connection", e);
