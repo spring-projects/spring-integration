@@ -242,35 +242,24 @@ public abstract class IntegrationNamespaceUtils {
 			Element element, ParserContext parserContext) {
 		// parses out inner bean definition for concrete implementation if
 		// defined
-		List<Element> childElements = DomUtils.getChildElementsByTagName(
-				element, "bean");
+		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "bean");
 		BeanComponentDefinition innerComponentDefinition = null;
 		if (childElements != null && childElements.size() == 1) {
 			Element beanElement = childElements.get(0);
 			BeanDefinitionParserDelegate delegate = parserContext.getDelegate();
-			BeanDefinitionHolder bdHolder = delegate
-					.parseBeanDefinitionElement(beanElement);
-			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement,
-					bdHolder);
+			BeanDefinitionHolder bdHolder = delegate.parseBeanDefinitionElement(beanElement);
+			bdHolder = delegate.decorateBeanDefinitionIfRequired(beanElement, bdHolder);
 			BeanDefinition inDef = bdHolder.getBeanDefinition();
-			String beanName = BeanDefinitionReaderUtils.generateBeanName(inDef,
-					parserContext.getRegistry());
-			innerComponentDefinition = new BeanComponentDefinition(inDef,
-					beanName);
+			innerComponentDefinition = new BeanComponentDefinition(inDef, bdHolder.getBeanName());
 			parserContext.registerBeanComponent(innerComponentDefinition);
 		}
 
 		String ref = element.getAttribute(REF_ATTRIBUTE);
-		Assert
-				.isTrue(
-						!(StringUtils.hasText(ref) && innerComponentDefinition != null),
-						"Ambiguous definition. Inner bean "
-								+ (innerComponentDefinition == null ? innerComponentDefinition
-										: innerComponentDefinition
-												.getBeanDefinition()
-												.getBeanClassName())
-								+ " declaration and \"ref\" " + ref
-								+ " are not allowed together.");
+		Assert.isTrue(!(StringUtils.hasText(ref) && innerComponentDefinition != null), "Ambiguous definition. Inner bean " + (innerComponentDefinition == null 
+										? innerComponentDefinition
+										: innerComponentDefinition.getBeanDefinition().getBeanClassName())
+												+ " declaration and \"ref\" " + ref
+												+ " are not allowed together.");
 		return innerComponentDefinition;
 	}
 
