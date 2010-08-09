@@ -18,10 +18,17 @@
 
 	<int:channel id="outbound-channel"/>
 	
-	<int-jms:outbound-gateway request-channel="outbound-channel" request-destination="requestQueue"/>
+	<int-jms:outbound-gateway request-channel="outbound-channel" request-destination="requestQueueC"/>
 	 
                      
-    <int-jms:inbound-gateway request-destination="requestQueue" 
+    <int-jms:inbound-gateway request-destination="requestQueueB" 
+                             request-channel="jmsinputchannel"
+                             exception-mapper="errorMessageMapper"/>
+                             
+    <int-jms:inbound-gateway request-destination="requestQueueA" 
+                             request-channel="jmsinputchannel"/>
+                             
+    <int-jms:inbound-gateway request-destination="requestQueueC" 
                              request-channel="jmsinputchannel"
                              exception-mapper="errorMessageMapper"/>
 	
@@ -41,16 +48,24 @@
     	<bean class="org.springframework.integration.jms.config.ExceptionHandlingSiConsumerTests$SampleService"/>
     </int:service-activator>                      
                      
-    <bean id="requestQueue" class="org.apache.activemq.command.ActiveMQQueue">
-		<constructor-arg value="request.queue"/>
+    <bean id="requestQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue.a"/>
 	</bean>
 
-	<bean id="replyQueue" class="org.apache.activemq.command.ActiveMQQueue">
-		<constructor-arg value="reply.queue"/>
+	<bean id="replyQueueA" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="reply.queue.a"/>
 	</bean>
 	
-	<bean id="replyTopic" class="org.apache.activemq.command.ActiveMQTopic">
-		<constructor-arg value="reply.topic"/>
+	<bean id="requestQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue.b"/>
+	</bean>
+
+	<bean id="replyQueueB" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="reply.queue.b"/>
+	</bean>
+	
+	<bean id="requestQueueC" class="org.apache.activemq.command.ActiveMQQueue">
+		<constructor-arg value="request.queue.c"/>
 	</bean>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.CachingConnectionFactory">

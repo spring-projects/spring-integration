@@ -38,13 +38,13 @@ import org.springframework.jms.core.MessageCreator;
  */
 public class ExceptionHandlingSiConsumerTests {
 	
-	@Test @Ignore
+	@Test
 	public void nonSiProducer_siConsumer_sync_withReturn() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		JmsTemplate jmsTemplate = new JmsTemplate(applicationContext.getBean("connectionFactory", ConnectionFactory.class));
-		Destination request = applicationContext.getBean("requestQueue", Destination.class);
-		final Destination reply = applicationContext.getBean("replyQueue", Destination.class);
+		Destination request = applicationContext.getBean("requestQueueA", Destination.class);
+		final Destination reply = applicationContext.getBean("replyQueueA", Destination.class);
 		jmsTemplate.send(request, new MessageCreator() {
 			
 			public Message createMessage(Session session) throws JMSException {
@@ -55,16 +55,17 @@ public class ExceptionHandlingSiConsumerTests {
 			}
 		});
 		Message message = jmsTemplate.receive(reply);
+		System.out.println(message);
 		Assert.assertNotNull(message);
 		applicationContext.close();  
 	}
-	@Test @Ignore
+	@Test 
 	public void nonSiProducer_siConsumer_sync_withReturnNoException() throws Exception {
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
 		JmsTemplate jmsTemplate = new JmsTemplate(applicationContext.getBean("connectionFactory", ConnectionFactory.class));
-		Destination request = applicationContext.getBean("requestQueue", Destination.class);
-		final Destination reply = applicationContext.getBean("replyQueue", Destination.class);
+		Destination request = applicationContext.getBean("requestQueueB", Destination.class);
+		final Destination reply = applicationContext.getBean("replyQueueB", Destination.class);
 		jmsTemplate.send(request, new MessageCreator() {
 			
 			public Message createMessage(Session session) throws JMSException {
@@ -79,7 +80,7 @@ public class ExceptionHandlingSiConsumerTests {
 		applicationContext.close();  
 	}
 
-	@Test @Ignore
+	@Test 
 	public void nonSiProducer_siConsumer_sync_withOutboundGateway() throws Exception{
 		ActiveMqTestUtils.prepare();
 		final ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("Exception-nonSiProducer-siConsumer.xml", ExceptionHandlingSiConsumerTests.class);
@@ -88,7 +89,7 @@ public class ExceptionHandlingSiConsumerTests {
 		System.out.println("Reply: " + reply);
 		applicationContext.close();
 	}
-	
+//	
 	public static class SampleService{
 		public String echoWithException(String value){
 			throw new SampleException("echoWithException");
