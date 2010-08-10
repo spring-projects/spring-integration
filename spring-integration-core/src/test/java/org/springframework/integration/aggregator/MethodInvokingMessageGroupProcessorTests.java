@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -239,7 +238,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
 	}
 
-	@Ignore("INT-938: it probably should work if there is a converter registered, but maybe a SpEL bug?")
 	@Test
 	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethodWithIterator() throws Exception {
@@ -248,8 +246,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		class SimpleAggregator {
 			public Integer and(Iterator<Integer> flags) {
 				int result = 0;
-				for (int flag = flags.next(); flags.hasNext();) {
-					result = result | flag;
+				while (flags.hasNext()) {
+					result = result | flags.next();
 				}
 				return result;
 			}

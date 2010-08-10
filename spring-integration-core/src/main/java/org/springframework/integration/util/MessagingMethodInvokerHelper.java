@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -109,8 +110,8 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
 		this(targetObject, annotationType, null, canProcessMessageList);
 	}
 
-	public MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType, Class<?> expectedType,
-			boolean canProcessMessageList) {
+	public MessagingMethodInvokerHelper(Object targetObject, Class<? extends Annotation> annotationType,
+			Class<?> expectedType, boolean canProcessMessageList) {
 		this(targetObject, annotationType, (String) null, expectedType, canProcessMessageList);
 	}
 
@@ -127,7 +128,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
 	public String toString() {
 		return this.displayString;
 	}
-	
+
 	/*
 	 * Private constructors for internal use
 	 */
@@ -477,8 +478,23 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
 				else if (Collection.class.isAssignableFrom(parameterType) || parameterType.isArray()) {
 					if (canProcessMessageList) {
 						sb.append("messages.![payload]");
-					} else {
+					}
+					else {
 						sb.append("payload");
+					}
+					this.setExclusiveTargetParameterType(parameterTypeDescriptor);
+				}
+				else if (Iterator.class.isAssignableFrom(parameterType)) {
+					if (canProcessMessageList) {
+						if (parameterTypeDescriptor.getElementType()!=null && Message.class.isAssignableFrom(parameterTypeDescriptor.getElementType())) {
+							sb.append("messages.iterator()");
+						}
+						else {
+							sb.append("messages.![payload].iterator()");
+						}
+					}
+					else {
+						sb.append("payload.iterator()");
 					}
 					this.setExclusiveTargetParameterType(parameterTypeDescriptor);
 				}

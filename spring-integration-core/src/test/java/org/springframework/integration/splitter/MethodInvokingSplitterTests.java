@@ -25,11 +25,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.StringMessage;
 
@@ -39,7 +39,6 @@ import org.springframework.integration.core.StringMessage;
 public class MethodInvokingSplitterTests {
 
 	private SplitterTestBean testBean = new SplitterTestBean();
-
 
 	@Test
 	public void splitStringToStringArray() throws Exception {
@@ -298,6 +297,29 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test
+	public void splitListPayload() throws Exception {
+		class ListSplitter {
+			@SuppressWarnings("unused")
+			public List<String> split(List<String> list) {
+				return list;
+			}
+		}
+		;
+		GenericMessage<List<?>> message = new GenericMessage<List<?>>(Arrays.asList("foo", "bar"));
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(new ListSplitter(), "split");
+		QueueChannel replyChannel = new QueueChannel();
+		splitter.setOutputChannel(replyChannel);
+		splitter.handleMessage(message);
+		List<Message<?>> replies = replyChannel.clear();
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+	}
+
+	@Test
 	public void headerForObjectReturnValues() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
 		MethodInvokingSplitter splitter = this.getSplitter("stringToStringArray");
@@ -339,8 +361,7 @@ public class MethodInvokingSplitterTests {
 
 	@Test
 	public void splitMessageHeader() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("ignored")
-				.setHeader("testHeader", "foo.bar").build();
+		Message<String> message = MessageBuilder.withPayload("ignored").setHeader("testHeader", "foo.bar").build();
 		MethodInvokingSplitter splitter = this.getSplitter("splitHeader");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
@@ -356,9 +377,9 @@ public class MethodInvokingSplitterTests {
 
 	@Test
 	public void splitPayloadAndHeader() throws Exception {
-		Message<String> message = MessageBuilder.withPayload("a.b")
-				.setHeader("testHeader", "c.d").build();
-		Method splittingMethod = this.testBean.getClass().getMethod("splitPayloadAndHeader", String.class, String.class);
+		Message<String> message = MessageBuilder.withPayload("a.b").setHeader("testHeader", "c.d").build();
+		Method splittingMethod = this.testBean.getClass()
+				.getMethod("splitPayloadAndHeader", String.class, String.class);
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, splittingMethod);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
@@ -422,13 +443,11 @@ public class MethodInvokingSplitterTests {
 		new MethodInvokingSplitter(new MultiplePublicMethodTestBean());
 	}
 
-
 	private MethodInvokingSplitter getSplitter(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
 		Method splittingMethod = this.testBean.getClass().getMethod(methodName, paramType);
 		return new MethodInvokingSplitter(testBean, splittingMethod);
 	}
-
 
 	public static class SplitterTestBean {
 
@@ -491,16 +510,15 @@ public class MethodInvokingSplitterTests {
 		public List<String> splitPayloadAndHeader(String payload, @Header("testHeader") String header) {
 			String regex = "\\.";
 			List<String> results = new ArrayList<String>();
-			for (String s: payload.split(regex)) {
+			for (String s : payload.split(regex)) {
 				results.add(s);
 			}
-			for (String s: header.split(regex)) {
+			for (String s : header.split(regex)) {
 				results.add(s);
 			}
 			return results;
 		}
 	}
-
 
 	public static class SingleAnnotationTestBean {
 
@@ -513,7 +531,6 @@ public class MethodInvokingSplitterTests {
 			throw new UnsupportedOperationException("incorrect test invocation");
 		}
 	}
-
 
 	public static class AmbiguousTypeMatchTestBean {
 
@@ -528,7 +545,6 @@ public class MethodInvokingSplitterTests {
 		}
 	}
 
-
 	public static class SinglePublicMethodTestBean {
 
 		public String[] publicMethod(String input) {
@@ -539,7 +555,6 @@ public class MethodInvokingSplitterTests {
 			throw new UnsupportedOperationException("incorrect test invocation");
 		}
 	}
-
 
 	public static class MultiplePublicMethodTestBean {
 
