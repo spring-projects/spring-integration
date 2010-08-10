@@ -110,11 +110,11 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		return this.theConnection.isServer();
 	}
 
-	public void onMessage(Message<?> message) {
+	public boolean onMessage(Message<?> message) {
 		if (this.tcpListener == null) {
 			throw new NoListenerException("No listener registered for message reception");
 		}
-		this.tcpListener.onMessage(message);
+		return this.tcpListener.onMessage(message);
 	}
 
 	public void send(Message<?> message) throws Exception {

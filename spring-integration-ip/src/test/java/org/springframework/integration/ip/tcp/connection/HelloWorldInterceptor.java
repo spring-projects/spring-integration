@@ -58,7 +58,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 	}
 
 	@Override
-	public void onMessage(Message<?> message) {
+	public boolean onMessage(Message<?> message) {
 		if (!this.negotiated) {
 			Object payload = message.getPayload();
 			if (this.isServer()) {
@@ -67,7 +67,7 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 						logger.debug("sending " + this.world);
 						super.send(MessageBuilder.withPayload(world).build());
 						this.negotiated = true;
-						return;
+						return true;
 					} catch (Exception e) {
 						throw new MessagingException("Negotiation error", e);
 					}
@@ -84,10 +84,10 @@ public class HelloWorldInterceptor extends AbstractTcpConnectionInterceptor {
 					throw new MessagingException("Negotiation error - expected '" + world + 
 								"' received " + payload);
 				}
-				return;
+				return true;
 			}
 		}
-		super.onMessage(message);
+		return super.onMessage(message);
 	}
 
 	@Override

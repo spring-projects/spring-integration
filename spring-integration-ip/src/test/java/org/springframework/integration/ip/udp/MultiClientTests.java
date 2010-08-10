@@ -65,7 +65,7 @@ public class MultiClientTests {
 					UnicastSendingMessageHandler sender = new UnicastSendingMessageHandler(
 							"localhost", adapter.getPort());
 					while (true) {
-						Message message = queueIn.receive();
+						Message<?> message = queueIn.receive();
 						sender.handleMessage(message);
 					}
 				}});
@@ -110,7 +110,7 @@ public class MultiClientTests {
 							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1000),
 							10000);
 					while (true) {
-						Message message = queueIn.receive();
+						Message<?> message = queueIn.receive();
 						sender.handleMessage(message);
 					}
 				}});
@@ -155,7 +155,7 @@ public class MultiClientTests {
 							SocketUtils.findAvailableUdpSocket(adapter.getPort() + j + 1100),
 							10000);
 					while (true) {
-						Message message = queueIn.receive();
+						Message<?> message = queueIn.receive();
 						sender.handleMessage(message);
 					}
 				}});

@@ -329,9 +329,12 @@ public abstract class AbstractConnectionFactory
 				this.interceptorFactoryChain.getInterceptorFactories()) {
 			TcpConnectionInterceptor wrapper = factory.getInterceptor();
 			wrapper.setTheConnection(connection);
-			// if no ultimate listener, register each wrapper in turn
+			// if no ultimate listener or sender, register each wrapper in turn
 			if (this.listener == null) {
 				connection.registerListener(wrapper);
+			}
+			if (this.sender == null) {
+				connection.registerSender(wrapper);
 			}
 			connection = wrapper;
 		}

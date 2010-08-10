@@ -46,8 +46,9 @@ public class TcpReceivingChannelAdapter
 	
 	protected ConnectionFactory serverConnectionFactory;
 	
-	public void onMessage(Message<?> message) {
+	public boolean onMessage(Message<?> message) {
 		sendMessage(message);
+		return false;
 	}
 	
 	@Override

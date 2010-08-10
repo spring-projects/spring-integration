@@ -31,7 +31,8 @@ public interface TcpListener {
 	/**
 	 * Called by a TCPConnection when a new message arrives.
 	 * @param message The message.
+	 * @return true if the message was intercepted
 	 */
-	public abstract void onMessage(Message<?> message);
+	public abstract boolean onMessage(Message<?> message);
 	
 }

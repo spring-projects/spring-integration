@@ -191,9 +191,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			return;
 		}			
 
+		boolean intercepted = false;
 		try {
 			if (message != null) {
-				listener.onMessage(message);
+				intercepted = listener.onMessage(message);
 			}
 		} catch (Exception e) {
 			if (e instanceof NoListenerException) {
@@ -209,9 +210,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		/*
 		 * For single use sockets, we close after receipt if we are on the client
-		 * side, or the server side has no outbound adapter registered
+		 * side, and the data was not intercepted, 
+		 * or the server side has no outbound adapter registered
 		 */
-		if (this.singleUse && this.server && this.sender == null) {
+		if (this.singleUse && ((!this.server && !intercepted) || (this.server && this.sender == null))) {
 			logger.debug("Closing single use cbannel after inbound message " + this.connectionId);
 			this.close();
 		}
