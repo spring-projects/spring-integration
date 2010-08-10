@@ -53,7 +53,7 @@ public class DefaultMessageAggregatorIntegrationTests {
 	private PollableChannel output;
 
 	@SuppressWarnings("unchecked")
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void testAggregation() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);
