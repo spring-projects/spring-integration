@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
  * @author Iwein Fuld
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CorrelatingMessageBarrierTest {
+public class CorrelatingMessageBarrierTests {
 
 	private CorrelatingMessageBarrier barrier;
 	@Mock

@@ -1,5 +1,7 @@
 package org.springframework.integration.aggregator;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
@@ -37,10 +39,10 @@ public class ExpressionEvaluatingMessageGroupProcessor extends AbstractAggregati
 
 	/**
 	 * Evaluate the expression provided on the unmarked messages (a collection) in the group, and delegate to the
-	 * {@link MessagingTemplate} to send dowstream.
+	 * {@link MessagingTemplate} to send downstream.
 	 */
 	@Override
-	protected Object aggregatePayloads(MessageGroup group) {
+	protected Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
 		return processor.process(group.getUnmarked());
 	}
 

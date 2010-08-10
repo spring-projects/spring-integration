@@ -16,58 +16,16 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.expression.EvaluationException;
-import org.springframework.expression.Expression;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.util.BeanFactoryTypeConverter;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
 
 /**
  * @author Mark Fisher
+ * @author Dave Syer
  * @since 2.0
  */
-public abstract class AbstractMessageProcessor implements MessageProcessor, BeanFactoryAware {
+public abstract class AbstractMessageProcessor extends AbstractExpressionEvaluator implements MessageProcessor {
 
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-	
-	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
-	
-	public AbstractMessageProcessor() {
-		evaluationContext.setTypeConverter(typeConverter);
-	}
-	
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		typeConverter.setBeanFactory(beanFactory);
-	}
-
-	public void setConversionService(ConversionService conversionService) {
-		if (conversionService != null) {
-			typeConverter.setConversionService(conversionService);
-		}
-	}
-
-	protected StandardEvaluationContext getEvaluationContext() {
-		return this.evaluationContext;
-	}
-
-	protected Object evaluateExpression(Expression expression, Message<?> message, Class<?> expectedType) {
-		try {
-			return (expectedType != null)
-					? expression.getValue(this.evaluationContext, message, expectedType)
-					: expression.getValue(this.evaluationContext, message);
-		}
-		catch (EvaluationException e) {
-			Throwable cause = e.getCause();
-			throw new MessageHandlingException(message, "Expression evaluation failed: "+expression.getExpressionString(), cause==null ? e : cause);
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, "Expression evaluation failed: "+expression.getExpressionString(), e);
-		}
-	}
+	abstract public Object processMessage(Message<?> message);
 
 }

@@ -19,10 +19,11 @@ package org.springframework.integration.config;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
@@ -38,9 +39,8 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.MethodInvokingMessageListProcessor;
-import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
+import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -48,7 +48,6 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.test.util.TestUtils;
-import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Marius Bogoevici
@@ -99,7 +98,8 @@ public class AggregatorParserTests {
 		for (Message<?> message : outboundMessages) {
 			input.send(message);
 		}
-		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload().toString());
+		assertEquals("The aggregated message payload is not correct", "[123]", aggregatedMessage.get().getPayload()
+				.toString());
 	}
 
 	@Test
@@ -112,10 +112,14 @@ public class AggregatorParserTests {
 		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertThat(consumer, is(CorrelatingMessageHandler.class));
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
-		Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
-		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method",
-				expectedMethod, ((MethodInvokingMessageListProcessor) new DirectFieldAccessor(accessor
-						.getPropertyValue("outputProcessor")).getPropertyValue("adapter")).getMethod());
+		Map<?, ?> map = (Map<?, ?>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(accessor
+				.getPropertyValue("outputProcessor")).getPropertyValue("processor")).getPropertyValue("delegate"))
+				.getPropertyValue("handlerMethods");
+		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method", 1, map
+				.size());
+		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
+		assertTrue("Handler methods do not contain correct method: " + map, map.toString().contains(
+				"createSingleMessageFromGroup"));
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate ReleaseStrategy instance",
 				releaseStrategy, accessor.getPropertyValue("releaseStrategy"));
 		assertEquals("The AggregatorEndpoint is not injected with the appropriate CorrelationStrategy instance",
@@ -163,13 +167,12 @@ public class AggregatorParserTests {
 		ReleaseStrategy releaseStrategy = (ReleaseStrategy) new DirectFieldAccessor(new DirectFieldAccessor(endpoint)
 				.getPropertyValue("handler")).getPropertyValue("releaseStrategy");
 		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
-		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
-				.getPropertyValue("adapter"));
-		MethodInvoker invoker = (MethodInvoker) releaseStrategyAccessor.getPropertyValue("invoker");
-		Assert
-				.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueReleaseStrategy);
-		Assert.assertTrue(((Method) releaseStrategyAccessor.getPropertyValue("method")).getName().equals(
-				"checkCompleteness"));
+		DirectFieldAccessor releaseStrategyAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategy)
+				.getPropertyValue("adapter")).getPropertyValue("delegate"));
+		Map<?, ?> map = (Map<?, ?>) releaseStrategyAccessor.getPropertyValue("handlerMethods");
+		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
+		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
+				.contains("checkCompleteness"));
 		input.send(createMessage(1l, "correllationId", 4, 0, null));
 		input.send(createMessage(2l, "correllationId", 4, 1, null));
 		input.send(createMessage(3l, "correllationId", 4, 2, null));

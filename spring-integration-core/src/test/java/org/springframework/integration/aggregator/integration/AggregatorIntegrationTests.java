@@ -50,7 +50,7 @@ public class AggregatorIntegrationTests {
 	@Qualifier("output")
 	private PollableChannel output;
 
-	@Test(timeout=5000)
+	@Test//(timeout=5000)
 	public void testVanillaAggregation() throws Exception {
 		for (int i = 0; i < 5; i++) {
 			Map<String, Object> headers = stubHeaders(i, 5, 1);

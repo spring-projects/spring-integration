@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,106 +16,61 @@
 
 package org.springframework.integration.aggregator;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.util.DefaultMethodInvoker;
-import org.springframework.util.Assert;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
+import org.springframework.integration.util.MessagingMethodInvokerHelper;
 
 /**
- * Base class for implementing adapters for methods which take as an argument a
- * list of {@link Message Message} instances or payloads.
- *
- * @author Marius Bogoevici
- * @author Iwein Fuld
+ * A MessageListProcessor implementation that invokes a method on a target POJO.
+ * 
  * @author Dave Syer
+ * @since 2.0
  */
-public class MethodInvokingMessageListProcessor implements MessageListProcessor {
+public class MethodInvokingMessageListProcessor extends AbstractExpressionEvaluator {
 
-    private final DefaultMethodInvoker invoker;
+	private final MessagingMethodInvokerHelper delegate;
 
-    protected final Method method;
+	public MethodInvokingMessageListProcessor(Object targetObject, Method method, Class<?> expectedType) {
+		delegate = new MessagingMethodInvokerHelper(targetObject, method, expectedType, true);
+	}
 
-    public MethodInvokingMessageListProcessor(Object object, String methodName) {
-        Assert.notNull(object, "'object' must not be null");
-        Assert.notNull(methodName, "'methodName' must not be null");
-        this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[]{List.class});
-        Assert.notNull(this.method, "Method '" + methodName +
-                "(List<?> args)' not found on '" + object.getClass().getName() + "'.");
-        this.invoker = new DefaultMethodInvoker(object, this.method);
-    }
+	public MethodInvokingMessageListProcessor(Object targetObject, Method method) {
+		delegate = new MessagingMethodInvokerHelper(targetObject, method, true);
+	}
 
-    public MethodInvokingMessageListProcessor(Object object, Method method) {
-        Assert.notNull(object, "'object' must not be null");
-        Assert.notNull(method, "'method' must not be null");
-        Assert.isTrue(method.getParameterTypes().length == 1
-                && method.getParameterTypes()[0].equals(List.class),
-                "Method " + method + " does not accept exactly one parameter, of type List.");
-        this.method = method;
-        this.invoker = new DefaultMethodInvoker(object, this.method);
-    }
+	public MethodInvokingMessageListProcessor(Object targetObject, String methodName, Class<?> expectedType) {
+		delegate = new MessagingMethodInvokerHelper(targetObject, methodName,
+				expectedType, true);
+	}
 
+	public MethodInvokingMessageListProcessor(Object targetObject, String methodName) {
+		delegate = new MessagingMethodInvokerHelper(targetObject, methodName, true);
+	}
 
-    public Method getMethod() {
-        return method;
-    }
+	public MethodInvokingMessageListProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
+		delegate = new MessagingMethodInvokerHelper(targetObject, annotationType, Object.class, true);
+	}
 
-    /* (non-Javadoc)
-	 * @see org.springframework.integration.aggregator.MessageListProcessor#executeMethod(java.util.Collection)
-	 */
-    public final Object process(Collection<? extends Message<?>> messages) {
-        try {
-            if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
-                    && (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
-                return this.invoker.invokeMethod(messages);
-            }
-            return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
-        }
-        catch (InvocationTargetException e) {
-            throw new MessagingException(
-                    "Method '" + this.method + "' threw an Exception.", e.getTargetException());
-        }
-        catch (Exception e) {
-            throw new MessagingException("Failed to invoke method '" + this.method + "'.");
-        }
-    }
+	public String toString() {
+		return delegate.toString();
+	}
 
-    private static boolean isActualTypeParameterizedMessage(Method method) {
-        return (getCollectionActualType(method) instanceof ParameterizedType)
-                && Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
-    }
-
-    private List<?> extractPayloadsFromMessages(Collection<? extends Message<?>> messages) {
-        List<Object> payloadList = new ArrayList<Object>();
-        for (Message<?> message : messages) {
-            payloadList.add(message.getPayload());
-        }
-        return payloadList;
-    }
-
-    private static boolean isActualTypeRawMessage(Method method) {
-        return getCollectionActualType(method).equals(Message.class);
-    }
-
-    private static Type getCollectionActualType(Method method) {
-        return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments()[0];
-    }
-
-    private static boolean isHavingActualTypeArguments(Method method) {
-        return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments().length == 1;
-    }
-
-    private static boolean isMethodParameterParameterized(Method method) {
-        return method.getGenericParameterTypes().length == 1
-                && method.getGenericParameterTypes()[0] instanceof ParameterizedType;
-    }
+	public Object process(Collection<? extends Message<?>> messages, Map<String, Object> aggregateHeaders) {
+		try {
+			return delegate.process(new ArrayList<Message<?>>(messages), aggregateHeaders);
+		}
+		catch (RuntimeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Failed to process message list", e);
+		}
+	}
 
 }

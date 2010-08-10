@@ -18,22 +18,14 @@ package org.springframework.integration.aggregator;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.MapAccessor;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.integration.Message;
-import org.springframework.integration.context.SimpleBeanResolver;
-import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
-import org.springframework.integration.transformer.MessageTransformationException;
+import org.springframework.integration.util.AbstractExpressionEvaluator;
 
 /**
  * A base class for aggregators that evaluates a SpEL expression with the message list as the root object within the
@@ -42,29 +34,14 @@ import org.springframework.integration.transformer.MessageTransformationExceptio
  * @author Dave Syer
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageListProcessor implements BeanFactoryAware, MessageListProcessor {
+public class ExpressionEvaluatingMessageListProcessor extends AbstractExpressionEvaluator implements MessageListProcessor {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private final Expression expression;
 
 	private volatile Class<?> expectedType = null;
-
-	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-
-	/**
-	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
-	 */
-	public ExpressionEvaluatingMessageListProcessor(String expression) {
-		try {
-			this.expression = parser.parseExpression(expression);
-			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
-		}
-		catch (ParseException e) {
-			throw new IllegalArgumentException("Failed to parse expression.", e);
-		}
-	}
-
+	
 	/**
 	 * Set the result type expected from evaluation of the expression.
 	 */
@@ -72,37 +49,13 @@ public class ExpressionEvaluatingMessageListProcessor implements BeanFactoryAwar
 		this.expectedType = expectedType;
 	}
 
-	/**
-	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
-	 */
-	public void setBeanFactory(final BeanFactory beanFactory) {
-		if (beanFactory != null) {
-			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
-		}
-	}
-
-	public void setConversionService(ConversionService conversionService) {
-		if (conversionService != null) {
-			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
-		}
-	}
-
-	protected StandardEvaluationContext getEvaluationContext() {
-		return this.evaluationContext;
-	}
-
-	protected Object evaluateExpression(Expression expression, Collection<? extends Message<?>> messages,
-			Class<?> expectedType) {
+	public ExpressionEvaluatingMessageListProcessor(String expression) {
 		try {
-			return (expectedType != null) ? expression.getValue(this.evaluationContext, messages, expectedType)
-					: expression.getValue(this.evaluationContext, messages);
+			this.expression = parser.parseExpression(expression);
+			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
 		}
-		catch (EvaluationException e) {
-			Throwable cause = e.getCause();
-			throw new MessageTransformationException("Expression evaluation failed.", cause == null ? e : cause);
-		}
-		catch (Exception e) {
-			throw new MessageTransformationException("Expression evaluation failed.", e);
+		catch (ParseException e) {
+			throw new IllegalArgumentException("Failed to parse expression.", e);
 		}
 	}
 

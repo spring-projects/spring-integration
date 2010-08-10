@@ -18,11 +18,13 @@ package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.util.Assert;
 
 /**
  * MessageGroupProcessor that serves as an adapter for the invocation of a POJO method.
@@ -34,7 +36,7 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
 
-	private final MessageListProcessor adapter;
+	private final MethodInvokingMessageListProcessor processor;
 
 	/**
 	 * Creates a wrapper around the object passed in. This constructor will look for a method that can process
@@ -43,8 +45,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param target the object to wrap
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target) {
-		this.adapter = getAdapter(target, Aggregator.class);
-		Assert.notNull(this.adapter, "No aggregator method could be found for object of type: "+target.getClass());
+		this.processor = new MethodInvokingMessageListProcessor(target, Aggregator.class);
 	}
 
 	/**
@@ -55,7 +56,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param methodName the name of the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, String methodName) {
-		this.adapter = new MethodInvokingMessageListProcessor(target, methodName);
+		this.processor = new MethodInvokingMessageListProcessor(target, methodName);
 	}
 
 	/**
@@ -65,13 +66,21 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param method the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, Method method) {
-		this.adapter = new MethodInvokingMessageListProcessor(target, method);
+		this.processor = new MethodInvokingMessageListProcessor(target, method);
+	}
+	
+	public void setConversionService(ConversionService conversionService) {
+		processor.setConversionService(conversionService);
+	}
+	
+	public void setBeanFactory(BeanFactory beanFactory) {
+		processor.setBeanFactory(beanFactory);
 	}
 
 	@Override
-	protected final Object aggregatePayloads(MessageGroup group) {
+	protected final Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getUnmarked();
-		Object result = this.adapter.process(messagesUpForProcessing);
+		Object result = this.processor.process(messagesUpForProcessing, headers);
 		return result;
 	}
 

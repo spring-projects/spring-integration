@@ -82,15 +82,16 @@ public class AggregatorAnnotationTests {
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomReleaseStrategy";
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
-		Object ReleaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
-		Assert.assertTrue(ReleaseStrategy instanceof MethodInvokingReleaseStrategy);
-		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) ReleaseStrategy;
-		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(
-				releaseStrategyAdapter).getPropertyValue("adapter")).getPropertyValue("invoker"));
-		Object targetObject = invokerAccessor.getPropertyValue("object");
-		assertSame(context.getBean(endpointName), targetObject);
-		Method completionCheckerMethod = (Method) invokerAccessor.getPropertyValue("method");
-		assertEquals("completionChecker", completionCheckerMethod.getName());
+		Object releaseStrategy = getPropertyValue(aggregator, "releaseStrategy");
+		Assert.assertTrue(releaseStrategy instanceof MethodInvokingReleaseStrategy);
+		MethodInvokingReleaseStrategy releaseStrategyAdapter = (MethodInvokingReleaseStrategy) releaseStrategy;
+		Map<?, ?> map = (Map<?, ?>) new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
+				.getPropertyValue("adapter")).getPropertyValue("delegate")).getPropertyValue("handlerMethods");
+		assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method", 1, map
+				.size());
+		assertEquals("The release strategy is not injected with the appropriate method", 1, map.size());
+		assertTrue("Handler methods do not contain correct method: " + map, map.toString()
+				.contains("completionChecker"));
 	}
 
 	@Test
@@ -101,9 +102,9 @@ public class AggregatorAnnotationTests {
 		MessageHandler aggregator = this.getAggregator(context, endpointName);
 		Object correlationStrategy = getPropertyValue(aggregator, "correlationStrategy");
 		Assert.assertTrue(correlationStrategy instanceof MethodInvokingCorrelationStrategy);
-		MethodInvokingCorrelationStrategy ReleaseStrategyAdapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
-		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(new DirectFieldAccessor(ReleaseStrategyAdapter)
-				.getPropertyValue("processor"));
+		MethodInvokingCorrelationStrategy releaseStrategyAdapter = (MethodInvokingCorrelationStrategy) correlationStrategy;
+		DirectFieldAccessor processorAccessor = new DirectFieldAccessor(new DirectFieldAccessor(new DirectFieldAccessor(releaseStrategyAdapter)
+				.getPropertyValue("processor")).getPropertyValue("delegate"));
 		Object targetObject = processorAccessor.getPropertyValue("targetObject");
 		assertSame(context.getBean(endpointName), targetObject);
 		Map<?, ?> handlerMethods = (Map<?, ?>) processorAccessor.getPropertyValue("handlerMethods");

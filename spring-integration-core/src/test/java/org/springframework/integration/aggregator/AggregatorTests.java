@@ -31,7 +31,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 
@@ -231,7 +231,7 @@ public class AggregatorTests {
 	}
 
 	private class MultiplyingProcessor implements MessageGroupProcessor {
-		public void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate,
+		public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate,
 				MessageChannel outputChannel) {
 			Integer product = 1;
 			for (Message<?> message : group.getUnmarked()) {
@@ -242,7 +242,7 @@ public class AggregatorTests {
 	}
 
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
-		public void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate,
+		public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate,
 				MessageChannel outputChannel) {
 			// noop
 		}

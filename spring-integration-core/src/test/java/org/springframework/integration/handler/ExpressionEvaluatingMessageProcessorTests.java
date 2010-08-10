@@ -27,6 +27,7 @@ import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationException;
@@ -55,6 +56,12 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageWithParameterCoercion() {
+		@SuppressWarnings("unused")
+		class TestTarget {
+			public String stringify(int number) {
+				return number+"";
+			}
+		}
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.stringify(payload)");
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
 		assertEquals("2", processor.processMessage(new StringMessage("2")));
@@ -62,6 +69,11 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageWithVoidResult() {
+		@SuppressWarnings("unused")
+		class TestTarget {
+			public void ping(String input) {
+			}
+		}
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.ping(payload)");
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
 		assertEquals(null, processor.processMessage(new StringMessage("2")));
@@ -69,7 +81,15 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageWithParameterCoercionToNonPrimitive() {
+		class TestTarget {
+			@SuppressWarnings("unused")
+			public String find(Resource[] resources) {
+				return Arrays.asList(resources).toString();
+			}
+			
+		}
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.find(payload)");
+		processor.setBeanFactory(new GenericApplicationContext().getBeanFactory());
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
 		String result = (String) processor.processMessage(new StringMessage("classpath:*.properties"));
 		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
@@ -186,23 +206,6 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			throw new CheckedException("Expected test exception");
 		}
 	}
-
-	@SuppressWarnings("unused")
-	private static class TestTarget {
-
-		public String stringify(int number) {
-			return number+"";
-		}
-
-		public String find(Resource[] resources) {
-			return Arrays.asList(resources).toString();
-		}
-
-		public void ping(String input) {
-		}
-
-	}
-
 
 	@SuppressWarnings("serial")
 	private static final class CheckedException extends Exception {

@@ -14,7 +14,7 @@
 package org.springframework.integration.aggregator;
 
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -26,11 +26,11 @@ import org.springframework.integration.store.MessageGroup;
 public interface MessageGroupProcessor {
 
 	/**
-	 * Process the given group and send the resulting message(s) to the output channel using the messaging template.
-	 * Implementations are free to send as little or as many messages based on the invocation as needed. For example an
+	 * Process the given group and send the resulting message(s) to the output channel using the messaging operations.
+	 * Implementations are free to send as few or as many messages based on the invocation as needed. For example an
 	 * aggregating processor will send only a single message representing the group, where a resequencing strategy will
 	 * send all messages in the group individually.
 	 */
-	void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate, MessageChannel outputChannel);
+	void processAndSend(MessageGroup group, MessagingOperations messagingTemplate, MessageChannel outputChannel);
 
 }

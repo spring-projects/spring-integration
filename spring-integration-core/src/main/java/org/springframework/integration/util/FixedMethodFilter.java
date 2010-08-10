@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -32,12 +32,12 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-class FixedHandlerMethodFilter implements MethodFilter {
+public class FixedMethodFilter implements MethodFilter {
 
 	private final Method method;
 
 
-	public FixedHandlerMethodFilter(Method method) {
+	public FixedMethodFilter(Method method) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 	}

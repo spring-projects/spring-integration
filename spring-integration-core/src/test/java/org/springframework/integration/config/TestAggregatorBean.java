@@ -48,7 +48,9 @@ public class TestAggregatorBean {
 			}
 		}
 		Message<?> returnedMessage =  new StringMessage(buffer.toString());
-		aggregatedMessages.put(correlationId, returnedMessage);
+		if (correlationId!=null) {
+			aggregatedMessages.put(correlationId, returnedMessage);
+		}
 		return returnedMessage;
 	}
 

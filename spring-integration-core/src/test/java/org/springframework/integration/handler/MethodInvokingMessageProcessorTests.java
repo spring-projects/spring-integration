@@ -49,7 +49,7 @@ import org.springframework.integration.core.StringMessage;
 public class MethodInvokingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(MethodInvokingMessageProcessorTests.class);
-	
+
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
 
@@ -58,14 +58,16 @@ public class MethodInvokingMessageProcessorTests {
 		class A {
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(final Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+			}
 		}
 
-		class B extends A {}
+		class B extends A {
+		}
 
 		@SuppressWarnings("unused")
-		class C extends B {}
+		class C extends B {
+		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
 		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
@@ -77,18 +79,19 @@ public class MethodInvokingMessageProcessorTests {
 		class A {
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+			}
 		}
 
 		class B extends A {
 			public Message<String> myMethod(Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
+			}
 		}
 
 		@SuppressWarnings("unused")
-		class C extends B {}
+		class C extends B {
+		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
 		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
@@ -99,20 +102,20 @@ public class MethodInvokingMessageProcessorTests {
 		class A {
 			@SuppressWarnings("unused")
 			public Message<String> myMethod(Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+			}
 		}
 
 		class B extends A {
 			public Message<String> myMethod(Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("B", "B").build();
+			}
 		}
 
 		class C extends B {
 			public Message<String> myMethod(Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
+			}
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
@@ -123,17 +126,18 @@ public class MethodInvokingMessageProcessorTests {
 	public void testHandlerInheritanceMethodImplInSubClassAndSuper() {
 		class A {
 			@SuppressWarnings("unused")
-			public Message<String> myMethod(Message<String> msg){
-		        return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
-		    }
+			public Message<String> myMethod(Message<String> msg) {
+				return MessageBuilder.fromMessage(msg).setHeader("A", "A").build();
+			}
 		}
 
-		class B extends A {}
+		class B extends A {
+		}
 
 		class C extends B {
 			public Message<String> myMethod(Message<String> msg) {
-		        return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
-		    }
+				return MessageBuilder.fromMessage(msg).setHeader("C", "C").build();
+			}
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
@@ -143,92 +147,102 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptPayloadAndReturnObject");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptPayloadAndReturnObject");
 		Object result = processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-1", result);
 	}
 
 	@Test
 	public void testPayloadCoercedToString() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptPayloadAndReturnObject");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptPayloadAndReturnObject");
 		Object result = processor.processMessage(new GenericMessage<Integer>(123456789));
 		assertEquals("123456789-1", result);
 	}
 
 	@Test
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptPayloadAndReturnMessage");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptPayloadAndReturnMessage");
 		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-2", result.getPayload());
 	}
 
 	@Test
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptMessageAndReturnObject");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptMessageAndReturnObject");
 		Object result = processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-3", result);
 	}
 
 	@Test
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptMessageAndReturnMessage");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptMessageAndReturnMessage");
 		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-4", result.getPayload());
 	}
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptMessageSubclassAndReturnMessage");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptMessageSubclassAndReturnMessage");
 		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-5", result.getPayload());
 	}
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptMessageSubclassAndReturnMessageSubclass");
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptMessageSubclassAndReturnMessageSubclass");
 		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
 		assertEquals("testing-6", result.getPayload());
 	}
 
 	@Test
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
-		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(
-				new TestBean(), "acceptPayloadAndHeaderAndReturnObject");
-		Message<?> request = MessageBuilder.withPayload("testing")
-				.setHeader("number", new Integer(123)).build();
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"acceptPayloadAndHeaderAndReturnObject");
+		Message<?> request = MessageBuilder.withPayload("testing").setHeader("number", new Integer(123)).build();
 		Object result = processor.processMessage(request);
 		assertEquals("testing-123", result);
 	}
 
-    @Test
-    public void testVoidMethodsIncludedbyDefault() {
-        MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods");
-        assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
-        assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
-    }
+	@Test
+	public void testVoidMethodsIncludedbyDefault() {
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
+				"testVoidReturningMethods");
+		assertNull(processor.processMessage(MessageBuilder.withPayload("Something").build()));
+		assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
+	}
 
-    @Test
-    public void testVoidMethodsExcludedByFlag() {
-    	Exception exception = null;
-        MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(), "testVoidReturningMethods", true);
-        assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
-        try {
-        	processor.processMessage(MessageBuilder.withPayload("not_a_number").build());
-            fail();
-        }
-        catch(MessageHandlingException ex) {
-        	// the only void method expects a number
-        	exception = ex;
-        }
-        assertNotNull(exception);
-    }
+	@Test
+	public void testVoidMethodsExcludedByFlag() {
+		@SuppressWarnings("unused")
+		class VoidMethodsBean {
+			public void testVoidReturningMethods(String s) {
+				// do nothing
+			}
+			public int testVoidReturningMethods(int i) {
+				return i;
+			}
+		}
+		Exception exception = null;
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new VoidMethodsBean(),
+				"testVoidReturningMethods", true);
+		assertEquals(12, processor.processMessage(MessageBuilder.withPayload(12).build()));
+		try {
+			processor.processMessage(MessageBuilder.withPayload("not_a_number").build());
+			fail();
+		}
+		catch (MessageHandlingException ex) {
+			// the only void method expects a number
+			exception = ex;
+		}
+		assertNotNull(exception);
+	}
 
 	@Test
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
@@ -267,6 +281,7 @@ public class MethodInvokingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageBadExpression() throws Exception {
+		// TODO: should this be MessageHandlingException or NumberFormatException?
 		expected.expect(new ExceptionCauseMatcher(NumberFormatException.class));
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
@@ -297,8 +312,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("number", 42).build();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 42).build();
 		Object result = processor.processMessage(message);
 		assertEquals("foo-42", result);
 	}
@@ -308,9 +322,8 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("twoHeaders", String.class, Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Message<String> message = MessageBuilder.withPayload("foo")
-				.setHeader("prop", "bar")
-				.setHeader("number", 42).build();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("prop", "bar").setHeader("number", 42)
+				.build();
 		Object result = processor.processMessage(message);
 		assertEquals("bar-42", result);
 	}
@@ -334,7 +347,7 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals(String.class, bean.lastArg.getClass());
 		assertEquals("true", bean.lastArg);
 	}
-	
+
 	@Test
 	public void testOverloadedNonVoidReturningMethodsWithExactMatchForType() {
 		AmbiguousMethodBean bean = new AmbiguousMethodBean();
@@ -344,20 +357,24 @@ public class MethodInvokingMessageProcessorTests {
 		assertEquals(String.class, bean.lastArg.getClass());
 		assertEquals("true", bean.lastArg);
 	}
-		
+
 	private static class ExceptionCauseMatcher extends TypeSafeMatcher<Exception> {
 		private Throwable cause;
+
 		private Class<? extends Exception> type;
+
 		public ExceptionCauseMatcher(Class<? extends Exception> type) {
 			this.type = type;
 		}
+
 		@Override
 		public boolean matchesSafely(Exception item) {
 			logger.debug(item);
 			cause = item.getCause();
-			assertNotNull("There is no cause for "+item, cause);
+			assertNotNull("There is no cause for " + item, cause);
 			return type.isAssignableFrom(cause.getClass());
 		}
+
 		public void describeTo(Description description) {
 			description.appendText("cause to be ").appendValue(type).appendText("but was ").appendValue(cause);
 		}
@@ -368,11 +385,12 @@ public class MethodInvokingMessageProcessorTests {
 		public String error(String input) {
 			throw new UnsupportedOperationException("Expected test exception");
 		}
+
 		public String checked(String input) throws Exception {
 			throw new CheckedException("Expected test exception");
 		}
 	}
-	
+
 	@SuppressWarnings("serial")
 	public static final class CheckedException extends Exception {
 		public CheckedException(String string) {
@@ -411,16 +429,15 @@ public class MethodInvokingMessageProcessorTests {
 			return s + "-" + n;
 		}
 
-        public void testVoidReturningMethods(String s) {
-            // do nothing
-        }
+		public void testVoidReturningMethods(String s) {
+			// do nothing
+		}
 
-        public int testVoidReturningMethods(int i) {
-            return i;
-        }
+		public int testVoidReturningMethods(int i) {
+			return i;
+		}
 
 	}
-
 
 	@SuppressWarnings("unused")
 	private static class AnnotatedTestService {
@@ -437,15 +454,16 @@ public class MethodInvokingMessageProcessorTests {
 			return prop + "-" + num.toString();
 		}
 
-		public Integer optionalHeader(@Header(required=false) Integer num) {
+		public Integer optionalHeader(@Header(required = false) Integer num) {
 			return num;
 		}
 
-		public Integer requiredHeader(@Header(value="num", required=true) Integer num) {
+		public Integer requiredHeader(@Header(value = "num", required = true) Integer num) {
 			return num;
 		}
 
-		public String optionalAndRequiredHeader(@Header(required=false) String prop, @Header(value="num", required=true) Integer num) {
+		public String optionalAndRequiredHeader(@Header(required = false) String prop,
+				@Header(value = "num", required = true) Integer num) {
 			return prop + num;
 		}
 
@@ -464,10 +482,9 @@ public class MethodInvokingMessageProcessorTests {
 
 	}
 
-
 	/**
-	 * Method names create ambiguities, but the MethodResolver implementation
-	 * should filter out based on the annotation or the 'requiresReply' flag.
+	 * Method names create ambiguities, but the MethodResolver implementation should filter out based on the annotation
+	 * or the 'requiresReply' flag.
 	 */
 	@SuppressWarnings("unused")
 	private static class AmbiguousMethodBean {
@@ -491,8 +508,8 @@ public class MethodInvokingMessageProcessorTests {
 	}
 
 	/**
-	 * Method names create ambiguities, but the MethodResolver implementation
-	 * should filter out based on the annotation or the 'requiresReply' flag.
+	 * Method names create ambiguities, but the MethodResolver implementation should filter out based on the annotation
+	 * or the 'requiresReply' flag.
 	 */
 	@SuppressWarnings("unused")
 	private static class OverloadedMethodBean {

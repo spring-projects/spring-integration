@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-class HandlerMethodFilter implements MethodFilter {
+public class AnnotatedMethodFilter implements MethodFilter {
 
 	private final Class<? extends Annotation> annotationType;
 
@@ -46,7 +46,7 @@ class HandlerMethodFilter implements MethodFilter {
 	private final boolean requiresReply;
 
 
-	public HandlerMethodFilter(Class<? extends Annotation> annotationType, String methodName, boolean requiresReply) {
+	public AnnotatedMethodFilter(Class<? extends Annotation> annotationType, String methodName, boolean requiresReply) {
 		this.annotationType = annotationType;
 		this.methodName = methodName;
 		this.requiresReply = requiresReply;

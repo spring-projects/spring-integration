@@ -18,14 +18,12 @@ package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.store.MessageGroup;
-import org.springframework.util.Assert;
 
 /**
- * Adapter for methods annotated with
- * {@link org.springframework.integration.annotation.ReleaseStrategy @ReleaseStrategy}
- * and for '<code>release-strategy</code>' elements that include a '<code>method</code>'
- * attribute (e.g. &lt;release-strategy ref="beanReference" method="methodName"/&gt;).
+ * A {@link ReleaseStrategy} that invokes a method on a plain old Java object. 
  * 
  * @author Marius Bogoevici
  * @author Dave Syer
@@ -35,24 +33,23 @@ public class MethodInvokingReleaseStrategy implements ReleaseStrategy {
 	private final MethodInvokingMessageListProcessor adapter;
 
 	public MethodInvokingReleaseStrategy(Object object, Method method) {
-		adapter = new MethodInvokingMessageListProcessor(object, method);
-		this.assertMethodReturnsBoolean();
+		adapter = new MethodInvokingMessageListProcessor(object, method, Boolean.class);
 	}
 
 	public MethodInvokingReleaseStrategy(Object object, String methodName) {
-		adapter = new MethodInvokingMessageListProcessor(object, methodName);
-		this.assertMethodReturnsBoolean();
+		adapter = new MethodInvokingMessageListProcessor(object, methodName, Boolean.class);
 	}
 
+	public void setBeanFactory(BeanFactory beanFactory) {
+		adapter.setBeanFactory(beanFactory);
+	}
+
+	public void setConversionService(ConversionService conversionService) {
+		adapter.setConversionService(conversionService);
+	}
 
 	public boolean canRelease(MessageGroup messages) {
-		return ((Boolean) adapter.process(messages.getUnmarked())).booleanValue();
-	}
-	
-	private void assertMethodReturnsBoolean() {
-		Assert.isTrue(Boolean.class.equals(adapter.getMethod().getReturnType())
-				|| boolean.class.equals(adapter.getMethod().getReturnType()),
-				"Method '" + adapter.getMethod().getName() + "' does not return a boolean value");
+		return (Boolean) adapter.process(messages.getUnmarked(), null);
 	}
 
 }

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -25,7 +23,6 @@ import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
-import org.springframework.integration.context.SimpleBeanResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -35,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor implements BeanFactoryAware {
+public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -64,16 +61,6 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	 */
 	public void setExpectedType(Class<?> expectedType) {
 		this.expectedType = expectedType;
-	}
-
-	/**
-	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
-	 */
-	public void setBeanFactory(final BeanFactory beanFactory) {
-		super.setBeanFactory(beanFactory);
-		if (beanFactory != null) {
-			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
-		}
 	}
 
 	/**

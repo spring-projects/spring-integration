@@ -85,7 +85,7 @@ public class PNamespaceTests {
 
 	private TestBean prepare(EventDrivenConsumer edc) {
 		return TestUtils.getPropertyValue(serviceActivator,
-				"handler.processor.targetObject", TestBean.class);
+				"handler.processor.delegate.targetObject", TestBean.class);
 	}
 
 

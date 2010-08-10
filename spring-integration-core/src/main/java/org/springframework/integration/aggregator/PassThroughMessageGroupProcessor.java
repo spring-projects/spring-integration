@@ -15,7 +15,7 @@ package org.springframework.integration.aggregator;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.integration.store.MessageGroup;
  */
 public class PassThroughMessageGroupProcessor implements MessageGroupProcessor {
 
-    public void processAndSend(MessageGroup group, MessagingTemplate messagingTemplate, MessageChannel outputChannel) {
+    public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate, MessageChannel outputChannel) {
         for (Message<?> message : group.getUnmarked()) {
             messagingTemplate.send(outputChannel, message);
         }
