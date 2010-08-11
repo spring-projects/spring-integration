@@ -537,7 +537,7 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
 			Annotation match = null;
 			for (Annotation annotation : annotations) {
 				Class<? extends Annotation> type = annotation.annotationType();
-				if (type.equals(Payload.class) || type.equals(Header.class) || type.equals(Headers.class)) {
+				if (type.equals(Payload.class) || type.equals(Payloads.class) || type.equals(Header.class) || type.equals(Headers.class)) {
 					if (match != null) {
 						throw new MessagingException(
 								"At most one parameter annotation can be provided for message mapping, "

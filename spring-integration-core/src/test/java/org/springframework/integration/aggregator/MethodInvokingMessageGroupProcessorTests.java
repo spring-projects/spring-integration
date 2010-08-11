@@ -190,6 +190,35 @@ public class MethodInvokingMessageGroupProcessorTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
+	public void shouldUseAnnotatedPayloads() throws Exception {
+
+		@SuppressWarnings("unused")
+		class SimpleAggregator {
+			@Aggregator
+			public String and(@Payloads List<Integer> flags) {
+				List<Integer> result = new ArrayList<Integer>();
+				for (int flag : flags) {
+					result.add(flag);
+				}
+				return result.toString();
+			}
+			public String or(List<Integer> flags) {
+				throw new UnsupportedOperationException("Not expected");
+			}
+		}
+
+		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
+		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
+		when(outputChannel.send(isA(Message.class))).thenReturn(true);
+		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
+		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
+		// verify
+		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
+		assertThat((String) messageCaptor.getValue().getPayload(), is("[1, 2, 4]"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethodWithCollection() throws Exception {
 
 		@SuppressWarnings("unused")
