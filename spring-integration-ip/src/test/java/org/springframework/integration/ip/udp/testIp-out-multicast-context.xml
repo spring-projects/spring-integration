@@ -28,7 +28,7 @@
 	                   ref="testIp"
 	                   method="testIp"/>
 
-	<ip:outbound-channel-adapter id="mcUdpSender" protocol="udp"
+	<ip:udp-outbound-channel-adapter id="mcUdpSender" 
 		multicast="true"
 		time-to-live="2"
 		host="225.6.7.8"

@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 import javax.net.ServerSocketFactory;
 
@@ -50,6 +51,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 	 * I/O errors on the server socket/channel are logged and the factory is stopped.
 	 */
 	public void run() {
+		ServerSocket theServerSocket = null;
 		if (this.listener == null) {
 			logger.info("No listener bound to server connection factory; will not read; exiting...");
 			return;
@@ -63,6 +65,7 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 				this.serverSocket = ServerSocketFactory.getDefault()
 						.createServerSocket(port, Math.abs(poolSize), whichNic);
 			}
+			theServerSocket = this.serverSocket;
 			this.listening = true;
 			logger.info("Listening on port " + this.port);
 			while (true) {
@@ -76,7 +79,10 @@ public class TcpNetServerConnectionFactory extends AbstractServerConnectionFacto
 			}
 		} catch (Exception e) {
 			this.listening = false;
-			if (this.active) {
+			// don't log an error if we had a good socket once and now it's closed
+			if (e instanceof SocketException && theServerSocket != null) {
+				logger.warn("Server Socket closed");
+			} else if (this.active) {
 				logger.error("Error on ServerSocket", e);
 			}
 			this.active = false;

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:ip="http://www.springframework.org/schema/integration/ip"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/ip
+			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
+
+	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
+
+	<bean id="crLfConverter" class="org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter" />
+	<bean id="stxEtxConverter" class="org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter" />
+	<bean id="lengthHeaderConverter" class="org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter" />
+	<bean id="javaConverter" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
+
+	<ip:tcp-connection-factory id="crLfServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6000)}"
+		input-converter="crLfConverter"
+		output-converter="crLfConverter"/>
+
+	<ip:tcp-connection-factory id="stxEtxServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6100)}"
+		input-converter="stxEtxConverter"
+		output-converter="stxEtxConverter"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6200)}"
+		input-converter="lengthHeaderConverter"
+		output-converter="lengthHeaderConverter"/>
+
+	<ip:tcp-connection-factory id="javaSerialServer"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6300)}"
+		input-converter="javaConverter"
+		output-converter="javaConverter"/>
+
+	<ip:tcp-connection-factory id="crLfClient"
+		type="client"
+		host="localhost"
+		port="#{crLfServer.port}"
+		input-converter="crLfConverter"
+		output-converter="crLfConverter"/>
+
+	<ip:tcp-connection-factory id="stxEtxClient"
+		type="client"
+		host="localhost"
+		port="#{stxEtxServer.port}"
+		input-converter="stxEtxConverter"
+		output-converter="stxEtxConverter"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderClient"
+		type="client"
+		host="localhost"
+		port="#{lengthHeaderServer.port}"
+		input-converter="lengthHeaderConverter"
+		output-converter="lengthHeaderConverter"/>
+
+	<ip:tcp-connection-factory id="javaSerialClient"
+		type="client"
+		host="localhost"
+		port="#{javaSerialServer.port}"
+		input-converter="javaConverter"
+		output-converter="javaConverter"/>
+
+	<ip:tcp-connection-factory id="crLfServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6400)}"
+		input-converter="crLfConverter"
+		output-converter="crLfConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="stxEtxServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6500)}"
+		input-converter="stxEtxConverter"
+		output-converter="stxEtxConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6600)}"
+		input-converter="lengthHeaderConverter"
+		output-converter="lengthHeaderConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="javaSerialServerNio"
+		type="server"
+		port="#{tcpIpUtils.findAvailableServerSocket(6700)}"
+		input-converter="javaConverter"
+		output-converter="javaConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="crLfClientNio"
+		type="client"
+		host="localhost"
+		port="#{crLfServer.port}"
+		input-converter="crLfConverter"
+		output-converter="crLfConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="stxEtxClientNio"
+		type="client"
+		host="localhost"
+		port="#{stxEtxServer.port}"
+		input-converter="stxEtxConverter"
+		output-converter="stxEtxConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="lengthHeaderClientNio"
+		type="client"
+		host="localhost"
+		port="#{lengthHeaderServer.port}"
+		input-converter="lengthHeaderConverter"
+		output-converter="lengthHeaderConverter"
+		using-nio="true"/>
+
+	<ip:tcp-connection-factory id="javaSerialClientNio"
+		type="client"
+		host="localhost"
+		port="#{javaSerialServer.port}"
+		input-converter="javaConverter"
+		output-converter="javaConverter"
+		using-nio="true"/>
+
+
+</beans>

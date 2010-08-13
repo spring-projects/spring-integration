@@ -15,113 +15,14 @@
  */
 package org.springframework.integration.ip.tcp;
 
-import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.channels.SocketChannel;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.integration.mapping.MessageMappingException;
 
 /**
  * @author Gary Russell
  *
  */
 public class SocketIoUtils {
-
-	public static NetSocketReader createNetReader(int messageFormat, 
-				Class<NetSocketReader> customSocketReaderClass, 
-				Socket socket,
-				int receiveBufferSize, 
-				int soReceiveBufferSize) {
-		NetSocketReader reader;
-		if (messageFormat == MessageFormats.FORMAT_CUSTOM) {
-			try {
-				Constructor<NetSocketReader> ctor = 
-					customSocketReaderClass.getConstructor(Socket.class);
-				reader = BeanUtils.instantiateClass(ctor, socket);
-				if (soReceiveBufferSize > 0) {
-					socket.setReceiveBufferSize(soReceiveBufferSize);
-				}
-			} catch (Exception e) {
-				throw new MessageMappingException("Failed to instantiate custom reader", e);
-			}
-		}
-		else {
-			reader = new NetSocketReader(socket);
-		}
-		reader.setMessageFormat(messageFormat);
-		reader.setMaxMessageSize(receiveBufferSize);
-		return reader;
-	}
-
-	public static NetSocketWriter createNetWriter(int messageFormat, 
-			Class<NetSocketWriter> customSocketWriterClass, Socket socket) {
-		NetSocketWriter writer;
-		if (messageFormat == MessageFormats.FORMAT_CUSTOM){
-			try {
-				Constructor<NetSocketWriter> ctor = customSocketWriterClass.getConstructor(Socket.class);
-				writer = BeanUtils.instantiateClass(ctor, socket);
-			} catch (Exception e) {
-				throw new MessageMappingException("Failed to instantiate custom writer", e);
-			}
-		} else {
-			writer = new NetSocketWriter(socket);
-		}
-		writer.setMessageFormat(messageFormat);
-		return writer;
-	}
-
-	public static NioSocketReader createNioReader(int messageFormat, 
-				Class<NioSocketReader> customSocketReaderClass, 
-				SocketChannel channel,
-				int receiveBufferSize, 
-				int soReceiveBufferSize,
-				boolean usingDirectBuffers ) {
-		NioSocketReader reader;
-		if (messageFormat == MessageFormats.FORMAT_CUSTOM) {
-			try {
-				Constructor<NioSocketReader> ctor = 
-					customSocketReaderClass.getConstructor(SocketChannel.class);
-				reader = BeanUtils.instantiateClass(ctor, channel);
-				if (soReceiveBufferSize > 0) {
-					channel.socket().setReceiveBufferSize(soReceiveBufferSize);
-				}
-			} catch (Exception e) {
-				throw new MessageMappingException("Failed to instantiate custom reader", e);
-			}
-		}
-		else {
-			reader = new NioSocketReader(channel);
-		}
-		reader.setMessageFormat(messageFormat);
-		reader.setMaxMessageSize(receiveBufferSize);
-		reader.setUsingDirectBuffers(usingDirectBuffers);
-		return reader;
-	}
-
-	public static NioSocketWriter createNioWriter(int messageFormat, 
-			Class<NioSocketWriter> customSocketWriterClass, 
-			SocketChannel channel, 
-			int maxBuffers, 
-			int sendBufferSize, 
-			boolean usingDirectBuffers) {
-		NioSocketWriter writer;
-		if (messageFormat == MessageFormats.FORMAT_CUSTOM){
-			try {
-				Constructor<NioSocketWriter> ctor = customSocketWriterClass
-				.getConstructor(SocketChannel.class, int.class, int.class);
-				writer = BeanUtils.instantiateClass(ctor, channel, maxBuffers, sendBufferSize);
-			} catch (Exception e) {
-				throw new MessageMappingException("Failed to instantiate custom writer", e);
-			}
-		} else {
-			writer = new NioSocketWriter(channel, maxBuffers, sendBufferSize);
-		}
-		writer.setMessageFormat(messageFormat);
-		writer.setUsingDirectBuffers(usingDirectBuffers);
-		return writer;
-	}
 
 	public static String getSocketId(Socket socket) {
 		InetAddress inetAddress = socket.getInetAddress();

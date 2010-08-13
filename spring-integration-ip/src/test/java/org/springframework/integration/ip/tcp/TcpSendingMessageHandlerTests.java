@@ -60,167 +60,6 @@ import org.springframework.integration.ip.util.SocketUtils;
  */
 public class TcpSendingMessageHandlerTests {
 
-	@Test
-	public void testNet() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		server.setSoTimeout(10000);
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					TcpNetSendingMessageHandler handler = new TcpNetSendingMessageHandler("localhost", port);
-					handler.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-					Message<String> message = MessageBuilder.withPayload(testString).build();
-					handler.handleMessage(message);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		t.setDaemon(true);
-		t.start();
-		Socket socket = server.accept();
-		socket.setSoTimeout(5000);
-		InputStream is = socket.getInputStream();
-		byte[] buff = new byte[testString.length() + 2];
-		readFully(is, buff);
-		assertEquals(MessageFormats.STX, buff[0]);
-		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(MessageFormats.ETX, buff[testString.length() + 1]);
-		server.close();
-	}
-
-	@Test
-	public void testNetCustom() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		server.setSoTimeout(10000);
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					TcpNetSendingMessageHandler handler = new TcpNetSendingMessageHandler("localhost", port);
-					handler.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
-					handler.setCustomSocketWriterClassName("org.springframework.integration.ip.tcp.CustomNetSocketWriter");
-					Message<String> message = MessageBuilder.withPayload(testString).build();
-					handler.handleMessage(message);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		t.setDaemon(true);
-		t.start();
-		Socket socket = server.accept();
-		socket.setSoTimeout(5000);
-		InputStream is = socket.getInputStream();
-		byte[] buff = new byte[24];
-		readFully(is, buff);
-		assertEquals((testString + "                        ").substring(0, 24), 
-				new String(buff));
-		server.close();
-	}
-
-	@Test
-	public void testNio() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		server.setSoTimeout(10000);
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					TcpNioSendingMessageHandler handler = new TcpNioSendingMessageHandler("localhost", port);
-					handler.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-					Message<String> message = MessageBuilder.withPayload(testString).build();
-					handler.handleMessage(message);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		t.setDaemon(true);
-		t.start();
-		Socket socket = server.accept();
-		socket.setSoTimeout(5000);
-		InputStream is = socket.getInputStream();
-		byte[] buff = new byte[testString.length() + 2];
-		readFully(is, buff);
-		assertEquals(MessageFormats.STX, buff[0]);
-		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(MessageFormats.ETX, buff[testString.length() + 1]);
-		server.close();
-	}
-	
-	@Test
-	public void testNioDirect() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		server.setSoTimeout(10000);
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					TcpNioSendingMessageHandler handler = new TcpNioSendingMessageHandler("localhost", port);
-					handler.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-					handler.setUsingDirectBuffers(true);
-					Message<String> message = MessageBuilder.withPayload(testString).build();
-					handler.handleMessage(message);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		t.setDaemon(true);
-		t.start();
-		Socket socket = server.accept();
-		socket.setSoTimeout(5000);
-		InputStream is = socket.getInputStream();
-		byte[] buff = new byte[testString.length() + 2];
-		readFully(is, buff);
-		assertEquals(MessageFormats.STX, buff[0]);
-		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(MessageFormats.ETX, buff[testString.length() + 1]);
-		server.close();
-	}
-	
-	@Test
-	public void testNioCustom() throws Exception {
-		final int port = SocketUtils.findAvailableServerSocket();
-		final String testString = "abcdef";
-		ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
-		server.setSoTimeout(10000);
-		Thread t = new Thread(new Runnable() {
-			public void run() {
-				try {
-					TcpNioSendingMessageHandler handler = new TcpNioSendingMessageHandler("localhost", port);
-					handler.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
-					handler.setCustomSocketWriterClassName("org.springframework.integration.ip.tcp.CustomNioSocketWriter");
-					Message<String> message = MessageBuilder.withPayload(testString).build();
-					handler.handleMessage(message);
-					Thread.sleep(1000000000L);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		t.setDaemon(true);
-		t.start();
-		Socket socket = server.accept();
-		socket.setSoTimeout(5000);
-		InputStream is = socket.getInputStream();
-		byte[] buff = new byte[24];
-		readFully(is, buff);
-		assertEquals((testString + "                        ").substring(0, 24), 
-				new String(buff));
-		server.close();
-	}
-	
 	private void readFully(InputStream is, byte[] buff) throws IOException {
 		for (int i = 0; i < buff.length; i++) {
 			buff[i] = (byte) is.read();
@@ -304,7 +143,7 @@ public class TcpSendingMessageHandlerTests {
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
 		ccf.setInputConverter(converter);
 		ccf.setOutputConverter(converter);
-//		ccf.setSoTimeout(10000);
+		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -849,6 +688,7 @@ public class TcpSendingMessageHandlerTests {
 		ccf.setOutputConverter(converter);
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
+		ccf.setTaskExecutor(Executors.newFixedThreadPool(100));
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);

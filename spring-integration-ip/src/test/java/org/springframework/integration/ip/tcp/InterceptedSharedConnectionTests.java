@@ -62,7 +62,6 @@ public class InterceptedSharedConnectionTests {
 	@Test
 	public void test1() throws Exception {
 		int n = 0;
-		Object o = ctx.getBean("inboundServer");
 		while (!listener.isListening()) {
 			Thread.sleep(100);
 			if (n++ > 100) {

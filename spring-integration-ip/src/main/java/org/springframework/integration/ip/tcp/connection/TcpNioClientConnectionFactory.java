@@ -46,6 +46,7 @@ public class TcpNioClientConnectionFactory extends
 	protected Map<SocketChannel, TcpNioConnection> connections = new ConcurrentHashMap<SocketChannel, TcpNioConnection>();
 	
 	protected BlockingQueue<SocketChannel> newChannels = new LinkedBlockingQueue<SocketChannel>();
+
 	
 	/**
 	 * Creates a TcpNioClientConnectionFactory for connections to the host and port.

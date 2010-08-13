@@ -27,6 +27,7 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
@@ -57,7 +58,6 @@ public class TcpNioConnectionTests {
 					// block so we fill the buffer
 					server.accept();
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -90,7 +90,6 @@ public class TcpNioConnectionTests {
 					// block to cause timeout on read.
 					server.accept();
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

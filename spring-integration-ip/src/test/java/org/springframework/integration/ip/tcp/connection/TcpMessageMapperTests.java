@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
+import org.springframework.integration.ip.tcp.connection.TcpConnection;
+import org.springframework.integration.ip.tcp.connection.TcpMessageMapper;
 
 /**
  * @author Gary Russell
  *
  */
-public class SocketMessageMapperTests {
+public class TcpMessageMapperTests {
 
 	/**
 	 * 
@@ -44,14 +43,20 @@ public class SocketMessageMapperTests {
 	 */
 	@Test
 	public void testToMessage() throws Exception {
-		SocketMessageMapper mapper = new SocketMessageMapper();
-		Message<Object> message = mapper.toMessage(new StubSocketReader());
+		
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		TcpConnection connection = mock(TcpConnection.class);
+		when(connection.getPayload()).thenReturn(TEST_PAYLOAD.getBytes());
+		when(connection.getHostName()).thenReturn("MyHost");
+		when(connection.getHostAddress()).thenReturn("1.1.1.1");
+		when(connection.getPort()).thenReturn(1234);
+		Message<Object> message = mapper.toMessage(connection);
 		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
-		assertEquals(InetAddress.getLocalHost().getHostName(), message
+		assertEquals("MyHost", message
 				.getHeaders().get(IpHeaders.HOSTNAME));
-		assertEquals(InetAddress.getLocalHost().getHostAddress(), message
+		assertEquals("1.1.1.1", message
 				.getHeaders().get(IpHeaders.IP_ADDRESS));
-		assertEquals(0, message
+		assertEquals(1234, message
 				.getHeaders().get(IpHeaders.REMOTE_PORT));
 	}
 
@@ -60,49 +65,26 @@ public class SocketMessageMapperTests {
 	 * @throws Exception 
 	 */
 	@Test
-	public void testFromMessage() throws Exception {
+	public void testFromMessageBytes() throws Exception {
 		String s = "test";
 		Message<String> message = MessageBuilder.withPayload(s).build();
-		SocketMessageMapper mapper = new SocketMessageMapper();
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setStringToBytes(true);
 		byte[] bArray = (byte[]) mapper.fromMessage(message);
 		assertEquals(s, new String(bArray));
 		
 	}
 
-
-	private class StubSocketReader implements SocketReader {
-	
-		/* (non-Javadoc)
-		 * @see org.springframework.integration.ip.tcp.SocketReader#getAddress()
-		 */
-		public InetAddress getAddress() {
-			try {
-				return InetAddress.getLocalHost();
-			} catch (UnknownHostException e) {
-				fail("Unexpected Exception: " + e.getMessage());
-			}
-			return null;
-		}
-	
-		public byte[] getAssembledData() {
-			return TEST_PAYLOAD.getBytes();
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.integration.ip.tcp.SocketReader#assembleData()
-		 */
-		public int assembleData() {
-			return SocketReader.MESSAGE_INCOMPLETE;
-		}
-
-		/* (non-Javadoc)
-		 * @see org.springframework.integration.ip.tcp.SocketReader#getSocket()
-		 */
-		public Socket getSocket() {
-			return new Socket();
-		}
-
+	@Test
+	public void testFromMessage() throws Exception {
+		String s = "test";
+		Message<String> message = MessageBuilder.withPayload(s).build();
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		mapper.setStringToBytes(false);
+		String out = (String) mapper.fromMessage(message);
+		assertEquals(s, out);
 		
 	}
+	
 	
 }

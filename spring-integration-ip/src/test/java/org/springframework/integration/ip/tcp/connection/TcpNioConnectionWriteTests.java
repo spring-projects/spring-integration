@@ -13,102 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.CountDownLatch;
 
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
+import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
+import org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter;
+import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
  * 
  */
-public class NioSocketWriterTests {
+public class TcpNioConnectionWriteTests {
 
-	@Test
-	public void testBuffersNoWait() throws Exception {
-		NioSocketWriter writer = new NioSocketWriter(null, 2, 2048);
-		ByteBuffer b1 = writer.getBuffer();
-		ByteBuffer b2 = writer.getBuffer();
-		writer.returnBuffer(b2);
-		ByteBuffer b3 = writer.getBuffer();
-		assertEquals(b2, b3);
-		writer.returnBuffer(b3);
-		writer.returnBuffer(b1);
-		b3 = writer.getBuffer();
-		assertEquals(b2, b3);
-		writer.returnBuffer(b3);
-		b3 = writer.getBuffer();
-		assertEquals(b1, b3);
-		writer.returnBuffer(b3);
-	}
-	
-	@Test
-	public void testBuffersWait() throws Exception {
-		final NioSocketWriter writer = new NioSocketWriter(null, 2, 2048);
-		ByteBuffer b1 = writer.getBuffer();
-		ByteBuffer b2 = writer.getBuffer();
-		final CountDownLatch latch1 = new CountDownLatch(1);
-		final CountDownLatch latch2 = new CountDownLatch(1);
-		final ByteBuffer b2a = b2;
-		new Thread(new Runnable(){
-			public void run() {
-				latch1.countDown();
-				try {
-					ByteBuffer b = writer.getBuffer();
-					assertEquals(b2a, b);
-					writer.returnBuffer(b);
-					latch2.countDown();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			
-		}).start();
-		latch1.await();
-		Thread.sleep(2000);
-		writer.returnBuffer(b2);
-		latch2.await();
-		ByteBuffer b3 = writer.getBuffer();
-		assertEquals(b2, b3);
-		writer.returnBuffer(b3);
-		writer.returnBuffer(b1);
-		b3 = writer.getBuffer();
-		assertEquals(b2, b3);
-		writer.returnBuffer(b3);
-		b3 = writer.getBuffer();
-		assertEquals(b1, b3);
-		writer.returnBuffer(b3);
-	}
-	
-	@Test
-	public void testBuffersClear() throws Exception {
-		NioSocketWriter writer = new NioSocketWriter(null, 2, 2048);
-		ByteBuffer b1 = writer.getBuffer();
-		b1.putInt(1);
-		assertEquals(4, b1.position());
-		b1.flip();
-		assertEquals(0, b1.position());
-		assertEquals(4, b1.limit());
-		writer.returnBuffer(b1);
-		Buffer b2 = writer.getBuffer();
-		assertEquals(b1, b2);
-		assertEquals(0, b2.position());
-		assertEquals(2048, b2.limit());
-		
+	private AbstractConnectionFactory getClientConnectionFactory(boolean direct,
+			final int port, AbstractByteArrayStreamingConverter converter) {
+		TcpNioClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
+		ccf.setInputConverter(converter);
+		ccf.setOutputConverter(converter);
+		ccf.setSoTimeout(10000);
+		ccf.setUsingDirectBuffers(direct);
+		ccf.start();
+		return ccf;
 	}
 	
 	@Test
@@ -121,16 +60,10 @@ public class NioSocketWriterTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteBuffer buffer = ByteBuffer
-							.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					SocketChannel channel = SocketChannel
-							.open(new InetSocketAddress("localhost", port));
-					NioSocketWriter writer = new NioSocketWriter(channel, 2,
-							2048);
-					writer
-							.setMessageFormat(MessageFormats.FORMAT_LENGTH_HEADER);
-					writer.write(buffer.array());
+					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, converter);
+					TcpConnection connection = ccf.getConnection();
+					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -160,15 +93,10 @@ public class NioSocketWriterTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteBuffer buffer = ByteBuffer
-							.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					SocketChannel channel = SocketChannel
-							.open(new InetSocketAddress("localhost", port));
-					NioSocketWriter writer = new NioSocketWriter(channel, 2,
-							2048);
-					writer.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-					writer.write(buffer.array());
+					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, converter);
+					TcpConnection connection = ccf.getConnection();
+					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -182,9 +110,9 @@ public class NioSocketWriterTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(MessageFormats.STX, buff[0]);
+		assertEquals(ByteArrayStxEtxConverter.STX, buff[0]);
 		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(MessageFormats.ETX, buff[testString.length() + 1]);
+		assertEquals(ByteArrayStxEtxConverter.ETX, buff[testString.length() + 1]);
 		server.close();
 	}
 
@@ -198,15 +126,10 @@ public class NioSocketWriterTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteBuffer buffer = ByteBuffer
-							.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					SocketChannel channel = SocketChannel
-							.open(new InetSocketAddress("localhost", port));
-					NioSocketWriter writer = new NioSocketWriter(channel, 2,
-							2048);
-					writer.setMessageFormat(MessageFormats.FORMAT_CRLF);
-					writer.write(buffer.array());
+					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, converter);
+					TcpConnection connection = ccf.getConnection();
+					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -236,17 +159,10 @@ public class NioSocketWriterTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteBuffer buffer = ByteBuffer
-							.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					SocketChannel channel = SocketChannel
-							.open(new InetSocketAddress("localhost", port));
-					NioSocketWriter writer = new NioSocketWriter(channel, 2,
-							2048);
-					writer
-							.setMessageFormat(MessageFormats.FORMAT_LENGTH_HEADER);
-					writer.setUsingDirectBuffers(true);
-					writer.write(buffer.array());
+					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, converter);
+					TcpConnection connection = ccf.getConnection();
+					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -276,16 +192,11 @@ public class NioSocketWriterTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteBuffer buffer = ByteBuffer
-							.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					SocketChannel channel = SocketChannel
-							.open(new InetSocketAddress("localhost", port));
-					NioSocketWriter writer = new NioSocketWriter(channel, 2,
-							2048);
-					writer.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-					writer.setUsingDirectBuffers(true);
-					writer.write(buffer.array());
+					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, converter);
+					TcpConnection connection = ccf.getConnection();
+					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
+					Thread.sleep(1000000000L);
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -299,9 +210,9 @@ public class NioSocketWriterTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(MessageFormats.STX, buff[0]);
+		assertEquals(ByteArrayStxEtxConverter.STX, buff[0]);
 		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(MessageFormats.ETX, buff[testString.length() + 1]);
+		assertEquals(ByteArrayStxEtxConverter.ETX, buff[testString.length() + 1]);
 		server.close();
 	}
 
@@ -315,16 +226,11 @@ public class NioSocketWriterTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteBuffer buffer = ByteBuffer
-							.allocate(testString.length());
-					buffer.put(testString.getBytes());
-					SocketChannel channel = SocketChannel
-							.open(new InetSocketAddress("localhost", port));
-					NioSocketWriter writer = new NioSocketWriter(channel, 2,
-							2048);
-					writer.setMessageFormat(MessageFormats.FORMAT_CRLF);
-					writer.setUsingDirectBuffers(true);
-					writer.write(buffer.array());
+					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, converter);
+					TcpConnection connection = ccf.getConnection();
+					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
+					Thread.sleep(1000000000L);
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -16,9 +16,9 @@
 
 package org.springframework.integration.ip.tcp;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +26,6 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.ip.tcp.TcpReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
@@ -52,14 +51,8 @@ public class ConnectionToConnectionTests {
 	@Autowired
 	private AbstractServerConnectionFactory server;
 	
-	private TcpReceivingChannelAdapter receiver;
-	
-	@Before
-	public void setup() {
-		receiver = new TcpReceivingChannelAdapter();
-		server.registerListener(receiver);
-		ctx.start();
-	}
+	@Autowired
+	private QueueChannel serverSideChannel;
 	
 	@Test
 	public void testConnect() throws Exception {
@@ -71,11 +64,10 @@ public class ConnectionToConnectionTests {
 			}
 		}
 		TcpConnection connection = client.getConnection();
-		QueueChannel channel = new QueueChannel();
-		receiver.setOutputChannel(channel);
 		connection.send(MessageBuilder.withPayload("Test").build());
-		Message<?> m = channel.receive(10000);
-		assertNotNull(m);
+		Message<?> message = serverSideChannel.receive(10000);
+		assertNotNull(message);
+		assertEquals("Test", new String((byte[]) message.getPayload()));
 	}
 
 }

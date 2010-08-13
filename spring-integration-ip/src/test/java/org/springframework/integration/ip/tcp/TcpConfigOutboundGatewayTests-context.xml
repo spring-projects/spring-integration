@@ -10,13 +10,17 @@
 		http://www.springframework.org/schema/integration 
 		http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<import resource="SimpleTcpNetInboundGatewayTests-context.xml" />
+	<import resource="TcpConfigInboundGatewayTests-context.xml" />
 	
-	<ip:outbound-gateway id="tcpOutGateway" 
-		host="localhost"
-		port="#{gatewayCrLf.port}"
-		message-format="crlf"
+	<ip:tcp-outbound-gateway id="tcpOutGateway" 
+		connection-factory="crLfClient"
 		request-channel="requestChannel"
+		reply-channel="replyChannel"
+		/>
+
+	<ip:tcp-outbound-gateway id="tcpOutGatewayNio" 
+		connection-factory="crLfClientNio"
+		request-channel="requestChannelNio"
 		reply-channel="replyChannel"
 		/>
 

@@ -27,6 +27,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.SocketIoUtils;
@@ -60,6 +61,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	private boolean active = true;
 	
 	private long lastRead;
+	
+	private AtomicInteger executionControl = new AtomicInteger();
 
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
@@ -151,14 +154,19 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				logger.debug("TcpListener exiting - no listener and not single use");			
 				return;
 			}
-			if (active) {
+			while (active) {
 				try {
-					while (pipedInputStream.available() > 0) {
+					while (this.socketChannel.isOpen() && 
+						   this.pipedInputStream.available() > 0) {
 						convertAndSend();
 					}
 				} catch (IOException e) {
 					logger.error("Unexpected exception, exiting...", e);
 					return;
+				}
+				// currently no more work to do
+				if (this.executionControl.decrementAndGet() < 0) {
+					break;
 				}
 			}
 		} finally {
@@ -167,7 +175,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	private synchronized void convertAndSend() throws IOException {
-		if (this.pipedInputStream.available() <= 0) {
+		if (!this.socketChannel.isOpen() || this.pipedInputStream.available() <= 0) {
 			return;
 		}
 		Message<?> message = null;
@@ -236,10 +244,12 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
 		pipedOutputStream.flush();
 
-		if (!socketChannel.isBlocking()) {
-			if (this.taskExecutor == null) {
-				this.taskExecutor = Executors.newSingleThreadExecutor();
-			}
+		if (this.taskExecutor == null) {
+			this.taskExecutor = Executors.newSingleThreadExecutor();
+		}
+		if (this.executionControl.incrementAndGet() <= 1) {
+			// only execute run() if we don't already have one running
+			this.executionControl.set(1);
 			this.taskExecutor.execute(this);
 		}
 	}

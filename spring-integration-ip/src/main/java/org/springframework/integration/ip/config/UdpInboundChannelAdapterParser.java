@@ -16,19 +16,15 @@
 
 package org.springframework.integration.ip.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.Conventions;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter;
-import org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Channel Adapter that receives UDP datagram packets and maps them to Messages.
@@ -36,16 +32,10 @@ import org.springframework.util.StringUtils;
  * @author Gary Russell
  * @since 2.0
  */
-public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
+public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
-		String protocol = IpAdapterParserUtils.getProtocol(element, parserContext);
-		BeanDefinitionBuilder builder = null;
-		if (protocol.equals("tcp")) {
-			builder = parseTcp(element, parserContext);
-		} else if (protocol.equals("udp")) {
-			builder = parseUdp(element, parserContext);
-		}
+		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
@@ -97,36 +87,6 @@ public class IpInboundChannelAdapterParser extends AbstractChannelAdapterParser 
 		addPortToConstructor(element, builder, parserContext);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,
 				element, IpAdapterParserUtils.CHECK_LENGTH, true);
-		return builder;
-	}
-
-	/**
-	 * @param element
-	 * @param parserContext 
-	 * @return
-	 */
-	private BeanDefinitionBuilder parseTcp(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder;
-		String useNio = IpAdapterParserUtils.getUseNio(element);
-		if (useNio.equals("false")) {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(TcpNetReceivingChannelAdapter.class);
-		}
-		else {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(TcpNioReceivingChannelAdapter.class);
-		}
-		addPortToConstructor(element, builder, parserContext);
-		builder.addPropertyValue(
-				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
-				IpAdapterParserUtils.getMessageFormat(element));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.CUSTOM_SOCKET_READER_CLASS_NAME); 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.SO_KEEP_ALIVE);
-		IpAdapterParserUtils.setClose(element, builder);
 		return builder;
 	}
 

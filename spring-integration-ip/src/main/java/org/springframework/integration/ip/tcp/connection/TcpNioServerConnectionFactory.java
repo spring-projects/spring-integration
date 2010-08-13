@@ -70,6 +70,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		try {
 			this.serverChannel = ServerSocketChannel.open();
 			this.listening = true;
+			logger.info("Listening on port " + this.port);
 			this.serverChannel.configureBlocking(false);
 			if (this.localAddress == null) {
 				this.serverChannel.socket().bind(new InetSocketAddress(this.port),
@@ -144,11 +145,13 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 						logger.debug("Selection key no longer valid");
 					}
 					else if (key.isAcceptable()) {
+						logger.debug("New accept");
 						channel = server.accept();
 						channel.configureBlocking(false);
 						Socket socket = channel.socket();
 						setSocketAttributes(socket);
 						TcpNioConnection connection = createTcpNioConnection(channel);
+						connection.setTaskExecutor(this.taskExecutor);
 						connection.setLastRead(now);
 						connections.put(channel, connection);
 						channel.register(selector, SelectionKey.OP_READ, connection);

@@ -40,8 +40,6 @@ public class TcpReceivingChannelAdapter
 
 	protected ServerSocket serverSocket;
 	
-	protected Class<NetSocketReader> customSocketReaderClass;
-	
 	protected ConnectionFactory clientConnectionFactory;
 	
 	protected ConnectionFactory serverConnectionFactory;

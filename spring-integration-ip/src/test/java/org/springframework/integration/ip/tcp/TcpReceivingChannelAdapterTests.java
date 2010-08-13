@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -39,7 +38,6 @@ import org.junit.Test;
 import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.ip.AbstractInternetProtocolReceivingChannelAdapter;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.HelloWorldInterceptorFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
@@ -48,7 +46,6 @@ import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionF
 import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.integration.ip.util.SocketUtils;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author Gary Russell
@@ -56,186 +53,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 public class TcpReceivingChannelAdapterTests {
 
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter#run()}.
-	 */
-	@Test
-	public void testNet() throws Exception {
-		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableServerSocket();
-		AbstractInternetProtocolReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
-		adapter.setOutputChannel(channel);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		SocketUtils.setLocalNicIfPossible(adapter);
-		adapter.start();
-		SocketUtils.waitListening(adapter);
-		SocketUtils.testSendLength(port, null); //sends 2 copies of TEST_STRING twice
-		Message<?> message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		adapter.stop();
-	}
-
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.TcpNetReceivingChannelAdapter#run()}.
-	 * Verifies operation of custom message formats.
-	 */
-	@Test
-	public void testNetCustom() throws Exception {
-		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNetReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
-		adapter.setOutputChannel(channel);
-		adapter.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNetSocketReader");
-		adapter.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		adapter.start();
-		SocketUtils.waitListening(adapter);
-		SocketUtils.testSendStxEtx(port, null); //sends 2 copies of TEST_STRING twice
-		Message<?> message = channel.receive(4000);
-		assertNotNull(message);
-		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
-				new String((byte[])message.getPayload()));
-		message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
-				new String((byte[])message.getPayload()));
-		adapter.stop();
-	}
-
-
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter#run()}.
-	 */
-	@Test
-	public void testNio() throws Exception {
-		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNioReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
-		adapter.setOutputChannel(channel);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		SocketUtils.setLocalNicIfPossible(adapter);
-		adapter.start();
-		SocketUtils.waitListening(adapter);
-		SocketUtils.testSendLength(port, null); //sends 2 copies of TEST_STRING twice
-		Message<?> message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		adapter.stop();
-	}
-
-	/**
-	 * Test method for {@link org.springframework.integration.ip.tcp.TcpNioReceivingChannelAdapter#run()}.
-	 * Verifies operation of custom message formats.	 */
-	@Test
-	public void testNioCustom() throws Exception {
-		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableServerSocket();
-		TcpNioReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
-		adapter.setOutputChannel(channel);
-		adapter.setCustomSocketReaderClassName("org.springframework.integration.ip.tcp.CustomNioSocketReader");
-		adapter.setMessageFormat(MessageFormats.FORMAT_CUSTOM);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		adapter.start();
-		SocketUtils.waitListening(adapter);
-		SocketUtils.testSendStxEtx(port, null); //sends 2 copies of TEST_STRING twice
-		Message<?> message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
-				new String((byte[])message.getPayload()));
-		message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals("\u0002" + SocketUtils.TEST_STRING + SocketUtils.TEST_STRING + "\u0003", 
-				new String((byte[])message.getPayload()));
-		adapter.stop();
-	}
-
-	/**
-	 * Tests close option on inbound adapter.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testNetClose() throws Exception {
-		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableServerSocket();
-		AbstractTcpReceivingChannelAdapter adapter = new TcpNetReceivingChannelAdapter(port);
-		adapter.setOutputChannel(channel);
-		adapter.setClose(true);
-		adapter.setMessageFormat(MessageFormats.FORMAT_CRLF);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		adapter.start();
-		SocketUtils.waitListening(adapter);
-		CountDownLatch latch = new CountDownLatch(1);
-		SocketUtils.testSendCrLfSingle(port, latch); 
-		Message<?> message = channel.receive(5000);
-		latch.countDown();
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		latch = new CountDownLatch(1);
-		SocketUtils.testSendCrLfSingle(port, latch); 
-		message = channel.receive(5000);
-		latch.countDown();
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		adapter.stop();
-	}
-
-	/**
-	 * Tests close option on inbound adapter.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testNioClose() throws Exception {
-		QueueChannel channel = new QueueChannel(2);
-		int port = SocketUtils.findAvailableServerSocket();
-		AbstractTcpReceivingChannelAdapter adapter = new TcpNioReceivingChannelAdapter(port);
-		adapter.setOutputChannel(channel);
-		adapter.setClose(true);
-		adapter.setMessageFormat(MessageFormats.FORMAT_CRLF);
-		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.initialize();
-		adapter.setTaskScheduler(taskScheduler);
-		adapter.start();
-		SocketUtils.waitListening(adapter);
-		CountDownLatch latch = new CountDownLatch(1);
-		SocketUtils.testSendCrLfSingle(port, latch); 
-		Message<?> message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		latch = new CountDownLatch(1);
-		SocketUtils.testSendCrLfSingle(port, latch); 
-		message = channel.receive(2000);
-		assertNotNull(message);
-		assertEquals(SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
-				new String((byte[])message.getPayload()));
-		adapter.stop();
-	}
-	
 	@Test
 	public void newTestNet() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
@@ -548,6 +365,7 @@ public class TcpReceivingChannelAdapterTests {
 		scf.setInputConverter(converter);
 		scf.setOutputConverter(converter);
 		scf.setSingleUse(true);
+		scf.setPoolSize(100);
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();

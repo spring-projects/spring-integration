@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
@@ -93,6 +94,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
+			logger.error("Tcp Gateway exception", e);
 			throw new MessagingException("Failed to send or receive", e);
 		} finally {
 			if (haveSemaphore) {
@@ -180,4 +182,11 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		}
 	}
 
+	/**
+	 * Specify the Spring Integration reply channel. If this property is not
+	 * set the gateway will check for a 'replyChannel' header on the request.
+	 */
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
 }

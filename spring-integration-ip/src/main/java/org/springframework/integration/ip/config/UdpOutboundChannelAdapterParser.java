@@ -21,8 +21,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.TcpNetSendingMessageHandler;
-import org.springframework.integration.ip.tcp.TcpNioSendingMessageHandler;
 import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.util.StringUtils;
@@ -32,17 +30,10 @@ import org.w3c.dom.Element;
  * @author Gary Russell
  * @since 2.0
  */
-public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		String protocol = IpAdapterParserUtils.getProtocol(element, parserContext);
-		BeanDefinitionBuilder builder = null;
-		if (protocol.equals("tcp")) {
-			builder = parseTcp(element, parserContext);
-		}
-		else if (protocol.equals("udp")) {
-			builder = parseUdp(element, parserContext);
-		}
+		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		return builder.getBeanDefinition();
 	}
@@ -100,27 +91,6 @@ public class IpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapt
 				IpAdapterParserUtils.RECEIVE_BUFFER_SIZE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.TASK_EXECUTOR);
-		return builder;
-	}
-
-	/**
-	 * @param element
-	 * @param parserContext 
-	 * @return
-	 */
-	private BeanDefinitionBuilder parseTcp(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder;
-		String useNio = IpAdapterParserUtils.getUseNio(element);
-		if (useNio.equals("false")) {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(TcpNetSendingMessageHandler.class);
-		}
-		else {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(TcpNioSendingMessageHandler.class);
-		}
-		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
-		IpAdapterParserUtils.addOutboundTcpAttributes(element, builder);
 		return builder;
 	}
 

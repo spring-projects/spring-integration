@@ -17,9 +17,8 @@
 		Play with the buffer size to force errors. If the checkLength property is 
 		set and this buffer is too small, we'll throw an exception.
 	-->
-	<ip:inbound-channel-adapter id="mcUdpReceiver"
+	<ip:udp-inbound-channel-adapter id="mcUdpReceiver"
 		channel="udpOutChannel"
-		protocol="udp"
 		port="11112"
 		receive-buffer-size="500"
 		multicast="true"

@@ -64,7 +64,7 @@ public class TcpOutboundGatewayTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 100);
 					latch.countDown();
 					int i = 0;
 					while (true) {
@@ -117,7 +117,7 @@ public class TcpOutboundGatewayTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				try {
-					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
+					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port, 10);
 					latch.countDown();
 					int i = 0;
 					Socket socket = server.accept();
@@ -214,6 +214,7 @@ public class TcpOutboundGatewayTests {
 			try {
 				results.get(i).get();
 			} catch (InterruptedException e) {
+				
 			} catch (ExecutionException e) {
 				if (i == 0) {
 					fail("Unexpected " + e.getMessage());

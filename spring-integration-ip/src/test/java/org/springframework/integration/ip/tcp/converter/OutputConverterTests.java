@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.ip.tcp;
+package org.springframework.integration.ip.tcp.converter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,13 +28,14 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
  *
  */
-public class NetSocketWriterTests {
+public class OutputConverterTests {
 
 	@Test
 	public void testWriteLengthHeader() throws Exception {
@@ -48,9 +49,8 @@ public class NetSocketWriterTests {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
-					NetSocketWriter writer = new NetSocketWriter(socket);
-					writer.setMessageFormat(MessageFormats.FORMAT_LENGTH_HEADER);
-					writer.write(buffer.array());
+					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+					converter.convert(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -82,9 +82,8 @@ public class NetSocketWriterTests {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
-					NetSocketWriter writer = new NetSocketWriter(socket);
-					writer.setMessageFormat(MessageFormats.FORMAT_STX_ETX);
-					writer.write(buffer.array());
+					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
+					converter.convert(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -98,9 +97,9 @@ public class NetSocketWriterTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(MessageFormats.STX, buff[0]);
+		assertEquals(ByteArrayStxEtxConverter.STX, buff[0]);
 		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(MessageFormats.ETX, buff[testString.length() + 1]);
+		assertEquals(ByteArrayStxEtxConverter.ETX, buff[testString.length() + 1]);
 		server.close();
 	}
 
@@ -116,9 +115,8 @@ public class NetSocketWriterTests {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
-					NetSocketWriter writer = new NetSocketWriter(socket);
-					writer.setMessageFormat(MessageFormats.FORMAT_CRLF);
-					writer.write(buffer.array());
+					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
+					converter.convert(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -148,10 +146,9 @@ public class NetSocketWriterTests {
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					NetSocketWriter writer = new NetSocketWriter(socket);
-					writer.setMessageFormat(MessageFormats.FORMAT_JAVA_SERIALIZED);
-					writer.write(testString);
-					writer.write(testString);
+					JavaStreamingConverter converter = new JavaStreamingConverter();
+					converter.convert(testString, socket.getOutputStream());
+					converter.convert(testString, socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -165,6 +162,7 @@ public class NetSocketWriterTests {
 		InputStream is = socket.getInputStream();
 		ObjectInputStream ois = new ObjectInputStream(is);
 		assertEquals(testString, ois.readObject());
+		ois = new ObjectInputStream(is);
 		assertEquals(testString, ois.readObject());
 		server.close();
 	}

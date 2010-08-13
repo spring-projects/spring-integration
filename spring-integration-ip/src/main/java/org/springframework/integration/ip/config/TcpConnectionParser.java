@@ -67,7 +67,7 @@ public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 			}
 		} else {
 			parserContext.getReaderContext().error(IpAdapterParserUtils.TCP_CONNECTION_TYPE + 
-					" must be 'client' or 'server' for an IP channel adapter", element);
+					" must be 'client' or 'server' for a TCP Connection Factory", element);
 		}
 		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element,

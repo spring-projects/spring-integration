@@ -19,12 +19,10 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Enumeration;
 import java.util.concurrent.CountDownLatch;
 
 import javax.net.ServerSocketFactory;
@@ -263,6 +261,7 @@ public class SocketUtils {
 					ObjectOutputStream oos = new ObjectOutputStream(outputStream);
 					oos.writeObject(TEST_STRING);
 					oos.flush();
+					oos = new ObjectOutputStream(outputStream);
 					oos.writeObject(TEST_STRING);
 					oos.flush();
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon

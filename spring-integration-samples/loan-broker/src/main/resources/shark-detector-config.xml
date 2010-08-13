@@ -28,9 +28,8 @@
 
 	<channel id="sharkOutChannel" />
 
-	<int-ip:outbound-channel-adapter id="udpOut"
+	<int-ip:udp-outbound-channel-adapter id="udpOut"
 			channel="sharkOutChannel"
-			protocol="udp"
 			host="225.6.7.8"
 			multicast="true"
 			port="11111"/>

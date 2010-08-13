@@ -23,4 +23,13 @@
 		so-timeout="100000"
 	/>
 
+	<int-ip:tcp-inbound-gateway id="looper"
+		request-channel="queue"
+		connection-factory="server"
+		/>
+			
+	<int:channel id="queue">
+		<int:queue/>
+	</int:channel>
+	
 </beans>

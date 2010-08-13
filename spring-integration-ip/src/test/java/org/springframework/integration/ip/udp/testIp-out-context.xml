@@ -28,7 +28,7 @@
 	                   ref="testIp"
 	                   method="testIp"/>
 
-	<ip:outbound-channel-adapter id="udpSender" protocol="udp"
+	<ip:udp-outbound-channel-adapter id="udpSender" 
 		host="localhost"
 		port="11111"
 		check-length="true"

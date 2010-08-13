@@ -19,9 +19,7 @@ package org.springframework.integration.ip.config;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.Conventions;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.MessageFormats;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -32,8 +30,6 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public abstract class IpAdapterParserUtils {
-
-	static final String IP_PROTOCOL_ATTRIBUTE = "protocol";
 
 	static final String UDP_MULTICAST = "multicast";
 
@@ -87,8 +83,6 @@ public abstract class IpAdapterParserUtils {
 
 	static final String SO_TRAFFIC_CLASS = "so-traffic-class";
 
-	static final String CLOSE = "close";
-	
 	static final String LOCAL_ADDRESS = "local-address";
 
 	static final String TASK_EXECUTOR = "task-executor";
@@ -104,6 +98,13 @@ public abstract class IpAdapterParserUtils {
 	static final String TCP_CONNECTION_FACTORY = "connection-factory";
 
 	public static final String INTERCEPTOR_FACTORY_CHAIN = "interceptor-factory-chain";
+	
+	public static final String REQUEST_TIMEOUT = "request-timeout";
+	
+	public static final String REPLY_TIMEOUT = "reply-timeout";
+	
+	public static final String REPLY_CHANNEL = "reply-channel";
+	
 
 	/**
 	 * Adds a constructor-arg to the provided bean definition builder 
@@ -152,26 +153,6 @@ public abstract class IpAdapterParserUtils {
 	}
 	
 	/**
-	 * Asserts that a protocol attribute (udp or tcp) is supplied,
-	 * @param element
-	 * @param parserContext 
-	 * @return The value of the attribute.
-	 * @throws BeanCreationException if attribute not provided or invalid.
-	 */
-	static String getProtocol(Element element, ParserContext parserContext) {
-		String protocol = element.getAttribute(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE);
-		if (!StringUtils.hasText(protocol)) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
-					" is required for an IP channel adapter", element);
-		}
-		if (!protocol.equals("tcp") && !protocol.equals("udp")) {
-			parserContext.getReaderContext().error(IpAdapterParserUtils.IP_PROTOCOL_ATTRIBUTE + 
-					" must be 'tcp' or 'udp' for an IP channel adapter", element);
-		}
-		return protocol;
-	}
-
-	/**
 	 * Asserts that a port attribute is supplied.
 	 * @param element
 	 * @param parserContext 
@@ -201,22 +182,6 @@ public abstract class IpAdapterParserUtils {
 	}
 
 	/**
-	 * Sets the close attribute, if present.
-	 * @param element
-	 */
-	static void setClose(Element element, BeanDefinitionBuilder builder) {
-		String close = element.getAttribute(IpAdapterParserUtils.CLOSE);
-		if (!StringUtils.hasText(close)) {
-			close = "false";
-		}
-		if (close.equals("true")) {
-			builder.addPropertyValue(
-					Conventions.attributeNameToPropertyName(IpAdapterParserUtils.CLOSE),
-					close);
-		}
-	}
-
-	/**
 	 * Gets the use-nio attribute, if present; if not returns 'false'.
 	 * @param element
 	 * @return The value of the attribute or false.
@@ -227,58 +192,6 @@ public abstract class IpAdapterParserUtils {
 			useNio = "false";
 		}
 		return useNio;
-	}
-
-	/**
-	 * Gets the message-format attribute, if present; if not returns 
-	 * {@link MessageFormats#FORMAT_LENGTH_HEADER}.
-	 * @param element
-	 * @return The value of the attribute or false.
-	 */
-	static Integer getMessageFormat(Element element) {
-		String messageFormat = element.getAttribute(IpAdapterParserUtils.MESSAGE_FORMAT);
-		if (!StringUtils.hasText(messageFormat)) {
-			return MessageFormats.FORMAT_LENGTH_HEADER;
-		}
-		if (messageFormat.equals("length-header")) {
-			return MessageFormats.FORMAT_LENGTH_HEADER;
-		}
-		if (messageFormat.equals("stx-etx")) {
-			return MessageFormats.FORMAT_STX_ETX;
-		}
-		if (messageFormat.equals("crlf")) {
-			return MessageFormats.FORMAT_CRLF;
-		}
-		if (messageFormat.equals("serialized")) {
-			return MessageFormats.FORMAT_JAVA_SERIALIZED;
-		}
-		if (messageFormat.equals("custom")) {
-			return MessageFormats.FORMAT_CUSTOM;
-		}
-		return MessageFormats.FORMAT_LENGTH_HEADER;
-	}
-
-	/**
-	 * @param element
-	 * @param builder
-	 */
-	public static void addOutboundTcpAttributes(Element element,
-			BeanDefinitionBuilder builder) {
-		builder.addPropertyValue(
-				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
-				IpAdapterParserUtils.getMessageFormat(element));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.CUSTOM_SOCKET_WRITER_CLASS_NAME); 
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.USING_DIRECT_BUFFERS);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.SO_KEEP_ALIVE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.SO_LINGER);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.SO_TCP_NODELAY);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.SO_TRAFFIC_CLASS);
 	}
 
 	/**

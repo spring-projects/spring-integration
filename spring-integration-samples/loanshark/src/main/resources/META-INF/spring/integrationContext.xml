@@ -7,10 +7,9 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
 
-	<int-ip:inbound-channel-adapter id="udpIn"
+	<int-ip:udp-inbound-channel-adapter id="udpIn"
 		channel="channel"
 		multicast="true"
-		protocol="udp"
 		multicast-address="225.6.7.8"
 		port="11111"/>
 		

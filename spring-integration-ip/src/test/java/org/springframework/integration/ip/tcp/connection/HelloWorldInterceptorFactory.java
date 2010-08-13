@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.ip.tcp.connection;
 
-import org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactory;
 
 /**
  * @author Gary Russell

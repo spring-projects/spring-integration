@@ -27,10 +27,10 @@ import org.springframework.integration.config.xml.AbstractIntegrationNamespaceHa
 public class IpNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 
 	public void init() {
-		this.registerBeanDefinitionParser("inbound-channel-adapter", new IpInboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("outbound-channel-adapter", new IpOutboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("inbound-gateway", new IpInboundGatewayParser());
-		this.registerBeanDefinitionParser("outbound-gateway", new IpOutboundGatewayParser());
+		this.registerBeanDefinitionParser("udp-inbound-channel-adapter", new UdpInboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("udp-outbound-channel-adapter", new UdpOutboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("tcp-inbound-gateway", new TcpInboundGatewayParser());
+		this.registerBeanDefinitionParser("tcp-outbound-gateway", new TcpOutboundGatewayParser());
 		this.registerBeanDefinitionParser("tcp-connection-factory", new TcpConnectionParser());
 		this.registerBeanDefinitionParser("tcp-inbound-channel-adapter", new TcpInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("tcp-outbound-channel-adapter", new TcpOutboundChannelAdapterParser());

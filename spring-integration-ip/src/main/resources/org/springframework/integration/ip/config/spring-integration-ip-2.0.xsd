@@ -19,15 +19,15 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="inbound-channel-adapter">
+	<xsd:element name="udp-inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an inbound Channel Adapter for receiving incoming IP packets.
+	Defines a udp inbound Channel Adapter for receiving incoming udp packets.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="ipAdapterType">
+				<xsd:extension base="udpAdapterType">
 					<xsd:attribute name="pool-size" type="xsd:string" >
 						<xsd:annotation>
 							<xsd:documentation>
@@ -39,23 +39,6 @@ its configuration specifies the number of threads.
 					</xsd:attribute>
 					<xsd:attribute name="receive-buffer-size" type="xsd:string" />
 					<xsd:attribute name="multicast-address" type="xsd:string" />
-					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
-						<xsd:annotation>
-							<xsd:documentation>
-If message-format = 'custom' you must provide a sub class of the appropriate type to implement
-the custom message format. See java docs for TcpNetReceivingChannelAdapter and TcpNioReceivingChannelAdapter. 							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>					
-					<xsd:attribute name="close" type="xsd:string" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-If true, the socket will be closed after a message is received and sent to the
-outbound channel. If false, the socket will remain open ready to receive the 
-next message.							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -70,15 +53,15 @@ next message.
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="outbound-channel-adapter">
+	<xsd:element name="udp-outbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an outbound IP packet-sending Channel Adapter.
+	Defines an outbound UDP packet-sending Channel Adapter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="ipAdapterType">
+				<xsd:extension base="udpAdapterType">
 					<xsd:attribute name="host" type="xsd:string" />
 					<xsd:attribute name="acknowledge" type="xsd:string" />
 					<xsd:attribute name="ack-host" type="xsd:string" />
@@ -86,17 +69,6 @@ next message.
 					<xsd:attribute name="ack-timeout" type="xsd:string" />
 					<xsd:attribute name="min-acks-for-success" type="xsd:string" />
 					<xsd:attribute name="time-to-live" type="xsd:string" />
-					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-If message-format = 'custom' you must provide a sub class of the appropriate type to implement
-the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="so-linger" type="xsd:string" />
-					<xsd:attribute name="so-tcp-no-delay" type="xsd:string" />
-					<xsd:attribute name="so-traffic-class" type="xsd:string" />
 					<xsd:attribute name="task-executor" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -108,115 +80,6 @@ task executors such as a WorkManagerTaskExecutor.
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="inbound-gateway">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines an inbound Gateway for receiving and replying to incoming tcp messages.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="gatewayType">
-					<xsd:attribute name="pool-size" type="xsd:string" >
-						<xsd:annotation>
-							<xsd:documentation>
-The number of threads that will be used for socket/channel handling. Only applies
-if an external task-executor is NOT being used. When using an external task executor,
-its configuration specifies the number of threads.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
-						<xsd:annotation>
-							<xsd:documentation>
-If message-format = 'custom' you must provide a sub class of the appropriate type to implement
-the custom message format. See java docs for TcpNetReceivingChannelAdapter and TcpNioReceivingChannelAdapter. 							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>	
-					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-If message-format = 'custom' you must provide a sub class of the appropriate type to implement
-the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-					<xsd:attribute name="task-executor" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-Specifies a specific Executor to be used for socket handling. If not supplied, an internal
-pooled executor will be used (See pool-size). Needed on some platforms that require the use of specific
-task executors such as a WorkManagerTaskExecutor.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="outbound-gateway">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines an outbound Gateway for sending and receiving responses over TCP.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexType>
-			<xsd:complexContent>
-				<xsd:extension base="gatewayType">
-					<xsd:attribute name="host" type="xsd:string" />
-					<xsd:attribute name="custom-socket-reader-class-name" type="xsd:string" >
-						<xsd:annotation>
-							<xsd:documentation>
-If message-format = 'custom' you must provide a sub class of the appropriate type to implement
-the custom message format. See java docs for TcpNetReceivingChannelAdapter and TcpNioReceivingChannelAdapter. 							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>	
-					<xsd:attribute name="custom-socket-writer-class-name" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-If message-format = 'custom' you must provide a sub class of the appropriate type to implement
-the custom message format. See java docs for TcpNetSendingChannelAdapter and TcpNioSendingChannelAdapter. 							
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-	
-	<xsd:element name="tcp-outbound-channel-adapter">
-		<xsd:complexType>
-			<xsd:attribute name="id" type="xsd:ID"/>		
-			<xsd:attribute name="connection-factory" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
-						</tool:annotation>
-					</xsd:appinfo>
-					<xsd:documentation>
-A connection factory is needed by an outbound adapter. If the connection factory has a type 'client',
-the factory is 'owned' by this adapter. If it has a type 'server', it is owned by an inbound channel
-adapter and this adapter will attempt to correlate messages to the connection on which an original
-inbound message was received. 						 
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="channel" type="xsd:string">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -247,6 +110,111 @@ adapter.
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="tcp-outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+A connection factory is needed by an outbound adapter. If the connection factory has a type 'client',
+the factory is 'owned' by this adapter. If it has a type 'server', it is owned by an inbound channel
+adapter and this adapter will attempt to correlate messages to the connection on which an original
+inbound message was received. 						 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="tcp-inbound-gateway">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+A connection factory is needed by an inbound adapter. The connection factory must be of type 'server'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-timeout" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="tcp-outbound-gateway">
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>		
+			<xsd:attribute name="connection-factory" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.ip.tcp.connection.ConnectionFactory"/>
+						</tool:annotation>
+					</xsd:appinfo>
+					<xsd:documentation>
+A connection factory is needed by an outbound adapter. The connection factory must be of 'client'.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="request-timeout" type="xsd:string"/>
+			<xsd:attribute name="reply-timeout" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -384,10 +352,10 @@ its configuration specifies the number of threads.
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="ipAdapterType">
+	<xsd:complexType name="udpAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Common configuration for IP-based adapters.
+	Common configuration for UDP-based adapters.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -401,65 +369,8 @@ its configuration specifies the number of threads.
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="protocol" use="required">
-					<xsd:simpleType>
-						<xsd:restriction base="xsd:NMTOKEN">
-							<xsd:enumeration value="tcp" />
-							<xsd:enumeration value="udp" />
-						</xsd:restriction>
-					</xsd:simpleType>
-				</xsd:attribute>
-				<xsd:attribute name="using-nio" type="xsd:string" />
-				<xsd:attribute name="using-direct-buffers" type="xsd:string" />
 				<xsd:attribute name="check-length" type="xsd:string" />
 				<xsd:attribute name="multicast" type="xsd:string" />
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="gatewayType">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines common configuration for gateway adapters.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="common-attributes">
-				<xsd:attribute name="name" type="xsd:string"/>
-				<xsd:attribute name="request-channel" type="xsd:string" use="required">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="reply-channel" type="xsd:string">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<tool:annotation kind="ref">
-								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-							</tool:annotation>
-						</xsd:appinfo>
-					</xsd:annotation>
-				</xsd:attribute>
-				<xsd:attribute name="request-timeout" type="xsd:string"/>
-				<xsd:attribute name="reply-timeout" type="xsd:string"/>
-				<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
-				<xsd:attribute name="receive-buffer-size" type="xsd:string" />
-					<xsd:attribute name="close" type="xsd:string" default="false">
-						<xsd:annotation>
-							<xsd:documentation>
-If true, for an outbound gateway, the socket will be closed after a response 
-is received and sent to the
-reply channel. If false, the socket will remain open and be used to send the 
-next message. If true, for an inbound gateway, the socket will be closed after
-the response is sent. If false, the socket will remain open and be used to 
-receive the next message.					
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -470,18 +381,6 @@ receive the next message.
 		<xsd:attribute name="so-receive-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-send-buffer-size" type="xsd:string" />
 		<xsd:attribute name="so-timeout" type="xsd:string" />
-		<xsd:attribute name="message-format">
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="length-header" />
-					<xsd:enumeration value="stx-etx" />
-					<xsd:enumeration value="crlf" />
-					<xsd:enumeration value="serialized" />
-					<xsd:enumeration value="custom" />
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
-		<xsd:attribute name="so-keep-alive" type="xsd:string" />
 		<xsd:attribute name="local-address" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

@@ -25,7 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.commons.serializer.InputStreamingConverter;
 import org.springframework.commons.serializer.OutputStreamingConverter;
-import org.springframework.context.Lifecycle;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.util.Assert;
 
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  *
  */
 public abstract class AbstractConnectionFactory 
-		implements ConnectionFactory, Runnable, Lifecycle  {
+		implements ConnectionFactory, Runnable, SmartLifecycle  {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 	
@@ -341,6 +341,17 @@ public abstract class AbstractConnectionFactory
 		return connection;
 	}
 
-	
+	public int getPhase() {
+		return 0;
+	}
+
+	public boolean isAutoStartup() {
+		return true;
+	}
+
+	public void stop(Runnable callback) {
+		stop();
+		callback.run();
+	}
 
 }

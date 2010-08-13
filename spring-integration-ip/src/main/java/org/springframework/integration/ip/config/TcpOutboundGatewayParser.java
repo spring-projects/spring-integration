@@ -28,7 +28,7 @@ import org.w3c.dom.Element;
  * @author Gary Russell
  * @since 2.0
  */
-public class IpOutboundGatewayParser extends AbstractConsumerEndpointParser {
+public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected String getInputChannelAttributeName() {
@@ -38,14 +38,15 @@ public class IpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.ip.tcp.SimpleTcpNetOutboundGateway");
-		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
-		IpAdapterParserUtils.addCommonSocketOptions(builder, element);
-		IpAdapterParserUtils.addOutboundTcpAttributes(element, builder);
+				"org.springframework.integration.ip.tcp.TcpOutboundGateway");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.REPLY_CHANNEL);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.CUSTOM_SOCKET_READER_CLASS_NAME); 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
-		IpAdapterParserUtils.setClose(element, builder);
+				IpAdapterParserUtils.REQUEST_TIMEOUT);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, 
+				IpAdapterParserUtils.REPLY_TIMEOUT);
 		return builder;
 	}
 

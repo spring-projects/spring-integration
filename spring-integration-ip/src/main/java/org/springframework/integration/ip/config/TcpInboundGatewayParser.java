@@ -16,40 +16,32 @@
 
 package org.springframework.integration.ip.config;
 
-import org.w3c.dom.Element;
-
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.core.Conventions;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.SimpleTcpNetInboundGateway;
+import org.springframework.integration.ip.tcp.TcpInboundGateway;
+import org.w3c.dom.Element;
 
 /**
  * @author Gary Russell
  * @since 2.0
  */
-public class IpInboundGatewayParser extends AbstractInboundGatewayParser {
+public class TcpInboundGatewayParser extends AbstractInboundGatewayParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return SimpleTcpNetInboundGateway.class;
+		return TcpInboundGateway.class;
 	}
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals(IpAdapterParserUtils.MESSAGE_FORMAT)
-		        && !attributeName.equals(IpAdapterParserUtils.TASK_EXECUTOR)
+		return !attributeName.equals(IpAdapterParserUtils.TCP_CONNECTION_FACTORY)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
-		builder.addPropertyValue(
-				Conventions.attributeNameToPropertyName(IpAdapterParserUtils.MESSAGE_FORMAT), 
-				IpAdapterParserUtils.getMessageFormat(element));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
-				IpAdapterParserUtils.TASK_EXECUTOR);
-	}
+				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);	}
 
 }
