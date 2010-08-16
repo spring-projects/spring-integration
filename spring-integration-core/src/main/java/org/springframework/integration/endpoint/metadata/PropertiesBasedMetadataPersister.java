@@ -1,29 +1,21 @@
 package org.springframework.integration.endpoint.metadata;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
-import org.springframework.integration.context.IntegrationContextUtils;
-
-import org.springframework.scheduling.TaskScheduler;
-
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import java.util.Date;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 
 /**
@@ -34,7 +26,12 @@ import java.util.concurrent.ConcurrentSkipListSet;
  *
  * @author Josh Long
  */
-public class PropertiesBasedMetadataPersister implements MetadataPersister<String>, InitializingBean, BeanFactoryAware {
+public class PropertiesBasedMetadataPersister implements MetadataPersister<String>, InitializingBean {
+    /**
+     * Used to queue the writes asynchronously
+     */
+    private Executor executor;
+
     /**
      * Used to encapsulate acquisition of a {@link java.util.Properties} instance if it's prefered that we handled it on the client's behalf
      */
@@ -55,10 +52,13 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
      */
     private Properties properties;
 
+    /*  */
     /**
      * An executor (only useful for the background writes if async writes are supported)
      */
-    private TaskScheduler taskScheduler;
+
+    /*
+    private TaskScheduler taskScheduler;*/
 
     /**
      * Users can either provide a unique name and we can automatically setup #locationOfPropertiesOnDisk
@@ -69,18 +69,25 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
      * Or, a user can stipulate a {@link org.springframework.core.io.Resource} directly
      */
     private Resource locationOfPropertiesOnDisk;
-    private BeanFactory beanFactory;
-    private Set<Resource> bootstrapResources = new ConcurrentSkipListSet<Resource>();
+    private Set<Resource> bootstrapResources = new HashSet<Resource>();
+    private volatile File cachedLocationOfPropertiesFile;
 
     public PropertiesBasedMetadataPersister(Resource ultimateResourceToWhichToWriteFile) {
-        this.locationOfPropertiesOnDisk = ultimateResourceToWhichToWriteFile;
+        setLocationOfPropertiesOnDisk(ultimateResourceToWhichToWriteFile);
     }
 
+    @SuppressWarnings("unused")
     public PropertiesBasedMetadataPersister(String uniqueName) {
         this.uniqueName = uniqueName;
     }
 
+    @SuppressWarnings("unused")
     public PropertiesBasedMetadataPersister() {
+    }
+
+    @SuppressWarnings("unused")
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
     }
 
     public void setLocationOfPropertiesOnDisk(Resource locationOfPropertiesOnDisk) {
@@ -104,6 +111,7 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
      *
      * @param properties existing properties, just in case
      */
+    @SuppressWarnings("unused")
     public void setProperties(Properties properties) {
         this.propertiesFactoryBean.setProperties(properties);
     }
@@ -114,15 +122,11 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
             this.properties.setProperty(key, value);
 
             if (this.supportAsyncWrites) {
-                this.taskScheduler.schedule(new BackgroundWriterJob(now, key, value, this.properties), new Date(now));
+                this.executor.execute(new BackgroundWriterJob(now, key, value, this.properties));
             } else {
                 doWriteToDisk(now, key, value, this.properties);
             }
         }
-    }
-
-    public void setTaskScheduler(TaskScheduler taskScheduler) {
-        this.taskScheduler = taskScheduler;
     }
 
     /**
@@ -130,16 +134,25 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
      *
      * @param uniqueName the unqiue name to use in constructing a {@link org.springframework.core.io.Resource} for the {@link java.util.Properties} file
      */
+    @SuppressWarnings("unused")
     public void setUniqueName(String uniqueName) {
         this.uniqueName = uniqueName;
     }
 
     private void doWriteToDisk(long timestamp, String newKey, String newValue, Properties pro) {
         try {
-            FileWriter fileWriter = new FileWriter(this.locationOfPropertiesOnDisk.getFile());
-            pro.store(fileWriter, this.uniqueName);
+            FileWriter fileWriter = null;
+
+            try {
+                fileWriter = new FileWriter(cachedLocationOfPropertiesFile);
+                pro.store(fileWriter, (this.uniqueName == null) ? "" : this.uniqueName);
+            } finally {
+                if (fileWriter != null) {
+                    fileWriter.close();
+                }
+            }
         } catch (IOException e) {
-            throw new RuntimeException("couldn't write " + this.properties + " on submission of  to disk at " + new Date(timestamp).toString());
+            throw new RuntimeException("couldn't write " + this.properties + " on submission of " + newKey + "=" + newValue + "  to disk at " + new Date(timestamp).toString());
         }
     }
 
@@ -162,22 +175,24 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
                 this.locationOfPropertiesOnDisk = new FileSystemResource(pathOfPropertiesFileOnDisk);
             }
 
-            taskScheduler = (this.taskScheduler == null) ? IntegrationContextUtils.getTaskScheduler(this.beanFactory) : taskScheduler;
-
             if (this.supportAsyncWrites) {
-                Assert.notNull(this.taskScheduler, "'taskScheduler' must be set on this bean or defined in the context");
+                Assert.notNull(this.executor, "'executorService' must be set on this bean or defined in the context");
             }
 
             if (this.locationOfPropertiesOnDisk.exists()) {
                 this.bootstrapResources.add(locationOfPropertiesOnDisk);
             }
 
+            this.cachedLocationOfPropertiesFile = this.locationOfPropertiesOnDisk.getFile();
+
+            propertiesFactoryBean.setLocations(this.bootstrapResources.toArray(new Resource[bootstrapResources.size()]));
             // we take the existing Resources [] and use them to bootstrap a Property file when this component wakes up again 
             propertiesFactoryBean.afterPropertiesSet();
             properties = propertiesFactoryBean.getObject();
         }
     }
 
+    @SuppressWarnings("unused")
     public void setLocations(Resource[] locations) {
         for (int i = 0, locationsLength = locations.length; i < locationsLength; i++) {
             Resource r = locations[i];
@@ -185,13 +200,36 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
         }
     }
 
+    @SuppressWarnings("unused")
     public void setLocation(Resource location) {
         this.bootstrapResources.add(location);
     }
 
-    public void setBeanFactory(BeanFactory beanFactory)
-        throws BeansException {
-        this.beanFactory = beanFactory;
+    public static void main(String[] arrImAPirate) throws Throwable {
+        File desktopProperties = new File(System.getProperty("user.home"), "Desktop/xmppProperties.properties");
+        FileSystemResource fileSystemResource = new FileSystemResource(desktopProperties);
+
+        final PropertiesBasedMetadataPersister propertiesBasedMetadataPersister = new PropertiesBasedMetadataPersister(fileSystemResource);
+        propertiesBasedMetadataPersister.setSupportAsyncWrites(true);
+        propertiesBasedMetadataPersister.setExecutor( new SimpleAsyncTaskExecutor());
+        propertiesBasedMetadataPersister.afterPropertiesSet();
+        class IncrementingWriter implements Runnable {
+            private int value;
+
+            public IncrementingWriter(int v) {
+                this.value = v;
+            }
+
+            public void run() {
+                propertiesBasedMetadataPersister.write("sinceId", value + "");
+                System.out.println("value written " + value + ", value retreived " + propertiesBasedMetadataPersister.read("sinceId"));
+            }
+        }
+
+        for (int i = 1; i <= 30; i++) {
+            new Thread(new IncrementingWriter(i)).start();
+            Thread.sleep(100);
+        }
     }
 
     /**
