@@ -16,11 +16,14 @@
 
 package org.springframework.integration.http;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.mapping.HeaderMapper;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Default {@link HeaderMapper} implementation for HTTP.
@@ -30,23 +33,38 @@ import org.springframework.integration.mapping.HeaderMapper;
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
+	public static final String OUTBOUND_PREFIX = "X-";
+
+
+	private volatile String[] outboundHeaderNames = new String[0];
+
+	private volatile String[] inboundHeaderNames = new String[0];
+
+
+	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
+		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
+	}
+
+	public void setInboundHeaderNames(String[] inboundHeaderNames) {
+		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
+	}
+
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
-		for (String name : headers.keySet()) {
-			if (!name.startsWith(MessageHeaders.PREFIX)) {
-				Object value = headers.get(name);
-				if (value instanceof String) {
-					target.add(name, (String) value);
+		for (String name : this.outboundHeaderNames) {
+			Object value = headers.get(name);
+			String prefixedName = OUTBOUND_PREFIX + name;
+			if (value instanceof String) {
+				target.add(prefixedName, (String) value);
+			}
+			else if (value instanceof String[]) {
+				for (String next : (String[]) value) {
+					target.add(prefixedName, next);
 				}
-				else if (value instanceof String[]) {
-					for (String next : (String[]) value) {
-						target.add(name, next);
-					}
-				}
-				else if (value instanceof Iterable<?>) {
-					for (Object next : (Iterable<?>) value) {
-						if (next instanceof String) {
-							target.add(name, (String) next);
-						}
+			}
+			else if (value instanceof Iterable<?>) {
+				for (Object next : (Iterable<?>) value) {
+					if (next instanceof String) {
+						target.add(prefixedName, (String) next);
 					}
 				}
 			}
@@ -54,7 +72,19 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	}
 
 	public Map<String, ?> toHeaders(HttpHeaders source) {
-		return source;
+		Map<String, Object> target = new HashMap<String, Object>();
+		for (String name : this.inboundHeaderNames) {
+			List<String> values = source.get(name);
+			if (!CollectionUtils.isEmpty(values)) {
+				if (values.size() == 1) {
+					target.put(name, values.get(0));
+				}
+				else {
+					target.put(name, values);
+				}
+			}
+		}
+		return target;
 	}
 
 }
