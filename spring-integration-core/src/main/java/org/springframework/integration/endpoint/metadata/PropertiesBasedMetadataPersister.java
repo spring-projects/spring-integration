@@ -16,7 +16,11 @@ import java.util.concurrent.Executor;
  * Implementation of {@link org.springframework.integration.endpoint.metadata.MetadataPersister} that knows how to write metadata
  * to a {@link java.util.Properties} instance.
  * <p/>
+ *
+ *
  * TODO could this perhaps participate or at least be aware of our transaction synchronization mechanism? IE: no guarantees, but we at least try to write on commit()s?
+ *
+ * 
  *
  * @author Josh Long
  */
