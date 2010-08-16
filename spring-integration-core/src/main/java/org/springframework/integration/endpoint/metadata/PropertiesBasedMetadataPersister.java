@@ -2,20 +2,16 @@ package org.springframework.integration.endpoint.metadata;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
-
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.util.*;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 
 
 /**
