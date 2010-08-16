@@ -17,7 +17,6 @@ import java.io.*;
  * @author Josh Long
  */
 public class PropertiesBasedMetadataPersisterTests {
-
     private FileSystemResource fileSystemResource;
     private PropertiesBasedMetadataPersister propertiesBasedMetadataPersister;
 
@@ -39,6 +38,19 @@ public class PropertiesBasedMetadataPersisterTests {
     }
 
     @Test
+    public void testMetadataPersistenceRecovery() throws Throwable {
+        propertiesBasedMetadataPersister = new PropertiesBasedMetadataPersister(fileSystemResource);
+        propertiesBasedMetadataPersister.afterPropertiesSet();
+
+        String timeString = System.currentTimeMillis() + "";
+        propertiesBasedMetadataPersister.write("time", timeString);
+
+        propertiesBasedMetadataPersister = new PropertiesBasedMetadataPersister(fileSystemResource);
+        propertiesBasedMetadataPersister.afterPropertiesSet();
+        Assert.assertEquals(propertiesBasedMetadataPersister.read("time"), timeString);
+    }
+
+    @Test
     public void testAsyncMetadataPersistence() throws Throwable {
         propertiesBasedMetadataPersister = new PropertiesBasedMetadataPersister(fileSystemResource);
         propertiesBasedMetadataPersister.setSupportAsyncWrites(true);
@@ -53,7 +65,8 @@ public class PropertiesBasedMetadataPersisterTests {
         Thread.sleep(1000);
         Assert.assertTrue(contentsOfFile(fileSystemResource.getFile()).contains("sinceId=30"));
     }
-    private  String contentsOfFile(File f) {
+
+    private String contentsOfFile(File f) {
         String txt = null;
         int width = 300;
         Reader reader = null;
