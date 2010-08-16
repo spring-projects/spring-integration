@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -28,6 +30,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -36,7 +39,6 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.DefaultOutboundRequestMapper;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.OutboundRequestMapper;
-import org.springframework.integration.http.ParameterExtractor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -56,8 +58,6 @@ public class HttpOutboundGatewayParserTests {
 	@Autowired
 	private ApplicationContext applicationContext;
 
-	@Autowired
-	private ParameterExtractor parameterExtractor;
 
 	@Test
 	public void minimalConfig() {
@@ -83,6 +83,7 @@ public class HttpOutboundGatewayParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void fullConfig() throws Exception {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfigEndpoint);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
@@ -114,7 +115,10 @@ public class HttpOutboundGatewayParserTests {
 		Object sendTimeout = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("messagingTemplate")).getPropertyValue("sendTimeout");
 		assertEquals(new Long("1234"), sendTimeout);
-		assertEquals(parameterExtractor, handlerAccessor.getPropertyValue("parameterExtractor"));
+		Map<String, Expression> uriVariableExpressions =
+				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
+		assertEquals(1, uriVariableExpressions.size());
+		assertEquals("headers.bar", uriVariableExpressions.get("foo").getExpressionString());
 	}
 
 }

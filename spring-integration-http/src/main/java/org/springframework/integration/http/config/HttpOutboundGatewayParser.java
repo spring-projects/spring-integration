@@ -16,12 +16,18 @@
 
 package org.springframework.integration.http.config;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the 'outbound-gateway' element of the http namespace.
@@ -46,13 +52,22 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "parameter-extractor");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload", "extractPayload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expected-response-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
+		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
+		if (!CollectionUtils.isEmpty(uriVariableElements)) {
+			Map<String, String> uriVariableExpressions = new HashMap<String, String>();
+			for (Element uriVariableElement : uriVariableElements) {
+				String name = uriVariableElement.getAttribute("name");
+				String expression = uriVariableElement.getAttribute("expression");
+				uriVariableExpressions.put(name, expression);
+			}
+			builder.addPropertyValue("uriVariableExpressions", uriVariableExpressions);
+		}
 		return builder;
 	}
 

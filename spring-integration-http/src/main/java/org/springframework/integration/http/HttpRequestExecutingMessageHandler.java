@@ -17,9 +17,17 @@
 package org.springframework.integration.http;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -29,11 +37,13 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.SimpleBeanResolver;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,6 +56,9 @@ import org.springframework.web.client.RestTemplate;
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
 
+	private static final ExpressionParser PARSER = new SpelExpressionParser();
+
+
 	private final String uri;
 
 	private volatile HttpMethod httpMethod = HttpMethod.POST;
@@ -54,13 +67,16 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile Class<?> expectedResponseType;
 
+	private final RestTemplate restTemplate = new RestTemplate();
+
 	private final DefaultOutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
 
-	private final RestTemplate restTemplate = new RestTemplate();
+	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
 
-	private ParameterExtractor parameterExtractor = new DefaultParameterExtractor();
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
+
 
 	/**
 	 * Create a handler that will send requests to the provided URI.
@@ -156,19 +172,41 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	}
 	
 	/**
-	 * Set the {@link ParameterExtractor} for creating URI parameters from the outbound message.
-	 * 
-	 * @param parameterExtractor the parameter extractor to set
+	 * Set the Map of URI variable expressions to evaluate against the outbound message
+	 * when replacing the variable placeholders in a URI template.
 	 */
-	public void setParameterExtractor(ParameterExtractor parameterExtractor) {
-		this.parameterExtractor = parameterExtractor;
+	public void setUriVariableExpressions(Map<String, String> uriVariableExpressions) {
+		synchronized (this.uriVariableExpressions) {
+			this.uriVariableExpressions.clear();
+			if (!CollectionUtils.isEmpty(uriVariableExpressions)) {
+				for (Map.Entry<String, String> entry : uriVariableExpressions.entrySet()) {
+					this.uriVariableExpressions.put(entry.getKey(), PARSER.parseExpression(entry.getValue()));
+				}
+			}
+		}
+	}
+
+	@Override
+	public void onInit() {
+		super.onInit();
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (beanFactory != null) {
+			this.evaluationContext.setBeanResolver(new SimpleBeanResolver(beanFactory));
+		}
+		ConversionService conversionService = this.getConversionService();
+		if (conversionService != null) {
+			this.evaluationContext.setTypeConverter(new StandardTypeConverter(conversionService));
+		}
 	}
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
 		try {
-			// TODO: allow a boolean flag for treating Map as queryParams vs. uriVariables?
-			Map<String, ?> uriVariables = this.parameterExtractor.fromMessage(requestMessage);
+			Map<String, Object> uriVariables = new HashMap<String, Object>();
+			for (Map.Entry<String, Expression> entry : this.uriVariableExpressions.entrySet()) {
+				Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
+				uriVariables.put(entry.getKey(), value);
+			}
 			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {

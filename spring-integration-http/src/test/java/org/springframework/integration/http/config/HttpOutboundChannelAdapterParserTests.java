@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -27,6 +29,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -34,7 +37,6 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.DefaultOutboundRequestMapper;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.integration.http.OutboundRequestMapper;
-import org.springframework.integration.http.ParameterExtractor;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -53,9 +55,6 @@ public class HttpOutboundChannelAdapterParserTests {
 
 	@Autowired
 	private ApplicationContext applicationContext;
-
-	@Autowired
-	private ParameterExtractor parameterExtractor;
 
 
 	@Test
@@ -80,6 +79,7 @@ public class HttpOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void fullConfig() {
 		DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(this.fullConfigEndpoint);
 		HttpRequestExecutingMessageHandler handler = (HttpRequestExecutingMessageHandler) endpointAccessor.getPropertyValue("handler");
@@ -101,11 +101,14 @@ public class HttpOutboundChannelAdapterParserTests {
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertEquals(requestFactoryBean, requestFactory);
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
-		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("uri"));
+		assertEquals("http://localhost/test2/{foo}", handlerAccessor.getPropertyValue("uri"));
 		assertEquals(HttpMethod.GET, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
 		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
-		assertEquals(parameterExtractor, handlerAccessor.getPropertyValue("parameterExtractor"));
+		Map<String, Expression> uriVariableExpressions =
+				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
+		assertEquals(1, uriVariableExpressions.size());
+		assertEquals("headers.bar", uriVariableExpressions.get("foo").getExpressionString());
 	}
 
 }
