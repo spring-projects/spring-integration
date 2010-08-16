@@ -7,9 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.util.Assert;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.Executor;
 
@@ -131,14 +129,14 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
 
     private void doWriteToDisk(long timestamp, String newKey, String newValue, Properties pro) {
         try {
-            FileWriter fileWriter = null;
+            FileOutputStream fileOutputStream = null;
 
             try {
-                fileWriter = new FileWriter(cachedLocationOfPropertiesFile);
-                pro.store(fileWriter, (this.uniqueName == null) ? "" : this.uniqueName);
+                fileOutputStream = new FileOutputStream (cachedLocationOfPropertiesFile);
+                pro.store(fileOutputStream, (this.uniqueName == null) ? "" : this.uniqueName);
             } finally {
-                if (fileWriter != null) {
-                    fileWriter.close();
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
                 }
             }
         } catch (IOException e) {
