@@ -52,14 +52,6 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
      */
     private Properties properties;
 
-    /*  */
-    /**
-     * An executor (only useful for the background writes if async writes are supported)
-     */
-
-    /*
-    private TaskScheduler taskScheduler;*/
-
     /**
      * Users can either provide a unique name and we can automatically setup #locationOfPropertiesOnDisk
      */
