@@ -30,7 +30,7 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
     /**
      * Used to queue the writes asynchronously
      */
-    private Executor executor;
+    private Executor executor = new SimpleAsyncTaskExecutor();
 
     /**
      * Used to encapsulate acquisition of a {@link java.util.Properties} instance if it's prefered that we handled it on the client's behalf
@@ -117,6 +117,8 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
     }
 
     public void write(String key, String value) {
+        Assert.notNull( key != null , "key can't be null");
+        Assert.notNull( value != null , "value can't be null");
         synchronized (monitor) {
             long now = System.nanoTime();
             this.properties.setProperty(key, value);
