@@ -78,7 +78,7 @@ public class DelayHandler extends IntegrationObjectSupport implements MessageHan
 
 	private volatile String delayHeaderName;
 
-	private boolean waitForTasksToCompleteOnShutdown = false;;
+	private boolean waitForTasksToCompleteOnShutdown = false;
 
 	private volatile MessageChannel outputChannel;
 
