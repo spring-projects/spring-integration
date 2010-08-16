@@ -205,32 +205,7 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
         this.bootstrapResources.add(location);
     }
 
-    public static void main(String[] arrImAPirate) throws Throwable {
-        File desktopProperties = new File(System.getProperty("user.home"), "Desktop/xmppProperties.properties");
-        FileSystemResource fileSystemResource = new FileSystemResource(desktopProperties);
-
-        final PropertiesBasedMetadataPersister propertiesBasedMetadataPersister = new PropertiesBasedMetadataPersister(fileSystemResource);
-        propertiesBasedMetadataPersister.setSupportAsyncWrites(true);
-        propertiesBasedMetadataPersister.setExecutor( new SimpleAsyncTaskExecutor());
-        propertiesBasedMetadataPersister.afterPropertiesSet();
-        class IncrementingWriter implements Runnable {
-            private int value;
-
-            public IncrementingWriter(int v) {
-                this.value = v;
-            }
-
-            public void run() {
-                propertiesBasedMetadataPersister.write("sinceId", value + "");
-                System.out.println("value written " + value + ", value retreived " + propertiesBasedMetadataPersister.read("sinceId"));
-            }
-        }
-
-        for (int i = 1; i <= 30; i++) {
-            new Thread(new IncrementingWriter(i)).start();
-            Thread.sleep(100);
-        }
-    }
+    
 
     /**
      * This class is used to ensure that the properies are persisted to the right place as soon as capacity / the task Scheduler allows
