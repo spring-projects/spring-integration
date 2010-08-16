@@ -26,14 +26,20 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageBuilder;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * @author Mark Fisher
@@ -42,14 +48,26 @@ public class DefaultOutboundRequestMapperTests {
 
 	@Test
 	public void simpleStringValueFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
-		mapper.setHttpMethod(HttpMethod.POST);
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
 		Map<String, String> form = new LinkedHashMap<String, String>();
 		form.put("a", "1");
 		form.put("b", "2");
 		form.put("c", "3");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpEntity<?> request = mapper.fromMessage(message);
+		QueueChannel replyChannel = new QueueChannel();
+		handler.setOutputChannel(replyChannel);
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertTrue(body instanceof Map<?, ?>);
 		Map<?, ?> map = (Map <?, ?>) body;
@@ -60,17 +78,26 @@ public class DefaultOutboundRequestMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void stringArrayValueFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
-		mapper.setHttpMethod(HttpMethod.POST);
-		Map form = new LinkedHashMap();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", new String[] { "1", "2", "3" });
 		form.put("b", "4");
 		form.put("c", new String[] { "5" });
 		form.put("d", "6");
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpEntity<?> request = mapper.fromMessage(message);
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertTrue(body instanceof Map<?, ?>);
 		Map<?, ?> map = (Map <?, ?>) body;
@@ -96,11 +123,12 @@ public class DefaultOutboundRequestMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void listValueFormData() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
-		mapper.setHttpMethod(HttpMethod.POST);
-		Map form = new LinkedHashMap();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		List<String> listA = new ArrayList<String>();
 		listA.add("1");
 		listA.add("2");
@@ -108,7 +136,15 @@ public class DefaultOutboundRequestMapperTests {
 		form.put("b", Collections.EMPTY_LIST);
 		form.put("c", Collections.singletonList("3"));
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpEntity<?> request = mapper.fromMessage(message);
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertTrue(body instanceof Map<?, ?>);
 		Map<?, ?> map = (Map <?, ?>) body;
@@ -131,16 +167,25 @@ public class DefaultOutboundRequestMapperTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void nameOnlyWithNullValues() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
-		mapper.setHttpMethod(HttpMethod.POST);
-		Map form = new LinkedHashMap();
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		Map<String, Object> form = new LinkedHashMap<String, Object>();
 		form.put("a", null);
 		form.put("b", "foo");
 		form.put("c", null);
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpEntity<?> request = mapper.fromMessage(message);
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
 		assertTrue(body instanceof Map<?, ?>);
 		Map<?, ?> map = (Map<?, ?>) body;
@@ -155,13 +200,23 @@ public class DefaultOutboundRequestMapperTests {
 
 	@Test
 	public void nonFormDataInMap() throws Exception {
-		DefaultOutboundRequestMapper mapper = new DefaultOutboundRequestMapper();
-		mapper.setHttpMethod(HttpMethod.POST);
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
 		Map<String, TestBean> form = new LinkedHashMap<String, TestBean>();
 		form.put("A", new TestBean());
 		form.put("B", new TestBean());
 		Message<?> message = MessageBuilder.withPayload(form).build();
-		HttpEntity<?> request = mapper.fromMessage(message);
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
 		Map<?, ?> map = (Map<?, ?>) request.getBody();
 		assertEquals(2, map.size());
 		assertEquals(TestBean.class, map.get("A").getClass());
@@ -171,6 +226,19 @@ public class DefaultOutboundRequestMapperTests {
 
 	@SuppressWarnings("serial")
 	private static class TestBean implements Serializable {
+	}
+
+
+	private static class MockRestTemplate extends RestTemplate {
+
+		private final AtomicReference<HttpEntity<?>> lastRequestEntity = new AtomicReference<HttpEntity<?>>();
+
+		@Override
+		public <T> ResponseEntity<T> exchange(String url, HttpMethod method, HttpEntity<?> requestEntity,
+				Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
+			this.lastRequestEntity.set(requestEntity);
+			throw new RuntimeException("intentional");
+		}
 	}
 
 }

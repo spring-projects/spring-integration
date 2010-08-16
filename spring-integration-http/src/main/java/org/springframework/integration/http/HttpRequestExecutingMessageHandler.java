@@ -16,10 +16,14 @@
 
 package org.springframework.integration.http;
 
+import java.io.Serializable;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.transform.Source;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -31,6 +35,7 @@ import org.springframework.expression.spel.support.StandardTypeConverter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -63,17 +68,19 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 
 	private volatile HttpMethod httpMethod = HttpMethod.POST;
 
-	private boolean expectReply = true;
+	private volatile boolean expectReply = true;
 
 	private volatile Class<?> expectedResponseType;
 
-	private final RestTemplate restTemplate = new RestTemplate();
+	private volatile boolean extractPayload = true;
 
-	private final DefaultOutboundRequestMapper requestMapper = new DefaultOutboundRequestMapper();
+	private volatile String charset = "UTF-8";
 
 	private volatile HeaderMapper<HttpHeaders> headerMapper = new DefaultHttpHeaderMapper();
 
 	private final Map<String, Expression> uriVariableExpressions = new HashMap<String, Expression>();
+
+	private final RestTemplate restTemplate = new RestTemplate();
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
@@ -99,7 +106,6 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * Specify the {@link HttpMethod} for requests. The default method will be POST.
 	 */
 	public void setHttpMethod(HttpMethod httpMethod) {
-		this.requestMapper.setHttpMethod(httpMethod);
 		this.httpMethod = httpMethod;
 	}
 
@@ -109,7 +115,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * will be serialized. The default value is <code>true</code>.
 	 */
 	public void setExtractPayload(boolean extractPayload) {
-		this.requestMapper.setExtractPayload(extractPayload);
+		this.extractPayload = extractPayload;
 	}
 
 	/**
@@ -117,7 +123,8 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * bytes. The default is 'UTF-8'.
 	 */
 	public void setCharset(String charset) {
-		this.requestMapper.setCharset(charset);
+		Assert.isTrue(Charset.isSupported(charset), "unsupported charset '" + charset + "'");
+		this.charset = charset;
 	}
 
 	/**
@@ -207,7 +214,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				Object value = entry.getValue().getValue(this.evaluationContext, requestMessage, String.class);
 				uriVariables.put(entry.getKey(), value);
 			}
-			HttpEntity<?> httpRequest = this.requestMapper.fromMessage(requestMessage);
+			HttpEntity<?> httpRequest = this.generateHttpRequest(requestMessage);
 			ResponseEntity<?> httpResponse = this.restTemplate.exchange(this.uri, this.httpMethod, httpRequest, this.expectedResponseType, uriVariables);
 			if (this.expectReply) {
 				Map<String, ?> headers = this.headerMapper.toHeaders(httpResponse.getHeaders());
@@ -229,6 +236,73 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		catch (Exception e) {
 			throw new MessageHandlingException(requestMessage, "HTTP request execution failed for URI [" + this.uri + "]", e);
 		}
+	}
+
+	private HttpEntity<?> generateHttpRequest(Message<?> message) throws Exception {
+		Assert.notNull(message, "message must not be null");
+		return (this.extractPayload) ? this.createHttpEntityWithPayloadAsBody(message)
+				: this.createHttpEntityWithMessageAsBody(message);
+	}
+
+	private HttpEntity<?> createHttpEntityWithPayloadAsBody(Message<?> requestMessage) {
+		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
+			return (HttpEntity<?>) requestMessage.getPayload();
+		}
+		HttpHeaders httpHeaders = new HttpHeaders();
+		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
+		Object payload = requestMessage.getPayload();
+		MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
+				: this.resolveContentType(payload);
+		httpHeaders.setContentType(contentType);
+		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
+			return new HttpEntity<Object>(requestMessage.getPayload(), httpHeaders);
+		}
+		return new HttpEntity<Object>(httpHeaders);
+	}
+
+	private HttpEntity<Object> createHttpEntityWithMessageAsBody(Message<?> requestMessage) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(new MediaType("application", "x-java-serialized-object"));
+		return new HttpEntity<Object>(requestMessage, headers);
+	}
+
+	private MediaType resolveContentType(Object content) {
+		MediaType contentType = null;
+		if (content instanceof byte[]) {
+			contentType = MediaType.APPLICATION_OCTET_STREAM;
+		}
+		else if (content instanceof Source) {
+			contentType = MediaType.TEXT_XML;
+		}
+		else {
+			if (content instanceof Map && isFormData((Map<?, ?>) content)) {
+				contentType = MediaType.APPLICATION_FORM_URLENCODED;
+			}
+			if (contentType == null && content instanceof Serializable) {
+				contentType = new MediaType("application", "x-java-serialized-object");
+			}
+		}
+		if (contentType == null) {
+			throw new IllegalArgumentException("payload must be a byte array, " +
+					"String, Map, Source, or Serializable object, received: " + content.getClass());
+		}
+		return contentType;
+	}
+
+	private MediaType resolveContentType(String content, String charset) {
+		return new MediaType("text", "plain", Charset.forName(charset));
+	}
+
+	/**
+	 * If all keys are Strings, we'll consider the Map to be form data.
+	 */
+	private boolean isFormData(Map<?, ?> map) {
+		for (Object key : map.keySet()) {
+			if (!(key instanceof String)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

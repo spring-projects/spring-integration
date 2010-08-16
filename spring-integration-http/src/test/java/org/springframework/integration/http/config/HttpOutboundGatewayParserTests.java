@@ -36,9 +36,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.http.DefaultOutboundRequestMapper;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
-import org.springframework.integration.http.OutboundRequestMapper;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -69,17 +67,14 @@ public class HttpOutboundGatewayParserTests {
 		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNull(replyChannel);
-		OutboundRequestMapper mapper = (OutboundRequestMapper) handlerAccessor.getPropertyValue("requestMapper");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
-		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertEquals("http://localhost/test1", handlerAccessor.getPropertyValue("uri"));
 		assertEquals(HttpMethod.POST, handlerAccessor.getPropertyValue("httpMethod"));
-		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
-		assertEquals(true, mapperAccessor.getPropertyValue("extractPayload"));
+		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
+		assertEquals(true, handlerAccessor.getPropertyValue("extractPayload"));
 	}
 
 	@Test
@@ -96,20 +91,17 @@ public class HttpOutboundGatewayParserTests {
 		Object replyChannel = handlerAccessor.getPropertyValue("outputChannel");
 		assertNotNull(replyChannel);
 		assertEquals(this.applicationContext.getBean("replies"), replyChannel);
-		OutboundRequestMapper mapper = (OutboundRequestMapper) handlerAccessor.getPropertyValue("requestMapper");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("restTemplate"));
 		ClientHttpRequestFactory requestFactory = (ClientHttpRequestFactory)
 				templateAccessor.getPropertyValue("requestFactory");
-		assertTrue(mapper instanceof DefaultOutboundRequestMapper);
 		assertTrue(requestFactory instanceof SimpleClientHttpRequestFactory);
 		Object converterListBean = this.applicationContext.getBean("converterList");
 		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));
 		assertEquals(String.class, handlerAccessor.getPropertyValue("expectedResponseType"));
-		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(mapper);
 		assertEquals("http://localhost/test2", handlerAccessor.getPropertyValue("uri"));
 		assertEquals(HttpMethod.PUT, handlerAccessor.getPropertyValue("httpMethod"));
-		assertEquals("UTF-8", mapperAccessor.getPropertyValue("charset"));
-		assertEquals(false, mapperAccessor.getPropertyValue("extractPayload"));
+		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
+		assertEquals(false, handlerAccessor.getPropertyValue("extractPayload"));
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertEquals(requestFactoryBean, requestFactory);
 		Object sendTimeout = new DirectFieldAccessor(
