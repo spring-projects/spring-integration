@@ -22,6 +22,7 @@
 			message-converters="converterList"
 			extract-payload="false"
 			expected-response-type="java.lang.Boolean"
+			mapped-request-headers="requestHeader1, requestHeader2"
 			request-factory="testRequestFactory"
 			order="77"
 			auto-startup="false">

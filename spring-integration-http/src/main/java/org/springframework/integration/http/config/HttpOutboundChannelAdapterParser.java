@@ -28,6 +28,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -48,7 +49,22 @@ public class HttpOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		builder.addConstructorArgValue(element.getAttribute("url"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "http-method");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
+		String headerMapper = element.getAttribute("header-mapper");
+		String mappedRequestHeaders = element.getAttribute("mapped-request-headers");
+		if (StringUtils.hasText(headerMapper)) {
+			if (StringUtils.hasText(mappedRequestHeaders)) {
+				parserContext.getReaderContext().error("The 'mappped-request-headers' attribute is not " +
+						"allowed when a 'header-mapper' has been specified.", parserContext.extractSource(element));
+				return null;
+			}
+			builder.addPropertyReference("headerMapper", headerMapper);
+		}
+		else if (StringUtils.hasText(mappedRequestHeaders)) {
+			BeanDefinitionBuilder headerMapperBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					"org.springframework.integration.http.DefaultHttpHeaderMapper");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(headerMapperBuilder, element, "mapped-request-headers", "outboundHeaderNames");
+			builder.addPropertyValue("headerMapper", headerMapperBuilder.getBeanDefinition());
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "charset");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expected-response-type");

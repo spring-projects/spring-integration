@@ -29,6 +29,8 @@
 			message-converters="converterList"
 			extract-request-payload="false"
 			expected-response-type="java.lang.String"
+			mapped-request-headers="requestHeader1, requestHeader2"
+			mapped-response-headers="responseHeader"
 			reply-channel="replies"
 			charset="UTF-8"
 			order="77"

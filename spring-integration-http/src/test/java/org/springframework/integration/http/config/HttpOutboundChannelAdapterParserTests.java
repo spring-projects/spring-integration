@@ -37,6 +37,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author Mark Fisher
@@ -101,6 +102,13 @@ public class HttpOutboundChannelAdapterParserTests {
 				(Map<String, Expression>) handlerAccessor.getPropertyValue("uriVariableExpressions");
 		assertEquals(1, uriVariableExpressions.size());
 		assertEquals("headers.bar", uriVariableExpressions.get("foo").getExpressionString());
+		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(handlerAccessor.getPropertyValue("headerMapper"));
+		String[] mappedRequestHeaders = (String[]) mapperAccessor.getPropertyValue("outboundHeaderNames");
+		String[] mappedResponseHeaders = (String[]) mapperAccessor.getPropertyValue("inboundHeaderNames");
+		assertEquals(2, mappedRequestHeaders.length);
+		assertEquals(0, mappedResponseHeaders.length);
+		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
+		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
 	}
 
 }
