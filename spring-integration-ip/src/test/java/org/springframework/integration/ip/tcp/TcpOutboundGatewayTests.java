@@ -199,10 +199,11 @@ public class TcpOutboundGatewayTests {
 		QueueChannel replyChannel = new QueueChannel();
 		gateway.setRequiresReply(true);
 		gateway.setOutputChannel(replyChannel);
-		List<Future<Integer>> results = new ArrayList<Future<Integer>>();
+		@SuppressWarnings("unchecked")
+		Future<Integer>[] results = new Future[2];
 		for (int i = 0; i < 2; i++) {
 			final int j = i;
-			results.add(Executors.newSingleThreadExecutor().submit(new Callable<Integer>(){
+			results[j] = (Executors.newSingleThreadExecutor().submit(new Callable<Integer>(){
 				public Integer call() throws Exception {
 					gateway.handleMessage(MessageBuilder.withPayload("Test" + j).build());
 					return 0;
@@ -212,7 +213,7 @@ public class TcpOutboundGatewayTests {
 		Set<String> replies = new HashSet<String>();
 		for (int i = 0; i < 2; i++) { 
 			try {
-				results.get(i).get();
+				results[i].get();
 			} catch (InterruptedException e) {
 				
 			} catch (ExecutionException e) {
