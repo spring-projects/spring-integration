@@ -29,6 +29,7 @@ import org.springframework.util.CollectionUtils;
  * Default {@link HeaderMapper} implementation for HTTP.
  * 
  * @author Mark Fisher
+ * @author Jeremy Grelle
  * @since 2.0
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
@@ -75,7 +76,9 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	public Map<String, ?> toHeaders(HttpHeaders source) {
 		Map<String, Object> target = new HashMap<String, Object>();
 		for (String name : this.inboundHeaderNames) {
-			List<String> values = source.get(name);
+			String prefixedName = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name
+					: USER_DEFINED_HEADER_PREFIX + name;
+			List<String> values = source.containsKey(prefixedName) ? source.get(prefixedName) : source.get(name);
 			if (!CollectionUtils.isEmpty(values)) {
 				if (values.size() == 1) {
 					target.put(name, values.get(0));
