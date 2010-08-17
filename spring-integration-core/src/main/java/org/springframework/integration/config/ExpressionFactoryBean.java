@@ -1,0 +1,70 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.config;
+
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.util.Assert;
+
+/**
+ * FactoryBean for creating Expression instances.
+ * 
+ * @author Mark Fisher
+ * @since 2.0
+ */
+public class ExpressionFactoryBean implements FactoryBean<Expression> {
+
+	private final static ExpressionParser DEFAULT_PARSER = new SpelExpressionParser();
+
+
+	private final String expressionString;
+
+	private volatile Expression expression;
+
+	private volatile ExpressionParser parser = DEFAULT_PARSER;
+
+
+	public ExpressionFactoryBean(String expressionString) {
+		Assert.hasText(expressionString, "expressionString must not be empty or null");
+		this.expressionString = expressionString;
+	}
+
+
+	public void setParserConfiguration(SpelParserConfiguration parserConfiguration) {
+		Assert.notNull(parserConfiguration, "parserConfiguration must not be null");
+		this.parser = new SpelExpressionParser(parserConfiguration);
+	}
+
+	public Expression getObject() throws Exception {
+		if (this.expression == null) {
+			this.expression = this.parser.parseExpression(this.expressionString);
+		}
+		return this.expression;
+	}
+
+	public Class<?> getObjectType() {
+		return (this.expression != null) ? this.expression.getClass() : Expression.class;
+	}
+
+	public boolean isSingleton() {
+		return true;
+	}
+
+}
