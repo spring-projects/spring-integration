@@ -24,15 +24,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ServerSocketFactory;
@@ -56,7 +55,7 @@ import org.springframework.integration.ip.util.SocketUtils;
 public class TcpOutboundGatewayTests {
 
 	@Test 
-	public void testGoodNetSingle() {
+	public void testGoodNetSingle() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -88,6 +87,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSingleUse(true);
 		ccf.setPoolSize(10);
 		ccf.start();
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		QueueChannel replyChannel = new QueueChannel();
@@ -110,7 +110,7 @@ public class TcpOutboundGatewayTests {
 	}
 
 	@Test 
-	public void testGoodNetMultiplex() {
+	public void testGoodNetMultiplex() throws Exception {
 		final int port = SocketUtils.findAvailableServerSocket();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicBoolean done = new AtomicBoolean();
@@ -141,6 +141,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		QueueChannel replyChannel = new QueueChannel();
@@ -193,6 +194,7 @@ public class TcpOutboundGatewayTests {
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
+		assertTrue(latch.await(10000, TimeUnit.MILLISECONDS));
 		final TcpOutboundGateway gateway = new TcpOutboundGateway();
 		gateway.setConnectionFactory(ccf);
 		gateway.setRequestTimeout(1);
