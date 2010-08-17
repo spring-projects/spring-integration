@@ -160,7 +160,7 @@ public class ConsumerEndpointFactoryBean
 
 			if (channel instanceof SubscribableChannel) {
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
-						+ "', since '" + this.inputChannelName + "' is a SubscribableChannel (not pollable).");
+						+ "', since '" + this.inputChannel + "' is a SubscribableChannel (not pollable).");
 				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
 			}
 			else if (channel instanceof PollableChannel) {
