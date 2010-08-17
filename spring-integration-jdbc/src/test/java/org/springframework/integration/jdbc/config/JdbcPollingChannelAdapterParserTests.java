@@ -124,9 +124,14 @@ public class JdbcPollingChannelAdapterParserTests {
 				return null;
 			}
 		});
-		Message<List<?>> message = messagingTemplate.receive();
-		assertNotNull(message);
-		assertEquals(2, message.getPayload().size());
+		int count = 0;
+		while (count < 4) {
+			Message<List<?>> message = messagingTemplate.receive();
+			assertNotNull(message);
+			int payloadSize = message.getPayload().size();
+			assertTrue(payloadSize <= 2);
+			count += payloadSize;
+		}
 	}
 	
 	@After
