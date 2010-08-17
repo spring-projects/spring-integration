@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2010 the original author or authors
+  ~
+  ~     Licensed under the Apache License, Version 2.0 (the "License");
+  ~     you may not use this file except in compliance with the License.
+  ~     You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~     Unless required by applicable law or agreed to in writing, software
+  ~     distributed under the License is distributed on an "AS IS" BASIS,
+  ~     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~     See the License for the specific language governing permissions and
+  ~     limitations under the License.
+  -->
+
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/sftp"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            xmlns:integration="http://www.springframework.org/schema/integration"
+            targetNamespace="http://www.springframework.org/schema/integration/sftp"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+    <xsd:import namespace="http://www.springframework.org/schema/tool"/>
+    <xsd:import namespace="http://www.springframework.org/schema/integration"
+                schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+
+
+    <xsd:element name="outbound-channel-adapter">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+
+                Builds an outbound-channel-adapter that writes files to a remote SFTP endpoint.
+
+            ]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="channel" use="required" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+
+
+            <xsd:attribute name="username" type="xsd:string" use="required"/>
+            <xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
+            <xsd:attribute name="host" type="xsd:string" use="required"/>
+
+            <xsd:attribute name="password" type="xsd:string"/>
+            <xsd:attribute name="port" type="xsd:int" default="22"/>
+            <xsd:attribute name="key-file" type="xsd:string"/>
+            <xsd:attribute name="key-file-password" type="xsd:string"/>
+
+            <xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="inbound-channel-adapter">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+
+                Builds an inbound-channel-adapter that synchronizes with a remote SFTP endpoint.
+                You may configure a <code>poller</code> element to determine at what frequency to scan the remote directory.
+                There is support for automatically deleting remote files upon synchornization. This adapter supports two connectivity options:
+
+                <ol>
+                <li> Password authentication: using this opton, authenticatio is done using a username and a password.</li>
+                <li> Key-based authentication: using this option, you may specify a key that will be used to authenticate. If they key itself is encrypted and requires a password, you may specify that, as well.</li>
+                </ol>
+            ]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="channel" use="required" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+
+
+            <xsd:attribute name="username" type="xsd:string" use="required"/>
+            <xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
+            <xsd:attribute name="local-working-directory" type="xsd:string"/>
+            <xsd:attribute name="host" type="xsd:string" use="required"/>
+
+            <xsd:attribute name="password" type="xsd:string"/>
+            <xsd:attribute name="port" type="xsd:int" default="22"/>
+            <xsd:attribute name="key-file" type="xsd:string"/>
+            <xsd:attribute name="key-file-password" type="xsd:string"/>
+
+
+            <xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
+            <xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
+
+
+        </xsd:complexType>
+    </xsd:element>
+
+
+</xsd:schema>

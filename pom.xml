@@ -28,6 +28,8 @@
 		<module>spring-integration-ws</module>
 		<module>spring-integration-xml</module>
 		<module>spring-integration-xmpp</module>
+		<module>spring-integration-ftp</module>
+		<module>spring-integration-sftp</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

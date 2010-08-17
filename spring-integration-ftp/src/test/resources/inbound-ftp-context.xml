@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <context:property-placeholder
+            location="file://${user.home}/Desktop/ftp.properties"
+            ignore-unresolvable="true"/>
+
+    <ftp:inbound-channel-adapter remote-directory="${ftp.remotedir}" channel="ftpIn" auto-create-directories="true"
+                                 host="${ftp.host}" auto-delete-remote-files-on-sync="false"
+                                username="${ftp.username}" password="${ftp.password}" port="2222"
+                                client-mode="passive-local-data-connection-mode"
+            >
+        <int:poller>
+            <int:interval-trigger interval="10000" time-unit="MILLISECONDS"/>
+        </int:poller>
+    </ftp:inbound-channel-adapter>
+
+    <int:channel id="ftpIn"/>
+
+    <bean id="inboundFTPFileServiceActivator"
+          class="org.springframework.integration.ftp.InboundFTPFileServiceActivator"/>
+
+    <int:service-activator input-channel="ftpIn" ref="inboundFTPFileServiceActivator"/>
+
+</beans>
