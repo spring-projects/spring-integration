@@ -1,4 +1,4 @@
-package org.springframework.integration.context.metadata;
+package org.springframework.integration.endpoint.metadata;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.integration.context.metadata.PropertiesBasedMetadataPersister;
 
 import java.io.*;
 
