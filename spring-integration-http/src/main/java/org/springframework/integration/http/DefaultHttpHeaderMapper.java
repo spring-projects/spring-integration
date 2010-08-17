@@ -33,7 +33,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 
-	public static final String OUTBOUND_PREFIX = "X-";
+	public static final String USER_DEFINED_HEADER_PREFIX = "X-";
 
 
 	private volatile String[] outboundHeaderNames = new String[0];
@@ -52,7 +52,8 @@ public class DefaultHttpHeaderMapper implements HeaderMapper<HttpHeaders> {
 	public void fromHeaders(MessageHeaders headers, HttpHeaders target) {
 		for (String name : this.outboundHeaderNames) {
 			Object value = headers.get(name);
-			String prefixedName = OUTBOUND_PREFIX + name;
+			String prefixedName = name.startsWith(USER_DEFINED_HEADER_PREFIX) ? name
+					: USER_DEFINED_HEADER_PREFIX + name;
 			if (value instanceof String) {
 				target.add(prefixedName, (String) value);
 			}
