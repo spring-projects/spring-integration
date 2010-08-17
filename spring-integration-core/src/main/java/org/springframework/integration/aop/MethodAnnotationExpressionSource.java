@@ -152,10 +152,12 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 
 	public String getChannelName(Method method) {
 		String channelName = this.getAnnotationValue(method, this.channelAttributeName, String.class);
+		if (channelName == null) {
+			channelName = this.getAnnotationValue(method.getDeclaringClass(), this.channelAttributeName, String.class);
+		}
 		return (StringUtils.hasText(channelName) ? channelName : null);
 	}
 
-	@SuppressWarnings("unchecked")
 	private <T> T getAnnotationValue(Method method, String attributeName, Class<T> expectedType) {
 		T value = null;
 		for (Class<? extends Annotation> annotationType : this.annotationTypes) {
@@ -165,18 +167,40 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 					throw new IllegalStateException(
 							"method [" + method + "] contains more than one publisher annotation");
 				}
-				Object valueAsObject = (attributeName == null) ?  AnnotationUtils.getValue(annotation)
-						: AnnotationUtils.getValue(annotation, attributeName);
-				if (valueAsObject != null) {
-					if (expectedType.isAssignableFrom(valueAsObject.getClass())) {
-						value = (T) valueAsObject;
-					}
-					else {
-						throw new IllegalArgumentException("expected type [" + expectedType.getName() +
-								"] for attribute '" + attributeName + "' on publisher annotation [" +
-								annotationType + "], but actual type was [" + valueAsObject.getClass() + "]");
-					}
+				value = this.getAnnotationValue(annotation, attributeName, expectedType);
+			}
+		}
+		return value;
+	}
+
+	private <T> T getAnnotationValue(Class<?> clazz, String attributeName, Class<T> expectedType) {
+		T value = null;
+		for (Class<? extends Annotation> annotationType : this.annotationTypes) {
+			Annotation annotation = AnnotationUtils.findAnnotation(clazz, annotationType);
+			if (annotation != null) {
+				if (value != null) {
+					throw new IllegalStateException(
+							"class [" + clazz + "] contains more than one publisher annotation");
 				}
+				value = this.getAnnotationValue(annotation, attributeName, expectedType);
+			}
+		}
+		return value;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T getAnnotationValue(Annotation annotation, String attributeName, Class<T> expectedType) {
+		T value = null;
+		Object valueAsObject = (attributeName == null) ?  AnnotationUtils.getValue(annotation)
+				: AnnotationUtils.getValue(annotation, attributeName);
+		if (valueAsObject != null) {
+			if (expectedType.isAssignableFrom(valueAsObject.getClass())) {
+				value = (T) valueAsObject;
+			}
+			else {
+				throw new IllegalArgumentException("expected type [" + expectedType.getName() +
+						"] for attribute '" + attributeName + "' on publisher annotation [" +
+						annotation.annotationType() + "], but actual type was [" + valueAsObject.getClass() + "]");
 			}
 		}
 		return value;
