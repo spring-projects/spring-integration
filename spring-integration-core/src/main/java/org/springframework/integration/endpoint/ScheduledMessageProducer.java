@@ -46,7 +46,7 @@ public class ScheduledMessageProducer extends MessageProducerSupport {
 
 	private volatile ScheduledFuture<?> future;
 
-	private volatile Map<String, Expression> headerExpressionMap;
+	private final Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 
 	private final StandardEvaluationContext context = new StandardEvaluationContext();
 
@@ -59,22 +59,19 @@ public class ScheduledMessageProducer extends MessageProducerSupport {
 	}
 
 
-	public void setHeaderExpressions(Map<String, String> headerExpressions) {
-		if (headerExpressions != null) {
-			Map<String, Expression> parsedExpressions = new HashMap<String, Expression>();
-			for (Map.Entry<String, String> entry : headerExpressions.entrySet()) {
-				parsedExpressions.put(entry.getKey(), PARSER.parseExpression(entry.getValue()));
+	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
+		synchronized (this.headerExpressions) {
+			this.headerExpressions.clear();
+			if (headerExpressions != null) {
+				this.headerExpressions.putAll(headerExpressions);
 			}
-			this.headerExpressionMap = parsedExpressions;
 		}
 	}
 
 	private Map<String, Object> evaluateHeaders() {
 		Map<String, Object> headers = new HashMap<String, Object>();
-		if (this.headerExpressionMap != null) {
-			for (Map.Entry<String, Expression> entry : this.headerExpressionMap.entrySet()) {
-				headers.put(entry.getKey(), entry.getValue().getValue(context));
-			}
+		for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+			headers.put(entry.getKey(), entry.getValue().getValue(context));
 		}
 		return headers;
 	}
@@ -106,7 +103,7 @@ public class ScheduledMessageProducer extends MessageProducerSupport {
 		private final Expression payloadExpression;
 
 
-		private MessageProducingTask(Expression payloadExpression) {
+		private MessageProducingTask(Expression payloadExpression) {//, Map<String, Expression> headerExpressions) {
 			this.payloadExpression = payloadExpression;
 		}
 

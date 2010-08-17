@@ -428,7 +428,7 @@
 					</xsd:annotation>
 					<xsd:complexType>
 						<xsd:sequence>
-							<xsd:element name="header" minOccurs="0" maxOccurs="unbounded">
+							<xsd:element name="header" minOccurs="0" maxOccurs="unbounded" type="headerSubElementType">
 								<xsd:annotation>
 									<xsd:documentation>	
 										<![CDATA[  
@@ -437,26 +437,6 @@
 										]]>
 									</xsd:documentation>
 								</xsd:annotation>
-								<xsd:complexType>
-									<xsd:attribute name="name" type="xsd:string" use="required">
-										<xsd:annotation>
-											<xsd:documentation>	
-													<![CDATA[  
-											The name of the header
-													]]>
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-									<xsd:attribute name="value" type="xsd:string" use="required">
-										<xsd:annotation>
-											<xsd:documentation>	
-													<![CDATA[  
-											The value of the header
-													]]>
-											</xsd:documentation>
-										</xsd:annotation>
-									</xsd:attribute>
-								</xsd:complexType>
 							</xsd:element>
 						</xsd:sequence>
 						<xsd:attribute name="name" type="xsd:string">
@@ -606,6 +586,37 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="headerSubElementType">
+		<xsd:annotation>
+			<xsd:documentation>	<![CDATA[  
+				Provides mechanism to enrich content of the message with custom message headers. When this method is going to be invoked
+				the generated message will be enriched with these headers. 
+			]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+					The name of the header
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="value" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[  
+					The value of the header. Either this or 'expression' must be provided.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="expression" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[  
+					Expression to be evaluated to produce a value for the header.
+					Either this or 'value' must be provided.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
 
 	<xsd:complexType name="innerGatewayType">
 		<xsd:annotation>
@@ -2227,6 +2238,9 @@ Name of the header whose value to use.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="header" type="headerSubElementType" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID"/>
 			<xsd:attribute name="fixed-delay" type="xsd:string">
 				<xsd:annotation>

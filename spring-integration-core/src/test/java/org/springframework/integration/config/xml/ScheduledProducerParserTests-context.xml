@@ -13,6 +13,8 @@
 
 	<channel id="cronChannel"/>
 
+	<channel id="headerExpressionsChannel"/>
+
 	<channel id="triggerRefChannel">
 		<queue/>
 	</channel>
@@ -22,6 +24,11 @@
 	<scheduled-producer id="fixedRateProducer" fixed-rate="5678" payload-expression="'fixedRateTest'" channel="fixedRateChannel" auto-startup="false"/>
 
 	<scheduled-producer id="cronProducer" cron="7 6 5 4 3 ?" payload-expression="'cronTest'" channel="cronChannel" auto-startup="false"/>
+
+	<scheduled-producer id="headerExpressionsProducer" fixed-delay="99" payload-expression="'headerExpressionsTest'" channel="headerExpressionsChannel" auto-startup="false">
+		<header name="foo" expression="6 * 7"/>
+		<header name="bar" value="x"/>
+	</scheduled-producer>
 
 	<scheduled-producer id="triggerRefProducer" trigger="customTrigger" payload-expression="'triggerRefTest'" channel="triggerRefChannel"/>
 

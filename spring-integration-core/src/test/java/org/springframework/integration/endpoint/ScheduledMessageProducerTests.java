@@ -26,6 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.scheduling.Trigger;
@@ -48,9 +51,9 @@ public class ScheduledMessageProducerTests {
 		String payloadExpression = "'test-' + T(org.springframework.integration.endpoint.ScheduledMessageProducerTests).next()";
 		ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
 		scheduler.afterPropertiesSet();
-		Map<String, String> headerExpressions = new HashMap<String, String>();
-		headerExpressions.put("foo", "'x'");
-		headerExpressions.put("bar", "7 * 6");
+		Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
+		headerExpressions.put("foo", new LiteralExpression("x"));
+		headerExpressions.put("bar", new SpelExpressionParser().parseExpression("7 * 6"));
 		ScheduledMessageProducer producer = new ScheduledMessageProducer(trigger, payloadExpression);
 		producer.setHeaderExpressions(headerExpressions);
 		producer.setTaskScheduler(scheduler);

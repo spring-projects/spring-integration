@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -104,6 +106,20 @@ public class ScheduledProducerParserTests {
 		Expression payloadExpression = (Expression) new DirectFieldAccessor(
 				producerAccessor.getPropertyValue("task")).getPropertyValue("payloadExpression");
 		assertEquals("'triggerRefTest'", payloadExpression.getExpressionString());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void headerExpressions() {
+		ScheduledMessageProducer producer = context.getBean("headerExpressionsProducer", ScheduledMessageProducer.class);
+		assertFalse(producer.isAutoStartup());
+		DirectFieldAccessor producerAccessor = new DirectFieldAccessor(producer);
+		Map<String, Expression> headerExpressions = (Map<String, Expression>) producerAccessor.getPropertyValue("headerExpressions");
+		assertEquals(2, headerExpressions.size());
+		assertEquals("6 * 7", headerExpressions.get("foo").getExpressionString());
+		assertEquals("x", headerExpressions.get("bar").getExpressionString());
+		assertEquals(42, headerExpressions.get("foo").getValue());
+		assertEquals("x", headerExpressions.get("bar").getValue());
 	}
 
 }

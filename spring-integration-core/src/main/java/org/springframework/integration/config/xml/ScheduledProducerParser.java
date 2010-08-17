@@ -16,13 +16,18 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;scheduled-producer&gt; element.
@@ -83,7 +88,35 @@ public class ScheduledProducerParser extends AbstractSingleBeanDefinitionParser 
 		builder.addPropertyReference("outputChannel", element.getAttribute("channel"));
 		builder.addConstructorArgValue(element.getAttribute("payload-expression"));
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		// TODO: add support for header expression sub-elements
+		List<Element> headerElements = DomUtils.getChildElementsByTagName(element, "header");
+		if (!CollectionUtils.isEmpty(headerElements)) {
+			ManagedMap<String, Object> headerExpressions = new ManagedMap<String, Object>();
+			for (Element headerElement : headerElements) {
+				String headerName = headerElement.getAttribute("name");
+				String headerValue = headerElement.getAttribute("value");
+				String headerExpression = headerElement.getAttribute("expression");
+				boolean hasValue = StringUtils.hasText(headerValue);
+				boolean hasExpression = StringUtils.hasText(headerExpression);
+				if (!(hasValue ^ hasExpression)) {
+					parserContext.getReaderContext().error("exactly one of 'value' or 'expression' is required on a header sub-element",
+							parserContext.extractSource(headerElement));
+					continue;
+				}
+				RootBeanDefinition expressionDef = null;
+				if (hasValue) {
+					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
+				}
+				else if (hasExpression) {
+					expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
+				}
+				if (expressionDef != null) {
+					headerExpressions.put(headerName, expressionDef);
+				}
+			}
+			builder.addPropertyValue("headerExpressions", headerExpressions);
+		}
 	}
 
 }
