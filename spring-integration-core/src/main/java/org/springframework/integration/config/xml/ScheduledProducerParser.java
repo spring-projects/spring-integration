@@ -107,13 +107,11 @@ public class ScheduledProducerParser extends AbstractSingleBeanDefinitionParser 
 					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
 				}
-				else if (hasExpression) {
+				else {
 					expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
 					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
 				}
-				if (expressionDef != null) {
-					headerExpressions.put(headerName, expressionDef);
-				}
+				headerExpressions.put(headerName, expressionDef);
 			}
 			builder.addPropertyValue("headerExpressions", headerExpressions);
 		}
