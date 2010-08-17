@@ -39,10 +39,12 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Josh Long 
  */
 public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, InitializingBean, SmartLifecycle {
@@ -57,7 +59,9 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile boolean autoStartup = true;
 
-	private volatile ConfigurableBeanFactory beanFactory;
+    private volatile MessageChannel inputChannel;
+
+    private volatile ConfigurableBeanFactory beanFactory;
 
 	private volatile AbstractEndpoint endpoint;
 
@@ -67,7 +71,6 @@ public class ConsumerEndpointFactoryBean
 
 	private final Object handlerMonitor = new Object();
 
-
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
 		synchronized (this.handlerMonitor) {
@@ -76,6 +79,9 @@ public class ConsumerEndpointFactoryBean
 		}
 	}
 
+    public void setInputChannel(MessageChannel inputChannel) {
+        this.inputChannel= inputChannel;
+    }
 
 	public void setInputChannelName(String inputChannelName) {
 		this.inputChannelName = inputChannelName;
@@ -136,10 +142,22 @@ public class ConsumerEndpointFactoryBean
 			if (this.initialized) {
 				return;
 			}
-			Assert.hasText(this.inputChannelName, "inputChannelName is required");
-			Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
+
+
+
+            MessageChannel channel = null;
+
+            if(StringUtils.hasText(this.inputChannelName)) {
+                Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
 					"no such input channel '" + this.inputChannelName + "' for endpoint '" + this.beanName + "'");
-			MessageChannel channel = this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
+                channel = this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
+            }
+            if( this.inputChannel != null ){
+                channel = this.inputChannel;
+            }
+
+            Assert.state( channel != null , "one of inputChannelName or inputChannel is required");
+
 			if (channel instanceof SubscribableChannel) {
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + this.inputChannelName + "' is a SubscribableChannel (not pollable).");
