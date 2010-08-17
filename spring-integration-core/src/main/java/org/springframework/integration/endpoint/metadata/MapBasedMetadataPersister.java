@@ -1,11 +1,11 @@
-package org.springframework.integration.endpoint.metadata;
+package org.springframework.integration.context.metadata;
 
 import org.springframework.util.Assert;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simple in-memory implementation of teh {@link org.springframework.integration.endpoint.metadata.MetadataPersister}
+ * Simple in-memory implementation of teh {@link org.springframework.integration.context.metadata.MetadataPersister}
  * interface suitable for the use cases where it's assured that component only needs ephemeral metadata.
  *
  *

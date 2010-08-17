@@ -1,4 +1,4 @@
-package org.springframework.integration.endpoint.metadata;
+package org.springframework.integration.context.metadata;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
 
 
 /**
- * Implementation of {@link org.springframework.integration.endpoint.metadata.MetadataPersister} that knows how to write metadata
+ * Implementation of {@link org.springframework.integration.context.metadata.MetadataPersister} that knows how to write metadata
  * to a {@link java.util.Properties} instance.
  * 
  *
@@ -178,7 +178,7 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
             this.cachedLocationOfPropertiesFile = this.locationOfPropertiesOnDisk.getFile();
 
             propertiesFactoryBean.setLocations(this.bootstrapResources.toArray(new Resource[bootstrapResources.size()]));
-            // we take the existing Resources [] and use them to bootstrap a Property file when this component wakes up again 
+            // we take the existing Resources [] and use them to bootstrap a Properties instance when this component wakes up again 
             propertiesFactoryBean.afterPropertiesSet();
             properties = propertiesFactoryBean.getObject();
         }

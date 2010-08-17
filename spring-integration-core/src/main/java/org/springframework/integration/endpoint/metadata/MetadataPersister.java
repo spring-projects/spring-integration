@@ -1,6 +1,4 @@
-package org.springframework.integration.endpoint.metadata;
-
-import java.util.Properties;
+package org.springframework.integration.context.metadata;
 
 
 /**

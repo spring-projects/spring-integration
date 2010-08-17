@@ -1,4 +1,4 @@
-package org.springframework.integration.endpoint.metadata;
+package org.springframework.integration.context.metadata;
 
 import org.junit.After;
 import org.junit.Assert;
