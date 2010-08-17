@@ -19,6 +19,8 @@ package org.springframework.integration.gateway;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.expression.Expression;
+
 /**
  * Represents the definition of Gateway methods, when using multiple methods per Gateway interface.
  * &lt;si:method name="echo" request-channel="inputA" reply-timeout="2" request-timeout="200"/&gt;
@@ -38,7 +40,7 @@ public class GatewayMethodDefinition {
 
 	private volatile String replyTimeout;
 
-	private volatile Map<String, Object> staticHeaders = new HashMap<String, Object>();
+	private volatile Map<String, Expression> headerExpressions = new HashMap<String, Expression>();
 
 
 	public String getPayloadExpression() {
@@ -49,12 +51,12 @@ public class GatewayMethodDefinition {
 		this.payloadExpression = payloadExpression;
 	}
 
-	public Map<String, Object> getStaticHeaders() {
-		return staticHeaders;
+	public Map<String, Expression> getHeaderExpressions() {
+		return this.headerExpressions;
 	}
 
-	public void setStaticHeaders(Map<String, Object> staticHeaders) {
-		this.staticHeaders = staticHeaders;
+	public void setHeaderExpressions(Map<String, Expression> headerExpressions) {
+		this.headerExpressions = headerExpressions;
 	}
 
 	public String getRequestChannelName() {

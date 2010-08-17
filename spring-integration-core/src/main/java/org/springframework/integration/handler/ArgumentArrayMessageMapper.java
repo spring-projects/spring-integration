@@ -108,7 +108,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Method method;
 
-	private final Map<String, Object> staticHeaders;
+	private final Map<String, Expression> headerExpressions;
 
 	private final List<MethodParameter> parameterList;
 
@@ -116,7 +116,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 
 	private final Map<String, Expression> parameterPayloadExpressions = new HashMap<String, Expression>();
 
-	private final StandardEvaluationContext staticEvaluationContext = new StandardEvaluationContext();
+	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 
 	private volatile BeanResolver beanResolver;
 
@@ -125,10 +125,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		this(method, null);
 	}
 	
-	public ArgumentArrayMessageMapper(Method method, Map<String, Object> staticHeaders) {
+	public ArgumentArrayMessageMapper(Method method, Map<String, Expression> headerExpressions) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
-		this.staticHeaders = staticHeaders;
+		this.headerExpressions = headerExpressions;
 		this.parameterList = getMethodParameterList(method);
 		this.payloadExpression = parsePayloadExpression(method);
 	}
@@ -141,7 +141,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
 			this.beanResolver = new SimpleBeanResolver(beanFactory);
-			this.staticEvaluationContext.setBeanResolver(beanResolver);
+			this.evaluationContext.setBeanResolver(beanResolver);
 		}
 	}
 
@@ -155,7 +155,6 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		return this.mapArgumentsToMessage(arguments);
 	}
 
-	@SuppressWarnings("unchecked")
 	private Message<?> mapArgumentsToMessage(Object[] arguments) {
 		Object messageOrPayload = null;
 		boolean foundPayloadAnnotation = false;
@@ -199,10 +198,10 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 						if (!(argumentValue instanceof Map)) {
 							throw new IllegalArgumentException("@Headers annotation is only valid for Map-typed parameters");
 						}
-						for (Object key : ((Map) argumentValue).keySet()) {	
+						for (Object key : ((Map<?, ?>) argumentValue).keySet()) {	
 							Assert.isInstanceOf(String.class, key, "Invalid header name [" + key +
 									"], name type must be String.");
-							Object value = ((Map) argumentValue).get(key);
+							Object value = ((Map<?, ?>) argumentValue).get(key);
 							headers.put((String) key, value);
 						}
 					}
@@ -216,19 +215,26 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 					throw new MessagingException("Ambiguous method parameters; found more than one " +
 							"Map-typed parameter and neither one contains a @Payload annotation");
 				}
-				this.copyHeaders((Map) argumentValue, headers);
+				this.copyHeaders((Map<?, ?>) argumentValue, headers);
 			}
 			else if (this.payloadExpression == null) {
 				this.throwExceptionForMultipleMessageOrPayloadParameters(methodParameter);
 			}
 		}
 		Assert.isTrue(messageOrPayload != null, "unable to determine a Message or payload parameter on method [" + method + "]");
-		MessageBuilder builder = (messageOrPayload instanceof Message)
+		MessageBuilder<?> builder = (messageOrPayload instanceof Message)
 				? MessageBuilder.fromMessage((Message<?>) messageOrPayload)
 				: MessageBuilder.withPayload(messageOrPayload);
 		builder.copyHeadersIfAbsent(headers);
-		if (!CollectionUtils.isEmpty(staticHeaders)){
-			builder.copyHeaders(staticHeaders);
+		if (!CollectionUtils.isEmpty(this.headerExpressions)) {
+			Map<String, Object> evaluatedHeaders = new HashMap<String, Object>();
+			for (Map.Entry<String, Expression> entry : this.headerExpressions.entrySet()) {
+				Object value = entry.getValue().getValue(this.evaluationContext);
+				if (value != null) {
+					evaluatedHeaders.put(entry.getKey(), value);
+				}
+			}
+			builder.copyHeaders(evaluatedHeaders);
 		}
 		return builder.build();
 	}
@@ -239,7 +245,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 			expression = PARSER.parseExpression(expressionString);
 			this.parameterPayloadExpressions.put(expressionString, expression);
 		}
-		return expression.getValue(this.staticEvaluationContext, argumentValue);
+		return expression.getValue(this.evaluationContext, argumentValue);
 	}
 
 	private Annotation findMappingAnnotation(Annotation[] annotations) {
@@ -260,8 +266,7 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 		return match;
 	}
 
-	@SuppressWarnings("unchecked")
-	private void copyHeaders(Map argumentValue, Map<String, Object> headers) {
+	private void copyHeaders(Map<?, ?> argumentValue, Map<String, Object> headers) {
 		for (Object key : argumentValue.keySet()) {	
 			if (!(key instanceof String)) {
 				throw new IllegalArgumentException("Invalid header name [" + key +

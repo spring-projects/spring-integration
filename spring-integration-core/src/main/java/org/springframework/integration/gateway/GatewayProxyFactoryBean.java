@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
@@ -275,7 +277,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		long requestTimeout = this.defaultRequestTimeout;
 		long replyTimeout = this.defaultReplyTimeout;
 		String payloadExpression = null;
-		Map<String, Object> staticHeaders = null;
+		Map<String, Expression> headerExpressions = null;
 		if (gatewayAnnotation != null) {
 			String requestChannelName = gatewayAnnotation.requestChannel();
 			if (StringUtils.hasText(requestChannelName)) {
@@ -292,7 +294,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			GatewayMethodDefinition gatewayDefinition = methodToChannelMap.get(method.getName());	
 			if (gatewayDefinition != null) {
 				payloadExpression = gatewayDefinition.getPayloadExpression();
-				staticHeaders = gatewayDefinition.getStaticHeaders();
+				headerExpressions = gatewayDefinition.getHeaderExpressions();
 				String requestChannelName = gatewayDefinition.getRequestChannelName();
 				if (StringUtils.hasText(requestChannelName)) {
 					requestChannel = this.resolveChannelName(requestChannelName);
@@ -311,7 +313,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 				}
 			}
 		}
-		ArgumentArrayMessageMapper messageMapper = new ArgumentArrayMessageMapper(method, staticHeaders);
+		ArgumentArrayMessageMapper messageMapper = new ArgumentArrayMessageMapper(method, headerExpressions);
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}

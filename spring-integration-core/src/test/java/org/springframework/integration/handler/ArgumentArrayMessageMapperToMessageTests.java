@@ -25,6 +25,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.common.LiteralExpression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
@@ -192,17 +195,17 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	}
 	
 	@Test
-	public void toMessageWithPayloadAndStaticHeaders() throws Exception {
+	public void toMessageWithPayloadAndHeaders() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
-		Map<String, Object> headers = new HashMap<String, Object>();
-		headers.put("foo", "foo");
-		headers.put("bar", "bar");
-		headers.put(MessageHeaders.PREFIX + "baz", "hello");
+		Map<String, Expression> headers = new HashMap<String, Expression>();
+		headers.put("foo", new LiteralExpression("foo"));
+		headers.put("bar", new SpelExpressionParser().parseExpression("6 * 7"));
+		headers.put(MessageHeaders.PREFIX + "baz", new LiteralExpression("hello"));
 		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method, headers);
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
 		assertEquals("test", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("foo"));
-		assertEquals("bar", message.getHeaders().get("bar"));
+		assertEquals(42, message.getHeaders().get("bar"));
 	}
 
 

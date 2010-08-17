@@ -5,25 +5,48 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"
 	xmlns:int="http://www.springframework.org/schema/integration">
 
-	<int:gateway id="gateway" 
+	<int:gateway id="gatewayWithHeaderValues" 
 				 service-interface="org.springframework.integration.gateway.HeaderEnrichedGatewayTests$SampleGateway">
-		<int:method name="sendString" request-channel="input">
-			<int:header name="foo" value="#{stringValue}"/>
+		<int:method name="sendString" request-channel="channel">
+			<int:header name="foo" value="#{stringValueFoo}"/>
 			<int:header name="bar" value="bar"/>
 		</int:method>
-		<int:method name="sendInteger" request-channel="input">
+		<int:method name="sendInteger" request-channel="channel">
 			<int:header name="foo" value="foo"/>
 			<int:header name="bar" value="bar"/>
 		</int:method>
-		<int:method name="sendStringWithParameterHeaders" request-channel="input">
+		<int:method name="sendStringWithParameterHeaders" request-channel="channel">
 			<int:header name="foo" value="foo"/>
 			<int:header name="bar" value="bar"/>
 		</int:method>
 	</int:gateway>
+
+	<int:gateway id="gatewayWithHeaderExpressions" 
+				 service-interface="org.springframework.integration.gateway.HeaderEnrichedGatewayTests$SampleGateway">
+		<int:method name="sendString" request-channel="channel">
+			<int:header name="foo" expression="6 * 7"/>
+			<int:header name="bar" expression="'foobar'"/>
+		</int:method>
+		<int:method name="sendInteger" request-channel="channel">
+			<int:header name="foo" expression="42"/>
+			<int:header name="bar" expression="@stringValueFoo + @stringValueBar"/>
+		</int:method>
+		<int:method name="sendStringWithParameterHeaders" request-channel="channel">
+			<int:header name="foo" expression="@stringValueFoo.length() + 39"/>
+			<int:header name="bar" expression="'foo' + @stringValueBar"/>
+		</int:method>
+	</int:gateway>
 	
-	<bean id="stringValue" class="java.lang.String">
+	<bean id="stringValueFoo" class="java.lang.String">
 		<constructor-arg value="foo"/>
 	</bean>
+
+	<bean id="stringValueBar" class="java.lang.String">
+		<constructor-arg value="bar"/>
+	</bean>
 	
-	<int:channel id="input"/>
+	<int:channel id="channel">
+		<int:queue/>
+	</int:channel>
+
 </beans>

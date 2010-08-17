@@ -21,21 +21,18 @@ import static junit.framework.Assert.assertNull;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
-import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -43,52 +40,69 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class HeaderEnrichedGatewayTests {
 
 	@Autowired
-	private SampleGateway gateway;
+	private SampleGateway gatewayWithHeaderValues;
 
 	@Autowired
-	private DirectChannel input;
+	private SampleGateway gatewayWithHeaderExpressions;
+
+	@Autowired
+	private PollableChannel channel;
 
 	private Object testPayload;
 
 
 	@Test
-	public void validateStaticHeaderMappings() throws Exception {
-		MessageHandler handler = Mockito.mock(MessageHandler.class);	
-		input.subscribe(handler);
-		
-		this.prepareHandlerForTest(handler);
+	public void validateHeaderValueMappings() throws Exception {
 		testPayload = "hello";
-		gateway.sendString((String) testPayload);
-		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
-		
-		this.prepareHandlerForTest(handler);
+		gatewayWithHeaderValues.sendString((String) testPayload);
+		Message<?> message1 = channel.receive(0);
+		assertEquals(testPayload, message1.getPayload());
+		assertEquals("foo", message1.getHeaders().get("foo"));
+		assertEquals("bar", message1.getHeaders().get("bar"));
+		assertNull(message1.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+
 		testPayload = 123;
-		gateway.sendInteger((Integer) testPayload);
-		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
-		
-		this.prepareHandlerForTest(handler);
+		gatewayWithHeaderValues.sendInteger((Integer) testPayload);
+		Message<?> message2 = channel.receive(0);
+		assertEquals(testPayload, message2.getPayload());
+		assertEquals("foo", message2.getHeaders().get("foo"));
+		assertEquals("bar", message2.getHeaders().get("bar"));
+		assertNull(message2.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+
 		testPayload = "withAnnotatedHeaders";
-		gateway.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
-		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
+		gatewayWithHeaderValues.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
+		Message<?> message3 = channel.receive(0);
+		assertEquals("foo", message3.getHeaders().get("foo"));
+		assertEquals("bar", message3.getHeaders().get("bar"));
+		assertEquals("headerA", message3.getHeaders().get("headerA"));
+		assertEquals("headerB", message3.getHeaders().get("headerB"));
 	}
 
+	@Test
+	public void validateHeaderExpressionMappings() throws Exception {
+		testPayload = "hello";
+		gatewayWithHeaderExpressions.sendString((String) testPayload);
+		Message<?> message1 = channel.receive(0);
+		assertEquals(testPayload, message1.getPayload());
+		assertEquals(42, message1.getHeaders().get("foo"));
+		assertEquals("foobar", message1.getHeaders().get("bar"));
+		assertNull(message1.getHeaders().get(MessageHeaders.PREFIX + "baz"));
 
-	private void prepareHandlerForTest(MessageHandler handler) {
-		Mockito.reset(handler);
-		Mockito.doAnswer(new Answer<Object>() {
-		      public Object answer(InvocationOnMock invocation) {
-		    	  Message<?> message = (Message<?>) invocation.getArguments()[0];
-		    	  assertEquals(testPayload, message.getPayload());
-		    	  assertEquals("foo", message.getHeaders().get("foo"));
-		    	  assertEquals("bar", message.getHeaders().get("bar"));
-		    	  assertNull(message.getHeaders().get(MessageHeaders.PREFIX + "baz"));
-		    	  if (message.getPayload().equals("withAnnotatedHeaders")){
-		    		  assertEquals("headerA", message.getHeaders().get("headerA"));
-			    	  assertEquals("headerB", message.getHeaders().get("headerB"));
-		    	  }
-		          return null;
-		      }})
-		  .when(handler).handleMessage(Mockito.any(Message.class));
+		testPayload = 123;
+		gatewayWithHeaderExpressions.sendInteger((Integer) testPayload);
+		Message<?> message2 = channel.receive(0);
+		assertEquals(testPayload, message2.getPayload());
+		assertEquals(42, message2.getHeaders().get("foo"));
+		assertEquals("foobar", message2.getHeaders().get("bar"));
+		assertNull(message2.getHeaders().get(MessageHeaders.PREFIX + "baz"));
+
+		testPayload = "withAnnotatedHeaders";
+		gatewayWithHeaderExpressions.sendStringWithParameterHeaders((String) testPayload, "headerA", "headerB");
+		Message<?> message3 = channel.receive(0);
+		assertEquals(42, message3.getHeaders().get("foo"));
+		assertEquals("foobar", message3.getHeaders().get("bar"));
+		assertEquals("headerA", message3.getHeaders().get("headerA"));
+		assertEquals("headerB", message3.getHeaders().get("headerB"));
 	}
 
 

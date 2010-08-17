@@ -21,12 +21,15 @@ import java.util.Map;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -103,12 +106,31 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 		builder.addPropertyValue("methodToChannelMap", methodToChannelMap);
 	}
 
-	private void setMethodInvocationHeaders(BeanDefinitionBuilder gatewayDefinitionBuilder, List<Element> invocationHeaders){
-		Map<String, Object> methodInvocationHeaders = new ManagedMap<String, Object>();
+	private void setMethodInvocationHeaders(BeanDefinitionBuilder gatewayDefinitionBuilder, List<Element> invocationHeaders) {
+		Map<String, Object> headerExpressions = new ManagedMap<String, Object>();
 		for (Element headerElement : invocationHeaders) {
-			methodInvocationHeaders.put(headerElement.getAttribute("name"), headerElement.getAttribute("value"));
+			String headerName = headerElement.getAttribute("name");
+			String headerValue = headerElement.getAttribute("value");
+			String headerExpression = headerElement.getAttribute("expression");
+			boolean hasValue = StringUtils.hasText(headerValue);
+			boolean hasExpression = StringUtils.hasText(headerExpression);
+			if (!(hasValue ^ hasExpression)) {
+				throw new BeanDefinitionStoreException("exactly one of 'value' or 'expression' is required on a header sub-element");
+			}
+			RootBeanDefinition expressionDef = null;
+			if (hasValue) {
+				expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerValue);
+			}
+			else if (hasExpression) {
+				expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+				expressionDef.getConstructorArgumentValues().addGenericArgumentValue(headerExpression);
+			}
+			if (expressionDef != null) {
+				headerExpressions.put(headerName, expressionDef);
+			}
 		}
-		gatewayDefinitionBuilder.addPropertyValue("staticHeaders", methodInvocationHeaders);
+		gatewayDefinitionBuilder.addPropertyValue("headerExpressions", headerExpressions);
 	}
 
 }
