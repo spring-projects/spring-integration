@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelParserConfiguration;
@@ -29,14 +29,12 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionFactoryBean implements FactoryBean<Expression> {
+public class ExpressionFactoryBean extends AbstractFactoryBean<Expression> {
 
 	private final static ExpressionParser DEFAULT_PARSER = new SpelExpressionParser();
 
 
 	private final String expressionString;
-
-	private volatile Expression expression;
 
 	private volatile ExpressionParser parser = DEFAULT_PARSER;
 
@@ -52,19 +50,15 @@ public class ExpressionFactoryBean implements FactoryBean<Expression> {
 		this.parser = new SpelExpressionParser(parserConfiguration);
 	}
 
-	public Expression getObject() throws Exception {
-		if (this.expression == null) {
-			this.expression = this.parser.parseExpression(this.expressionString);
-		}
-		return this.expression;
-	}
 
+	@Override
 	public Class<?> getObjectType() {
-		return (this.expression != null) ? this.expression.getClass() : Expression.class;
+		return Expression.class;
 	}
 
-	public boolean isSingleton() {
-		return true;
+	@Override
+	protected Expression createInstance() throws Exception {
+		return this.parser.parseExpression(this.expressionString);
 	}
 
 }
