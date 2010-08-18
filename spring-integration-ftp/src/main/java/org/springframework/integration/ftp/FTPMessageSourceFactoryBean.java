@@ -14,6 +14,7 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 
 import java.io.File;
@@ -94,7 +95,7 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
             File ftpTmp = new File(tmp, "ftpInbound");
             this.localWorkingDirectory = "file://" + ftpTmp.getAbsolutePath();
         }
-        assert !StringUtils.isEmpty(this.localWorkingDirectory) : "the local working directory can't be null!";
+        Assert.hasText( this.localWorkingDirectory , "the local working directory can't be null!" );
 
         ResourceEditor resourceEditor = new ResourceEditor(this.resourceLoader);
         resourceEditor.setAsText(this.localWorkingDirectory);
@@ -130,7 +131,6 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
         defaultFTPClientFactory.setPort(this.port);
         defaultFTPClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
         defaultFTPClientFactory.setUsername(this.username);
-
         defaultFTPClientFactory.setClientMode(this.clientMode);
 
         QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool(15, defaultFTPClientFactory);

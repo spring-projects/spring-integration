@@ -20,11 +20,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
-
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-
 import org.w3c.dom.Element;
 
 
@@ -49,7 +47,7 @@ public class SFTPNamespaceHandler extends NamespaceHandlerSupport {
     private static class SFTPMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
         @Override
         protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".config.SFTPMessageSendingConsumerFactoryBean");
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SFTPMessageSendingConsumerFactoryBean.class.getName());
 
             for (String p : "auto-create-directories,username,password,host,key-file,key-file-password,remote-directory".split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
@@ -65,9 +63,8 @@ public class SFTPNamespaceHandler extends NamespaceHandlerSupport {
      */
     private static class SFTPMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
         @Override
-        @SuppressWarnings("unused")
         protected String parseSource(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".config.SFTPMessageSourceFactoryBean");
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition( SFTPMessageSendingConsumerFactoryBean.class.getName());
 
             for (String p : "auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-working-directory,auto-delete-remote-files-on-sync".split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);

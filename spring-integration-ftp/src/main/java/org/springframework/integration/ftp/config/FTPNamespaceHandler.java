@@ -20,11 +20,9 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
-
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-
 import org.w3c.dom.Element;
 
 import java.util.HashMap;
@@ -83,7 +81,8 @@ public class FTPNamespaceHandler extends NamespaceHandlerSupport {
         protected String parseSource(Element element, ParserContext parserContext) {
             BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FTPMessageSourceFactoryBean");
 
-            for (String p : ("auto-create-directories,username,password,host,port," + "remote-directory,local-working-directory").split(",")) { //auto-delete-remote-files-on-sync
+            for (String p : ("auto-create-directories,username,password,host,port," + "remote-directory,local-working-directory").split(",")) {
+                //auto-delete-remote-files-on-sync
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
             }
 

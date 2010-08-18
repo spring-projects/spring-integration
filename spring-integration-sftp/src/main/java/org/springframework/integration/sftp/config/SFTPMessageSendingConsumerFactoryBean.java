@@ -16,8 +16,6 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
-
 import org.springframework.integration.sftp.QueuedSFTPSessionPool;
 import org.springframework.integration.sftp.SFTPSendingMessageHandler;
 import org.springframework.integration.sftp.SFTPSessionFactory;
@@ -29,7 +27,7 @@ import org.springframework.integration.sftp.SFTPSessionFactory;
  *
  * @author Josh Long
  */
-public class SFTPMessageSendingConsumerFactoryBean implements InitializingBean, FactoryBean<SFTPSendingMessageHandler> {
+public class SFTPMessageSendingConsumerFactoryBean implements FactoryBean<SFTPSendingMessageHandler> {
     private String host;
     private String keyFile;
     private String keyFilePassword;
@@ -39,33 +37,15 @@ public class SFTPMessageSendingConsumerFactoryBean implements InitializingBean, 
     private boolean autoCreateDirectories;
     private int port;
 
-    public void afterPropertiesSet() throws Exception {
-        if (isAutoCreateDirectories()) {
-            // todo figure out this value
-        }
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public String getKeyFile() {
-        return keyFile;
-    }
-
-    public String getKeyFilePassword() {
-        return keyFilePassword;
-    }
-
     public SFTPSendingMessageHandler getObject() throws Exception {
-        SFTPSessionFactory sessionFactory = SFTPSessionUtils.buildSftpSessionFactory(this.getHost(), this.getPassword(), this.getUsername(), this.getKeyFile(), this.getKeyFilePassword(),
-                this.getPort());
+        SFTPSessionFactory sessionFactory = SFTPSessionUtils.buildSftpSessionFactory(
+                this.host, this.password, this.username, this.keyFile , this.keyFilePassword, this.port);
 
         QueuedSFTPSessionPool queuedSFTPSessionPool = new QueuedSFTPSessionPool(15, sessionFactory);
         queuedSFTPSessionPool.afterPropertiesSet();
 
         SFTPSendingMessageHandler sftpSendingMessageHandler = new SFTPSendingMessageHandler(queuedSFTPSessionPool);
-        sftpSendingMessageHandler.setRemoteDirectory(this.getRemoteDirectory());
+        sftpSendingMessageHandler.setRemoteDirectory(this.remoteDirectory);
         sftpSendingMessageHandler.afterPropertiesSet();
 
         return sftpSendingMessageHandler;
@@ -73,26 +53,6 @@ public class SFTPMessageSendingConsumerFactoryBean implements InitializingBean, 
 
     public Class<?extends SFTPSendingMessageHandler> getObjectType() {
         return SFTPSendingMessageHandler.class;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getRemoteDirectory() {
-        return remoteDirectory;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public boolean isAutoCreateDirectories() {
-        return autoCreateDirectories;
     }
 
     public boolean isSingleton() {

@@ -15,10 +15,10 @@
  */
 package org.springframework.integration.sftp;
 
-import org.apache.commons.lang.StringUtils;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 
 /**
@@ -39,46 +39,19 @@ public class SFTPSessionFactory implements FactoryBean<SFTPSession>, Initializin
     private volatile int port = 22; // the default
 
     public void afterPropertiesSet() throws Exception {
-        assert !StringUtils.isEmpty(this.remoteHost) : "remoteHost can't be empty!";
-        assert !StringUtils.isEmpty(this.user) : "user can't be empty!";
-        assert !StringUtils.isEmpty(this.password) || !StringUtils.isEmpty(this.privateKey) || !StringUtils.isEmpty(this.privateKeyPassphrase) : "you must configure either a password or a private key and/or a private key passphrase!";
-        assert this.port >= 0 : "port must be a valid number! ";
-    }
-
-    public String getKnownHosts() {
-        return knownHosts;
+        Assert.hasText(this.remoteHost, "remoteHost can't be empty!");
+        Assert.hasText(this.user, "user can't be empty!");
+        Assert.state(StringUtils.hasText(this.password) || StringUtils.hasText(this.privateKey) || StringUtils.hasText(this.privateKeyPassphrase),
+            "you must configure either a password or a private key and/or a private key passphrase!");
+        Assert.state(this.port >= 0, "port must be a valid number! ");
     }
 
     public SFTPSession getObject() throws Exception {
-        return new SFTPSession(this.getUser(), this.getRemoteHost(), this.getPassword(), this.getPort(), this.getKnownHosts(), null, this.getPrivateKey(), this.getPrivateKeyPassphrase());
+        return new SFTPSession( this.user, this.remoteHost , this.password ,this.port, this.knownHosts, null, this.privateKey , this.privateKeyPassphrase);
     }
 
     public Class<?extends SFTPSession> getObjectType() {
         return SFTPSession.class;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getPrivateKey() {
-        return privateKey;
-    }
-
-    public String getPrivateKeyPassphrase() {
-        return privateKeyPassphrase;
-    }
-
-    public String getRemoteHost() {
-        return remoteHost;
-    }
-
-    public String getUser() {
-        return user;
     }
 
     public boolean isSingleton() {

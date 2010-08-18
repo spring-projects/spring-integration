@@ -54,13 +54,11 @@ public class FTPSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FTP
         defaultFTPClientFactory.setPort(this.port);
         defaultFTPClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
         defaultFTPClientFactory.setUsername(this.username);
-
         defaultFTPClientFactory.setClientMode(this.clientMode);
 
         QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool(15, defaultFTPClientFactory);
 
         FTPSendingMessageHandler ftpSendingMessageHandler = new FTPSendingMessageHandler(queuedFTPClientPool);
-
         ftpSendingMessageHandler.afterPropertiesSet();
 
         return ftpSendingMessageHandler;
