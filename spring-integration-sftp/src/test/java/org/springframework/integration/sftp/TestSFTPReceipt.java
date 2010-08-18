@@ -2,19 +2,14 @@ package org.springframework.integration.sftp;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
 import org.springframework.util.ErrorHandler;
 
 import java.io.File;
-
 import java.util.logging.Logger;
 
 
@@ -26,7 +21,7 @@ import java.util.logging.Logger;
 public class TestSFTPReceipt {
     
     private static final Logger logger = Logger.getLogger(TestSFTPReceipt.class.getName());
-    private SFTPSessionFactory sftpSessionFactory;
+    private SftpSessionFactory sftpSessionFactory;
     private String host;
     private String password;
     private String user;
@@ -59,7 +54,7 @@ public class TestSFTPReceipt {
         Resource localDirectory = new FileSystemResource(local);
 
         // pool
-        QueuedSFTPSessionPool queuedSFTPSessionPool = new QueuedSFTPSessionPool(sftpSessionFactory);
+        QueuedSftpSessionPool queuedSFTPSessionPool = new QueuedSftpSessionPool(sftpSessionFactory);
         queuedSFTPSessionPool.afterPropertiesSet();
 
         ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -74,7 +69,7 @@ public class TestSFTPReceipt {
         taskScheduler.initialize();
 
         // synchronizer
-        final SFTPInboundSynchronizer sftpInboundSynchronizer = new SFTPInboundSynchronizer();
+        final SftpInboundSynchronizer sftpInboundSynchronizer = new SftpInboundSynchronizer();
         sftpInboundSynchronizer.setLocalDirectory(localDirectory);
         sftpInboundSynchronizer.setRemotePath(remoteMount);
         sftpInboundSynchronizer.setAutoCreatePath(true);
@@ -97,9 +92,9 @@ public class TestSFTPReceipt {
             }).start();
     }
 
-    private SFTPSessionFactory buildSFTPSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port)
+    private SftpSessionFactory buildSFTPSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port)
         throws Throwable {
-        SFTPSessionFactory sftpSessionFactory = new SFTPSessionFactory();
+        SftpSessionFactory sftpSessionFactory = new SftpSessionFactory();
         sftpSessionFactory.setPassword(pw);
         sftpSessionFactory.setPort(port);
         sftpSessionFactory.setRemoteHost(host);

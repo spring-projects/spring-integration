@@ -37,18 +37,18 @@ import java.util.Map;
 
 
 /**
- * Building a {@link org.springframework.integration.sftp.SFTPMessageSource} is a complicated because we also
+ * Building a {@link org.springframework.integration.sftp.SftpMessageSource} is a complicated because we also
  * use a {@link org.springframework.integration.file.FileReadingMessageSource} to handle the "receipt" of files in
  * a {@link #localWorkingDirectory}.
  *
  * @author Josh Long
  */
-public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessageSource> implements ApplicationContextAware, ResourceLoaderAware {
+public class SftpMessageSourceFactoryBean extends AbstractFactoryBean<SftpMessageSource> implements ApplicationContextAware, ResourceLoaderAware {
     private ApplicationContext applicationContext;
     private FileReadingMessageSource fileReadingMessageSource;
     private Resource localDirectoryResource;
     private ResourceLoader resourceLoader;
-    private SFTPInboundSynchronizer synchronizer;
+    private SftpInboundSynchronizer synchronizer;
     private String host;
     private String keyFile;
     private String keyFilePassword;
@@ -61,7 +61,7 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
     private boolean autoCreateDirectories;
     private boolean autoDeleteRemoteFilesOnSync;
     private int port = 22;
-    private SFTPFileListFilter filter;
+    private SftpFileListFilter filter;
     private String filenamePattern;
 
     public FileReadingMessageSource getFileReadingMessageSource() {
@@ -85,8 +85,8 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
     }
 
     @Override
-    public Class<?extends SFTPMessageSource> getObjectType() {
-        return SFTPMessageSource.class;
+    public Class<?extends SftpMessageSource> getObjectType() {
+        return SftpMessageSource.class;
     }
 
     public String getPassword() {
@@ -101,7 +101,7 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
         return remoteDirectory;
     }
 
-    public SFTPInboundSynchronizer getSynchronizer() {
+    public SftpInboundSynchronizer getSynchronizer() {
         return synchronizer;
     }
 
@@ -178,7 +178,7 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
         this.resourceLoader = resourceLoader;
     }
 
-    public void setSynchronizer(final SFTPInboundSynchronizer synchronizer) {
+    public void setSynchronizer(final SftpInboundSynchronizer synchronizer) {
         this.synchronizer = synchronizer;
     }
 
@@ -194,7 +194,7 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
         this.filenamePattern = filenamePattern;
     }
 
-    public void setFilter(SFTPFileListFilter filter) {
+    public void setFilter(SftpFileListFilter filter) {
         this.filter = filter;
     }
 
@@ -203,7 +203,7 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
     }
 
     @Override
-    protected SFTPMessageSource createInstance() throws Exception {
+    protected SftpMessageSource createInstance() throws Exception {
         try {
             if ((localWorkingDirectory == null) || !StringUtils.hasText(localWorkingDirectory)) {
                 File tmp = SystemUtils.getJavaIoTmpDir();
@@ -218,22 +218,22 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
 
             fileReadingMessageSource = new FileReadingMessageSource();
 
-            synchronizer = new SFTPInboundSynchronizer();
+            synchronizer = new SftpInboundSynchronizer();
 
-            CompositeFTPFileListFilter compositeFTPFileListFilter = new CompositeFTPFileListFilter();
+            CompositeFtpFileListFilter compositeFtpFileListFilter = new CompositeFtpFileListFilter();
 
             if (StringUtils.hasText(this.filenamePattern)) {
-                PatternMatchingSFTPFileListFilter flp = new PatternMatchingSFTPFileListFilter();
+                PatternMatchingSftpFileListFilter flp = new PatternMatchingSftpFileListFilter();
                 flp.setPatternExpression(this.filenamePattern);
                 flp.afterPropertiesSet();
-                compositeFTPFileListFilter.addFilter(flp);
+                compositeFtpFileListFilter.addFilter(flp);
             }
 
             if (this.filter != null) {
-                compositeFTPFileListFilter.addFilter(this.filter);
+                compositeFtpFileListFilter.addFilter(this.filter);
             }
 
-            synchronizer.setFilter(compositeFTPFileListFilter);
+            synchronizer.setFilter(compositeFtpFileListFilter);
 
             if (null == taskScheduler) {
                 Map<String, TaskScheduler> tss = null;
@@ -258,17 +258,17 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
                 this.taskScheduler = ts;
             }
 
-            SFTPSessionFactory sessionFactory = SFTPSessionUtils.buildSftpSessionFactory(
+            SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
                     this.getHost(), this.getPassword(), this.getUsername(), this.getKeyFile(), this.getKeyFilePassword(), this.getPort());
 
-            QueuedSFTPSessionPool pool = new QueuedSFTPSessionPool(15, sessionFactory);
+            QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sessionFactory);
             pool.afterPropertiesSet();
             synchronizer.setRemotePath(this.getRemoteDirectory());
             synchronizer.setPool(pool);
             synchronizer.setAutoCreatePath(this.isAutoCreateDirectories());
             synchronizer.setShouldDeleteDownloadedRemoteFiles(this.isAutoDeleteRemoteFilesOnSync());
 
-            SFTPMessageSource sftpMessageSource = new SFTPMessageSource(fileReadingMessageSource, synchronizer);
+            SftpMessageSource sftpMessageSource = new SftpMessageSource(fileReadingMessageSource, synchronizer);
 
             sftpMessageSource.setTaskScheduler(taskScheduler);
 

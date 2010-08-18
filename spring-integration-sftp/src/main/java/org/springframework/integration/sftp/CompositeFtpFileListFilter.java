@@ -26,18 +26,18 @@ import java.util.*;
  *
  * @author Josh Long
  */
-public class CompositeFTPFileListFilter implements SFTPFileListFilter {
-    private Set<SFTPFileListFilter> filters;
+public class CompositeFtpFileListFilter implements SftpFileListFilter {
+    private Set<SftpFileListFilter> filters;
 
-    public CompositeFTPFileListFilter(SFTPFileListFilter... ftpFileListFilter) {
-        this.filters = new LinkedHashSet<SFTPFileListFilter>(Arrays.asList(ftpFileListFilter));
+    public CompositeFtpFileListFilter(SftpFileListFilter... ftpFileListFilter) {
+        this.filters = new LinkedHashSet<SftpFileListFilter>(Arrays.asList(ftpFileListFilter));
     }
 
-    public CompositeFTPFileListFilter(Collection<SFTPFileListFilter> ftpFileListFilter) {
-        this.filters = new LinkedHashSet<SFTPFileListFilter>(ftpFileListFilter);
+    public CompositeFtpFileListFilter(Collection<SftpFileListFilter> ftpFileListFilter) {
+        this.filters = new LinkedHashSet<SftpFileListFilter>(ftpFileListFilter);
     }
 
-    public void addFilter(SFTPFileListFilter ftpFileListFilter) {
+    public void addFilter(SftpFileListFilter ftpFileListFilter) {
         this.filters.add(ftpFileListFilter);
     }
 
@@ -46,7 +46,7 @@ public class CompositeFTPFileListFilter implements SFTPFileListFilter {
 
         List<ChannelSftp.LsEntry> leftOver = Arrays.asList(files);
 
-        for (SFTPFileListFilter ff : this.filters)
+        for (SftpFileListFilter ff : this.filters)
             leftOver = ff.filterFiles(leftOver.toArray(new ChannelSftp.LsEntry[leftOver.size()]));
 
         return leftOver;

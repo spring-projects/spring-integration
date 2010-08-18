@@ -33,8 +33,7 @@ import org.w3c.dom.Element;
  * @author Josh Long
  */
 @SuppressWarnings("unused")
-public class SFTPNamespaceHandler extends NamespaceHandlerSupport {
-    private static final String PACKAGE_NAME = "org.springframework.integration.sftp";
+public class SftpNamespaceHandler extends NamespaceHandlerSupport {
 
     public void init() {
         registerBeanDefinitionParser("inbound-channel-adapter", new SFTPMessageSourceBeanDefinitionParser());
@@ -47,7 +46,7 @@ public class SFTPNamespaceHandler extends NamespaceHandlerSupport {
     private static class SFTPMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
         @Override
         protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SFTPMessageSendingConsumerFactoryBean.class.getName());
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SftpMessageSendingConsumerFactoryBean.class.getName());
 
             for (String p : "auto-create-directories,username,password,host,key-file,key-file-password,remote-directory".split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
@@ -64,7 +63,7 @@ public class SFTPNamespaceHandler extends NamespaceHandlerSupport {
     private static class SFTPMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
         @Override
         protected String parseSource(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition( SFTPMessageSourceFactoryBean.class.getName());
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition( SftpMessageSourceFactoryBean.class.getName());
 
             IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
 

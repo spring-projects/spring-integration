@@ -15,20 +15,20 @@
  */
 package org.springframework.integration.sftp.config;
 
-import org.springframework.integration.sftp.SFTPSessionFactory;
+import org.springframework.integration.sftp.SftpSessionFactory;
 
 
 /**
  *
  * Provides a single place to handle this tedious chore.
  *
- * todo : replace all the ad-hoc definitions of {@link org.springframework.integration.sftp.SFTPSessionFactory} 
+ * todo : replace all the ad-hoc definitions of {@link org.springframework.integration.sftp.SftpSessionFactory}
  *
  * @author  Josh Long
  */
-public class SFTPSessionUtils {
+public class SftpSessionUtils {
     /**
-     * This method hides the minutae required to build an #SFTPSessionFactory.
+     * This method hides the minutae required to build an #SftpSessionFactory.
      *
      * @param host      the host to connect to.
      * @param usr       this is required. It is the username of the credentials being authenticated.
@@ -38,13 +38,13 @@ public class SFTPSessionUtils {
      * @param pvKeyPass the passphrase used to use the key file
      * @param port      the default (22) is used if the value here is N< 0. The value should be only be set if the port
      *                  is non-standard (not 22)
-     * @return the SFTPSessionFactory that's used to create connections and get us in the right state to start issue
+     * @return the SftpSessionFactory that's used to create connections and get us in the right state to start issue
      *         commands against a remote SFTP/SSH filesystem
      * @throws Exception thrown in case of darned near <em>anything</em>
      */
-    public static SFTPSessionFactory buildSftpSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port)
+    public static SftpSessionFactory buildSftpSessionFactory(String host, String pw, String usr, String pvKey, String pvKeyPass, int port)
         throws Exception {
-        SFTPSessionFactory sftpSessionFactory = new SFTPSessionFactory();
+        SftpSessionFactory sftpSessionFactory = new SftpSessionFactory();
         sftpSessionFactory.setPassword(pw);
         sftpSessionFactory.setPort(port);
         sftpSessionFactory.setRemoteHost(host);

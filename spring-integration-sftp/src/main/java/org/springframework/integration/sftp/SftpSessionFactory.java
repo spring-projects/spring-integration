@@ -22,14 +22,14 @@ import org.springframework.util.StringUtils;
 
 
 /**
- * Factories {@link org.springframework.integration.sftp.SFTPSession} instances. There are lots of ways to construct a
- * {@link org.springframework.integration.sftp.SFTPSession} instance, and not all of them are obvious. This factory
+ * Factories {@link SftpSession} instances. There are lots of ways to construct a
+ * {@link SftpSession} instance, and not all of them are obvious. This factory
  * does its best to make it work.
  *
  * @author Josh Long
  * @author Mario Gray
  */
-public class SFTPSessionFactory implements FactoryBean<SFTPSession>, InitializingBean {
+public class SftpSessionFactory implements FactoryBean<SftpSession>, InitializingBean {
     private volatile String knownHosts;
     private volatile String password;
     private volatile String privateKey;
@@ -46,12 +46,12 @@ public class SFTPSessionFactory implements FactoryBean<SFTPSession>, Initializin
         Assert.state(this.port >= 0, "port must be a valid number! ");
     }
 
-    public SFTPSession getObject() throws Exception {
-        return new SFTPSession( this.user, this.remoteHost , this.password ,this.port, this.knownHosts, null, this.privateKey , this.privateKeyPassphrase);
+    public SftpSession getObject() throws Exception {
+        return new SftpSession( this.user, this.remoteHost , this.password ,this.port, this.knownHosts, null, this.privateKey , this.privateKeyPassphrase);
     }
 
-    public Class<?extends SFTPSession> getObjectType() {
-        return SFTPSession.class;
+    public Class<?extends SftpSession> getObjectType() {
+        return SftpSession.class;
     }
 
     public boolean isSingleton() {

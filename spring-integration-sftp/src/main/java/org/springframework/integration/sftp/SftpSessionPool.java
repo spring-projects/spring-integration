@@ -18,13 +18,13 @@ package org.springframework.integration.sftp;
 
 /**
  *
- * Holds instances of {@link org.springframework.integration.sftp.SFTPSession} since they're stateful
+ * Holds instances of {@link SftpSession} since they're stateful
  * and might be in use while another run happens.
  *
  *
  * @author Josh Long 
  */
-public interface SFTPSessionPool {
+public interface SftpSessionPool {
     /**
      * this returns a session that can be used to connct to an sftp instance and perform operations
      *
@@ -32,7 +32,7 @@ public interface SFTPSessionPool {
      * @throws Exception thrown if theres any of the numerous faults possible when trying to connect to the remote
      *                   server
      */
-    SFTPSession getSession() throws Exception;
+    SftpSession getSession() throws Exception;
 
     /**
      * Frees up the client. Im not sure what the meaningful semantics of this are. Perhaps it just calls <code>(session
@@ -40,5 +40,5 @@ public interface SFTPSessionPool {
      *
      * @param session the session to relinquish / renew
      */
-    void release(SFTPSession session);
+    void release(SftpSession session);
 }

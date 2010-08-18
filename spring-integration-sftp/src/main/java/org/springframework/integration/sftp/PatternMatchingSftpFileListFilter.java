@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  *
  * @author Josh Long
  */
-public class PatternMatchingSFTPFileListFilter extends AbstractSFTPFileListFilter implements InitializingBean {
+public class PatternMatchingSftpFileListFilter extends AbstractSftpFileListFilter implements InitializingBean {
 
     private Log logger = LogFactory.getLog(getClass());
     

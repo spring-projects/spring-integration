@@ -17,23 +17,18 @@
 package org.springframework.integration.sftp;
 
 import org.springframework.beans.factory.InitializingBean;
-
 import org.springframework.context.Lifecycle;
-
 import org.springframework.core.io.Resource;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.AcceptOnceFileListFilter;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.PatternMatchingFileListFilter;
-
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 
 import java.io.File;
-
 import java.io.IOException;
 import java.util.regex.Pattern;
 
@@ -45,18 +40,18 @@ import java.util.regex.Pattern;
  *
  * @author Josh Long
  */
-public class SFTPMessageSource implements MessageSource<File>, InitializingBean, Lifecycle {
+public class SftpMessageSource implements MessageSource<File>, InitializingBean, Lifecycle {
     private FileReadingMessageSource fileReadingMessageSource;
     private Resource localDirectory;
-    private SFTPInboundSynchronizer synchronizer;
+    private SftpInboundSynchronizer synchronizer;
     private TaskScheduler taskScheduler;
     private Trigger trigger;
 
-    public SFTPMessageSource(FileReadingMessageSource fileSource, SFTPInboundSynchronizer synchronizer) {
+    public SftpMessageSource(FileReadingMessageSource fileSource, SftpInboundSynchronizer synchronizer) {
         this.fileReadingMessageSource = fileSource;
         this.synchronizer = synchronizer;
 
-        Pattern completePattern = Pattern.compile("^.*(?<!" + SFTPInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
+        Pattern completePattern = Pattern.compile("^.*(?<!" + SftpInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
         fileReadingMessageSource.setFilter(new CompositeFileListFilter(new AcceptOnceFileListFilter(), new PatternMatchingFileListFilter(completePattern)));
     }
 
@@ -73,7 +68,7 @@ public class SFTPMessageSource implements MessageSource<File>, InitializingBean,
         return localDirectory;
     }
 
-    public SFTPInboundSynchronizer getSynchronizer() {
+    public SftpInboundSynchronizer getSynchronizer() {
         return synchronizer;
     }
 
@@ -107,7 +102,7 @@ public class SFTPMessageSource implements MessageSource<File>, InitializingBean,
         this.synchronizer.setLocalDirectory(localDirectory);
     }
 
-    public void setSynchronizer(final SFTPInboundSynchronizer synchronizer) {
+    public void setSynchronizer(final SftpInboundSynchronizer synchronizer) {
         this.synchronizer = synchronizer;
     }
 

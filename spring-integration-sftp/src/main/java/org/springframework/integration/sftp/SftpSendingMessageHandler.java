@@ -17,12 +17,9 @@
 package org.springframework.integration.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-
 import org.springframework.beans.factory.InitializingBean;
-
 import org.springframework.integration.*;
 import org.springframework.integration.core.MessageHandler;
 
@@ -38,19 +35,19 @@ import java.io.InputStream;
  *
  * @author Josh Long
  */
-public class SFTPSendingMessageHandler implements MessageHandler, InitializingBean {
-    private SFTPSessionPool pool;
+public class SftpSendingMessageHandler implements MessageHandler, InitializingBean {
+    private SftpSessionPool pool;
     private String remoteDirectory;
     private volatile boolean afterPropertiesSetRan;
 
-    public SFTPSendingMessageHandler(SFTPSessionPool pool) {
+    public SftpSendingMessageHandler(SftpSessionPool pool) {
         this.pool = pool;
     }
 
     public void afterPropertiesSet() throws Exception {
         assert this.pool != null : "the pool can't be null!";
 
-        //        logger.debug("afterPropertiesSet() called on SFTPSendingMessageHandler");
+        //        logger.debug("afterPropertiesSet() called on SftpSendingMessageHandler");
         if (!afterPropertiesSetRan) {
             if (StringUtils.isEmpty(this.remoteDirectory)) {
                 remoteDirectory = null;
@@ -89,7 +86,7 @@ public class SFTPSendingMessageHandler implements MessageHandler, InitializingBe
         throws Throwable {
         assert this.pool != null : "need a working pool";
 
-        SFTPSession session = this.pool.getSession();
+        SftpSession session = this.pool.getSession();
 
         if (session == null) {
             throw new RuntimeException("the session returned from the pool is null, can't possibly proceed.");
@@ -113,8 +110,8 @@ public class SFTPSendingMessageHandler implements MessageHandler, InitializingBe
             if (message != null) {
                 messageHeaders = message.getHeaders();
 
-                if ((messageHeaders != null) && messageHeaders.containsKey(SFTPConstants.SFTP_REMOTE_DIRECTORY_HEADER)) {
-                    dynRd = (String) messageHeaders.get(SFTPConstants.SFTP_REMOTE_DIRECTORY_HEADER);
+                if ((messageHeaders != null) && messageHeaders.containsKey(SftpConstants.SFTP_REMOTE_DIRECTORY_HEADER)) {
+                    dynRd = (String) messageHeaders.get(SftpConstants.SFTP_REMOTE_DIRECTORY_HEADER);
 
                     if (!StringUtils.isEmpty(dynRd)) {
                         baseOfRemotePath = dynRd;

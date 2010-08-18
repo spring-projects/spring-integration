@@ -20,15 +20,13 @@ import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.UserInfo;
-
 import org.apache.commons.lang.StringUtils;
-
 
 import java.io.InputStream;
 
 
 /**
- * There are many ways to create a {@link org.springframework.integration.sftp.SFTPSession} just as there are many ways to SSH into a remote system.
+ * There are many ways to create a {@link SftpSession} just as there are many ways to SSH into a remote system.
  * You may use a username and password, you may use a username and private key, you may use a username and a private key with a password, etc.
  *
  * This object represents the connection to the remote server, and to use it you must provide it with all the components you'd normally provide an
@@ -38,7 +36,7 @@ import java.io.InputStream;
  * @author Josh Long
  * @author Mario Gray
  */
-public class SFTPSession {
+public class SftpSession {
     private volatile ChannelSftp channel;
     private volatile Session session;
     private String privateKey;
@@ -70,7 +68,7 @@ public class SFTPSession {
      *
      * @throws Exception thrown if any of a myriad of scenarios plays out
      */
-    public SFTPSession(String userName, String hostName, String userPassword, int port, String knownHostsFile, InputStream knownHostsInputStream, String privateKey, String pvKeyPassPhrase)
+    public SftpSession(String userName, String hostName, String userPassword, int port, String knownHostsFile, InputStream knownHostsInputStream, String privateKey, String pvKeyPassPhrase)
         throws Exception {
         JSch jSch = new JSch();
 

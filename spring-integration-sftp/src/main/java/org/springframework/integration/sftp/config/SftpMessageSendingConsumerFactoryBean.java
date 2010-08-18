@@ -16,9 +16,9 @@
 package org.springframework.integration.sftp.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.sftp.QueuedSFTPSessionPool;
-import org.springframework.integration.sftp.SFTPSendingMessageHandler;
-import org.springframework.integration.sftp.SFTPSessionFactory;
+import org.springframework.integration.sftp.QueuedSftpSessionPool;
+import org.springframework.integration.sftp.SftpSendingMessageHandler;
+import org.springframework.integration.sftp.SftpSessionFactory;
 
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.integration.sftp.SFTPSessionFactory;
  *
  * @author Josh Long
  */
-public class SFTPMessageSendingConsumerFactoryBean implements FactoryBean<SFTPSendingMessageHandler> {
+public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSendingMessageHandler> {
     private String host;
     private String keyFile;
     private String keyFilePassword;
@@ -37,22 +37,22 @@ public class SFTPMessageSendingConsumerFactoryBean implements FactoryBean<SFTPSe
     private boolean autoCreateDirectories;
     private int port;
 
-    public SFTPSendingMessageHandler getObject() throws Exception {
-        SFTPSessionFactory sessionFactory = SFTPSessionUtils.buildSftpSessionFactory(
+    public SftpSendingMessageHandler getObject() throws Exception {
+        SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
                 this.host, this.password, this.username, this.keyFile , this.keyFilePassword, this.port);
 
-        QueuedSFTPSessionPool queuedSFTPSessionPool = new QueuedSFTPSessionPool(15, sessionFactory);
+        QueuedSftpSessionPool queuedSFTPSessionPool = new QueuedSftpSessionPool(15, sessionFactory);
         queuedSFTPSessionPool.afterPropertiesSet();
 
-        SFTPSendingMessageHandler sftpSendingMessageHandler = new SFTPSendingMessageHandler(queuedSFTPSessionPool);
+        SftpSendingMessageHandler sftpSendingMessageHandler = new SftpSendingMessageHandler(queuedSFTPSessionPool);
         sftpSendingMessageHandler.setRemoteDirectory(this.remoteDirectory);
         sftpSendingMessageHandler.afterPropertiesSet();
 
         return sftpSendingMessageHandler;
     }
 
-    public Class<?extends SFTPSendingMessageHandler> getObjectType() {
-        return SFTPSendingMessageHandler.class;
+    public Class<?extends SftpSendingMessageHandler> getObjectType() {
+        return SftpSendingMessageHandler.class;
     }
 
     public boolean isSingleton() {

@@ -13,18 +13,13 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.sftp;
 
-import com.jcraft.jsch.ChannelSftp;
-
-import java.util.List;
 
 /**
- * Filters out all the {@link com.jcraft.jsch.ChannelSftp.LsEntry} taken in a scan of the remote mount
- * and returns the balance. These are then sync'd to the local directory.
- *
  * @author Josh Long
  */
-public interface SFTPFileListFilter {  
-    List<ChannelSftp.LsEntry> filterFiles (ChannelSftp.LsEntry [] files);
+public class SftpConstants {
+    public static final String SFTP_REMOTE_DIRECTORY_HEADER = "SFTP_REMOTE_DIRECTORY_HEADER";
 }

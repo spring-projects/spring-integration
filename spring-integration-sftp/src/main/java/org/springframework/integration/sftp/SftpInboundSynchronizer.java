@@ -45,29 +45,29 @@ import java.util.concurrent.ScheduledFuture;
  * @author Josh Long
  * @author Mario Gray
  */
-public class SFTPInboundSynchronizer implements InitializingBean {
+public class SftpInboundSynchronizer implements InitializingBean {
     private static final long DEFAULT_REFRESH_RATE = 10 * 1000; // 10 seconds
 
     // a lot of the approach for this (including the use of a FileReadingMessageSource and the regex / mask approach were lifted from FtpInboundSynchronizer
     static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
     private Log logger = LogFactory.getLog(getClass());
     private volatile Resource localDirectory;
-    private volatile SFTPSessionPool pool;
+    private volatile SftpSessionPool pool;
     private volatile ScheduledFuture<?> scheduledFuture;
     private volatile String remotePath;
     private volatile TaskScheduler taskScheduler;
     private volatile Trigger trigger = new PeriodicTrigger(DEFAULT_REFRESH_RATE);
     private volatile boolean autoCreatePath;
     private volatile boolean running;
-    private SFTPFileListFilter filter;
+    private SftpFileListFilter filter;
 
-    public void setFilter(SFTPFileListFilter filter) {
+    public void setFilter(SftpFileListFilter filter) {
         this.filter = filter;
     }
 
     private volatile boolean shouldDeleteDownloadedRemoteFiles; //.. this is false
 
-    private SFTPFileListFilter acceptAllFilteListFilter = new SFTPFileListFilter(){
+    private SftpFileListFilter acceptAllFilteListFilter = new SftpFileListFilter(){
         public List<ChannelSftp.LsEntry> filterFiles(ChannelSftp.LsEntry[] files) {
            return Arrays.asList( files);
         }
@@ -108,7 +108,7 @@ public class SFTPInboundSynchronizer implements InitializingBean {
         this.localDirectory = localDirectory;
     }
 
-    public void setPool(SFTPSessionPool pool) {
+    public void setPool(SftpSessionPool pool) {
         this.pool = pool;
     }
 
@@ -157,7 +157,7 @@ public class SFTPInboundSynchronizer implements InitializingBean {
 
     @SuppressWarnings("unchecked")
     public void synchronize() throws Exception {
-        SFTPSession session = null;
+        SftpSession session = null;
 
         try {
             session = pool.getSession();
@@ -193,7 +193,7 @@ public class SFTPInboundSynchronizer implements InitializingBean {
      *         existed.)
      */
     private boolean checkThatRemotePathExists(String remotePath) {
-        SFTPSession session = null;
+        SftpSession session = null;
         ChannelSftp channelSftp = null;
 
         try {
@@ -230,7 +230,7 @@ public class SFTPInboundSynchronizer implements InitializingBean {
     }
 
     @SuppressWarnings("ignored")
-    private boolean copyFromRemoteToLocalDirectory(SFTPSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir)
+    private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir)
         throws Exception {
         File fileForLocalDir = localDir.getFile();
 

@@ -23,36 +23,36 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 
 /**
- * This approach - of having a SessionPool ({@link org.springframework.integration.sftp.SFTPSessionPool}) that has an
- * implementation of Queued*SessionPool ({@link org.springframework.integration.sftp.QueuedSFTPSessionPool}) - was 
+ * This approach - of having a SessionPool ({@link SftpSessionPool}) that has an
+ * implementation of Queued*SessionPool ({@link QueuedSftpSessionPool}) - was
  * taken pretty directly from the incredibly good Spring IntegrationFTP adapter.
  *
  * @author Josh Long
  * @since 2.0
  */
-public class QueuedSFTPSessionPool implements SFTPSessionPool, InitializingBean {
+public class QueuedSftpSessionPool implements SftpSessionPool, InitializingBean {
     public static final int DEFAULT_POOL_SIZE = 10;
-    private Queue<SFTPSession> queue;
-    private final SFTPSessionFactory sftpSessionFactory;
+    private Queue<SftpSession> queue;
+    private final SftpSessionFactory sftpSessionFactory;
     private int maxPoolSize;
 
-    public QueuedSFTPSessionPool(SFTPSessionFactory factory) {
+    public QueuedSftpSessionPool(SftpSessionFactory factory) {
         this(DEFAULT_POOL_SIZE, factory);
     }
 
-    public QueuedSFTPSessionPool(int maxPoolSize, SFTPSessionFactory sessionFactory) {
+    public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactory sessionFactory) {
         this.sftpSessionFactory = sessionFactory;
         this.maxPoolSize = maxPoolSize;
     }
 
     public void afterPropertiesSet() throws Exception {
         assert maxPoolSize > 0 : "poolSize must be greater than 0!";
-        queue = new ArrayBlockingQueue<SFTPSession>(maxPoolSize, true); // size, faireness to avoid starvation
+        queue = new ArrayBlockingQueue<SftpSession>(maxPoolSize, true); // size, faireness to avoid starvation
         assert sftpSessionFactory != null : "sftpSessionFactory must not be null!";
     }
 
-    public SFTPSession getSession() throws Exception {
-        SFTPSession session = this.queue.poll();
+    public SftpSession getSession() throws Exception {
+        SftpSession session = this.queue.poll();
 
         if (null == session) {
             session = this.sftpSessionFactory.getObject();
@@ -69,7 +69,7 @@ public class QueuedSFTPSessionPool implements SFTPSessionPool, InitializingBean 
         return session;
     }
 
-    public void release(SFTPSession session) {
+    public void release(SftpSession session) {
         if (queue.size() < maxPoolSize) {
             queue.add(session); // somehow one snuck in before <code>session</code> was finished!
         } else {
@@ -77,7 +77,7 @@ public class QueuedSFTPSessionPool implements SFTPSessionPool, InitializingBean 
         }
     }
 
-    private void dispose(SFTPSession s) {
+    private void dispose(SftpSession s) {
         if (s == null) {
             return;
         }

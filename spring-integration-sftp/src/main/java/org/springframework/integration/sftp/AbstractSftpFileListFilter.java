@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author Josh Long
  */
-public abstract class AbstractSFTPFileListFilter implements SFTPFileListFilter {
+public abstract class AbstractSftpFileListFilter implements SftpFileListFilter {
     
     abstract public boolean accept(ChannelSftp.LsEntry lsEntry);
 
