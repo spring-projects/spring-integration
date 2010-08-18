@@ -19,25 +19,25 @@
 
 	<ip:tcp-connection-factory id="crLfServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6000)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7000)}"
 		input-converter="crLfConverter"
 		output-converter="crLfConverter"/>
 
 	<ip:tcp-connection-factory id="stxEtxServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6100)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7100)}"
 		input-converter="stxEtxConverter"
 		output-converter="stxEtxConverter"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6200)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7200)}"
 		input-converter="lengthHeaderConverter"
 		output-converter="lengthHeaderConverter"/>
 
 	<ip:tcp-connection-factory id="javaSerialServer"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6300)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7300)}"
 		input-converter="javaConverter"
 		output-converter="javaConverter"/>
 
@@ -71,28 +71,28 @@
 
 	<ip:tcp-connection-factory id="crLfServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6400)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7400)}"
 		input-converter="crLfConverter"
 		output-converter="crLfConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="stxEtxServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6500)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7500)}"
 		input-converter="stxEtxConverter"
 		output-converter="stxEtxConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6600)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7600)}"
 		input-converter="lengthHeaderConverter"
 		output-converter="lengthHeaderConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="javaSerialServerNio"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(6700)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(7700)}"
 		input-converter="javaConverter"
 		output-converter="javaConverter"
 		using-nio="true"/>

@@ -174,7 +174,7 @@
 		id="client2"
 		type="client"
 		host="localhost"
-		port="#{tcpIpUtils.findAvailableServerSocket(6000)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(6100)}"
 		input-converter="serial"
 		output-converter="serial"
 		so-keep-alive="true"

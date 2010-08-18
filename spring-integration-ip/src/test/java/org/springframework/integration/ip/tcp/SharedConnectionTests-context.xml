@@ -14,7 +14,7 @@
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
-		port="#{tcpIpUtils.findAvailableServerSocket(10000)}"
+		port="#{tcpIpUtils.findAvailableServerSocket(10200)}"
 		input-converter="serializer"
 		output-converter="serializer"
 		using-nio="true"
