@@ -19,13 +19,18 @@ package org.springframework.integration.sftp;
 import com.jcraft.jsch.ChannelSftp;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.*;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.file.DefaultFileNameGenerator;
+import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 
 
 /**
@@ -45,9 +50,10 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
     }
 
     public void afterPropertiesSet() throws Exception {
-        assert this.pool != null : "the pool can't be null!";
+        Assert.state( this.pool != null , "the pool can't be null!");
 
-        //        logger.debug("afterPropertiesSet() called on SftpSendingMessageHandler");
+        temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
+
         if (!afterPropertiesSetRan) {
             if (StringUtils.isEmpty(this.remoteDirectory)) {
                 remoteDirectory = null;
@@ -61,13 +67,85 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
         return remoteDirectory;
     }
 
+    /* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
+
+    private File handleFileMessage(File sourceFile, File tempFile, File resultFile)
+            throws IOException {
+        if (sourceFile.renameTo(resultFile)) {
+            return resultFile;
+        }
+
+        FileCopyUtils.copy(sourceFile, tempFile);
+        tempFile.renameTo(resultFile);
+
+        return resultFile;
+    }
+
+    private File handleByteArrayMessage(byte[] bytes, File tempFile, File resultFile)
+            throws IOException {
+        FileCopyUtils.copy(bytes, tempFile);
+        tempFile.renameTo(resultFile);
+
+        return resultFile;
+    }
+
+    private File handleStringMessage(String content, File tempFile, File resultFile, String charset)
+            throws IOException {
+        OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), charset);
+        FileCopyUtils.copy(content, writer);
+        tempFile.renameTo(resultFile);
+
+        return resultFile;
+    }
+
+    private static final String TEMPORARY_FILE_SUFFIX = ".writing";
+    private FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+    private File temporaryBufferFolderFile;
+    private Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
+
+    public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
+        this.temporaryBufferFolder = temporaryBufferFolder;
+    }
+
+    public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+        this.fileNameGenerator = fileNameGenerator;
+    }
+
+    private File redeemForStorableFile(Message<?> msg) throws MessageDeliveryException {
+        try {
+            Object payload = msg.getPayload();
+            String generateFileName = this.fileNameGenerator.generateFileName(msg);
+            File tempFile = new File(temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
+            File resultFile = new File(temporaryBufferFolderFile, generateFileName);
+            File sendableFile;
+            if (payload instanceof String)
+                sendableFile = this.handleStringMessage((String) payload, tempFile, resultFile, this.charset);
+            else if (payload instanceof File)
+                sendableFile = this.handleFileMessage((File) payload, tempFile, resultFile);
+            else if (payload instanceof byte[])
+                sendableFile = this.handleByteArrayMessage((byte[]) payload, tempFile, resultFile);
+            else sendableFile = null;
+            return sendableFile;
+        } catch (Throwable th) {
+            throw new MessageDeliveryException(msg);
+        }
+
+    }
+
+    private String charset;
+
+    public void setCharset(String charset) {
+        this.charset = charset;
+    }
+    /* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
+
+
+
     public void handleMessage(final Message<?> message)
         throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
-        assert this.pool != null : "need a working pool";
-        assert message.getPayload() instanceof File : "the payload needs to be java.io.File";
-
+        Assert.state(this.pool != null , "need a working pool");
+        File inboundFilePayload = this.redeemForStorableFile( message);
         try {
-            File inboundFilePayload = (File) message.getPayload();
 
             if ((inboundFilePayload != null) && inboundFilePayload.exists()) {
                 sendFileToRemoteEndpoint(message, inboundFilePayload);
@@ -75,6 +153,10 @@ public class SftpSendingMessageHandler implements MessageHandler, InitializingBe
         } catch (Throwable thr) {
             //   logger.debug("recieved an exception.", thr);
             throw new MessageDeliveryException(message, "couldn't deliver the message!", thr);
+        } finally {
+            if(inboundFilePayload!=null&&inboundFilePayload.exists())
+                inboundFilePayload.delete() ;
+
         }
     }
 
