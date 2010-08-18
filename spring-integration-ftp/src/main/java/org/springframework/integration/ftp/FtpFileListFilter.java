@@ -9,6 +9,6 @@ import java.util.List;
  *
  * @author Josh Long
  */
-public interface FTPFileListFilter {  
+public interface FtpFileListFilter {
     List<FTPFile> filterFiles (FTPFile [] files);
 }

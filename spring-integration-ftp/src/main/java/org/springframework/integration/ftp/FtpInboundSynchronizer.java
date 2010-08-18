@@ -39,29 +39,29 @@ import java.util.concurrent.ScheduledFuture;
 
 
 /**
- * <code>FTPInboundSynchronizer</code> will keep a local directory in sync with a remote Ftp directory.
+ * <code>FtpInboundSynchronizer</code> will keep a local directory in sync with a remote Ftp directory.
  * It will NOT move new files put into the local directory to the remote server.
  *
  * @author Iwein Fuld
  */
-public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
-    private static final Log logger = LogFactory.getLog(FTPInboundSynchronizer.class);
+public class FtpInboundSynchronizer implements InitializingBean, Lifecycle {
+    private static final Log logger = LogFactory.getLog(FtpInboundSynchronizer.class);
     static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
     private static final long DEFAULT_REFRESH_RATE = 10000;
     private volatile TaskScheduler taskScheduler;
     private volatile Trigger trigger = new PeriodicTrigger(DEFAULT_REFRESH_RATE);
-    private volatile FTPClientPool clientPool;
+    private volatile FtpClientPool clientPool;
     private volatile Resource localDirectory;
     private boolean running = false;
     private ScheduledFuture<?> scheduledFuture;
-    private FTPFileListFilter filter;
-    private FTPFileListFilter acceptAllFTPFileListFilter = new FTPFileListFilter() {
+    private FtpFileListFilter filter;
+    private FtpFileListFilter acceptAllFtpFileListFilter = new FtpFileListFilter() {
             public List<FTPFile> filterFiles(FTPFile[] files) {
                 return Arrays.asList(files);
             }
         };
 
-    public void setFilter(FTPFileListFilter filter) {
+    public void setFilter(FtpFileListFilter filter) {
         this.filter = filter;
     }
 
@@ -77,7 +77,7 @@ public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
         this.localDirectory = localDirectory;
     }
 
-    public void setClientPool(FTPClientPool pool) {
+    public void setClientPool(FtpClientPool pool) {
         clientPool = pool;
     }
 
@@ -85,14 +85,14 @@ public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
         Assert.notNull(localDirectory, "'localDirectory' is required.");
 
         if (this.filter == null) {
-            this.filter = acceptAllFTPFileListFilter;
+            this.filter = acceptAllFtpFileListFilter;
         }
     }
 
     private void synchronize() {
         try {
             FTPClient client = this.clientPool.getClient();
-            Assert.state(client != null, FTPClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
+            Assert.state(client != null, FtpClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
 
             Collection<FTPFile> fileList = this.filter.filterFiles(client.listFiles());
 

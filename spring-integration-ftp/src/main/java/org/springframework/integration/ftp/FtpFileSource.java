@@ -37,19 +37,19 @@ import java.util.regex.Pattern;
  *
  * @author Iwein Fuld
  */
-public class FTPFileSource implements MessageSource<File>, InitializingBean, Lifecycle {
+public class FtpFileSource implements MessageSource<File>, InitializingBean, Lifecycle {
     private FileReadingMessageSource fileSource;
-    private FTPInboundSynchronizer synchronizer;
+    private FtpInboundSynchronizer synchronizer;
 
-    public FTPFileSource() {
-        this(new FileReadingMessageSource(), new FTPInboundSynchronizer());
+    public FtpFileSource() {
+        this(new FileReadingMessageSource(), new FtpInboundSynchronizer());
     }
 
-    public FTPFileSource(FileReadingMessageSource fileSource, FTPInboundSynchronizer synchronizer) {
+    public FtpFileSource(FileReadingMessageSource fileSource, FtpInboundSynchronizer synchronizer) {
         this.fileSource = fileSource;
         this.synchronizer = synchronizer;
 
-        Pattern completePattern = Pattern.compile("^.*(?<!" + FTPInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
+        Pattern completePattern = Pattern.compile("^.*(?<!" + FtpInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
         fileSource.setFilter(new CompositeFileListFilter(new AcceptOnceFileListFilter(), new PatternMatchingFileListFilter(completePattern)));
     }
 
@@ -57,7 +57,7 @@ public class FTPFileSource implements MessageSource<File>, InitializingBean, Lif
         this.fileSource = fileSource;
     }
 
-    public void setSynchronizer(FTPInboundSynchronizer synchronizer) {
+    public void setSynchronizer(FtpInboundSynchronizer synchronizer) {
         this.synchronizer = synchronizer;
     }
 
@@ -78,7 +78,7 @@ public class FTPFileSource implements MessageSource<File>, InitializingBean, Lif
         synchronizer.setTaskScheduler(scheduler);
     }
 
-    public void setClientPool(FTPClientPool pool) {
+    public void setClientPool(FtpClientPool pool) {
         synchronizer.setClientPool(pool);
     }
 

@@ -25,7 +25,7 @@ import java.io.IOException;
  *
  * @author Iwein Fuld
  */
-public interface FTPClientFactory {
+public interface FtpClientFactory {
     /**
      * @return Fully configured and connected FTPClient. Never <code>null</code>.
      * @throws IOException thrown when a networking IO subsystem error occurs

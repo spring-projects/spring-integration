@@ -9,7 +9,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  *
  * @author Josh Long
  */
-public class OutboundFTPExample {
+public class OutboundFtpExample {
     public static void main(String [] args ) throws Throwable {
         ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext("outbound-ftp-context.xml");
     }

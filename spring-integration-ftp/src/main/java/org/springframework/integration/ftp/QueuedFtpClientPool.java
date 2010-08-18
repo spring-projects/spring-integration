@@ -27,7 +27,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 
 /**
- * FTPClientPool implementation based on a Queue. This implementation has a
+ * FtpClientPool implementation based on a Queue. This implementation has a
  * default pool size of 5, but this is configurable with a constructor argument.
  * <p>
  * This implementation pools released clients, but gives no guarantee to the
@@ -35,20 +35,20 @@ import java.util.concurrent.ArrayBlockingQueue;
  *
  * @author Iwein Fuld
  */
-public class QueuedFTPClientPool implements FTPClientPool {
-    private static final Log log = LogFactory.getLog(QueuedFTPClientPool.class);
+public class QueuedFtpClientPool implements FtpClientPool {
+    private static final Log log = LogFactory.getLog(QueuedFtpClientPool.class);
     private static final int DEFAULT_POOL_SIZE = 5;
     private final Queue<FTPClient> pool;
-    private final FTPClientFactory factory;
+    private final FtpClientFactory factory;
 
-    public QueuedFTPClientPool(FTPClientFactory factory) {
+    public QueuedFtpClientPool(FtpClientFactory factory) {
         this(DEFAULT_POOL_SIZE, factory);
     }
 
     /**
      * @param maxPoolSize the maximum size of the pool
      */
-    public QueuedFTPClientPool(int maxPoolSize, FTPClientFactory factory) {
+    public QueuedFtpClientPool(int maxPoolSize, FtpClientFactory factory) {
         Assert.notNull(factory);
         this.factory = factory;
         pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);

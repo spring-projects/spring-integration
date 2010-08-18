@@ -13,7 +13,7 @@ import org.springframework.core.io.ResourceLoader;
  *
  * @author Josh Long
  */
-public class FTPSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FTPSendingMessageHandler> implements ResourceLoaderAware, ApplicationContextAware {
+public class FTPSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> implements ResourceLoaderAware, ApplicationContextAware {
     private int port;
     private String username;
     private String password;
@@ -39,26 +39,26 @@ public class FTPSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FTP
     }
 
     @Override
-    public Class<?extends FTPSendingMessageHandler> getObjectType() {
-        return FTPSendingMessageHandler.class;
+    public Class<?extends FtpSendingMessageHandler> getObjectType() {
+        return FtpSendingMessageHandler.class;
     }
 
     @Override
-    protected FTPSendingMessageHandler createInstance()
+    protected FtpSendingMessageHandler createInstance()
         throws Exception {
         // the dependencies for the outbound-adapter are much simpler
         // they only require an instance of the pool
-        DefaultFTPClientFactory defaultFTPClientFactory = new DefaultFTPClientFactory();
-        defaultFTPClientFactory.setHost(this.host);
-        defaultFTPClientFactory.setPassword(this.password);
-        defaultFTPClientFactory.setPort(this.port);
-        defaultFTPClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
-        defaultFTPClientFactory.setUsername(this.username);
-        defaultFTPClientFactory.setClientMode(this.clientMode);
+        DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
+        defaultFtpClientFactory.setHost(this.host);
+        defaultFtpClientFactory.setPassword(this.password);
+        defaultFtpClientFactory.setPort(this.port);
+        defaultFtpClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
+        defaultFtpClientFactory.setUsername(this.username);
+        defaultFtpClientFactory.setClientMode(this.clientMode);
 
-        QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool(15, defaultFTPClientFactory);
+        QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, defaultFtpClientFactory);
 
-        FTPSendingMessageHandler ftpSendingMessageHandler = new FTPSendingMessageHandler(queuedFTPClientPool);
+        FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(queuedFtpClientPool);
         ftpSendingMessageHandler.afterPropertiesSet();
 
         return ftpSendingMessageHandler;

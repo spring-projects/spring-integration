@@ -14,7 +14,7 @@ import java.io.File;
  * @author Josh Long
  */
 
-public class InboundFTPFileServiceActivator {
+public class InboundFtpFileServiceActivator {
 
     @ServiceActivator
     public void onNewRemoteFTPFile(Message<File> file)

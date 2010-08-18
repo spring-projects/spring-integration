@@ -35,17 +35,17 @@ import java.net.SocketException;
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-public class FTPSendingMessageHandler implements MessageHandler, InitializingBean {
-    private FTPClientPool ftpClientPool;
+public class FtpSendingMessageHandler implements MessageHandler, InitializingBean {
+    private FtpClientPool ftpClientPool;
 
-    public FTPSendingMessageHandler() {
+    public FtpSendingMessageHandler() {
     }
 
-    public FTPSendingMessageHandler(FTPClientPool ftpClientPool) {
+    public FtpSendingMessageHandler(FtpClientPool ftpClientPool) {
         this.ftpClientPool = ftpClientPool;
     }
 
-    public void setFtpClientPool(FTPClientPool ftpClientPool) {
+    public void setFtpClientPool(FtpClientPool ftpClientPool) {
         this.ftpClientPool = ftpClientPool;
     }
 
@@ -98,7 +98,7 @@ public class FTPSendingMessageHandler implements MessageHandler, InitializingBea
     private FTPClient getFtpClient() throws SocketException, IOException {
         FTPClient client;
         client = this.ftpClientPool.getClient();
-        Assert.state(client != null, FTPClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
+        Assert.state(client != null, FtpClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
 
         return client;
     }

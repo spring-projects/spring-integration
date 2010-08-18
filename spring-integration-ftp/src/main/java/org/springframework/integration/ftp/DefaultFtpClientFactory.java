@@ -30,12 +30,12 @@ import java.net.SocketException;
 
 
 /**
- * Default implementation of FTPClientFactory.
+ * Default implementation of FtpClientFactory.
  *
  * @author iwein
  */
-public class DefaultFTPClientFactory implements FTPClientFactory {
-    private static final Log logger = LogFactory.getLog(FTPClientFactory.class);
+public class DefaultFtpClientFactory implements FTPClientFactory {
+    private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
     private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
     private FTPClientConfig config;
     private String username;

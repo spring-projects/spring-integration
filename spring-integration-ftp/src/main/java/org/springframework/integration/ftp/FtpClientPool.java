@@ -24,7 +24,7 @@ import org.apache.commons.net.ftp.FTPClient;
  *
  * @author Iwein Fuld
  */
-public interface FTPClientPool extends FTPClientFactory {
+public interface FtpClientPool extends FtpClientFactory {
     /**
      * Releases the client back to the pool. When calling this method the caller
      * is no longer responsible for the connection. The pool is free to do with

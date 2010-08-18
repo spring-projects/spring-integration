@@ -13,7 +13,7 @@
             ignore-unresolvable="true"/>
 
 
-    <bean class="org.springframework.integration.ftp.PatternMatchingFTPFileListFilter" id="patternMatchingFTPFileListFilter">
+    <bean class="org.springframework.integration.ftp.PatternMatchingFtpFileListFilter" id="patternMatchingFTPFileListFilter">
         <property name="patternExpression" value=".*?jpg"/>
     </bean>
 
@@ -31,7 +31,7 @@
     <int:channel id="ftpIn"/>
 
     <bean id="inboundFTPFileServiceActivator"
-          class="org.springframework.integration.ftp.InboundFTPFileServiceActivator"/>
+          class="org.springframework.integration.ftp.InboundFtpFileServiceActivator"/>
 
     <int:service-activator input-channel="ftpIn" ref="inboundFTPFileServiceActivator"/>
 

@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  *
  * @author Josh Long
  */
-public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSource> implements ResourceLoaderAware, ApplicationContextAware {
+public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSource> implements ResourceLoaderAware, ApplicationContextAware {
     private int port;
     private boolean autoCreateDirectories;
     private String filenamePattern;
@@ -38,7 +38,7 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
     private String localWorkingDirectory;
     private ApplicationContext applicationContext;
     private Resource localDirectoryResource;
-    private FTPInboundSynchronizer ftpInboundSynchronizer;
+    private FtpInboundSynchronizer ftpInboundSynchronizer;
     private TaskScheduler taskScheduler;
     private ResourceLoader resourceLoader;
     private FileReadingMessageSource fileReadingMessageSource;
@@ -47,7 +47,7 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
     /**
      * Used to teach the FTP adapter what files you are interested in receiving
      */
-    private FTPFileListFilter filter;
+    private FtpFileListFilter filter;
 
     public void setFilenamePattern(String filenamePattern) {
         this.filenamePattern = filenamePattern;
@@ -90,20 +90,20 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
         this.resourceLoader = resourceLoader;
     }
 
-    public Class<?extends FTPFileSource> getObjectType() {
-        return FTPFileSource.class;
+    public Class<?extends FtpFileSource> getObjectType() {
+        return FtpFileSource.class;
     }
 
     public void setClientMode(int clientMode) {
         this.clientMode = clientMode;
     }
 
-    public void setFilter(FTPFileListFilter filter) {
+    public void setFilter(FtpFileListFilter filter) {
         this.filter = filter;
     }
 
     @Override
-    protected FTPFileSource createInstance() throws Exception {
+    protected FtpFileSource createInstance() throws Exception {
         // setup local dir
         if (!StringUtils.hasText(this.localWorkingDirectory)) {
             File tmp = SystemUtils.getJavaIoTmpDir();
@@ -118,21 +118,21 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
         this.localDirectoryResource = (Resource) resourceEditor.getValue();
         fileReadingMessageSource = new FileReadingMessageSource();
 
-        this.ftpInboundSynchronizer = new FTPInboundSynchronizer();
+        this.ftpInboundSynchronizer = new FtpInboundSynchronizer();
 
-        CompositeFTPFileListFilter compositeFTPFileListFilter = new CompositeFTPFileListFilter();
+        CompositeFtpFileListFilter compositeFtpFileListFilter = new CompositeFtpFileListFilter();
 
         if (StringUtils.hasText(this.filenamePattern)) {
-            PatternMatchingFTPFileListFilter patternMatchingFTPFileListFilter = new PatternMatchingFTPFileListFilter();
+            PatternMatchingFtpFileListFilter patternMatchingFTPFileListFilter = new PatternMatchingFtpFileListFilter();
             patternMatchingFTPFileListFilter.setPattern(Pattern.compile(this.filenamePattern));
-            compositeFTPFileListFilter.addFilter(patternMatchingFTPFileListFilter);
+            compositeFtpFileListFilter.addFilter(patternMatchingFTPFileListFilter);
         }
 
         if (this.filter != null) {
-            compositeFTPFileListFilter.addFilter(this.filter);
+            compositeFtpFileListFilter.addFilter(this.filter);
         }
 
-        this.ftpInboundSynchronizer.setFilter(compositeFTPFileListFilter);
+        this.ftpInboundSynchronizer.setFilter(compositeFtpFileListFilter);
 
         if (this.taskScheduler == null) {
             Map<String, TaskScheduler> tss = null;
@@ -155,17 +155,17 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
             this.taskScheduler = threadPoolTaskScheduler;
         }
 
-        DefaultFTPClientFactory defaultFTPClientFactory = new DefaultFTPClientFactory();
-        defaultFTPClientFactory.setHost(this.host);
-        defaultFTPClientFactory.setPassword(this.password);
-        defaultFTPClientFactory.setPort(this.port);
-        defaultFTPClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
-        defaultFTPClientFactory.setUsername(this.username);
-        defaultFTPClientFactory.setClientMode(this.clientMode);
+        DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
+        defaultFtpClientFactory.setHost(this.host);
+        defaultFtpClientFactory.setPassword(this.password);
+        defaultFtpClientFactory.setPort(this.port);
+        defaultFtpClientFactory.setRemoteWorkingDirectory(this.remoteDirectory);
+        defaultFtpClientFactory.setUsername(this.username);
+        defaultFtpClientFactory.setClientMode(this.clientMode);
 
-        QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool(15, defaultFTPClientFactory);
+        QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, defaultFtpClientFactory);
 
-        this.ftpInboundSynchronizer.setClientPool(queuedFTPClientPool);
+        this.ftpInboundSynchronizer.setClientPool(queuedFtpClientPool);
         this.ftpInboundSynchronizer.setLocalDirectory(this.localDirectoryResource);
         this.ftpInboundSynchronizer.setTaskScheduler(this.taskScheduler);
         assert this.localDirectoryResource != null : "the 'localDirectoryResource' can't be null at this point";
@@ -184,8 +184,8 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
 
         this.ftpInboundSynchronizer.afterPropertiesSet();
 
-        FTPFileSource ftpFileSource = new FTPFileSource(this.fileReadingMessageSource, this.ftpInboundSynchronizer);
-        ftpFileSource.setClientPool(queuedFTPClientPool);
+        FtpFileSource ftpFileSource = new FtpFileSource(this.fileReadingMessageSource, this.ftpInboundSynchronizer);
+        ftpFileSource.setClientPool(queuedFtpClientPool);
         ftpFileSource.setLocalWorkingDirectory(this.localDirectoryResource);
         ftpFileSource.setSynchronizer(this.ftpInboundSynchronizer);
         ftpFileSource.setTaskScheduler(this.taskScheduler);

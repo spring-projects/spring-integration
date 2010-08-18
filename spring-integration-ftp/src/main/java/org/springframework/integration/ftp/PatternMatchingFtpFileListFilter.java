@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  *
  * @author Josh Long
  */
-public class PatternMatchingFTPFileListFilter extends AbstractFTPFileListFilter implements InitializingBean {
+public class PatternMatchingFtpFileListFilter extends AbstractFtpFileListFilter implements InitializingBean {
 
     private Log logger = LogFactory.getLog(getClass());
     

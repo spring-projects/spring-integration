@@ -35,7 +35,7 @@ import java.util.Map;
  * @author Josh Long  (*heavily* influenced by the good done by iwein before)
  */
 @SuppressWarnings("unused")
-public class FTPNamespaceHandler extends NamespaceHandlerSupport {
+public class FtpNamespaceHandler extends NamespaceHandlerSupport {
     private static final String PACKAGE_NAME = "org.springframework.integration.ftp";
     static private Map<String, Integer> CLIENT_MODES = new HashMap<String, Integer>();
 

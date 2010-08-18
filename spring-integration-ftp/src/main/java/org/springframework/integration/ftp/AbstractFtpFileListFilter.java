@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author Josh Long
  */
-public abstract class AbstractFTPFileListFilter implements FTPFileListFilter {
+public abstract class AbstractFtpFileListFilter implements FtpFileListFilter {
     /**
      * {@inheritDoc}
      */

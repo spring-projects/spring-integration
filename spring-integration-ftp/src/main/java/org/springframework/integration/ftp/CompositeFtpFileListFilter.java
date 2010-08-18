@@ -11,17 +11,17 @@ import java.util.*;
  *
  * @author Josh Long
  */
-public class CompositeFTPFileListFilter implements FTPFileListFilter {
-    private Set<FTPFileListFilter> filters;
+public class CompositeFtpFileListFilter implements FtpFileListFilter {
+    private Set<FtpFileListFilter> filters;
 
-    public CompositeFTPFileListFilter(FTPFileListFilter... ftpFileListFilter) {
-        this.filters = new LinkedHashSet<FTPFileListFilter>(Arrays.asList(ftpFileListFilter));
+    public CompositeFtpFileListFilter(FtpFileListFilter... ftpFileListFilter) {
+        this.filters = new LinkedHashSet<FtpFileListFilter>(Arrays.asList(ftpFileListFilter));
     }
 
-    public CompositeFTPFileListFilter(Collection<FTPFileListFilter> ftpFileListFilter) {
-        this.filters = new LinkedHashSet<FTPFileListFilter>(ftpFileListFilter);
+    public CompositeFtpFileListFilter(Collection<FtpFileListFilter> ftpFileListFilter) {
+        this.filters = new LinkedHashSet<FtpFileListFilter>(ftpFileListFilter);
     }
-       public void addFilter( FTPFileListFilter ftpFileListFilter ) {
+       public void addFilter( FtpFileListFilter ftpFileListFilter ) {
            this.filters.add(ftpFileListFilter);
        }
     public List<FTPFile> filterFiles(FTPFile[] files) {
@@ -29,7 +29,7 @@ public class CompositeFTPFileListFilter implements FTPFileListFilter {
 
         List<FTPFile> leftOver = Arrays.asList(files);
 
-        for (FTPFileListFilter ff : this.filters)
+        for (FtpFileListFilter ff : this.filters)
             leftOver = ff.filterFiles(leftOver.toArray(new FTPFile[leftOver.size()]));
 
         return leftOver;
