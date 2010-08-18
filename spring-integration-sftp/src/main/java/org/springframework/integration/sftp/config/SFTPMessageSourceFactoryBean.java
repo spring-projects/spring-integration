@@ -15,43 +15,32 @@
  */
 package org.springframework.integration.sftp.config;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
-
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
-
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.sftp.QueuedSFTPSessionPool;
-import org.springframework.integration.sftp.SFTPInboundSynchronizer;
-import org.springframework.integration.sftp.SFTPMessageSource;
-import org.springframework.integration.sftp.SFTPSessionFactory;
-
+import org.springframework.integration.sftp.*;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
-
 import java.util.Map;
 
 
 /**
- *
  * Building a {@link org.springframework.integration.sftp.SFTPMessageSource} is a complicated because we also
  * use a {@link org.springframework.integration.file.FileReadingMessageSource} to handle the "receipt" of files in
  * a {@link #localWorkingDirectory}.
- * 
+ *
  * @author Josh Long
  */
 public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessageSource> implements ApplicationContextAware, ResourceLoaderAware {
@@ -72,6 +61,8 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
     private boolean autoCreateDirectories;
     private boolean autoDeleteRemoteFilesOnSync;
     private int port = 22;
+    private SFTPFileListFilter filter;
+    private String filenamePattern;
 
     public FileReadingMessageSource getFileReadingMessageSource() {
         return fileReadingMessageSource;
@@ -199,6 +190,14 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
         this.trigger = trigger;
     }
 
+    public void setFilenamePattern(String filenamePattern) {
+        this.filenamePattern = filenamePattern;
+    }
+
+    public void setFilter(SFTPFileListFilter filter) {
+        this.filter = filter;
+    }
+
     public void setUsername(final String username) {
         this.username = username;
     }
@@ -206,12 +205,11 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
     @Override
     protected SFTPMessageSource createInstance() throws Exception {
         try {
-            if ((localWorkingDirectory == null) || StringUtils.isEmpty(localWorkingDirectory)) {
+            if ((localWorkingDirectory == null) || !StringUtils.hasText(localWorkingDirectory)) {
                 File tmp = SystemUtils.getJavaIoTmpDir();
                 File sftpTmp = new File(tmp, "sftpInbound");
                 this.localWorkingDirectory = "file://" + sftpTmp.getAbsolutePath();
             }
-            assert !StringUtils.isEmpty(this.localWorkingDirectory) : "the local working directory mustn't be null!";
 
             // resource for local directory
             ResourceEditor editor = new ResourceEditor(this.resourceLoader);
@@ -221,6 +219,21 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
             fileReadingMessageSource = new FileReadingMessageSource();
 
             synchronizer = new SFTPInboundSynchronizer();
+
+            CompositeFTPFileListFilter compositeFTPFileListFilter = new CompositeFTPFileListFilter();
+
+            if (StringUtils.hasText(this.filenamePattern)) {
+                PatternMatchingSFTPFileListFilter flp = new PatternMatchingSFTPFileListFilter();
+                flp.setPatternExpression(this.filenamePattern);
+                flp.afterPropertiesSet();
+                compositeFTPFileListFilter.addFilter(flp);
+            }
+
+            if (this.filter != null) {
+                compositeFTPFileListFilter.addFilter(this.filter);
+            }
+
+            synchronizer.setFilter(compositeFTPFileListFilter);
 
             if (null == taskScheduler) {
                 Map<String, TaskScheduler> tss = null;
@@ -245,8 +258,8 @@ public class SFTPMessageSourceFactoryBean extends AbstractFactoryBean<SFTPMessag
                 this.taskScheduler = ts;
             }
 
-            SFTPSessionFactory sessionFactory = SFTPSessionUtils.buildSftpSessionFactory(this.getHost(), this.getPassword(), this.getUsername(), this.getKeyFile(), this.getKeyFilePassword(),
-                    this.getPort());
+            SFTPSessionFactory sessionFactory = SFTPSessionUtils.buildSftpSessionFactory(
+                    this.getHost(), this.getPassword(), this.getUsername(), this.getKeyFile(), this.getKeyFilePassword(), this.getPort());
 
             QueuedSFTPSessionPool pool = new QueuedSFTPSessionPool(15, sessionFactory);
             pool.afterPropertiesSet();

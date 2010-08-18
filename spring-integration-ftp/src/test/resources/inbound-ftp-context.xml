@@ -8,10 +8,10 @@
         http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
        http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-
     <context:property-placeholder
             location="file://${user.home}/Desktop/ftp.properties"
             ignore-unresolvable="true"/>
+
 
     <bean class="org.springframework.integration.ftp.PatternMatchingFTPFileListFilter" id="patternMatchingFTPFileListFilter">
         <property name="patternExpression" value=".*?jpg"/>

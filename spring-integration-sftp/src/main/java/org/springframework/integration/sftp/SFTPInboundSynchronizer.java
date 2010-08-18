@@ -17,33 +17,30 @@ package org.springframework.integration.sftp;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
-
 import org.apache.commons.io.IOUtils;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
-
 import org.springframework.core.io.Resource;
-
 import org.springframework.integration.MessagingException;
-
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
 
 /**
- *
  * This handles keeping the {@link #localDirectory} in sync with the contents of the remote mount. From there, files are deposited
  * into a folder where the {@link org.springframework.integration.file.FileReadingMessageSource} will eventually deliver them as events
- *
  *
  * @author Josh Long
  * @author Mario Gray
@@ -53,6 +50,7 @@ public class SFTPInboundSynchronizer implements InitializingBean {
 
     // a lot of the approach for this (including the use of a FileReadingMessageSource and the regex / mask approach were lifted from FtpInboundSynchronizer
     static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
+    private Log logger = LogFactory.getLog(getClass());
     private volatile Resource localDirectory;
     private volatile SFTPSessionPool pool;
     private volatile ScheduledFuture<?> scheduledFuture;
@@ -61,11 +59,23 @@ public class SFTPInboundSynchronizer implements InitializingBean {
     private volatile Trigger trigger = new PeriodicTrigger(DEFAULT_REFRESH_RATE);
     private volatile boolean autoCreatePath;
     private volatile boolean running;
+    private SFTPFileListFilter filter;
+
+    public void setFilter(SFTPFileListFilter filter) {
+        this.filter = filter;
+    }
+
     private volatile boolean shouldDeleteDownloadedRemoteFiles; //.. this is false
 
+    private SFTPFileListFilter acceptAllFilteListFilter = new SFTPFileListFilter(){
+        public List<ChannelSftp.LsEntry> filterFiles(ChannelSftp.LsEntry[] files) {
+           return Arrays.asList( files);
+        }
+    } ;
+
     public void afterPropertiesSet() throws Exception {
-        assert (taskScheduler != null) : "taskScheduler can't be null!";
-        assert (localDirectory != null) : "the localDirectory property must not be null!";
+        Assert.state(taskScheduler != null, "taskScheduler can't be null!");
+        Assert.state(localDirectory != null, "the localDirectory property must not be null!");
 
         File localDir = localDirectory.getFile();
 
@@ -76,18 +86,10 @@ public class SFTPInboundSynchronizer implements InitializingBean {
                 }
             }
         }
-    }
 
-    public ScheduledFuture<?> getScheduledFuture() {
-        return scheduledFuture;
-    }
+        if(this.filter == null)
+            this.filter = acceptAllFilteListFilter;
 
-    public TaskScheduler getTaskScheduler() {
-        return taskScheduler;
-    }
-
-    public Trigger getTrigger() {
-        return trigger;
     }
 
     public boolean isRunning() {
@@ -134,8 +136,9 @@ public class SFTPInboundSynchronizer implements InitializingBean {
         if (running) {
             return;
         }
-        assert checkThatRemotePathExists(remotePath) : "the remotePath had better exist!";
-        assert taskScheduler != null : "'taskScheduler' is required";
+
+        Assert.state(checkThatRemotePathExists(remotePath), "the remotePath should exist before we can sync with it!");
+        Assert.state(taskScheduler != null, "'taskScheduler' is required");
 
         scheduledFuture = taskScheduler.schedule(new SynchronizeTask(), trigger);
 
@@ -146,7 +149,8 @@ public class SFTPInboundSynchronizer implements InitializingBean {
         if (!running) {
             return;
         }
-        assert scheduledFuture != null : "scheduledFuture is null!";
+
+        Assert.state(scheduledFuture != null, "scheduledFuture is null!");
         this.scheduledFuture.cancel(true);
         this.running = false;
     }
@@ -160,7 +164,10 @@ public class SFTPInboundSynchronizer implements InitializingBean {
             session.start();
 
             ChannelSftp channelSftp = session.getChannel();
-            Collection<ChannelSftp.LsEntry> files = channelSftp.ls(remotePath);
+            Collection<ChannelSftp.LsEntry> beforeFilter = channelSftp.ls(remotePath);
+            ChannelSftp.LsEntry [] entries = beforeFilter == null? new ChannelSftp.LsEntry[0] :
+                    beforeFilter.toArray(new ChannelSftp.LsEntry[ beforeFilter.size()]) ;
+            Collection<ChannelSftp.LsEntry> files =  this.filter.filterFiles( entries );
 
             for (ChannelSftp.LsEntry lsEntry : files) {
                 if ((lsEntry != null) && !lsEntry.getAttrs().isDir() && !lsEntry.getAttrs().isLink()) {
@@ -178,24 +185,24 @@ public class SFTPInboundSynchronizer implements InitializingBean {
 
     /**
      * there be dragons this way ... This method will check to ensure that the remote directory exists. If the directory
-     * doesnt exist, and autoCreatePath is configured to be true, then this method makes a few reasonably sane attempts
+     * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
      * to create it. Otherwise, it fails fast.
      *
-     * @param rPath the path on the remote SSH / SFTP server to create.
+     * @param remotePath the path on the remote SSH / SFTP server to create.
      * @return whether or not the directory is there (regardless of whether we created it in this method or it already
      *         existed.)
      */
-    private boolean checkThatRemotePathExists(String rPath) {
+    private boolean checkThatRemotePathExists(String remotePath) {
         SFTPSession session = null;
         ChannelSftp channelSftp = null;
 
         try {
             session = pool.getSession();
-            assert session != null : "session's not null";
+            Assert.state(session != null, "session as returned from the pool should not be null. " + "If it is, it is most likely an error in the pool implementation.  ");
             session.start();
             channelSftp = session.getChannel();
 
-            SftpATTRS attrs = channelSftp.stat(rPath);
+            SftpATTRS attrs = channelSftp.stat(remotePath);
             assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
 
             return true;
@@ -203,9 +210,9 @@ public class SFTPInboundSynchronizer implements InitializingBean {
             if (this.autoCreatePath && (pool != null) && (session != null)) {
                 try {
                     if (channelSftp != null) {
-                        channelSftp.mkdir(rPath);
+                        channelSftp.mkdir(remotePath);
 
-                        if (channelSftp.stat(rPath).isDir()) {
+                        if (channelSftp.stat(remotePath).isDir()) {
                             return true;
                         }
                     }
@@ -258,10 +265,6 @@ public class SFTPInboundSynchronizer implements InitializingBean {
             return true;
         }
 
-        return false;
-    }
-
-    private boolean foo() {
         return false;
     }
 

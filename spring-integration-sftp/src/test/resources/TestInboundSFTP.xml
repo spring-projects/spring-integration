@@ -35,24 +35,27 @@
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
     <context:component-scan base-package="org.springframework.integration.sftp"/>
+    <context:property-placeholder
+            location="file://${user.home}/Desktop/sftp.properties"
+            ignore-unresolvable="true"/>
 
 
     <channel id="inboundFilesChannel"/>
 
 
-    <sftp:inbound-channel-adapter username="user" remote-directory="/home/user/Desktop/in" password="password"
-                                  host="host" channel="inboundFilesChannel">
+    <sftp:inbound-channel-adapter
+            key-file="${sftp.key}"
+            remote-directory="${sftp.remote-dir}"
+            channel="inboundFilesChannel"
+            filename-pattern=".*?jpg"
+            username="${sftp.username}"
+            host="${sftp.host}">
         <poller>
-            <interval-trigger interval="10"/>
+            <interval-trigger interval="1000" time-unit="MILLISECONDS"/>
         </poller>
     </sftp:inbound-channel-adapter>
 
-    <sftp:outbound-channel-adapter
-            key-file="/home/user/user.pem"
-            remote-directory="remote_mount_key"
-            channel="inboundFilesChannel"
-            username="ubuntu"
-            host="siteonec2usingubuntuami.com"/>
 
+    <service-activator ref="sftpAnnouncer" input-channel="inboundFilesChannel"/>
 
 </beans:beans>

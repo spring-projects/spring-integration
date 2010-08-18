@@ -66,7 +66,9 @@ public class SFTPNamespaceHandler extends NamespaceHandlerSupport {
         protected String parseSource(Element element, ParserContext parserContext) {
             BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition( SFTPMessageSourceFactoryBean.class.getName());
 
-            for (String p : "auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-working-directory,auto-delete-remote-files-on-sync".split(",")) {
+            IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
+
+            for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-working-directory,auto-delete-remote-files-on-sync".split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
             }
 

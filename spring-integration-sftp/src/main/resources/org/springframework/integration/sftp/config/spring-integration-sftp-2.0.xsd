@@ -74,7 +74,7 @@
                 There is support for automatically deleting remote files upon synchornization. This adapter supports two connectivity options:
 
                 <ol>
-                <li> Password authentication: using this opton, authenticatio is done using a username and a password.</li>
+                <li> Password authentication: using this opton, authentication is done using a username and a password.</li>
                 <li> Key-based authentication: using this option, you may specify a key that will be used to authenticate. If they key itself is encrypted and requires a password, you may specify that, as well.</li>
                 </ol>
             ]]></xsd:documentation>
@@ -94,6 +94,17 @@
                 </xsd:annotation>
             </xsd:attribute>
 
+            <xsd:attribute name="filter" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.ftp.FTPFileListFilter"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+
+            <xsd:attribute name="filename-pattern" type="xsd:string"/>
 
             <xsd:attribute name="username" type="xsd:string" use="required"/>
             <xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
