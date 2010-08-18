@@ -12,6 +12,10 @@
 		<int:method name="send2" request-channel="input" payload-expression="@testBean.sum(#args[0])"/>
 	</int:gateway>
 
+	<int:gateway id="annotatedGateway"
+				 service-interface="org.springframework.integration.gateway.GatewayWithPayloadExpressionTests.SampleAnnotatedGateway"
+				 default-request-channel="input"/>
+
 	<int:channel id="input">
 		<int:queue/>
 	</int:channel>

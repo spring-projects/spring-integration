@@ -23,6 +23,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,6 +38,9 @@ public class GatewayWithPayloadExpressionTests {
 
 	@Autowired
 	private SampleGateway gateway;
+
+	@Autowired
+	private SampleAnnotatedGateway annotatedGateway;
 
 	@Autowired
 	private PollableChannel input;
@@ -56,12 +60,27 @@ public class GatewayWithPayloadExpressionTests {
 		assertEquals(324, result.getPayload());
 	}
 
+	@Test
+	public void payloadAnnotationExpression() throws Exception {
+		annotatedGateway.send("foo", "bar");
+		Message<?> result = input.receive(0);
+		assertEquals("foobar", result.getPayload());
+	}
+
 
 	public static interface SampleGateway {
 
 		void send1(String value);
 
 		void send2(String value);
+	}
+
+
+	public static interface SampleAnnotatedGateway {
+
+		@Payload("#args[0] + #args[1]")
+		void send(String value1, String value2);
+
 	}
 
 
