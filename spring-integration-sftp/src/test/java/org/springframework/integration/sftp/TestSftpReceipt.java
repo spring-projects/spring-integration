@@ -18,9 +18,9 @@ import java.util.logging.Logger;
  *
  * @author Josh Long
  */
-public class TestSFTPReceipt {
+public class TestSftpReceipt {
     
-    private static final Logger logger = Logger.getLogger(TestSFTPReceipt.class.getName());
+    private static final Logger logger = Logger.getLogger(TestSftpReceipt.class.getName());
     private SftpSessionFactory sftpSessionFactory;
     private String host;
     private String password;

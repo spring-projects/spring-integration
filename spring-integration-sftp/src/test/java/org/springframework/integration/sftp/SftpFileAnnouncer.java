@@ -10,7 +10,7 @@ import java.io.File;
  *
  */
 @Component("sftpAnnouncer")
-public class SFTPFileAnnouncer {
+public class SftpFileAnnouncer {
 
     @ServiceActivator
     public void announceFile(File file){
