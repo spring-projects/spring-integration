@@ -1,1 +1,1 @@
-return payload.length() > 3 ? 'longStrings' : 'shortStrings'
+payload.length() > 3 ? 'longStrings' : 'shortStrings'

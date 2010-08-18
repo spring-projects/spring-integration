@@ -1,1 +1,1 @@
-return payload.split(',')
+payload.split(',')

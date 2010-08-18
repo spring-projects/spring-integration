@@ -1,1 +1,1 @@
-return headers.type == 'good'
+headers.type == 'good'

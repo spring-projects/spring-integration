@@ -1,1 +1,1 @@
-return "groovy-$payload"
+"groovy-$payload"
