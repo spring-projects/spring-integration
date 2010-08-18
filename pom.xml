@@ -178,10 +178,85 @@
 							<docfilessubdirs>true</docfilessubdirs>
 							<groups>
 								<group>
-									<title>Spring Integration</title>
-									<packages>org.springframework.integration.core</packages>
+									<title>Spring Integration Core</title>
+									<packages>org.springframework.integration:org.springframework.integration.*</packages>
 								</group>
-								<!-- TODO: fill in other groups -->
+								<group>
+									<title>Spring Integration Event Support</title>
+									<packages>org.springframework.integration.event:org.springframework.integration.event.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration File Support</title>
+									<packages>org.springframework.integration.file:org.springframework.integration.file.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration FTP Support</title>
+									<packages>org.springframework.integration.ftp:org.springframework.integration.ftp.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration Groovy Support</title>
+									<packages>org.springframework.integration.groovy:org.springframework.integration.groovy.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration HTTP Support</title>
+									<packages>org.springframework.integration.http:org.springframework.integration.http.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration HttpInvoker Support</title>
+									<packages>org.springframework.integration.httpinvoker:org.springframework.integration.httpinvoker.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration JDBC Support</title>
+									<packages>org.springframework.integration.jdbc:org.springframework.integration.jdbc.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration JMS Support</title>
+									<packages>org.springframework.integration.jms:org.springframework.integration.jms.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration JMX Support</title>
+									<packages>org.springframework.integration.control:org.springframework.integration.jmx:org.springframework.integration.jmx.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration Mail Support</title>
+									<packages>org.springframework.integration.mail:org.springframework.integration.mail.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration RMI Support</title>
+									<packages>org.springframework.integration.rmi:org.springframework.integration.rmi.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration Web Services Support</title>
+									<packages>org.springframework.integration.ws:org.springframework.integration.ws.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration Security Support</title>
+									<packages>org.springframework.integration.security:org.springframework.integration.security.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration SFTP Support</title>
+									<packages>org.springframework.integration.sftp:org.springframework.integration.sftp.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration Stream Support</title>
+									<packages>org.springframework.integration.stream:org.springframework.integration.stream.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration TCP/UDP Support</title>
+									<packages>org.springframework.integration.ip:org.springframework.integration.ip.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration Test Support</title>
+									<packages>org.springframework.integration.test:org.springframework.integration.test.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration XML Support</title>
+									<packages>org.springframework.integration.xml:org.springframework.integration.xml.*</packages>
+								</group>
+								<group>
+									<title>Spring Integration XMPP Support</title>
+									<packages>org.springframework.integration.xmpp:org.springframework.integration.xmpp.*</packages>
+								</group>
 							</groups>
 							<excludePackageNames>org.springframework.integration.samples:com.springframework.integration.samples</excludePackageNames>
 							<links>
