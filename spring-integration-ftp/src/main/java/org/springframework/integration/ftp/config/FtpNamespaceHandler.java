@@ -57,7 +57,7 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
     private static class FTPMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
         @Override
         protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FTPSendingMessageHandlerFactoryBean");
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FtpSendingMessageHandlerFactoryBean");
 
             for (String p : "auto-create-directories,username,port,password,host,key-file,key-file-password,remote-directory".split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
@@ -79,7 +79,7 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
         @Override
         @SuppressWarnings("unused")
         protected String parseSource(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FTPMessageSourceFactoryBean");
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FtpMessageSourceFactoryBean");
 
             // reference
             IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,"filter");

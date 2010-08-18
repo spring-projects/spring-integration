@@ -23,11 +23,11 @@ import java.util.regex.Pattern;
 
 
 /**
- * Makes it easier to assemble the moving pieces involved in standing up an {@link org.springframework.integration.ftp.FTPMessageSourceFactoryBean}
+ * Makes it easier to assemble the moving pieces involved in standing up an {@link FtpMessageSourceFactoryBean}
  *
  * @author Josh Long
  */
-public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSource> implements ResourceLoaderAware, ApplicationContextAware {
+public class FtpMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSource> implements ResourceLoaderAware, ApplicationContextAware {
     private int port;
     private boolean autoCreateDirectories;
     private String filenamePattern;

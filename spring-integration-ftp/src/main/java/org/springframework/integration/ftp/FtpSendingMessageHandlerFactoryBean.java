@@ -13,7 +13,7 @@ import org.springframework.core.io.ResourceLoader;
  *
  * @author Josh Long
  */
-public class FTPSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> implements ResourceLoaderAware, ApplicationContextAware {
+public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler> implements ResourceLoaderAware, ApplicationContextAware {
     private int port;
     private String username;
     private String password;
