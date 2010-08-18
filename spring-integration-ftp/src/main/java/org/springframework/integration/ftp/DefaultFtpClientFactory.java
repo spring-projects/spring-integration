@@ -34,7 +34,7 @@ import java.net.SocketException;
  *
  * @author iwein
  */
-public class DefaultFtpClientFactory implements FTPClientFactory {
+public class DefaultFtpClientFactory implements FtpClientFactory {
     private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
     private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
     private FTPClientConfig config;

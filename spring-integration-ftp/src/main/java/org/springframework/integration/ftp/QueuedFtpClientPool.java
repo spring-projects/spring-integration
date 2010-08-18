@@ -47,6 +47,7 @@ public class QueuedFtpClientPool implements FtpClientPool {
 
     /**
      * @param maxPoolSize the maximum size of the pool
+     * 
      */
     public QueuedFtpClientPool(int maxPoolSize, FtpClientFactory factory) {
         Assert.notNull(factory);
