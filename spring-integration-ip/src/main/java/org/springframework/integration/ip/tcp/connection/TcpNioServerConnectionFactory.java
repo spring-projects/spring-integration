@@ -151,6 +151,9 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 						Socket socket = channel.socket();
 						setSocketAttributes(socket);
 						TcpNioConnection connection = createTcpNioConnection(channel);
+						if (connection == null) {
+							continue;
+						}
 						connection.setTaskExecutor(this.taskExecutor);
 						connection.setLastRead(now);
 						connections.put(channel, connection);
