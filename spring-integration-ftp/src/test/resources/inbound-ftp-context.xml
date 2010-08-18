@@ -13,10 +13,15 @@
             location="file://${user.home}/Desktop/ftp.properties"
             ignore-unresolvable="true"/>
 
+    <bean class="org.springframework.integration.ftp.PatternMatchingFTPFileListFilter" id="patternMatchingFTPFileListFilter">
+        <property name="patternExpression" value=".*?jpg"/>
+    </bean>
+
     <ftp:inbound-channel-adapter remote-directory="${ftp.remotedir}" channel="ftpIn" auto-create-directories="true"
                                  host="${ftp.host}" auto-delete-remote-files-on-sync="false"
-                                username="${ftp.username}" password="${ftp.password}" port="2222"
-                                client-mode="passive-local-data-connection-mode"
+                                 username="${ftp.username}" password="${ftp.password}" port="2222"
+                                 client-mode="passive-local-data-connection-mode"
+                                 filename-pattern=".*?jpg"
             >
         <int:poller>
             <int:interval-trigger interval="10000" time-unit="MILLISECONDS"/>

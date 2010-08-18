@@ -32,6 +32,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 
 
@@ -40,7 +43,6 @@ import java.util.concurrent.ScheduledFuture;
  * It will NOT move new files put into the local directory to the remote server.
  *
  * @author Iwein Fuld
- *
  */
 public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
     private static final Log logger = LogFactory.getLog(FTPInboundSynchronizer.class);
@@ -52,6 +54,16 @@ public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
     private volatile Resource localDirectory;
     private boolean running = false;
     private ScheduledFuture<?> scheduledFuture;
+    private FTPFileListFilter filter;
+    private FTPFileListFilter acceptAllFTPFileListFilter = new FTPFileListFilter() {
+            public List<FTPFile> filterFiles(FTPFile[] files) {
+                return Arrays.asList(files);
+            }
+        };
+
+    public void setFilter(FTPFileListFilter filter) {
+        this.filter = filter;
+    }
 
     public void setTaskScheduler(TaskScheduler scheduler) {
         this.taskScheduler = scheduler;
@@ -71,6 +83,10 @@ public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
 
     public void afterPropertiesSet() throws Exception {
         Assert.notNull(localDirectory, "'localDirectory' is required.");
+
+        if (this.filter == null) {
+            this.filter = acceptAllFTPFileListFilter;
+        }
     }
 
     private void synchronize() {
@@ -78,22 +94,20 @@ public class FTPInboundSynchronizer implements InitializingBean, Lifecycle {
             FTPClient client = this.clientPool.getClient();
             Assert.state(client != null, FTPClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
 
-            FTPFile[] fileList = client.listFiles();
+            Collection<FTPFile> fileList = this.filter.filterFiles(client.listFiles());
 
             try {
                 for (FTPFile ftpFile : fileList) {
                     /*
-                     * according to the FTPFile javadoc the list can contain
-                     * nulls if files couldn't be parsed
-                     */
+                    * according to the FTPFile javadoc the list can contain
+                    * nulls if files couldn't be parsed
+                    */
                     if ((ftpFile != null) && ftpFile.isFile()) {
                         copyFileToLocalDirectory(client, ftpFile, this.localDirectory);
                     }
                 }
             } finally {
-                if (client != null) {
-                    this.clientPool.releaseClient(client);
-                }
+                this.clientPool.releaseClient(client);
             }
         } catch (IOException e) {
             throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);

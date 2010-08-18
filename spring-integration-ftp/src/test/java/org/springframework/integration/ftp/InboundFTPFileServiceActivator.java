@@ -1,13 +1,9 @@
 package org.springframework.integration.ftp;
 
 import org.apache.commons.lang.StringUtils;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
-
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 

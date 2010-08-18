@@ -29,7 +29,6 @@ import org.springframework.scheduling.Trigger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 
@@ -39,7 +38,6 @@ import java.util.regex.Pattern;
  * @author Iwein Fuld
  */
 public class FTPFileSource implements MessageSource<File>, InitializingBean, Lifecycle {
-    private static final Logger logger = Logger.getLogger(FTPFileSource.class.getName());
     private FileReadingMessageSource fileSource;
     private FTPInboundSynchronizer synchronizer;
 

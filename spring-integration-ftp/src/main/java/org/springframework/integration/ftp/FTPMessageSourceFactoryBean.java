@@ -1,6 +1,5 @@
 package org.springframework.integration.ftp;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.beans.BeansException;
@@ -16,9 +15,11 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 
 /**
@@ -29,6 +30,7 @@ import java.util.Map;
 public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSource> implements ResourceLoaderAware, ApplicationContextAware {
     private int port;
     private boolean autoCreateDirectories;
+    private String filenamePattern;
     private String username;
     private String password;
     private String host;
@@ -41,6 +43,15 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
     private ResourceLoader resourceLoader;
     private FileReadingMessageSource fileReadingMessageSource;
     private int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
+
+    /**
+     * Used to teach the FTP adapter what files you are interested in receiving
+     */
+    private FTPFileListFilter filter;
+
+    public void setFilenamePattern(String filenamePattern) {
+        this.filenamePattern = filenamePattern;
+    }
 
     public void setApplicationContext(ApplicationContext applicationContext)
         throws BeansException {
@@ -87,15 +98,20 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
         this.clientMode = clientMode;
     }
 
+    public void setFilter(FTPFileListFilter filter) {
+        this.filter = filter;
+    }
+
     @Override
     protected FTPFileSource createInstance() throws Exception {
         // setup local dir
-        if (StringUtils.isEmpty(this.localWorkingDirectory)) {
+        if (!StringUtils.hasText(this.localWorkingDirectory)) {
             File tmp = SystemUtils.getJavaIoTmpDir();
             File ftpTmp = new File(tmp, "ftpInbound");
             this.localWorkingDirectory = "file://" + ftpTmp.getAbsolutePath();
         }
-        Assert.hasText( this.localWorkingDirectory , "the local working directory can't be null!" );
+
+        Assert.hasText(this.localWorkingDirectory, "the local working directory can't be null!");
 
         ResourceEditor resourceEditor = new ResourceEditor(this.resourceLoader);
         resourceEditor.setAsText(this.localWorkingDirectory);
@@ -103,6 +119,20 @@ public class FTPMessageSourceFactoryBean extends AbstractFactoryBean<FTPFileSour
         fileReadingMessageSource = new FileReadingMessageSource();
 
         this.ftpInboundSynchronizer = new FTPInboundSynchronizer();
+
+        CompositeFTPFileListFilter compositeFTPFileListFilter = new CompositeFTPFileListFilter();
+
+        if (StringUtils.hasText(this.filenamePattern)) {
+            PatternMatchingFTPFileListFilter patternMatchingFTPFileListFilter = new PatternMatchingFTPFileListFilter();
+            patternMatchingFTPFileListFilter.setPattern(Pattern.compile(this.filenamePattern));
+            compositeFTPFileListFilter.addFilter(patternMatchingFTPFileListFilter);
+        }
+
+        if (this.filter != null) {
+            compositeFTPFileListFilter.addFilter(this.filter);
+        }
+
+        this.ftpInboundSynchronizer.setFilter(compositeFTPFileListFilter);
 
         if (this.taskScheduler == null) {
             Map<String, TaskScheduler> tss = null;

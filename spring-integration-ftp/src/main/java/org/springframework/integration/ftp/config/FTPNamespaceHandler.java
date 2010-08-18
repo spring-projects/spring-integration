@@ -81,8 +81,10 @@ public class FTPNamespaceHandler extends NamespaceHandlerSupport {
         protected String parseSource(Element element, ParserContext parserContext) {
             BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FTPMessageSourceFactoryBean");
 
-            for (String p : ("auto-create-directories,username,password,host,port," + "remote-directory,local-working-directory").split(",")) {
-                //auto-delete-remote-files-on-sync
+            // reference
+            IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,"filter");
+
+            for (String p : ("filename-pattern,auto-create-directories,username,password,host,port," + "remote-directory,local-working-directory").split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
             }
 

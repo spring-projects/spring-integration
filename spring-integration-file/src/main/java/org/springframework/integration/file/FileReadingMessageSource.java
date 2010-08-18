@@ -149,7 +149,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
     }
 
     /**
-     * Optional. Sets a {@link org.springframework.integration.file.locking.FileLocker} to be used to guard files
+     * Optional. Sets a {@link FileLocker} to be used to guard files
      * against duplicate processing.
      * <p/>
      * <b>The supplied FileLocker must be thread safe</b>

@@ -134,6 +134,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:attribute>
+            <xsd:attribute name="filter" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.ftp.FTPFileListFilter"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="filename-pattern" type="xsd:string"/>
+
 
             <xsd:attribute name="local-working-directory" type="xsd:string"/>
             <xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
