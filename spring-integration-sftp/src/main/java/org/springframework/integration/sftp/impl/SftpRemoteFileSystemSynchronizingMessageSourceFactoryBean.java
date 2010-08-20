@@ -24,8 +24,7 @@ import java.io.File;
  *
  * @author Josh Long
  */
-public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
-        AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
+public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends AbstractFactoryBean<SftpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
     /**
      * injected by the container
      */
@@ -37,70 +36,77 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
     private volatile String filenamePattern;
     private volatile EntryListFilter<ChannelSftp.LsEntry> filter;
     private int port = 22;
+    private String host;
+    private String keyFile;
+    private String keyFilePassword;
+    private String password;
+    private String remoteDirectory;
+    private String username;
 
+    @SuppressWarnings("unused")
     public void setLocalDirectoryResource(Resource localDirectoryResource) {
         this.localDirectoryResource = localDirectoryResource;
     }
 
+    @SuppressWarnings("unused")
     public void setLocalDirectoryPath(String localDirectoryPath) {
         this.localDirectoryPath = localDirectoryPath;
     }
 
+    @SuppressWarnings("unused")
     public void setAutoCreateDirectories(String autoCreateDirectories) {
         this.autoCreateDirectories = autoCreateDirectories;
     }
 
+    @SuppressWarnings("unused")
     public void setAutoDeleteRemoteFilesOnSync(String autoDeleteRemoteFilesOnSync) {
         this.autoDeleteRemoteFilesOnSync = autoDeleteRemoteFilesOnSync;
     }
 
+    @SuppressWarnings("unused")
     public void setFilenamePattern(String filenamePattern) {
         this.filenamePattern = filenamePattern;
     }
 
+    @SuppressWarnings("unused")
     public void setFilter(EntryListFilter<ChannelSftp.LsEntry> filter) {
         this.filter = filter;
     }
 
+    @SuppressWarnings("unused")
     public void setPort(int port) {
         this.port = port;
     }
 
+    @SuppressWarnings("unused")
     public void setHost(String host) {
         this.host = host;
     }
 
+    @SuppressWarnings("unused")
     public void setKeyFile(String keyFile) {
         this.keyFile = keyFile;
     }
 
+    @SuppressWarnings("unused")
     public void setKeyFilePassword(String keyFilePassword) {
         this.keyFilePassword = keyFilePassword;
     }
 
-    public void setLocalWorkingDirectory(String localWorkingDirectory) {
-        this.localWorkingDirectory = localWorkingDirectory;
-    }
-
+    @SuppressWarnings("unused")
     public void setPassword(String password) {
         this.password = password;
     }
 
+    @SuppressWarnings("unused")
     public void setRemoteDirectory(String remoteDirectory) {
         this.remoteDirectory = remoteDirectory;
     }
 
+    @SuppressWarnings("unused")
     public void setUsername(String username) {
         this.username = username;
     }
-
-    private String host;
-    private String keyFile;
-    private String keyFilePassword;
-    private String localWorkingDirectory;
-    private String password;
-    private String remoteDirectory;
-    private String username;
 
     public void setResourceLoader(ResourceLoader resourceLoader) {
         this.resourceLoader = resourceLoader;
@@ -145,8 +151,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
         this.filter = compositeFtpFileListFilter;
 
         // pools 
-        SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
-                this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
+        SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
 
         QueuedSftpSessionPool pool = new QueuedSftpSessionPool(15, sessionFactory);
         pool.afterPropertiesSet();
@@ -158,8 +163,8 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
         sftpSync.setFilter(compositeFtpFileListFilter);
         sftpSync.setBeanFactory(this.getBeanFactory());
         sftpSync.setRemotePath(this.remoteDirectory);
-        sftpSync.afterPropertiesSet();// todo is this correct  ?
-        sftpSync.start();//todo
+        sftpSync.afterPropertiesSet(); // todo is this correct  ?
+        sftpSync.start(); //todo
 
         sftpMsgSrc.setRemotePredicate(compositeFtpFileListFilter);
         sftpMsgSrc.setSynchronizer(sftpSync);
@@ -177,7 +182,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
     private Resource fromText(String path) {
         ResourceEditor resourceEditor = new ResourceEditor(this.resourceLoader);
         resourceEditor.setAsText(path);
+
         return (Resource) resourceEditor.getValue();
     }
-
 }
