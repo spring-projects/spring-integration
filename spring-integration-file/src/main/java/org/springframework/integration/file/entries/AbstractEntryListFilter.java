@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file.entries;
+
+import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public abstract class AbstractEntryListFilter<T> implements EntryListFilter<T> {
 
-    protected abstract boolean accept(T t);
+/**
+ * A convenience base class for any {@link EntryListFilter} whose criteria can be
+ * evaluated against each File in isolation. If the entire List of files is
+ * required for evaluation, implement the {@link EntryListFilter} interface directly.
+ *
+ * @author Mark Fisher
+ * @author Iwein Fuld
+ * @author Josh Long 
+ */
+public abstract class AbstractEntryListFilter<T> implements InitializingBean, EntryListFilter<T> {
+    public abstract boolean accept(T t);
 
     public List<T> filterEntries(T[] entries) {
         List<T> accepted = new ArrayList<T>();
@@ -36,5 +46,9 @@ public abstract class AbstractEntryListFilter<T> implements EntryListFilter<T> {
         }
 
         return accepted;
+    }
+
+    public void afterPropertiesSet() throws Exception {
+      // its all you!
     }
 }

@@ -27,6 +27,8 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 
 /**
  * @author Mark Fisher

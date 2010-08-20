@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.filters;
 
 import java.io.File;
 import java.util.ArrayList;

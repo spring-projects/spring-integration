@@ -22,10 +22,10 @@ import java.util.List;
 
 
 /**
- * Convenience implementation patterned off {@link org.springframework.integration.file.FileListFilter}
+ * Convenience implementation patterned off {@link org.springframework.integration.file.filters.FileListFilter}
  *
  * @author Josh Long
- */
+ */                 @Deprecated
 public abstract class AbstractSftpFileListFilter implements SftpFileListFilter {
     
     abstract public boolean accept(ChannelSftp.LsEntry lsEntry);

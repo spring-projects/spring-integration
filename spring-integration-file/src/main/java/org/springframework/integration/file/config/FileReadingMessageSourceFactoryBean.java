@@ -19,10 +19,10 @@ package org.springframework.integration.file.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.DirectoryScanner;
-import org.springframework.integration.file.FileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.locking.AbstractFileLockerFilter;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
 
     private volatile File directory;
 
-    private volatile FileListFilter filter;
+    private volatile EntryListFilter<File> filter;
 
     private volatile AbstractFileLockerFilter locker;
 
@@ -69,7 +69,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
         this.scanner = scanner;
     }
 
-    public void setFilter(FileListFilter filter) {
+    public void setFilter(EntryListFilter<File> filter) {
         if (filter instanceof AbstractFileLockerFilter && this.locker == null) {
             this.setLocker((AbstractFileLockerFilter) filter);
         }
@@ -133,7 +133,7 @@ public class FileReadingMessageSourceFactoryBean implements FactoryBean<FileRead
                 if (this.locker == null) {
                     this.source.setFilter(this.filter);
                 } else {
-                    this.source.setFilter(new CompositeFileListFilter(this.filter, this.locker));
+                    this.source.setFilter(new CompositeEntryListFilter<File>(this.filter, this.locker));
                     this.source.setLocker(locker);
                 }
             }

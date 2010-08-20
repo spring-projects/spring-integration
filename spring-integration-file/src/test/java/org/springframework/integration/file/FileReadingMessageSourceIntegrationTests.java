@@ -80,7 +80,8 @@ public class FileReadingMessageSourceIntegrationTests {
 	@Test
 	public void getFiles() throws Exception {
 		Message<File> received1 = pollableFileSource.receive();
-		assertNotNull("This should return the first message", received1);
+		System.out.println( "getfiels() round 1");
+        assertNotNull("This should return the first message", received1);
 		pollableFileSource.onSend(received1);
 		Message<File> received2 = pollableFileSource.receive();
 		assertNotNull(received2);
@@ -154,12 +155,13 @@ public class FileReadingMessageSourceIntegrationTests {
 	/**
 	 * Convenience method to run part of a test concurrently in multiple threads
 	 * 
-	 * @param numberOfThreads
-	 * @param todo the runnable that should be run by all the threads
+	 * @param numberOfThreads         how many threads to spawn
+	 * @param runnable the runnable that should be run by all the threads
+     * @param start the {@link java.util.concurrent.CountDownLatch} instance telling it when to assume everything works
 	 * @return a latch that will be counted down once all threads have run their
 	 * runnable.
 	 */
-	private CountDownLatch doConcurrently(int numberOfThreads, final Runnable todo, final CountDownLatch start) {
+	private CountDownLatch doConcurrently(int numberOfThreads, final Runnable runnable, final CountDownLatch start) {
 		final CountDownLatch started = new CountDownLatch(numberOfThreads);
 		final CountDownLatch done = new CountDownLatch(numberOfThreads);
 		for (int i = 0; i < numberOfThreads; i++) {
@@ -174,7 +176,7 @@ public class FileReadingMessageSourceIntegrationTests {
 					catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					}
-					todo.run();
+					runnable.run();
 					done.countDown();
 				}
 			}).start();

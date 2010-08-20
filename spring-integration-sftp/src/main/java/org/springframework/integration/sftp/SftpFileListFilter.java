@@ -24,7 +24,7 @@ import java.util.List;
  * and returns the balance. These are then sync'd to the local directory.
  *
  * @author Josh Long
- */
+ */                 @Deprecated
 public interface SftpFileListFilter {
     List<ChannelSftp.LsEntry> filterFiles (ChannelSftp.LsEntry [] files);
 }

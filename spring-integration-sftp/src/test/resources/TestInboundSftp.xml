@@ -34,6 +34,7 @@
 						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
 						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
+    
     <context:component-scan base-package="org.springframework.integration.sftp"/>
     <context:property-placeholder
             location="file://${user.home}/Desktop/sftp.properties"
@@ -49,6 +50,8 @@
             channel="inboundFilesChannel"
             filename-pattern=".*?jpg"
             username="${sftp.username}"
+            auto-create-directories="true"
+            auto-delete-remote-files-on-sync="true"
             host="${sftp.host}">
         <poller>
             <interval-trigger interval="1000" time-unit="MILLISECONDS"/>

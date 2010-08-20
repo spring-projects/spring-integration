@@ -34,11 +34,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.file.AcceptOnceFileListFilter;
-import org.springframework.integration.file.CompositeFileListFilter;
-import org.springframework.integration.file.FileListFilter;
+import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.*;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.PatternMatchingFileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -88,7 +92,7 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	@Test
 	public void compositeFilterType() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
-		assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
+		assertTrue(scannerAccessor.getPropertyValue("filter") instanceof CompositeEntryListFilter);
 	}
 
 	@Test
@@ -106,11 +110,11 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	public void acceptOnceFilter() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
 
-		Set<FileListFilter> filters = (Set<FileListFilter>) new DirectFieldAccessor(
+		Set<EntryListFilter<File>> filters = (Set<EntryListFilter<File>>) new DirectFieldAccessor(
 				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
 		boolean hasAcceptOnceFilter = false;
-		for (FileListFilter filter : filters) {
-			if (filter instanceof AcceptOnceFileListFilter) {
+		for (EntryListFilter<File> filter : filters) {
+			if (filter instanceof AcceptOnceEntryFileListFilter) {
 				hasAcceptOnceFilter = true;
 			}
 		}
@@ -122,11 +126,11 @@ public class FileInboundChannelAdapterWithPatternParserTests {
 	public void patternFilter() {
         DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(accessor.getPropertyValue("scanner"));
 
-		Set<FileListFilter> filters = (Set<FileListFilter>) new DirectFieldAccessor(
+		Set<EntryListFilter> filters = (Set<EntryListFilter>) new DirectFieldAccessor(
 				scannerAccessor.getPropertyValue("filter")).getPropertyValue("fileFilters");
 		Pattern pattern = null;
-		for (FileListFilter filter : filters) {
-			if (filter instanceof PatternMatchingFileListFilter) {
+		for (EntryListFilter filter : filters) {
+			if (filter instanceof PatternMatchingEntryListFilter) {
 				pattern = (Pattern) new DirectFieldAccessor(filter).getPropertyValue("pattern");
 			}
 		}

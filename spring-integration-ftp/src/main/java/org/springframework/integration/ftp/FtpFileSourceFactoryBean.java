@@ -2,6 +2,7 @@ package org.springframework.integration.ftp;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.ApplicationContext;
@@ -11,6 +12,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.Assert;
@@ -19,15 +23,15 @@ import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 
 /**
- * Makes it easier to assemble the moving pieces involved in standing up an {@link FtpMessageSourceFactoryBean}
+ * Makes it easier to assemble the moving pieces involved in standing up an {@link org.springframework.integration.ftp.FtpFileSource}
  *
  * @author Josh Long
  */
-public class FtpMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSource> implements ResourceLoaderAware, ApplicationContextAware {
+@Deprecated
+public class FtpFileSourceFactoryBean extends AbstractFactoryBean<FtpFileSource> implements ResourceLoaderAware, ApplicationContextAware {
     private int port;
     private boolean autoCreateDirectories;
     private String filenamePattern;
@@ -47,7 +51,7 @@ public class FtpMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSour
     /**
      * Used to teach the FTP adapter what files you are interested in receiving
      */
-    private FtpFileListFilter filter;
+    private EntryListFilter<FTPFile> filter;
 
     public void setFilenamePattern(String filenamePattern) {
         this.filenamePattern = filenamePattern;
@@ -98,10 +102,11 @@ public class FtpMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSour
         this.clientMode = clientMode;
     }
 
-    public void setFilter(FtpFileListFilter filter) {
+    public void setFilter(EntryListFilter<FTPFile> filter) {
         this.filter = filter;
     }
 
+    private FtpFileEntryNamer ftpFileEntryNamer =new FtpFileEntryNamer();
     @Override
     protected FtpFileSource createInstance() throws Exception {
         // setup local dir
@@ -120,17 +125,15 @@ public class FtpMessageSourceFactoryBean extends AbstractFactoryBean<FtpFileSour
 
         this.ftpInboundSynchronizer = new FtpInboundSynchronizer();
 
-        CompositeFtpFileListFilter compositeFtpFileListFilter = new CompositeFtpFileListFilter();
+        CompositeEntryListFilter<FTPFile> compositeFtpFileListFilter = new CompositeEntryListFilter<FTPFile>() ;
+        if( StringUtils.hasText( this.filenamePattern)){            
+            PatternMatchingEntryListFilter<FTPFile> ftpFilePatternMatchingEntryListFilter = new PatternMatchingEntryListFilter<FTPFile>(ftpFileEntryNamer,filenamePattern) ;
+            compositeFtpFileListFilter.addFilter( ftpFilePatternMatchingEntryListFilter);
 
-        if (StringUtils.hasText(this.filenamePattern)) {
-            PatternMatchingFtpFileListFilter patternMatchingFTPFileListFilter = new PatternMatchingFtpFileListFilter();
-            patternMatchingFTPFileListFilter.setPattern(Pattern.compile(this.filenamePattern));
-            compositeFtpFileListFilter.addFilter(patternMatchingFTPFileListFilter);
         }
+        if(this.filter != null)
+               compositeFtpFileListFilter.addFilter( this.filter);
 
-        if (this.filter != null) {
-            compositeFtpFileListFilter.addFilter(this.filter);
-        }
 
         this.ftpInboundSynchronizer.setFilter(compositeFtpFileListFilter);
 

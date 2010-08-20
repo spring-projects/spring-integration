@@ -13,23 +13,28 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-
 package org.springframework.integration.sftp;
 
+import com.jcraft.jsch.ChannelSftp;
+
 import org.springframework.beans.factory.InitializingBean;
+
 import org.springframework.context.Lifecycle;
+
 import org.springframework.core.io.Resource;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.AcceptOnceFileListFilter;
-import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.PatternMatchingFileListFilter;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 
 import java.io.File;
 import java.io.IOException;
+
 import java.util.regex.Pattern;
 
 
@@ -46,13 +51,21 @@ public class SftpMessageSource implements MessageSource<File>, InitializingBean,
     private SftpInboundSynchronizer synchronizer;
     private TaskScheduler taskScheduler;
     private Trigger trigger;
+    private SftpEntryNamer lsEntryEntryNamer = new SftpEntryNamer();
 
     public SftpMessageSource(FileReadingMessageSource fileSource, SftpInboundSynchronizer synchronizer) {
         this.fileReadingMessageSource = fileSource;
         this.synchronizer = synchronizer;
 
         Pattern completePattern = Pattern.compile("^.*(?<!" + SftpInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
-        fileReadingMessageSource.setFilter(new CompositeFileListFilter(new AcceptOnceFileListFilter(), new PatternMatchingFileListFilter(completePattern)));
+        PatternMatchingEntryListFilter<ChannelSftp.LsEntry> filePatternMatchingEntryListFilter = new PatternMatchingEntryListFilter<ChannelSftp.LsEntry>(lsEntryEntryNamer, completePattern);
+        PatternMatchingEntryListFilter<ChannelSftp.LsEntry> lsEntryPatternMatchingEntryListFilter = new PatternMatchingEntryListFilter<ChannelSftp.LsEntry>(this.lsEntryEntryNamer, completePattern);
+
+        CompositeEntryListFilter<ChannelSftp.LsEntry> fileCompositeEntryListFilter = new CompositeEntryListFilter<ChannelSftp.LsEntry>(filePatternMatchingEntryListFilter,
+                lsEntryPatternMatchingEntryListFilter);
+    // todo     this.fileReadingMessageSource.setFilter( fileCompositeEntryListFilter);
+
+        //fileReadingMessageSource.setFilter( (completePattern)));
     }
 
     public void afterPropertiesSet() throws Exception {
@@ -94,11 +107,12 @@ public class SftpMessageSource implements MessageSource<File>, InitializingBean,
 
     public void setLocalDirectory(final Resource localDirectory) {
         this.localDirectory = localDirectory;
+
         try {
             this.fileReadingMessageSource.setDirectory(localDirectory.getFile());
         } catch (IOException e) {
-            
         }
+
         this.synchronizer.setLocalDirectory(localDirectory);
     }
 

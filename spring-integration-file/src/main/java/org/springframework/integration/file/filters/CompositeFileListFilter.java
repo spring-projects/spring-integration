@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.file.filters;
 
-package org.springframework.integration.file;
+import java.util.Set;
+
 
 import org.springframework.util.Assert;
 
@@ -22,13 +24,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.*;
 
+
 /**
  * Composition that delegates to multiple {@link FileFilter}s. The composition is AND based, meaning that a file must
  * pass through each filter's {@link #filterFiles(java.io.File[])} method in order to be accepted by the composite.
  *
  * @author Iwein Fuld
  * @author Mark Fisher
- */
+ */          @Deprecated
 public class CompositeFileListFilter implements FileListFilter {
 
     private final Set<FileListFilter> fileFilters;

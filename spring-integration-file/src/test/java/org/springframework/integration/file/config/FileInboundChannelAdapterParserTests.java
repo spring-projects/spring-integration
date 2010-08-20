@@ -32,7 +32,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.file.CompositeFileListFilter;
+import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.DefaultDirectoryScanner;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
@@ -77,8 +79,9 @@ public class FileInboundChannelAdapterParserTests {
 	public void filter() throws Exception {
 		DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
 		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
-		assertTrue("'filter' should be set",
-				scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
+		Object filter = scannerAccessor.getPropertyValue("filter");
+        assertTrue("'filter' should be set",
+			 filter instanceof AcceptOnceEntryFileListFilter);
 	}
 
 	@Test

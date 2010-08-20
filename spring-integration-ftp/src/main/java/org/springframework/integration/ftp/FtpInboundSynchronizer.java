@@ -23,6 +23,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.file.entries.AcceptAllEntryListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -44,6 +46,7 @@ import java.util.concurrent.ScheduledFuture;
  *
  * @author Iwein Fuld
  */
+@Deprecated
 public class FtpInboundSynchronizer implements InitializingBean, Lifecycle {
     private static final Log logger = LogFactory.getLog(FtpInboundSynchronizer.class);
     static final String INCOMPLETE_EXTENSION = ".INCOMPLETE";
@@ -54,14 +57,10 @@ public class FtpInboundSynchronizer implements InitializingBean, Lifecycle {
     private volatile Resource localDirectory;
     private boolean running = false;
     private ScheduledFuture<?> scheduledFuture;
-    private FtpFileListFilter filter;
-    private FtpFileListFilter acceptAllFtpFileListFilter = new FtpFileListFilter() {
-            public List<FTPFile> filterFiles(FTPFile[] files) {
-                return Arrays.asList(files);
-            }
-        };
+    private EntryListFilter<FTPFile> filter;
+    private EntryListFilter<FTPFile> acceptAllFtpFileListFilter = new AcceptAllEntryListFilter<FTPFile>();
 
-    public void setFilter(FtpFileListFilter filter) {
+    public void setFilter(EntryListFilter<FTPFile> filter) {
         this.filter = filter;
     }
 
@@ -94,7 +93,7 @@ public class FtpInboundSynchronizer implements InitializingBean, Lifecycle {
             FTPClient client = this.clientPool.getClient();
             Assert.state(client != null, FtpClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
 
-            Collection<FTPFile> fileList = this.filter.filterFiles(client.listFiles());
+            Collection<FTPFile> fileList = this.filter.filterEntries(client.listFiles());
 
             try {
                 for (FTPFile ftpFile : fileList) {

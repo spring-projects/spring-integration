@@ -26,13 +26,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
 
 /**
  * @author Iwein Fuld
  */
 public class CompositeFileListFilterTests {
 
-	private FileListFilter fileFilterMock1 = mock(FileListFilter.class);
+	private FileListFilter  fileFilterMock1 = mock( FileListFilter.class);
 
 	private FileListFilter fileFilterMock2 = mock(FileListFilter.class);
 
@@ -51,7 +53,8 @@ public class CompositeFileListFilterTests {
 
 	@Test
 	public void forwardedToAddedFilters() throws Exception {
-		CompositeFileListFilter compositeFileFilter = new CompositeFileListFilter().addFilter(fileFilterMock1, fileFilterMock2);
+		CompositeFileListFilter compositeFileFilter = new CompositeFileListFilter();
+        compositeFileFilter.addFilter(fileFilterMock1, fileFilterMock2);
 		List<File> returnedFiles = Arrays.asList(new File[] { fileMock });
 		when(fileFilterMock1.filterFiles(isA(File[].class))).thenReturn(returnedFiles);
 		when(fileFilterMock2.filterFiles(isA(File[].class))).thenReturn(returnedFiles);

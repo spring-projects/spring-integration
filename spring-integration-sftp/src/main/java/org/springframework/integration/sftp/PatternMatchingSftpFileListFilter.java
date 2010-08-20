@@ -28,10 +28,10 @@ import java.util.regex.Pattern;
 
 /**
  * Validates {@link com.jcraft.jsch.ChannelSftp.LsEntry}s against a {@link java.util.regex.Pattern}.
- * Patterned very much like {@link org.springframework.integration.file.PatternMatchingFileListFilter}.
+ * Patterned very much like {@link org.springframework.integration.file.filters.PatternMatchingFileListFilter}.
  *
  * @author Josh Long
- */
+ */     @Deprecated
 public class PatternMatchingSftpFileListFilter extends AbstractSftpFileListFilter implements InitializingBean {
 
     private Log logger = LogFactory.getLog(getClass());

@@ -23,6 +23,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.file.*;
+import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
+import org.springframework.integration.file.filters.AcceptOnceFileListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
+import org.springframework.integration.file.filters.FileListFilter;
+import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -50,95 +58,95 @@ public class FileInboundChannelAdapterWithPreventDuplicatesFlagTests {
 
     @Test
     public void filterAndNull() {
-        FileListFilter filter = this.extractFilter("filterAndNull");
-        assertFalse(filter instanceof CompositeFileListFilter);
+        EntryListFilter filter = this.extractFilter("filterAndNull");
+        assertFalse(filter instanceof CompositeEntryListFilter);
         assertSame(testFilter, filter);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void filterAndTrue() {
-        FileListFilter filter = this.extractFilter("filterAndTrue");
-        assertTrue(filter instanceof CompositeFileListFilter);
+        EntryListFilter filter = this.extractFilter("filterAndTrue");
+        assertTrue(filter instanceof CompositeEntryListFilter);
         Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
-        assertTrue(filters.iterator().next() instanceof AcceptOnceFileListFilter);
+        assertTrue(filters.iterator().next() instanceof AcceptOnceEntryFileListFilter);
         assertTrue(filters.contains(testFilter));
     }
 
     @Test
     public void filterAndFalse() throws Exception {
-        FileListFilter filter = this.extractFilter("filterAndFalse");
-        assertFalse(filter instanceof CompositeFileListFilter);
+        EntryListFilter filter = this.extractFilter("filterAndFalse");
+        assertFalse(filter instanceof CompositeEntryListFilter);
         assertSame(testFilter, filter);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void patternAndNull() throws Exception {
-        FileListFilter filter = this.extractFilter("patternAndNull");
-        assertTrue(filter instanceof CompositeFileListFilter);
+        EntryListFilter filter = this.extractFilter("patternAndNull");
+        assertTrue(filter instanceof CompositeEntryListFilter);
         Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
         Iterator<FileListFilter> iterator = filters.iterator();
-        assertTrue(iterator.next() instanceof AcceptOnceFileListFilter);
-        assertTrue(iterator.next() instanceof PatternMatchingFileListFilter);
+        assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
+        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void patternAndTrue() throws Exception {
-        FileListFilter filter = this.extractFilter("patternAndTrue");
-        assertTrue(filter instanceof CompositeFileListFilter);
+        EntryListFilter filter = this.extractFilter("patternAndTrue");
+        assertTrue(filter instanceof CompositeEntryListFilter);
         Collection filters = (Collection) new DirectFieldAccessor(filter).getPropertyValue("fileFilters");
         Iterator<FileListFilter> iterator = filters.iterator();
-        assertTrue(iterator.next() instanceof AcceptOnceFileListFilter);
-        assertTrue(iterator.next() instanceof PatternMatchingFileListFilter);
+        assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
+        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
     }
 
     @Test
     public void patternAndFalse() throws Exception {
-        FileListFilter filter = this.extractFilter("patternAndFalse");
-        assertFalse(filter instanceof CompositeFileListFilter);
-        assertTrue(filter instanceof PatternMatchingFileListFilter);
+        EntryListFilter <File> filter = this.extractFilter("patternAndFalse");
+        assertFalse(filter instanceof CompositeEntryListFilter);
+        assertTrue(filter instanceof PatternMatchingEntryListFilter);
     }
 
     @Test
     public void defaultAndNull() throws Exception {
-        FileListFilter filter = this.extractFilter("defaultAndNull");
+        EntryListFilter <File>filter = this.extractFilter("defaultAndNull");
         assertNotNull(filter);
-        assertFalse(filter instanceof CompositeFileListFilter);
-        assertTrue(filter instanceof AcceptOnceFileListFilter);
+        assertFalse(filter instanceof CompositeEntryListFilter);
+        assertTrue(filter instanceof AcceptOnceEntryFileListFilter);
         File testFile = new File("test");
         File[] files = new File[]{testFile, testFile, testFile};
-        List<File> result = filter.filterFiles(files);
-        assertEquals(1, result.size());
+        List<File> result = filter.filterEntries(files);
+        assertEquals(1 , result.size());
     }
 
     @Test
     public void defaultAndTrue() throws Exception {
-        FileListFilter filter = this.extractFilter("defaultAndTrue");
-        assertFalse(filter instanceof CompositeFileListFilter);
-        assertTrue(filter instanceof AcceptOnceFileListFilter);
+        EntryListFilter filter = this.extractFilter("defaultAndTrue");
+        assertFalse(filter instanceof CompositeEntryListFilter);
+        assertTrue(filter instanceof AcceptOnceEntryFileListFilter);
         File testFile = new File("test");
         File[] files = new File[]{testFile, testFile, testFile};
-        List<File> result = filter.filterFiles(files);
+        List<File> result = filter.filterEntries(files);
         assertEquals(1, result.size());
     }
 
     @Test
     public void defaultAndFalse() throws Exception {
-        FileListFilter filter = this.extractFilter("defaultAndFalse");
+        EntryListFilter filter = this.extractFilter("defaultAndFalse");
         assertNotNull(filter);
-        assertFalse(filter instanceof CompositeFileListFilter);
-        assertFalse(filter instanceof AcceptOnceFileListFilter);
+        assertFalse(filter instanceof CompositeEntryListFilter);
+        assertFalse(filter instanceof AcceptOnceEntryFileListFilter);
         File testFile = new File("test");
         File[] files = new File[]{testFile, testFile, testFile};
-        List<File> result = filter.filterFiles(files);
+        List<File> result = filter.filterEntries(files);
         assertEquals(3, result.size());
     }
 
 
-    private FileListFilter extractFilter(String beanName) {
-        return (FileListFilter) new DirectFieldAccessor(
+    private EntryListFilter<File> extractFilter(String beanName) {
+        return (EntryListFilter<File>) new DirectFieldAccessor(
                 new DirectFieldAccessor(
                         new DirectFieldAccessor(context.getBean(beanName))
                                 .getPropertyValue("source"))

@@ -20,10 +20,8 @@ import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.file.AcceptOnceFileListFilter;
-import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.PatternMatchingFileListFilter;
+import org.springframework.integration.file.entries.*;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 
@@ -37,10 +35,11 @@ import java.util.regex.Pattern;
  *
  * @author Iwein Fuld
  */
+@Deprecated
 public class FtpFileSource implements MessageSource<File>, InitializingBean, Lifecycle {
     private FileReadingMessageSource fileSource;
     private FtpInboundSynchronizer synchronizer;
-
+    private EntryNamer  fileEntryName = new FileEntryNamer();
     public FtpFileSource() {
         this(new FileReadingMessageSource(), new FtpInboundSynchronizer());
     }
@@ -48,9 +47,12 @@ public class FtpFileSource implements MessageSource<File>, InitializingBean, Lif
     public FtpFileSource(FileReadingMessageSource fileSource, FtpInboundSynchronizer synchronizer) {
         this.fileSource = fileSource;
         this.synchronizer = synchronizer;
-
         Pattern completePattern = Pattern.compile("^.*(?<!" + FtpInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
-        fileSource.setFilter(new CompositeFileListFilter(new AcceptOnceFileListFilter(), new PatternMatchingFileListFilter(completePattern)));
+
+        EntryListFilter<File> f =new CompositeEntryListFilter<File>(new AcceptOnceEntryFileListFilter<File>(),
+                new PatternMatchingEntryListFilter(fileEntryName,completePattern));
+
+        fileSource.setFilter(f);
     }
 
     public void setFileSource(FileReadingMessageSource fileSource) {
@@ -63,10 +65,10 @@ public class FtpFileSource implements MessageSource<File>, InitializingBean, Lif
 
     public void setLocalWorkingDirectory(Resource localWorkingDirectory) {
         this.synchronizer.setLocalDirectory(localWorkingDirectory);
-
         try {
             this.fileSource.setDirectory(localWorkingDirectory.getFile());
         } catch (IOException e) {
+            // oops
         }
     }
 

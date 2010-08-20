@@ -24,15 +24,28 @@ import java.util.regex.Pattern;
 
 
 /**
- * experimental
+ * <emphasis>experimental</emphasis>
+ * <p/>
+ * Filters a listing of entries (T) by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNamer})
+ * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
  * @author Josh Long
  * @param <T>   the type of entry
  */
-public abstract class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T> implements InitializingBean {
+public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T> implements InitializingBean {
     private Pattern pattern;
     private String patternExpression;
     private EntryNamer<T> entryNamer;
+
+    public PatternMatchingEntryListFilter(EntryNamer<T> en, String p) {
+        this.entryNamer = en;
+        this.patternExpression = p;
+    }
+
+    public PatternMatchingEntryListFilter(EntryNamer<T> en, Pattern p) {
+        this.entryNamer = en;
+        this.pattern = p;
+    }
 
     public void setPattern(Pattern pattern) {
         this.pattern = pattern;
@@ -46,13 +59,12 @@ public abstract class PatternMatchingEntryListFilter<T> extends AbstractEntryLis
         if (StringUtils.hasText(this.patternExpression) && (pattern == null)) {
             this.pattern = Pattern.compile(this.patternExpression);
         }
-
-        Assert.notNull(this.entryNamer,"'entryNamer' must not be null!");
+        Assert.notNull(this.entryNamer, "'entryNamer' must not be null!");
         Assert.notNull(this.pattern, "'pattern' mustn't be null!");
     }
-
+    
     @Override
-    protected boolean accept(T t) {
+    public boolean accept(T t) {
         return (t != null) && this.pattern.matcher(this.entryNamer.nameOf(t)).matches();
     }
 

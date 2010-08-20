@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file;
 
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
 
 import java.io.File;
+
 import java.util.List;
+
 
 /**
  * Default directory scanner and base class for other directory scanners. It takes care of the default interrelations
@@ -29,16 +32,17 @@ import java.util.List;
  * @since 2.0
  */
 public class DefaultDirectoryScanner implements DirectoryScanner {
-    private FileListFilter filter = new AcceptOnceFileListFilter();
+    private EntryListFilter<File> filter = new AcceptOnceEntryFileListFilter<File>();
     private FileLocker locker;
 
     public final List<File> listFiles(File directory) throws IllegalArgumentException {
         File[] files = listEligibleFiles(directory);
+
         if (files == null) {
-            throw new MessagingException("The path [" + directory
-                    + "] does not denote a properly accessible directory.");
+            throw new MessagingException("The path [" + directory + "] does not denote a properly accessible directory.");
         }
-        return this.filter.filterFiles(files);
+
+        return this.filter.filterEntries(files);
     }
 
     /**
@@ -52,10 +56,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
         return directory.listFiles();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public final void setFilter(FileListFilter filter) {
+    public void setFilter(EntryListFilter<File> filter) {
         this.filter = filter;
     }
 
@@ -65,7 +66,7 @@ public class DefaultDirectoryScanner implements DirectoryScanner {
      * This class takes the minimal implementation and merely delegates to the locker if set.
      */
     public final boolean tryClaim(File file) {
-        return locker != null ? locker.lock(file) : true;
+        return (locker == null) || locker.lock(file);
     }
 
     /**

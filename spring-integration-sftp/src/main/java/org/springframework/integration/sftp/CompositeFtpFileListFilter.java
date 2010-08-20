@@ -22,10 +22,10 @@ import java.util.*;
 
 
 /**
- * Patterned very much on the {@link org.springframework.integration.file.CompositeFileListFilter}
+ * Patterned very much on the {@link org.springframework.integration.file.filters.CompositeFileListFilter}
  *
  * @author Josh Long
- */
+ */       @Deprecated
 public class CompositeFtpFileListFilter implements SftpFileListFilter {
     private Set<SftpFileListFilter> filters;
 

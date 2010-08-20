@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.filters;
 
 import java.io.File;
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.List;
  * Strategy interface for filtering a group of files.
  * 
  * @author Iwein Fuld
- */
+ */          @Deprecated
 public interface FileListFilter {
 
 	/**

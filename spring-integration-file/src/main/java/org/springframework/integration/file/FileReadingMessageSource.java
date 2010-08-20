@@ -13,33 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.file.entries.EntryListFilter;
+
 import org.springframework.util.Assert;
 
 import java.io.File;
+
 import java.util.*;
 import java.util.concurrent.PriorityBlockingQueue;
 
+
 /**
  * {@link MessageSource} that creates messages from a file system directory. To prevent messages for certain files, you
- * may supply a {@link FileListFilter}. By default, an {@link AcceptOnceFileListFilter} is used. It ensures files are
+ * may supply a {@link org.springframework.integration.file.filters.FileListFilter}. By default, an {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter} is used. It ensures files are
  * picked up only once from the directory.
  * <p/>
  * A common problem with reading files is that a file may be detected before it is ready. The default {@link
- * AcceptOnceFileListFilter} does not prevent this. In most cases, this can be prevented if the file-writing process
+ * org.springframework.integration.file.filters.AcceptOnceFileListFilter} does not prevent this. In most cases, this can be prevented if the file-writing process
  * renames each file as soon as it is ready for reading. A pattern-matching filter that accepts only files that are
- * ready (e.g. based on a known suffix), composed with the default {@link AcceptOnceFileListFilter} would allow for
- * this. See {@link org.springframework.integration.file.CompositeFileListFilter} for a way to do this.
+ * ready (e.g. based on a known suffix), composed with the default {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter} would allow for
+ * this. See {@link org.springframework.integration.file.filters.CompositeFileListFilter} for a way to do this.
  * <p/>
  * A {@link Comparator} can be used to ensure internal ordering of the Files in a {@link PriorityBlockingQueue}. This
  * does not provide the same guarantees as a {@link ResequencingMessageGroupProcessor}, but in cases where writing files and failure
@@ -51,18 +56,11 @@ import java.util.concurrent.PriorityBlockingQueue;
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-public class FileReadingMessageSource implements MessageSource<File>,
-        InitializingBean {
-
+public class FileReadingMessageSource implements MessageSource<File>, InitializingBean {
     private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
-
-    private static final Log logger = LogFactory
-            .getLog(FileReadingMessageSource.class);
-
+    private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
     private volatile File directory;
-
     private volatile DirectoryScanner scanner = new DefaultDirectoryScanner();
-
     private volatile boolean autoCreateDirectory = true;
 
     /*
@@ -70,7 +68,6 @@ public class FileReadingMessageSource implements MessageSource<File>,
      * There is no locking around the queue, so there is also no iteration.
      */
     private final Queue<File> toBeReceived;
-
     private boolean scanEachPoll = false;
 
     /**
@@ -92,7 +89,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
      */
     public FileReadingMessageSource(int internalQueueCapacity) {
         this(null);
-        Assert.isTrue(internalQueueCapacity>0, "Cannot create a queue with non positive capacity");
+        Assert.isTrue(internalQueueCapacity > 0, "Cannot create a queue with non positive capacity");
         this.setScanner(new HeadDirectoryScanner(internalQueueCapacity));
     }
 
@@ -108,8 +105,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
      * @param receptionOrderComparator the comparator to be used to order the files in the internal queue
      */
     public FileReadingMessageSource(Comparator<File> receptionOrderComparator) {
-        toBeReceived = new PriorityBlockingQueue<File>(DEFAULT_INTERNAL_QUEUE_CAPACITY,
-                receptionOrderComparator);
+        toBeReceived = new PriorityBlockingQueue<File>(DEFAULT_INTERNAL_QUEUE_CAPACITY, receptionOrderComparator);
     }
 
     /**
@@ -137,13 +133,13 @@ public class FileReadingMessageSource implements MessageSource<File>,
     }
 
     /**
-     * Sets a {@link FileListFilter}. By default a {@link AcceptOnceFileListFilter} with no bounds is used. In most
-     * cases a customized {@link FileListFilter} will be needed to deal with modification and duplication concerns. If
-     * multiple filters are required a {@link CompositeFileListFilter} can be used to group them together.
+     * Sets a {@link org.springframework.integration.file.filters.FileListFilter}. By default a {@link org.springframework.integration.file.filters.AcceptOnceFileListFilter} with no bounds is used. In most
+     * cases a customized {@link org.springframework.integration.file.filters.FileListFilter} will be needed to deal with modification and duplication concerns. If
+     * multiple filters are required a {@link org.springframework.integration.file.filters.CompositeFileListFilter} can be used to group them together.
      * <p/>
      * <b>The supplied filter must be thread safe.</b>.
      */
-    public void setFilter(FileListFilter filter) {
+    public void setFilter(EntryListFilter<File> filter) {
         Assert.notNull(filter, "'filter' must not be null");
         this.scanner.setFilter(filter);
     }
@@ -175,43 +171,50 @@ public class FileReadingMessageSource implements MessageSource<File>,
 
     public final void afterPropertiesSet() {
         Assert.notNull(directory, "'directory' must not be set before initialization");
+
         if (!this.directory.exists() && this.autoCreateDirectory) {
             this.directory.mkdirs();
         }
-        Assert.isTrue(this.directory.exists(), "Source directory ["
-                + directory + "] does not exist.");
-        Assert.isTrue(this.directory.isDirectory(), "Source path ["
-                + this.directory + "] does not point to a directory.");
-        Assert.isTrue(this.directory.canRead(), "Source directory ["
-                + this.directory + "] is not readable.");
+
+        Assert.isTrue(this.directory.exists(), "Source directory [" + directory + "] does not exist.");
+        Assert.isTrue(this.directory.isDirectory(), "Source path [" + this.directory + "] does not point to a directory.");
+        Assert.isTrue(this.directory.canRead(), "Source directory [" + this.directory + "] is not readable.");
     }
 
     public Message<File> receive() throws MessagingException {
         Message<File> message = null;
+
         // rescan only if needed or explicitly configured
         if (scanEachPoll || toBeReceived.isEmpty()) {
             scanInputDirectory();
         }
+
         File file = toBeReceived.poll();
+
         // file == null means the queue was empty
         // we can't rely on isEmpty for concurrency reasons
-        while (file != null && !scanner.tryClaim(file)) {
+        while ((file != null) && !scanner.tryClaim(file)) {
             file = toBeReceived.poll();
         }
+
         if (file != null) {
             message = MessageBuilder.withPayload(file).build();
+
             if (logger.isInfoEnabled()) {
                 logger.info("Created message: [" + message + "]");
             }
         }
+
         return message;
     }
 
     private void scanInputDirectory() {
         List<File> filteredFiles = scanner.listFiles(directory);
         Set<File> freshFiles = new HashSet<File>(filteredFiles);
+
         if (!freshFiles.isEmpty()) {
             toBeReceived.addAll(freshFiles);
+
             if (logger.isDebugEnabled()) {
                 logger.debug("Added to queue: " + freshFiles);
             }
@@ -225,6 +228,7 @@ public class FileReadingMessageSource implements MessageSource<File>,
         if (logger.isWarnEnabled()) {
             logger.warn("Failed to send: " + failedMessage);
         }
+
         toBeReceived.offer(failedMessage.getPayload());
     }
 

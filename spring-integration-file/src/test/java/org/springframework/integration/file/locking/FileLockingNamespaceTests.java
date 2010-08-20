@@ -22,7 +22,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.file.CompositeFileListFilter;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
+import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -64,7 +65,7 @@ public class FileLockingNamespaceTests {
     @Test
     public void shouldSetCustomLockerProperly() {
         assertThat(extractFromScanner("locker", customLockingSource), is(StubLocker.class));
-        assertThat(extractFromScanner("filter", customLockingSource), is(CompositeFileListFilter.class));
+        assertThat(extractFromScanner("filter", customLockingSource), is(CompositeEntryListFilter.class));
     }
 
     private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
@@ -74,7 +75,7 @@ public class FileLockingNamespaceTests {
     @Test
     public void shouldSetNioLockerProperly() {
         assertThat(extractFromScanner("locker", nioLockingSource), is(NioFileLocker.class));
-        assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeFileListFilter.class));
+        assertThat(extractFromScanner("filter", nioLockingSource), is(CompositeEntryListFilter.class));
     }
 
     public static class StubLocker extends AbstractFileLockerFilter {

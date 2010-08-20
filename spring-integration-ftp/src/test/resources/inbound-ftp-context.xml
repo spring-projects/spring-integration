@@ -20,7 +20,7 @@
                                  filename-pattern=".*?jpg"
             >
         <int:poller>
-            <int:interval-trigger interval="10000" time-unit="MILLISECONDS"/>
+            <int:interval-trigger interval="1000" time-unit="MILLISECONDS"/>
         </int:poller>
     </ftp:inbound-channel-adapter>
 

@@ -13,32 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file.entries;
 
+import org.springframework.beans.factory.InitializingBean;
+
 import org.springframework.util.Assert;
+
 import java.util.*;
 
 
 public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
-    private final Set<EntryListFilter> fileFilters;
+    private final Set<EntryListFilter<T>> fileFilters;
 
-    public CompositeEntryListFilter(EntryListFilter... fileFilters) {
-        this.fileFilters = new LinkedHashSet<EntryListFilter>(Arrays.asList(fileFilters));
+    public CompositeEntryListFilter(EntryListFilter<T>... fileFilters) {
+        this.fileFilters = new LinkedHashSet<EntryListFilter<T>>(Arrays.asList(fileFilters));
     }
 
-    public CompositeEntryListFilter(Collection<EntryListFilter> fileFilters) {
-        this.fileFilters = new LinkedHashSet<EntryListFilter>(fileFilters);
+    public CompositeEntryListFilter(Collection<? extends EntryListFilter<T>> fileFilters) {
+        this.fileFilters = new LinkedHashSet<EntryListFilter<T>>(fileFilters);
     }
 
     @SuppressWarnings("unchecked")
     public List<T> filterEntries(T[] entries) {
         Assert.notNull(entries, "'files' should not be null");
-        List<T> leftOver =  Arrays.asList(entries);
-        for (EntryListFilter fileFilter : this.fileFilters) {
-            T[] ts =(T[]) leftOver.toArray();
+
+        List<T> leftOver = Arrays.asList(entries);
+
+        for (EntryListFilter<T> fileFilter : this.fileFilters) {
+            T[] ts = (T[]) leftOver.toArray();
             leftOver = fileFilter.filterEntries(ts);
         }
+
         return leftOver;
     }
 
@@ -47,7 +52,7 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
      * @return this CompositeFileFilter instance with the added filters
      * @see #addFilters(Collection)
      */
-    public CompositeEntryListFilter addFilter(EntryListFilter... filters) {
+    public CompositeEntryListFilter addFilter(EntryListFilter<T>... filters) {
         return addFilters(Arrays.asList(filters));
     }
 
@@ -59,7 +64,16 @@ public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
      * @param filtersToAdd a list of filters to add
      * @return this CompositeEntryListFilter instance with the added filters
      */
-    public CompositeEntryListFilter addFilters(Collection<EntryListFilter> filtersToAdd) {
+    public CompositeEntryListFilter addFilters(Collection<EntryListFilter<T>> filtersToAdd) {
+        for (EntryListFilter<T> elf : filtersToAdd)
+            if (elf instanceof InitializingBean) {
+                try {
+                    ((InitializingBean) elf).afterPropertiesSet();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
         this.fileFilters.addAll(filtersToAdd);
 
         return this;

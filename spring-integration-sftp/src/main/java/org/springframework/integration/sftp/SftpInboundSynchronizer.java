@@ -44,7 +44,7 @@ import java.util.concurrent.ScheduledFuture;
  *
  * @author Josh Long
  * @author Mario Gray
- */
+ */     @Deprecated
 public class SftpInboundSynchronizer implements InitializingBean {
     private static final long DEFAULT_REFRESH_RATE = 10 * 1000; // 10 seconds
 

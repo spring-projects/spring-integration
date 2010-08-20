@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file;
 
+import org.springframework.integration.file.entries.EntryListFilter;
+
 import java.io.File;
+
 import java.util.Arrays;
 import java.util.List;
+
 
 /**
  * A custom scanner that only returns the first <code>maxNumberOfFiles</code> elements from a directory listing. This is
@@ -28,19 +31,18 @@ import java.util.List;
  * @since 2.0.0
  */
 public class HeadDirectoryScanner extends DefaultDirectoryScanner {
-
     public HeadDirectoryScanner(int maxNumberOfFiles) {
         this.setFilter(new HeadFilter(maxNumberOfFiles));
     }
 
-    private class HeadFilter implements FileListFilter {
+    private class HeadFilter implements EntryListFilter<File> {
         private final int maxNumberOfFiles;
 
         public HeadFilter(int maxNumberOfFiles) {
             this.maxNumberOfFiles = maxNumberOfFiles;
         }
 
-        public List<File> filterFiles(File[] files) {
+        public List<File> filterEntries(File[] files) {
             return Arrays.asList(files).subList(0, Math.min(files.length, maxNumberOfFiles));
         }
     }

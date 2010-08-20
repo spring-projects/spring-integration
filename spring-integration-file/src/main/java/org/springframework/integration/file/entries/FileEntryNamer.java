@@ -14,35 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.entries;
 
 import java.io.File;
-import java.util.regex.Pattern;
 
-import org.springframework.util.Assert;
 
 /**
- * A {@link FileListFilter} implementation that matches against a {@link Pattern}.
+ * {@link java.io.File} implementation of the {@link org.springframework.integration.file.entries.EntryNamer} strategy.
+ *
+ * This part feels a little over-engineered...
+ *
+ * @author Josh Long
  * 
- * @author Mark Fisher
  */
-public class PatternMatchingFileListFilter extends AbstractFileListFilter {
-
-	private final Pattern pattern;
-
-
-	/**
-	 * Create a filter for the given pattern.
-	 */
-	public PatternMatchingFileListFilter(Pattern pattern) {
-		Assert.notNull(pattern, "pattern must not be null");
-		this.pattern = pattern;
-	}
-
-
-	protected boolean accept(File file) {
-		return (file != null)
-				&& this.pattern.matcher(file.getName()).matches();
-	}
-
+public class FileEntryNamer implements EntryNamer<File> {
+    public String nameOf(File entry) {
+        return (entry != null) ? entry.getName() : null;
+    }
 }

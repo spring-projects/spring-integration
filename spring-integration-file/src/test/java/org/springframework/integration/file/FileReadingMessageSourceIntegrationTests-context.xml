@@ -1,28 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
-	<!-- under test -->
-	<bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
-		p:directory="file:${java.io.tmpdir}/FileReadingMessageSourceIntegrationTests"
-		p:filter-ref="compositeFilter"/>
+    <!-- under test -->
+    <bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
+          p:directory="file:${java.io.tmpdir}/FileReadingMessageSourceIntegrationTests"
+          p:filter-ref="compositeFilter"/>
 
-	<!-- customized filter -->
-	<bean id="compositeFilter" class="org.springframework.integration.file.CompositeFileListFilter">
-		<constructor-arg>
-			<list>
-				<bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
-				<bean class="org.springframework.integration.file.TestFileListFilter" />
-				<bean class="org.springframework.integration.file.PatternMatchingFileListFilter">
-					<constructor-arg value="^test.*$"/>
-				</bean>
-			</list>
-		</constructor-arg>
-	</bean>
+    <bean class="org.springframework.integration.file.entries.FileEntryNamer" id="entryNamer"/>
 
-	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+    <!-- customized filter -->
+<!--
+    <bean id="compositeFilter" class="org.springframework.integration.file.entries.CompositeEntryListFilter">
+        <constructor-arg>
+            <list>
+                <bean class="org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter"/>
+                <bean class="org.springframework.integration.file.TestFileListFilter"/>
+                <bean class="org.springframework.integration.file.entries.PatternMatchingEntryListFilter">
+                    <constructor-arg ref="entryNamer"/>
+                    <constructor-arg value="^test.*$"/>
+                </bean>
+            </list>
+        </constructor-arg>
+    </bean>
+-->
+
+
+    <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" id="compositeFilter">
+        <property name="filterReferences">
+
+            <util:list>
+
+                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="true"/>
+                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:preventDuplicates="false"/>
+                <bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" p:filenamePattern="^test.*$"/>
+
+            </util:list>
+
+        </property>
+
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
 </beans>
