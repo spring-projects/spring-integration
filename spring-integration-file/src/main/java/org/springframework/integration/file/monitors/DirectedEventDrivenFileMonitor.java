@@ -4,7 +4,10 @@ import java.io.File;
 
 
 /**
- * simply takes a hint and publishes an event as appropriate
+ * simply takes a cue / hint (something <emphasis>tells</emphasis> it outright that something has
+ * been added to a directory, and it and publishes an event as appropriate). This is useful for adapters
+ * that know when the file's been downloaded and want to deliver data as soon as its downloaded, but to poll the
+ * remote system only at a certain interval.
  *
  * @author Josh Long
  */

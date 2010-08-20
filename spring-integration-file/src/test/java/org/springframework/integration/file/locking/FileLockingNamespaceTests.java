@@ -22,9 +22,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.file.entries.CompositeEntryListFilter;
-import org.springframework.integration.file.filters.CompositeFileListFilter;
 import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -52,9 +51,10 @@ public class FileLockingNamespaceTests {
 
     FileReadingMessageSource customLockingSource;
 
-    @Before public void extractSources() {
-        nioLockingSource = (FileReadingMessageSource) new DirectFieldAccessor( nioAdapter).getPropertyValue("source");
-        customLockingSource = (FileReadingMessageSource) new DirectFieldAccessor( customAdapter).getPropertyValue("source");
+    @Before
+    public void extractSources() {
+        nioLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(nioAdapter).getPropertyValue("source");
+        customLockingSource = (FileReadingMessageSource) new DirectFieldAccessor(customAdapter).getPropertyValue("source");
     }
 
     @Test
@@ -69,7 +69,7 @@ public class FileLockingNamespaceTests {
     }
 
     private Object extractFromScanner(String propertyName, FileReadingMessageSource source) {
-        return new DirectFieldAccessor( new DirectFieldAccessor(source).getPropertyValue("scanner") ).getPropertyValue(propertyName);
+        return new DirectFieldAccessor(new DirectFieldAccessor(source).getPropertyValue("scanner")).getPropertyValue(propertyName);
     }
 
     @Test

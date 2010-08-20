@@ -78,7 +78,7 @@ public class FileReadingMessageSourceTests {
         when(inputDirectoryMock.listFiles()).thenReturn(new File[]{fileMock});
         Message received = source.receive();
         assertNotNull(received);
-        source.onFailure(received, new RuntimeException("failed"));
+        source.onFailure(received);
         assertEquals(received.getPayload(), source.receive().getPayload());
         verify(inputDirectoryMock, times(1)).listFiles();
     }

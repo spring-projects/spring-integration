@@ -16,77 +16,75 @@
 
 package org.springframework.integration.file;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.file.entries.FileEntryNamer;
+import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 
 import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.junit.Test;
-
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.file.filters.FileListFilter;
-import org.springframework.integration.file.filters.PatternMatchingFileListFilter;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Mark Fisher
  */
 public class PatternMatchingFileListFilterTests {
 
-	@Test
-	public void matchSingleFile() {
-		File[] files = new File[] { new File("/some/path/test.txt") };
-		Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-		PatternMatchingFileListFilter filter = new PatternMatchingFileListFilter(pattern);
-		List<File> accepted = filter.filterFiles(files);
-		assertEquals(1, accepted.size());
-	}
+    private FileEntryNamer fileEntryNamer = new FileEntryNamer();
 
-	@Test
-	public void noMatchWithSingleFile() {
-		File[] files = new File[] { new File("/some/path/Test.txt") };
-		Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-		PatternMatchingFileListFilter filter = new PatternMatchingFileListFilter(pattern);
-		List<File> accepted = filter.filterFiles(files);
-		assertEquals(0, accepted.size());		
-	}
+    @Test
+    public void matchSingleFile() {
+        File[] files = new File[]{new File("/some/path/test.txt")};
+        Pattern pattern = Pattern.compile("[a-z]+\\.txt");
+        PatternMatchingEntryListFilter<File> filter = new PatternMatchingEntryListFilter<File>(fileEntryNamer, pattern);
+        List<File> accepted = filter.filterEntries(files);
+        assertEquals(1, accepted.size());
+    }
 
-	@Test
-	public void matchSubset() {
-		File[] files = new File[] {
-				new File("/some/path/foo.txt"),
-				new File("/some/path/foo.not"),
-				new File("/some/path/bar.txt"),
-				new File("/some/path/bar.not")
-		};
-		Pattern pattern = Pattern.compile("[a-z]+\\.txt");
-		PatternMatchingFileListFilter filter = new PatternMatchingFileListFilter(pattern);
-		List<File> accepted = filter.filterFiles(files);
-		assertEquals(2, accepted.size());
-		assertTrue(accepted.contains(new File("/some/path/foo.txt")));
-		assertTrue(accepted.contains(new File("/some/path/bar.txt")));
-	}
+    @Test
+    public void noMatchWithSingleFile() {
+        File[] files = new File[]{new File("/some/path/Test.txt")};
+        Pattern pattern = Pattern.compile("[a-z]+\\.txt");
+        PatternMatchingEntryListFilter<File> filter = new PatternMatchingEntryListFilter<File>(fileEntryNamer, pattern);
+        List<File> accepted = filter.filterEntries(files);
+        assertEquals(0, accepted.size());
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void nullPattern() {
-		new PatternMatchingFileListFilter(null);
-	}
+    @Test
+    public void matchSubset() {
+        File[] files = new File[]{
+                new File("/some/path/foo.txt"),
+                new File("/some/path/foo.not"),
+                new File("/some/path/bar.txt"),
+                new File("/some/path/bar.not")
+        };
+        Pattern pattern = Pattern.compile("[a-z]+\\.txt");
+        PatternMatchingEntryListFilter filter = new PatternMatchingEntryListFilter(this.fileEntryNamer, pattern);
+        List<File> accepted = filter.filterEntries(files);
+        assertEquals(2, accepted.size());
+        assertTrue(accepted.contains(new File("/some/path/foo.txt")));
+        assertTrue(accepted.contains(new File("/some/path/bar.txt")));
+    }
 
-	@Test
-	public void patternEditorInContext() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"patternMatchingFileListFilterTests.xml", this.getClass());
-		FileListFilter filter = (FileListFilter) context.getBean("filter");
-		File[] files = new File[] { new File("/some/path/foo.txt") };
-		List<File> accepted = filter.filterFiles(files);
-		assertEquals(1, accepted.size());
-	}
 
-	@Test(expected = BeanCreationException.class)
-	public void invalidPatternSyntax() throws Throwable {
-		new ClassPathXmlApplicationContext("invalidPatternMatchingFileListFilterTests.xml", this.getClass());
-	}
+    @Test
+    public void patternEditorInContext() {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+                "patternMatchingFileListFilterTests.xml", this.getClass());
+        EntryListFilter<File> filter = (EntryListFilter<File>) context.getBean("filter");
+        File[] files = new File[]{new File("/some/path/foo.txt")};
+        List<File> accepted = filter.filterEntries(files);
+        assertEquals(1, accepted.size());
+    }
+
+    @Test(expected = BeanCreationException.class)
+    public void invalidPatternSyntax() throws Throwable {
+        new ClassPathXmlApplicationContext("invalidPatternMatchingFileListFilterTests.xml", this.getClass());
+    }
 
 }

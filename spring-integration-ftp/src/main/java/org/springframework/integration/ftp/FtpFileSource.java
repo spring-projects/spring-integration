@@ -39,7 +39,8 @@ import java.util.regex.Pattern;
 public class FtpFileSource implements MessageSource<File>, InitializingBean, Lifecycle {
     private FileReadingMessageSource fileSource;
     private FtpInboundSynchronizer synchronizer;
-    private EntryNamer  fileEntryName = new FileEntryNamer();
+    private EntryNamer fileEntryName = new FileEntryNamer();
+
     public FtpFileSource() {
         this(new FileReadingMessageSource(), new FtpInboundSynchronizer());
     }
@@ -49,8 +50,8 @@ public class FtpFileSource implements MessageSource<File>, InitializingBean, Lif
         this.synchronizer = synchronizer;
         Pattern completePattern = Pattern.compile("^.*(?<!" + FtpInboundSynchronizer.INCOMPLETE_EXTENSION + ")$");
 
-        EntryListFilter<File> f =new CompositeEntryListFilter<File>(new AcceptOnceEntryFileListFilter<File>(),
-                new PatternMatchingEntryListFilter(fileEntryName,completePattern));
+        EntryListFilter<File> f = new CompositeEntryListFilter<File>(new AcceptOnceEntryFileListFilter<File>(),
+                new PatternMatchingEntryListFilter(fileEntryName, completePattern));
 
         fileSource.setFilter(f);
     }
@@ -93,7 +94,7 @@ public class FtpFileSource implements MessageSource<File>, InitializingBean, Lif
     }
 
     public void onFailure(Message<File> failedMessage, Throwable t) {
-        fileSource.onFailure(failedMessage, t);
+        fileSource.onFailure(failedMessage);
     }
 
     public void onSend(Message<File> sentMessage) {

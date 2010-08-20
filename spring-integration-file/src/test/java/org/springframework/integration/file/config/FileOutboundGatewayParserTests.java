@@ -16,17 +16,16 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Mark Fisher
@@ -35,19 +34,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileOutboundGatewayParserTests {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
 
-	@Test
-	public void checkOrderedGateway() throws Exception {
-		Object gateway = context.getBean("ordered");
-		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
-		FileWritingMessageHandler handler = (FileWritingMessageHandler)
-					gatewayAccessor.getPropertyValue("handler");
-		assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
-		assertEquals(777, handlerAccessor.getPropertyValue("order"));
-	}
+    @Test
+    public void checkOrderedGateway() throws Exception {
+        Object gateway = context.getBean("ordered");
+        DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
+        FileWritingMessageHandler handler = (FileWritingMessageHandler)
+                gatewayAccessor.getPropertyValue("handler");
+        assertEquals(Boolean.FALSE, gatewayAccessor.getPropertyValue("autoStartup"));
+        DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+        assertEquals(777, handlerAccessor.getPropertyValue("order"));
+    }
 
 }
