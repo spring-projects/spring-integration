@@ -1,36 +1,22 @@
 package org.springframework.integration.sftp.impl;
 
 import com.jcraft.jsch.ChannelSftp;
-
 import org.apache.commons.lang.SystemUtils;
-
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
-
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
-
-import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
-import org.springframework.integration.sftp.*;
+import org.springframework.integration.sftp.QueuedSftpSessionPool;
+import org.springframework.integration.sftp.SftpEntryNamer;
+import org.springframework.integration.sftp.SftpSessionFactory;
 import org.springframework.integration.sftp.config.SftpSessionUtils;
-
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-
-import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
-
-import java.util.Map;
 
 
 /**
@@ -127,7 +113,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
 
     @Override
     protected SftpInboundRemoteFileSystemSynchronizingMessageSource createInstance()
-        throws Exception {
+            throws Exception {
         boolean autoCreatDirs = Boolean.parseBoolean(this.autoCreateDirectories);
         boolean ackRemoteDir = Boolean.parseBoolean(this.autoDeleteRemoteFilesOnSync);
 
@@ -170,13 +156,15 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends
         sftpSync.setLocalDirectory(this.localDirectoryResource);
         sftpSync.setShouldDeleteSourceFile(ackRemoteDir);
         sftpSync.setFilter(compositeFtpFileListFilter);
+        sftpSync.setBeanFactory(this.getBeanFactory());
+        sftpSync.setRemotePath(this.remoteDirectory);
         sftpSync.afterPropertiesSet();// todo is this correct  ?
         sftpSync.start();//todo
 
         sftpMsgSrc.setRemotePredicate(compositeFtpFileListFilter);
         sftpMsgSrc.setSynchronizer(sftpSync);
-        sftpMsgSrc.setClientPool( pool);
-        sftpMsgSrc.setRemotePath( this.remoteDirectory);
+        sftpMsgSrc.setClientPool(pool);
+        sftpMsgSrc.setRemotePath(this.remoteDirectory);
         sftpMsgSrc.setLocalDirectory(this.localDirectoryResource);
         sftpMsgSrc.setBeanFactory(this.getBeanFactory());
         sftpMsgSrc.setAutoStartup(true);
