@@ -1,7 +1,6 @@
 package org.springframework.integration.ftp.impl;
 
 import org.apache.commons.net.ftp.FTPFile;
-
 import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.ftp.FtpClientPool;
 
@@ -32,7 +31,5 @@ public class FtpInboundRemoteFileSystemSynchronizingMessageSource extends Abstra
     protected void onInit() throws Exception {
         super.onInit();
         this.synchronizer.setClientPool(this.clientPool);
-
-
     }
 }

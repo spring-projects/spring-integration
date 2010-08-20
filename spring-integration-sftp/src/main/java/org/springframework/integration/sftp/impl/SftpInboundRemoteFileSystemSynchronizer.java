@@ -27,7 +27,7 @@ import java.util.Collection;
  */
 public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<ChannelSftp.LsEntry> {
     /**
-     * the path on te remote mount
+     * the path on the remote mount
      */
     private volatile String remotePath;
 
@@ -42,8 +42,8 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 
     @Override
     protected void onInit() throws Exception {
-        Assert.notNull(this.clientPool, "clientPool can't be null");
-
+        Assert.notNull(this.clientPool, "'clientPool' can't be null");
+        Assert.notNull(this.remotePath, "'remotePath' can't be null");
         if (this.shouldDeleteSourceFile) {
             this.entryAcknowledgmentStrategy = new DeletionEntryAcknowledgmentStrategy();
         }
@@ -56,7 +56,7 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 
     @SuppressWarnings("ignored")
     private boolean copyFromRemoteToLocalDirectory(SftpSession sftpSession, ChannelSftp.LsEntry entry, Resource localDir)
-        throws Exception {
+            throws Exception {
         File fileForLocalDir = localDir.getFile();
 
         File localFile = new File(fileForLocalDir, entry.getFilename());
@@ -66,7 +66,8 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
             FileOutputStream fileOutputStream = null;
 
             try {
-                File tmpLocalTarget = new File(localFile.getAbsolutePath() + AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
+                File tmpLocalTarget = new File(localFile.getAbsolutePath() +
+                        AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION);
 
                 fileOutputStream = new FileOutputStream(tmpLocalTarget);
 
@@ -126,7 +127,7 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 
     class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<ChannelSftp.LsEntry> {
         public void acknowledge(Object useful, ChannelSftp.LsEntry msg)
-            throws Exception {
+                throws Exception {
             SftpSession sftpSession = (SftpSession) useful;
 
             String remoteFqPath = remotePath + "/" + msg.getFilename();

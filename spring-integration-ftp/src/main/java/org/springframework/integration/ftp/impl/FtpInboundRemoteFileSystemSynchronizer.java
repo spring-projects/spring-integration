@@ -1,29 +1,21 @@
 package org.springframework.integration.ftp.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-
 import org.springframework.core.io.Resource;
-
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer;
 import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.ftp.FtpClientPool;
-
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
-
 import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 import java.util.Collection;
-import java.util.logging.Logger;
 
 
 /**
@@ -53,7 +45,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
     }
 
     protected boolean copyFileToLocalDirectory(FTPClient client, FTPFile ftpFile, Resource localDirectory)
-        throws IOException, FileNotFoundException {
+            throws IOException, FileNotFoundException {
         String remoteFileName = ftpFile.getName();
         String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
         File localFile = new File(localFileName);
@@ -114,7 +106,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
      */
     class DeletionEntryAcknowledgmentStrategy implements AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy<FTPFile> {
         public void acknowledge(Object useful, FTPFile msg)
-            throws Exception {
+                throws Exception {
             FTPClient ftpClient = (FTPClient) useful;
             if ((msg != null) && ftpClient.deleteFile(msg.getName())) {
                 if (logger.isDebugEnabled()) {

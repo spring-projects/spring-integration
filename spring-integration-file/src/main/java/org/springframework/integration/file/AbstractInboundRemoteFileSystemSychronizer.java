@@ -11,7 +11,10 @@ import java.util.concurrent.ScheduledFuture;
 
 
 /**
- * This handles a lot of the common ground in our approach for synchronizing a remote file system locally
+ * Strategy class charged with knowing how to connect to a remote file system, scan it for new files and then downloading the file.
+ * <p/>
+ * The implementation should run through any configured {@link org.springframework.integration.file.entries.EntryListFilter}s
+ * to ensure the entry is worth downloading.
  *
  * @author Josh Long
  */
@@ -20,7 +23,8 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
      * Should we <emphasis>delete</emphasis> the <b>source</b> file?
      * For an FTP server, for example, this would delete the original FTPFile instance
      * <p/>
-     * At the moment I can simply see this triggering the setting
+     * At the moment I can simply see this triggering an implementation specific {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy}
+     * implementation that knows how to delete an entry on the remote file system.
      */
     protected boolean shouldDeleteSourceFile;
 
@@ -48,9 +52,9 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
      * Obviously thread safe - simply provides a NOOP impl so we don't have to keep dancing around NPE's
      */
     private EntryAcknowledgmentStrategy<T> noOpEntryAcknowledgmentStrategy = new EntryAcknowledgmentStrategy<T>() {
-            public void acknowledge(Object o, T msg) {
-            }
-        };
+        public void acknowledge(Object o, T msg) {
+        }
+    };
 
     public void setEntryAcknowledgmentStrategy(EntryAcknowledgmentStrategy<T> entryAcknowledgmentStrategy) {
         this.entryAcknowledgmentStrategy = entryAcknowledgmentStrategy;
@@ -69,22 +73,27 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
     }
 
     /**
-     * @param usefulContextOrClientData
-     * @param t leverages strategy implementations to enable different behavior. It's a hook to the entry ({@link T}) after it's been successfully downloaded.
-     *          Conceptually, you might delete the remote one or rename it or something
-     * @throws Throwable
+     * @param usefulContextOrClientData this is context information to be passed to the individual {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy} implementation.
+     *                                  {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy#acknowledge(Object, Object)} will be called
+     *                                  in line with the {@link org.springframework.integration.core.MessageSource#receive()}  call so this could conceivably be a 'live' stateful
+     *                                  client (a connection?) that is inappropriate to cache as it has per-request state.
+     * @param t                         leverages strategy implementations to enable different behavior. It's a hook to the entry ({@link T}) after it's been successfully downloaded.
+     *                                  Conceptually, you might delete the remote one or rename it or something
+     * @throws Throwable escape hatch exception, let the adapter deal with it.
      */
     protected void acknowledge(Object usefulContextOrClientData, T t)
-        throws Throwable {
+            throws Throwable {
         Assert.notNull(this.entryAcknowledgmentStrategy != null, "entryAcknowledgmentStrategy can't be null!");
         this.entryAcknowledgmentStrategy.acknowledge(usefulContextOrClientData, t);
     }
 
     /**
      * This is the callback where we need the implementation to do some specific work
+     *
+     * @throws Exception thrown if anything goes wrong
      */
     protected abstract void syncRemoteToLocalFileSystem()
-            throws Exception ;
+            throws Exception;
 
     /**
      * {@inheritDoc}
@@ -114,9 +123,13 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
     }
 
     /**
-     * Strategy interface to expose a hook for dispatching, moving, or deleting the file once it's been delivered
+     * Strategy interface to expose a hook for dispatching, moving, or deleting the file once it's been delivered.
+     * This will typically be a NOOP for the implementation. Adapters should (for consistency) expose an attribute
+     * dictating whether the adapter will delete the <emphasis>source</emphasis> entry on the remote file system.
+     * This is the file-system version of an <code>ack-mode</code>. Future implementations should consider
+     * exposing a custom attribute that plugs a custom {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer.EntryAcknowledgmentStrategy}
+     * into the pipeline and also some more advanced scenarios (i.e., 'move file to another folder on delete ', or 'rename on delete')
      *
-     * @author Josh Long
      * @param <T>  the entry type (file, sftp, ftp, ...)
      */
     public static interface EntryAcknowledgmentStrategy<T> {
@@ -141,7 +154,7 @@ public abstract class AbstractInboundRemoteFileSystemSychronizer<T> extends Abst
             try {
                 syncRemoteToLocalFileSystem();
             } catch (Exception e) {
-             throw new RuntimeException(e) ;
+                throw new RuntimeException(e);
             }
         }
     }

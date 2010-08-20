@@ -3,23 +3,17 @@ package org.springframework.integration.ftp.impl;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-
 import org.springframework.beans.factory.config.AbstractFactoryBean;
-
 import org.springframework.context.ResourceLoaderAware;
-
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
 import org.springframework.core.io.ResourceLoader;
-
-import org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
 import org.springframework.integration.ftp.DefaultFtpClientFactory;
 import org.springframework.integration.ftp.FtpFileEntryNamer;
 import org.springframework.integration.ftp.QueuedFtpClientPool;
-
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -74,7 +68,7 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 
     @Override
     protected FtpInboundRemoteFileSystemSynchronizingMessageSource createInstance()
-        throws Exception {
+            throws Exception {
         boolean autoCreatDirs = Boolean.parseBoolean(this.autoCreateDirectories);
         boolean ackRemoteDir = Boolean.parseBoolean(this.autoDeleteRemoteFilesOnSync);
 

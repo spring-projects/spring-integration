@@ -1,22 +1,28 @@
 package org.springframework.integration.file;
 
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.entries.*;
 
-import org.springframework.util.Assert;
-
 import java.io.File;
-
 import java.util.regex.Pattern;
 
 
 /**
- * Ultimately, this factors out a lot of the common logic between the FTP and SFTP adapters
+ * Ultimately, this factors out a lot of the common logic between the FTP and SFTP adapters. Designed to be extendable to handle
+ * adapters whose task it is to synchronize a remote file system with a local file system (NB: this does *NOT* handle pushing files TO the remote
+ * file system that exist uniquely in the local file system. It only handles bringing down the remote file system - as you'd expect
+ * an 'inbound' adapter would).
+ * <p/>
+ * The base class supports configuration of whether the remote file system and local file system's directories should
+ * be created on start (what 'creating a directory' means to the specific adapter is of course implementaton specific).
+ * <p/>
+ * This class is to be used as a pair with an implementation of
+ * {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer<T>}. This synchronizer
+ * must handle the work of actually connecting to the remote file system and delivering new {@link java.io.File}s.
+ * The synchronizer is designed to be
  *
  * @author Josh Long
  */
@@ -32,7 +38,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
     protected volatile boolean autoCreateDirectories = true;
 
     /**
-     * An implementation that will handle the chores of actually syncing up the remote FS
+     * An implementation that will handle the chores of actually connecting to and syncing up the remote FS with the local one, in an inbound direction
      */
     protected volatile T synchronizer;
 
@@ -80,13 +86,10 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
         }
 
         if (this.autoCreateDirectories) {
-
-
-
-            if((this.localDirectory != null) && !this.localDirectory.exists() && this.localDirectory.getFile().mkdirs())
-                logger.debug( "the localDirectory " + this.localDirectory + " doesn't exist");
+            if ((this.localDirectory != null) && !this.localDirectory.exists() && this.localDirectory.getFile().mkdirs())
+                logger.debug("the localDirectory " + this.localDirectory + " doesn't exist");
         }
-        
+
         /**
          * Handles making sure the remote files get here in one piece
          */
