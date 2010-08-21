@@ -16,7 +16,7 @@
 package org.springframework.integration.file.entries;
 
 /**
- * Responsible for coercing a String identification out of the {@link T} entry.
+ * Responsible for coercing a String identification out of the T entry.
  * @param <T>        the type of entry (there's an implementation for FTP, SFTP, and plain-old java.io.Files)
  *
  * @author Josh Long

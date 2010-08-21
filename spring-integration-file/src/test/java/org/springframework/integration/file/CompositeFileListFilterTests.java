@@ -44,7 +44,8 @@ public class CompositeFileListFilterTests {
 
     @Test
     public void forwardedToFilters() throws Exception {
-        CompositeEntryListFilter<File> compositeFileFilter = new CompositeEntryListFilter<File>(fileFilterMock1, fileFilterMock2);
+        CompositeEntryListFilter<File> compositeFileFilter = new CompositeEntryListFilter<File>();
+        compositeFileFilter .addFilter(fileFilterMock1);compositeFileFilter.addFilter( fileFilterMock2);
         List<File> returnedFiles = Arrays.asList( fileMock);
         when(fileFilterMock1.filterEntries(isA(File[].class))).thenReturn(returnedFiles);
         when(fileFilterMock2.filterEntries(isA(File[].class))).thenReturn(returnedFiles);

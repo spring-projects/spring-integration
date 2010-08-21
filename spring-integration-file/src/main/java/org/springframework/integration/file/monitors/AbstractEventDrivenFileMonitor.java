@@ -20,11 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * or Java 7's NIO.2 WaterService or other third party implementations.
  * <p/>
  * In the meantime, this provides us with a base class for building event driven file adapters quickly. The two cases I see are:
- * <p/>
- * <ol>
- * <li></li>
- * <li></li>
- * </ol>
+ * 
  *
  * @author Josh Long
  */

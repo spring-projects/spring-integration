@@ -7,6 +7,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.file.entries.*;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 
@@ -76,7 +77,9 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
     private EntryListFilter<File> buildFilter() {
         FileEntryNamer fileEntryNamer = new FileEntryNamer();
         Pattern completePattern = Pattern.compile("^.*(?<!" + INCOMPLETE_EXTENSION + ")$");
-        return new CompositeEntryListFilter<File>(new AcceptOnceEntryFileListFilter<File>(), new PatternMatchingEntryListFilter<File>(fileEntryNamer, completePattern));
+        return new CompositeEntryListFilter<File>(
+                Arrays.asList(
+                new AcceptOnceEntryFileListFilter<File>(), new PatternMatchingEntryListFilter<File>(fileEntryNamer, completePattern)));
     }
 
     @Override

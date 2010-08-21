@@ -77,7 +77,7 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
             return;
         }
 
-        EntryListFilter<File> flf=null;
+        EntryListFilter<File> flf ;
 
         if ((this.filterReference != null) && (this.filenamePattern != null)) {
             throw new IllegalArgumentException("The 'filter' reference and " + "'filename-pattern' attributes are mutually exclusive.");
@@ -99,12 +99,12 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
             }
         } else if (Boolean.FALSE.equals(this.preventDuplicates)) {
             flf = new AcceptAllEntryListFilter<File>();
-        } else     { // preventDuplicates is either TRUE or NULL
+        } else { // preventDuplicates is either TRUE or NULL
             flf = new AcceptOnceEntryFileListFilter<File>();
         }
 
         // finally, it might be that they simply want a {@link CompositeEntryListFilter}
-        if ((this.filterReferences != null) && (this.filterReferences.size() > 0) ) {
+        if ((this.filterReferences != null) && (this.filterReferences.size() > 0)) {
             CompositeEntryListFilter<File> flfc = new CompositeEntryListFilter<File>();
 
             for (EntryListFilter<File> ff : filterReferences)
@@ -112,14 +112,17 @@ public class FileListFilterFactoryBean implements FactoryBean<EntryListFilter<Fi
 
             flf = flfc;
         }
-        if( flf== null)flf =new CompositeEntryListFilter<File>();
+
+        if (flf == null) {
+            flf = new CompositeEntryListFilter<File>();
+        }
 
         this.fileListFilter = flf;
     }
 
     private CompositeEntryListFilter<File> createCompositeWithAcceptOnceFilter(EntryListFilter<File> otherFilter) {
         CompositeEntryListFilter<File> compositeFilter = new CompositeEntryListFilter<File>();
-        compositeFilter.addFilter(new AcceptOnceEntryFileListFilter<File>() ); 
+        compositeFilter.addFilter(new AcceptOnceEntryFileListFilter<File>());
         compositeFilter.addFilter(otherFilter);
 
         return compositeFilter;

@@ -72,7 +72,7 @@ public class PatternMatchingFileListFilterTests {
     }
 
 
-    @Test
+    @Test               @SuppressWarnings("unchecked")
     public void patternEditorInContext() {
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
                 "patternMatchingFileListFilterTests.xml", this.getClass());

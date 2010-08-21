@@ -16,7 +16,6 @@
 package org.springframework.integration.file.entries;
 
 import org.springframework.beans.factory.InitializingBean;
-
 import org.springframework.util.Assert;
 
 import java.util.*;
@@ -25,8 +24,8 @@ import java.util.*;
 public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
     private final Set<EntryListFilter<T>> fileFilters;
 
-    public CompositeEntryListFilter(EntryListFilter<T>... fileFilters) {
-        this.fileFilters = new LinkedHashSet<EntryListFilter<T>>(Arrays.asList(fileFilters));
+    public CompositeEntryListFilter() {
+        this.fileFilters = new LinkedHashSet<EntryListFilter<T>>();
     }
 
     public CompositeEntryListFilter(Collection<?extends EntryListFilter<T>> fileFilters) {
