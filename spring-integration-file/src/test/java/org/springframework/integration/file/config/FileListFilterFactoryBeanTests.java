@@ -18,7 +18,7 @@ package org.springframework.integration.file.config;
 
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.file.*;
+import org.springframework.integration.file.entries.*;
 
 import java.io.File;
 import java.util.Collection;
@@ -32,93 +32,92 @@ import static org.junit.Assert.*;
  */
 public class FileListFilterFactoryBeanTests {
 
-	@Test(expected = IllegalArgumentException.class)
-	public void customFilterAndFilenamePatternAreMutuallyExclusive() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		factory.setFilterReference(new TestFilter());
-		factory.setFilenamePattern(Pattern.compile("foo"));
-		factory.getObject();
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void customFilterAndFilenamePatternAreMutuallyExclusive() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        factory.setFilterReference(new TestFilter());
+        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.getObject();
+    }
 
-	@Test
-	public void customFilterAndPreventDuplicatesNull() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		TestFilter testFilter = new TestFilter();
-		factory.setFilterReference(testFilter);
-		FileListFilter result = factory.getObject();
-		assertFalse(result instanceof CompositeFileListFilter);
-		assertSame(testFilter, result);
-	}
+    @Test
+    public void customFilterAndPreventDuplicatesNull() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        TestFilter testFilter = new TestFilter();
+        factory.setFilterReference(testFilter);
+        EntryListFilter<File> result = factory.getObject();
+        assertFalse(result instanceof CompositeEntryListFilter);
+        assertSame(testFilter, result);
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void customFilterAndPreventDuplicatesTrue() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		TestFilter testFilter = new TestFilter();
-		factory.setFilterReference(testFilter);
-		factory.setPreventDuplicates(Boolean.TRUE);
-		FileListFilter result = factory.getObject();
-		assertTrue(result instanceof CompositeFileListFilter);
-		Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
-		assertTrue(filters.iterator().next() instanceof AcceptOnceFileListFilter);
-		assertTrue(filters.contains(testFilter));
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    public void customFilterAndPreventDuplicatesTrue() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        TestFilter testFilter = new TestFilter();
+        factory.setFilterReference(testFilter);
+        factory.setPreventDuplicates(Boolean.TRUE);
+        EntryListFilter<File> result = factory.getObject();
+        assertTrue(result instanceof CompositeEntryListFilter);
+        Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
+        assertTrue(filters.iterator().next() instanceof AcceptOnceEntryFileListFilter);
+        assertTrue(filters.contains(testFilter));
+    }
 
-	@Test
-	public void customFilterAndPreventDuplicatesFalse() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		TestFilter testFilter = new TestFilter();
-		factory.setFilterReference(testFilter);
-		factory.setPreventDuplicates(Boolean.FALSE);
-		FileListFilter result = factory.getObject();
-		assertFalse(result instanceof CompositeFileListFilter);
-		assertSame(testFilter, result);
-	}
+    @Test
+    public void customFilterAndPreventDuplicatesFalse() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        TestFilter testFilter = new TestFilter();
+        factory.setFilterReference(testFilter);
+        factory.setPreventDuplicates(Boolean.FALSE);
+        EntryListFilter<File> result = factory.getObject();
+        assertFalse(result instanceof CompositeEntryListFilter);
+        assertSame(testFilter, result);
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void filenamePatternAndPreventDuplicatesNull() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		factory.setFilenamePattern(Pattern.compile("foo"));
-		FileListFilter result = factory.getObject();
-		assertTrue(result instanceof CompositeFileListFilter);
-		Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
-		Iterator<FileListFilter> iterator = filters.iterator();
-		assertTrue(iterator.next() instanceof AcceptOnceFileListFilter);
-		assertTrue(iterator.next() instanceof PatternMatchingFileListFilter);
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    public void filenamePatternAndPreventDuplicatesNull() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        factory.setFilenamePattern(Pattern.compile("foo"));
+        EntryListFilter<File> result = factory.getObject();
+        assertTrue(result instanceof CompositeEntryListFilter);
+        Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
+        Iterator<EntryListFilter> iterator = filters.iterator();
+        assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
+        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
+    }
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void filenamePatternAndPreventDuplicatesTrue() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		factory.setFilenamePattern(Pattern.compile("foo"));
-		factory.setPreventDuplicates(Boolean.TRUE);
-		FileListFilter result = factory.getObject();
-		assertTrue(result instanceof CompositeFileListFilter);
-		Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
-		Iterator<FileListFilter> iterator = filters.iterator();
-		assertTrue(iterator.next() instanceof AcceptOnceFileListFilter);
-		assertTrue(iterator.next() instanceof PatternMatchingFileListFilter);
-	}
+    @Test
+    @SuppressWarnings("unchecked")
+    public void filenamePatternAndPreventDuplicatesTrue() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.setPreventDuplicates(Boolean.TRUE);
+        EntryListFilter<File> result = factory.getObject();
+        assertTrue(result instanceof CompositeEntryListFilter);
+        Collection filters = (Collection) new DirectFieldAccessor(result).getPropertyValue("fileFilters");
+        Iterator<EntryListFilter> iterator = filters.iterator();
+        assertTrue(iterator.next() instanceof AcceptOnceEntryFileListFilter);
+        assertTrue(iterator.next() instanceof PatternMatchingEntryListFilter);
+    }
 
-	@Test
-	public void filenamePatternAndPreventDuplicatesFalse() throws Exception {
-		FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
-		factory.setFilenamePattern(Pattern.compile("foo"));
-		factory.setPreventDuplicates(Boolean.FALSE);
-		FileListFilter result = factory.getObject();
-		assertFalse(result instanceof CompositeFileListFilter);
-		assertTrue(result instanceof PatternMatchingFileListFilter);
-	}
+    @Test
+    public void filenamePatternAndPreventDuplicatesFalse() throws Exception {
+        FileListFilterFactoryBean factory = new FileListFilterFactoryBean();
+        factory.setFilenamePattern(Pattern.compile("foo"));
+        factory.setPreventDuplicates(Boolean.FALSE);
+        EntryListFilter<File> result = factory.getObject();
+        assertFalse(result instanceof CompositeEntryListFilter);
+        assertTrue(result instanceof PatternMatchingEntryListFilter);
+    }
 
 
-	private static class TestFilter extends AbstractFileListFilter {
-
-		@Override
-		protected boolean accept(File file) {
-			return true;
-		}
-	}
+    private static class TestFilter extends AbstractEntryListFilter<File> {
+        @Override
+        public boolean accept(File file) {
+            return true;
+        }
+    }
 
 }

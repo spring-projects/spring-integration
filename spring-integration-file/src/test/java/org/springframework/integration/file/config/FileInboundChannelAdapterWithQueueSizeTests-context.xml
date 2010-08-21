@@ -31,12 +31,11 @@
                              filter="filter"
                              queue-size="30"
                              auto-startup="false">
-        <integration:poller>
-            <integration:interval-trigger interval="5000"/>
-        </integration:poller>
+        <integration:poller fixed-rate="1000"/>
     </inbound-channel-adapter>
+    <beans:bean class="org.springframework.integration.file.config.FileListFilterFactoryBean" />
 
-    <beans:bean id="filter" class="org.springframework.integration.file.CompositeFileListFilter">
+    <beans:bean id="filter" class="org.springframework.integration.file.entries.CompositeEntryListFilter">
         <beans:constructor-arg>
             <beans:list></beans:list>
         </beans:constructor-arg>

@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.filters;
 
 import java.io.File;
 import java.util.List;
 
 /**
  * Strategy interface for filtering a group of files.
- * 
+ *
  * @author Iwein Fuld
  */
+@Deprecated
 public interface FileListFilter {
 
-	/**
-	 * Filters out files and returns the files that are left in a list, or an
-	 * empty list when a null is passed in.
-	 */
-	List<File> filterFiles(File[] files);
+    /**
+     * Filters out files and returns the files that are left in a list, or an
+     * empty list when a null is passed in.
+     */
+    List<File> filterFiles(File[] files);
 
 }

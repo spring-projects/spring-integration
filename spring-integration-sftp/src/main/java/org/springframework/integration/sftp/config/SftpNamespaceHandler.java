@@ -23,6 +23,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.sftp.impl.SftpInboundRemoteFileSystemSynchronizingMessageSource;
+import org.springframework.integration.sftp.impl.SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean;
 import org.w3c.dom.Element;
 
 
@@ -63,7 +65,8 @@ public class SftpNamespaceHandler extends NamespaceHandlerSupport {
     private static class SFTPMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
         @Override
         protected String parseSource(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition( SftpMessageSourceFactoryBean.class.getName());
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+                    SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
 
             IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
 

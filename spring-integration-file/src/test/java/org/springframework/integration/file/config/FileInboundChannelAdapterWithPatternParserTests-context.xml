@@ -15,9 +15,7 @@
 	<inbound-channel-adapter id="adapterWithPattern"
 			directory="file:${java.io.tmpdir}"
 			filename-pattern=".*\.txt" auto-startup="false">
-		<integration:poller>
-			<integration:interval-trigger interval="10000"/>
-		</integration:poller>
+		<integration:poller fixed-rate="1000"/>
 	</inbound-channel-adapter>
 
 </beans:beans>

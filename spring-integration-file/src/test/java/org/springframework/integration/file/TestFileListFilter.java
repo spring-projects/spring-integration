@@ -16,6 +16,8 @@
 
 package org.springframework.integration.file;
 
+import org.springframework.integration.file.entries.EntryListFilter;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -23,10 +25,8 @@ import java.util.List;
 /**
  * @author Iwein Fuld
  */
-public class TestFileListFilter implements FileListFilter {
-
-	public List<File> filterFiles(File[] files) {
-		return Arrays.asList(files);
-	}
-
+public class TestFileListFilter implements EntryListFilter<File> {
+    public List<File> filterEntries(File[] entries) {
+        return Arrays.asList(entries);
+    }
 }

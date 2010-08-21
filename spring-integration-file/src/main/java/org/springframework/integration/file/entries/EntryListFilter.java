@@ -18,6 +18,19 @@ package org.springframework.integration.file.entries;
 import java.util.List;
 
 
-public interface EntryListFilter <T> {
-    List<T> filterEntries(T [] entries );
+/**
+ * Strategy interface for filtering a group of entries / files.
+ * <p/>
+ * {@link EntryListFilter} that passes file entries only one time. This can
+ * conveniently be used to prevent duplication of files, as is done in
+ * {@link org.springframework.integration.file.FileReadingMessageSource}.
+ * <p/>
+ * This implementation is thread safe.
+ *
+ * @author Iwein Fuld
+ * @author Josh Long
+ * @since 1.0.0
+ */
+public interface EntryListFilter<T> {
+    List<T> filterEntries(T[] entries);
 }

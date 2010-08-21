@@ -16,13 +16,15 @@
 
 package org.springframework.integration.file;
 
+import org.springframework.integration.file.entries.EntryListFilter;
+
 import java.io.File;
 import java.util.List;
 
 /**
  * Strategy for scanning directories. Implementations may select all children and grandchildren of the scanned directory
  * in any order. This interface is intended to enable the customization of selection, locking and ordering of files in a
- * directory like RecursiveDirectoryScanner. If the only requirement is to ignore certain files a FileListFilter
+ * directory like RecursiveDirectoryScanner. If the only requirement is to ignore certain files a EntryListFilter
  * implementation should suffice.
  *
  * 
@@ -37,6 +39,7 @@ public interface DirectoryScanner {
      *
      * @param directory the directory to scan for files
      * @return a list of files representing the content of the directory
+     * @throws IllegalArgumentException thrown if the input is incorrect
      */
     List<File> listFiles(File directory) throws IllegalArgumentException;
 
@@ -47,7 +50,7 @@ public interface DirectoryScanner {
      *
      * @param filter the custom filter to be used
      */
-    void setFilter(FileListFilter filter);
+    void setFilter(EntryListFilter<File> filter);
 
 
     /**

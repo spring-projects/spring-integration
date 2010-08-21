@@ -54,11 +54,11 @@
       class="org.springframework.integration.file.FileReadingMessageSource"
         p:inputDirectory="file:${input.directory}"
         p:filter-ref="compositeFilter"/>
-<bean id="compositeFilter" class="org.springframework.integration.file.CompositeFileListFilter">
+<bean id="compositeFilter" class="org.springframework.integration.file.filters.CompositeFileListFilter">
     <constructor-arg>
         <list>
-            <bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
-            <bean class="org.springframework.integration.file.PatternMatchingFileListFilter">
+            <bean class="org.springframework.integration.file.filters.AcceptOnceFileListFilter" />
+            <bean class="org.springframework.integration.file.filters.PatternMatchingFileListFilter">
                 <constructor-arg value="^test.*$"/>
             </bean>
         </list>

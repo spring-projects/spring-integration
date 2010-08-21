@@ -16,13 +16,8 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.File;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,6 +25,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.io.File;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Iwein Fuld
@@ -40,31 +39,31 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileOutboundAdaptersWithClasspathInPropertiesTests {
 
-	@Autowired
-	@Qualifier("adapter")
-	private EventDrivenConsumer adapter;
+    @Autowired
+    @Qualifier("adapter")
+    private EventDrivenConsumer adapter;
 
-	@Autowired
-	@Qualifier("gateway")
-	private EventDrivenConsumer gateway;
+    @Autowired
+    @Qualifier("gateway")
+    private EventDrivenConsumer gateway;
 
 
-	@Test
-	public void outboundChannelAdapter() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(adapter).getPropertyValue("handler")); 
-		File expected = new ClassPathResource("").getFile();
-		File actual = (File) accessor.getPropertyValue("destinationDirectory");
-		assertEquals("'destinationDirectory' should be set", expected, actual);
-	}
+    @Test
+    public void outboundChannelAdapter() throws Exception {
+        DirectFieldAccessor accessor = new DirectFieldAccessor(
+                new DirectFieldAccessor(adapter).getPropertyValue("handler"));
+        File expected = new ClassPathResource("").getFile();
+        File actual = (File) accessor.getPropertyValue("destinationDirectory");
+        assertEquals("'destinationDirectory' should be set", expected, actual);
+    }
 
-	@Test
-	public void outboundGateway() throws Exception {
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(gateway).getPropertyValue("handler")); 
-		File expected = new ClassPathResource("").getFile();
-		File actual = (File) accessor.getPropertyValue("destinationDirectory");
-		assertEquals("'destinationDirectory' should be set", expected, actual);
-	}
+    @Test
+    public void outboundGateway() throws Exception {
+        DirectFieldAccessor accessor = new DirectFieldAccessor(
+                new DirectFieldAccessor(gateway).getPropertyValue("handler"));
+        File expected = new ClassPathResource("").getFile();
+        File actual = (File) accessor.getPropertyValue("destinationDirectory");
+        assertEquals("'destinationDirectory' should be set", expected, actual);
+    }
 
 }

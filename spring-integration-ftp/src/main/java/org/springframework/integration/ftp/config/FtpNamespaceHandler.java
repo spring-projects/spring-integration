@@ -23,6 +23,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.ftp.FtpSendingMessageHandlerFactoryBean;
+import org.springframework.integration.ftp.impl.FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean;
 import org.w3c.dom.Element;
 
 import java.util.HashMap;
@@ -57,7 +59,7 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
     private static class FTPMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
         @Override
         protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FtpSendingMessageHandlerFactoryBean");
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpSendingMessageHandlerFactoryBean.class.getName());
 
             for (String p : "auto-create-directories,username,port,password,host,key-file,key-file-password,remote-directory".split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
@@ -79,17 +81,20 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
         @Override
         @SuppressWarnings("unused")
         protected String parseSource(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PACKAGE_NAME + ".FtpMessageSourceFactoryBean");
 
-            // reference
+            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+                    FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
+
             IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element,"filter");
 
-            for (String p : ("filename-pattern,auto-create-directories,username,password,host,port," + "remote-directory,local-working-directory").split(",")) {
+            for (String p : ("auto-delete-remote-files-on-sync,filename-pattern,auto-create-directories,username,password,host,port," +
+                    "remote-directory,local-working-directory").split(",")) {
                 IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
             }
 
             int clientMode = CLIENT_MODES.get(element.getAttribute("client-mode"));
             builder.addPropertyValue("clientMode", clientMode);
+
             return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
         }
     }

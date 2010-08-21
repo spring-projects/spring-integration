@@ -16,8 +16,8 @@
 
 package org.springframework.integration.file.locking;
 
-import org.springframework.integration.file.AbstractFileListFilter;
 import org.springframework.integration.file.FileLocker;
+import org.springframework.integration.file.entries.AbstractEntryListFilter;
 
 import java.io.File;
 
@@ -29,9 +29,10 @@ import java.io.File;
  * @since 2.0
  *
  */
-public abstract class AbstractFileLockerFilter extends AbstractFileListFilter implements FileLocker {
+public abstract class AbstractFileLockerFilter extends AbstractEntryListFilter<File> implements FileLocker {
 
-    protected final boolean accept(File file) {
-        return isLockable(file);
+    @Override
+    public boolean accept(File file) {
+        return this.isLockable(file);
     }
 }

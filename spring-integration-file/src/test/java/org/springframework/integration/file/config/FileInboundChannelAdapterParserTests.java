@@ -16,27 +16,24 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.file.DefaultDirectoryScanner;
+import org.springframework.integration.file.FileReadingMessageSource;
+import org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.file.CompositeFileListFilter;
-import org.springframework.integration.file.DefaultDirectoryScanner;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.*;
 
 /**
  * @author Iwein Fuld
@@ -46,57 +43,58 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class FileInboundChannelAdapterParserTests {
 
-	@Autowired(required=true)
-	private ApplicationContext context;
+    @Autowired(required = true)
+    private ApplicationContext context;
 
-	@Autowired
-	private FileReadingMessageSource source;
+    @Autowired
+    private FileReadingMessageSource source;
 
-	private DirectFieldAccessor accessor;
+    private DirectFieldAccessor accessor;
 
-	@Before
-	public void init() {
-		accessor = new DirectFieldAccessor(source);
-	}
-
-
-	@Test
-	public void channelName() throws Exception {
-		AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
-		assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
-	}
-
-	@Test
-	public void inputDirectory() {
-		File expected = new File(System.getProperty("java.io.tmpdir"));
-		File actual = (File) accessor.getPropertyValue("directory");
-		assertEquals("'directory' should be set", expected, actual);
-	}
-
-	@Test
-	public void filter() throws Exception {
-		DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
-		DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
-		assertTrue("'filter' should be set",
-				scannerAccessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
-	}
-
-	@Test
-	public void comparator() throws Exception {
-		Object priorityQueue = accessor.getPropertyValue("toBeReceived");
-		assertEquals(PriorityBlockingQueue.class, priorityQueue.getClass());
-		Object expected = context.getBean("testComparator");
-		Object innerQueue = new DirectFieldAccessor(priorityQueue).getPropertyValue("q");
-		Object actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
-		assertSame("comparator reference not set, ", expected, actual);
-	}
+    @Before
+    public void init() {
+        accessor = new DirectFieldAccessor(source);
+    }
 
 
-	static class TestComparator implements Comparator<File> {
+    @Test
+    public void channelName() throws Exception {
+        AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
+        assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
+    }
 
-		public int compare(File f1, File f2) {
-			return 0;
-		}
-	}
+    @Test
+    public void inputDirectory() {
+        File expected = new File(System.getProperty("java.io.tmpdir"));
+        File actual = (File) accessor.getPropertyValue("directory");
+        assertEquals("'directory' should be set", expected, actual);
+    }
+
+    @Test
+    public void filter() throws Exception {
+        DefaultDirectoryScanner scanner = (DefaultDirectoryScanner) accessor.getPropertyValue("scanner");
+        DirectFieldAccessor scannerAccessor = new DirectFieldAccessor(scanner);
+        Object filter = scannerAccessor.getPropertyValue("filter");
+        assertTrue("'filter' should be set",
+                filter instanceof AcceptOnceEntryFileListFilter);
+    }
+
+    @Test
+    public void comparator() throws Exception {
+        Object priorityQueue = accessor.getPropertyValue("toBeReceived");
+        assertEquals(PriorityBlockingQueue.class, priorityQueue.getClass());
+        Object expected = context.getBean("testComparator");
+        Object innerQueue = new DirectFieldAccessor(priorityQueue).getPropertyValue("q");
+        Object actual = new DirectFieldAccessor(innerQueue).getPropertyValue("comparator");
+        assertSame("comparator reference not set, ", expected, actual);
+    }
+
+
+    static class TestComparator implements Comparator<File> {
+
+        public int compare(File f1, File f2) {
+            return 0;
+        }
+    }
 
 }

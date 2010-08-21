@@ -16,18 +16,18 @@
 
 package org.springframework.integration.file.config;
 
-import java.util.Date;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.file.FileNameGenerator;
+
+import java.util.Date;
 
 /**
  * @author Marius Bogoevici
  */
 public class CustomFileNameGenerator implements FileNameGenerator {
 
-	public String generateFileName(Message<?> message) {
-		return "file" + new Date().getTime();
-	}
+    public String generateFileName(Message<?> message) {
+        return "file" + new Date().getTime();
+    }
 
 }

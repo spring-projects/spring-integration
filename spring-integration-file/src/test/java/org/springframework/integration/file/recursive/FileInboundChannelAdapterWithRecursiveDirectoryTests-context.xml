@@ -17,9 +17,7 @@
                              auto-startup="true"
                              scanner="recursiveScanner"
                              channel="files">
-        <integration:poller>
-            <integration:interval-trigger interval="100"/>
-        </integration:poller>
+        <integration:poller fixed-rate="1000"/>
     </inbound-channel-adapter>
 
     <integration:channel id="files">

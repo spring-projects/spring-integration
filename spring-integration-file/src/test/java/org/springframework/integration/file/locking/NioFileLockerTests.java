@@ -18,7 +18,7 @@ package org.springframework.integration.file.locking;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.springframework.integration.file.FileListFilter;
+import org.springframework.integration.file.entries.EntryListFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,20 +49,20 @@ public class NioFileLockerTests {
         NioFileLocker filter = new NioFileLocker();
         File testFile = new File(workdir, "test0");
         testFile.createNewFile();
-        assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+        assertThat(filter.filterEntries(workdir.listFiles()).get(0), is(testFile));
         filter.lock(testFile);
-        assertThat(filter.filterFiles(workdir.listFiles()).get(0), is(testFile));
+        assertThat(filter.filterEntries(workdir.listFiles()).get(0), is(testFile));
     }
 
     @Test
     public void fileNotListedWhenLockedByOtherFilter() throws IOException {
         NioFileLocker filter1 = new NioFileLocker();
-        FileListFilter filter2 = new NioFileLocker();
+        EntryListFilter<File> filter2 = new NioFileLocker();
         File testFile = new File(workdir, "test1");
         testFile.createNewFile();
-        assertThat(filter1.filterFiles(workdir.listFiles()).get(0), is(testFile));
+        assertThat(filter1.filterEntries(workdir.listFiles()).get(0), is(testFile));
         filter1.lock(testFile);
-        assertThat(filter2.filterFiles(workdir.listFiles()), is((List<File>)new ArrayList<File>()));
+        assertThat(filter2.filterEntries(workdir.listFiles()), is((List<File>)new ArrayList<File>()));
     }
 
 }

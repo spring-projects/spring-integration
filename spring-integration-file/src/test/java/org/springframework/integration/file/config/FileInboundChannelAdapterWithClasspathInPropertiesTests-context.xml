@@ -15,9 +15,7 @@
 	<inbound-channel-adapter id="inputDirPoller"
 			directory="${inputdir}"
 			auto-startup="false">
-		<integration:poller>
-			<integration:interval-trigger interval="5000"/>
-		</integration:poller>
+		<integration:poller fixed-rate="5000"/>
 	</inbound-channel-adapter>
 	
 	<context:property-placeholder location="classpath:org/springframework/integration/file/config/test.properties" />	

@@ -58,8 +58,6 @@
 
 	<context:property-placeholder/>
 
-	<si:poller default="true">
-		<si:interval-trigger interval="10000"/>
-	</si:poller>
+	<si:poller default="true" fixed-rate="10000"/>
 
 </beans>

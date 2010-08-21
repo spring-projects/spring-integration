@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.file;
+package org.springframework.integration.file.filters;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,30 +24,31 @@ import java.util.List;
  * A convenience base class for any {@link FileListFilter} whose criteria can be
  * evaluated against each File in isolation. If the entire List of files is
  * required for evaluation, implement the FileListFilter interface directly.
- * 
+ *
  * @author Mark Fisher
  * @author Iwein Fuld
  */
+@Deprecated
 public abstract class AbstractFileListFilter implements FileListFilter {
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public final List<File> filterFiles(File[] files) {
-		List<File> accepted = new ArrayList<File>();
-		if (files != null) {
-			for (File file : files) {
-				if (this.accept(file)) {
-					accepted.add(file);
-				}
-			}
-		}
-		return accepted;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public final List<File> filterFiles(File[] files) {
+        List<File> accepted = new ArrayList<File>();
+        if (files != null) {
+            for (File file : files) {
+                if (this.accept(file)) {
+                    accepted.add(file);
+                }
+            }
+        }
+        return accepted;
+    }
 
-	/**
-	 * Subclasses must implement this method.
-	 */
-	protected abstract boolean accept(File file);
+    /**
+     * Subclasses must implement this method.
+     */
+    protected abstract boolean accept(File file);
 
 }

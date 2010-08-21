@@ -16,12 +16,8 @@
 
 package org.springframework.integration.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -33,6 +29,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * @author Mark Fisher
  * @since 1.0.3
@@ -41,32 +40,32 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 public class DefaultConfigurationTests {
 
-	@Autowired
-	private ApplicationContext context;
+    @Autowired
+    private ApplicationContext context;
 
 
-	@Test
-	public void verifyErrorChannel() {
-		Object errorChannel = context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
-		assertNotNull(errorChannel);
-		assertEquals(PublishSubscribeChannel.class, errorChannel.getClass());
-	}
+    @Test
+    public void verifyErrorChannel() {
+        Object errorChannel = context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+        assertNotNull(errorChannel);
+        assertEquals(PublishSubscribeChannel.class, errorChannel.getClass());
+    }
 
-	@Test
-	public void verifyNullChannel() {
-		Object nullChannel = context.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
-		assertNotNull(nullChannel);
-		assertEquals(NullChannel.class, nullChannel.getClass());
-	}
+    @Test
+    public void verifyNullChannel() {
+        Object nullChannel = context.getBean(IntegrationContextUtils.NULL_CHANNEL_BEAN_NAME);
+        assertNotNull(nullChannel);
+        assertEquals(NullChannel.class, nullChannel.getClass());
+    }
 
-	@Test
-	public void verifyTaskScheduler() {
-		Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
-		assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
-		Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
-		assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
-		Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
-		assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
-	}
+    @Test
+    public void verifyTaskScheduler() {
+        Object taskScheduler = context.getBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
+        assertEquals(ThreadPoolTaskScheduler.class, taskScheduler.getClass());
+        Object errorHandler = new DirectFieldAccessor(taskScheduler).getPropertyValue("errorHandler");
+        assertEquals(MessagePublishingErrorHandler.class, errorHandler.getClass());
+        Object defaultErrorChannel = new DirectFieldAccessor(errorHandler).getPropertyValue("defaultErrorChannel");
+        assertEquals(context.getBean(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME), defaultErrorChannel);
+    }
 
 }

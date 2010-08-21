@@ -29,5 +29,6 @@ public class InboundFtpFileServiceActivator {
     public static void main(String[] args) throws Throwable {
         ClassPathXmlApplicationContext classPathXmlApplicationContext =
                 new ClassPathXmlApplicationContext("inbound-ftp-context.xml");
+        classPathXmlApplicationContext.start();
     }
 }
