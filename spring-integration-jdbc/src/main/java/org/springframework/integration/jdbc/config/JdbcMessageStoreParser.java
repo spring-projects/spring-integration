@@ -45,7 +45,7 @@ public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 				|| (!refToDataSourceSet && !refToSimpleJdbcOperaitonsSet)) {
 			parserContext.getReaderContext().error(
 					"Exactly one of the attributes data-source or "
-							+ "simple-jdbc-operations should be set for the JDBC inbound-channel-adapter", source);
+							+ "simple-jdbc-operations should be set for the JDBC message-store", source);
 		}
 
 		if (refToDataSourceSet) {
