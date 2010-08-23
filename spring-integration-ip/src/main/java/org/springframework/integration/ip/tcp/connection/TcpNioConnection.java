@@ -75,7 +75,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public TcpNioConnection(SocketChannel socketChannel, boolean server) throws Exception {
 		super(server);
 		this.socketChannel = socketChannel;
-		this.pipedInputStream = new PipedInputStream(2048);
+		this.pipedInputStream = new PipedInputStream();
 		this.pipedOutputStream = new PipedOutputStream(this.pipedInputStream);
 		this.channelOutputStream = new ChannelOutputStream();
 		getConnectionId();
