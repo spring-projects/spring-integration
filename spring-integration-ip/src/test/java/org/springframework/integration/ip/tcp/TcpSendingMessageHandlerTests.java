@@ -837,12 +837,15 @@ public class TcpSendingMessageHandlerTests {
 		assertTrue(latch.await(10, TimeUnit.SECONDS));		
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		Set<String> results = new HashSet<String>();
 		Message<?> mOut = channel.receive(10000);
 		assertNotNull(mOut);
-		assertEquals("Reply1", mOut.getPayload());
+		results.add((String) mOut.getPayload());
 		mOut = channel.receive(10000);
 		assertNotNull(mOut);
-		assertEquals("Reply2", mOut.getPayload());
+		results.add((String) mOut.getPayload());
+		assertTrue(results.remove("Reply1"));
+		assertTrue(results.remove("Reply2"));
 		done.set(true);
 	}
 

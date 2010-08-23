@@ -1,11 +1,14 @@
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.net.SocketFactory;
 
@@ -115,11 +118,15 @@ public class TcpInboundGatewayTests {
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		handler.handleMessage(channel.receive());
 		handler.handleMessage(channel.receive());
+		Set<String> results = new HashSet<String>();
 		byte[] bytes = new byte[12];
 		readFully(socket.getInputStream(), bytes);
-		assertEquals("Echo:Test1\r\n", new String(bytes));
+		results.add(new String(bytes));
 		readFully(socket.getInputStream(), bytes);
-		assertEquals("Echo:Test2\r\n", new String(bytes));
+		results.add(new String(bytes));
+		System.out.println(results);
+		assertTrue(results.remove("Echo:Test1\r\n"));
+		assertTrue(results.remove("Echo:Test2\r\n"));
 	}
 
 	@Test
@@ -145,11 +152,14 @@ public class TcpInboundGatewayTests {
 		socket.getOutputStream().write("Test2\r\n".getBytes());
 		handler.handleMessage(channel.receive());
 		handler.handleMessage(channel.receive());
+		Set<String> results = new HashSet<String>();
 		byte[] bytes = new byte[12];
 		readFully(socket.getInputStream(), bytes);
-		assertEquals("Echo:Test1\r\n", new String(bytes));
+		results.add(new String(bytes));
 		readFully(socket.getInputStream(), bytes);
-		assertEquals("Echo:Test2\r\n", new String(bytes));
+		results.add(new String(bytes));
+		assertTrue(results.remove("Echo:Test1\r\n"));
+		assertTrue(results.remove("Echo:Test2\r\n"));
 	}
 
 	private class Service {

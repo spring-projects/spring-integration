@@ -58,8 +58,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	
 	private int maxMessageSize = 60 * 1024;
 	
-	private boolean active = true;
-	
 	private long lastRead;
 	
 	private AtomicInteger executionControl = new AtomicInteger();
@@ -89,7 +87,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	private void doClose() {
-		this.active = false;
 		if (pipedOutputStream != null) {
 			try {
 				pipedOutputStream.close();
@@ -107,8 +104,10 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 	@SuppressWarnings("unchecked")
 	public void send(Message<?> message) throws Exception {
-		Object object = mapper.fromMessage(message);
-		this.outputConverter.convert(object, this.channelOutputStream);
+		synchronized(mapper) {
+			Object object = mapper.fromMessage(message);
+			this.outputConverter.convert(object, this.channelOutputStream);
+		}
 	}
 
 	public String getHostAddress() {
@@ -150,28 +149,42 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	 * sockets.
 	 */
 	public void run() {
-		logger.debug("Nio message assembler running...");
+		logger.trace("Nio message assembler running...");
 		try {
 			if (this.listener == null && !this.singleUse) {
 				logger.debug("TcpListener exiting - no listener and not single use");			
 				return;
 			}
-			while (active) {
-				try {
-					while (dataAvailable()) {
-						convertAndSend();
+			try {
+				if (dataAvailable()) {
+					Message<?> message = convert();
+					if (dataAvailable()) {
+						// there is more data in the pipe; run another assembler
+						// to assemble the next message, while we send ours
+						this.executionControl.incrementAndGet();
+						this.taskExecutor.execute(this);
 					}
-				} catch (IOException e) {
-					logger.error("Unexpected exception, exiting...", e);
-					return;
+					if (message != null) {
+						sendToChannel(message);
+					}
 				}
-				// currently no more work to do
-				if (this.executionControl.decrementAndGet() < 0) {
-					break;
-				}
+			} catch (IOException e) {
+				logger.error("Unexpected exception, exiting...", e);
+				return;
 			}
+			this.executionControl.decrementAndGet();
 		} finally {
-			logger.debug("Nio message assembler exiting...");
+			logger.trace("Nio message assembler exiting...");
+			// Final check in case new data came in and the
+			// timing was such that we were the last assembler and
+			// a new one wasn't run
+			try {
+				if (dataAvailable()) {
+					checkForAssembler();
+				}
+			} catch (IOException e) {
+				logger.error("Exception when checking for assembler", e);
+			}
 		}
 	}
 
@@ -180,9 +193,15 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			   (this.pipedInputStream.available() > 0 || writingToPipe);
 	}
 
-	private synchronized void convertAndSend() throws IOException {
+	/**
+	 * Blocks until a complete message has been assembled.
+	 * Synchronized to avoid concurrency.
+	 * @return The Message or null if no data is available.
+	 * @throws IOException
+	 */
+	private synchronized Message<?> convert() throws IOException {
 		if (!dataAvailable()) {
-			return;
+			return null;
 		}
 		Message<?> message = null;
 		try {
@@ -202,9 +221,12 @@ public class TcpNioConnection extends AbstractTcpConnection {
 
 				}
 			}
-			return;
+			return null;
 		}			
+		return message;
+	}
 
+	private void sendToChannel(Message<?> message) {
 		boolean intercepted = false;
 		try {
 			if (message != null) {
@@ -242,11 +264,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		if (this.taskExecutor == null) {
 			this.taskExecutor = Executors.newSingleThreadExecutor();
 		}
-		if (this.executionControl.incrementAndGet() <= 1) {
-			// only execute run() if we don't already have one running
-			this.executionControl.set(1);
-			this.taskExecutor.execute(this);
-		}
+		// If there is no assembler running, start one
+		checkForAssembler();
 		rawBuffer.clear();
 		int len = socketChannel.read(rawBuffer);
 		if (len < 0) {
@@ -261,6 +280,18 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		pipedOutputStream.flush();
 		writingToPipe = false;
 		
+	}
+
+	private void checkForAssembler() {
+		synchronized(this.executionControl) {
+			if (this.executionControl.incrementAndGet() <= 1) {
+				// only execute run() if we don't already have one running
+				this.executionControl.set(1);
+				this.taskExecutor.execute(this);
+			} else {
+				this.executionControl.decrementAndGet();
+			}
+		}
 	}
 
 	/**

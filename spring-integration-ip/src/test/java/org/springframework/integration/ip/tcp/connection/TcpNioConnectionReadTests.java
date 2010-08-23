@@ -115,17 +115,24 @@ public class TcpNioConnectionReadTests {
 		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) { }
 				semaphore.release();
 				return false;
 			}
 		});
 		
+		int howMany = 2;
+		scf.setPoolSize(howMany + 5);
 		// Fire up the sender.
-		SocketUtils.testSendFragmented(port, false);
-		assertTrue(semaphore.tryAcquire(1, 10000, TimeUnit.MILLISECONDS));
-		assertEquals("Data", "xx", 
-		         new String(((Message<byte[]>) responses.get(0)).getPayload()));
-		assertEquals("Expected", 1, responses.size());
+		SocketUtils.testSendFragmented(port, howMany, false);
+		assertTrue(semaphore.tryAcquire(howMany, 20000, TimeUnit.MILLISECONDS));
+		assertEquals("Expected", howMany, responses.size());
+		for (int i = 0; i < howMany; i++) {
+			assertEquals("Data", "xx", 
+				new String(((Message<byte[]>) responses.get(0)).getPayload()));
+		}
 		scf.close();
 	}
 	

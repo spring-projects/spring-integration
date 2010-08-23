@@ -213,27 +213,28 @@ public class TcpOutboundGatewayTests {
 			}));
 		}
 		Set<String> replies = new HashSet<String>();
+		int timeouts = 0;
 		for (int i = 0; i < 2; i++) { 
 			try {
 				results[i].get();
 			} catch (InterruptedException e) {
 				
 			} catch (ExecutionException e) {
-				if (i == 0) {
+				if (timeouts > 0) {
 					fail("Unexpected " + e.getMessage());
-				} else if (i == 1) {
+				} else {
 					assertNotNull(e.getCause());
 					assertTrue(e.getCause() instanceof MessageTimeoutException);
 				}
-				
+				timeouts++;
 				continue;
-			}
-			if (i == 1) {
-				fail("Expected ExecutionException");
 			}
 			Message<?> m = replyChannel.receive(10000);
 			assertNotNull(m);
 			replies.add((String) m.getPayload());
+		}
+		if (timeouts < 1) {
+			fail("Expected ExecutionException");
 		}
 		for (int i = 0; i < 1; i++) {
 			assertTrue(replies.remove("Reply" + i));

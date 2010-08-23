@@ -104,16 +104,17 @@ public class TcpReceivingChannelAdapterTests {
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			socket.getOutputStream().write(("Test" + i + "\r\n").getBytes());
-//			if (i % 10 == 0) {
-//				Thread.sleep(1000);
-//			}
-		}			
-		for (int i = 0; i < 100; i++) {
+		}	
+		Set<String> results = new HashSet<String>();
+		for (int i = 0; i < 1000; i++) {
 			Message<?> message = channel.receive(10000);
 			assertNotNull(message);
-			assertEquals("Test" + i, new String((byte[]) message.getPayload()));
+			results.add(new String((byte[]) message.getPayload()));
+		}
+		for (int i = 0; i < 1000; i++) {
+			assertTrue(results.remove("Test" + i));
 		}
 	}
 
@@ -370,7 +371,7 @@ public class TcpReceivingChannelAdapterTests {
 		handler.setConnectionFactory(scf);
 		TcpReceivingChannelAdapter adapter = new TcpReceivingChannelAdapter();
 		adapter.setConnectionFactory(scf);
-		Executor te = Executors.newFixedThreadPool(100);
+		Executor te = Executors.newFixedThreadPool(10);
 		scf.setTaskExecutor(te);
 		scf.start();
 		QueueChannel channel = new QueueChannel();
@@ -475,12 +476,15 @@ public class TcpReceivingChannelAdapterTests {
 		assertEquals("world!", new ObjectInputStream(socket.getInputStream()).readObject());
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test1");
 		new ObjectOutputStream(socket.getOutputStream()).writeObject("Test2");
+		Set<String> results = new HashSet<String>();
 		Message<?> message = channel.receive(10000);
 		assertNotNull(message);
-		assertEquals("Test1", message.getPayload());
+		results.add((String) message.getPayload());
 		message = channel.receive(10000);
 		assertNotNull(message);
-		assertEquals("Test2", message.getPayload());
+		results.add((String) message.getPayload());
+		assertTrue(results.contains("Test1"));
+		assertTrue(results.contains("Test2"));
 	}
 
 	private void singleNoOutboundInterceptorsGuts(final int port,

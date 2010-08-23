@@ -102,19 +102,21 @@ public class SocketUtils {
 	 * Test for reassembly of completely fragmented message; sends
 	 * 6 bytes 500ms apart.
 	 */
-	public static void testSendFragmented(final int port, final boolean noDelay) {
+	public static void testSendFragmented(final int port, final int howMany, final boolean noDelay) {
 		Thread thread = new Thread(new Runnable() {
 			public void run() {
 				try {
 					logger.debug("Connecting to " + port);
 					Socket socket = new Socket(InetAddress.getByName("localhost"), port);
 					OutputStream os = socket.getOutputStream();
-					writeByte(os, 0, noDelay);
-					writeByte(os, 0, noDelay);
-					writeByte(os, 0, noDelay);
-					writeByte(os, 2, noDelay);
-					writeByte(os, 'x', noDelay);
-					writeByte(os, 'x', noDelay);
+					for (int i = 0; i < howMany; i++) {
+						writeByte(os, 0, noDelay);
+						writeByte(os, 0, noDelay);
+						writeByte(os, 0, noDelay);
+						writeByte(os, 2, noDelay);
+						writeByte(os, 'x', noDelay);
+						writeByte(os, 'x', noDelay);
+					}
 					Thread.sleep(1000000000L); // wait forever, but we're a daemon
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -62,7 +62,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void send(Message<?> message) throws Exception {
+	public synchronized void send(Message<?> message) throws Exception {
 		Object object = mapper.fromMessage(message);
 		this.outputConverter.convert(object, this.socket.getOutputStream());
 		if (logger.isDebugEnabled())
