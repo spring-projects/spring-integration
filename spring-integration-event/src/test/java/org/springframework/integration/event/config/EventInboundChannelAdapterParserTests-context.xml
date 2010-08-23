@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:int="http://www.springframework.org/schema/integration"
-	xmlns:int-event="http://www.springframework.org/schema/integration/event"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event-2.0.xsd">
+		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event-2.0.xsd"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-event="http://www.springframework.org/schema/integration/event">
 
 	<int-event:inbound-channel-adapter id="eventAdapterSimple" channel="input"/>
 
@@ -19,5 +21,14 @@
 	<int:channel id="inputFiltered">
 		<int:queue/>
 	</int:channel>
+	
+	<int-event:inbound-channel-adapter id="eventAdapterFilteredPlaceHolder" channel="inputFilteredPlaceHolder" 
+				event-types="${event.types}"/>
+
+	<int:channel id="inputFilteredPlaceHolder">
+		<int:queue/>
+	</int:channel>
+	
+	<context:property-placeholder location="classpath:org/springframework/integration/event/config/inbound-adapter.properties"/>
 
 </beans>

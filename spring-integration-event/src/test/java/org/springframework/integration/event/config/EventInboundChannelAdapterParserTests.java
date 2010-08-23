@@ -74,6 +74,21 @@ public class EventInboundChannelAdapterParserTests {
 		assertTrue(eventTypes.contains(SampleEvent.class));
 		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void validateEventParserWithEventTypesAndPlaceholder() {
+		Object adapter = context.getBean("eventAdapterFilteredPlaceHolder");
+		Assert.assertNotNull(adapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Assert.assertEquals(context.getBean("inputFilteredPlaceHolder"), adapterAccessor.getPropertyValue("outputChannel"));
+		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
+		assertNotNull(eventTypes);
+		assertTrue(eventTypes.size() == 2);	
+		assertTrue(eventTypes.contains(SampleEvent.class));
+		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
+	}
 
 	@Test
 	public void validateUsage() {

@@ -16,10 +16,6 @@
 
 package org.springframework.integration.event;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextClosedEvent;
@@ -57,14 +53,13 @@ public class ApplicationEventInboundChannelAdapterTests {
 		assertEquals("event2", ((ApplicationEvent) message3.getPayload()).getSource());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void onlyConfiguredEventTypesAreSent() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
 		adapter.setOutputChannel(channel);
-		Set<Class<? extends ApplicationEvent>> events = new HashSet<Class<? extends ApplicationEvent>>();
-		events.add(TestApplicationEvent1.class);
-		adapter.setEventTypes(events);
+		adapter.setEventTypes(new Class[]{TestApplicationEvent1.class});
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());

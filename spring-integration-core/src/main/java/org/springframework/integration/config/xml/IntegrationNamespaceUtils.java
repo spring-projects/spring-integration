@@ -262,22 +262,4 @@ public abstract class IntegrationNamespaceUtils {
 												+ " are not allowed together.");
 		return innerComponentDefinition;
 	}
-
-	public static Class<?> convertFqClassNameToClassObject(String fullyQualifiedClassname, ParserContext parserContext){
-		Assert.isTrue(StringUtils.hasText(fullyQualifiedClassname), "'fullyQualifiedClassname' must be provided");
-		Assert.notNull(parserContext, "'parserContext' must be provided");
-		ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
-		if (classLoader == null) {
-			classLoader = ClassUtils.getDefaultClassLoader();
-		}
-		if (classLoader != null){
-			try {
-				return classLoader.loadClass(fullyQualifiedClassname);
-			} catch (Exception e) {
-				// no handling required, method may return null
-			}
-			
-		}
-		return null;
-	}
 }
