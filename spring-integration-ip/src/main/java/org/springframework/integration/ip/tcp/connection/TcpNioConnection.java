@@ -164,6 +164,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 						this.executionControl.incrementAndGet();
 						this.taskExecutor.execute(this);
 					}
+					this.executionControl.decrementAndGet();
 					if (message != null) {
 						sendToChannel(message);
 					}
@@ -172,7 +173,6 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				logger.error("Unexpected exception, exiting...", e);
 				return;
 			}
-			this.executionControl.decrementAndGet();
 		} finally {
 			logger.trace("Nio message assembler exiting...");
 			// Final check in case new data came in and the
