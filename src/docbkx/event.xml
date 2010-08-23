@@ -21,10 +21,11 @@
 	</para>
 	<para>
 	For convenience namespace support was provided to configure <classname>ApplicationEventListeningChannelAdapter</classname> via <emphasis>inbound-channel-adapter</emphasis>
-		<programlisting language="xml"><![CDATA[<int-event:inbound-channel-adapter channel="input"/>
+		<programlisting language="xml"><![CDATA[<int-event:inbound-channel-adapter channel="input" event-types="foo.bar.FooApplicationEvent, foo.bar.BarApplicationEvent"/>
 	
 <int:publish-subscribe-channel id="sampleEventChannel"/>]]></programlisting>
-In the above sample, all Application Context events will be delivered as Spring Integration Messages to 'sampleEventChannel'.
+In the above sample, all Application Context events that are of type specified by the 'event-types' (optional) attribute will be 
+delivered as Spring Integration Messages to 'sampleEventChannel'. 
 	</para>
 	
 	
