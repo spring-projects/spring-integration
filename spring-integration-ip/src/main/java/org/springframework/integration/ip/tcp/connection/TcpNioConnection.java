@@ -63,6 +63,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	private long lastRead;
 	
 	private AtomicInteger executionControl = new AtomicInteger();
+	
+	private boolean writingToPipe;
 
 	/**
 	 * Constructs a TcpNetConnection for the SocketChannel.
@@ -156,8 +158,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 			}
 			while (active) {
 				try {
-					while (this.socketChannel.isOpen() && 
-						   this.pipedInputStream.available() > 0) {
+					while (dataAvailable()) {
 						convertAndSend();
 					}
 				} catch (IOException e) {
@@ -174,8 +175,13 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 	}
 
+	private boolean dataAvailable() throws IOException {
+		return this.socketChannel.isOpen() && 
+			   (this.pipedInputStream.available() > 0 || writingToPipe);
+	}
+
 	private synchronized void convertAndSend() throws IOException {
-		if (!this.socketChannel.isOpen() || this.pipedInputStream.available() <= 0) {
+		if (!dataAvailable()) {
 			return;
 		}
 		Message<?> message = null;
@@ -231,6 +237,16 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		if (rawBuffer == null) {
 			rawBuffer = allocate(maxMessageSize);
 		}
+
+		writingToPipe = true;
+		if (this.taskExecutor == null) {
+			this.taskExecutor = Executors.newSingleThreadExecutor();
+		}
+		if (this.executionControl.incrementAndGet() <= 1) {
+			// only execute run() if we don't already have one running
+			this.executionControl.set(1);
+			this.taskExecutor.execute(this);
+		}
 		rawBuffer.clear();
 		int len = socketChannel.read(rawBuffer);
 		if (len < 0) {
@@ -243,15 +259,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 		}
 		pipedOutputStream.write(rawBuffer.array(), 0, rawBuffer.limit());
 		pipedOutputStream.flush();
-
-		if (this.taskExecutor == null) {
-			this.taskExecutor = Executors.newSingleThreadExecutor();
-		}
-		if (this.executionControl.incrementAndGet() <= 1) {
-			// only execute run() if we don't already have one running
-			this.executionControl.set(1);
-			this.taskExecutor.execute(this);
-		}
+		writingToPipe = false;
+		
 	}
 
 	/**
