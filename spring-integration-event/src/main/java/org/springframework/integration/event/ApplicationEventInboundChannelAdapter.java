@@ -16,8 +16,8 @@
 
 package org.springframework.integration.event;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
@@ -34,7 +34,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class ApplicationEventInboundChannelAdapter extends MessageProducerSupport implements ApplicationListener<ApplicationEvent> {
 
-	private final List<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArrayList<Class<? extends ApplicationEvent>>();
+	private final Set<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArraySet<Class<? extends ApplicationEvent>>();
 
 
 	/**
@@ -42,7 +42,7 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 	 * this adapter should send to the message channel. By default, all event
 	 * types will be sent.
 	 */
-	public void setEventTypes(List<Class<? extends ApplicationEvent>> eventTypes) {
+	public void setEventTypes(Set<Class<? extends ApplicationEvent>> eventTypes) {
 		Assert.notEmpty(eventTypes, "at least one event type is required");
 		synchronized (this.eventTypes) {
 			this.eventTypes.clear();

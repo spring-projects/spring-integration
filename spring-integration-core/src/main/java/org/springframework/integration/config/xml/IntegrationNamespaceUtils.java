@@ -26,6 +26,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -262,4 +263,21 @@ public abstract class IntegrationNamespaceUtils {
 		return innerComponentDefinition;
 	}
 
+	public static Class<?> convertFqClassNameToClassObject(String fullyQualifiedClassname, ParserContext parserContext){
+		Assert.isTrue(StringUtils.hasText(fullyQualifiedClassname), "'fullyQualifiedClassname' must be provided");
+		Assert.notNull(parserContext, "'parserContext' must be provided");
+		ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
+		if (classLoader == null) {
+			classLoader = ClassUtils.getDefaultClassLoader();
+		}
+		if (classLoader != null){
+			try {
+				return classLoader.loadClass(fullyQualifiedClassname);
+			} catch (Exception e) {
+				// no handling required, method may return null
+			}
+			
+		}
+		return null;
+	}
 }

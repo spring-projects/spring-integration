@@ -7,9 +7,16 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/event http://www.springframework.org/schema/integration/event/spring-integration-event-2.0.xsd">
 
-	<int-event:inbound-channel-adapter id="eventAdapter" channel="input"/>
+	<int-event:inbound-channel-adapter id="eventAdapterSimple" channel="input"/>
 
 	<int:channel id="input">
+		<int:queue/>
+	</int:channel>
+	
+	<int-event:inbound-channel-adapter id="eventAdapterFiltered" channel="inputFiltered" event-types="org.springframework.integration.event.config.EventInboundChannelAdapterParserTests$AnotherSampleEvent, 
+	                                                                                                  org.springframework.integration.event.config.EventInboundChannelAdapterParserTests$SampleEvent"/>
+
+	<int:channel id="inputFiltered">
 		<int:queue/>
 	</int:channel>
 

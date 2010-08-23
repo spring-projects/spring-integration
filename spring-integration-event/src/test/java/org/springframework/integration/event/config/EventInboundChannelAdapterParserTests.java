@@ -18,6 +18,10 @@ package org.springframework.integration.event.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
@@ -49,11 +53,26 @@ public class EventInboundChannelAdapterParserTests {
 
 	@Test
 	public void validateEventParser() {
-		Object adapter = context.getBean("eventAdapter");
+		Object adapter = context.getBean("eventAdapterSimple");
 		Assert.assertNotNull(adapter);
 		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("input"), adapterAccessor.getPropertyValue("outputChannel"));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void validateEventParserWithEventTypes() {
+		Object adapter = context.getBean("eventAdapterFiltered");
+		Assert.assertNotNull(adapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Assert.assertEquals(context.getBean("inputFiltered"), adapterAccessor.getPropertyValue("outputChannel"));
+		Set<Class<? extends ApplicationEvent>> eventTypes = (Set<Class<? extends ApplicationEvent>>) adapterAccessor.getPropertyValue("eventTypes");
+		assertNotNull(eventTypes);
+		assertTrue(eventTypes.size() == 2);	
+		assertTrue(eventTypes.contains(SampleEvent.class));
+		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
 	}
 
 	@Test
@@ -69,11 +88,15 @@ public class EventInboundChannelAdapterParserTests {
 
 	@SuppressWarnings("serial")
 	public static class SampleEvent extends ApplicationEvent {
-
 		public SampleEvent(Object source) {
 			super(source);
 		}
-		
 	}
 
+	@SuppressWarnings("serial")
+	public static class AnotherSampleEvent extends ApplicationEvent {
+		public AnotherSampleEvent(Object source) {
+			super(source);
+		}
+	}
 }

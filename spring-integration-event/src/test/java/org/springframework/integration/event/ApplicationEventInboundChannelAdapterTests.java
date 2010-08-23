@@ -16,14 +16,11 @@
 
 package org.springframework.integration.event;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.Test;
-
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -33,6 +30,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.PollableChannel;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Mark Fisher
@@ -61,7 +62,9 @@ public class ApplicationEventInboundChannelAdapterTests {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
 		adapter.setOutputChannel(channel);
-		adapter.setEventTypes(Collections.<Class<? extends ApplicationEvent>>singletonList(TestApplicationEvent1.class));
+		Set<Class<? extends ApplicationEvent>> events = new HashSet<Class<? extends ApplicationEvent>>();
+		events.add(TestApplicationEvent1.class);
+		adapter.setEventTypes(events);
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());

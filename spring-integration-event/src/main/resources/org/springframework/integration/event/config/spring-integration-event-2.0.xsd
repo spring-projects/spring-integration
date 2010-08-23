@@ -38,6 +38,15 @@
                 Identifies inbound 'channel' which accepts Messages generated from Application Context events.
             		</xsd:documentation>
                 </xsd:annotation>
+            </xsd:attribute>
+            <xsd:attribute name="event-types" type="xsd:string" use="optional">
+                <xsd:annotation>
+                     <xsd:documentation>
+                Comma delimited list of event types (classes that extend ApplicationEvent) that
+	            this adapter should send to the message channel. By default, all event
+	            types will be sent [OPTIONAL]
+            		</xsd:documentation>
+                </xsd:annotation>
             </xsd:attribute>     
         </xsd:complexType>
     </xsd:element>
