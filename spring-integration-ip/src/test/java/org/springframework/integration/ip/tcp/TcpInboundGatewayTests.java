@@ -124,7 +124,6 @@ public class TcpInboundGatewayTests {
 		results.add(new String(bytes));
 		readFully(socket.getInputStream(), bytes);
 		results.add(new String(bytes));
-		System.out.println(results);
 		assertTrue(results.remove("Echo:Test1\r\n"));
 		assertTrue(results.remove("Echo:Test2\r\n"));
 	}
