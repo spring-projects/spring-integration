@@ -69,7 +69,6 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 		}
 		try {
 			this.serverChannel = ServerSocketChannel.open();
-			this.listening = true;
 			logger.info("Listening on port " + this.port);
 			this.serverChannel.configureBlocking(false);
 			if (this.localAddress == null) {
@@ -82,6 +81,7 @@ public class TcpNioServerConnectionFactory extends AbstractServerConnectionFacto
 			}
 			final Selector selector = Selector.open();
 			this.serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+			this.listening = true;
 			doSelect(this.serverChannel, selector);
 
 		} catch (IOException e) {
