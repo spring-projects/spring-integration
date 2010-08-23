@@ -16,7 +16,6 @@
 
 package org.springframework.integration.core;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -319,7 +318,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 
-	@SuppressWarnings({"unchecked", "unused"})
 	private static class TemporaryReplyChannel implements PollableChannel {
 
 		private volatile Message<?> message;
@@ -334,15 +332,11 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		}
 
 
-		public String getName() {
-			return "temporaryReplyChannel";
-		}
-
-		public Message receive() {
+		public Message<?> receive() {
 			return this.receive(-1);
 		}
 
-		public Message receive(long timeout) {
+		public Message<?> receive(long timeout) {
 			try {
 				if (this.receiveTimeout < 0) {
 					this.latch.await();
@@ -367,13 +361,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 			return true;
 		}
 
-		public List<Message<?>> clear() {
-			return null;
-		}
-
-		public List<Message<?>> purge(MessageSelector selector) {
-			return null;
-		}
 	}
 
 }
