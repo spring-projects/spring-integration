@@ -196,14 +196,13 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 			reply = this.messagingTemplate.sendAndReceive(this.requestChannel, message);
 			if (reply instanceof ErrorMessage) {
 				error = ((ErrorMessage) reply).getPayload();
-			}	
+			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			logger.warn("failure occurred in gateway sendAndReceive.", e);
 			error = e;
 		}
-		
+
 		if (error != null && this.exceptionMapper != null) {
 			try {
 				// create a reply message from the error
