@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header; 
 import org.springframework.integration.annotation.Headers;
@@ -130,15 +132,15 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void fromMessageWithMapAndObjectMethod() throws Exception {
 		Method method = TestService.class.getMethod("mapHeadersAndPayload", Map.class, Object.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
-		Map result = (Map) processor.processMessage(message); 
-		// Map also contains id, timestamp, and history
-		assertEquals(6, result.size());
+		Map<?, ?> result = (Map<?, ?>) processor.processMessage(message); 
+		assertEquals(5, result.size());
+		assertTrue(result.containsKey(MessageHeaders.ID));
+		assertTrue(result.containsKey(MessageHeaders.TIMESTAMP));
 		assertEquals("foo", result.get("prop1"));
 		assertEquals("bar", result.get("prop2"));
 		assertEquals("test", result.get("payload"));
@@ -208,7 +210,6 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void multipleAnnotatedArgs() throws Exception {
 		Message<?> message = this.getMessage();
 		Method method = TestService.class.getMethod("multipleAnnotatedArguments", 
@@ -229,14 +230,13 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	}	    
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void fromMessageToPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapOnly", Map.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		Message<Employee> message = MessageBuilder.withPayload(employee).setHeader("number", "jkl").build();
 		Object result = processor.processMessage(message);
 		Assert.assertTrue(result instanceof Map);
-		Assert.assertEquals("jkl", ((Map) result).get("number"));
+		Assert.assertEquals("jkl", ((Map<?, ?>) result).get("number"));
 	}
 
 	@Test
@@ -342,19 +342,16 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 			return headers;
 		}
 
-		@SuppressWarnings("unchecked")
-		public Map mapPayload(Map map) {
+		public Map<?, ?> mapPayload(Map<?, ?> map) {
 			return map;
 		}
 
-		@SuppressWarnings("unchecked")
-		public Map mapHeaders(@Headers Map map) {
+		public Map<?, ?> mapHeaders(@Headers Map<?, ?> map) {
 			return map;
 		}
 
-		@SuppressWarnings("unchecked")
-		public Object mapHeadersAndPayload(Map headers, Object payload) {
-			Map map = new HashMap(headers);
+		public Object mapHeadersAndPayload(Map<String, Object> headers, Object payload) {
+			Map<String, Object> map = new HashMap<String, Object>(headers);
 			map.put("payload", payload);
 			return map;
 		}

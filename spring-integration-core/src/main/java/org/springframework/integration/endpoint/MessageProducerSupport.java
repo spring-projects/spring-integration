@@ -50,7 +50,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	protected void sendMessage(Message<?> message) {
 		if (message != null) {
-			message.getHeaders().getHistory().addEvent(this);
+			message = this.writeMessageHistory(message);
 		}
 		this.messagingTemplate.send(this.outputChannel, message);
 	}

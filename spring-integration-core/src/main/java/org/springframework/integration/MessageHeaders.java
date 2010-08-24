@@ -26,12 +26,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.history.MessageHistory;
 
 /**
  * The headers for a {@link Message}.
@@ -79,9 +79,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
 		this.headers.put(ID, UUID.randomUUID());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
-		if (this.headers.get(HISTORY) == null) {
-			this.headers.put(HISTORY, new MessageHistory());
-		}
 	}
 
 	public UUID getId() {
@@ -92,8 +89,9 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return this.get(TIMESTAMP, Long.class);
 	}
 
-	public MessageHistory getHistory() {
-		return this.get(HISTORY, MessageHistory.class);
+	@SuppressWarnings("unchecked")
+	public List<Properties> getHistory() {
+		return this.get(HISTORY, List.class);
 	}
 
 	public Long getExpirationDate() {

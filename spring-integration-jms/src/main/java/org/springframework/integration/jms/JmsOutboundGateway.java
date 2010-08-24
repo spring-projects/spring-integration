@@ -331,6 +331,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
 			// create JMS Producer and send
 			messageProducer = session.createProducer(this.getRequestDestination(session));
+			
+			// TODO: support a JmsReplyTo header in the SI Message?
 			replyTo = this.getReplyDestination(session);
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();

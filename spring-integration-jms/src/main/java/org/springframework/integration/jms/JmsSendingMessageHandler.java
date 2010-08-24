@@ -58,15 +58,15 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		return this.order;
 	}
 
-	public final void handleMessage(final Message<?> message) {
+	public final void handleMessage(Message<?> message) {
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
-		this.writeMessageHistory(message);
-		this.getJmsTemplate().convertAndSend(message, new MessagePostProcessor() {
+		final Message<?> messageToSend = this.writeMessageHistory(message);
+		this.getJmsTemplate().convertAndSend(messageToSend, new MessagePostProcessor() {
 			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage)
 					throws JMSException {
-				getHeaderMapper().fromHeaders(message.getHeaders(), jmsMessage);
+				getHeaderMapper().fromHeaders(messageToSend.getHeaders(), jmsMessage);
 				return jmsMessage;
 			}
 		});

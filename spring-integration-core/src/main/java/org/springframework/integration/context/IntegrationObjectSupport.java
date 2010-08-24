@@ -18,7 +18,14 @@ package org.springframework.integration.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.*;
+
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.metadata.MetadataPersister;
@@ -37,149 +44,150 @@ import org.springframework.util.StringUtils;
  * components whereas code built upon the integration framework should not
  * require tight coupling with the context but rather rely on standard
  * dependency injection.
- *
+ * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Josh Long
  */
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent, BeanFactoryAware, InitializingBean {
 
-    /**
-     * Logger that is available to subclasses
-     */
-    protected final Log logger = LogFactory.getLog(getClass());
+	/**
+	 * Logger that is available to subclasses
+	 */
+	protected final Log logger = LogFactory.getLog(getClass());
+	
+	private volatile MessageHistoryWriter historyWriter;
 
-    private volatile MessageHistoryWriter historyWriter;
+	private volatile MetadataPersister<?> metadataPersister;
 
-    private volatile MetadataPersister<?> metadataPersister;
+	private volatile String beanName;
 
-    private volatile String beanName;
+	private volatile String componentName;
 
-    private volatile String componentName;
+	private volatile BeanFactory beanFactory;
 
-    private volatile BeanFactory beanFactory;
+	private volatile TaskScheduler taskScheduler;
 
-    private volatile TaskScheduler taskScheduler;
-
-    private volatile ConversionService conversionService;
+	private volatile ConversionService conversionService;
 
 
-    public final void setBeanName(String beanName) {
-        this.beanName = beanName;
-    }
+	public final void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
 
-    /**
-     * Will return the name of this component identified by {@link #componentName} field.
-     * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
-     */
-    public final String getComponentName() {
-        return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
-    }
+	/**
+	 * Will return the name of this component identified by {@link #componentName} field. 
+	 * If {@link #componentName} was not set this method will default to the 'beanName' of this component;
+	 */
+	public final String getComponentName() {	
+		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
+	}
+	/**
+	 * Sets the name of this component. 
+	 * 
+	 * @param componentName
+	 */
+	public void setComponentName(String componentName) {
+		this.componentName = componentName;
+	}
 
-    /**
-     * Sets the name of this component.
-     *
-     * @param componentName
-     */
-    public void setComponentName(String componentName) {
-        this.componentName = componentName;
-    }
+	/**
+	 * Subclasses may implement this method to provide component type information.
+	 */
+	public String getComponentType() {
+		return null;
+	}
 
-    /**
-     * Subclasses may implement this method to provide component type information.
-     */
-    public String getComponentType() {
-        return null;
-    }
+	public final void setBeanFactory(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "beanFactory must not be null");
+		this.beanFactory = beanFactory;
+	}
 
-    public final void setBeanFactory(BeanFactory beanFactory) {
-        Assert.notNull(beanFactory, "beanFactory must not be null");
-        this.beanFactory = beanFactory;
-    }
-
-    public final void afterPropertiesSet() {
-        try {
-            this.onInit();
-        }
-        catch (Exception e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new BeanInitializationException("failed to initialize", e);
-        }
-        if (this.beanFactory != null) {
-            if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory) this.beanFactory, MessageHistoryWriter.class).size() == 1) {
-                this.historyWriter = this.beanFactory.getBean(MessageHistoryWriter.class);
-            }
-        }
-    }
-
-    /**
-     * Subclasses may implement this for initialization logic.
-     */
-    protected void onInit() throws Exception {
-    }
-
-    protected final BeanFactory getBeanFactory() {
-        return this.beanFactory;
-    }
-
-    protected MetadataPersister getRequiredMetadataPersister() {
-        if (this.metadataPersister == null && this.beanFactory != null) {
-            this.metadataPersister = IntegrationContextUtils.getMetadataPersister(this.beanFactory);
-        }
-
-        if (this.metadataPersister == null) {
-            PropertiesBasedMetadataPersister mp = new PropertiesBasedMetadataPersister();
-            try {
-                mp.afterPropertiesSet();
-            } catch (Exception e) {
-                if (e instanceof RuntimeException) {
-                    throw (RuntimeException) e;
-                }
-                throw new BeanInitializationException("failed to obtain reference to MetadataPersister strategy implementation.", e);
-            }
-            this.metadataPersister = mp;
-        }
-        return this.metadataPersister;
-    }
-
-    protected TaskScheduler getTaskScheduler() {
-        if (this.taskScheduler == null && this.beanFactory != null) {
-            this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
-        }
-        return this.taskScheduler;
-    }
-
-    protected void setTaskScheduler(TaskScheduler taskScheduler) {
-        Assert.notNull(taskScheduler, "taskScheduler must not be null");
-        this.taskScheduler = taskScheduler;
-    }
-
-    protected final ConversionService getConversionService() {
-        if (this.conversionService == null && this.beanFactory != null) {
-            this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
-            if (this.conversionService == null && logger.isDebugEnabled()) {
-                logger.debug("Unable to attempt conversion of Message payload types. Component '" +
-                        this.getComponentName() + "' has no explicit ConversionService reference, " +
-                        "and there is no 'integrationConversionService' bean within the context.");
-            }
-        }
-        return this.conversionService;
-    }
-
-    protected void setConversionService(ConversionService conversionService) {
-        this.conversionService = conversionService;
-    }
-
-    @Override
-    public String toString() {
-        return (this.beanName != null) ? this.beanName : super.toString();
-    }
-
-    protected void writeMessageHistory(Message<?> message) {
-        if (historyWriter != null && message != null) {
-            historyWriter.writeHistory(this, message.getHeaders().getHistory());
+	public final void afterPropertiesSet() {
+		try {
+			this.onInit();
+		}
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new BeanInitializationException("failed to initialize", e);
+		}
+		if (this.beanFactory != null) {
+			if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class).size() == 1){
+				this.historyWriter = this.beanFactory.getBean(MessageHistoryWriter.class);
+			}
 		}
 	}
+
+	/**
+	 * Subclasses may implement this for initialization logic.
+	 */
+	protected void onInit() throws Exception {
+	}
+
+	protected final BeanFactory getBeanFactory() {
+		return this.beanFactory;
+	}
+
+	protected MetadataPersister getRequiredMetadataPersister() {
+		if (this.metadataPersister == null && this.beanFactory != null) {
+			this.metadataPersister = IntegrationContextUtils.getMetadataPersister(this.beanFactory);
+		}
+		if (this.metadataPersister == null) {
+			PropertiesBasedMetadataPersister mp = new PropertiesBasedMetadataPersister();
+			try {
+				mp.afterPropertiesSet();
+			}
+			catch (Exception e) {
+				if (e instanceof RuntimeException) {
+					throw (RuntimeException) e;
+				}
+				throw new BeanInitializationException("failed to obtain reference to MetadataPersister strategy implementation.", e);
+			}
+			this.metadataPersister = mp;
+		}
+		return this.metadataPersister;
+	}
+
+	protected TaskScheduler getTaskScheduler() {
+		if (this.taskScheduler == null && this.beanFactory != null) {
+			this.taskScheduler = IntegrationContextUtils.getTaskScheduler(this.beanFactory);
+		}
+		return this.taskScheduler;
+	}
+
+	protected void setTaskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "taskScheduler must not be null");
+		this.taskScheduler = taskScheduler;
+	}
+
+	protected final ConversionService getConversionService() {
+		if (this.conversionService == null && this.beanFactory != null) {
+			this.conversionService = IntegrationContextUtils.getConversionService(this.beanFactory);
+			if (this.conversionService == null && logger.isDebugEnabled()) {
+				logger.debug("Unable to attempt conversion of Message payload types. Component '" +
+						this.getComponentName() + "' has no explicit ConversionService reference, " +
+						"and there is no 'integrationConversionService' bean within the context.");
+			}
+		}
+		return this.conversionService;
+	}
+
+	protected void setConversionService(ConversionService conversionService) {
+		this.conversionService = conversionService;
+	}
+
+	@Override
+	public String toString() {
+		return (this.beanName != null) ? this.beanName : super.toString();
+	}
+
+	protected <T> Message<T> writeMessageHistory(Message<T> message) {
+		if (historyWriter != null && message != null) {
+			return historyWriter.writeHistory(this, message);
+		}
+		return message;
+	}
+
 }

@@ -73,7 +73,7 @@ class MessageHistoryWritingMessageHandler implements NamedComponent, MessageHand
 	 */
 	public void handleMessage(Message<?> message) {
 		if (message != null) {
-			this.historyWriter.writeHistory(this, message.getHeaders().getHistory());
+			message = this.historyWriter.writeHistory(this, message);
 		}
 		this.targetHandler.handleMessage(message);
 	}

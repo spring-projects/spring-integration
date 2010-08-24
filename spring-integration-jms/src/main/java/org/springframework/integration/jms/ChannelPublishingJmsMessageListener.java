@@ -222,7 +222,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 		Message<?> requestMessage = (object instanceof Message<?>) ?
 				MessageBuilder.fromMessage((Message<?>) object).copyHeaders(headers).build() : 
 				MessageBuilder.withPayload(object).copyHeaders(headers).build();
-		this.writeMessageHistory(requestMessage);		
+		requestMessage = this.writeMessageHistory(requestMessage);		
 		if (!this.expectReply) {
 			this.send(requestMessage);
 		}

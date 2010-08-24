@@ -45,7 +45,6 @@ public class OutboundJsonMessageMapperTests {
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
 		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"$history\":[]"));
 		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
 		assertTrue(result.contains("\"payload\":\"myPayloadStuff\""));
 	}
@@ -68,7 +67,6 @@ public class OutboundJsonMessageMapperTests {
 		String result = mapper.fromMessage(testMessage);
 		assertTrue(result.contains("\"headers\":{"));
 		assertTrue(result.contains("\"$timestamp\":"+testMessage.getHeaders().getTimestamp()));
-		assertTrue(result.contains("\"$history\":[]"));
 		assertTrue(result.contains("\"$id\":\""+testMessage.getHeaders().getId()+"\""));
 		TestBean parsedPayload = extractJsonPayloadToTestBean(result);
 		assertEquals(payload, parsedPayload);

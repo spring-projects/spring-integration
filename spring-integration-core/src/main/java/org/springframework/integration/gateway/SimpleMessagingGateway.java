@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleMessagingGateway extends AbstractMessagingGateway {
 
 	private final InboundMessageMapper inboundMapper;
@@ -80,7 +80,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		Message<?> message = null;
 		try {
 			message = this.inboundMapper.toMessage(object);
-			this.writeMessageHistory(message);
+			message = this.writeMessageHistory(message);
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {

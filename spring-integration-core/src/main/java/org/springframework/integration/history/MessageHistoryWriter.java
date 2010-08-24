@@ -16,15 +16,23 @@
 
 package org.springframework.integration.history;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * This component is responsible for maintaining the history of {@link MessageChannel}s and 
@@ -32,9 +40,17 @@ import org.springframework.util.Assert;
  * hierarchy otherwise an Exception will be thrown.
  * 
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
-public class MessageHistoryWriter implements BeanFactoryAware, InitializingBean{
+public class MessageHistoryWriter implements BeanFactoryAware, InitializingBean {
+
+	public static final String NAME_PROPERTY = "name";
+
+	public static final String TYPE_PROPERTY = "type";
+
+	public static final String TIMESTAMP_PROPERTY = "timestamp";
+
 
 	private volatile BeanFactory beanFactory;
 
@@ -50,10 +66,27 @@ public class MessageHistoryWriter implements BeanFactoryAware, InitializingBean{
 		}
 	}
 
-	public void writeHistory(NamedComponent component, MessageHistory history) {
-		if (history != null) {
-			history.addEvent(component);
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public <T> Message<T> writeHistory(NamedComponent component, Message<T> message) {
+		if (component != null && message != null) {
+			String componentName = component.getComponentName();
+			if (componentName != null && !componentName.startsWith("org.springframework.integration")) {
+				Properties historyEvent = new Properties();
+				String componentType = component.getComponentType();
+				if (StringUtils.hasText(componentType)) {
+					historyEvent.setProperty(TYPE_PROPERTY, componentType);
+				}
+				historyEvent.setProperty(NAME_PROPERTY, componentName);
+				historyEvent.setProperty(TIMESTAMP_PROPERTY, "" + System.currentTimeMillis());
+				List history = message.getHeaders().get(MessageHeaders.HISTORY, List.class);
+				if (history == null) {
+					history = new ArrayList();
+				}
+				history.add(historyEvent);
+				message = MessageBuilder.fromMessage(message).setHeader(MessageHeaders.HISTORY, history).build();
+			}
 		}
+		return message;
 	}
 
 }

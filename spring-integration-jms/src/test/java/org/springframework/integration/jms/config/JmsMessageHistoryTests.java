@@ -13,22 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
+
 import static junit.framework.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.StringTokenizer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageChannel;
@@ -36,19 +40,17 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.history.MessageHistoryEvent;
+import org.springframework.integration.history.MessageHistoryWriter;
 import org.springframework.integration.history.NamedComponent;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Oleg Zhurakousky
- *
+ * @author Mark Fisher
+ * @since 2.0
  */
 public class JmsMessageHistoryTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testInboundAdapter() throws Exception{
 		ActiveMqTestUtils.prepare();
@@ -56,66 +58,63 @@ public class JmsMessageHistoryTests {
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
 		gateway.send("hello");
-		Message<String> message = (Message<String>) jmsInputChannel.receive(5000);
-		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
-		MessageHistoryEvent event = historyIterator.next();
-		assertEquals("jms:inbound-channel-adapter", event.getType());
-		assertEquals("sampleJmsInboundAdapter", event.getName());
+		Message<?> message = jmsInputChannel.receive(5000);
+		Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+		Properties event = historyIterator.next();
+		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("channel", event.getType());
-		assertEquals("jmsInputChannel", event.getName());
+		assertEquals("channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+		assertEquals("jmsInputChannel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 	}
-	@SuppressWarnings("unchecked")
-	@Test
+
+	@Test @Ignore
 	public void testWithHeaderMapperPropagatingOutboundHistory() throws Exception{
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("MessageHistoryTests-withHeaderMapper.xml", JmsMessageHistoryTests.class);
 		DirectChannel input = applicationContext.getBean("outbound-channel", DirectChannel.class);
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
 		input.send(new StringMessage("hello"));
-		Message<String> message = (Message<String>) jmsInputChannel.receive(50000);
-		System.out.println(message);
-		Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
-		MessageHistoryEvent event = historyIterator.next();
-		assertEquals("channel", event.getType());
-		assertEquals("outbound-channel", event.getName());
+		Message<?> message = jmsInputChannel.receive(50000);
+		Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+		Properties event = historyIterator.next();
+		assertEquals("channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+		assertEquals("outbound-channel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("jms:outbound-channel-adapter", event.getType());
-		assertEquals("jmsOutbound", event.getName());
+		assertEquals("jms:outbound-channel-adapter", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+		assertEquals("jmsOutbound", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("jms:inbound-channel-adapter", event.getType());
-		assertEquals("sampleJmsInboundAdapter", event.getName());
+		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("channel", event.getType());
-		assertEquals("jmsInputChannel", event.getName());
+		assertEquals("channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+		assertEquals("jmsInputChannel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 	}
 
-	@Test
+	@Test @Ignore
 	public void testWithHeaderMapperPropagatingOutboundHistoryWithGateways() throws Exception{
 		ActiveMqTestUtils.prepare();
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("MessageHistoryTests-gateways.xml", JmsMessageHistoryTests.class);
 		SampleGateway gateway = applicationContext.getBean("sampleGateway", SampleGateway.class);
 		SubscribableChannel inboundJmsChannel = applicationContext.getBean("inbound-jms-channel", SubscribableChannel.class);
 		MessageHandler handler = new MessageHandler() {
-			public void handleMessage(Message<?> message)
-					throws MessageRejectedException, MessageHandlingException,
-					MessageDeliveryException {
-				Iterator<MessageHistoryEvent> historyIterator = message.getHeaders().getHistory().iterator();
-				MessageHistoryEvent event = historyIterator.next();
-				assertEquals("gateway", event.getType());
-				assertEquals("sampleGateway", event.getName());
+			public void handleMessage(Message<?> message) {
+				Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+				Properties event = historyIterator.next();
+				assertEquals("gateway", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+				assertEquals("sampleGateway", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("publish-subscribe-channel", event.getType());
-				assertEquals("channel-a", event.getName());
+				assertEquals("publish-subscribe-channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+				assertEquals("channel-a", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("jms:outbound-gateway", event.getType());
-				assertEquals("jmsOutbound", event.getName());
+				assertEquals("jms:outbound-gateway", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+				assertEquals("jmsOutbound", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("jms:inbound-gateway", event.getType());
-				assertEquals("jmsInbound", event.getName());
+				assertEquals("jms:inbound-gateway", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+				assertEquals("jmsInbound", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("publish-subscribe-channel", event.getType());
-				assertEquals("inbound-jms-channel", event.getName());
+				assertEquals("publish-subscribe-channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
+				assertEquals("inbound-jms-channel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
 				
 				MessageChannel channel = (MessageChannel) message.getHeaders().getReplyChannel();
 				channel.send(new StringMessage("OK"));
@@ -134,39 +133,38 @@ public class JmsMessageHistoryTests {
 	
 	public static class SampleService{
 		public Message<?> echoMessage(String value){
-			System.out.println("IN SampleService");
 			return new StringMessage(value);
 		}
 	}
 	
 	public static class SampleHeaderMapper extends DefaultJmsHeaderMapper {
-		
-		
-		public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage){
+
+		public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 			super.fromHeaders(headers, jmsMessage);
 			String messageHistory = headers.getHistory().toString();
 			try {
 				jmsMessage.setStringProperty("outbound_history", messageHistory);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new MessagingException("Problem setting JMS properties", e);
 			}
 		}
-		
-		public Map<String, Object> toHeaders(javax.jms.Message jmsMessage){
+
+		public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
 			Map<String, Object> headers =  super.toHeaders(jmsMessage);
-			MessageHistory history = new MessageHistory();
+			List<Properties> history = new ArrayList<Properties>();
 			String outboundHistory = (String) headers.get("outbound_history");
-			StringTokenizer tok = new StringTokenizer(outboundHistory, ",[] ");
-			while (tok.hasMoreTokens()) {
-				String historyItem = tok.nextToken();
-				String[] parsedHistory = StringUtils.split(historyItem, "#");
-				String type = null;
-				String name = historyItem;
-				if (parsedHistory != null){
-					name = parsedHistory[1];
-					type = parsedHistory[0];
+			StringTokenizer outerTok = new StringTokenizer(outboundHistory, "[]");
+			while (outerTok.hasMoreTokens()) {
+				String historyItem = outerTok.nextToken();
+				StringTokenizer innerTok = new StringTokenizer(historyItem, ",{} ");
+				Properties historyEvent = new Properties();
+				while (innerTok.hasMoreTokens()) {
+					String prop = innerTok.nextToken();
+					String[] keyAndValue = prop.split("=");
+					historyEvent.setProperty(keyAndValue[0], keyAndValue[1]);
 				}
-				history.addEvent(new SampleComponent(name, type));
+				history.add(historyEvent);
 			}
 			headers.put(MessageHeaders.HISTORY, history);
 			headers.remove("outbound_history");
