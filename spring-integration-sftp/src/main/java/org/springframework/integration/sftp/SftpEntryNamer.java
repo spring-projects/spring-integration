@@ -8,9 +8,9 @@ import org.springframework.integration.file.entries.EntryNamer;
  *
  * @author Josh Long
  */
-public class SftpEntryNamer implements EntryNamer<ChannelSftp.LsEntry>{
+public class SftpEntryNamer implements EntryNamer<ChannelSftp.LsEntry> {
 
-    public String nameOf(ChannelSftp.LsEntry entry) {
-     return entry.getFilename() ;
-    }
+	public String nameOf(ChannelSftp.LsEntry entry) {
+		return entry.getFilename();
+	}
 }

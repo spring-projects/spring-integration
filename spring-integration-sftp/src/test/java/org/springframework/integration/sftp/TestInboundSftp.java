@@ -7,8 +7,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class TestInboundSftp {
 
-    static public void main(String [] args) throws Throwable {
-        ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext("TestInboundSftp.xml");
-        classPathXmlApplicationContext.start();
-    }
+	static public void main(String[] args) throws Throwable {
+		ClassPathXmlApplicationContext classPathXmlApplicationContext = new ClassPathXmlApplicationContext("TestInboundSftp.xml");
+		classPathXmlApplicationContext.start();
+	}
 }

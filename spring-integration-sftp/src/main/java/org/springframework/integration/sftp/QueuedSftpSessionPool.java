@@ -31,68 +31,68 @@ import java.util.concurrent.ArrayBlockingQueue;
  * @since 2.0
  */
 public class QueuedSftpSessionPool implements SftpSessionPool, InitializingBean {
-    public static final int DEFAULT_POOL_SIZE = 10;
-    private Queue<SftpSession> queue;
-    private final SftpSessionFactory sftpSessionFactory;
-    private int maxPoolSize;
+	public static final int DEFAULT_POOL_SIZE = 10;
+	private Queue<SftpSession> queue;
+	private final SftpSessionFactory sftpSessionFactory;
+	private int maxPoolSize;
 
-    public QueuedSftpSessionPool(SftpSessionFactory factory) {
-        this(DEFAULT_POOL_SIZE, factory);
-    }
+	public QueuedSftpSessionPool(SftpSessionFactory factory) {
+		this(DEFAULT_POOL_SIZE, factory);
+	}
 
-    public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactory sessionFactory) {
-        this.sftpSessionFactory = sessionFactory;
-        this.maxPoolSize = maxPoolSize;
-    }
+	public QueuedSftpSessionPool(int maxPoolSize, SftpSessionFactory sessionFactory) {
+		this.sftpSessionFactory = sessionFactory;
+		this.maxPoolSize = maxPoolSize;
+	}
 
-    public void afterPropertiesSet() throws Exception {
-        assert maxPoolSize > 0 : "poolSize must be greater than 0!";
-        queue = new ArrayBlockingQueue<SftpSession>(maxPoolSize, true); // size, faireness to avoid starvation
-        assert sftpSessionFactory != null : "sftpSessionFactory must not be null!";
-    }
+	public void afterPropertiesSet() throws Exception {
+		assert maxPoolSize > 0 : "poolSize must be greater than 0!";
+		queue = new ArrayBlockingQueue<SftpSession>(maxPoolSize, true); // size, faireness to avoid starvation
+		assert sftpSessionFactory != null : "sftpSessionFactory must not be null!";
+	}
 
-    public SftpSession getSession() throws Exception {
-        SftpSession session = this.queue.poll();
+	public SftpSession getSession() throws Exception {
+		SftpSession session = this.queue.poll();
 
-        if (null == session) {
-            session = this.sftpSessionFactory.getObject();
+		if (null == session) {
+			session = this.sftpSessionFactory.getObject();
 
-            if (queue.size() < maxPoolSize) {
-                queue.add(session);
-            }
-        }
+			if (queue.size() < maxPoolSize) {
+				queue.add(session);
+			}
+		}
 
-        if (null == session) {
-            session = queue.poll();
-        }
+		if (null == session) {
+			session = queue.poll();
+		}
 
-        return session;
-    }
+		return session;
+	}
 
-    public void release(SftpSession session) {
-        if (queue.size() < maxPoolSize) {
-            queue.add(session); // somehow one snuck in before <code>session</code> was finished!
-        } else {
-            dispose(session);
-        }
-    }
+	public void release(SftpSession session) {
+		if (queue.size() < maxPoolSize) {
+			queue.add(session); // somehow one snuck in before <code>session</code> was finished!
+		} else {
+			dispose(session);
+		}
+	}
 
-    private void dispose(SftpSession s) {
-        if (s == null) {
-            return;
-        }
+	private void dispose(SftpSession s) {
+		if (s == null) {
+			return;
+		}
 
-        if (queue.contains(s)) //this should never happen, but if it does ...
-         {
-            queue.remove(s);
-        }
+		if (queue.contains(s)) //this should never happen, but if it does ...
+		{
+			queue.remove(s);
+		}
 
-        if ((s.getChannel() != null) && s.getChannel().isConnected()) {
-            s.getChannel().disconnect();
-        }
+		if ((s.getChannel() != null) && s.getChannel().isConnected()) {
+			s.getChannel().disconnect();
+		}
 
-        if (s.getSession().isConnected()) {
-            s.getSession().disconnect();
-        }
-    }
+		if (s.getSession().isConnected()) {
+			s.getSession().disconnect();
+		}
+	}
 }

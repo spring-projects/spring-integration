@@ -30,59 +30,59 @@ import org.springframework.util.StringUtils;
  * @author Mario Gray
  */
 public class SftpSessionFactory implements FactoryBean<SftpSession>, InitializingBean {
-    private volatile String knownHosts;
-    private volatile String password;
-    private volatile String privateKey;
-    private volatile String privateKeyPassphrase;
-    private volatile String remoteHost;
-    private volatile String user;
-    private volatile int port = 22; // the default
+	private volatile String knownHosts;
+	private volatile String password;
+	private volatile String privateKey;
+	private volatile String privateKeyPassphrase;
+	private volatile String remoteHost;
+	private volatile String user;
+	private volatile int port = 22; // the default
 
-    public void afterPropertiesSet() throws Exception {
-        Assert.hasText(this.remoteHost, "remoteHost can't be empty!");
-        Assert.hasText(this.user, "user can't be empty!");
-        Assert.state(StringUtils.hasText(this.password) || StringUtils.hasText(this.privateKey) || StringUtils.hasText(this.privateKeyPassphrase),
-            "you must configure either a password or a private key and/or a private key passphrase!");
-        Assert.state(this.port >= 0, "port must be a valid number! ");
-    }
+	public void afterPropertiesSet() throws Exception {
+		Assert.hasText(this.remoteHost, "remoteHost can't be empty!");
+		Assert.hasText(this.user, "user can't be empty!");
+		Assert.state(StringUtils.hasText(this.password) || StringUtils.hasText(this.privateKey) || StringUtils.hasText(this.privateKeyPassphrase),
+				"you must configure either a password or a private key and/or a private key passphrase!");
+		Assert.state(this.port >= 0, "port must be a valid number! ");
+	}
 
-    public SftpSession getObject() throws Exception {
-        return new SftpSession( this.user, this.remoteHost , this.password ,this.port, this.knownHosts, null, this.privateKey , this.privateKeyPassphrase);
-    }
+	public SftpSession getObject() throws Exception {
+		return new SftpSession(this.user, this.remoteHost, this.password, this.port, this.knownHosts, null, this.privateKey, this.privateKeyPassphrase);
+	}
 
-    public Class<?extends SftpSession> getObjectType() {
-        return SftpSession.class;
-    }
+	public Class<? extends SftpSession> getObjectType() {
+		return SftpSession.class;
+	}
 
-    public boolean isSingleton() {
-        return false;
-    }
+	public boolean isSingleton() {
+		return false;
+	}
 
-    public void setKnownHosts(String knownHosts) {
-        this.knownHosts = knownHosts;
-    }
+	public void setKnownHosts(String knownHosts) {
+		this.knownHosts = knownHosts;
+	}
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	public void setPassword(String password) {
+		this.password = password;
+	}
 
-    public void setPort(int port) {
-        this.port = port;
-    }
+	public void setPort(int port) {
+		this.port = port;
+	}
 
-    public void setPrivateKey(String privateKey) {
-        this.privateKey = privateKey;
-    }
+	public void setPrivateKey(String privateKey) {
+		this.privateKey = privateKey;
+	}
 
-    public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
-        this.privateKeyPassphrase = privateKeyPassphrase;
-    }
+	public void setPrivateKeyPassphrase(String privateKeyPassphrase) {
+		this.privateKeyPassphrase = privateKeyPassphrase;
+	}
 
-    public void setRemoteHost(String remoteHost) {
-        this.remoteHost = remoteHost;
-    }
+	public void setRemoteHost(String remoteHost) {
+		this.remoteHost = remoteHost;
+	}
 
-    public void setUser(String user) {
-        this.user = user;
-    }
+	public void setUser(String user) {
+		this.user = user;
+	}
 }

@@ -2,11 +2,9 @@ package org.springframework.integration.sftp.impl;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
-
 import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
 import org.springframework.integration.sftp.SftpSession;
 import org.springframework.integration.sftp.SftpSessionPool;
-
 import org.springframework.util.Assert;
 
 
@@ -16,86 +14,86 @@ import org.springframework.util.Assert;
  * @author Josh Long
  */
 public class SftpInboundRemoteFileSystemSynchronizingMessageSource extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<ChannelSftp.LsEntry, SftpInboundRemoteFileSystemSynchronizer> {
-    /**
-     * the pool of sessions
-     */
-    private volatile SftpSessionPool clientPool;
+	/**
+	 * the pool of sessions
+	 */
+	private volatile SftpSessionPool clientPool;
 
- 
-    /**
-     * the remote path on teh server
-     */
-    private volatile String remotePath;
 
-    public void setClientPool(SftpSessionPool clientPool) {
-        this.clientPool = clientPool;
-    }
+	/**
+	 * the remote path on teh server
+	 */
+	private volatile String remotePath;
 
-    public void setRemotePath(String remotePath) {
-        this.remotePath = remotePath;
-    }
+	public void setClientPool(SftpSessionPool clientPool) {
+		this.clientPool = clientPool;
+	}
 
-    @Override
-    protected void doStart() {
-        this.synchronizer.start();
-    }
+	public void setRemotePath(String remotePath) {
+		this.remotePath = remotePath;
+	}
 
-    @Override
-    protected void doStop() {
-        this.synchronizer.stop();
-    }
+	@Override
+	protected void doStart() {
+		this.synchronizer.start();
+	}
 
-    /**
-     * there be dragons this way ... This method will check to ensure that the remote directory exists. If the directory
-     * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
-     * to create it. Otherwise, it fails fast.
-     *
-     * @param remotePath the path on the remote SSH / SFTP server to create.
-     * @return whether or not the directory is there (regardless of whether we created it in this method or it already
-     *         existed.)
-     */
-    private boolean checkThatRemotePathExists(String remotePath) {
-        SftpSession session = null;
-        ChannelSftp channelSftp = null;
+	@Override
+	protected void doStop() {
+		this.synchronizer.stop();
+	}
 
-        try {
-            session = this.clientPool.getSession();
-            Assert.state(session != null, "session as returned from the pool should not be null. " + "If it is, it is most likely an error in the pool implementation.  ");
-            session.start();
-            channelSftp = session.getChannel();
+	/**
+	 * there be dragons this way ... This method will check to ensure that the remote directory exists. If the directory
+	 * doesnt exist, and autoCreatePath is 'true,' then this method makes a few reasonably sane attempts
+	 * to create it. Otherwise, it fails fast.
+	 *
+	 * @param remotePath the path on the remote SSH / SFTP server to create.
+	 * @return whether or not the directory is there (regardless of whether we created it in this method or it already
+	 *         existed.)
+	 */
+	private boolean checkThatRemotePathExists(String remotePath) {
+		SftpSession session = null;
+		ChannelSftp channelSftp = null;
 
-            SftpATTRS attrs = channelSftp.stat(remotePath);
-            assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
+		try {
+			session = this.clientPool.getSession();
+			Assert.state(session != null, "session as returned from the pool should not be null. " + "If it is, it is most likely an error in the pool implementation.  ");
+			session.start();
+			channelSftp = session.getChannel();
 
-            return true;
-        } catch (Throwable th) {
-            if (this.autoCreateDirectories && (this.clientPool != null) && (session != null)) {
-                try {
-                    if (channelSftp != null) {
-                        channelSftp.mkdir(remotePath);
+			SftpATTRS attrs = channelSftp.stat(remotePath);
+			assert (attrs != null) && attrs.isDir() : "attrs can't be null, and should indicate that it's a directory!";
 
-                        if (channelSftp.stat(remotePath).isDir()) {
-                            return true;
-                        }
-                    }
-                } catch (Throwable t) {
-                    return false;
-                }
-            }
-        } finally {
-            if ((clientPool != null) && (session != null)) {
-                clientPool.release(session);
-            }
-        }
+			return true;
+		} catch (Throwable th) {
+			if (this.autoCreateDirectories && (this.clientPool != null) && (session != null)) {
+				try {
+					if (channelSftp != null) {
+						channelSftp.mkdir(remotePath);
 
-        return false;
-    }
+						if (channelSftp.stat(remotePath).isDir()) {
+							return true;
+						}
+					}
+				} catch (Throwable t) {
+					return false;
+				}
+			}
+		} finally {
+			if ((clientPool != null) && (session != null)) {
+				clientPool.release(session);
+			}
+		}
 
-    @Override
-    protected void onInit() throws Exception {
-        super.onInit();
+		return false;
+	}
 
-        this.checkThatRemotePathExists(this.remotePath);
-        this.synchronizer.setClientPool(this.clientPool);
-    }
+	@Override
+	protected void onInit() throws Exception {
+		super.onInit();
+
+		this.checkThatRemotePathExists(this.remotePath);
+		this.synchronizer.setClientPool(this.clientPool);
+	}
 }

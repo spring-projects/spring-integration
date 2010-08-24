@@ -28,66 +28,66 @@ import org.springframework.integration.sftp.SftpSessionFactory;
  * @author Josh Long
  */
 public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSendingMessageHandler> {
-    private String host;
-    private String keyFile;
-    private String keyFilePassword;
-    private String password;
-    private String remoteDirectory;
-    private String username;
-    private boolean autoCreateDirectories;
-    private int port;
+	private String host;
+	private String keyFile;
+	private String keyFilePassword;
+	private String password;
+	private String remoteDirectory;
+	private String username;
+	private boolean autoCreateDirectories;
+	private int port;
 
-    public SftpSendingMessageHandler getObject() throws Exception {
-        SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
-                this.host, this.password, this.username, this.keyFile , this.keyFilePassword, this.port);
+	public SftpSendingMessageHandler getObject() throws Exception {
+		SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
+				this.host, this.password, this.username, this.keyFile, this.keyFilePassword, this.port);
 
-        QueuedSftpSessionPool queuedSFTPSessionPool = new QueuedSftpSessionPool(15, sessionFactory);
-        queuedSFTPSessionPool.afterPropertiesSet();
+		QueuedSftpSessionPool queuedSFTPSessionPool = new QueuedSftpSessionPool(15, sessionFactory);
+		queuedSFTPSessionPool.afterPropertiesSet();
 
-        SftpSendingMessageHandler sftpSendingMessageHandler = new SftpSendingMessageHandler(queuedSFTPSessionPool);
-        sftpSendingMessageHandler.setRemoteDirectory(this.remoteDirectory);
-        sftpSendingMessageHandler.afterPropertiesSet();
+		SftpSendingMessageHandler sftpSendingMessageHandler = new SftpSendingMessageHandler(queuedSFTPSessionPool);
+		sftpSendingMessageHandler.setRemoteDirectory(this.remoteDirectory);
+		sftpSendingMessageHandler.afterPropertiesSet();
 
-        return sftpSendingMessageHandler;
-    }
+		return sftpSendingMessageHandler;
+	}
 
-    public Class<?extends SftpSendingMessageHandler> getObjectType() {
-        return SftpSendingMessageHandler.class;
-    }
+	public Class<? extends SftpSendingMessageHandler> getObjectType() {
+		return SftpSendingMessageHandler.class;
+	}
 
-    public boolean isSingleton() {
-        return false;
-    }
+	public boolean isSingleton() {
+		return false;
+	}
 
-    public void setAutoCreateDirectories(final boolean autoCreateDirectories) {
-        this.autoCreateDirectories = autoCreateDirectories;
-    }
+	public void setAutoCreateDirectories(final boolean autoCreateDirectories) {
+		this.autoCreateDirectories = autoCreateDirectories;
+	}
 
-    public void setHost(final String host) {
-        this.host = host;
-    }
+	public void setHost(final String host) {
+		this.host = host;
+	}
 
-    public void setKeyFile(final String keyFile) {
-        this.keyFile = keyFile;
-    }
+	public void setKeyFile(final String keyFile) {
+		this.keyFile = keyFile;
+	}
 
-    public void setKeyFilePassword(final String keyFilePassword) {
-        this.keyFilePassword = keyFilePassword;
-    }
+	public void setKeyFilePassword(final String keyFilePassword) {
+		this.keyFilePassword = keyFilePassword;
+	}
 
-    public void setPassword(final String password) {
-        this.password = password;
-    }
+	public void setPassword(final String password) {
+		this.password = password;
+	}
 
-    public void setPort(final int port) {
-        this.port = port;
-    }
+	public void setPort(final int port) {
+		this.port = port;
+	}
 
-    public void setRemoteDirectory(final String remoteDirectory) {
-        this.remoteDirectory = remoteDirectory;
-    }
+	public void setRemoteDirectory(final String remoteDirectory) {
+		this.remoteDirectory = remoteDirectory;
+	}
 
-    public void setUsername(final String username) {
-        this.username = username;
-    }
+	public void setUsername(final String username) {
+		this.username = username;
+	}
 }

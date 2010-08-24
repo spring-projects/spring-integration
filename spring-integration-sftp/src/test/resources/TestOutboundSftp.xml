@@ -16,18 +16,17 @@
   -->
 
 
-
 <beans:beans
-        xmlns="http://www.springframework.org/schema/integration"
-        xmlns:beans="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:p="http://www.springframework.org/schema/p"
-        xmlns:context="http://www.springframework.org/schema/context"
-        xmlns:util="http://www.springframework.org/schema/util"
-        xmlns:tool="http://www.springframework.org/schema/tool"
-        xmlns:lang="http://www.springframework.org/schema/lang"
-        xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		xmlns="http://www.springframework.org/schema/integration"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:lang="http://www.springframework.org/schema/lang"
+		xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
                         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
@@ -36,20 +35,20 @@
 						http://www.springframework.org/schema/integration/sftp
 						 http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
 
-    <context:component-scan base-package="org.springframework.integration.sftp"/>
+	<context:component-scan base-package="org.springframework.integration.sftp"/>
 
 
-    <channel id="inboundFilesChannel"/>
+	<channel id="inboundFilesChannel"/>
 
-    <sftp:outbound-channel-adapter
-            key-file="/home/user/user.pem"
-            remote-directory="/home/ubuntu/remote_mount_key"
-            auto-create-directories="true"
-            channel="inboundFilesChannel"
-            username="ubuntu"
-            host="siteonec2usingubuntuami.com"
-    />
+	<sftp:outbound-channel-adapter
+			key-file="/home/user/user.pem"
+			remote-directory="/home/ubuntu/remote_mount_key"
+			auto-create-directories="true"
+			channel="inboundFilesChannel"
+			username="ubuntu"
+			host="siteonec2usingubuntuami.com"
+			/>
 
-    <service-activator input-channel="inboundFilesChannel" ref="sftpAnnouncer"/>
+	<service-activator input-channel="inboundFilesChannel" ref="sftpAnnouncer"/>
 
 </beans:beans>
