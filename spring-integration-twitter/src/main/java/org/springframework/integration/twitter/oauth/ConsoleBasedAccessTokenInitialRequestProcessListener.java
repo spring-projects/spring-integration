@@ -22,10 +22,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 
 import twitter4j.http.AccessToken;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
+import java.io.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,12 +52,11 @@ public class ConsoleBasedAccessTokenInitialRequestProcessListener implements Acc
         output.put(OAuthConfigurationFactoryBean.WELL_KNOWN_CONSUMER_ACCESS_TOKEN_SECRET, accessToken.getTokenSecret());
 
         File accessTokenCreds = new File(SystemUtils.getJavaIoTmpDir(), "twitter-accesstoken.properties");
-        FileWriter writer = new FileWriter(accessTokenCreds);
-
+        FileOutputStream fileOutputStream = new FileOutputStream(accessTokenCreds);
         Properties props = new Properties();
         props.putAll(output);
-        props.store(writer, "oauth-access-token");
-        IOUtils.closeQuietly(writer);
+        props.store(fileOutputStream, "oauth-access-token");
+        IOUtils.closeQuietly(fileOutputStream);
 
         System.out.println("The oauth accesstoken credentials have been written to " + accessTokenCreds.getAbsolutePath());
     }
