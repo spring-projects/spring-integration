@@ -15,12 +15,12 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 /**
  * This class will facilitate publishing updated presence values for a given connection. This change happens on the
  * {@link org.jivesoftware.smack.Roster#setSubscriptionMode(org.jivesoftware.smack.Roster.SubscriptionMode)} property.
- * 
+ *
  * @author Josh Long
  * @see org.jivesoftware.smack.packet.Presence.Mode the mode (i.e.:
- * {@link org.jivesoftware.smack.packet.Presence.Mode#away})
+ *      {@link org.jivesoftware.smack.packet.Presence.Mode#away})
  * @see org.jivesoftware.smack.packet.Presence.Type the type (i.e.:
- * {@link org.jivesoftware.smack.packet.Presence.Type#available} )
+ *      {@link org.jivesoftware.smack.packet.Presence.Type#available} )
  * @since 2.0
  */
 public class XmppRosterEventMessageSendingHandler implements MessageHandler, Lifecycle {
@@ -74,6 +74,7 @@ public class XmppRosterEventMessageSendingHandler implements MessageHandler, Lif
 	/**
 	 * the MessageMapper is responsible for converting outbound Messages into status updates of type
 	 * {@link org.jivesoftware.smack.packet.Presence}
+	 *
 	 * @param messageMapper mapper for the message into a {@link Presence} instance
 	 */
 	public void setMessageMapper(OutboundMessageMapper<Presence> messageMapper) {

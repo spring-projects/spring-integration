@@ -87,8 +87,7 @@ public class XmppMessageSendingMessageHandler implements MessageHandler, Lifecyc
 		Chat chat = null;
 		if (!StringUtils.hasText(thread)) {
 			chat = xmppConnection.getChatManager().createChat(userId, null);
-		}
-		else {
+		} else {
 			chat = xmppConnection.getChatManager().getThreadChat(thread);
 			if (chat == null) {
 				chat = xmppConnection.getChatManager().createChat(userId, thread, null);

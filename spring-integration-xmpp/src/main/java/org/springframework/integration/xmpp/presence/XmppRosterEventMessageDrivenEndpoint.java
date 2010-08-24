@@ -20,13 +20,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-
 import org.springframework.context.Lifecycle;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
@@ -46,99 +43,99 @@ import java.util.Collection;
  */
 public class XmppRosterEventMessageDrivenEndpoint extends AbstractEndpoint implements Lifecycle {
 
-    private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
+	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
 
 
-    private volatile MessageChannel requestChannel;
+	private volatile MessageChannel requestChannel;
 
-    private volatile XMPPConnection xmppConnection;
+	private volatile XMPPConnection xmppConnection;
 
-    private InboundMessageMapper<Presence> messageMapper;
+	private InboundMessageMapper<Presence> messageMapper;
 
-    private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 
-    /**
-     * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
-     *
-     * @param xmppConnection the connection
-     */
-    public void setXmppConnection(final XMPPConnection xmppConnection) {
-        this.xmppConnection = xmppConnection;
-    }
+	/**
+	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
+	 *
+	 * @param xmppConnection the connection
+	 */
+	public void setXmppConnection(final XMPPConnection xmppConnection) {
+		this.xmppConnection = xmppConnection;
+	}
 
-    /**
-     * @param requestChannel the channel on which the inbound message should be sent
-     */
-    public void setRequestChannel(final MessageChannel requestChannel) {
-        this.messagingTemplate.setDefaultChannel(requestChannel);
-        this.requestChannel = requestChannel;
-    }
+	/**
+	 * @param requestChannel the channel on which the inbound message should be sent
+	 */
+	public void setRequestChannel(final MessageChannel requestChannel) {
+		this.messagingTemplate.setDefaultChannel(requestChannel);
+		this.requestChannel = requestChannel;
+	}
 
-    @Override
-    protected void doStart() {
-        logger.debug("start: " + xmppConnection.isConnected() + ":" +
-            xmppConnection.isAuthenticated());
-    }
+	@Override
+	protected void doStart() {
+		logger.debug("start: " + xmppConnection.isConnected() + ":" +
+				xmppConnection.isAuthenticated());
+	}
 
-    @Override
-    protected void doStop() {
-        if (this.xmppConnection.isConnected()) {
-            logger.debug("shutting down " + XmppRosterEventMessageDrivenEndpoint.class.getName() +
-                ".");
-            this.xmppConnection.disconnect();
-        }
-    }
+	@Override
+	protected void doStop() {
+		if (this.xmppConnection.isConnected()) {
+			logger.debug("shutting down " + XmppRosterEventMessageDrivenEndpoint.class.getName() +
+					".");
+			this.xmppConnection.disconnect();
+		}
+	}
 
-    @Override
-    protected void onInit() throws Exception {
-        if (null == this.messageMapper) {
-            this.messageMapper = new XmppPresenceMessageMapper();
-        }
+	@Override
+	protected void onInit() throws Exception {
+		if (null == this.messageMapper) {
+			this.messageMapper = new XmppPresenceMessageMapper();
+		}
 
-        this.messagingTemplate.afterPropertiesSet();
-        this.xmppConnection.getRoster().addRosterListener(new EventForwardingRosterListener());
-    }
+		this.messagingTemplate.afterPropertiesSet();
+		this.xmppConnection.getRoster().addRosterListener(new EventForwardingRosterListener());
+	}
 
-    /**
-     * Called whenever an event happesn related to the {@link org.jivesoftware.smack.Roster}
-     *
-     * @param presence the {@link org.jivesoftware.smack.packet.Presence} object representing the new state (optional)
-     */
-    protected void forwardRosterEventMessage(Presence presence) {
-        try {
-            Message<?> msg = this.messageMapper.toMessage(presence);
-            messagingTemplate.send(requestChannel, msg);
-        }
-        catch (Exception e) {
-            logger.error("Failed to map packet to message ", e);
-        }
-    }
+	/**
+	 * Called whenever an event happesn related to the {@link org.jivesoftware.smack.Roster}
+	 *
+	 * @param presence the {@link org.jivesoftware.smack.packet.Presence} object representing the new state (optional)
+	 */
+	protected void forwardRosterEventMessage(Presence presence) {
+		try {
+			Message<?> msg = this.messageMapper.toMessage(presence);
+			messagingTemplate.send(requestChannel, msg);
+		}
+		catch (Exception e) {
+			logger.error("Failed to map packet to message ", e);
+		}
+	}
 
-    public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
-        this.messageMapper = messageMapper;
-    }
+	public void setMessageMapper(InboundMessageMapper<Presence> messageMapper) {
+		this.messageMapper = messageMapper;
+	}
 
-    /**
-     * Subscribes to a given {@link org.jivesoftware.smack.Roster}s events and forwards them to components on the bus.
-     */
-    class EventForwardingRosterListener implements RosterListener {
-        public void entriesAdded(final Collection<String> entries) {
-            logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
-        }
+	/**
+	 * Subscribes to a given {@link org.jivesoftware.smack.Roster}s events and forwards them to components on the bus.
+	 */
+	class EventForwardingRosterListener implements RosterListener {
+		public void entriesAdded(final Collection<String> entries) {
+			logger.debug("entries added: " + StringUtils.join(entries.iterator(), ","));
+		}
 
-        public void entriesUpdated(final Collection<String> entries) {
-            logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
-        }
+		public void entriesUpdated(final Collection<String> entries) {
+			logger.debug("entries updated: " + StringUtils.join(entries.iterator(), ","));
+		}
 
-        public void entriesDeleted(final Collection<String> entries) {
-            logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
-        }
+		public void entriesDeleted(final Collection<String> entries) {
+			logger.debug("entries deleted: " + StringUtils.join(entries.iterator(), ","));
+		}
 
-        public void presenceChanged(final Presence presence) {
-            logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
-            forwardRosterEventMessage(presence);
-        }
-    }
-  
+		public void presenceChanged(final Presence presence) {
+			logger.debug("presence changed: " + ToStringBuilder.reflectionToString(presence));
+			forwardRosterEventMessage(presence);
+		}
+	}
+
 }

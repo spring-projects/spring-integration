@@ -19,30 +19,29 @@ import org.springframework.integration.MessageHeaders;
 
 
 /**
- *
  * Used as keys for {@link org.springframework.integration.Message} objects
- * that handle XMPP events. 
+ * that handle XMPP events.
  *
  * @author Mario Gray
  * @author Josh Long
  * @since 2.0
  */
 public class XmppHeaders {
-    private static final String PREFIX = MessageHeaders.PREFIX + "xmpp_";
-    public static final String CHAT = PREFIX + "chat_key";
-    public static final String CHAT_TO_USER = PREFIX + "chat_to_user";
-    public static final String CHAT_THREAD_ID = PREFIX + "thread_id";
-    public static final String TYPE = PREFIX + "type";
+	private static final String PREFIX = MessageHeaders.PREFIX + "xmpp_";
+	public static final String CHAT = PREFIX + "chat_key";
+	public static final String CHAT_TO_USER = PREFIX + "chat_to_user";
+	public static final String CHAT_THREAD_ID = PREFIX + "thread_id";
+	public static final String TYPE = PREFIX + "type";
 //    public static final String ROSTER_CHANGE_TYPE = PREFIX + "roster_change_type";
-    public static final String PRESENCE = PREFIX + "presence";
+	public static final String PRESENCE = PREFIX + "presence";
 //    public static final String ROSTER = PREFIX + "roster";
 
-    public static final String PRESENCE_LANGUAGE = PRESENCE + "language" ;
-    public static final String PRESENCE_PRIORITY = PRESENCE + "priority" ;
-    public static final String PRESENCE_MODE = PRESENCE + "mode" ;
-    public static final String PRESENCE_TYPE = PRESENCE + "type" ;
-    public static final String PRESENCE_STATUS = PRESENCE + "status" ;
-    public static final String PRESENCE_FROM = PRESENCE+ "from";
+	public static final String PRESENCE_LANGUAGE = PRESENCE + "language";
+	public static final String PRESENCE_PRIORITY = PRESENCE + "priority";
+	public static final String PRESENCE_MODE = PRESENCE + "mode";
+	public static final String PRESENCE_TYPE = PRESENCE + "type";
+	public static final String PRESENCE_STATUS = PRESENCE + "status";
+	public static final String PRESENCE_FROM = PRESENCE + "from";
 
-  
+
 }

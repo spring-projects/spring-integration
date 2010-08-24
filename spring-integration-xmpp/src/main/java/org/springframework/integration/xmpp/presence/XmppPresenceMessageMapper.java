@@ -17,16 +17,13 @@ package org.springframework.integration.xmpp.presence;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.jivesoftware.smack.packet.Presence;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.xmpp.XmppHeaders;
-
 import org.springframework.util.StringUtils;
 
 
@@ -38,113 +35,113 @@ import org.springframework.util.StringUtils;
  * @since 2.0
  */
 public class XmppPresenceMessageMapper implements OutboundMessageMapper<Presence>,
-    InboundMessageMapper<Presence> {
-    
-    private static final Log logger = LogFactory.getLog(XmppPresenceMessageMapper.class);
+		InboundMessageMapper<Presence> {
 
-    /**
-     * Returns a {@link org.springframework.integration.Message} with payload {@link org.jivesoftware.smack.packet.Presence}
-     *
-     * @param presence the presence object that can be used to present the priority, status, mode, and type of a given roster entry. This will be decomposed into a series of headers, as well as a payload
-     * @return the Message
-     * @throws Exception thrown if conversion should fail
-     */
-    public Message<?> toMessage(Presence presence) throws Exception {
-        MessageBuilder<?> presenceMessageBuilder = MessageBuilder.withPayload(presence);
-        presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_PRIORITY, presence.getPriority());
-        presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_STATUS, presence.getStatus());
-        presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_MODE, presence.getMode());
-        presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_TYPE, presence.getType());
-        presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_FROM, presence.getFrom());
+	private static final Log logger = LogFactory.getLog(XmppPresenceMessageMapper.class);
 
-        return presenceMessageBuilder.build();
-    }
+	/**
+	 * Returns a {@link org.springframework.integration.Message} with payload {@link org.jivesoftware.smack.packet.Presence}
+	 *
+	 * @param presence the presence object that can be used to present the priority, status, mode, and type of a given roster entry. This will be decomposed into a series of headers, as well as a payload
+	 * @return the Message
+	 * @throws Exception thrown if conversion should fail
+	 */
+	public Message<?> toMessage(Presence presence) throws Exception {
+		MessageBuilder<?> presenceMessageBuilder = MessageBuilder.withPayload(presence);
+		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_PRIORITY, presence.getPriority());
+		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_STATUS, presence.getStatus());
+		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_MODE, presence.getMode());
+		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_TYPE, presence.getType());
+		presenceMessageBuilder.setHeader(XmppHeaders.PRESENCE_FROM, presence.getFrom());
 
-    /**
-     * Builds a {@link org.jivesoftware.smack.packet.Presence} object from the inbound Message headers, if possible.
-     *
-     * @param message the Message whose headers and payload willl b
-     * @return    the presence object as constructed from the {@link org.springframework.integration.Message} object
-     * @throws Exception if there is a problem
-     */
-    public Presence fromMessage(Message<?> message) throws Exception {
-        MessageHeaders messageHeaders = message.getHeaders();
+		return presenceMessageBuilder.build();
+	}
 
-        Integer priority = (Integer) messageHeaders.get(XmppHeaders.PRESENCE_PRIORITY);
-        String status = (String) messageHeaders.get(XmppHeaders.PRESENCE_STATUS);
-        String language = (String) messageHeaders.get(XmppHeaders.PRESENCE_LANGUAGE);
-        String from = (String) messageHeaders.get(XmppHeaders.PRESENCE_FROM);
+	/**
+	 * Builds a {@link org.jivesoftware.smack.packet.Presence} object from the inbound Message headers, if possible.
+	 *
+	 * @param message the Message whose headers and payload willl b
+	 * @return the presence object as constructed from the {@link org.springframework.integration.Message} object
+	 * @throws Exception if there is a problem
+	 */
+	public Presence fromMessage(Message<?> message) throws Exception {
+		MessageHeaders messageHeaders = message.getHeaders();
 
-        // trickery afoot 
-        Object modeObj = messageHeaders.get(XmppHeaders.PRESENCE_MODE);
-        Presence.Mode mode  = null;
+		Integer priority = (Integer) messageHeaders.get(XmppHeaders.PRESENCE_PRIORITY);
+		String status = (String) messageHeaders.get(XmppHeaders.PRESENCE_STATUS);
+		String language = (String) messageHeaders.get(XmppHeaders.PRESENCE_LANGUAGE);
+		String from = (String) messageHeaders.get(XmppHeaders.PRESENCE_FROM);
 
-        Object typeObj = messageHeaders.get(XmppHeaders.PRESENCE_TYPE);
-        Presence.Type type = null;
+		// trickery afoot
+		Object modeObj = messageHeaders.get(XmppHeaders.PRESENCE_MODE);
+		Presence.Mode mode = null;
 
-        if (typeObj instanceof String) {
-            try {
-                type = Presence.Type.valueOf((String) typeObj);
-            } catch (Throwable th) {
-                logger.debug("couldn't convert type header into an object of type Presence.Type");
-            }
-        } else if (modeObj instanceof Presence.Type) {
-            type = (Presence.Type) typeObj;
-        }
+		Object typeObj = messageHeaders.get(XmppHeaders.PRESENCE_TYPE);
+		Presence.Type type = null;
 
-        if (modeObj instanceof String) {
-            try {
-                mode = Presence.Mode.valueOf((String) modeObj);
-            } catch (Throwable th) {
-                logger.debug("couldn't convert mode header into an object of type Presence.Mode ");
-            }
-        } else if (modeObj instanceof Presence.Mode) {
-            mode = (Presence.Mode) modeObj;
-        }
+		if (typeObj instanceof String) {
+			try {
+				type = Presence.Type.valueOf((String) typeObj);
+			} catch (Throwable th) {
+				logger.debug("couldn't convert type header into an object of type Presence.Type");
+			}
+		} else if (modeObj instanceof Presence.Type) {
+			type = (Presence.Type) typeObj;
+		}
 
-        Object payload = message.getPayload();
+		if (modeObj instanceof String) {
+			try {
+				mode = Presence.Mode.valueOf((String) modeObj);
+			} catch (Throwable th) {
+				logger.debug("couldn't convert mode header into an object of type Presence.Mode ");
+			}
+		} else if (modeObj instanceof Presence.Mode) {
+			mode = (Presence.Mode) modeObj;
+		}
 
-        if (null != payload) {
-            if (payload instanceof Presence) {
-                return (Presence) payload;
-            }
+		Object payload = message.getPayload();
 
-            if (payload instanceof Presence.Type) {
-                type = (Presence.Type) payload;
-            }
-        }
+		if (null != payload) {
+			if (payload instanceof Presence) {
+				return (Presence) payload;
+			}
 
-        return this.factoryPresence(from, status, priority, type, mode, language);
-    }
+			if (payload instanceof Presence.Type) {
+				type = (Presence.Type) payload;
+			}
+		}
 
-    private Presence factoryPresence(String from, String status, Integer priority,
-        Presence.Type type, Presence.Mode mode, String language) {
-        if (null == type) {
-            type = Presence.Type.available;
-        }
+		return this.factoryPresence(from, status, priority, type, mode, language);
+	}
 
-        Presence presence = new Presence(type);
+	private Presence factoryPresence(String from, String status, Integer priority,
+	                                 Presence.Type type, Presence.Mode mode, String language) {
+		if (null == type) {
+			type = Presence.Type.available;
+		}
 
-        if (null != priority) {
-            presence.setPriority(priority);
-        }
+		Presence presence = new Presence(type);
 
-        if (StringUtils.hasText(status)) {
-            presence.setStatus(status);
-        }
+		if (null != priority) {
+			presence.setPriority(priority);
+		}
 
-        if (StringUtils.hasText(from)) {
-            presence.setFrom(from);
-        }
+		if (StringUtils.hasText(status)) {
+			presence.setStatus(status);
+		}
 
-        if (null != mode) {
-            presence.setMode(mode);
-        }
+		if (StringUtils.hasText(from)) {
+			presence.setFrom(from);
+		}
 
-        if (StringUtils.hasText(language)) {
-            presence.setLanguage(language);
-        }
+		if (null != mode) {
+			presence.setMode(mode);
+		}
 
-        return presence;
-    }
+		if (StringUtils.hasText(language)) {
+			presence.setLanguage(language);
+		}
+
+		return presence;
+	}
 }

@@ -24,15 +24,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
- * @since 2.0 
+ * @since 2.0
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ConsoleChatTests {
 
-	@Test @Ignore
+	@Test
+	@Ignore
 	public void run() throws Exception {
-         Thread.sleep( 10 * 1000 );
+		Thread.sleep(10 * 1000);
 	}
 
 }

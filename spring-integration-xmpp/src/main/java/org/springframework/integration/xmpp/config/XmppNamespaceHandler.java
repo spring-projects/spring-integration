@@ -17,18 +17,17 @@
 package org.springframework.integration.xmpp.config;
 
 import org.jivesoftware.smack.packet.Presence;
-import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
-import org.springframework.integration.xmpp.XmppHeaders;
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.HeaderEnricherParserSupport;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
+import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * This class parses the schema for XMPP support.
@@ -41,25 +40,25 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 
 	private static final String PACKAGE_NAME = "org.springframework.integration.xmpp";
 
-	private static String[] attributes = new String[] {
-		"user", "password", "host", "service-name", "resource",
-		"sasl-mechanism-supported", "sasl-mechanism-supported-index", "port", "subscription-mode"
+	private static String[] attributes = new String[]{
+			"user", "password", "host", "service-name", "resource",
+			"sasl-mechanism-supported", "sasl-mechanism-supported-index", "port", "subscription-mode"
 	};
 
 
 	public void init() {
-        // connection
-        registerBeanDefinitionParser("xmpp-connection", new XmppConnectionParser());
+		// connection
+		registerBeanDefinitionParser("xmpp-connection", new XmppConnectionParser());
 
-        // send/receive messages
-        registerBeanDefinitionParser("message-inbound-channel-adapter", new XmppMessageInboundEndpointParser());
-        registerBeanDefinitionParser("message-outbound-channel-adapter", new XmppMessageOutboundEndpointParser());
+		// send/receive messages
+		registerBeanDefinitionParser("message-inbound-channel-adapter", new XmppMessageInboundEndpointParser());
+		registerBeanDefinitionParser("message-outbound-channel-adapter", new XmppMessageOutboundEndpointParser());
 
-        // presence
-        registerBeanDefinitionParser("roster-event-inbound-channel-adapter", new XmppRosterEventInboundEndpointParser());
-        registerBeanDefinitionParser("roster-event-outbound-channel-adapter", new XmppRosterEventOutboundEndpointParser());
+		// presence
+		registerBeanDefinitionParser("roster-event-inbound-channel-adapter", new XmppRosterEventInboundEndpointParser());
+		registerBeanDefinitionParser("roster-event-outbound-channel-adapter", new XmppRosterEventOutboundEndpointParser());
 
-        registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());
+		registerBeanDefinitionParser("header-enricher", new XmppHeaderEnricherParser());
 	}
 
 
@@ -67,8 +66,7 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		String ref = element.getAttribute("xmpp-connection");
 		if (StringUtils.hasText(ref)) {
 			builder.addPropertyReference("xmppConnection", ref);
-		}
-		else {
+		} else {
 			for (String attribute : attributes) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, attribute);
 			}
@@ -76,7 +74,8 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 	}
 
 
-    // connection management
+	// connection management
+
 	private static class XmppConnectionParser extends AbstractSingleBeanDefinitionParser {
 
 		@Override
@@ -95,7 +94,8 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		}
 	}
 
-    // messages
+	// messages
+
 	private static class XmppMessageOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
 
 		@Override
@@ -126,18 +126,18 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		}
 	}
 
-    private static class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
+	private static class XmppRosterEventOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
 
-        @Override
-        protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-                    PACKAGE_NAME + ".presence.XmppRosterEventMessageSendingHandler");
-            configureXMPPConnection(element, builder, parserContext);
-            return builder.getBeanDefinition();
-        }
-    }
+		@Override
+		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+					PACKAGE_NAME + ".presence.XmppRosterEventMessageSendingHandler");
+			configureXMPPConnection(element, builder, parserContext);
+			return builder.getBeanDefinition();
+		}
+	}
 
-    private static class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
+	private static class XmppRosterEventInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 		@Override
 		protected String getBeanClassName(Element element) {
@@ -156,21 +156,21 @@ public class XmppNamespaceHandler extends NamespaceHandlerSupport {
 		}
 	}
 
-    private static class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
+	private static class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
 
-        public XmppHeaderEnricherParser() {
+		public XmppHeaderEnricherParser() {
 
-            // chat headers
-            this.addElementToHeaderMapping("message-to", XmppHeaders.CHAT_TO_USER);
-            this.addElementToHeaderMapping("message-thread-id", XmppHeaders.CHAT_THREAD_ID);
+			// chat headers
+			this.addElementToHeaderMapping("message-to", XmppHeaders.CHAT_TO_USER);
+			this.addElementToHeaderMapping("message-thread-id", XmppHeaders.CHAT_THREAD_ID);
 
-            // presence headers
-            this.addElementToHeaderMapping("presence-mode", XmppHeaders.PRESENCE_MODE, Presence.Mode.class);
-            this.addElementToHeaderMapping("presence-type" , XmppHeaders.PRESENCE_TYPE,  Presence.Type.class );
-            this.addElementToHeaderMapping("presence-from", XmppHeaders.PRESENCE_FROM);
-            this.addElementToHeaderMapping("presence-status" , XmppHeaders.PRESENCE_STATUS);
-            this.addElementToHeaderMapping("presence-priority" , XmppHeaders.PRESENCE_PRIORITY, Integer.class);
-        }
-    }
+			// presence headers
+			this.addElementToHeaderMapping("presence-mode", XmppHeaders.PRESENCE_MODE, Presence.Mode.class);
+			this.addElementToHeaderMapping("presence-type", XmppHeaders.PRESENCE_TYPE, Presence.Type.class);
+			this.addElementToHeaderMapping("presence-from", XmppHeaders.PRESENCE_FROM);
+			this.addElementToHeaderMapping("presence-status", XmppHeaders.PRESENCE_STATUS);
+			this.addElementToHeaderMapping("presence-priority", XmppHeaders.PRESENCE_PRIORITY, Integer.class);
+		}
+	}
 
 }

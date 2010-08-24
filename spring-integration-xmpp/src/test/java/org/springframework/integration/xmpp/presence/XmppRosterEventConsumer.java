@@ -25,7 +25,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
 /**
  * This class reacts to changes in
  * {@link org.jivesoftware.smack.packet.Presence} objects for a given account.
- * 
+ *
  * @author Josh Long
  * @since 2.0
  */

@@ -15,203 +15,202 @@
   ~     limitations under the License.
   -->
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/xmpp"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:beans="http://www.springframework.org/schema/beans"
-            xmlns:tool="http://www.springframework.org/schema/tool"
-            xmlns:integration="http://www.springframework.org/schema/integration"
-            targetNamespace="http://www.springframework.org/schema/integration/xmpp"
-            elementFormDefault="qualified"
-            attributeFormDefault="unqualified">
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/xmpp"
+			elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
 
-    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 	<xsd:import namespace="http://www.springframework.org/schema/integration"
-			schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
 
-    <xsd:element name="xmpp-connection">
-        <xsd:annotation>
-            <xsd:documentation>
-	Configures an XMPP connection that can in turn be referenced by other components
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="user" type="xsd:string" use="required"/>
-            <xsd:attribute name="password" type="xsd:string" use="required"/>
-            <xsd:attribute name="host" type="xsd:string" use="required"/>
-            <xsd:attribute name="service-name" type="xsd:string"/>
-            <xsd:attribute name="resource" type="xsd:string"/>
-            <xsd:attribute name="sasl-mechanism-supported" type="xsd:string"/>
-            <xsd:attribute name="sasl-mechanism-supported-index" type="xsd:string"/>
-            <xsd:attribute name="port" type="xsd:string"   />
-            <xsd:attribute name="subscription-mode" default="accept_all" >
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[
+	<xsd:element name="xmpp-connection">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an XMPP connection that can in turn be referenced by other components
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="user" type="xsd:string" use="required"/>
+			<xsd:attribute name="password" type="xsd:string" use="required"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="service-name" type="xsd:string"/>
+			<xsd:attribute name="resource" type="xsd:string"/>
+			<xsd:attribute name="sasl-mechanism-supported" type="xsd:string"/>
+			<xsd:attribute name="sasl-mechanism-supported-index" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:string"/>
+			<xsd:attribute name="subscription-mode" default="accept_all">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
     The subscription mode for the XMPP connection. Dictates the policy for handling inbound messages from entries not already on the roster.
     Values can be "accept_all," "manual," or "reject_all."
 				]]></xsd:documentation>
-			</xsd:annotation>
-			<xsd:simpleType>
-				<xsd:restriction base="xsd:NMTOKEN">
-					<xsd:enumeration value="accept_all"/>
-					<xsd:enumeration value="manual"/>
-					<xsd:enumeration value="reject_all"/>
-				</xsd:restriction>
-			</xsd:simpleType>
-		</xsd:attribute>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:NMTOKEN">
+						<xsd:enumeration value="accept_all"/>
+						<xsd:enumeration value="manual"/>
+						<xsd:enumeration value="reject_all"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
 
 
-        </xsd:complexType>
-    </xsd:element>
+		</xsd:complexType>
+	</xsd:element>
 
-    <xsd:element name="roster-event-outbound-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
- Configures an endpoint that will publish an updated {@link org.jivesoftware.smack.packet.Presence} state on your {@link XMPPConnection } object.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-               <xsd:attribute name="id" type="xsd:string"/>
-               <xsd:attribute name="channel" use="required" type="xsd:string">
-                   <xsd:annotation>
-                       <xsd:appinfo>
-                           <tool:annotation kind="ref">
-                               <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                           </tool:annotation>
-                       </xsd:appinfo>
-                   </xsd:annotation>
-               </xsd:attribute>
-               <xsd:attribute name="xmpp-connection" type="xsd:string" use="required" >
-                   <xsd:annotation>
-                       <xsd:appinfo>
-                           <tool:annotation kind="ref">
-                               <tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
-                           </tool:annotation>
-                       </xsd:appinfo>
-                   </xsd:annotation>
-               </xsd:attribute>
-           </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="roster-event-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will publish an updated {@link org.jivesoftware.smack.packet.Presence} state on your {@link XMPPConnection } object.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
-    <xsd:element name="roster-event-inbound-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-Configures an endpoint that will forward roster based events (entry managment and presence state changes) to components in the bus.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="channel" use="required" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="xmpp-connection" type="xsd:string" use="required" >
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="roster-event-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will forward roster based events (entry managment and presence state changes) to components in the bus.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
-    <xsd:element name="message-inbound-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-Configures an endpoint that will receive messages sent to a given account and then forward those messages to components in the bus.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="channel" use="required" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="xmpp-connection" type="xsd:string" use="required" >
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="message-inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an endpoint that will receive messages sent to a given account and then forward those messages to components in the bus.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
-    <xsd:element name="message-outbound-channel-adapter">
-           <xsd:annotation>
-               <xsd:documentation>
-Component that sends messages to an entry in the roster on behalf of components in the bus.
-               </xsd:documentation>
-           </xsd:annotation>
-           <xsd:complexType>
-               <xsd:attribute name="id" type="xsd:string"/>
-               <xsd:attribute name="channel" use="required" type="xsd:string">
-                   <xsd:annotation>
-                       <xsd:appinfo>
-                           <tool:annotation kind="ref">
-                               <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                           </tool:annotation>
-                       </xsd:appinfo>
-                   </xsd:annotation>
-               </xsd:attribute>
-               <xsd:attribute name="xmpp-connection" type="xsd:string" use="required" >
-                   <xsd:annotation>
-                       <xsd:appinfo>
-                           <tool:annotation kind="ref">
-                               <tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
-                           </tool:annotation>
-                       </xsd:appinfo>
-                   </xsd:annotation>
-               </xsd:attribute>
-           </xsd:complexType>
-       </xsd:element>
+	<xsd:element name="message-outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Component that sends messages to an entry in the roster on behalf of components in the bus.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="xmpp-connection" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.jivesoftware.smack.XMPPConnection"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="header-enricher">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Transformer for adding XMPP headers.
+					Defines a Transformer for adding XMPP headers.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
 
-    
 
 						<xsd:element name="message-to" type="headerType"/>
-            <xsd:element name="message-thread-id" type="headerType"/>
-            <xsd:element name="presence-from" type="headerType"/>
-            <xsd:element name="presence-mode" type="headerType"/>
-            <xsd:element name="presence-type" type="headerType"/>
-            <xsd:element name="presence-status" type="headerType"/>
-            <xsd:element name="presence-priority" type="headerType"/>
+						<xsd:element name="message-thread-id" type="headerType"/>
+						<xsd:element name="presence-from" type="headerType"/>
+						<xsd:element name="presence-mode" type="headerType"/>
+						<xsd:element name="presence-type" type="headerType"/>
+						<xsd:element name="presence-status" type="headerType"/>
+						<xsd:element name="presence-priority" type="headerType"/>
 					</xsd:choice>
 					<xsd:attribute name="default-overwrite">
 						<xsd:annotation>
 							<xsd:documentation>
-	Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
-	sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
-	provided, then the specified header values will NOT overwrite any existing ones with the same header names. 
+								Specify the default boolean value for whether to overwrite existing header values. This will only take effect for
+								sub-elements that do not provide their own 'overwrite' attribute. If the 'default-overwrite' attribute is not
+								provided, then the specified header values will NOT overwrite any existing ones with the same header names.
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
 							<xsd:union memberTypes="xsd:boolean xsd:string"/>
-						</xsd:simpleType> 
+						</xsd:simpleType>
 					</xsd:attribute>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -219,13 +218,13 @@ Component that sends messages to an entry in the roster on behalf of components 
 	</xsd:element>
 
 	<xsd:complexType name="headerType">
-		<xsd:attribute name="value" type="xsd:string" />
-		<xsd:attribute name="ref" type="xsd:string" />
-		<xsd:attribute name="expression" type="xsd:string" />
+		<xsd:attribute name="value" type="xsd:string"/>
+		<xsd:attribute name="ref" type="xsd:string"/>
+		<xsd:attribute name="expression" type="xsd:string"/>
 		<xsd:attribute name="overwrite">
 			<xsd:annotation>
 				<xsd:documentation>
-	Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
+					Boolean value to indicate whether this header value should overwrite an existing header value for the same name.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:simpleType>

@@ -17,7 +17,6 @@
 package org.springframework.integration.xmpp.messages;
 
 import org.jivesoftware.smack.packet.Message;
-
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.stereotype.Component;
 
@@ -36,16 +35,14 @@ public class XmppMessageConsumer {
 		String text = null;
 		if (input instanceof Message) {
 			text = ((Message) input).getBody();
-		}
-		else if (input instanceof String) {
+		} else if (input instanceof String) {
 			text = (String) input;
-		}
-		else {
+		} else {
 			throw new IllegalArgumentException(
 					"expected either a Smack Message or a String, but received: " + input);
 		}
 		System.out.println("================================================================================");
 		System.out.println("message: " + text);
-    }
+	}
 
 }

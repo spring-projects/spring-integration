@@ -11,12 +11,12 @@
 		permissions and ~ limitations under the License.
 	-->
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-             xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
-             xmlns:util="http://www.springframework.org/schema/util" xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
-             xmlns:tool="http://www.springframework.org/schema/tool" xmlns:lang="http://www.springframework.org/schema/lang"
-             xmlns:console="http://www.springframework.org/schema/integration/stream"
-             xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			 xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+			 xmlns:util="http://www.springframework.org/schema/util" xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
+			 xmlns:tool="http://www.springframework.org/schema/tool" xmlns:lang="http://www.springframework.org/schema/lang"
+			 xmlns:console="http://www.springframework.org/schema/integration/stream"
+			 xsi:schemaLocation="http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 		http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration/xmpp http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
@@ -26,39 +26,38 @@
 		http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
 
-    <beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" p:ignoreUnresolvablePlaceholders="false">
-        <beans:property name="location">
-            <beans:bean class="org.springframework.core.io.FileSystemResource">
-                <beans:constructor-arg value="#{ systemProperties['user.home'] }/Desktop/test.properties"/>
-            </beans:bean>
-        </beans:property>
-    </beans:bean>
+	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" p:ignoreUnresolvablePlaceholders="false">
+		<beans:property name="location">
+			<beans:bean class="org.springframework.core.io.FileSystemResource">
+				<beans:constructor-arg value="#{ systemProperties['user.home'] }/Desktop/test.properties"/>
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
 
 
+	<xmpp:xmpp-connection
+			id="testConnection"
+			user="${user.1.login}"
+			password="${user.1.password}"
+			host="${user.1.host}"
+			port="${user.1.port}"
+			resource="${user.1.resource}"
+			sasl-mechanism-supported="${user.1.sasl.mechanism}"
+			sasl-mechanism-supported-index="${user.1.sasl.index}"
+			service-name="${user.1.service}"
+			/>
 
-    <xmpp:xmpp-connection
-            id="testConnection"
-            user="${user.1.login}"
-            password="${user.1.password}"
-            host="${user.1.host}"
-            port="${user.1.port}"
-            resource="${user.1.resource}"
-            sasl-mechanism-supported="${user.1.sasl.mechanism}"
-            sasl-mechanism-supported-index="${user.1.sasl.index}"
-            service-name="${user.1.service}"
-            />
 
+	<beans:bean id="eventProducer" class="org.springframework.integration.xmpp.presence.XmppRosterEventProducer"/>
 
-    <beans:bean id="eventProducer" class="org.springframework.integration.xmpp.presence.XmppRosterEventProducer" />
+	<inbound-channel-adapter ref="eventProducer" channel="rosterPresenceUpdatingProducerChannel">
+		<poller>
+			<interval-trigger interval="10000"/>
+		</poller>
+	</inbound-channel-adapter>
 
-    <inbound-channel-adapter ref="eventProducer" channel="rosterPresenceUpdatingProducerChannel">
-        <poller>
-           <interval-trigger interval="10000"  />
-       </poller>
-    </inbound-channel-adapter>
+	<channel id="rosterPresenceUpdatingProducerChannel"/>
 
-    <channel id="rosterPresenceUpdatingProducerChannel"/>
-
-    <xmpp:roster-event-outbound-channel-adapter xmpp-connection="testConnection" channel="rosterPresenceUpdatingProducerChannel"/>
+	<xmpp:roster-event-outbound-channel-adapter xmpp-connection="testConnection" channel="rosterPresenceUpdatingProducerChannel"/>
 
 </beans:beans>

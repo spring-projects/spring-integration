@@ -15,29 +15,29 @@
   ~     limitations under the License.
   -->
 <beans:beans
-    xmlns="http://www.springframework.org/schema/integration"
-    xmlns:beans="http://www.springframework.org/schema/beans"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:util="http://www.springframework.org/schema/util"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
-    xsi:schemaLocation="
+		xmlns="http://www.springframework.org/schema/integration"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:xmpp="http://www.springframework.org/schema/integration/xmpp"
+		xsi:schemaLocation="
         http://www.springframework.org/schema/integration/xmpp http://www.springframework.org/schema/integration/xmpp/spring-integration-xmpp.xsd
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/context http://www.springframework.org/schema/beans/spring-context.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
         http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-  <channel id="input"/>
-  <channel id="output"/>
+	<channel id="input"/>
+	<channel id="output"/>
 
 
-  <xmpp:header-enricher input-channel="input" output-channel="output">
-    <xmpp:presence-from value="test@example.org"/>
-    <xmpp:presence-mode value="available"/>
-    <xmpp:message-to value="test1@example.org"/>
-    <xmpp:presence-type value="unavailable"/>
-  </xmpp:header-enricher>
+	<xmpp:header-enricher input-channel="input" output-channel="output">
+		<xmpp:presence-from value="test@example.org"/>
+		<xmpp:presence-mode value="available"/>
+		<xmpp:message-to value="test1@example.org"/>
+		<xmpp:presence-type value="unavailable"/>
+	</xmpp:header-enricher>
 
 
 </beans:beans>

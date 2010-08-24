@@ -47,7 +47,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * {@link org.springframework.integration.xmpp.XmppHeaders#TYPE}. Both of these
  * pieces of metadata can be obtained directly from the payload, if required.
  * They are here as a convenience.
- * <p>
+ * <p/>
  * <strong>Note</strong>: the {@link org.jivesoftware.smack.ChatManager}
  * maintains a Map&lt;String, Chat&gt; for threads and users, where the threadID
  * ({@link String}) is the key or the userID {@link String} is the key. This
@@ -56,10 +56,9 @@ import org.springframework.integration.xmpp.XmppHeaders;
  * key/values as references are dereferenced. Take care to enable this garbage
  * collection, taking what you need from the payload and the headers and
  * discarding as soon as possible.
- * 
+ *
  * @author Josh Long
  * @author Mark Fisher
- * 
  * @see ChatManager the ChatManager class that
  *      keeps watch over all Chats between the client and any other
  *      participants.
@@ -81,23 +80,22 @@ public class XmppMessageDrivenEndpoint extends AbstractEndpoint implements Lifec
 	private volatile boolean extractPayload = true;
 
 
-    /**
-     * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
-     *
-     * @param xmppConnection the connection
-     */
+	/**
+	 * This will be injected or configured via a <em>xmpp-connection-factory</em> element.
+	 *
+	 * @param xmppConnection the connection
+	 */
 	public void setXmppConnection(final XMPPConnection xmppConnection) {
 		this.xmppConnection = xmppConnection;
 	}
 
-    /**
-     * @param requestChannel the channel on which the inbound message should be sent
-     */
+	/**
+	 * @param requestChannel the channel on which the inbound message should be sent
+	 */
 	public void setRequestChannel(final MessageChannel requestChannel) {
 		this.messagingTemplate.setDefaultChannel(requestChannel);
 		this.requestChannel = requestChannel;
 	}
-
 
 
 	/**
