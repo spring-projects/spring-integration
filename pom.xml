@@ -30,6 +30,7 @@
 		<module>spring-integration-xmpp</module>
 		<module>spring-integration-ftp</module>
 		<module>spring-integration-sftp</module>
+		<module>spring-integration-twitter</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
