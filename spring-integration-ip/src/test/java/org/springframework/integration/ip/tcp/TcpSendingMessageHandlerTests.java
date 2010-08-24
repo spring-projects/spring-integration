@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
@@ -809,20 +810,21 @@ public class TcpSendingMessageHandlerTests {
 					ServerSocket server = ServerSocketFactory.getDefault().createServerSocket(port);
 					latch.countDown();
 					Socket socket = server.accept();
-					int i = 0;
+					int i = 100;
 					while (true) {
 						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 						Object in;
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-						if (i == 0) {
+						if (i == 100) {
 							in = ois.readObject();
-//							System.out.println(in);
+							System.out.println(in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
+							Thread.sleep(500);
 						}
 						in = ois.readObject();
-						oos.writeObject("Reply" + (++i));
+						oos.writeObject("Reply" + (i++));
 					}
 				} catch (Exception e) {
 					if (!done.get()) {
@@ -847,17 +849,19 @@ public class TcpSendingMessageHandlerTests {
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));		
-		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		handler.handleMessage(MessageBuilder.withPayload("Test").build());
-		Set<String> results = new HashSet<String>();
-		Message<?> mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		results.add((String) mOut.getPayload());
-		mOut = channel.receive(10000);
-		assertNotNull(mOut);
-		results.add((String) mOut.getPayload());
-		assertTrue(results.remove("Reply1"));
-		assertTrue(results.remove("Reply2"));
+		for (int i = 0; i < 100; i++) {
+			handler.handleMessage(MessageBuilder.withPayload("Test").build());
+		}
+		Set<String> results = new TreeSet<String>();
+		for (int i = 0; i < 100; i++) {
+			Message<?> mOut = channel.receive(10000);
+			assertNotNull(mOut);
+			results.add((String) mOut.getPayload());
+		}
+//		System.out.println(results);
+		for (int i = 100; i < 200; i++) {
+			assertTrue("Missing Reply" + i, results.remove("Reply" + i));
+		}
 		done.set(true);
 	}
 
