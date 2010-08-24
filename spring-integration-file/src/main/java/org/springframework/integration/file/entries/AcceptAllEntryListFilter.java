@@ -18,15 +18,15 @@ package org.springframework.integration.file.entries;
 
 
 /**
- * Simple NOOP implementation for {@link org.springframework.integration.file.entries.EntryListFilter} implementation. 
+ * Simple NOOP implementation for {@link org.springframework.integration.file.entries.EntryListFilter} implementation.
  * Suitable as a default in implementations.
  *
  * @author Josh Long
  * @param <T>
  */
 public class AcceptAllEntryListFilter<T> extends AbstractEntryListFilter<T> {
-    @Override
-    public boolean accept(T t) {
-        return true;
-    }
+	@Override
+	public boolean accept(T t) {
+		return true;
+	}
 }

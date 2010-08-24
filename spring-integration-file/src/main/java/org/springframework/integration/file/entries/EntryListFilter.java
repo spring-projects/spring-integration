@@ -32,5 +32,5 @@ import java.util.List;
  * @since 1.0.0
  */
 public interface EntryListFilter<T> {
-    List<T> filterEntries(T[] entries);
+	List<T> filterEntries(T[] entries);
 }

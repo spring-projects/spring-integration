@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
 /**
  * A convenience base class for any {@link EntryListFilter} whose criteria can be
  * evaluated against each File in isolation. If the entire List of files is
@@ -29,26 +28,26 @@ import java.util.List;
  *
  * @author Mark Fisher
  * @author Iwein Fuld
- * @author Josh Long 
+ * @author Josh Long
  */
 public abstract class AbstractEntryListFilter<T> implements InitializingBean, EntryListFilter<T> {
-    public abstract boolean accept(T t);
+	public abstract boolean accept(T t);
 
-    public List<T> filterEntries(T[] entries) {
-        List<T> accepted = new ArrayList<T>();
+	public List<T> filterEntries(T[] entries) {
+		List<T> accepted = new ArrayList<T>();
 
-        if (entries != null) {
-            for (T t : entries) {
-                if (this.accept(t)) {
-                    accepted.add(t);
-                }
-            }
-        }
+		if (entries != null) {
+			for (T t : entries) {
+				if (this.accept(t)) {
+					accepted.add(t);
+				}
+			}
+		}
 
-        return accepted;
-    }
+		return accepted;
+	}
 
-    public void afterPropertiesSet() throws Exception {
-      // its all you!
-    }
+	public void afterPropertiesSet() throws Exception {
+		// its all you!
+	}
 }

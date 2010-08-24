@@ -17,19 +17,18 @@ package org.springframework.integration.file.entries;
 
 /**
  * Responsible for coercing a String identification out of the T entry.
- * @param <T>        the type of entry (there's an implementation for FTP, SFTP, and plain-old java.io.Files)
  *
  * @author Josh Long
+ * @param <T>        the type of entry (there's an implementation for FTP, SFTP, and plain-old java.io.Files)
  */
 public interface EntryNamer<T> {
 
-    /**
-     * This is the one place I couldn't spackle over the interface differences between an FTPFile (FTP adapter), File (File adapter), and LsEntry (SFTP adapter)
-     * with generics alone. So we have a typed strategy implementation for accessing a property ....
-     *
-     *
-     * @param entry  the entry in a file system listing
-     * @return the String name that might be used to reference that entry or to do regular expression checks against
-     */
-    String nameOf(T entry);
+	/**
+	 * This is the one place I couldn't spackle over the interface differences between an FTPFile (FTP adapter), File (File adapter), and LsEntry (SFTP adapter)
+	 * with generics alone. So we have a typed strategy implementation for accessing a property ....
+	 *
+	 * @param entry the entry in a file system listing
+	 * @return the String name that might be used to reference that entry or to do regular expression checks against
+	 */
+	String nameOf(T entry);
 }

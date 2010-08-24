@@ -16,7 +16,6 @@
 package org.springframework.integration.file.entries;
 
 import org.springframework.beans.factory.InitializingBean;
-
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,42 +32,42 @@ import java.util.regex.Pattern;
  * @param <T>   the type of entry
  */
 public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T> implements InitializingBean {
-    private Pattern pattern;
-    private String patternExpression;
-    private EntryNamer<T> entryNamer;
+	private Pattern pattern;
+	private String patternExpression;
+	private EntryNamer<T> entryNamer;
 
-    public PatternMatchingEntryListFilter(EntryNamer<T> en, String p) {
-        this.entryNamer = en;
-        this.patternExpression = p;
-    }
+	public PatternMatchingEntryListFilter(EntryNamer<T> en, String p) {
+		this.entryNamer = en;
+		this.patternExpression = p;
+	}
 
-    public PatternMatchingEntryListFilter(EntryNamer<T> en, Pattern p) {
-        this.entryNamer = en;
-        this.pattern = p;
-    }
+	public PatternMatchingEntryListFilter(EntryNamer<T> en, Pattern p) {
+		this.entryNamer = en;
+		this.pattern = p;
+	}
 
-    public void setPattern(Pattern pattern) {
-        this.pattern = pattern;
-    }
+	public void setPattern(Pattern pattern) {
+		this.pattern = pattern;
+	}
 
-    public void setPatternExpression(String patternExpression) {
-        this.patternExpression = patternExpression;
-    }
+	public void setPatternExpression(String patternExpression) {
+		this.patternExpression = patternExpression;
+	}
 
-    public void afterPropertiesSet() throws Exception {
-        if (StringUtils.hasText(this.patternExpression) && (pattern == null)) {
-            this.pattern = Pattern.compile(this.patternExpression);
-        }
-        Assert.notNull(this.entryNamer, "'entryNamer' must not be null!");
-        Assert.notNull(this.pattern, "'pattern' mustn't be null!");
-    }
-    
-    @Override
-    public boolean accept(T t) {
-        return (t != null) && this.pattern.matcher(this.entryNamer.nameOf(t)).matches();
-    }
+	public void afterPropertiesSet() throws Exception {
+		if (StringUtils.hasText(this.patternExpression) && (pattern == null)) {
+			this.pattern = Pattern.compile(this.patternExpression);
+		}
+		Assert.notNull(this.entryNamer, "'entryNamer' must not be null!");
+		Assert.notNull(this.pattern, "'pattern' mustn't be null!");
+	}
 
-    public void setEntryNamer(EntryNamer<T> entryNamer) {
-        this.entryNamer = entryNamer;
-    }
+	@Override
+	public boolean accept(T t) {
+		return (t != null) && this.pattern.matcher(this.entryNamer.nameOf(t)).matches();
+	}
+
+	public void setEntryNamer(EntryNamer<T> entryNamer) {
+		this.entryNamer = entryNamer;
+	}
 }

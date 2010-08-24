@@ -27,20 +27,20 @@ import org.springframework.util.Assert;
  */
 public class SingleEntryAdaptingEntryListFilter<T> extends AbstractEntryListFilter<T> {
 
-    /**
-     * the {@link org.springframework.integration.file.entries.EntryListFilter} that you'd like to delegate to
-     */
-    private volatile EntryListFilter<T> entryFilter;
+	/**
+	 * the {@link org.springframework.integration.file.entries.EntryListFilter} that you'd like to delegate to
+	 */
+	private volatile EntryListFilter<T> entryFilter;
 
-    public SingleEntryAdaptingEntryListFilter(EntryListFilter<T> ef) {
-        this.entryFilter = ef;
-        Assert.notNull(this.entryFilter, "the entryFilter can't be null");
-    }
+	public SingleEntryAdaptingEntryListFilter(EntryListFilter<T> ef) {
+		this.entryFilter = ef;
+		Assert.notNull(this.entryFilter, "the entryFilter can't be null");
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public boolean accept(T t) {
-        T[] ts = (T[]) new Object[] { t };
-        return this.entryFilter.filterEntries(ts).size() == 1;
-    }
+	@Override
+	@SuppressWarnings("unchecked")
+	public boolean accept(T t) {
+		T[] ts = (T[]) new Object[]{t};
+		return this.entryFilter.filterEntries(ts).size() == 1;
+	}
 }

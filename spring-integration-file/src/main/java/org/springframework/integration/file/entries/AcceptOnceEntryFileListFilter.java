@@ -19,7 +19,6 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
-
 /**
  * {@link EntryListFilter} that passes files only one time. This can
  * conveniently be used to prevent duplication of files, as is done in
@@ -29,42 +28,42 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  * @author Iwein Fuld
  * @since 1.0.0
- */         
+ */
 public class AcceptOnceEntryFileListFilter<T> extends AbstractEntryListFilter<T> {
-    private final Queue<T> seen;
-    private final Object monitor = new Object();
+	private final Queue<T> seen;
+	private final Object monitor = new Object();
 
-    /**
-     * Creates an {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter} that is based on a bounded queue. If the
-     * queue overflows, files that fall out will be passed through this filter
-     * again if passed to the {@link #filterEntries(Object[])} method.
-     *
-     * @param maxCapacity the maximum number of Files to maintain in the 'seen'
-     *                    queue.
-     */
-    public AcceptOnceEntryFileListFilter(int maxCapacity) {
-        this.seen = new LinkedBlockingQueue<T>(maxCapacity);
-    }
+	/**
+	 * Creates an {@link org.springframework.integration.file.entries.AcceptOnceEntryFileListFilter} that is based on a bounded queue. If the
+	 * queue overflows, files that fall out will be passed through this filter
+	 * again if passed to the {@link #filterEntries(Object[])} method.
+	 *
+	 * @param maxCapacity the maximum number of Files to maintain in the 'seen'
+	 *                    queue.
+	 */
+	public AcceptOnceEntryFileListFilter(int maxCapacity) {
+		this.seen = new LinkedBlockingQueue<T>(maxCapacity);
+	}
 
-    /**
-     * Creates an AcceptOnceFileFilter based on an unbounded queue.
-     */
-    public AcceptOnceEntryFileListFilter() {
-        this.seen = new LinkedBlockingQueue<T>();
-    }
+	/**
+	 * Creates an AcceptOnceFileFilter based on an unbounded queue.
+	 */
+	public AcceptOnceEntryFileListFilter() {
+		this.seen = new LinkedBlockingQueue<T>();
+	}
 
-    public boolean accept(T pathname) {
-        synchronized (this.monitor) {
-            if (seen.contains(pathname)) {
-                return false;
-            }
+	public boolean accept(T pathname) {
+		synchronized (this.monitor) {
+			if (seen.contains(pathname)) {
+				return false;
+			}
 
-            if (!seen.offer(pathname)) {
-                seen.poll();
-                seen.add(pathname);
-            }
+			if (!seen.offer(pathname)) {
+				seen.poll();
+				seen.add(pathname);
+			}
 
-            return true;
-        }
-    }
+			return true;
+		}
+	}
 }

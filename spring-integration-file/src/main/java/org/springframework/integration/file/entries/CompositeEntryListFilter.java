@@ -22,64 +22,64 @@ import java.util.*;
 
 
 public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
-    private final Set<EntryListFilter<T>> fileFilters;
+	private final Set<EntryListFilter<T>> fileFilters;
 
-    public CompositeEntryListFilter() {
-        this.fileFilters = new LinkedHashSet<EntryListFilter<T>>();
-    }
+	public CompositeEntryListFilter() {
+		this.fileFilters = new LinkedHashSet<EntryListFilter<T>>();
+	}
 
-    public CompositeEntryListFilter(Collection<?extends EntryListFilter<T>> fileFilters) {
-        this.fileFilters = new LinkedHashSet<EntryListFilter<T>>(fileFilters);
-    }
+	public CompositeEntryListFilter(Collection<? extends EntryListFilter<T>> fileFilters) {
+		this.fileFilters = new LinkedHashSet<EntryListFilter<T>>(fileFilters);
+	}
 
-    @SuppressWarnings("unchecked")
-    public List<T> filterEntries(T[] entries) {
-        Assert.notNull(entries, "'files' should not be null");
+	@SuppressWarnings("unchecked")
+	public List<T> filterEntries(T[] entries) {
+		Assert.notNull(entries, "'files' should not be null");
 
-        List<T> leftOver = Arrays.asList(entries);
+		List<T> leftOver = Arrays.asList(entries);
 
-        for (EntryListFilter<T> fileFilter : this.fileFilters) {
-            T[] ts = (T[]) leftOver.toArray();
-            leftOver = fileFilter.filterEntries(ts);
-        }
+		for (EntryListFilter<T> fileFilter : this.fileFilters) {
+			T[] ts = (T[]) leftOver.toArray();
+			leftOver = fileFilter.filterEntries(ts);
+		}
 
-        return leftOver;
-    }
+		return leftOver;
+	}
 
-    public CompositeEntryListFilter<T> addFilter(EntryListFilter<T> filter) {
-        return this.addFilters(Arrays.asList(filter));
-    }
+	public CompositeEntryListFilter<T> addFilter(EntryListFilter<T> filter) {
+		return this.addFilters(Arrays.asList(filter));
+	}
 
-    /**
-     * @param filters one or more new filters to add
-     * @return this CompositeFileFilter instance with the added filters
-     * @see #addFilters(Collection)
-     */
-    @SuppressWarnings("unused")
-    public CompositeEntryListFilter<T> addFilters(EntryListFilter<T>[] filters) {
-        return addFilters(Arrays.asList(filters));
-    }
+	/**
+	 * @param filters one or more new filters to add
+	 * @return this CompositeFileFilter instance with the added filters
+	 * @see #addFilters(Collection)
+	 */
+	@SuppressWarnings("unused")
+	public CompositeEntryListFilter<T> addFilters(EntryListFilter<T>[] filters) {
+		return addFilters(Arrays.asList(filters));
+	}
 
-    /**
-     * Not thread safe. Only a single thread may add filters at a time.
-     * <p/>
-     * Add the new filters to this CompositeFileFilter while maintaining the existing filters.
-     *
-     * @param filtersToAdd a list of filters to add
-     * @return this CompositeEntryListFilter instance with the added filters
-     */
-    public CompositeEntryListFilter<T> addFilters(Collection<EntryListFilter<T>> filtersToAdd) {
-        for (EntryListFilter<T> elf : filtersToAdd)
-            if (elf instanceof InitializingBean) {
-                try {
-                    ((InitializingBean) elf).afterPropertiesSet();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
+	/**
+	 * Not thread safe. Only a single thread may add filters at a time.
+	 * <p/>
+	 * Add the new filters to this CompositeFileFilter while maintaining the existing filters.
+	 *
+	 * @param filtersToAdd a list of filters to add
+	 * @return this CompositeEntryListFilter instance with the added filters
+	 */
+	public CompositeEntryListFilter<T> addFilters(Collection<EntryListFilter<T>> filtersToAdd) {
+		for (EntryListFilter<T> elf : filtersToAdd)
+			if (elf instanceof InitializingBean) {
+				try {
+					((InitializingBean) elf).afterPropertiesSet();
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			}
 
-        this.fileFilters.addAll(filtersToAdd);
+		this.fileFilters.addAll(filtersToAdd);
 
-        return this;
-    }
+		return this;
+	}
 }
