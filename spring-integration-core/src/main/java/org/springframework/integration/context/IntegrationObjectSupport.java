@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  * @author Oleg Zhurakousky
+ * @author Josh Long
  */
 public abstract class IntegrationObjectSupport implements BeanNameAware, NamedComponent, BeanFactoryAware, InitializingBean {
 
