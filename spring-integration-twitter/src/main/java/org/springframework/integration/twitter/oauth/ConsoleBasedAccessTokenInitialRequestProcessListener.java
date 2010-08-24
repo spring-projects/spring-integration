@@ -19,11 +19,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-
 import twitter4j.http.AccessToken;
 
-import java.io.*;
-
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -35,33 +36,33 @@ import java.util.Properties;
  * @author Josh Long
  */
 public class ConsoleBasedAccessTokenInitialRequestProcessListener implements AccessTokenInitialRequestProcessListener {
-    public String openUrlAndReturnPin(String urlToOpen)
-        throws Exception {
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Open the following URL and grant access to your account:");
-        System.out.println(urlToOpen);
-        System.out.print("Enter the PIN(if aviailable) or just hit enter.[PIN]:");
+	public String openUrlAndReturnPin(String urlToOpen)
+			throws Exception {
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.println("Open the following URL and grant access to your account:");
+		System.out.println(urlToOpen);
+		System.out.print("Enter the PIN(if aviailable) or just hit enter.[PIN]:");
 
-        return StringUtils.trim(br.readLine());
-    }
+		return StringUtils.trim(br.readLine());
+	}
 
-    public void persistReturnedAccessToken(AccessToken accessToken)
-        throws Exception {
-        Map<String, String> output = new HashMap<String, String>();
-        output.put(OAuthConfigurationFactoryBean.WELL_KNOWN_CONSUMER_ACCESS_TOKEN, accessToken.getToken());
-        output.put(OAuthConfigurationFactoryBean.WELL_KNOWN_CONSUMER_ACCESS_TOKEN_SECRET, accessToken.getTokenSecret());
+	public void persistReturnedAccessToken(AccessToken accessToken)
+			throws Exception {
+		Map<String, String> output = new HashMap<String, String>();
+		output.put(OAuthConfigurationFactoryBean.WELL_KNOWN_CONSUMER_ACCESS_TOKEN, accessToken.getToken());
+		output.put(OAuthConfigurationFactoryBean.WELL_KNOWN_CONSUMER_ACCESS_TOKEN_SECRET, accessToken.getTokenSecret());
 
-        File accessTokenCreds = new File(SystemUtils.getJavaIoTmpDir(), "twitter-accesstoken.properties");
-        FileOutputStream fileOutputStream = new FileOutputStream(accessTokenCreds);
-        Properties props = new Properties();
-        props.putAll(output);
-        props.store(fileOutputStream, "oauth-access-token");
-        IOUtils.closeQuietly(fileOutputStream);
+		File accessTokenCreds = new File(SystemUtils.getJavaIoTmpDir(), "twitter-accesstoken.properties");
+		FileOutputStream fileOutputStream = new FileOutputStream(accessTokenCreds);
+		Properties props = new Properties();
+		props.putAll(output);
+		props.store(fileOutputStream, "oauth-access-token");
+		IOUtils.closeQuietly(fileOutputStream);
 
-        System.out.println("The oauth accesstoken credentials have been written to " + accessTokenCreds.getAbsolutePath());
-    }
+		System.out.println("The oauth accesstoken credentials have been written to " + accessTokenCreds.getAbsolutePath());
+	}
 
-    public void failure(Throwable t) {
-        System.err.println("Exception occurred when trying to retrieve credentials: " + ExceptionUtils.getFullStackTrace(t));
-    }
+	public void failure(Throwable t) {
+		System.err.println("Exception occurred when trying to retrieve credentials: " + ExceptionUtils.getFullStackTrace(t));
+	}
 }

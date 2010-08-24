@@ -31,33 +31,33 @@ import java.util.List;
  * @author Josh Long
  */
 public class InboundDMStatusEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
-    private Comparator<DirectMessage> dmComparator = new Comparator<DirectMessage>() {
-            public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
-                return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
-            }
-        };
+	private Comparator<DirectMessage> dmComparator = new Comparator<DirectMessage>() {
+		public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
+			return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
+		}
+	};
 
-    @Override
-    protected void markLastStatusId(DirectMessage dm) {
-        this.markerId = dm.getId();
-    }
+	@Override
+	protected void markLastStatusId(DirectMessage dm) {
+		this.markerId = dm.getId();
+	}
 
-    @Override
-    protected List<DirectMessage> sort(List<DirectMessage> rl) {
-        List<DirectMessage> dms = new ArrayList<DirectMessage>();
-        dms.addAll(rl);
-        Collections.sort(dms, dmComparator);
+	@Override
+	protected List<DirectMessage> sort(List<DirectMessage> rl) {
+		List<DirectMessage> dms = new ArrayList<DirectMessage>();
+		dms.addAll(rl);
+		Collections.sort(dms, dmComparator);
 
-        return dms;
-    }
+		return dms;
+	}
 
-    @Override
-    protected void refresh() throws Exception {
-        this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDMStatusEndpoint>() {
-                public void run(InboundDMStatusEndpoint t, Twitter twitter)
-                    throws Exception {
-                    forwardAll((!hasMarkedStatus()) ? t.twitter.getDirectMessages() : t.twitter.getDirectMessages(new Paging(t.getMarkerId())));
-                }
-            });
-    }
+	@Override
+	protected void refresh() throws Exception {
+		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDMStatusEndpoint>() {
+			public void run(InboundDMStatusEndpoint t, Twitter twitter)
+					throws Exception {
+				forwardAll((!hasMarkedStatus()) ? t.twitter.getDirectMessages() : t.twitter.getDirectMessages(new Paging(t.getMarkerId())));
+			}
+		});
+	}
 }

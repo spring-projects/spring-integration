@@ -28,29 +28,29 @@ import twitter4j.Twitter;
  * @author Josh Long
  */
 public abstract class AbstractOutboundTwitterEndpointSupport extends AbstractEndpoint implements MessageHandler {
-    protected volatile OAuthConfiguration configuration;
-    protected volatile Twitter twitter;
-    protected volatile StatusUpdateSupport statusUpdateSupport = new StatusUpdateSupport();
+	protected volatile OAuthConfiguration configuration;
+	protected volatile Twitter twitter;
+	protected volatile StatusUpdateSupport statusUpdateSupport = new StatusUpdateSupport();
 
-    @SuppressWarnings("unused")
-    public void setConfiguration(OAuthConfiguration configuration) {
-        this.configuration = configuration;
-    }
+	@SuppressWarnings("unused")
+	public void setConfiguration(OAuthConfiguration configuration) {
+		this.configuration = configuration;
+	}
 
-    @Override
-    protected void onInit() throws Exception {
-        Assert.notNull(this.configuration, "'configuration' can't be null");
-        this.twitter = this.configuration.getTwitter();
-        Assert.notNull(this.twitter, "'twitter' can't be null");
-    }
+	@Override
+	protected void onInit() throws Exception {
+		Assert.notNull(this.configuration, "'configuration' can't be null");
+		this.twitter = this.configuration.getTwitter();
+		Assert.notNull(this.twitter, "'twitter' can't be null");
+	}
 
 
-    @Override
-    protected void doStart() {
-    }
+	@Override
+	protected void doStart() {
+	}
 
-    @Override
-    protected void doStop() {
-    }
+	@Override
+	protected void doStop() {
+	}
 
 }

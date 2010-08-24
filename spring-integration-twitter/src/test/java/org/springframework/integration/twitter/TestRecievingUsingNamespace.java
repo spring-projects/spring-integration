@@ -17,9 +17,7 @@ package org.springframework.integration.twitter;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
@@ -27,22 +25,22 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 /**
  * @author Josh Long
  */
-@ContextConfiguration(locations =  {
-    "/receiving_dms_using_ns.xml"}
+@ContextConfiguration(locations = {
+		"/receiving_dms_using_ns.xml"}
 )
 public class TestRecievingUsingNamespace extends AbstractJUnit4SpringContextTests {
-    @Autowired
-    private TwitterAnnouncer twitterAnnouncer;
+	@Autowired
+	private TwitterAnnouncer twitterAnnouncer;
 
-    @Test
-    @Ignore
-    public void testIt() throws Throwable {
-        long ctr = 0;
-        long s = 1000;
+	@Test
+	@Ignore
+	public void testIt() throws Throwable {
+		long ctr = 0;
+		long s = 1000;
 
-        while (ctr < (s * 60 * 3)) {
-            Thread.sleep(s);
-            ctr += s;
-        }
-    }
+		while (ctr < (s * 60 * 3)) {
+			Thread.sleep(s);
+			ctr += s;
+		}
+	}
 }

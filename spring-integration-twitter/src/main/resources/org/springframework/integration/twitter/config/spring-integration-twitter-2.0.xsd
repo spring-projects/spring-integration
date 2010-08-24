@@ -16,204 +16,196 @@
   -->
 
 <xsd:schema xmlns="http://www.springframework.org/schema/integration/twitter"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:beans="http://www.springframework.org/schema/beans"
-            xmlns:tool="http://www.springframework.org/schema/tool"
-            xmlns:integration="http://www.springframework.org/schema/integration"
-            targetNamespace="http://www.springframework.org/schema/integration/twitter"
-            elementFormDefault="qualified"
-            attributeFormDefault="unqualified">
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/twitter"
+			elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
 
-    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
-    <xsd:import namespace="http://www.springframework.org/schema/tool"/>
-    <xsd:import namespace="http://www.springframework.org/schema/integration"
-                schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
-
-
-    <xsd:element name="twitter-connection">
-        <xsd:annotation>
-            <xsd:documentation>
-                Sets up an instance of OAuthConfiguration which all adapters need to function properly
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string" use="required"/>
-            <xsd:attribute name="consumer-key" type="xsd:string" use="required"/>
-            <xsd:attribute name="consumer-secret" type="xsd:string" use="required"/>
-            <xsd:attribute name="access-token" type="xsd:string" use="required"/>
-            <xsd:attribute name="access-token-secret" type="xsd:string" use="required"/>
-        </xsd:complexType>
-    </xsd:element>
-
-    <!--
-    This defines the beans we have for working with Twitter
-    -->
-    <xsd:element name="inbound-mention-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configures an inbound channel adapter that consumes message (representing mentions of your handle)
-                from twitter and sends Messages whose payloads are Status objects.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute use="required" name="twitter-connection" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <!-- <xsd:attribute name="username" type="xsd:string" use="required"/>
-      <xsd:attribute name="password" type="xsd:string" use="required"/>-->
-        </xsd:complexType>
-    </xsd:element>
-
-    <xsd:element name="inbound-dm-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configures an inbound channel adapter that consumes direct messages and forwards them to Spring Integration
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="twitter-connection" use="required" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <!--<xsd:attribute name="username" type="xsd:string" use="required"/>
-      <xsd:attribute name="password" type="xsd:string" use="required"/>-->
-        </xsd:complexType>
-    </xsd:element>
-
-    <xsd:element name="inbound-update-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
-                from twitter and sends Messages whose payloads are Tweet objects.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="twitter-connection" use="required" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
 
 
+	<xsd:element name="twitter-connection">
+		<xsd:annotation>
+			<xsd:documentation>
+				Sets up an instance of OAuthConfiguration which all adapters need to function properly
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="consumer-key" type="xsd:string" use="required"/>
+			<xsd:attribute name="consumer-secret" type="xsd:string" use="required"/>
+			<xsd:attribute name="access-token" type="xsd:string" use="required"/>
+			<xsd:attribute name="access-token-secret" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
 
-    <!--
-        OUTBOUND
-    -->
+	<!--
+		This defines the beans we have for working with Twitter
+		-->
+	<xsd:element name="inbound-mention-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inbound channel adapter that consumes message (representing mentions of your handle)
+				from twitter and sends Messages whose payloads are Status objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute use="required" name="twitter-connection" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<!-- <xsd:attribute name="username" type="xsd:string" use="required"/>
+				  <xsd:attribute name="password" type="xsd:string" use="required"/>-->
+		</xsd:complexType>
+	</xsd:element>
 
-    <xsd:element name="outbound-dm-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
-                from twitter and sends Messages whose payloads are Tweet objects.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="twitter-connection" use="required" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="inbound-dm-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inbound channel adapter that consumes direct messages and forwards them to Spring Integration
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<!--<xsd:attribute name="username" type="xsd:string" use="required"/>
+				  <xsd:attribute name="password" type="xsd:string" use="required"/>-->
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-update-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
+				from twitter and sends Messages whose payloads are Tweet objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 
+	<!--
+			OUTBOUND
+		-->
 
-    <xsd:element name="outbound-update-channel-adapter">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
-                from twitter and sends Messages whose payloads are Tweet objects.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexType>
-            <xsd:attribute name="id" type="xsd:string"/>
-            <xsd:attribute name="twitter-connection" use="required" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-            <xsd:attribute name="channel" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <tool:annotation kind="ref">
-                            <tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
-                        </tool:annotation>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:attribute>
-        </xsd:complexType>
-    </xsd:element>
+	<xsd:element name="outbound-dm-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
+				from twitter and sends Messages whose payloads are Tweet objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 
-
-
-
-
+	<xsd:element name="outbound-update-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configures an inbound channel adapter that consumes message (representing your friends' timeline updates)
+				from twitter and sends Messages whose payloads are Tweet objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="twitter-connection" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.twitter.oauth.OAuthConfiguration"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 
 </xsd:schema>

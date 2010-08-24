@@ -27,13 +27,13 @@ import twitter4j.Twitter;
  * @since 2.0
  */
 public class InboundUpdatedStatusEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
-    @Override
-    protected void refresh() throws Exception {
-        this.runAsAPIRateLimitsPermit(new ApiCallback<InboundUpdatedStatusEndpoint>() {
-                public void run(InboundUpdatedStatusEndpoint t, Twitter twitter)
-                    throws Exception {
-                    forwardAll((!t.hasMarkedStatus()) ? twitter.getFriendsTimeline() : twitter.getFriendsTimeline(new Paging(t.getMarkerId())));
-                }
-            });
-    }
+	@Override
+	protected void refresh() throws Exception {
+		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundUpdatedStatusEndpoint>() {
+			public void run(InboundUpdatedStatusEndpoint t, Twitter twitter)
+					throws Exception {
+				forwardAll((!t.hasMarkedStatus()) ? twitter.getFriendsTimeline() : twitter.getFriendsTimeline(new Paging(t.getMarkerId())));
+			}
+		});
+	}
 }

@@ -16,9 +16,7 @@
 package org.springframework.integration.twitter;
 
 import org.springframework.integration.Message;
-
 import org.springframework.util.StringUtils;
-
 import twitter4j.GeoLocation;
 import twitter4j.StatusUpdate;
 
@@ -28,62 +26,62 @@ import twitter4j.StatusUpdate;
  *
  * @author Josh Long
  * @see twitter4j.StatusUpdate
- * @see  org.springframework.integration.twitter.TwitterHeaders
+ * @see org.springframework.integration.twitter.TwitterHeaders
  * @since 2.0
  */
 public class StatusUpdateSupport {
-    /**
-     * {@link StatusUpdate} instances are used to drive status updates.
-     *
-     * @param message the inbound messages
-     * @return a {@link StatusUpdate}  that's been materialized from the inbound message
-     * @throws Throwable thrown if something goes wrong
-     */
-    public StatusUpdate fromMessage(Message<?> message)
-        throws Throwable {
-        Object payload = message.getPayload();
-        StatusUpdate statusUpdate = null;
+	/**
+	 * {@link StatusUpdate} instances are used to drive status updates.
+	 *
+	 * @param message the inbound messages
+	 * @return a {@link StatusUpdate}  that's been materialized from the inbound message
+	 * @throws Throwable thrown if something goes wrong
+	 */
+	public StatusUpdate fromMessage(Message<?> message)
+			throws Throwable {
+		Object payload = message.getPayload();
+		StatusUpdate statusUpdate = null;
 
-        if (payload instanceof String) {
-            statusUpdate = new StatusUpdate((String) payload);
+		if (payload instanceof String) {
+			statusUpdate = new StatusUpdate((String) payload);
 
-            if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID)) {
-                Long replyId = (Long) message.getHeaders().get(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID);
+			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID)) {
+				Long replyId = (Long) message.getHeaders().get(TwitterHeaders.TWITTER_IN_REPLY_TO_STATUS_ID);
 
-                if ((replyId != null) && (replyId > 0)) {
-                    statusUpdate.inReplyToStatusId(replyId);
-                }
-            }
+				if ((replyId != null) && (replyId > 0)) {
+					statusUpdate.inReplyToStatusId(replyId);
+				}
+			}
 
-            if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_PLACE_ID)) {
-                String placeId = (String) message.getHeaders().get(TwitterHeaders.TWITTER_PLACE_ID);
+			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_PLACE_ID)) {
+				String placeId = (String) message.getHeaders().get(TwitterHeaders.TWITTER_PLACE_ID);
 
-                if (StringUtils.hasText(placeId)) {
-                    statusUpdate.placeId(placeId);
-                }
-            }
+				if (StringUtils.hasText(placeId)) {
+					statusUpdate.placeId(placeId);
+				}
+			}
 
-            if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
-                GeoLocation geoLocation = (GeoLocation) message.getHeaders().get(TwitterHeaders.TWITTER_GEOLOCATION);
+			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_GEOLOCATION)) {
+				GeoLocation geoLocation = (GeoLocation) message.getHeaders().get(TwitterHeaders.TWITTER_GEOLOCATION);
 
-                if (null != geoLocation) {
-                    statusUpdate.location(geoLocation);
-                }
-            }
+				if (null != geoLocation) {
+					statusUpdate.location(geoLocation);
+				}
+			}
 
-            if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_DISPLAY_COORDINATES)) {
-                Boolean displayCoords = (Boolean) message.getHeaders().get(TwitterHeaders.TWITTER_DISPLAY_COORDINATES);
+			if (message.getHeaders().containsKey(TwitterHeaders.TWITTER_DISPLAY_COORDINATES)) {
+				Boolean displayCoords = (Boolean) message.getHeaders().get(TwitterHeaders.TWITTER_DISPLAY_COORDINATES);
 
-                if (displayCoords != null) {
-                    statusUpdate.displayCoordinates(displayCoords);
-                }
-            }
-        }
+				if (displayCoords != null) {
+					statusUpdate.displayCoordinates(displayCoords);
+				}
+			}
+		}
 
-        if (payload instanceof StatusUpdate) {
-            statusUpdate = (StatusUpdate) payload;
-        }
+		if (payload instanceof StatusUpdate) {
+			statusUpdate = (StatusUpdate) payload;
+		}
 
-        return statusUpdate;
-    }
+		return statusUpdate;
+	}
 }

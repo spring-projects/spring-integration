@@ -25,13 +25,13 @@ import twitter4j.Twitter;
  * @author Josh Long
  */
 public class InboundMentionStatusEndpoint extends AbstractInboundTwitterStatusEndpointSupport {
-    @Override
-    protected void refresh() throws Exception {
-        this.runAsAPIRateLimitsPermit(new ApiCallback<InboundMentionStatusEndpoint>() {
-                public void run(InboundMentionStatusEndpoint ctx, Twitter twitter)
-                    throws Exception {
-                    forwardAll((!hasMarkedStatus()) ? twitter.getMentions() : twitter.getMentions(new Paging(ctx.getMarkerId())));
-                }
-            });
-    }
+	@Override
+	protected void refresh() throws Exception {
+		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundMentionStatusEndpoint>() {
+			public void run(InboundMentionStatusEndpoint ctx, Twitter twitter)
+					throws Exception {
+				forwardAll((!hasMarkedStatus()) ? twitter.getMentions() : twitter.getMentions(new Paging(ctx.getMarkerId())));
+			}
+		});
+	}
 }

@@ -25,71 +25,74 @@ import twitter4j.Twitter;
  * client should store this bean and simply lookup the Twitter configuration from there
  */
 public class OAuthConfiguration {
-    //
-    // private AsyncTwitter asyncTwitter;
-    private Twitter twitter;
-    private volatile String consumerKey;
-    private volatile String consumerSecret;
-    private volatile String accessToken;
-    private volatile String accessTokenSecret;
+	//
+	// private AsyncTwitter asyncTwitter;
+	private Twitter twitter;
+	private volatile String consumerKey;
+	private volatile String consumerSecret;
+	private volatile String accessToken;
+	private volatile String accessTokenSecret;
 
-    public OAuthConfiguration(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
-        this.consumerKey = consumerKey;
-        this.consumerSecret = consumerSecret;
-        this.accessToken = accessToken;
-        this.accessTokenSecret = accessTokenSecret;
-    }
+	public OAuthConfiguration(String consumerKey, String consumerSecret, String accessToken, String accessTokenSecret) {
+		this.consumerKey = consumerKey;
+		this.consumerSecret = consumerSecret;
+		this.accessToken = accessToken;
+		this.accessTokenSecret = accessTokenSecret;
+	}
 
-    /** package friendly */
-    /*  void setAsyncTwitter(AsyncTwitter asyncTwitter) {
-          this.asyncTwitter = asyncTwitter;
-      }*/
+	/** package friendly */
+	/*  void setAsyncTwitter(AsyncTwitter asyncTwitter) {
+			  this.asyncTwitter = asyncTwitter;
+		  }*/
 
-    /** package friendly */
-    void setTwitter(Twitter twitter) {
-        this.twitter = twitter;
-    }
+	/**
+	 * package friendly
+	 */
+	void setTwitter(Twitter twitter) {
+		this.twitter = twitter;
+	}
 
-    /**
-     * @return
-     */
-    public Twitter getTwitter() {
-        return twitter;
-    }
+	/**
+	 * @return
+	 */
+	public Twitter getTwitter() {
+		return twitter;
+	}
 
-    /*
-        public AsyncTwitter getAsyncTwitter() {
-            return asyncTwitter;
-        }*/
-    public String getConsumerKey() {
-        return consumerKey;
-    }
+	/*
+			public AsyncTwitter getAsyncTwitter() {
+				return asyncTwitter;
+			}*/
 
-    public void setConsumerKey(String consumerKey) {
-        this.consumerKey = consumerKey;
-    }
+	public String getConsumerKey() {
+		return consumerKey;
+	}
 
-    public String getConsumerSecret() {
-        return consumerSecret;
-    }
+	public void setConsumerKey(String consumerKey) {
+		this.consumerKey = consumerKey;
+	}
 
-    public void setConsumerSecret(String consumerSecret) {
-        this.consumerSecret = consumerSecret;
-    }
+	public String getConsumerSecret() {
+		return consumerSecret;
+	}
 
-    public String getAccessToken() {
-        return accessToken;
-    }
+	public void setConsumerSecret(String consumerSecret) {
+		this.consumerSecret = consumerSecret;
+	}
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
+	public String getAccessToken() {
+		return accessToken;
+	}
 
-    public String getAccessTokenSecret() {
-        return accessTokenSecret;
-    }
+	public void setAccessToken(String accessToken) {
+		this.accessToken = accessToken;
+	}
 
-    public void setAccessTokenSecret(String accessTokenSecret) {
-        this.accessTokenSecret = accessTokenSecret;
-    }
+	public String getAccessTokenSecret() {
+		return accessTokenSecret;
+	}
+
+	public void setAccessTokenSecret(String accessTokenSecret) {
+		this.accessTokenSecret = accessTokenSecret;
+	}
 }

@@ -18,16 +18,16 @@ package org.springframework.integration.twitter;
 
 /**
  * An enum to allow users to express interest in particular kinds of tweets.
- *
+ * <p/>
  * Contains header keys used by the various adapters.
  *
  * @author Josh Long
  * @since 2.0
  */
 public class TwitterHeaders {
-    public static final String TWITTER_IN_REPLY_TO_STATUS_ID = "TWITTER_IN_REPLY_TO_STATUS_ID";
-    public static final String TWITTER_PLACE_ID = "TWITTER_PLACE_ID";
-    public static final String TWITTER_GEOLOCATION = "TWITTER_GEOLOCATION";
-    public static final String TWITTER_DISPLAY_COORDINATES = "TWITTER_DISPLAY_COORDINATES";
-    public static final String TWITTER_DM_TARGET_USER_ID = "TWITTER_DM_TARGET_USER_ID";
+	public static final String TWITTER_IN_REPLY_TO_STATUS_ID = "TWITTER_IN_REPLY_TO_STATUS_ID";
+	public static final String TWITTER_PLACE_ID = "TWITTER_PLACE_ID";
+	public static final String TWITTER_GEOLOCATION = "TWITTER_GEOLOCATION";
+	public static final String TWITTER_DISPLAY_COORDINATES = "TWITTER_DISPLAY_COORDINATES";
+	public static final String TWITTER_DM_TARGET_USER_ID = "TWITTER_DM_TARGET_USER_ID";
 }

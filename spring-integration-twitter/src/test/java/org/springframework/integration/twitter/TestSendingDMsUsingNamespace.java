@@ -17,48 +17,42 @@ package org.springframework.integration.twitter;
 
 import org.junit.Ignore;
 import org.junit.Test;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
-
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-
 import org.springframework.util.StringUtils;
-
 import twitter4j.GeoLocation;
 
 
 /**
  * @author Josh Long
  */
-@ContextConfiguration(locations =  {
-    "/sending_dms_using_ns.xml"}
+@ContextConfiguration(locations = {
+		"/sending_dms_using_ns.xml"}
 )
 public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTests {
-    private volatile MessagingTemplate messagingTemplate = new MessagingTemplate();
-    @Value("#{out}")
-    private MessageChannel channel;
+	private volatile MessagingTemplate messagingTemplate = new MessagingTemplate();
+	@Value("#{out}")
+	private MessageChannel channel;
 
-    @Test
-    @Ignore
-    public void testSendingATweet() throws Throwable {
-        String dmUsr = System.getProperties().getProperty("twitter.dm.user");
-        MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter")
-                                                  .setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
-            .setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
+	@Test
+	@Ignore
+	public void testSendingATweet() throws Throwable {
+		String dmUsr = System.getProperties().getProperty("twitter.dm.user");
+		MessageBuilder<String> mb = MessageBuilder.withPayload("'Hello world!', from the Spring Integration outbound Twitter adapter")
+				.setHeader(TwitterHeaders.TWITTER_GEOLOCATION, new GeoLocation(-76.226823, 23.642465)) // antarctica
+				.setHeader(TwitterHeaders.TWITTER_DISPLAY_COORDINATES, true);
 
-        if (StringUtils.hasText(dmUsr)) {
-            mb.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, dmUsr);
-        }
+		if (StringUtils.hasText(dmUsr)) {
+			mb.setHeader(TwitterHeaders.TWITTER_DM_TARGET_USER_ID, dmUsr);
+		}
 
-        Message<String> m = mb.build();
+		Message<String> m = mb.build();
 
-        this.messagingTemplate.send(this.channel, m);
-    }
+		this.messagingTemplate.send(this.channel, m);
+	}
 }

@@ -26,14 +26,15 @@ import twitter4j.http.AccessToken;
  * @author Josh Long
  */
 public interface AccessTokenInitialRequestProcessListener {
-    String openUrlAndReturnPin(String urlToOpen) throws Exception;
+	String openUrlAndReturnPin(String urlToOpen) throws Exception;
 
-    void persistReturnedAccessToken(AccessToken accessToken)
-        throws Exception;
+	void persistReturnedAccessToken(AccessToken accessToken)
+			throws Exception;
 
-    /**
-     * Callback in case something goes wrong at any point in the process. Up to client to intervene
-     * @param t the exception thrown (if any). Could be null if none available
-     */
-    void failure(Throwable t);
+	/**
+	 * Callback in case something goes wrong at any point in the process. Up to client to intervene
+	 *
+	 * @param t the exception thrown (if any). Could be null if none available
+	 */
+	void failure(Throwable t);
 }

@@ -30,23 +30,23 @@ import java.util.List;
  * @author Josh Long
  */
 abstract public class AbstractInboundTwitterStatusEndpointSupport extends AbstractInboundTwitterEndpointSupport<Status> {
-    private Comparator<Status> statusComparator = new Comparator<Status>() {
-            public int compare(Status status, Status status1) {
-                return status.getCreatedAt().compareTo(status1.getCreatedAt());
-            }
-        };
+	private Comparator<Status> statusComparator = new Comparator<Status>() {
+		public int compare(Status status, Status status1) {
+			return status.getCreatedAt().compareTo(status1.getCreatedAt());
+		}
+	};
 
-    @Override
-    protected void markLastStatusId(Status statusId) {
-        this.markerId = statusId.getId();
-    }
+	@Override
+	protected void markLastStatusId(Status statusId) {
+		this.markerId = statusId.getId();
+	}
 
-    @Override
-    protected List<Status> sort(List<Status> rl) {
-        List<Status> statusArrayList = new ArrayList<Status>();
-        statusArrayList.addAll(rl);
-        Collections.sort(statusArrayList, statusComparator);
+	@Override
+	protected List<Status> sort(List<Status> rl) {
+		List<Status> statusArrayList = new ArrayList<Status>();
+		statusArrayList.addAll(rl);
+		Collections.sort(statusArrayList, statusComparator);
 
-        return statusArrayList;
-    }
+		return statusArrayList;
+	}
 }
