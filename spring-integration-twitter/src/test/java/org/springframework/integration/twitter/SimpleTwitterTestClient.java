@@ -1,6 +1,7 @@
 package org.springframework.integration.twitter;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -15,11 +16,12 @@ import twitter4j.Twitter;
 
 import java.util.Collection;
 
-import javax.annotation.PostConstruct;
 
 
 /**
  * This class is used to simply demonstrating correctly factory-ing a {@link twitter4j.Twitter} instance
+ *
+ * @author Josh Long
  */
 @ContextConfiguration(locations = "twitter_connection_using_ns.xml")
 public class SimpleTwitterTestClient {
@@ -27,7 +29,7 @@ public class SimpleTwitterTestClient {
     @Autowired
     private volatile OAuthConfiguration oAuthConfiguration;
 
-    @PostConstruct
+    @Before
     public void begin() throws Exception {
         this.twitter = oAuthConfiguration.getTwitter();
     }
