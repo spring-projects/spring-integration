@@ -20,7 +20,7 @@ package org.springframework.integration.context;
  * @author Mark Fisher
  * @since 2.0
  */
-public interface HistoryProvider extends NamedComponent {
+public interface TrackableComponent extends NamedComponent {
 
 	void setShouldTrack(boolean shouldTrack);
 

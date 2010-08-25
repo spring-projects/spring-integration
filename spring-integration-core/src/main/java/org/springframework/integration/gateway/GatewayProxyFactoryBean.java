@@ -37,7 +37,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.context.HistoryProvider;
+import org.springframework.integration.context.TrackableComponent;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
@@ -59,7 +59,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class GatewayProxyFactoryBean extends AbstractEndpoint implements HistoryProvider, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
+public class GatewayProxyFactoryBean extends AbstractEndpoint implements TrackableComponent, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
 	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 

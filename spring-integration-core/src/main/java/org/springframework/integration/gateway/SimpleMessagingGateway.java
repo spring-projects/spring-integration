@@ -18,7 +18,7 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.context.HistoryProvider;
+import org.springframework.integration.context.TrackableComponent;
 import org.springframework.integration.core.MessageHistory;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleMessagingGateway extends AbstractMessagingGateway implements HistoryProvider {
+public class SimpleMessagingGateway extends AbstractMessagingGateway implements TrackableComponent {
 
 	private final InboundMessageMapper inboundMapper;
 

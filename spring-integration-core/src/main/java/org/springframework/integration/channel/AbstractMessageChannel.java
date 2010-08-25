@@ -29,7 +29,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.context.HistoryProvider;
+import org.springframework.integration.context.TrackableComponent;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, HistoryProvider {
+public abstract class AbstractMessageChannel extends IntegrationObjectSupport implements MessageChannel, TrackableComponent {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
