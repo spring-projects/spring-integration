@@ -41,6 +41,6 @@
 		<property name="cacheProducers" value="false"/>
 	</bean>
 	
-	<bean id="historyWriter" class="org.springframework.integration.history.MessageHistoryWriter"/>
+	<bean id="historyWriter" class="org.springframework.integration.context.MessageHistoryWriter"/>
 
 </beans>
