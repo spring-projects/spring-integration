@@ -24,7 +24,6 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
@@ -63,7 +62,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class MessageHandlerChain extends IntegrationObjectSupport implements MessageHandler, MessageProducer, Ordered {
+public class MessageHandlerChain extends AbstractMessageHandler implements MessageProducer, Ordered {
 
 	private volatile List<MessageHandler> handlers;
 
@@ -111,7 +110,8 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 		return "chain";
 	}
 
-	private void initialize() {
+	@Override
+	protected void onInit() throws Exception {
 		synchronized (this.initializationMonitor) {
 			if (!this.initialized) {
 				Assert.notEmpty(this.handlers, "handler list must not be empty");
@@ -125,9 +125,10 @@ public class MessageHandlerChain extends IntegrationObjectSupport implements Mes
 		}
 	}
 
-	public void handleMessage(Message<?> message) {
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
 		if (!this.initialized) {
-			this.initialize();
+			this.onInit();
 		}
 		this.handlers.get(0).handleMessage(message);
 	}

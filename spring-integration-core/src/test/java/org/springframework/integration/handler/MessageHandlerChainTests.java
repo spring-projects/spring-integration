@@ -86,7 +86,7 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setOutputChannel(outputChannel);
-		chain.handleMessage(message);
+		chain.afterPropertiesSet();
 	}
 
 	@Test
@@ -156,7 +156,6 @@ public class MessageHandlerChainTests {
 
 	@Test(expected = IllegalArgumentException.class) // INT-1175
 	public void chainRejectsDuplicateHandlers() {
-		Message<String> message = MessageBuilder.withPayload("test").setReplyChannelName("testChannel").build();
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", outputChannel);
 		List<MessageHandler> handlers = new ArrayList<MessageHandler>();
@@ -167,7 +166,7 @@ public class MessageHandlerChainTests {
 		chain.setBeanName("testChain");
 		chain.setHandlers(handlers);
 		chain.setBeanFactory(beanFactory);
-		chain.handleMessage(message);
+		chain.afterPropertiesSet();
 	}
 
 

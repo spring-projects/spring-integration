@@ -7,4 +7,5 @@
 
 	<int:message-history/>
 	<int:message-history/>
+
 </beans>

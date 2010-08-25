@@ -23,7 +23,9 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.HistoryProvider;
 import org.springframework.integration.context.IntegrationObjectSupport;
+import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.util.Assert;
 
@@ -36,9 +38,11 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, Ordered {
+public abstract class AbstractMessageHandler extends IntegrationObjectSupport implements MessageHandler, HistoryProvider, Ordered {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	private volatile boolean shouldIncludeInHistory = false;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -56,6 +60,10 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		return "message-handler";
 	}
 
+	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
+		this.shouldIncludeInHistory = shouldIncludeInHistory;
+	}
+
 	public final void handleMessage(Message<?> message) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(message.getPayload(), "Message payload must not be null");
@@ -63,6 +71,9 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			this.logger.debug(this + " received message: " + message);
 		}
 		try {
+			if (message != null && this.shouldIncludeInHistory) {
+				message = MessageHistoryWriter.writeHistory(this, message);
+			}
 			this.handleMessageInternal(message);
 		}
 		catch (Exception e) {

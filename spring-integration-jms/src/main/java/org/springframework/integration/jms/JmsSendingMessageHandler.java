@@ -20,6 +20,7 @@ import javax.jms.JMSException;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
@@ -62,7 +63,7 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
-		final Message<?> messageToSend = this.writeMessageHistory(message);
+		final Message<?> messageToSend = MessageHistoryWriter.writeHistory(this, message);
 		this.getJmsTemplate().convertAndSend(messageToSend, new MessagePostProcessor() {
 			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage)
 					throws JMSException {

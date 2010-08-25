@@ -23,6 +23,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.jms.core.JmsTemplate;
@@ -87,7 +88,7 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			MessageBuilder<Object> builder = (convertedObject instanceof Message)
 					? MessageBuilder.fromMessage((Message<Object>) convertedObject) : MessageBuilder.withPayload(convertedObject);
 			convertedMessage = builder.copyHeadersIfAbsent(mappedHeaders).build();
-			convertedMessage = this.writeMessageHistory(convertedMessage);
+			convertedMessage = MessageHistoryWriter.writeHistory(this, convertedMessage);
 		}
 		catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);

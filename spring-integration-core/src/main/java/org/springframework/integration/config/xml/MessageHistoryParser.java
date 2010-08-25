@@ -13,38 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
+
+import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Mark Fisher
  * @since 2.0
  */
 public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
-	private String messageHistory;
+
+	private static final String POST_PROCESSOR_CLASSNAME = "org.springframework.integration.context.MessageHistoryBeanPostProcessor";
+
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.context.MessageHistoryWriter";
+		return POST_PROCESSOR_CLASSNAME;
 	}
 
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
 	}
-	
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext){
-		if (messageHistory == null){
-			messageHistory = BeanDefinitionReaderUtils.generateBeanName(definition, parserContext.getRegistry());
-		} else {
-			throw new BeanDefinitionStoreException("Attempt to register more then one MessageHistoryWriter");
+
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) {
+		if (parserContext.getRegistry().containsBeanDefinition(POST_PROCESSOR_CLASSNAME)) {
+			throw new BeanDefinitionStoreException("At most one MessageHistoryBeanPostProcessor may be registered within a context.");
 		}
-		return messageHistory;
+		return POST_PROCESSOR_CLASSNAME;
 	}
+
 }

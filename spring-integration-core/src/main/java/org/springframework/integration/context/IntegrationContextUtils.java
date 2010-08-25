@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.context;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -26,7 +27,6 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.TaskScheduler;
 
 import org.springframework.util.Assert;
-
 
 /**
  * Utility methods for accessing common integration components from the BeanFactory.

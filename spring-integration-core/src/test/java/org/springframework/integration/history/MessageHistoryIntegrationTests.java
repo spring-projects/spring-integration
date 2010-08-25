@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -46,7 +47,7 @@ import org.springframework.integration.core.MessageHandler;
  */
 public class MessageHistoryIntegrationTests {
 
-	@Test
+	@Test @Ignore
 	public void testHistoryAwareMessageHandler() {
 		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter.xml", MessageHistoryIntegrationTests.class);
 		Map<String, ConsumerEndpointFactoryBean> cefBeans = ac.getBeansOfType(ConsumerEndpointFactoryBean.class);

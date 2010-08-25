@@ -18,6 +18,8 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.HistoryProvider;
+import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.Assert;
@@ -33,11 +35,13 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleMessagingGateway extends AbstractMessagingGateway {
+public class SimpleMessagingGateway extends AbstractMessagingGateway implements HistoryProvider {
 
 	private final InboundMessageMapper inboundMapper;
 
 	private final OutboundMessageMapper outboundMapper;
+
+	private volatile boolean shouldIncludeInHistory = false;
 
 
 	public SimpleMessagingGateway() {
@@ -52,7 +56,12 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		this.inboundMapper = inboundMapper;
 		this.outboundMapper = outboundMapper;
 	}
-	
+
+
+	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
+		this.shouldIncludeInHistory = shouldIncludeInHistory;
+	}
+
 	public Message<?> sendAndReceiveMessage(Object object) {
 		return (Message<?>) super.sendAndReceive(object, false);
 	}
@@ -80,7 +89,9 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		Message<?> message = null;
 		try {
 			message = this.inboundMapper.toMessage(object);
-			message = this.writeMessageHistory(message);
+			if (this.shouldIncludeInHistory) {
+				message = MessageHistoryWriter.writeHistory(this, message);
+			}
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {
@@ -90,4 +101,5 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 		}
 		return message;
 	}
+
 }

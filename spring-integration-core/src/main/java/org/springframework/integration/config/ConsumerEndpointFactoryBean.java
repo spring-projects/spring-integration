@@ -16,20 +16,15 @@
 
 package org.springframework.integration.config;
 
-import java.util.Map;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
@@ -44,7 +39,7 @@ import org.springframework.util.StringUtils;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
- * @author Josh Long 
+ * @author Josh Long
  */
 public class ConsumerEndpointFactoryBean
 		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, InitializingBean, SmartLifecycle {
@@ -59,9 +54,9 @@ public class ConsumerEndpointFactoryBean
 
 	private volatile boolean autoStartup = true;
 
-    private volatile MessageChannel inputChannel;
+	private volatile MessageChannel inputChannel;
 
-    private volatile ConfigurableBeanFactory beanFactory;
+	private volatile ConfigurableBeanFactory beanFactory;
 
 	private volatile AbstractEndpoint endpoint;
 
@@ -71,6 +66,7 @@ public class ConsumerEndpointFactoryBean
 
 	private final Object handlerMonitor = new Object();
 
+
 	public void setHandler(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
 		synchronized (this.handlerMonitor) {
@@ -79,9 +75,9 @@ public class ConsumerEndpointFactoryBean
 		}
 	}
 
-    public void setInputChannel(MessageChannel inputChannel) {
-        this.inputChannel= inputChannel;
-    }
+	public void setInputChannel(MessageChannel inputChannel) {
+		this.inputChannel = inputChannel;
+	}
 
 	public void setInputChannelName(String inputChannelName) {
 		this.inputChannelName = inputChannelName;
@@ -100,22 +96,14 @@ public class ConsumerEndpointFactoryBean
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory,
-				"a ConfigurableBeanFactory is required");
+		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory, "a ConfigurableBeanFactory is required");
 		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		// Will check if this.handler needs to be wrapped in a MessageHistoryAwareMessageHandler.
-		// Such wrapping is only required if this.beanFactory contains a bean of type MessageHistoryWriter.
-		Map<String, MessageHistoryWriter> historyWriters = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-				(ListableBeanFactory) this.beanFactory, MessageHistoryWriter.class);
-		if (historyWriters.size() == 1) {
-			MessageHistoryWriter writer = historyWriters.values().iterator().next();
-			if (!this.beanName.startsWith("org.springframework")  && this.handler instanceof IntegrationObjectSupport) {
-				this.handler = new MessageHistoryWritingMessageHandler(this.handler, writer, this.beanName);
-			}
-		} 
+		if (!this.beanName.startsWith("org.springframework") && this.handler instanceof IntegrationObjectSupport) {
+			((IntegrationObjectSupport) this.handler).setComponentName(this.beanName);
+		}
 		this.initializeEndpoint();
 	}
 
@@ -142,34 +130,27 @@ public class ConsumerEndpointFactoryBean
 			if (this.initialized) {
 				return;
 			}
-
-
-
-            MessageChannel channel = null;
-
-            if(StringUtils.hasText(this.inputChannelName)) {
-                Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
-					"no such input channel '" + this.inputChannelName + "' for endpoint '" + this.beanName + "'");
-                channel = this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
-            }
-            if( this.inputChannel != null ){
-                channel = this.inputChannel;
-            }
-
-            Assert.state( channel != null , "one of inputChannelName or inputChannel is required");
-
+			MessageChannel channel = null;
+			if (StringUtils.hasText(this.inputChannelName)) {
+				Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName), "no such input channel '"
+						+ this.inputChannelName + "' for endpoint '" + this.beanName + "'");
+				channel = this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
+			}
+			if (this.inputChannel != null) {
+				channel = this.inputChannel;
+			}
+			Assert.state(channel != null, "one of inputChannelName or inputChannel is required");
 			if (channel instanceof SubscribableChannel) {
 				Assert.isNull(this.pollerMetadata, "A poller should not be specified for endpoint '" + this.beanName
 						+ "', since '" + channel + "' is a SubscribableChannel (not pollable).");
 				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
 			}
 			else if (channel instanceof PollableChannel) {
-				PollingConsumer pollingConsumer = new PollingConsumer(
-						(PollableChannel) channel, this.handler);
+				PollingConsumer pollingConsumer = new PollingConsumer((PollableChannel) channel, this.handler);
 				if (this.pollerMetadata == null) {
 					this.pollerMetadata = IntegrationContextUtils.getDefaultPollerMetadata(this.beanFactory);
-					Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '"
-							+ this.beanName + "', and no default poller is available within the context.");
+					Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
+							+ "', and no default poller is available within the context.");
 				}
 				pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
 				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
@@ -181,8 +162,7 @@ public class ConsumerEndpointFactoryBean
 				this.endpoint = pollingConsumer;
 			}
 			else {
-				throw new IllegalArgumentException(
-						"unsupported channel type: [" + channel.getClass() + "]");
+				throw new IllegalArgumentException("unsupported channel type: [" + channel.getClass() + "]");
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
@@ -191,6 +171,7 @@ public class ConsumerEndpointFactoryBean
 			this.initialized = true;
 		}
 	}
+
 
 	/*
 	 * SmartLifecycle implementation (delegates to the created endpoint)

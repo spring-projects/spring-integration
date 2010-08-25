@@ -37,6 +37,7 @@ import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
+import org.springframework.integration.context.HistoryProvider;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
@@ -58,7 +59,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
+public class GatewayProxyFactoryBean extends AbstractEndpoint implements HistoryProvider, FactoryBean<Object>, MethodInterceptor, BeanClassLoaderAware {
 
 	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
@@ -73,6 +74,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	private volatile long defaultReplyTimeout = -1;
 
 	private volatile ChannelResolver channelResolver;
+
+	private volatile boolean shouldIncludeInHistory = false;
 
 	private volatile TypeConverter typeConverter = new SimpleTypeConverter();
 
@@ -154,6 +157,10 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	 */
 	public void setDefaultReplyTimeout(long defaultReplyTimeout) {
 		this.defaultReplyTimeout = defaultReplyTimeout;
+	}
+
+	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
+		this.shouldIncludeInHistory = shouldIncludeInHistory;
 	}
 
 	public void setTypeConverter(TypeConverter typeConverter) {
@@ -330,6 +337,9 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		gateway.setReplyTimeout(replyTimeout);
 		if (this.getBeanFactory() != null) {
 			gateway.setBeanFactory(this.getBeanFactory());
+		}
+		if (this.shouldIncludeInHistory) {
+			gateway.setShouldIncludeInHistory(this.shouldIncludeInHistory);
 		}
 		gateway.afterPropertiesSet();
 		return gateway;

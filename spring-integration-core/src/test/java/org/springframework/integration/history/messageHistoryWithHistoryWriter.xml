@@ -30,5 +30,5 @@
 	
 	<int:channel id="endOfThePipeChannel"/>
 	
-	<bean class="org.springframework.integration.context.MessageHistoryWriter"/>
+	<bean class="org.springframework.integration.context.MessageHistoryBeanPostProcessor"/>
 </beans>

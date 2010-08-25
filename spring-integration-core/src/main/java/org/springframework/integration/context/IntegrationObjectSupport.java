@@ -21,13 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.integration.Message;
 import org.springframework.integration.context.metadata.MetadataPersister;
 import org.springframework.integration.context.metadata.PropertiesBasedMetadataPersister;
 import org.springframework.scheduling.TaskScheduler;
@@ -54,8 +51,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	 */
 	protected final Log logger = LogFactory.getLog(getClass());
 	
-	private volatile MessageHistoryWriter historyWriter;
-
 	private volatile MetadataPersister<?> metadataPersister;
 
 	private volatile String beanName;
@@ -80,6 +75,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	public final String getComponentName() {	
 		return StringUtils.hasText(this.componentName) ? this.componentName : this.beanName;
 	}
+
 	/**
 	 * Sets the name of this component. 
 	 * 
@@ -110,11 +106,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 				throw (RuntimeException) e;
 			}
 			throw new BeanInitializationException("failed to initialize", e);
-		}
-		if (this.beanFactory != null) {
-			if (BeanFactoryUtils.beansOfTypeIncludingAncestors((ListableBeanFactory)this.beanFactory, MessageHistoryWriter.class).size() == 1){
-				this.historyWriter = this.beanFactory.getBean(MessageHistoryWriter.class);
-			}
 		}
 	}
 
@@ -179,13 +170,6 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 	@Override
 	public String toString() {
 		return (this.beanName != null) ? this.beanName : super.toString();
-	}
-
-	protected <T> Message<T> writeMessageHistory(Message<T> message) {
-		if (historyWriter != null && message != null) {
-			return historyWriter.writeHistory(this, message);
-		}
-		return message;
 	}
 
 }

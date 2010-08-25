@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -50,7 +51,7 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 
 	protected void sendMessage(Message<?> message) {
 		if (message != null) {
-			message = this.writeMessageHistory(message);
+			message = MessageHistoryWriter.writeHistory(this, message);
 		}
 		this.messagingTemplate.send(this.outputChannel, message);
 	}

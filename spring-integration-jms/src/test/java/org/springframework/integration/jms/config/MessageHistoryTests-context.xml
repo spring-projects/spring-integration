@@ -10,7 +10,7 @@
 	xmlns:int-jms="http://www.springframework.org/schema/integration/jms"
 	xmlns:jms="http://www.springframework.org/schema/jms"
 	xmlns:task="http://www.springframework.org/schema/task">
-	
+
 	<int:gateway id="sampleGateway" 
 				 service-interface="org.springframework.integration.jms.config.JmsMessageHistoryTests$SampleGateway"
 				 default-request-channel="outbound-channel">
@@ -19,8 +19,7 @@
 	<int:channel id="outbound-channel"/>
 
 	<int-jms:outbound-channel-adapter id="jmsOutbound" channel="outbound-channel" destination-name="request.queue_c"/>
-	 
-                     
+  
     <int-jms:inbound-channel-adapter id="sampleJmsInboundAdapter" channel="jmsInputChannel" destination-name="request.queue_c"/>
 
     <int:channel id="jmsInputChannel">
@@ -41,6 +40,6 @@
 		<property name="cacheProducers" value="false"/>
 	</bean>
 	
-	<bean id="historyWriter" class="org.springframework.integration.context.MessageHistoryWriter"/>
+	<bean class="org.springframework.integration.context.MessageHistoryBeanPostProcessor"/>
 
 </beans>
