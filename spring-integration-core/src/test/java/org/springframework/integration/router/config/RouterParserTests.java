@@ -25,21 +25,29 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.test.util.TestUtils;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Mark Fisher
@@ -171,6 +179,24 @@ public class RouterParserTests {
 		assertEquals(new Integer(3), message2.getHeaders().getSequenceSize());
 		assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
 		assertEquals(new Integer(3), message3.getHeaders().getSequenceSize());
+	}
+	
+	@Test
+	public void testErrorChannel(){
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"ErrorChannelRoutingTests-context.xml", this.getClass());
+		MessageHandler handler = mock(MessageHandler.class);
+		DirectChannel inputChannel = context.getBean("inputChannel", DirectChannel.class);
+		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
+		errorChannel.subscribe(handler);
+		inputChannel.send(new StringMessage("fail"));
+		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+	}
+	
+	public static class NonExistingChannelRouter{
+		public String route(String payload){
+			return "foo";
+		}
 	}
 
 	public static class TestRouterImplementation extends AbstractMessageRouter {
