@@ -59,7 +59,7 @@ public class JmsMessageHistoryTests {
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
 		gateway.send("hello");
 		Message<?> message = jmsInputChannel.receive(5000);
-		Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+		Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 		Properties event = historyIterator.next();
 		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistory.TYPE_PROPERTY));
 		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistory.NAME_PROPERTY));
@@ -76,7 +76,7 @@ public class JmsMessageHistoryTests {
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
 		input.send(new StringMessage("hello"));
 		Message<?> message = jmsInputChannel.receive(50000);
-		Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+		Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 		Properties event = historyIterator.next();
 		assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
 		assertEquals("outbound-channel", event.getProperty(MessageHistory.NAME_PROPERTY));
@@ -99,7 +99,7 @@ public class JmsMessageHistoryTests {
 		SubscribableChannel inboundJmsChannel = applicationContext.getBean("inbound-jms-channel", SubscribableChannel.class);
 		MessageHandler handler = new MessageHandler() {
 			public void handleMessage(Message<?> message) {
-				Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				Properties event = historyIterator.next();
 				assertEquals("gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
 				assertEquals("sampleGateway", event.getProperty(MessageHistory.NAME_PROPERTY));
@@ -141,7 +141,7 @@ public class JmsMessageHistoryTests {
 
 		public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 			super.fromHeaders(headers, jmsMessage);
-			String messageHistory = headers.getHistory().toString();
+			String messageHistory = headers.get(MessageHistory.HEADER_NAME, MessageHistory.class).toString();
 			try {
 				jmsMessage.setStringProperty("outbound_history", messageHistory);
 			}
@@ -166,7 +166,7 @@ public class JmsMessageHistoryTests {
 				}
 				history.add(historyEvent);
 			}
-			headers.put(MessageHeaders.HISTORY, history);
+			headers.put(MessageHistory.HEADER_NAME, history);
 			headers.remove("outbound_history");
 			return headers;
 		}

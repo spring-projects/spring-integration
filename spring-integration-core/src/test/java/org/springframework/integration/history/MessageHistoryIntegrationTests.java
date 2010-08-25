@@ -76,7 +76,7 @@ public class MessageHistoryIntegrationTests {
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {
 			public void handleMessage(Message<?> message) {
-				Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				
 				Properties event1 = historyIterator.next();
 				assertEquals("sampleGateway", event1.getProperty(MessageHistory.NAME_PROPERTY));
@@ -152,7 +152,7 @@ public class MessageHistoryIntegrationTests {
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {	
 			public void handleMessage(Message<?> message) {
-				assertNull(message.getHeaders().getHistory());
+				assertNull(message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class));
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
 			}
@@ -169,7 +169,7 @@ public class MessageHistoryIntegrationTests {
 		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
 		MessageHandler handler = Mockito.spy(new MessageHandler() {	
 			public void handleMessage(Message<?> message) {
-				Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
+				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				assertTrue(historyIterator.hasNext());
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);

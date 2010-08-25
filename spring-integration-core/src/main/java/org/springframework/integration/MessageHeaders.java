@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,8 +62,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
 
-	public static final String HISTORY = PREFIX + "history";
-
 	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
 
 	public static final String PRIORITY = PREFIX + "priority";
@@ -87,11 +84,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public Long getTimestamp() {
 		return this.get(TIMESTAMP, Long.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	public List<Properties> getHistory() {
-		return this.get(HISTORY, List.class);
 	}
 
 	public Long getExpirationDate() {
