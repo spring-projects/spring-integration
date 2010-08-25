@@ -25,8 +25,8 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.HistoryProvider;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageHistory;
 import org.springframework.util.Assert;
 
 /**
@@ -72,7 +72,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		}
 		try {
 			if (message != null && this.shouldIncludeInHistory) {
-				message = MessageHistoryWriter.writeHistory(this, message);
+				message = MessageHistory.addComponentToHistory(message, this);
 			}
 			this.handleMessageInternal(message);
 		}

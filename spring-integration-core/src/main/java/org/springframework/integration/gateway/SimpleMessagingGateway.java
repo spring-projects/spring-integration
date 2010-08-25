@@ -19,7 +19,7 @@ package org.springframework.integration.gateway;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.HistoryProvider;
-import org.springframework.integration.context.MessageHistoryWriter;
+import org.springframework.integration.core.MessageHistory;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.Assert;
@@ -90,7 +90,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 		try {
 			message = this.inboundMapper.toMessage(object);
 			if (this.shouldIncludeInHistory) {
-				message = MessageHistoryWriter.writeHistory(this, message);
+				message = MessageHistory.addComponentToHistory(message, this);
 			}
 		}
 		catch (Exception e) {

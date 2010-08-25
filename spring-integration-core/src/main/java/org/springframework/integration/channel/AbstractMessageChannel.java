@@ -31,9 +31,9 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.HistoryProvider;
 import org.springframework.integration.context.IntegrationObjectSupport;
-import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessageHistory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -170,7 +170,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		if (this.shouldIncludeInHistory) {
-			message = MessageHistoryWriter.writeHistory(this, message);
+			message = MessageHistory.addComponentToHistory(message, this);
 		}
 		message = this.convertPayloadIfNecessary(message);
 		message = this.interceptors.preSend(message, this);

@@ -35,10 +35,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageHistory;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
@@ -61,11 +61,11 @@ public class JmsMessageHistoryTests {
 		Message<?> message = jmsInputChannel.receive(5000);
 		Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
 		Properties event = historyIterator.next();
-		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistory.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-		assertEquals("jmsInputChannel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+		assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("jmsInputChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
 	}
 
 	@Test @Ignore
@@ -78,17 +78,17 @@ public class JmsMessageHistoryTests {
 		Message<?> message = jmsInputChannel.receive(50000);
 		Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
 		Properties event = historyIterator.next();
-		assertEquals("channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-		assertEquals("outbound-channel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+		assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("outbound-channel", event.getProperty(MessageHistory.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("jms:outbound-channel-adapter", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-		assertEquals("jmsOutbound", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+		assertEquals("jms:outbound-channel-adapter", event.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("jmsOutbound", event.getProperty(MessageHistory.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistory.NAME_PROPERTY));
 		event = historyIterator.next();
-		assertEquals("channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-		assertEquals("jmsInputChannel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+		assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("jmsInputChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
 	}
 
 	@Test @Ignore
@@ -101,20 +101,20 @@ public class JmsMessageHistoryTests {
 			public void handleMessage(Message<?> message) {
 				Iterator<Properties> historyIterator = message.getHeaders().getHistory().iterator();
 				Properties event = historyIterator.next();
-				assertEquals("gateway", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-				assertEquals("sampleGateway", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+				assertEquals("gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				assertEquals("sampleGateway", event.getProperty(MessageHistory.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("publish-subscribe-channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-				assertEquals("channel-a", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+				assertEquals("publish-subscribe-channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				assertEquals("channel-a", event.getProperty(MessageHistory.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("jms:outbound-gateway", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-				assertEquals("jmsOutbound", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+				assertEquals("jms:outbound-gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				assertEquals("jmsOutbound", event.getProperty(MessageHistory.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("jms:inbound-gateway", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-				assertEquals("jmsInbound", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+				assertEquals("jms:inbound-gateway", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				assertEquals("jmsInbound", event.getProperty(MessageHistory.NAME_PROPERTY));
 				event = historyIterator.next();
-				assertEquals("publish-subscribe-channel", event.getProperty(MessageHistoryWriter.TYPE_PROPERTY));
-				assertEquals("inbound-jms-channel", event.getProperty(MessageHistoryWriter.NAME_PROPERTY));
+				assertEquals("publish-subscribe-channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
+				assertEquals("inbound-jms-channel", event.getProperty(MessageHistory.NAME_PROPERTY));
 				
 				MessageChannel channel = (MessageChannel) message.getHeaders().getReplyChannel();
 				channel.send(new StringMessage("OK"));
