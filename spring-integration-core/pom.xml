@@ -16,6 +16,7 @@
 			<groupId>org.codehaus.jackson</groupId>
 			<artifactId>jackson-mapper-asl</artifactId>
 			<version>1.4.3</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -28,6 +29,11 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.commons</groupId>
+			<artifactId>spring-commons-serializer</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<!-- test-scoped dependencies -->
 		<dependency>
