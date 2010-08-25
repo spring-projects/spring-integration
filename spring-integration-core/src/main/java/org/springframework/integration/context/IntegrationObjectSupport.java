@@ -30,8 +30,6 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
 import org.springframework.integration.context.metadata.MetadataPersister;
 import org.springframework.integration.context.metadata.PropertiesBasedMetadataPersister;
-import org.springframework.integration.history.MessageHistoryWriter;
-import org.springframework.integration.history.NamedComponent;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

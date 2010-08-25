@@ -31,7 +31,7 @@ public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.history.MessageHistoryWriter";
+		return "org.springframework.integration.context.MessageHistoryWriter";
 	}
 
 	@Override

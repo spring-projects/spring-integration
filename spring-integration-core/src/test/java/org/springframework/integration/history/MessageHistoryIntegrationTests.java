@@ -37,6 +37,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.context.MessageHistoryWriter;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 

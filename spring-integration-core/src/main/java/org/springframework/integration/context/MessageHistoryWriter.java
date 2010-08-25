@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.history;
+package org.springframework.integration.context;
 
 import java.util.ArrayList;
 import java.util.List;

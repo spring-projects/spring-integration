@@ -35,13 +35,13 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.context.MessageHistoryWriter;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
-import org.springframework.integration.history.MessageHistoryWriter;
-import org.springframework.integration.history.NamedComponent;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 
 /**

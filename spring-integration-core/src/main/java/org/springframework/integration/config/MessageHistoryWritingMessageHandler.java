@@ -18,9 +18,9 @@ package org.springframework.integration.config;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.MessageHistoryWriter;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.history.MessageHistoryWriter;
-import org.springframework.integration.history.NamedComponent;
 import org.springframework.util.Assert;
 
 /**
