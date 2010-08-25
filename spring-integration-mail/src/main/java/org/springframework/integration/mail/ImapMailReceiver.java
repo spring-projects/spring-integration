@@ -25,6 +25,7 @@ import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
 import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
+import javax.mail.search.NotTerm;
 import javax.mail.search.SearchTerm;
 
 import org.springframework.util.Assert;
@@ -41,6 +42,7 @@ import com.sun.mail.imap.IMAPFolder;
  * 
  * @author Arjen Poutsma
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
 
@@ -99,6 +101,11 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	@Override
 	protected Message[] searchForNewMessages() throws MessagingException {
 		Flags supportedFlags = this.getFolder().getPermanentFlags();
+		SearchTerm searchTerm = this.compileSearchTerms(supportedFlags);
+		return searchTerm != null ? this.getFolder().search(searchTerm) : this.getFolder().getMessages();
+	}
+	
+	private SearchTerm compileSearchTerms(Flags supportedFlags){
 		SearchTerm searchTerm = null;
 		if (supportedFlags != null) {
 			if (supportedFlags.contains(Flags.Flag.RECENT)) {
@@ -123,7 +130,16 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				}
 			}
 		}
-		return searchTerm != null ? this.getFolder().search(searchTerm) : this.getFolder().getMessages();
+		if (searchTerm == null){
+			if (this.isShouldMarkMessagesAsRead()){
+				searchTerm = new NotTerm( new FlagTerm(new Flags(Flags.Flag.SEEN), true) );
+			}
+		} else {
+			if (this.isShouldMarkMessagesAsRead()){
+				searchTerm = new AndTerm(searchTerm, new NotTerm( new FlagTerm(new Flags(Flags.Flag.SEEN), true) ));
+			}
+		}
+		return searchTerm;
 	}
 
 

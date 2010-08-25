@@ -27,6 +27,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
+import javax.mail.Flags.Flag;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
@@ -42,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractMailReceiver implements MailReceiver, DisposableBean {
 
@@ -60,6 +62,8 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	private volatile Folder folder;
 
 	private volatile boolean shouldDeleteMessages = false;
+	
+	private volatile boolean shouldMarkMessagesAsRead = false;
 
 	private volatile Properties javaMailProperties = new Properties();
 
@@ -143,7 +147,20 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	 * Specify whether mail messages should be deleted after retrieval.
 	 */
 	public void setShouldDeleteMessages(boolean shouldDeleteMessages) {
+		if (this.shouldMarkMessagesAsRead && shouldDeleteMessages){
+			throw new IllegalArgumentException("setting both 'shouldDeleteMessages' and 'shouldMarkMessagesAsRead' to true is not allowed");
+		}
 		this.shouldDeleteMessages = shouldDeleteMessages;
+	}
+	public boolean isShouldMarkMessagesAsRead() {
+		return shouldMarkMessagesAsRead;
+	}
+
+	public void setShouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
+		if (this.shouldDeleteMessages && shouldMarkMessagesAsRead){
+			throw new IllegalArgumentException("setting both 'shouldDeleteMessages' and 'shouldMarkMessagesAsRead' to true is not allowed");
+		}
+		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
 
 	/**
@@ -204,10 +221,10 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 		if (logger.isDebugEnabled()) {
 			logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
 		}
-		if (this.shouldDeleteMessages()) {
+		if (this.shouldDeleteMessages() || this.shouldMarkMessagesAsRead) {
 			this.folder.open(Folder.READ_WRITE);
 		}
-		else {
+		else {	
 			this.folder.open(Folder.READ_ONLY);
 		}
 	}
@@ -230,12 +247,16 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 			if (messages.length > 0) {
 				this.fetchMessages(messages);
 			}
-			if (this.shouldDeleteMessages()) {
-				this.deleteMessages(messages);
-			}
+
 			Message[] copiedMessages = new Message[messages.length];
 			for (int i = 0; i < messages.length; i++) {
+				if (this.isShouldMarkMessagesAsRead()){
+					messages[i].setFlag(Flag.SEEN, true);
+				}
 				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
+			}
+			if (this.shouldDeleteMessages()) {
+				this.deleteMessages(messages);
 			}
 			return copiedMessages;
 		}
