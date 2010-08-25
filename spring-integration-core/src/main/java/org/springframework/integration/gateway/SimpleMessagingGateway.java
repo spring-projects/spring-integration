@@ -18,8 +18,8 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.context.TrackableComponent;
-import org.springframework.integration.core.MessageHistory;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.Assert;

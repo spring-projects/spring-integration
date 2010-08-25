@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration.history;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +27,7 @@ import java.util.Properties;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**

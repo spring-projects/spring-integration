@@ -18,9 +18,9 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessageHistory;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.util.Assert;
 
 /**

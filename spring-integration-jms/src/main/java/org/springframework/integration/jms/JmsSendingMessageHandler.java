@@ -21,7 +21,7 @@ import javax.jms.JMSException;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHistory;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
 

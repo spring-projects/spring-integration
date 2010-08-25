@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.history;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;

@@ -40,7 +40,6 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessageHistory;
 
 /**
  * @author Oleg Zhurakousky

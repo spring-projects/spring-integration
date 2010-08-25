@@ -31,4 +31,5 @@
 	<int:channel id="endOfThePipeChannel"/>
 	
 	<int:message-history/>
+
 </beans>

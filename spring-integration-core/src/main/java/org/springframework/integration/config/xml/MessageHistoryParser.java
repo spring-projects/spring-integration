@@ -30,7 +30,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  */
 public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String POST_PROCESSOR_CLASSNAME = "org.springframework.integration.context.MessageHistoryBeanPostProcessor";
+	private static final String POST_PROCESSOR_CLASSNAME = "org.springframework.integration.history.MessageHistoryBeanPostProcessor";
 
 
 	@Override

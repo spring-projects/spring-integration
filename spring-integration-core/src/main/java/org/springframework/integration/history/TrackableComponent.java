@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.history;
+
+import org.springframework.integration.context.NamedComponent;
 
 /**
  * @author Mark Fisher
