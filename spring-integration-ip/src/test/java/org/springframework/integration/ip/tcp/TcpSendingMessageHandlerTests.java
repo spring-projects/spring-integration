@@ -817,7 +817,7 @@ public class TcpSendingMessageHandlerTests {
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						if (i == 100) {
 							in = ois.readObject();
-							System.out.println(in);
+//							System.out.println(in);
 							oos.writeObject("world!");
 							ois = new ObjectInputStream(socket.getInputStream());
 							oos = new ObjectOutputStream(socket.getOutputStream());
@@ -849,17 +849,17 @@ public class TcpSendingMessageHandlerTests {
 		QueueChannel channel = new QueueChannel();
 		adapter.setOutputChannel(channel);
 		assertTrue(latch.await(10, TimeUnit.SECONDS));		
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			handler.handleMessage(MessageBuilder.withPayload("Test").build());
 		}
 		Set<String> results = new TreeSet<String>();
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 1000; i++) {
 			Message<?> mOut = channel.receive(10000);
 			assertNotNull(mOut);
 			results.add((String) mOut.getPayload());
 		}
 //		System.out.println(results);
-		for (int i = 100; i < 200; i++) {
+		for (int i = 100; i < 1100; i++) {
 			assertTrue("Missing Reply" + i, results.remove("Reply" + i));
 		}
 		done.set(true);

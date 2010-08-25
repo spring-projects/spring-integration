@@ -40,6 +40,7 @@
 		port="#{server.port}"
 		single-use="true"
 		so-timeout="100000"
+		using-nio="true"
 		input-converter="serializer"
 		output-converter="serializer"
 		interceptor-factory-chain="helloWorldInterceptors"

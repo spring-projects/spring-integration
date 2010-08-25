@@ -68,12 +68,14 @@ public class InterceptedSharedConnectionTests {
 				fail("Failed to listen");
 			}
 		}
-		MessageChannel input = ctx.getBean("input", MessageChannel.class);
-		input.send(MessageBuilder.withPayload("Test").build());
-		QueueChannel replies = ctx.getBean("replies", QueueChannel.class);
-		Message<?> message = replies.receive(10000);
-		assertNotNull(message);
-		assertEquals("Test", message.getPayload());
+		for (int i = 0; i < 5; i++) {
+			MessageChannel input = ctx.getBean("input", MessageChannel.class);
+			input.send(MessageBuilder.withPayload("Test").build());
+			QueueChannel replies = ctx.getBean("replies", QueueChannel.class);
+			Message<?> message = replies.receive(10000);
+			assertNotNull(message);
+			assertEquals("Test", message.getPayload());
+		}
 	}
 
 }

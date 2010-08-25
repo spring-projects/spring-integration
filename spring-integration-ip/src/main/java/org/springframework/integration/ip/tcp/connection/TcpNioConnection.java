@@ -168,6 +168,8 @@ public class TcpNioConnection extends AbstractTcpConnection {
 					if (message != null) {
 						sendToChannel(message);
 					}
+				} else {
+					this.executionControl.decrementAndGet();
 				}
 			} catch (IOException e) {
 				logger.error("Unexpected exception, exiting...", e);
