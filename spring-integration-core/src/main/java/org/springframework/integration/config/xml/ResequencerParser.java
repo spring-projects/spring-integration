@@ -63,7 +63,7 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 						+ ".aggregator.ResequencingMessageGroupProcessor");
 
 		// Comparator
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, COMPARATOR_REF_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(processorBuilder, element, COMPARATOR_REF_ATTRIBUTE);
 
 		String processorRef = BeanDefinitionReaderUtils.registerWithGeneratedName(processorBuilder.getBeanDefinition(),
 				parserContext.getRegistry());
