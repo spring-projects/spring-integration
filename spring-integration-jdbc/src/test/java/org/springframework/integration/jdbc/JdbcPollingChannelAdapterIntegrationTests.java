@@ -10,6 +10,8 @@ import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +27,8 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
  * @author Jonas Partner
  */
 public class JdbcPollingChannelAdapterIntegrationTests {
+	
+	private static Log logger = LogFactory.getLog(JdbcPollingChannelAdapterIntegrationTests.class);
 
 	private EmbeddedDatabase embeddedDatabase;
 
@@ -185,6 +189,43 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 	}
 
 	@Test
+	public void testSimplePollForListWithRowMapperAndInsertPerRowAndMaxRows() {
+		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
+				this.embeddedDatabase, "select * from item where id not in (select id from copy)");
+		adapter.setUpdateSql("insert into copy values(:id,10)");
+		adapter.setUpdatePerRow(true);
+		adapter.setMaxRowsPerPoll(1);
+		adapter.setRowMapper(new ItemRowMapper());
+
+		this.jdbcTemplate.update("insert into item values(1,2)");
+		this.jdbcTemplate.update("insert into item values(2,2)");
+
+		logger.debug(adapter.receive());
+		Message<Object> message = adapter.receive();
+		Object payload = message.getPayload();
+		List<?> rows = (List<?>) payload;
+		assertEquals("Wrong number of elements", 1, rows.size());
+		assertTrue("Wrong payload type", rows.get(0) instanceof Item);
+		Item item = (Item) rows.get(0);
+		logger.debug(item);
+		assertEquals("Wrong id", 2, item.getId());
+		assertEquals("Wrong status", 2, item.getStatus());
+
+		int countOfStatusTwo = this.jdbcTemplate
+				.queryForInt("select count(*) from item where status = 2");
+		assertEquals(
+				"Status not updated incorect number of rows with status 2", 2,
+				countOfStatusTwo);
+
+		int countOfStatusTen = this.jdbcTemplate
+				.queryForInt("select count(*) from copy where status = 10");
+		assertEquals(
+				"Status not updated incorect number of rows with status 10", 2,
+				countOfStatusTen);
+
+	}
+
+	@Test
 	public void testEmptyPoll() {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
 				this.embeddedDatabase, "select * from item");
@@ -213,6 +254,11 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 
 		public void setStatus(int status) {
 			this.status = status;
+		}
+
+		@Override
+		public String toString() {
+			return "Item [id=" + id + ", status=" + status + "]";
 		}
 	}
 
