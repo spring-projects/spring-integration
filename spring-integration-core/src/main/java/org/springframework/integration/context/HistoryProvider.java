@@ -22,6 +22,6 @@ package org.springframework.integration.context;
  */
 public interface HistoryProvider extends NamedComponent {
 
-	void setShouldIncludeInHistory(boolean shouldIncludeInHistory);
+	void setShouldTrack(boolean shouldTrack);
 
 }

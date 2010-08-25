@@ -42,7 +42,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile boolean shouldIncludeInHistory = false;
+	private volatile boolean shouldTrack = false;
 
 	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
@@ -60,8 +60,8 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		return "message-handler";
 	}
 
-	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
-		this.shouldIncludeInHistory = shouldIncludeInHistory;
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
 	}
 
 	public final void handleMessage(Message<?> message) {
@@ -71,7 +71,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 			this.logger.debug(this + " received message: " + message);
 		}
 		try {
-			if (message != null && this.shouldIncludeInHistory) {
+			if (message != null && this.shouldTrack) {
 				message = MessageHistory.addComponentToHistory(message, this);
 			}
 			this.handleMessageInternal(message);

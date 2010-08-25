@@ -41,7 +41,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 
 	private final OutboundMessageMapper outboundMapper;
 
-	private volatile boolean shouldIncludeInHistory = false;
+	private volatile boolean shouldTrack = false;
 
 
 	public SimpleMessagingGateway() {
@@ -58,8 +58,8 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 	}
 
 
-	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
-		this.shouldIncludeInHistory = shouldIncludeInHistory;
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
 	}
 
 	public Message<?> sendAndReceiveMessage(Object object) {
@@ -89,7 +89,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 		Message<?> message = null;
 		try {
 			message = this.inboundMapper.toMessage(object);
-			if (this.shouldIncludeInHistory) {
+			if (this.shouldTrack) {
 				message = MessageHistory.addComponentToHistory(message, this);
 			}
 		}

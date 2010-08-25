@@ -28,14 +28,14 @@ public class MessageHistoryBeanPostProcessor implements BeanPostProcessor {
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof HistoryProvider) {
-			((HistoryProvider) bean).setShouldIncludeInHistory(true);
+			((HistoryProvider) bean).setShouldTrack(true);
 		}
 		return bean;
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof HistoryProvider) {
-			((HistoryProvider) bean).setShouldIncludeInHistory(true);
+			((HistoryProvider) bean).setShouldTrack(true);
 		}
 		return bean;
 	}

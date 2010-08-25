@@ -50,7 +50,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile boolean shouldIncludeInHistory = false;
+	private volatile boolean shouldTrack = false;
 
 	private final AtomicLong sendSuccessCount = new AtomicLong();
 
@@ -65,8 +65,8 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		return "channel";
 	}
 
-	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
-		this.shouldIncludeInHistory = shouldIncludeInHistory;
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
 	}
 
 	/**
@@ -169,7 +169,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 	public final boolean send(Message<?> message, long timeout) {
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
-		if (this.shouldIncludeInHistory) {
+		if (this.shouldTrack) {
 			message = MessageHistory.addComponentToHistory(message, this);
 		}
 		message = this.convertPayloadIfNecessary(message);

@@ -75,7 +75,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements History
 
 	private volatile ChannelResolver channelResolver;
 
-	private volatile boolean shouldIncludeInHistory = false;
+	private volatile boolean shouldTrack = false;
 
 	private volatile TypeConverter typeConverter = new SimpleTypeConverter();
 
@@ -159,8 +159,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements History
 		this.defaultReplyTimeout = defaultReplyTimeout;
 	}
 
-	public void setShouldIncludeInHistory(boolean shouldIncludeInHistory) {
-		this.shouldIncludeInHistory = shouldIncludeInHistory;
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
 	}
 
 	public void setTypeConverter(TypeConverter typeConverter) {
@@ -338,8 +338,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements History
 		if (this.getBeanFactory() != null) {
 			gateway.setBeanFactory(this.getBeanFactory());
 		}
-		if (this.shouldIncludeInHistory) {
-			gateway.setShouldIncludeInHistory(this.shouldIncludeInHistory);
+		if (this.shouldTrack) {
+			gateway.setShouldTrack(this.shouldTrack);
 		}
 		gateway.afterPropertiesSet();
 		return gateway;
