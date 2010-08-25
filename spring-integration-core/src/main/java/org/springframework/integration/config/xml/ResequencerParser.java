@@ -13,6 +13,7 @@
 
 package org.springframework.integration.config.xml;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -28,9 +29,11 @@ import org.w3c.dom.Element;
  */
 public class ResequencerParser extends AbstractConsumerEndpointParser {
 
+	private static final String CORRELATION_STRATEGY_REF_ATTRIBUTE = "correlation-strategy";
+
 	private static final String CORRELATION_STRATEGY_METHOD_ATTRIBUTE = "correlation-strategy-method";
 
-	private static final String CORRELATION_STRATEGY_ATTRIBUTE = "correlation-strategy";
+	private static final String CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE = "correlation-strategy-expression";
 
 	private static final String SEND_PARTIAL_RESULT_ON_EXPIRY_ATTRIBUTE = "send-partial-result-on-expiry";
 
@@ -40,11 +43,13 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 
 	private static final String MESSAGE_STORE_ATTRIBUTE = "message-store";
 
-	private static final String COMPARATOR_ATTRIBUTE = "comparator";
+	private static final String COMPARATOR_REF_ATTRIBUTE = "comparator";
 
 	private static final String RELEASE_STRATEGY_REF_ATTRIBUTE = "release-strategy";
 
 	private static final String RELEASE_STRATEGY_METHOD_ATTRIBUTE = "release-strategy-method";
+
+	private static final String RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE = "release-strategy-expression";
 
 	private static final String RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE = "release-partial-sequences";
 
@@ -57,7 +62,8 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 				.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
 						+ ".aggregator.ResequencingMessageGroupProcessor");
 
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(processorBuilder, element, COMPARATOR_ATTRIBUTE);
+		// Comparator
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, COMPARATOR_REF_ATTRIBUTE);
 
 		String processorRef = BeanDefinitionReaderUtils.registerWithGeneratedName(processorBuilder.getBeanDefinition(),
 				parserContext.getRegistry());
@@ -69,14 +75,8 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		builder.addConstructorArgValue(BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".store.SimpleMessageStore").getBeanDefinition());
 
-		String correlationStrategyRef = getCorrelationStrategyRef(element, parserContext);
-		if (correlationStrategyRef != null) {
-			builder.addConstructorArgReference(correlationStrategyRef);
-		} else {
-			// Correlation strategy
-			builder.addConstructorArgValue(null);
-		}
-
+		// Correlation strategy
+		builder.addConstructorArgValue(getCorrelationStrategy(element, parserContext));
 		// Release strategy
 		builder.addConstructorArgValue(getReleaseStrategy(element, parserContext));
 
@@ -88,27 +88,16 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 		return builder;
 	}
 
-	private Object getReleaseStrategy(Element element, ParserContext parserContext) {
-		String releaseStrategyRef = getReleasenStrategyRef(element, parserContext);
-		if (releaseStrategyRef == null) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder
-					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
-							+ ".aggregator.SequenceSizeReleaseStrategy");
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE);
-			return builder.getBeanDefinition();
-		}
-		if (StringUtils.hasText(element.getAttribute(RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE))) {
-			parserContext.getReaderContext().error(
-					"Only one of " + RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE + " and " + RELEASE_STRATEGY_REF_ATTRIBUTE
-							+ " can be specified at once", element);
-		}
-		return new RuntimeBeanReference(releaseStrategyRef);
-	}
-
-	private String getCorrelationStrategyRef(Element element, ParserContext parserContext) {
-		String ref = element.getAttribute(CORRELATION_STRATEGY_ATTRIBUTE);
+	private BeanMetadataElement getCorrelationStrategy(Element element, ParserContext parserContext) {
+		String ref = element.getAttribute(CORRELATION_STRATEGY_REF_ATTRIBUTE);
+		String expression = element.getAttribute(CORRELATION_STRATEGY_EXPRESSION_ATTRIBUTE);
 		String method = element.getAttribute(CORRELATION_STRATEGY_METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(ref)) {
+			if (StringUtils.hasText(expression)) {
+				parserContext.getReaderContext().error(
+						"Only one of correlation strategy expression and bean reference must be specified", element);
+				return null;
+			}
 			if (StringUtils.hasText(method)) {
 				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
@@ -118,18 +107,42 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 						"java.lang.String");
 				String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(adapterBuilder
 						.getBeanDefinition(), parserContext.getRegistry());
-				return adapterBeanName;
-			} else {
-				return ref;
+				return new RuntimeBeanReference(adapterBeanName);
+			}
+			else {
+				return new RuntimeBeanReference(ref);
 			}
 		}
-		return null;
+		else {
+			if (!StringUtils.hasText(expression)) {
+				return null;
+			}
+			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
+							+ ".aggregator.ExpressionEvaluatingCorrelationStrategy");
+			adapterBuilder.addConstructorArgValue(expression);
+			String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(adapterBuilder
+					.getBeanDefinition(), parserContext.getRegistry());
+			return new RuntimeBeanReference(adapterBeanName);
+		}
 	}
 
-	private String getReleasenStrategyRef(Element element, ParserContext parserContext) {
+	private BeanMetadataElement getReleaseStrategy(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute(RELEASE_STRATEGY_REF_ATTRIBUTE);
 		String method = element.getAttribute(RELEASE_STRATEGY_METHOD_ATTRIBUTE);
+		String expression = element.getAttribute(RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE);
 		if (StringUtils.hasText(ref)) {
+			if (StringUtils.hasText(expression)) {
+				parserContext.getReaderContext().error(
+						"Only one of release strategy expression and bean reference must be specified", element);
+				return null;
+			}
+			if (StringUtils.hasText(element.getAttribute(RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE))) {
+				parserContext.getReaderContext().error(
+						"Only one of " + RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE + " and " + RELEASE_STRATEGY_REF_ATTRIBUTE
+								+ " can be specified at once", element);
+				return null;
+			}
 			if (StringUtils.hasText(method)) {
 				BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
 						.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
@@ -139,12 +152,30 @@ public class ResequencerParser extends AbstractConsumerEndpointParser {
 						"java.lang.String");
 				String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(adapterBuilder
 						.getBeanDefinition(), parserContext.getRegistry());
-				return adapterBeanName;
-			} else {
-				return ref;
+				return new RuntimeBeanReference(adapterBeanName);
+			}
+			else {
+				return new RuntimeBeanReference(ref);
 			}
 		}
-		return null;
+		else {
+			if (!StringUtils.hasText(expression)) {
+				return null;
+			}
+			if (StringUtils.hasText(element.getAttribute(RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE))) {
+				parserContext.getReaderContext().error(
+						"Only one of " + RELEASE_PARTIAL_SEQUENCES_ATTRIBUTE + " and "
+								+ RELEASE_STRATEGY_EXPRESSION_ATTRIBUTE + " can be specified at once", element);
+				return null;
+			}
+			BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder
+					.genericBeanDefinition(IntegrationNamespaceUtils.BASE_PACKAGE
+							+ ".aggregator.ExpressionEvaluatingReleaseStrategy");
+			adapterBuilder.addConstructorArgValue(expression);
+			String adapterBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(adapterBuilder
+					.getBeanDefinition(), parserContext.getRegistry());
+			return new RuntimeBeanReference(adapterBeanName);
+		}
 	}
 
 }
