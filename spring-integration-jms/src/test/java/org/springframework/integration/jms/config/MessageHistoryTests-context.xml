@@ -40,6 +40,6 @@
 		<property name="cacheProducers" value="false"/>
 	</bean>
 	
-	<bean class="org.springframework.integration.history.MessageHistoryBeanPostProcessor"/>
+	<bean class="org.springframework.integration.history.MessageHistoryConfigurer"/>
 
 </beans>

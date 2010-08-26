@@ -30,12 +30,12 @@ import org.springframework.beans.factory.xml.ParserContext;
  */
 public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String POST_PROCESSOR_CLASSNAME = "org.springframework.integration.history.MessageHistoryBeanPostProcessor";
+	private static final String CONFIGURER_CLASSNAME = "org.springframework.integration.history.MessageHistoryConfigurer";
 
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return POST_PROCESSOR_CLASSNAME;
+		return CONFIGURER_CLASSNAME;
 	}
 
 	@Override
@@ -44,10 +44,10 @@ public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
 	}
 
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) {
-		if (parserContext.getRegistry().containsBeanDefinition(POST_PROCESSOR_CLASSNAME)) {
-			throw new BeanDefinitionStoreException("At most one MessageHistoryBeanPostProcessor may be registered within a context.");
+		if (parserContext.getRegistry().containsBeanDefinition(CONFIGURER_CLASSNAME)) {
+			throw new BeanDefinitionStoreException("At most one MessageHistoryConfigurer may be registered within a context.");
 		}
-		return POST_PROCESSOR_CLASSNAME;
+		return CONFIGURER_CLASSNAME;
 	}
 
 }

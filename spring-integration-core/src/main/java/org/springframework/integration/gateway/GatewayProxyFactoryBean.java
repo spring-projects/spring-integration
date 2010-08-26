@@ -46,6 +46,7 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -161,6 +162,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
+		if (!CollectionUtils.isEmpty(this.gatewayMap)) {
+			for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
+				gateway.setShouldTrack(shouldTrack);
+			}
+		}
 	}
 
 	public void setTypeConverter(TypeConverter typeConverter) {
