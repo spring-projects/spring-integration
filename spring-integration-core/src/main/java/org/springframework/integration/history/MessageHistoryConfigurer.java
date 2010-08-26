@@ -16,7 +16,9 @@
 
 package org.springframework.integration.history;
 
-import java.util.Map;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +42,8 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 
 	private volatile String[] componentNamePatterns = new String[] { "*" };
 
+	private final Set<String> currentlyTrackedComponentNames = new HashSet<String>();
+
 	private volatile BeanFactory beanFactory;
 
 	private volatile boolean running;
@@ -47,6 +51,8 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	private volatile boolean autoStartup = true;
 
 	private int phase = Integer.MIN_VALUE;
+
+	private final Object lifecycleMonitor = new Object();
 
 
 	public void setComponentNamePatterns(String[] componentNamePatterns) {
@@ -56,6 +62,10 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+
+	private static Collection<TrackableComponent> getTrackableComponents(ListableBeanFactory beanFactory) {
+		return BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, TrackableComponent.class).values();
 	}
 
 
@@ -76,23 +86,40 @@ public class MessageHistoryConfigurer implements SmartLifecycle, BeanFactoryAwar
 	}
 
 	public void start() {
-		if (this.beanFactory != null && this.beanFactory instanceof ListableBeanFactory) {
-			Map<String, TrackableComponent> trackableComponents = BeanFactoryUtils.beansOfTypeIncludingAncestors(
-					(ListableBeanFactory) this.beanFactory, TrackableComponent.class);
-			for (TrackableComponent component : trackableComponents.values()) {
-				String componentName = component.getComponentName();
-				boolean shouldTrack = PatternMatchUtils.simpleMatch(this.componentNamePatterns, componentName);
-				component.setShouldTrack(shouldTrack);
-				if (shouldTrack && this.logger.isInfoEnabled()) {
-					this.logger.info("Enabling MessageHistory tracking for component '" + componentName + "'");
+		synchronized (this.lifecycleMonitor) {
+			if (!this.running && this.beanFactory instanceof ListableBeanFactory) {
+				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) beanFactory)) {
+					String componentName = component.getComponentName();
+					boolean shouldTrack = PatternMatchUtils.simpleMatch(this.componentNamePatterns, componentName);
+					component.setShouldTrack(shouldTrack);
+					if (shouldTrack) {
+						this.currentlyTrackedComponentNames.add(componentName);
+						if (this.logger.isInfoEnabled()) {
+							this.logger.info("Enabling MessageHistory tracking for component '" + componentName + "'");
+						}
+					}
 				}
+				this.running = true;
 			}
 		}
-		this.running = true;
 	}
 
 	public void stop() {
-		this.running = false;
+		synchronized (this.lifecycleMonitor) {
+			if (this.running && this.beanFactory instanceof ListableBeanFactory) {
+				for (TrackableComponent component : getTrackableComponents((ListableBeanFactory) beanFactory)) {
+					String componentName = component.getComponentName();
+					if (this.currentlyTrackedComponentNames.contains(componentName)) {
+						component.setShouldTrack(false);
+						if (this.logger.isInfoEnabled()) {
+							this.logger.info("Disabling MessageHistory tracking for component '" + componentName + "'");
+						}
+					}
+				}
+				this.currentlyTrackedComponentNames.clear();
+				this.running = false;
+			}
+		}
 	}
 
 	public void stop(Runnable callback) {
