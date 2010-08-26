@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/jmx http://www.springframework.org/schema/integration/jmx/spring-integration-jmx-2.0.xsd"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-jmx="http://www.springframework.org/schema/integration/jmx">
+
+
+	<context:mbean-export />
+	<context:mbean-server />
+
+	<int-jmx:operation-invoking-channel-adapter
+		id="controlChannel"
+		object-name="org.springframework.integration.jmx.config:type=SimpleDynamicRouter,name=dynamicRouter"
+		operation-name="addChannelMapping" />
+
+	<int:router input-channel="routingChannel" ref="dynamicRouter" method="route" 
+				default-output-channel="errorChannel"
+				ignore-channel-name-resolution-failures="true"/>
+
+	<bean id="dynamicRouter"
+		class="org.springframework.integration.jmx.config.SimpleDynamicRouter">
+		<constructor-arg>
+			<map>
+				<entry key="java.lang.String" value="processAChannel" />
+				<entry key="java.lang.Integer" value="processBChannel" />
+			</map>
+		</constructor-arg>
+	</bean>
+	
+	<int:channel id="processAChannel">
+		<int:queue/>
+	</int:channel>
+	<int:channel id="processBChannel">
+		<int:queue/>
+	</int:channel>
+	<int:channel id="processCChannel">
+		<int:queue/>
+	</int:channel>
+</beans>
