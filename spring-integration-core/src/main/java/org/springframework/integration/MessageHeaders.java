@@ -40,7 +40,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
-	private static final long serialVersionUID = -6515612906857332100L;
+	private static final long serialVersionUID = 6901029029524535147L;
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
