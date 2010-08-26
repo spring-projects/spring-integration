@@ -29,6 +29,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -123,7 +124,14 @@ public class MessageHistory implements List<Properties> {
 	}
 
 	public String toString() {
-		return this.components.toString();
+		List<String> names = new ArrayList<String>();
+		for (Properties p : this.components) {
+			String name = p.getProperty(NAME_PROPERTY);
+			if (name != null) {
+				names.add(name);
+			}
+		}
+		return StringUtils.collectionToCommaDelimitedString(names);
 	}
 
 
