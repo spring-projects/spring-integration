@@ -31,15 +31,15 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 
 
 	public ServiceActivatingHandler(final Object object) {
-		this.processor = new MethodInvokingMessageProcessor(object, ServiceActivator.class);
+		this(new MethodInvokingMessageProcessor(object, ServiceActivator.class));
 	}
 
 	public ServiceActivatingHandler(Object object, Method method) {
-		this.processor = new MethodInvokingMessageProcessor(object, method);
+		this(new MethodInvokingMessageProcessor(object, method));
 	}
 
 	public ServiceActivatingHandler(Object object, String methodName) {
-		this.processor = new MethodInvokingMessageProcessor(object, methodName);
+		this(new MethodInvokingMessageProcessor(object, methodName));
 	}
 
 	public ServiceActivatingHandler(AbstractMessageProcessor processor) {
