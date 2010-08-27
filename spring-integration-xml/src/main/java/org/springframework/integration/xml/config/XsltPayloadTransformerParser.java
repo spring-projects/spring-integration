@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,25 @@
 
 package org.springframework.integration.xml.config;
 
-import org.w3c.dom.Element;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedMap;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractTransformerParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
@@ -43,6 +50,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "xslt-param-headers");
 		Assert.isTrue(StringUtils.hasText(xslResource) ^ StringUtils.hasText(xslTemplates),
 				"Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
 		if (StringUtils.hasText(xslResource)) {
@@ -55,7 +63,33 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
+		
+		List<Element> xslParameterElements = DomUtils.getChildElementsByTagName(element, "xslt-param");
+		if (!CollectionUtils.isEmpty(xslParameterElements)) {
+			Map<String, Object> xslParameterMappings = new ManagedMap<String, Object>();
+			for (Element xslParameterElement : xslParameterElements) {
+				String name = xslParameterElement.getAttribute("name");
+				
+				String expression = xslParameterElement.getAttribute("expression");
+				String value = xslParameterElement.getAttribute("value");
+				Assert.isTrue(StringUtils.hasText(expression) ^ StringUtils.hasText(value),
+							"Exactly one of 'expression' or 'value' is required.");
+				
+				RootBeanDefinition expressionDef = null;
+				if (StringUtils.hasText(value)){
+					expressionDef = new RootBeanDefinition("org.springframework.expression.common.LiteralExpression");
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(value);
+				} else if (StringUtils.hasText(expression)){
+					expressionDef = new RootBeanDefinition("org.springframework.integration.config.ExpressionFactoryBean");
+					expressionDef.getConstructorArgumentValues().addGenericArgumentValue(expression);
+				}
+				if (expressionDef != null) {
+					xslParameterMappings.put(name, expressionDef);
+				}
+			}
+			builder.addPropertyValue("xslParameterMappings", xslParameterMappings);
+		}
+		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
 	}
-
 }

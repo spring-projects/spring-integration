@@ -16,30 +16,30 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
-
 import javax.xml.transform.Result;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.Document;
-
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
+import org.w3c.dom.Document;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 
 
 /**
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
 public class XsltPayloadTransformerTests {
 
@@ -128,15 +128,6 @@ public class XsltPayloadTransformerTests {
 		assertEquals(transformer.doTransform(buildMessage(docAsString)),
 				outputAsString);
 	}
-	
-	@Test
-	public void testXslWithParameters() throws Exception {
-		transformer = new XsltPayloadTransformer(getXslParameterResource());
-		Message<?> message = MessageBuilder.withPayload(this.docAsString).setHeader("xslt_parameter_testParam", "testParamValue").build(); 
-		Object returnedPayload = transformer.doTransform(message);
-		assertEquals("Wrong payload type",String.class, returnedPayload.getClass());
-		assertTrue("Param value not found in xslt output", ((String) returnedPayload).contains("testParamValue"));
-	}
 
 	protected Message<?> buildMessage(Object payload) {
 		return MessageBuilder.withPayload(payload).build();
@@ -146,15 +137,6 @@ public class XsltPayloadTransformerTests {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
 	}
-
-	private Resource getXslParameterResource() throws Exception {
-		String xsl = "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
-				+ "<xsl:param name=\"testParam\"></xsl:param><xsl:output omit-xml-declaration=\"yes\"/><xsl:template match=\"order\">"
-				+ "<bob>test</bob><xsl:if test=\"$testParam\"><xsl:value-of select=\"$testParam\"/></xsl:if>"
-				+ "</xsl:template></xsl:stylesheet>";
-		return new ByteArrayResource(xsl.getBytes("UTF-8"));
-	}
-
 	public static class StubResultTransformer implements ResultTransformer {
 
 		private Object objectToReturn;

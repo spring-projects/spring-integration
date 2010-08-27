@@ -107,6 +107,10 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpoint">
+					<xsd:sequence>
+						<xsd:element name="xslt-param" type="paramType" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+					<xsd:attribute name="xslt-param-headers" type="xsd:string" use="optional"/>
 					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional"/>
 					<xsd:attribute name="xsl-templates" type="xsd:string" use="optional">
 						<xsd:annotation>
@@ -557,6 +561,12 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+	</xsd:complexType>
+	
+	<xsd:complexType name="paramType">
+			<xsd:attribute name="name" type="xsd:string" use="required"/>
+			<xsd:attribute name="expression" type="xsd:string" use="optional"/>
+			<xsd:attribute name="value" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 </xsd:schema>
