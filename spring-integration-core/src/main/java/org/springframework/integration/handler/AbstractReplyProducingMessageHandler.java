@@ -109,6 +109,10 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 				throw new MessageHandlingException(message, "handler '" + this
 						+ "' requires a reply, but no reply was received");
 			}
+			if (message != null && message.getHeaders().getRequiresReply()) {
+				throw new MessageHandlingException(message,
+						"A reply Message is required by this request Message, but none was received.");
+			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
 			}
