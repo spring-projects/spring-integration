@@ -45,47 +45,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A Message Mapper implementation that supports mapping <i>from</i> a Message
- * to an argument array when invoking handler methods, and mapping <i>to</i> a
+ * A Message Mapper implementation that supports mapping <i>to</i> a
  * Message from an argument array when invoking gateway methods.
- * <p/>
- * When mapping from a Message, the method parameters are matched
- * against the Message, its payload as well as its headers. A message or
- * payload parameter must not be annotated, and there can be at most one of
- * these. In certain special cases, more than one non-annotated parameter can
- * be used (more on this later), but there should always be at most one
- * parameter that is expecting the message or its payload.
- * <p/>
- * If a method parameter is annotated with {@link Header @Header}, the
- * annotation's value will be used as a header name. If such an annotation
- * contains no value, then the parameter name will be used as long as the
- * information is available in the class file (requires compilation with debug
- * settings for parameter names).
- * <p/>
- * In addition a Map or Properties parameter can receive multiple message
- * headers. In the case of a Map argument, all headers will be passed, but in
- * the case of a Properties argument, only the headers with String-typed values
- * will be passed. These parameters can be labeled explicitly with the
- * {@link Headers @Headers} annotation, or matched implicitly by using a non-
- * ambiguous method signature. There can be as many parameters annotated with
- * {@code @Header} as necessary, but typically there should be only one parameter
- * expecting multiple headers (with or without the {@code @Headers} annotation).
- * <p/>
- * If a Map or Properties object is expected, and the payload is not itself
- * assignable to that type or capable of being converted to that type, then
- * the MessageHeaders' values will be passed in the case of a Map-typed
- * parameter, or the MessageHeaders' String-based values will be passed in the
- * case of a Properties-typed parameter. In these cases multiple unannotated
- * parameters are legal. If, however, the actual payload type is a Map or
- * Properties instance, then this ambiguity cannot be resolved. For that
- * reason, it is highly recommended to use the explicit
- * {@code Headers @Headers} annotation whenever possible.
  * <p/>
  * Some examples of legal method signatures:<br/>
  * <tt>public void dealWith(Object payload);</tt><br/>
  * <tt>public void dealWith(Message message);</tt><br/>
  * <tt>public void dealWith(@Header String myHeader, Object payload);</tt><br/>
- * <tt>public void dealWith(@Header String myHeader, @Header String anotherHeader);</tt>
  * <br/>
  * <tt>public void dealWith(@Headers Map headers, Object payload);</tt><br/>
  * <tt>public void dealWith(@Headers Properties headers, Map payload);</tt><br/>
@@ -101,7 +67,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
+class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
