@@ -41,7 +41,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.handler.ArgumentArrayMessageMapper;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.util.Assert;
@@ -326,7 +325,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 				}
 			}
 		}
-		ArgumentArrayMessageMapper messageMapper = new ArgumentArrayMessageMapper(method, headerExpressions);
+		GatewayMethodInboundMessageMapper messageMapper = new GatewayMethodInboundMessageMapper(method, headerExpressions);
 		if (StringUtils.hasText(payloadExpression)) {
 			messageMapper.setPayloadExpression(payloadExpression);
 		}

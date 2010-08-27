@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.gateway;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -101,7 +101,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
+public class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]>, BeanFactoryAware {
 
 	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
@@ -121,11 +121,11 @@ public class ArgumentArrayMessageMapper implements InboundMessageMapper<Object[]
 	private volatile BeanResolver beanResolver;
 
 
-	public ArgumentArrayMessageMapper(Method method) {
+	public GatewayMethodInboundMessageMapper(Method method) {
 		this(method, null);
 	}
 	
-	public ArgumentArrayMessageMapper(Method method, Map<String, Expression> headerExpressions) {
+	public GatewayMethodInboundMessageMapper(Method method, Map<String, Expression> headerExpressions) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.headerExpressions = headerExpressions;

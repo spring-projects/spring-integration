@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -33,17 +33,17 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.handler.ArgumentArrayMessageMapper;
+import org.springframework.integration.gateway.GatewayMethodInboundMessageMapper;
 
 /**
  * @author Mark Fisher
  */
-public class ArgumentArrayMessageMapperToMessageTests {
+public class GatewayMethodInboundMessageMapperToMessageTests {
 
 	@Test
 	public void toMessageWithPayload() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
 		assertEquals("test", message.getPayload());
 	}
@@ -51,14 +51,14 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void toMessageWithTooManyParameters() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] { "test" , "oops" });
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void toMessageWithEmptyParameterArray() throws Exception {
 		Method method = TestService.class.getMethod("sendPayload", String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] {});
 	}
 
@@ -66,7 +66,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndHeader() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeader", String.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
 		assertEquals("test", message.getPayload());
 		assertEquals("bar", message.getHeaders().get("foo"));
@@ -76,7 +76,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeader", String.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] { "test", null });
 	}
 
@@ -84,7 +84,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndOptionalHeaderWithValueProvided() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndOptionalHeader", String.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> message = mapper.toMessage(new Object[] { "test", "bar" });
 		assertEquals("test", message.getPayload());
 		assertEquals("bar", message.getHeaders().get("foo"));
@@ -94,7 +94,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndOptionalHeaderWithNullValue() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndOptionalHeader", String.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> message = mapper.toMessage(new Object[] { "test", null });
 		assertEquals("test", message.getPayload());
 		assertNull(message.getHeaders().get("foo"));
@@ -104,7 +104,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndHeadersMap() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Map<String, Object> headers = new HashMap<String, Object>();
 		headers.put("abc", 123);
 		headers.put("def", 456);
@@ -118,7 +118,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndNullHeadersMap() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> message = mapper.toMessage(new Object[] { "test", null });
 		assertEquals("test", message.getPayload());
 	}
@@ -127,7 +127,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	public void toMessageWithPayloadAndHeadersMapWithNonStringKey() throws Exception {
 		Method method = TestService.class.getMethod(
 				"sendPayloadAndHeadersMap", String.class, Map.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Map<Integer, String> headers = new HashMap<Integer, String>();
 		headers.put(123, "abc");
 		mapper.toMessage(new Object[] { "test", headers });
@@ -136,7 +136,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithMessageParameter() throws Exception {
 		Method method = TestService.class.getMethod("sendMessage", Message.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage });
 		assertEquals("test message", message.getPayload());
@@ -145,7 +145,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithMessageParameterAndHeader() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndHeader", Message.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
 		assertEquals("test message", message.getPayload());
@@ -155,7 +155,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void toMessageWithMessageParameterAndRequiredHeaderButNullValue() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndHeader", Message.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		mapper.toMessage(new Object[] { inputMessage, null });
 	}
@@ -163,7 +163,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithMessageParameterAndOptionalHeaderWithValue() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndOptionalHeader", Message.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, "bar" });
 		assertEquals("test message", message.getPayload());
@@ -173,7 +173,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test
 	public void toMessageWithMessageParameterAndOptionalHeaderWithNull() throws Exception {
 		Method method = TestService.class.getMethod("sendMessageAndOptionalHeader", Message.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		Message<?> inputMessage = MessageBuilder.withPayload("test message").build();
 		Message<?> message = mapper.toMessage(new Object[] { inputMessage, null });
 		assertEquals("test message", message.getPayload());
@@ -183,14 +183,14 @@ public class ArgumentArrayMessageMapperToMessageTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void noArgs() throws Exception {
 		Method method = TestService.class.getMethod("noArgs", new Class<?>[] {});
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] {});
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void onlyHeaders() throws Exception {
 		Method method = TestService.class.getMethod("onlyHeaders", String.class, String.class);
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method);
 		mapper.toMessage(new Object[] { "abc", "def" });
 	}
 	
@@ -201,7 +201,7 @@ public class ArgumentArrayMessageMapperToMessageTests {
 		headers.put("foo", new LiteralExpression("foo"));
 		headers.put("bar", new SpelExpressionParser().parseExpression("6 * 7"));
 		headers.put(MessageHeaders.PREFIX + "baz", new LiteralExpression("hello"));
-		ArgumentArrayMessageMapper mapper = new ArgumentArrayMessageMapper(method, headers);
+		GatewayMethodInboundMessageMapper mapper = new GatewayMethodInboundMessageMapper(method, headers);
 		Message<?> message = mapper.toMessage(new Object[] { "test" });
 		assertEquals("test", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("foo"));
