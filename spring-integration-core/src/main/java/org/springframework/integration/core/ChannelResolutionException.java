@@ -22,7 +22,7 @@ import org.springframework.integration.MessagingException;
  * Thrown by a ChannelResolver when it cannot resolve a channel name.
  * 
  * @author Mark Fisher
- * @see ChannelResolver
+ * @see org.springframework.integration.core.ChannelResolver
  */
 @SuppressWarnings("serial")
 public class ChannelResolutionException extends MessagingException {
