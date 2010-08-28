@@ -33,6 +33,7 @@ import org.springframework.util.xml.DomUtils;
  * 
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MailInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
@@ -80,6 +81,7 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 		}
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
+		receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", element.getAttribute("should-mark-messages-as-read"));
 		return receiverBuilder.getBeanDefinition();
 	}
 

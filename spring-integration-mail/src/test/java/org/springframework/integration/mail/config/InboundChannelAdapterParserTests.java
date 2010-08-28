@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.5
  */
 @ContextConfiguration
@@ -61,6 +62,14 @@ public class InboundChannelAdapterParserTests {
 		assertEquals(Pop3MailReceiver.class, receiver.getClass());
 		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldDeleteMessages");
 		assertTrue(value);
+	}
+	
+	@Test
+	public void pop3ShouldMarkMessagesAsRead() {
+		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldMarkAsReadTrue");
+		assertEquals(Pop3MailReceiver.class, receiver.getClass());
+		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldMarkMessagesAsRead");
+		assertFalse(value);
 	}
 
 	@Test

@@ -147,19 +147,20 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	 * Specify whether mail messages should be deleted after retrieval.
 	 */
 	public void setShouldDeleteMessages(boolean shouldDeleteMessages) {
-		if (this.shouldMarkMessagesAsRead && shouldDeleteMessages){
-			throw new IllegalArgumentException("setting both 'shouldDeleteMessages' and 'shouldMarkMessagesAsRead' to true is not allowed");
-		}
 		this.shouldDeleteMessages = shouldDeleteMessages;
 	}
+	/**
+	 * Check if messages should be marked as read
+	 * @return
+	 */
 	public boolean isShouldMarkMessagesAsRead() {
 		return shouldMarkMessagesAsRead;
 	}
-
+	/**
+	 * Specify is messages should be marked as read
+	 * @return
+	 */
 	public void setShouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
-		if (this.shouldDeleteMessages && shouldMarkMessagesAsRead){
-			throw new IllegalArgumentException("setting both 'shouldDeleteMessages' and 'shouldMarkMessagesAsRead' to true is not allowed");
-		}
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
 

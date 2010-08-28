@@ -20,6 +20,7 @@ import javax.mail.Flags.Flag;
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -34,28 +35,9 @@ import static org.mockito.Mockito.verify;
  *
  */
 public class AbstractMailReceiverTests {
-
-	@Test(expected=IllegalArgumentException.class)
-	public void validateDeleteAndReadIsNotAllowed(){
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver.setShouldDeleteMessages(true);
-		receiver.setShouldMarkMessagesAsRead(true);
-	}
-	@Test
-	public void validateDeleteOrReadIsAllowed_Read(){
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver.setShouldDeleteMessages(false);
-		receiver.setShouldMarkMessagesAsRead(true);
-	}
-	@Test
-	public void validateDeleteOrReadIsAllowed_Delete(){
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		receiver.setShouldDeleteMessages(true);
-		receiver.setShouldMarkMessagesAsRead(false);
-	}
 	
 	@Test
-	public void receieveAndMarkAsRead() throws Exception{
+	public void receieveAndMarkAsReadDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver.setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
@@ -83,6 +65,39 @@ public class AbstractMailReceiverTests {
 		receiver.receive();
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
+		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
+	}
+	@Test
+	public void receieveMarkAsReadAndDelete() throws Exception{
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver.setShouldMarkMessagesAsRead(true);
+		receiver.setShouldDeleteMessages(true);
+		receiver = spy(receiver);
+		Message msg1 = mock(MimeMessage.class);
+		Message msg2 = mock(MimeMessage.class);
+		final Message[] messages = new Message[]{msg1, msg2};
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				// just to avoid the exception
+				return null;
+			}
+		}).when(receiver).openFolder();
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return messages;
+			}
+		}).when(receiver).searchForNewMessages();
+		
+		doAnswer(new Answer<Object>() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				return null;
+			}
+		}).when(receiver).fetchMessages(messages);
+		receiver.receive();
+		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
+		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
+		verify(receiver, times(1)).deleteMessages((Message[]) Mockito.any());
 	}
 	@Test
 	public void receieveAndDontMarkAsRead() throws Exception{

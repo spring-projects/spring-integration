@@ -22,6 +22,8 @@ import javax.mail.Authenticator;
 import javax.mail.Session;
 import javax.mail.URLName;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.integration.mail.AbstractMailReceiver;
@@ -33,9 +35,11 @@ import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 1.0.3
  */
 public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean {
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String storeUri;
 
@@ -54,6 +58,8 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	 * This value will be <code>null</code> <i>unless</i> explicitly configured.
 	 */
 	private volatile Boolean shouldDeleteMessages = null;
+	
+	private volatile boolean shouldMarkMessagesAsRead;
 
 	private volatile int maxFetchSize = 1;
 
@@ -141,6 +147,11 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
+		if (isPop3 && this.shouldMarkMessagesAsRead){
+			logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
+		} else {
+			receiver.setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+		}	
 		return receiver;
 	}
 
@@ -148,6 +159,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 		if (this.receiver != null && this.receiver instanceof DisposableBean) {
 			((DisposableBean) this.receiver).destroy();
 		}
+	}
+	
+	public boolean isShouldMarkMessagesAsRead() {
+		return shouldMarkMessagesAsRead;
+	}
+
+	public void setShouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
+		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
 
 }

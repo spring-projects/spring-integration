@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Jonas Partner
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
@@ -79,6 +80,7 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "max-fetch-size");
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
+		receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", element.getAttribute("should-mark-messages-as-read"));
 		return receiverBuilder.getBeanDefinition();
 	}
 

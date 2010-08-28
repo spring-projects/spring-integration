@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
@@ -63,6 +64,26 @@ public class ImapIdleChannelAdapterParserTests {
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
 		assertEquals(0, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
+	}
+	@Test
+	public void simpleAdapterWithMarkeMessagesAsRead() {
+		Object adapter = context.getBean("simpleAdapterMarkAsRead");
+		assertEquals(ImapIdleChannelAdapter.class, adapter.getClass());
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Object channel = context.getBean("channel");
+		assertSame(channel, adapterAccessor.getPropertyValue("outputChannel"));
+		assertNull(adapterAccessor.getPropertyValue("taskExecutor"));
+		assertEquals(Boolean.FALSE, adapterAccessor.getPropertyValue("autoStartup"));
+		Object receiver = adapterAccessor.getPropertyValue("mailReceiver");
+		assertEquals(ImapMailReceiver.class, receiver.getClass());
+		DirectFieldAccessor receiverAccessor = new DirectFieldAccessor(receiver);
+		Object url = receiverAccessor.getPropertyValue("url");
+		assertEquals(new URLName("imap:foo"), url);
+		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
+		assertEquals(0, properties.size());
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 	}
 
 	@Test

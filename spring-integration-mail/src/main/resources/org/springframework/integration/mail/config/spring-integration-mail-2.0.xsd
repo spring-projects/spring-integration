@@ -188,10 +188,17 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="should-delete-messages" type="xsd:string" use="required">
+		<xsd:attribute name="should-delete-messages" type="xsd:string" use="optional" default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Specify whether mail messages should be deleted after retrieval.
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="should-mark-messages-as-read" type="xsd:string" use="optional" default="false">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Specify whether mail messages should be marked as read aftre being retrieved (Not supported in POP3).
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
