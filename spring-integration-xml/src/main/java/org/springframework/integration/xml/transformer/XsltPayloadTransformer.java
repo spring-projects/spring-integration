@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
@@ -48,6 +47,7 @@ import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.PatternMatchUtils;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
@@ -79,10 +79,8 @@ import org.w3c.dom.Document;
 public class XsltPayloadTransformer extends AbstractTransformer {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-	private final Map<String, Expression> expressionCache = new HashMap<String, Expression>();
 	private final Templates templates;
 	private final StandardEvaluationContext context = new StandardEvaluationContext();
-	private ExpressionParser spelParser = new SpelExpressionParser();
 	private Map<String, Expression> xslParameterMappings;
 
 	private final ResultTransformer resultTransformer;
@@ -208,9 +206,9 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 		transformer.transform(source, domResult);
 		return (Document) domResult.getNode();
 	}
-
-	@SuppressWarnings("unchecked")
+	
 	protected Transformer buildTransformer(Message<?> message) throws TransformerException {
+		//process  individual mappings
 		Transformer transformer = this.templates.newTransformer();
 		context.setRootObject(message);
 		context.addPropertyAccessor(new MapAccessor());
@@ -226,36 +224,13 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 				}		
 			}
 		}
+		// process xslt-parameter-headers
 		MessageHeaders headers =  message.getHeaders();
 		if (xsltParamHeaders != null){
-			for (String headerPattern : xsltParamHeaders) {		
-				if (headerPattern.contains("*")){
-					Expression expression = expressionCache.get(headerPattern);
-					Map<String, Object> filteredHeaders = null;
-					if (expression == null){
-						if (headerPattern.startsWith("*")){
-							headerPattern = headerPattern.replace("*", "");
-							expression = spelParser.parseExpression("headers.?[key.endsWith('" + headerPattern + "')]");	
-						} else if (headerPattern.endsWith("*")){
-							headerPattern = headerPattern.replace("*", "");
-							expression = spelParser.parseExpression("headers.?[key.startsWith('" + headerPattern + "')]");	
-						} else {
-							throw new IllegalArgumentException("Can not match the following header name pattern '" + headerPattern + "'");
-						}
-						expressionCache.put(headerPattern, expression);						
-					} 
-					filteredHeaders = (Map<String, Object>)expression.getValue(context);
-					for (String headerName : filteredHeaders.keySet()) {
-						transformer.setParameter(headerName, filteredHeaders.get(headerName));
-					}
-				} else {
-					Object value = headers.get(headerPattern);
-					if (value != null){
-						transformer.setParameter(headerPattern, headers.get(headerPattern));
-					} else{
-						logger.warn("Header with the name '" + headerPattern + "' is not present in the current message and will not be mapped to XSLT parameter");
-					}			
-				}
+			for (String headerName : headers.keySet()) {
+				if (PatternMatchUtils.simpleMatch(xsltParamHeaders, headerName)){
+					transformer.setParameter(headerName, headers.get(headerName));
+				}			
 			}
 		}
 		return transformer;
