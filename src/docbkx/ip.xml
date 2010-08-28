@@ -353,22 +353,27 @@
           each new request gets its own connection and is processed immediately.
   	</para>
     <para>
-  	  <programlisting language="xml"><![CDATA[ 	<ip:tcp-inbound-gateway id="gatewayCrLf"
-		port="1234"
-		request-channel="someChannel"
-		message-format="crlf"
+  	  <programlisting language="xml"><![CDATA[
+	<ip:tcp-inbound-gateway id="inGateway"
+		request-channel="tcpChannel"
+		reply-channel="replyChannel"
+		connection-factory="cfServer"
+		reply-timeout="10000"
         />]]></programlisting>
-        A simple inbound TCP gateway; it uses '/r/n' delimited data and can be
+        A simple inbound TCP gateway; if a default connection factory is used, 
+        messages will be \r\n delimited data and the gateway can be
         used by a simple client such as telnet.	  	  
   	</para> 
     <para>
-  	  <programlisting language="xml"><![CDATA[ 	<ip:tcp-outbound-gateway id="simpleOutGateway"
+  	  <programlisting language="xml"><![CDATA[ 
+	<ip:tcp-outbound-gateway id="outGateway"
 		request-channel="tcpChannel"
-		message-format="crlf"
-		host="localhost"
-		port="1234"
+		reply-channel="replyChannel"
+		connection-factory="cfClient"
+		request-timeout="10000"
+		reply-timeout="10000"
 		/>]]></programlisting>
-        A simple oubound TCP gateway; it uses '/r/n' delimited data.		
+        A simple oubound TCP gateway.		
 	</para>  
   </section>  
   <section id="ip-endpoint-reference">
