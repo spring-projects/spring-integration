@@ -187,6 +187,28 @@
     xsl-templates="templates"
     result-transformer="resultTransformer"/>]]></programlisting>				
 		</para>
+		<para>
+		Very often to assist with transformation you may need to have access to Message data (e.g., Message Headers). For example; you may need to get access to certain Message Headers
+	    and pass them on as parameters to a transformer (e.g., transformer.setParameter(..)). 
+        Spring Integration provides two convenient ways to accomplish this. Just look at the following XML snippet.
+<programlisting language="xml"><![CDATA[<si-xml:xslt-transformer id="paramHeadersCombo" 
+	    input-channel="paramHeadersComboChannel"
+		output-channel="output"
+		xsl-resource="classpath:transformer.xslt"
+		xslt-param-headers="testP*, *foo, bar, baz">
+		
+    <int-xml:xslt-param name="helloParameter" value="hello"/>
+    <int-xml:xslt-param name="firstName" expression="headers.fname"/>
+</int-xml:xslt-transformer>]]></programlisting>	
+        If message header names match 1:1 to parameter names, you can simply use <emphasis>xslt-param-headers attribute</emphasis>. There you can also use wildcards for 
+        simple pattern matching which supports the following simple pattern styles: "xxx*", "*xxx", "*xxx*" and "xxx*yyy".			
+		</para>
+		<para>
+        You can also configure individual xslt parameters via <emphasis>xslt-param</emphasis> sub element. There you can use <code>expression</code> or <code>value</code> attribute. 
+        The <code>expression</code> attribute should be any valid SpEL expression with Message being the root object of the expression evaluation context. 
+        The <code>value</code> attribute just like any <code>value</code> in Spring beans allows you to specify simple scalar vallue. YOu can also use property placeholders (e.g., ${some.value})
+        So as you can see, with the <code>expression</code> and <code>value</code> attribute xslt parameters could now be mapped to any accessible part of the Message as well as any literal value.	
+		</para>
 	</section>
 
 	<section id="xpath-splitting">
