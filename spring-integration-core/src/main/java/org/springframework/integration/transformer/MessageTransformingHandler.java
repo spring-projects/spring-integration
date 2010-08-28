@@ -43,6 +43,7 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 	public MessageTransformingHandler(Transformer transformer) {
 		Assert.notNull(transformer, "transformer must not be null");
 		this.transformer = transformer;
+		this.setRequiresReply(true);
 	}
 
 
