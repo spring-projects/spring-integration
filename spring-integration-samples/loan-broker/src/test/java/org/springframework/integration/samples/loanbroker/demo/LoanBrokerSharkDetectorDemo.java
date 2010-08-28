@@ -19,6 +19,7 @@ package org.springframework.integration.samples.loanbroker.demo;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,6 +37,7 @@ public class LoanBrokerSharkDetectorDemo {
 	private static Logger logger = Logger.getLogger(LoanBrokerSharkDetectorDemo.class);
 
 	@Test
+	@Ignore
 	public void testUdpMulticast() {
 		ConfigurableApplicationContext context = 
 				new ClassPathXmlApplicationContext("bootstrap-config/stubbed-loan-broker-multicast.xml");
