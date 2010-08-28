@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2010 the original author or authors
+  ~
+  ~     Licensed under the Apache License, Version 2.0 (the "License");
+  ~     you may not use this file except in compliance with the License.
+  ~     You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~     Unless required by applicable law or agreed to in writing, software
+  ~     distributed under the License is distributed on an "AS IS" BASIS,
+  ~     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~     See the License for the specific language governing permissions and
+  ~     limitations under the License.
+  -->
+
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/ftp"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/ftp"
+			elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"
+				schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+
+                Builds an outbound-channel-adapter that writes files to a remote FTP endpoint.
+
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+
+			<xsd:attribute name="username" type="xsd:string" use="required"/>
+			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="password" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:int" default="22"/>
+			<xsd:attribute use="optional" name="client-mode" default="active-local-data-connection-mode">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+                           the FTP Client-Mode.
+
+                             /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between the client (local) and server and that the server
+     * should connect to the client's data port to initiate a data transfer.
+     * This is the default data connection mode when and FTPClient instance
+     * is created.
+     ***/
+    ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0
+
+    /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between two remote servers and that the server
+     * the client is connected to should connect to the other server's
+     * data port to initiate a data transfer.
+     ***/
+    ACTIVE_LOCAL_DATA_CONNECTION_MODE = 1
+
+    /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between the client (local) and server and that the server
+     * is in passive mode, requiring the client to connect to the
+     * server's data port to initiate a transfer.
+     ***/
+    PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2
+
+    /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between two remote servers and that the server
+     * the client is connected to is in passive mode, requiring the other
+     * server to connect to the first server's data port to initiate a data
+     * transfer.
+     ***/
+    PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3
+
+
+                            ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:NMTOKEN">
+						<xsd:enumeration value="active-local-data-connection-mode"/>
+						<xsd:enumeration value="active-remote-data-connection-mode"/>
+						<xsd:enumeration value="passive-local-data-connection-mode"/>
+						<xsd:enumeration value="passive-remote-data-connection-mode"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+			<xsd:attribute use="optional" name="file-type" default="binary-file-type">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+
+ 			Binary, ASCII, or EBDIC. Binary's a good default
+
+                            ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:NMTOKEN">
+						<xsd:enumeration value="ebcdic-file-type"/>
+						<xsd:enumeration value="ascii-file-type"/>
+						<xsd:enumeration value="binary-file-type"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+
+                    Builds an inbound-channel-adapter that synchronizes a local directory with the contents of a remote FTP endpoint. 
+
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute use="optional" name="file-type" default="binary-file-type">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+
+ 			Binary, ASCII, or EBDIC. Binary's a good default
+
+                            ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:NMTOKEN">
+						<xsd:enumeration value="ebcdic-file-type"/>
+						<xsd:enumeration value="ascii-file-type"/>
+						<xsd:enumeration value="binary-file-type"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+			<xsd:attribute name="filter" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.file.entries.EntryListFilter"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="filename-pattern" type="xsd:string"/>
+
+
+			<xsd:attribute name="local-working-directory" type="xsd:string"/>
+			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
+			<xsd:attribute name="auto-delete-remote-files-on-sync" type="xsd:boolean"/>
+
+
+			<xsd:attribute name="username" type="xsd:string" use="required"/>
+			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="password" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:int" default="22"/>
+			<xsd:attribute use="optional" name="client-mode" default="active-local-data-connection-mode">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+                           the FTP Client-Mode.
+
+                             /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between the client (local) and server and that the server
+     * should connect to the client's data port to initiate a data transfer.
+     * This is the default data connection mode when and FTPClient instance
+     * is created.
+     ***/
+    ACTIVE_LOCAL_DATA_CONNECTION_MODE = 0
+
+    /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between two remote servers and that the server
+     * the client is connected to should connect to the other server's
+     * data port to initiate a data transfer.
+     ***/
+    ACTIVE_LOCAL_DATA_CONNECTION_MODE = 1
+
+    /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between the client (local) and server and that the server
+     * is in passive mode, requiring the client to connect to the
+     * server's data port to initiate a transfer.
+     ***/
+    PASSIVE_LOCAL_DATA_CONNECTION_MODE = 2
+
+    /***
+     * A constant indicating the FTP session is expecting all transfers
+     * to occur between two remote servers and that the server
+     * the client is connected to is in passive mode, requiring the other
+     * server to connect to the first server's data port to initiate a data
+     * transfer.
+     ***/
+    PASSIVE_REMOTE_DATA_CONNECTION_MODE = 3
+
+
+                            ]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:NMTOKEN">
+						<xsd:enumeration value="active-local-data-connection-mode"/>
+						<xsd:enumeration value="active-remote-data-connection-mode"/>
+						<xsd:enumeration value="passive-local-data-connection-mode"/>
+						<xsd:enumeration value="passive-remote-data-connection-mode"/>
+
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:attribute>
+
+		</xsd:complexType>
+	</xsd:element>
+
+
+</xsd:schema>

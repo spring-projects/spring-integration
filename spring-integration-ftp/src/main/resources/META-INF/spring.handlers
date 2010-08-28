@@ -1,0 +1,3 @@
+http\://www.springframework.org/schema/integration/ftp=org.springframework.integration.ftp.config.FtpNamespaceHandler
+http\://www.springframework.org/schema/integration/ftps=org.springframework.integration.ftp.config.FtpsNamespaceHandler
+
