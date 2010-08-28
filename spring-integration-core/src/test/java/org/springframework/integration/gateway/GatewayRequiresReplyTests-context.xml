@@ -12,6 +12,8 @@
 			 default-reply-timeout="3000"
 			 service-interface="org.springframework.integration.gateway.GatewayRequiresReplyTests$TestService" />
 
-	<service-activator input-channel="requestChannel" expression="payload == 'foo' ? 'bar' : null"/>
+	<service-activator input-channel="requestChannel"
+					   expression="payload == 'foo' ? 'bar' : null"
+					   requires-reply="true"/>
 
 </beans:beans>

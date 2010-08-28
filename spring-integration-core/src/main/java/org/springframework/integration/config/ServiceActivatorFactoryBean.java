@@ -32,8 +32,14 @@ public class ServiceActivatorFactoryBean extends AbstractMessageHandlerFactoryBe
 
 	private volatile Long sendTimeout;
 
+	private volatile Boolean requiresReply;
+
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
+	}
+
+	public void setRequiresReply(Boolean requiresReply) {
+		this.requiresReply = requiresReply;
 	}
 
 	@Override
@@ -58,7 +64,10 @@ public class ServiceActivatorFactoryBean extends AbstractMessageHandlerFactoryBe
 
 	private ServiceActivatingHandler configureHandler(ServiceActivatingHandler handler) {
 		if (this.sendTimeout != null) {
-			handler.setSendTimeout(sendTimeout);
+			handler.setSendTimeout(this.sendTimeout);
+		}
+		if (this.requiresReply != null) {
+			handler.setRequiresReply(this.requiresReply);
 		}
 		return handler;
 	}

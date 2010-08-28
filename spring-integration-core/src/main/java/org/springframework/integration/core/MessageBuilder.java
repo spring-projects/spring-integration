@@ -167,10 +167,6 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.CORRELATION_ID, correlationId);
 	}
 
-	public MessageBuilder<T> setRequiresReply(Boolean requiresReply) {
-		return this.setHeader(MessageHeaders.REQUIRES_REPLY, requiresReply);
-	}
-
 	public MessageBuilder<T> setReplyChannel(MessageChannel replyChannel) {
 		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel);
 	}

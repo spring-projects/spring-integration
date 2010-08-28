@@ -58,8 +58,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String CORRELATION_ID = PREFIX + "correlationId";
 
-	public static final String REQUIRES_REPLY = PREFIX + "requiresReply";
-
 	public static final String REPLY_CHANNEL = PREFIX + "replyChannel";
 
 	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
@@ -98,11 +96,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public Object getReplyChannel() {
 		return this.get(REPLY_CHANNEL);
-	}
-
-	public boolean getRequiresReply() {
-		Boolean headerValue = this.get(REQUIRES_REPLY, Boolean.class);
-		return (headerValue != null && headerValue);
 	}
 
 	public Object getErrorChannel() {

@@ -202,9 +202,6 @@ class GatewayMethodInboundMessageMapper implements InboundMessageMapper<Object[]
 			}
 			builder.copyHeaders(evaluatedHeaders);
 		}
-		if (!void.class.equals(this.method.getReturnType())) {
-			builder.setRequiresReply(true);
-		}
 		return builder.build();
 	}
 

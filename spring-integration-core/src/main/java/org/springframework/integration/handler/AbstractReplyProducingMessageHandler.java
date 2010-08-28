@@ -104,22 +104,17 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {
 		Object result = this.handleRequestMessage(message);
-		if (result == null) {
-			if (this.requiresReply) {
-				throw new MessageHandlingException(message, "handler '" + this
-						+ "' requires a reply, but no reply was received");
-			}
-			if (message != null && message.getHeaders().getRequiresReply()) {
-				throw new MessageHandlingException(message,
-						"A reply Message is required by this request Message, but none was received.");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
-			}
-			return;
+		if (result != null) {
+			MessageHeaders requestHeaders = message.getHeaders();
+			this.handleResult(result, requestHeaders);
 		}
-		MessageHeaders requestHeaders = message.getHeaders();
-		this.handleResult(result, requestHeaders);
+		else if (this.requiresReply) {
+			throw new MessageHandlingException(message, "handler '" + this
+					+ "' requires a reply, but no reply was received");
+		}
+		else if (logger.isDebugEnabled()) {
+			logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
+		}
 	}
 
 	protected void handleResult(Object result, MessageHeaders requestHeaders) {
