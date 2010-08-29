@@ -49,6 +49,11 @@ public class MessageHistory implements List<Properties> {
 	private final List<Properties> components;
 
 
+	public static MessageHistory read(Message<?> message) {
+		return (message != null) ?
+				message.getHeaders().get(HEADER_NAME, MessageHistory.class) : null;
+	}
+
 	public static <T> Message<T> addComponentToHistory(Message<T> message, NamedComponent component) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(component, "Component must not be null");
