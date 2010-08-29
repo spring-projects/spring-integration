@@ -20,11 +20,15 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.MessageListener;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
@@ -32,8 +36,6 @@ import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
-import org.springframework.integration.gateway.SimpleMessageMapper;
-import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -54,9 +56,9 @@ import org.springframework.jms.support.destination.DestinationResolver;
 public class JmsDestinationBackedMessageChannel extends MessageListenerContainerConfigurationSupport
 		implements SubscribableChannel, MessageListener, BeanNameAware, SmartLifecycle, InitializingBean {
 
-	private final JmsTemplate jmsTemplate = new JmsTemplate();
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final InboundMessageMapper<Object> mapper = new SimpleMessageMapper();
+	private final JmsTemplate jmsTemplate = new JmsTemplate();
 
 	private volatile MessageDispatcher dispatcher;
 
@@ -203,8 +205,15 @@ public class JmsDestinationBackedMessageChannel extends MessageListenerContainer
 
 	public void onMessage(javax.jms.Message message) {
 		try {
-			Object o = this.jmsTemplate.getMessageConverter().fromMessage(message);
-			this.dispatcher.dispatch(this.mapper.toMessage(o));
+			Object converted = this.jmsTemplate.getMessageConverter().fromMessage(message);
+			if (converted != null) {
+				Message<?> messageToSend = (converted instanceof Message<?>) ? (Message<?>) converted
+						: MessageBuilder.withPayload(converted).build();
+				this.dispatcher.dispatch(messageToSend);
+			}
+			else if (this.logger.isWarnEnabled()) {
+				logger.warn("MessageConverter returned null, no Message to dispatch");
+			}
 		}
 		catch (Exception e) {
 			throw new MessagingException("failed to handle incoming JMS Message", e);
