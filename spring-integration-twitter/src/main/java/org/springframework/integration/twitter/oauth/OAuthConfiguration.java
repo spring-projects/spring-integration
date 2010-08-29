@@ -40,14 +40,6 @@ public class OAuthConfiguration {
 		this.accessTokenSecret = accessTokenSecret;
 	}
 
-	/** package friendly */
-	/*  void setAsyncTwitter(AsyncTwitter asyncTwitter) {
-			  this.asyncTwitter = asyncTwitter;
-		  }*/
-
-	/**
-	 * package friendly
-	 */
 	void setTwitter(Twitter twitter) {
 		this.twitter = twitter;
 	}
@@ -59,10 +51,7 @@ public class OAuthConfiguration {
 		return twitter;
 	}
 
-	/*
-			public AsyncTwitter getAsyncTwitter() {
-				return asyncTwitter;
-			}*/
+
 
 	public String getConsumerKey() {
 		return consumerKey;

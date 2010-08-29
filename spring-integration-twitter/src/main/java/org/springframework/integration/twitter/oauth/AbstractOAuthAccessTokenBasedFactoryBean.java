@@ -42,7 +42,7 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	protected OAuthConfiguration configuration;
 	protected final Object monitor = new Object();
 	protected volatile T twitter;
-	protected volatile AccessTokenInitialRequestProcessListener accessTokenInitialRequestProcessListener;
+//	protected volatile AccessTokenInitialRequestProcessListener accessTokenInitialRequestProcessListener;
 	protected volatile boolean initialized = false;
 
 	/**
@@ -84,20 +84,20 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	 */
 	public void afterPropertiesSet() throws Exception {
 		synchronized (this.monitor) {
-			if (this.accessTokenInitialRequestProcessListener == null) {
+			/*if (this.accessTokenInitialRequestProcessListener == null) {
 				accessTokenInitialRequestProcessListener = new ConsoleBasedAccessTokenInitialRequestProcessListener();
-			}
+			}*/
 
 			Assert.notNull(this.configuration.getConsumerKey(), "'consumerKey' mustn't be null");
 			Assert.notNull(this.configuration.getConsumerSecret(), "'consumerSecret' mustn't be null");
 
-			AccessToken accessTokenObj;
-
+			AccessToken accessTokenObj=null;
+		    establishTwitterObject(accessTokenObj);
 			if (StringUtils.hasText(this.configuration.getAccessToken()) && StringUtils.hasText(this.configuration.getAccessTokenSecret())) {
 				accessTokenObj = new AccessToken(this.configuration.getAccessToken(), this.configuration.getAccessTokenSecret());
-			} else {
-				accessTokenObj = initialAuthorizationWizard();
-			}
+			} /*else {
+			//	accessTokenObj = initialAuthorizationWizard();
+			}*/
 
 			establishTwitterObject(accessTokenObj);
 
@@ -107,11 +107,11 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 		}
 	}
 
-	@SuppressWarnings("unused")
+	/*@SuppressWarnings("unused")
 	public void setAccessTokenInitialRequestProcessListener(AccessTokenInitialRequestProcessListener accessTokenInitialRequestProcessListener) {
 		this.accessTokenInitialRequestProcessListener = accessTokenInitialRequestProcessListener;
 	}
-
+*/
 	public abstract void establishTwitterObject(AccessToken accessToken)
 			throws Exception;
 
@@ -154,6 +154,7 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	 * @return returns the freshly created {@link twitter4j.http.AccessToken} object from the service
 	 * @throws Exception for just about any deviation from the expected
 	 */
+/*
 	private AccessToken initialAuthorizationWizard() throws Exception {
 		Assert.notNull(this.accessTokenInitialRequestProcessListener, "'accessTokenInitialRequestProcessListener' can't be null");
 
@@ -170,6 +171,7 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 
 		return null;
 	}
+*/
 
 	/**
 	 * Responsibility of subclasses to call this because we cant dereference the generic type appropriately. The responsibility is

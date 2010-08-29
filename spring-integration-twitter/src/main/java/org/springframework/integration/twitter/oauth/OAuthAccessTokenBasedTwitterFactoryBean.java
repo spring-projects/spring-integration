@@ -15,18 +15,10 @@
  */
 package org.springframework.integration.twitter.oauth;
 
-import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.springframework.core.io.FileSystemResource;
-import twitter4j.ResponseList;
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.http.AccessToken;
 import twitter4j.http.RequestToken;
-
-import java.io.File;
-import java.util.Properties;
 
 
 public class OAuthAccessTokenBasedTwitterFactoryBean extends AbstractOAuthAccessTokenBasedFactoryBean<Twitter> {
@@ -66,22 +58,5 @@ public class OAuthAccessTokenBasedTwitterFactoryBean extends AbstractOAuthAccess
 		return Twitter.class;
 	}
 
-	public static void main(String[] args) throws Throwable {
-		File propsFile = new File(new File(SystemUtils.getUserHome(), "Desktop"), "twitter.properties");
-		FileSystemResource fileSystemResource = new FileSystemResource(propsFile);
-		Properties properties = fromResource(fileSystemResource);
 
-		OAuthConfigurationFactoryBean oAuthConfigurationFactoryBean = new OAuthConfigurationFactoryBean();
-		oAuthConfigurationFactoryBean.bootstrapFromProperties(properties);
-
-		OAuthConfiguration configuration = oAuthConfigurationFactoryBean.getObject();
-
-		Twitter twitter = configuration.getTwitter();
-
-		System.out.println("Used the " + OAuthAccessTokenBasedTwitterFactoryBean.class.getName() + " and arrived at " + ToStringBuilder.reflectionToString(twitter));
-
-		ResponseList<Status> friendsTimeline = twitter.getFriendsTimeline();
-		System.out.println("Friends' timeline " + friendsTimeline);
-		Thread.sleep(10000);
-	}
 }
