@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.security.MockAuthenticationManager;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.security.access.AccessDecisionVoter;
@@ -49,7 +50,7 @@ public class ChannelSecurityInterceptorTests {
 	@Test(expected = AuthenticationException.class)
 	public void securedSendWithoutAuthentication() throws Exception {
 		MessageChannel channel = getSecuredChannel("ROLE_ADMIN");
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -57,7 +58,7 @@ public class ChannelSecurityInterceptorTests {
 		MessageChannel channel = getSecuredChannel("ROLE_ADMIN");
 		SecurityContext context = SecurityTestUtils.createContext("test", "pwd", "ROLE_USER");
 		SecurityContextHolder.setContext(context);
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 	}
 
 	@Test
@@ -65,7 +66,7 @@ public class ChannelSecurityInterceptorTests {
 		MessageChannel channel = getSecuredChannel("ROLE_ADMIN");
 		SecurityContext context = SecurityTestUtils.createContext("test", "pwd", "ROLE_ADMIN");
 		SecurityContextHolder.setContext(context);
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 	}
 
 
