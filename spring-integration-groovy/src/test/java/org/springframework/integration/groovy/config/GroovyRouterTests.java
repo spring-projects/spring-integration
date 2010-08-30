@@ -24,9 +24,9 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -53,11 +53,11 @@ public class GroovyRouterTests {
 
 	@Test
 	public void referencedScript() { // long is > 3
-		Message<?> message1 = new StringMessage("aardvark");
-		Message<?> message2 = new StringMessage("bear");
-		Message<?> message3 = new StringMessage("cat");
-		Message<?> message4 = new StringMessage("dog");
-		Message<?> message5 = new StringMessage("elephant");
+		Message<?> message1 = new GenericMessage<String>("aardvark");
+		Message<?> message2 = new GenericMessage<String>("bear");
+		Message<?> message3 = new GenericMessage<String>("cat");
+		Message<?> message4 = new GenericMessage<String>("dog");
+		Message<?> message5 = new GenericMessage<String>("elephant");
 		this.referencedScriptInput.send(message1);
 		this.referencedScriptInput.send(message2);
 		this.referencedScriptInput.send(message3);
@@ -74,11 +74,11 @@ public class GroovyRouterTests {
 
 	@Test
 	public void inlineScript() { // long is > 5
-		Message<?> message1 = new StringMessage("aardvark");
-		Message<?> message2 = new StringMessage("bear");
-		Message<?> message3 = new StringMessage("cat");
-		Message<?> message4 = new StringMessage("dog");
-		Message<?> message5 = new StringMessage("elephant");
+		Message<?> message1 = new GenericMessage<String>("aardvark");
+		Message<?> message2 = new GenericMessage<String>("bear");
+		Message<?> message3 = new GenericMessage<String>("cat");
+		Message<?> message4 = new GenericMessage<String>("dog");
+		Message<?> message5 = new GenericMessage<String>("elephant");
 		this.inlineScriptInput.send(message1);
 		this.inlineScriptInput.send(message2);
 		this.inlineScriptInput.send(message3);
