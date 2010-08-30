@@ -52,13 +52,13 @@ public class ServiceActivatorFactoryBean extends AbstractMessageHandlerFactoryBe
 
 	@Override
 	MessageHandler createExpressionEvaluatingHandler(String expression) {
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
+		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
 		processor.setBeanFactory(this.getBeanFactory());
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 
 	@Override
-	MessageHandler createMessageProcessingHandler(MessageProcessor processor) {
+	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
 		return this.configureHandler(new ServiceActivatingHandler(processor));
 	}
 

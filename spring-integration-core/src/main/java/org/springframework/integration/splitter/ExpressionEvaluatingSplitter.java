@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.splitter;
 
+import java.util.Collection;
+
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
 /**
@@ -29,8 +31,9 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingSplitter extends AbstractMessageProcessingSplitter {
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public ExpressionEvaluatingSplitter(String expression) {
-		super(new ExpressionEvaluatingMessageProcessor(expression));
+		super(new ExpressionEvaluatingMessageProcessor(expression, Collection.class));
 	}
 
 }

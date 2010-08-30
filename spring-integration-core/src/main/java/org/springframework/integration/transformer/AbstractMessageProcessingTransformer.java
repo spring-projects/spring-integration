@@ -33,10 +33,10 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMessageProcessingTransformer implements Transformer, BeanFactoryAware {
 
-	private final MessageProcessor messageProcessor;
+	private final MessageProcessor<?> messageProcessor;
 
 
-	protected AbstractMessageProcessingTransformer(MessageProcessor messageProcessor) {
+	protected AbstractMessageProcessingTransformer(MessageProcessor<?> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
@@ -48,7 +48,7 @@ public abstract class AbstractMessageProcessingTransformer implements Transforme
 		}
 		ConversionService conversionService = IntegrationContextUtils.getConversionService(beanFactory);
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}
 	}
 

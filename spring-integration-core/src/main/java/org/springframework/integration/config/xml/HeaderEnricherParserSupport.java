@@ -120,7 +120,6 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						parserContext.getReaderContext().error(
 								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
 					}
-					Object headerSource = parserContext.extractSource(headerElement);
 					BeanDefinitionBuilder valueProcessorBuilder = null;
 					if (isValue) {
 						if (hasMethod) {
@@ -159,9 +158,6 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 									IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$StaticHeaderValueMessageProcessor");
 							valueProcessorBuilder.addConstructorArgReference(ref);
 						}
-					}
-					if (valueProcessorBuilder == null) {
-						parserContext.getReaderContext().error("failed to parse header sub-element", headerSource);
 					}
 					IntegrationNamespaceUtils.setValueIfAttributeDefined(valueProcessorBuilder, headerElement, "overwrite");
 					headers.put(headerName, valueProcessorBuilder.getBeanDefinition());

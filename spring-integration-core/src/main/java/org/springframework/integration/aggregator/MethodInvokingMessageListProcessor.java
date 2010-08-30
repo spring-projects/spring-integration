@@ -32,36 +32,36 @@ import org.springframework.integration.util.MessagingMethodInvokerHelper;
  * @author Dave Syer
  * @since 2.0
  */
-public class MethodInvokingMessageListProcessor extends AbstractExpressionEvaluator {
+public class MethodInvokingMessageListProcessor<T> extends AbstractExpressionEvaluator {
 
-	private final MessagingMethodInvokerHelper delegate;
+	private final MessagingMethodInvokerHelper<T> delegate;
 
-	public MethodInvokingMessageListProcessor(Object targetObject, Method method, Class<?> expectedType) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, method, expectedType, true);
+	public MethodInvokingMessageListProcessor(Object targetObject, Method method, Class<T> expectedType) {
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, expectedType, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Method method) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, method, true);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, true);
 	}
 
-	public MethodInvokingMessageListProcessor(Object targetObject, String methodName, Class<?> expectedType) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, methodName,
+	public MethodInvokingMessageListProcessor(Object targetObject, String methodName, Class<T> expectedType) {
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName,
 				expectedType, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, String methodName) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, methodName, true);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, true);
 	}
 
 	public MethodInvokingMessageListProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, annotationType, Object.class, true);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, Object.class, true);
 	}
 
 	public String toString() {
 		return delegate.toString();
 	}
 
-	public Object process(Collection<? extends Message<?>> messages, Map<String, Object> aggregateHeaders) {
+	public T process(Collection<? extends Message<?>> messages, Map<String, Object> aggregateHeaders) {
 		try {
 			return delegate.process(new ArrayList<Message<?>>(messages), aggregateHeaders);
 		}

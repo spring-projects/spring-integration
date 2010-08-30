@@ -36,7 +36,7 @@ import org.springframework.integration.store.MessageGroup;
  */
 public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMessageGroupProcessor {
 
-	private final MethodInvokingMessageListProcessor processor;
+	private final MethodInvokingMessageListProcessor<Object> processor;
 
 	/**
 	 * Creates a wrapper around the object passed in. This constructor will look for a method that can process
@@ -45,7 +45,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param target the object to wrap
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target) {
-		this.processor = new MethodInvokingMessageListProcessor(target, Aggregator.class);
+		this.processor = new MethodInvokingMessageListProcessor<Object>(target, Aggregator.class);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param methodName the name of the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, String methodName) {
-		this.processor = new MethodInvokingMessageListProcessor(target, methodName);
+		this.processor = new MethodInvokingMessageListProcessor<Object>(target, methodName);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	 * @param method the method to invoke
 	 */
 	public MethodInvokingMessageGroupProcessor(Object target, Method method) {
-		this.processor = new MethodInvokingMessageListProcessor(target, method);
+		this.processor = new MethodInvokingMessageListProcessor<Object>(target, method);
 	}
 	
 	public void setConversionService(ConversionService conversionService) {
@@ -80,8 +80,7 @@ public class MethodInvokingMessageGroupProcessor extends AbstractAggregatingMess
 	@Override
 	protected final Object aggregatePayloads(MessageGroup group, Map<String, Object> headers) {
 		final Collection<Message<?>> messagesUpForProcessing = group.getUnmarked();
-		Object result = this.processor.process(messagesUpForProcessing, headers);
-		return result;
+		return this.processor.process(messagesUpForProcessing, headers);
 	}
 
 }

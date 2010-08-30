@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public abstract class AbstractScriptExecutingMessageProcessor implements MessageProcessor {
+public abstract class AbstractScriptExecutingMessageProcessor<T> implements MessageProcessor<T> {
 
 	private final ScriptSource scriptSource;
 
@@ -44,7 +44,7 @@ public abstract class AbstractScriptExecutingMessageProcessor implements Message
 	/**
 	 * Executes the script and returns the result.
 	 */
-	public final Object processMessage(Message<?> message) {
+	public final T processMessage(Message<?> message) {
 		try {
 			return this.executeScript(this.scriptSource, message);
 		}
@@ -57,6 +57,6 @@ public abstract class AbstractScriptExecutingMessageProcessor implements Message
 	 * Subclasses must implement this method. In doing so, the execution context for the
 	 * script should be populated with the Message's 'payload' and 'headers' as variables. 
 	 */
-	protected abstract Object executeScript(ScriptSource scriptSource, Message<?> message) throws Exception;
+	protected abstract T executeScript(ScriptSource scriptSource, Message<?> message) throws Exception;
 
 }

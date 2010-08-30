@@ -34,10 +34,10 @@ import org.springframework.util.Assert;
  */
 class AbstractMessageProcessingRouter extends AbstractChannelNameResolvingMessageRouter {
 
-	private final MessageProcessor messageProcessor;
+	private final MessageProcessor<Object> messageProcessor;
 
 
-	AbstractMessageProcessingRouter(MessageProcessor messageProcessor) {
+	AbstractMessageProcessingRouter(MessageProcessor<Object> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
@@ -46,7 +46,7 @@ class AbstractMessageProcessingRouter extends AbstractChannelNameResolvingMessag
 	public final void onInit() {
 		super.onInit();
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor) this.messageProcessor).setConversionService(this.getConversionService());
+			((AbstractMessageProcessor<Object>) this.messageProcessor).setConversionService(this.getConversionService());
 		}
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());

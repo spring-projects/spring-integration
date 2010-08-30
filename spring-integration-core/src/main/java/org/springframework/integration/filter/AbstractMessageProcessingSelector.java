@@ -34,10 +34,10 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractMessageProcessingSelector implements MessageSelector, BeanFactoryAware {
 
-	private final MessageProcessor messageProcessor;
+	private final MessageProcessor<Boolean> messageProcessor;
 
 
-	public AbstractMessageProcessingSelector(MessageProcessor messageProcessor) {
+	public AbstractMessageProcessingSelector(MessageProcessor<Boolean> messageProcessor) {
 		Assert.notNull(messageProcessor, "messageProcessor must not be null");
 		this.messageProcessor = messageProcessor;
 	}
@@ -45,7 +45,7 @@ abstract class AbstractMessageProcessingSelector implements MessageSelector, Bea
 
 	protected void setConversionService(ConversionService conversionService) {
 		if (this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+			((AbstractMessageProcessor<Boolean>) this.messageProcessor).setConversionService(conversionService);
 		}
 	}
 

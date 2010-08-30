@@ -24,8 +24,8 @@ import org.springframework.integration.util.AbstractExpressionEvaluator;
  * @author Dave Syer
  * @since 2.0
  */
-public abstract class AbstractMessageProcessor extends AbstractExpressionEvaluator implements MessageProcessor {
+public abstract class AbstractMessageProcessor<T> extends AbstractExpressionEvaluator implements MessageProcessor<T> {
 
-	abstract public Object processMessage(Message<?> message);
+	abstract public T processMessage(Message<?> message);
 
 }

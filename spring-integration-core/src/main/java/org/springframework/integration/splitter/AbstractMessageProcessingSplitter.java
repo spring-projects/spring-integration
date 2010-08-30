@@ -16,6 +16,8 @@
 
 package org.springframework.integration.splitter;
 
+import java.util.Collection;
+
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
@@ -32,12 +34,12 @@ import org.springframework.util.Assert;
  */
 abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter {
 
-	private final MessageProcessor messageProcessor;
+	private final MessageProcessor<Collection<?>> messageProcessor;
 
 
-	protected AbstractMessageProcessingSplitter(MessageProcessor messageProcessor) {
-		Assert.notNull(messageProcessor, "messageProcessor must not be null");
-		this.messageProcessor = messageProcessor;
+	protected AbstractMessageProcessingSplitter(MessageProcessor<Collection<?>> expressionEvaluatingMessageProcessor) {
+		Assert.notNull(expressionEvaluatingMessageProcessor, "messageProcessor must not be null");
+		this.messageProcessor = expressionEvaluatingMessageProcessor;
 	}
 
 	@Override
@@ -45,7 +47,7 @@ abstract class AbstractMessageProcessingSplitter extends AbstractMessageSplitter
 		super.onInit();
 		ConversionService conversionService = this.getConversionService();
 		if (conversionService != null && this.messageProcessor instanceof AbstractMessageProcessor) {
-			((AbstractMessageProcessor) this.messageProcessor).setConversionService(conversionService);
+			((AbstractMessageProcessor<?>) this.messageProcessor).setConversionService(conversionService);
 		}
 		if (this.messageProcessor instanceof BeanFactoryAware) {
 			((BeanFactoryAware) this.messageProcessor).setBeanFactory(this.getBeanFactory());

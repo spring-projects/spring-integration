@@ -61,7 +61,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		return this.evaluationContext;
 	}
 
-	protected Object evaluateExpression(Expression expression, Message<?> message, Class<?> expectedType) {
+	protected <T> T evaluateExpression(Expression expression, Message<?> message, Class<T> expectedType) {
 		try {
 			return evaluateExpression(expression, (Object) message, expectedType);
 		}
@@ -76,9 +76,8 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		}
 	}
 
-	protected Object evaluateExpression(Expression expression, Object message, Class<?> expectedType) {
-		return (expectedType != null) ? expression.getValue(this.evaluationContext, message, expectedType) : expression
-				.getValue(this.evaluationContext, message);
+	protected <T> T evaluateExpression(Expression expression, Object message, Class<T> expectedType) {
+		return expression.getValue(this.evaluationContext, message, expectedType);
 	}
 
 }

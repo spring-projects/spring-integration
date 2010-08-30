@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 
 	public MethodInvokingSelector(Object object, Method method) {
-		super(new MethodInvokingMessageProcessor(object, method));
+		super(new MethodInvokingMessageProcessor<Boolean>(object, method));
 		Class<?> returnType = method.getReturnType();
 		Assert.isTrue(boolean.class.isAssignableFrom(returnType)
 				|| Boolean.class.isAssignableFrom(returnType),
@@ -39,11 +39,11 @@ public class MethodInvokingSelector extends AbstractMessageProcessingSelector {
 	}
 
 	public MethodInvokingSelector(Object object, String methodName) {
-		super(new MethodInvokingMessageProcessor(object, methodName));
+		super(new MethodInvokingMessageProcessor<Boolean>(object, methodName));
 	}
 
 	public MethodInvokingSelector(Object object) {
-		super(new MethodInvokingMessageProcessor(object, Filter.class));
+		super(new MethodInvokingMessageProcessor<Boolean>(object, Filter.class));
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,15 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 public class MethodInvokingRouter extends AbstractMessageProcessingRouter {
 
 	public MethodInvokingRouter(Object object, Method method) {
-		super(new MethodInvokingMessageProcessor(object, method));
+		super(new MethodInvokingMessageProcessor<Object>(object, method));
 	}
 
 	public MethodInvokingRouter(Object object, String methodName) {
-		super(new MethodInvokingMessageProcessor(object, methodName));
+		super(new MethodInvokingMessageProcessor<Object>(object, methodName));
 	}
 
 	public MethodInvokingRouter(Object object) {
-		super(new MethodInvokingMessageProcessor(object, Router.class));
+		super(new MethodInvokingMessageProcessor<Object>(object, Router.class));
 	}
 
 }

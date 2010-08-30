@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,26 +30,28 @@ import org.springframework.integration.store.MessageGroup;
  */
 public class MethodInvokingReleaseStrategy implements ReleaseStrategy {
 
-	private final MethodInvokingMessageListProcessor adapter;
+	private final MethodInvokingMessageListProcessor<Boolean> adapter;
+
 
 	public MethodInvokingReleaseStrategy(Object object, Method method) {
-		adapter = new MethodInvokingMessageListProcessor(object, method, Boolean.class);
+		this.adapter = new MethodInvokingMessageListProcessor<Boolean>(object, method, Boolean.class);
 	}
 
 	public MethodInvokingReleaseStrategy(Object object, String methodName) {
-		adapter = new MethodInvokingMessageListProcessor(object, methodName, Boolean.class);
+		this.adapter = new MethodInvokingMessageListProcessor<Boolean>(object, methodName, Boolean.class);
+	}
+
+
+	public void setConversionService(ConversionService conversionService) {
+		this.adapter.setConversionService(conversionService);
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		adapter.setBeanFactory(beanFactory);
-	}
-
-	public void setConversionService(ConversionService conversionService) {
-		adapter.setConversionService(conversionService);
+		this.adapter.setBeanFactory(beanFactory);
 	}
 
 	public boolean canRelease(MessageGroup messages) {
-		return (Boolean) adapter.process(messages.getUnmarked(), null);
+		return this.adapter.process(messages.getUnmarked(), null);
 	}
 
 }

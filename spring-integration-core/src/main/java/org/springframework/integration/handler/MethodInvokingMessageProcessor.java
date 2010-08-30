@@ -36,24 +36,24 @@ import org.springframework.integration.util.MessagingMethodInvokerHelper;
  * 
  * @since 2.0
  */
-public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
+public class MethodInvokingMessageProcessor<T> extends AbstractMessageProcessor<T> {
 
-	private final MessagingMethodInvokerHelper delegate;
+	private final MessagingMethodInvokerHelper<T> delegate;
 
 	public MethodInvokingMessageProcessor(Object targetObject, Method method) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, method, false);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, method, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, methodName, false);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, String methodName, boolean requiresReply) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, methodName, Object.class, false);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, methodName, Object.class, false);
 	}
 
 	public MethodInvokingMessageProcessor(Object targetObject, Class<? extends Annotation> annotationType) {
-		delegate = new MessagingMethodInvokerHelper(targetObject, annotationType, false);
+		delegate = new MessagingMethodInvokerHelper<T>(targetObject, annotationType, false);
 	}
 	
 	@Override
@@ -68,10 +68,11 @@ public class MethodInvokingMessageProcessor extends AbstractMessageProcessor {
 		delegate.setBeanFactory(beanFactory);
 	}
 
-	public Object processMessage(Message<?> message) {
+	public T processMessage(Message<?> message) {
 		try {
 			return delegate.process(message);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new MessageHandlingException(message, e);
 		}
 	}

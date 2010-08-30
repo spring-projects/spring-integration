@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,17 +30,17 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingCorrelationStrategy implements CorrelationStrategy {
 
-	private final MethodInvokingMessageProcessor processor;
+	private final MethodInvokingMessageProcessor<Object> processor;
 
 	public MethodInvokingCorrelationStrategy(Object object, String methodName) {
-		this.processor = new MethodInvokingMessageProcessor(object, methodName, true);
+		this.processor = new MethodInvokingMessageProcessor<Object>(object, methodName, true);
 	}
 
 	public MethodInvokingCorrelationStrategy(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		Assert.isTrue(!Void.TYPE.equals(method.getReturnType()), "Method return type must not be void");
-		this.processor = new MethodInvokingMessageProcessor(object, method);
+		this.processor = new MethodInvokingMessageProcessor<Object>(object, method);
 	}
 
 	public Object getCorrelationKey(Message<?> message) {

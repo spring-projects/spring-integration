@@ -44,9 +44,9 @@ public class HeaderEnricher implements Transformer {
 	private static final Log logger = LogFactory.getLog(HeaderEnricher.class);
 
 
-	private final Map<String, ? extends HeaderValueMessageProcessor> headersToAdd;
+	private final Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd;
 
-	private volatile MessageProcessor messageProcessor;
+	private volatile MessageProcessor<?> messageProcessor;
 
 	private volatile boolean defaultOverwrite = false;
 
@@ -60,12 +60,12 @@ public class HeaderEnricher implements Transformer {
 	/**
 	 * Create a HeaderEnricher with the given map of headers.
 	 */
-	public HeaderEnricher(Map<String, ? extends HeaderValueMessageProcessor> headersToAdd) {
-		this.headersToAdd = (headersToAdd != null) ? headersToAdd : new HashMap<String, HeaderValueMessageProcessor>();
+	public HeaderEnricher(Map<String, ? extends HeaderValueMessageProcessor<?>> headersToAdd) {
+		this.headersToAdd = (headersToAdd != null) ? headersToAdd : new HashMap<String, HeaderValueMessageProcessor<Object>>();
 	}
 
 
-	public void setMessageProcessor(MessageProcessor messageProcessor) {
+	public <T> void setMessageProcessor(MessageProcessor<T> messageProcessor) {
 		this.messageProcessor = messageProcessor;
 	}
 
@@ -86,9 +86,9 @@ public class HeaderEnricher implements Transformer {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
 			this.addHeadersFromMessageProcessor(message, headerMap);
-			for (Map.Entry<String, ? extends HeaderValueMessageProcessor> entry : this.headersToAdd.entrySet()) {
+			for (Map.Entry<String, ? extends HeaderValueMessageProcessor<?>> entry : this.headersToAdd.entrySet()) {
 				String key = entry.getKey();
-				HeaderValueMessageProcessor valueProcessor = entry.getValue();
+				HeaderValueMessageProcessor<?> valueProcessor = entry.getValue();
 				Boolean shouldOverwrite = valueProcessor.isOverwrite();
 				if (shouldOverwrite == null) {
 					shouldOverwrite = this.defaultOverwrite;
@@ -129,14 +129,14 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	public static interface HeaderValueMessageProcessor extends MessageProcessor {
+	public static interface HeaderValueMessageProcessor<T> extends MessageProcessor<T> {
 
 		Boolean isOverwrite();
 
 	}
 
 
-	static abstract class AbstractHeaderValueMessageProcessor implements HeaderValueMessageProcessor {
+	static abstract class AbstractHeaderValueMessageProcessor<T> implements HeaderValueMessageProcessor<T> {
 
 		// null indicates no explicit setting; use header-enricher's 'default-overwrite' value
 		private volatile Boolean overwrite = null;
@@ -152,50 +152,50 @@ public class HeaderEnricher implements Transformer {
 	}
 
 
-	static class StaticHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor {
+	static class StaticHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> {
 
-		private final Object value;
+		private final T value;
 
-		public StaticHeaderValueMessageProcessor(Object value) {
+		public StaticHeaderValueMessageProcessor(T value) {
 			this.value = value;
 		}
 
-		public Object processMessage(Message<?> message) {
+		public T processMessage(Message<?> message) {
 			return this.value;
 		}
 	}
 
 
-	static class ExpressionEvaluatingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor implements BeanFactoryAware {
+	static class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> implements BeanFactoryAware {
 
-		private final ExpressionEvaluatingMessageProcessor targetProcessor;
+		private final ExpressionEvaluatingMessageProcessor<T> targetProcessor;
 
 		/**
 		 * Create a header value processor for the given expression String and the expected type
 		 * of the expression evaluation result. The expectedType may be null if unknown.
 		 */
-		public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<?> expectedType) {
-			this.targetProcessor = new ExpressionEvaluatingMessageProcessor(expressionString);
-			this.targetProcessor.setExpectedType(expectedType);
+		public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<T> expectedType) {
+			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expressionString, expectedType);
+			//this.targetProcessor.setExpectedType(expectedType);
 		}
 
 		public void setBeanFactory(BeanFactory beanFactory) {
 			this.targetProcessor.setBeanFactory(beanFactory);
 		}
 
-		public Object processMessage(Message<?> message) {
+		public T processMessage(Message<?> message) {
 			return this.targetProcessor.processMessage(message);
 		}
 
 	}
 
 
-	static class MethodInvokingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor {
+	static class MethodInvokingHeaderValueMessageProcessor extends AbstractHeaderValueMessageProcessor<Object> {
 
-		private final MethodInvokingMessageProcessor targetProcessor;
+		private final MethodInvokingMessageProcessor<Object> targetProcessor;
 
 		public MethodInvokingHeaderValueMessageProcessor(Object targetObject, String method) {
-			this.targetProcessor = new MethodInvokingMessageProcessor(targetObject, method);
+			this.targetProcessor = new MethodInvokingMessageProcessor<Object>(targetObject, method);
 		}
 
 		public Object processMessage(Message<?> message) {

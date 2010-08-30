@@ -126,7 +126,7 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 				Assert.state(this.expression == null,
 						"The 'targetObject' and 'expression' properties are mutually exclusive.");
 				if (this.targetObject instanceof MessageProcessor) {
-					this.handler = this.createMessageProcessingHandler((MessageProcessor) this.targetObject);
+					this.handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
 				}
 				else {
 					this.handler = this.createMethodInvokingHandler(this.targetObject, this.targetMethodName);
@@ -162,7 +162,7 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
 	}
 
-	MessageHandler createMessageProcessingHandler(MessageProcessor processor) {
+	<T> MessageHandler createMessageProcessingHandler(MessageProcessor<T> processor) {
 		return this.createMethodInvokingHandler(processor, "processMessage");
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.springframework.integration.splitter;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
@@ -33,15 +34,15 @@ import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 public class MethodInvokingSplitter extends AbstractMessageProcessingSplitter {
 
 	public MethodInvokingSplitter(Object object, Method method) {
-		super(new MethodInvokingMessageProcessor(object, method));
+		super(new MethodInvokingMessageProcessor<Collection<?>>(object, method));
 	}
 
 	public MethodInvokingSplitter(Object object, String methodName) {
-		super(new MethodInvokingMessageProcessor(object, methodName));
+		super(new MethodInvokingMessageProcessor<Collection<?>>(object, methodName));
 	}
 
 	public MethodInvokingSplitter(Object object) {
-		super(new MethodInvokingMessageProcessor(object, Splitter.class));
+		super(new MethodInvokingMessageProcessor<Collection<?>>(object, Splitter.class));
 	}
 
 }

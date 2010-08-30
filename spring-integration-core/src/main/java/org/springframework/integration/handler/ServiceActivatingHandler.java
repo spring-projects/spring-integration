@@ -27,22 +27,22 @@ import org.springframework.integration.annotation.ServiceActivator;
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
 
-	private final AbstractMessageProcessor processor;
+	private final AbstractMessageProcessor<Object> processor;
 
 
 	public ServiceActivatingHandler(final Object object) {
-		this(new MethodInvokingMessageProcessor(object, ServiceActivator.class));
+		this(new MethodInvokingMessageProcessor<Object>(object, ServiceActivator.class));
 	}
 
 	public ServiceActivatingHandler(Object object, Method method) {
-		this(new MethodInvokingMessageProcessor(object, method));
+		this(new MethodInvokingMessageProcessor<Object>(object, method));
 	}
 
 	public ServiceActivatingHandler(Object object, String methodName) {
-		this(new MethodInvokingMessageProcessor(object, methodName));
+		this(new MethodInvokingMessageProcessor<Object>(object, methodName));
 	}
 
-	public ServiceActivatingHandler(AbstractMessageProcessor processor) {
+	public ServiceActivatingHandler(AbstractMessageProcessor<Object> processor) {
 		this.processor = processor;
 	}
 

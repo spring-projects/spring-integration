@@ -49,7 +49,7 @@ public class XPathHeaderEnricher extends HeaderEnricher {
 	}
 
 
-	public static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor {
+	public static class XPathExpressionEvaluatingHeaderValueMessageProcessor implements HeaderValueMessageProcessor<Object> {
 
 		private final XPathExpression expression;
 

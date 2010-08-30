@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor {
+public class GroovyScriptExecutingMessageProcessor extends AbstractScriptExecutingMessageProcessor<Object> {
 
 	private final GroovyScriptFactory scriptFactory;
 

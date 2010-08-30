@@ -32,23 +32,28 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 2.0
  */
-public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcessor {
+public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProcessor<T> {
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
 	private final Expression expression;
 
-	private volatile Class<?> expectedType = null;
+	private final Class<T> expectedType;
 
+
+	public ExpressionEvaluatingMessageProcessor(String expression) {
+		this(expression, null);
+	}
 
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
 	 */
-	public ExpressionEvaluatingMessageProcessor(String expression) {
+	public ExpressionEvaluatingMessageProcessor(String expression, Class<T> expectedType) {
 		Assert.hasLength(expression, "The expression must be non empty");
 		try {
 			this.expression = parser.parseExpression(expression);
 			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
+			this.expectedType = expectedType;
 		}
 		catch (ParseException e) {
 			throw new IllegalArgumentException("Failed to parse expression.", e);
@@ -59,15 +64,15 @@ public class ExpressionEvaluatingMessageProcessor extends AbstractMessageProcess
 	/**
 	 * Set the result type expected from evaluation of the expression.
 	 */
-	public void setExpectedType(Class<?> expectedType) {
-		this.expectedType = expectedType;
-	}
+//	public void setExpectedType(Class<?> expectedType) {
+//		this.expectedType = expectedType;
+//	}
 
 	/**
 	 * Processes the Message by evaluating the expression with that Message as the
 	 * root object. The expression evaluation result Object will be returned.
 	 */
-	public Object processMessage(Message<?> message) {
+	public T processMessage(Message<?> message) {
 		return this.evaluateExpression(this.expression, message, this.expectedType);
 	}
 

@@ -71,7 +71,7 @@ import org.springframework.util.ReflectionUtils.MethodFilter;
  * 
  * @since 2.0
  */
-public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
+public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -115,12 +115,12 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
 		this(targetObject, annotationType, (String) null, expectedType, canProcessMessageList);
 	}
 
-	public Object process(Message<?> message) throws Exception {
+	public T process(Message<?> message) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(message);
 		return processInternal(parameters);
 	}
 
-	public Object process(Collection<Message<?>> messages, Map<String, ?> headers) throws Exception {
+	public T process(Collection<Message<?>> messages, Map<String, ?> headers) throws Exception {
 		ParametersWrapper parameters = new ParametersWrapper(messages, headers);
 		return processInternal(parameters);
 	}
@@ -209,21 +209,20 @@ public class MessagingMethodInvokerHelper extends AbstractExpressionEvaluator {
 		return false;
 	}
 
-	private Object processInternal(ParametersWrapper parameters) throws Exception {
+	private T processInternal(ParametersWrapper parameters) throws Exception {
 		Throwable evaluationException = null;
 		List<HandlerMethod> candidates = this.findHandlerMethodsForParameters(parameters);
 		Assert.state(!candidates.isEmpty(), "No candidate methods found for messages.");
 		for (HandlerMethod candidate : candidates) {
 			try {
 				Expression expression = candidate.getExpression();
-				Class<?> expectedType = this.expectedType != null ? this.expectedType : candidate.method
-						.getReturnType();
+				Class<?> expectedType = this.expectedType != null ? this.expectedType : candidate.method.getReturnType();
 				Object result = this.evaluateExpression(expression, parameters, expectedType);
 				if (this.requiresReply) {
 					Assert.notNull(result,
 							"Expression evaluation result was null, but this processor requires a reply.");
 				}
-				return result;
+				return (T) result;
 			}
 			// keep the first exception
 			catch (EvaluationException e) {
