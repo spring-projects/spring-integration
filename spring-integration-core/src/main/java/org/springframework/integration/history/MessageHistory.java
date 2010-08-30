@@ -54,7 +54,7 @@ public class MessageHistory implements List<Properties> {
 				message.getHeaders().get(HEADER_NAME, MessageHistory.class) : null;
 	}
 
-	public static <T> Message<T> addComponentToHistory(Message<T> message, NamedComponent component) {
+	public static <T> Message<T> write(Message<T> message, NamedComponent component) {
 		Assert.notNull(message, "Message must not be null");
 		Assert.notNull(component, "Component must not be null");
 		Properties metadata = extractMetadata(component);

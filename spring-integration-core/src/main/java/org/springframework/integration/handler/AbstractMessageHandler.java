@@ -72,7 +72,7 @@ public abstract class AbstractMessageHandler extends IntegrationObjectSupport im
 		}
 		try {
 			if (message != null && this.shouldTrack) {
-				message = MessageHistory.addComponentToHistory(message, this);
+				message = MessageHistory.write(message, this);
 			}
 			this.handleMessageInternal(message);
 		}

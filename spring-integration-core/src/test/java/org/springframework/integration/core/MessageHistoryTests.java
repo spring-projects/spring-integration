@@ -38,11 +38,11 @@ public class MessageHistoryTests {
 	public void addComponents() {
 		StringMessage original = new StringMessage("foo");
 		assertNull(MessageHistory.read(original));
-		Message<String> result1 = MessageHistory.addComponentToHistory(original, new TestComponent(1));
+		Message<String> result1 = MessageHistory.write(original, new TestComponent(1));
 		MessageHistory history1 = MessageHistory.read(result1);
 		assertNotNull(history1);
 		assertEquals("testComponent-1", history1.toString());
-		Message<String> result2 = MessageHistory.addComponentToHistory(result1, new TestComponent(2));
+		Message<String> result2 = MessageHistory.write(result1, new TestComponent(2));
 		MessageHistory history2 = MessageHistory.read(result2);
 		assertNotNull(history2);
 		assertEquals("testComponent-1,testComponent-2", history2.toString());
@@ -50,7 +50,7 @@ public class MessageHistoryTests {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void verifyImmutability() {
-		Message<?> message = MessageHistory.addComponentToHistory(MessageBuilder.withPayload("test").build(), new TestComponent(1));
+		Message<?> message = MessageHistory.write(MessageBuilder.withPayload("test").build(), new TestComponent(1));
 		MessageHistory history = MessageHistory.read(message);
 		history.add(new Properties());
 	}

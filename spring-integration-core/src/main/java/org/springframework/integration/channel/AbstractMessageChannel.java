@@ -170,7 +170,7 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		Assert.notNull(message, "message must not be null");
 		Assert.notNull(message.getPayload(), "message payload must not be null");
 		if (this.shouldTrack) {
-			message = MessageHistory.addComponentToHistory(message, this);
+			message = MessageHistory.write(message, this);
 		}
 		message = this.convertPayloadIfNecessary(message);
 		message = this.interceptors.preSend(message, this);

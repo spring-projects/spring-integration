@@ -90,7 +90,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 		try {
 			message = this.inboundMapper.toMessage(object);
 			if (this.shouldTrack) {
-				message = MessageHistory.addComponentToHistory(message, this);
+				message = MessageHistory.write(message, this);
 			}
 		}
 		catch (Exception e) {
