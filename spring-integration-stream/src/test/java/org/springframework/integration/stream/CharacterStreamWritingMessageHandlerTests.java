@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -76,15 +75,15 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleString() {
-		handler.handleMessage(new StringMessage("foo"));
+		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals("foo", writer.toString());
 	}
 
 	@Test
 	public void twoStringsAndNoNewLinesByDefault() {
 		endpoint.setMaxMessagesPerPoll(1);
-		channel.send(new StringMessage("foo"), 0);
-		channel.send(new StringMessage("bar"), 0);
+		channel.send(new GenericMessage<String>("foo"), 0);
+		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -100,8 +99,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void twoStringsWithNewLines() {
 		handler.setShouldAppendNewLine(true);
 		endpoint.setMaxMessagesPerPoll(1);
-		channel.send(new StringMessage("foo"), 0);
-		channel.send(new StringMessage("bar"), 0);
+		channel.send(new GenericMessage<String>("foo"), 0);
+		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -117,8 +116,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		endpoint.setMaxMessagesPerPoll(2);
-		channel.send(new StringMessage("foo"), 0);
-		channel.send(new StringMessage("bar"), 0);
+		channel.send(new GenericMessage<String>("foo"), 0);
+		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -130,8 +129,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setMaxMessagesPerPoll(10);
 		endpoint.setReceiveTimeout(0);
 		handler.setShouldAppendNewLine(true);
-		channel.send(new StringMessage("foo"), 0);
-		channel.send(new StringMessage("bar"), 0);
+		channel.send(new GenericMessage<String>("foo"), 0);
+		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();

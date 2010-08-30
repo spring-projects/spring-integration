@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -32,8 +33,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolver;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
@@ -85,7 +86,7 @@ public class UdpUnicastEndToEndTests implements Runnable {
 		}
 		try {
 			testingIpText = ">>>>>>> Testing IP " + new Date();
-			inputChannel.send(new StringMessage(testingIpText));
+			inputChannel.send(new GenericMessage<String>(testingIpText));
 			sentFirst.countDown();
 			try {
 				Thread.sleep(hangAroundFor); // give some time for console interaction

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
@@ -86,7 +85,7 @@ public class ByteStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleString() {
-		handler.handleMessage(new StringMessage("foo"));
+		handler.handleMessage(new GenericMessage<String>("foo"));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals("foo", new String(result));

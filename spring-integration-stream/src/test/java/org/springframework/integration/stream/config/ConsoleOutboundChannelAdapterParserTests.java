@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
 
 /**
@@ -72,7 +72,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		handler.handleMessage(new StringMessage("foo"));
+		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals("foo", out.toString());
 		assertEquals("", err.toString());
 	}
@@ -93,7 +93,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.forName("UTF-8"), writerCharset);
 		this.resetStreams();
-		handler.handleMessage(new StringMessage("bar"));
+		handler.handleMessage(new GenericMessage<String>("bar"));
 		assertEquals("bar", out.toString());
 		assertEquals("", err.toString());
 	}
@@ -128,7 +128,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		handler.handleMessage(new StringMessage("bad"));
+		handler.handleMessage(new GenericMessage<String>("bad"));
 		assertEquals("", out.toString());
 		assertEquals("bad", err.toString());
 	}
@@ -149,7 +149,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		handler.handleMessage(new StringMessage("foo"));
+		handler.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals("foo" + System.getProperty("line.separator"), out.toString());
 	}
 

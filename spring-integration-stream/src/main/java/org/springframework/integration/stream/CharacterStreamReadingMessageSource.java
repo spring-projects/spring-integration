@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
+import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -58,14 +59,14 @@ public class CharacterStreamReadingMessageSource implements MessageSource<String
 	}
 
 
-	public StringMessage receive() {
+	public Message<String> receive() {
 		try {
 			synchronized (this.monitor) {
 				if (!this.reader.ready()) {
 					return null;
 				}
 				String line = this.reader.readLine();
-				return (line != null) ? new StringMessage(line) : null;
+				return (line != null) ? new GenericMessage<String>(line) : null;
 			}
 		}
 		catch (IOException e) {
