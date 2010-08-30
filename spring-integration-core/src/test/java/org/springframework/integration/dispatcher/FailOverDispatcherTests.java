@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.TestHandlers;
 
@@ -43,7 +43,7 @@ public class FailOverDispatcherTests {
 		UnicastingDispatcher dispatcher = new UnicastingDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.addHandler(createConsumer(TestHandlers.countDownHandler(latch)));
-		dispatcher.dispatch(new StringMessage("test"));
+		dispatcher.dispatch(new GenericMessage<String>("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 	}
@@ -56,7 +56,7 @@ public class FailOverDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		dispatcher.addHandler(createConsumer(TestHandlers.countingCountDownHandler(counter1, latch)));
 		dispatcher.addHandler(createConsumer(TestHandlers.countingCountDownHandler(counter2, latch)));
-		dispatcher.dispatch(new StringMessage("test"));
+		dispatcher.dispatch(new GenericMessage<String>("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
@@ -70,7 +70,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target);
 		dispatcher.addHandler(target);
 		try {
-			dispatcher.dispatch(new StringMessage("test"));
+			dispatcher.dispatch(new GenericMessage<String>("test"));
 		}
 		catch (Exception e) {
 			// ignore
@@ -90,7 +90,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target3);
 		dispatcher.removeHandler(target2);
 		try {
-			dispatcher.dispatch(new StringMessage("test"));
+			dispatcher.dispatch(new GenericMessage<String>("test"));
 		}
 		catch (Exception e) {
 			// ignore
@@ -109,7 +109,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
 		try {
-			dispatcher.dispatch(new StringMessage("test1"));
+			dispatcher.dispatch(new GenericMessage<String>("test1"));
 		}
 		catch (Exception e) {
 			// ignore
@@ -117,7 +117,7 @@ public class FailOverDispatcherTests {
 		assertEquals(3, counter.get());
 		dispatcher.removeHandler(target2);
 		try {
-			dispatcher.dispatch(new StringMessage("test2"));
+			dispatcher.dispatch(new GenericMessage<String>("test2"));
 		}
 		catch (Exception e) {
 			// ignore
@@ -125,7 +125,7 @@ public class FailOverDispatcherTests {
 		assertEquals(5, counter.get());
 		dispatcher.removeHandler(target1);
 		try {
-			dispatcher.dispatch(new StringMessage("test3"));
+			dispatcher.dispatch(new GenericMessage<String>("test3"));
 		}
 		catch (Exception e) {
 			// ignore
@@ -140,14 +140,14 @@ public class FailOverDispatcherTests {
 		MessageHandler target = new CountingTestEndpoint(counter, false);
 		dispatcher.addHandler(target);
 		try {
-			dispatcher.dispatch(new StringMessage("test1"));
+			dispatcher.dispatch(new GenericMessage<String>("test1"));
 		}
 		catch (Exception e) {
 			// ignore
 		}
 		assertEquals(1, counter.get());
 		dispatcher.removeHandler(target);
-		dispatcher.dispatch(new StringMessage("test2"));
+		dispatcher.dispatch(new GenericMessage<String>("test2"));
 	}
 
 	@Test
@@ -160,7 +160,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		assertTrue(dispatcher.dispatch(new StringMessage("test")));
+		assertTrue(dispatcher.dispatch(new GenericMessage<String>("test")));
 		assertEquals("only the first target should have been invoked", 1, counter.get());
 	}
 
@@ -174,7 +174,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		assertTrue(dispatcher.dispatch(new StringMessage("test")));
+		assertTrue(dispatcher.dispatch(new GenericMessage<String>("test")));
 		assertEquals("first two targets should have been invoked", 2, counter.get());
 	}
 
@@ -189,7 +189,7 @@ public class FailOverDispatcherTests {
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
 		try {
-			assertFalse(dispatcher.dispatch(new StringMessage("test")));
+			assertFalse(dispatcher.dispatch(new GenericMessage<String>("test")));
 		}
 		catch (Exception e) {
 			// ignore

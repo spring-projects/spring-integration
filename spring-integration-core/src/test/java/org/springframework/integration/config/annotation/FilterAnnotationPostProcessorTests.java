@@ -27,7 +27,7 @@ import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 
@@ -81,10 +81,10 @@ public class FilterAnnotationPostProcessorTests {
 	private void testValidFilter(Object filter) {
 		postProcessor.postProcessAfterInitialization(filter, "testFilter");
 		context.refresh();
-		inputChannel.send(new StringMessage("good"));
+		inputChannel.send(new GenericMessage<String>("good"));
 		Message<?> passed = outputChannel.receive(0);
 		assertNotNull(passed);
-		inputChannel.send(new StringMessage("bad"));
+		inputChannel.send(new GenericMessage<String>("bad"));
 		assertNull(outputChannel.receive(0));
 		context.stop();
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -57,9 +57,9 @@ public class PollingConsumerEndpointTests {
 
 	private TestConsumer consumer = new TestConsumer();
 
-	private Message message = new StringMessage("test");
+	private Message message = new GenericMessage<String>("test");
 
-	private Message badMessage = new StringMessage("bad");
+	private Message badMessage = new GenericMessage<String>("bad");
 
 	private TestErrorHandler errorHandler = new TestErrorHandler();
 

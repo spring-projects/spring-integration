@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -36,9 +36,9 @@ public class ChannelPurgerTests {
 	@Test
 	public void testPurgeAllWithoutSelector() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
-		channel.send(new StringMessage("test3"));
+		channel.send(new GenericMessage<String>("test1"));
+		channel.send(new GenericMessage<String>("test2"));
+		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(3, purgedMessages.size());
@@ -48,9 +48,9 @@ public class ChannelPurgerTests {
 	@Test
 	public void testPurgeAllWithSelector() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
-		channel.send(new StringMessage("test3"));
+		channel.send(new GenericMessage<String>("test1"));
+		channel.send(new GenericMessage<String>("test2"));
+		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
@@ -64,9 +64,9 @@ public class ChannelPurgerTests {
 	@Test
 	public void testPurgeNoneWithSelector() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
-		channel.send(new StringMessage("test3"));
+		channel.send(new GenericMessage<String>("test1"));
+		channel.send(new GenericMessage<String>("test2"));
+		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
@@ -82,9 +82,9 @@ public class ChannelPurgerTests {
 	@Test
 	public void testPurgeSubsetWithSelector() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
-		channel.send(new StringMessage("test3"));
+		channel.send(new GenericMessage<String>("test1"));
+		channel.send(new GenericMessage<String>("test2"));
+		channel.send(new GenericMessage<String>("test3"));
 		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return (message.getPayload().equals("test2"));
@@ -102,10 +102,10 @@ public class ChannelPurgerTests {
 	public void testMultipleChannelsWithNoSelector() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
-		channel1.send(new StringMessage("test1"));
-		channel1.send(new StringMessage("test2"));
-		channel2.send(new StringMessage("test1"));
-		channel2.send(new StringMessage("test2"));
+		channel1.send(new GenericMessage<String>("test1"));
+		channel1.send(new GenericMessage<String>("test2"));
+		channel2.send(new GenericMessage<String>("test1"));
+		channel2.send(new GenericMessage<String>("test2"));
 		ChannelPurger purger = new ChannelPurger(channel1, channel2);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(4, purgedMessages.size());
@@ -117,12 +117,12 @@ public class ChannelPurgerTests {
 	public void testMultipleChannelsWithSelector() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
-		channel1.send(new StringMessage("test1"));
-		channel1.send(new StringMessage("test2"));
-		channel1.send(new StringMessage("test3"));
-		channel2.send(new StringMessage("test1"));
-		channel2.send(new StringMessage("test2"));
-		channel2.send(new StringMessage("test3"));		
+		channel1.send(new GenericMessage<String>("test1"));
+		channel1.send(new GenericMessage<String>("test2"));
+		channel1.send(new GenericMessage<String>("test3"));
+		channel2.send(new GenericMessage<String>("test1"));
+		channel2.send(new GenericMessage<String>("test2"));
+		channel2.send(new GenericMessage<String>("test3"));		
 		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return (message.getPayload().equals("test2"));
@@ -144,10 +144,10 @@ public class ChannelPurgerTests {
 	public void testPurgeNoneWithSelectorAndMultipleChannels() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
-		channel1.send(new StringMessage("test1"));
-		channel1.send(new StringMessage("test2"));
-		channel2.send(new StringMessage("test1"));
-		channel2.send(new StringMessage("test2"));
+		channel1.send(new GenericMessage<String>("test1"));
+		channel1.send(new GenericMessage<String>("test2"));
+		channel2.send(new GenericMessage<String>("test1"));
+		channel2.send(new GenericMessage<String>("test2"));
 		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;

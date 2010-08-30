@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -60,7 +59,7 @@ public class PayloadSerializingTransformerParserTests {
 
 	@Test
 	public void directChannelWithStringMessage() throws Exception {
-		directInput.send(new StringMessage("foo"));
+		directInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(0);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof byte[]);
@@ -69,7 +68,7 @@ public class PayloadSerializingTransformerParserTests {
 
 	@Test
 	public void queueChannelWithStringMessage() throws Exception {
-		queueInput.send(new StringMessage("foo"));
+		queueInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(3000);
 		assertNotNull(result);
 		assertTrue(result.getPayload() instanceof byte[]);

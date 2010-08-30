@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -47,7 +46,7 @@ public class PayloadTypeRouterTests {
 		payloadTypeChannelMap.put(Integer.class, integerChannel);
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
-		Message<String> message1 = new StringMessage("test");
+		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
 		MessageChannel result1 = router.determineTargetChannel(message1);
 		MessageChannel result2 = router.determineTargetChannel(message2);
@@ -196,7 +195,7 @@ public class PayloadTypeRouterTests {
 		payloadTypeChannelMap.put(Integer.class, integerChannel);
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
-		Message<String> message1 = new StringMessage("test");
+		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
 		router.handleMessage(message1);
 		router.handleMessage(message2);
@@ -217,7 +216,7 @@ public class PayloadTypeRouterTests {
 		PayloadTypeRouter router = new PayloadTypeRouter();
 		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
 		router.setDefaultOutputChannel(defaultChannel);
-		Message<String> message1 = new StringMessage("test");
+		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
 		router.handleMessage(message1);
 		router.handleMessage(message2);

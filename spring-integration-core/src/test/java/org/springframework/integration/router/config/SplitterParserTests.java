@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -39,7 +39,7 @@ public class SplitterParserTests {
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("splitterAdapterWithRefAndMethodInput");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		input.send(new StringMessage("this.is.a.test"));
+		input.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> result1 = output.receive(1000);
 		assertEquals("this", result1.getPayload());
 		Message<?> result2 = output.receive(1000);
@@ -58,7 +58,7 @@ public class SplitterParserTests {
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("splitterAdapterWithRefOnlyInput");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		input.send(new StringMessage("this.is.a.test"));
+		input.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> result1 = output.receive(1000);
 		assertEquals("this", result1.getPayload());
 		Message<?> result2 = output.receive(1000);
@@ -77,7 +77,7 @@ public class SplitterParserTests {
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("splitterImplementationInput");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		input.send(new StringMessage("this.is.a.test"));
+		input.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> result1 = output.receive(1000);
 		assertEquals("this", result1.getPayload());
 		Message<?> result2 = output.receive(1000);

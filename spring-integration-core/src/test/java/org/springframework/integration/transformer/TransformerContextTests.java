@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -38,7 +38,7 @@ public class TransformerContextTests {
 				"transformerContextTests.xml", this.getClass());
 		MessageChannel input = (MessageChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
-		input.send(new StringMessage("foo"));
+		input.send(new GenericMessage<String>("foo"));
 		Message<?> reply = output.receive(0);
 		assertEquals("FOO", reply.getPayload());
 	}

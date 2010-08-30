@@ -32,13 +32,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -70,7 +70,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
-		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
+		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<String>(""));
 		assertEquals("A", message.getHeaders().get("A"));
 	}
 
@@ -94,7 +94,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new B(), "myMethod");
-		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
+		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<String>(""));
 		assertEquals("B", message.getHeaders().get("B"));
 	}
 
@@ -119,7 +119,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
-		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
+		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<String>(""));
 		assertEquals("C", message.getHeaders().get("C"));
 	}
 
@@ -141,7 +141,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new C(), "myMethod");
-		Message<?> message = (Message<?>) processor.processMessage(new StringMessage(""));
+		Message<?> message = (Message<?>) processor.processMessage(new GenericMessage<String>(""));
 		assertEquals("C", message.getHeaders().get("C"));
 	}
 
@@ -149,7 +149,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnObject");
-		Object result = processor.processMessage(new StringMessage("testing"));
+		Object result = processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-1", result);
 	}
 
@@ -165,7 +165,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptPayloadAndReturnMessage");
-		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-2", result.getPayload());
 	}
 
@@ -173,7 +173,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageAndReturnObject");
-		Object result = processor.processMessage(new StringMessage("testing"));
+		Object result = processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-3", result);
 	}
 
@@ -181,7 +181,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageAndReturnMessage");
-		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-4", result.getPayload());
 	}
 
@@ -189,7 +189,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageSubclassAndReturnMessage");
-		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-5", result.getPayload());
 	}
 
@@ -197,7 +197,7 @@ public class MethodInvokingMessageProcessorTests {
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(new TestBean(),
 				"acceptMessageSubclassAndReturnMessageSubclass");
-		Message<?> result = (Message<?>) processor.processMessage(new StringMessage("testing"));
+		Message<?> result = (Message<?>) processor.processMessage(new GenericMessage<String>("testing"));
 		assertEquals("testing-6", result.getPayload());
 	}
 
@@ -249,7 +249,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageOnly", Message.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Object result = processor.processMessage(new StringMessage("foo"));
+		Object result = processor.processMessage(new GenericMessage<String>("foo"));
 		assertEquals("foo", result);
 	}
 
@@ -267,7 +267,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		Object result = processor.processMessage(new StringMessage("456"));
+		Object result = processor.processMessage(new GenericMessage<String>("456"));
 		assertEquals(new Integer(456), result);
 	}
 
@@ -276,7 +276,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		processor.processMessage(new StringMessage("foo"));
+		processor.processMessage(new GenericMessage<String>("foo"));
 	}
 
 	@Test
@@ -286,7 +286,7 @@ public class MethodInvokingMessageProcessorTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("integerMethod", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
 	@Test
@@ -295,7 +295,7 @@ public class MethodInvokingMessageProcessorTests {
 		TestErrorService service = new TestErrorService();
 		Method method = service.getClass().getMethod("error", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
 	@Test
@@ -304,7 +304,7 @@ public class MethodInvokingMessageProcessorTests {
 		TestErrorService service = new TestErrorService();
 		Method method = service.getClass().getMethod("checked", String.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(service, method);
-		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
 	@Test
@@ -406,7 +406,7 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		public Message<?> acceptPayloadAndReturnMessage(String s) {
-			return new StringMessage(s + "-2");
+			return new GenericMessage<String>(s + "-2");
 		}
 
 		public String acceptMessageAndReturnObject(Message<?> m) {
@@ -414,15 +414,15 @@ public class MethodInvokingMessageProcessorTests {
 		}
 
 		public Message<?> acceptMessageAndReturnMessage(Message<?> m) {
-			return new StringMessage(m.getPayload() + "-4");
+			return new GenericMessage<String>(m.getPayload() + "-4");
 		}
 
-		public Message<?> acceptMessageSubclassAndReturnMessage(StringMessage m) {
-			return new StringMessage(m.getPayload() + "-5");
+		public Message<?> acceptMessageSubclassAndReturnMessage(GenericMessage<String> m) {
+			return new GenericMessage<String>(m.getPayload() + "-5");
 		}
 
-		public StringMessage acceptMessageSubclassAndReturnMessageSubclass(StringMessage m) {
-			return new StringMessage(m.getPayload() + "-6");
+		public GenericMessage<String> acceptMessageSubclassAndReturnMessageSubclass(GenericMessage<String> m) {
+			return new GenericMessage<String>(m.getPayload() + "-6");
 		}
 
 		public String acceptPayloadAndHeaderAndReturnObject(String s, @Header("number") Integer n) {

@@ -43,7 +43,6 @@ import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
@@ -147,7 +146,7 @@ public class ChannelParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("channelParserTests.xml", this
 				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
-		channel.send(new StringMessage("incorrect type"));
+		channel.send(new GenericMessage<String>("incorrect type"));
 	}
 
 	@Test
@@ -165,7 +164,7 @@ public class ChannelParserTests {
 				.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
 		assertTrue(channel.send(new GenericMessage<Integer>(123)));
-		assertTrue(channel.send(new StringMessage("accepted type")));
+		assertTrue(channel.send(new GenericMessage<String>("accepted type")));
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -183,7 +182,7 @@ public class ChannelParserTests {
 		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorRef");
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(0, interceptor.getSendCount());
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		assertEquals(1, interceptor.getSendCount());
 		assertEquals(0, interceptor.getReceiveCount());
 		channel.receive();
@@ -195,7 +194,7 @@ public class ChannelParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("channelInterceptorParserTests.xml", this
 				.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorInnerBean");
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		Message<?> transformed = channel.receive(1000);
 		assertEquals("TEST", transformed.getPayload());
 	}
@@ -223,10 +222,10 @@ public class ChannelParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("priorityChannelParserTests.xml", this
 				.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithCustomComparator");
-		channel.send(new StringMessage("C"));
-		channel.send(new StringMessage("A"));
-		channel.send(new StringMessage("D"));
-		channel.send(new StringMessage("B"));
+		channel.send(new GenericMessage<String>("C"));
+		channel.send(new GenericMessage<String>("A"));
+		channel.send(new GenericMessage<String>("D"));
+		channel.send(new GenericMessage<String>("B"));
 		Message<?> reply1 = channel.receive(0);
 		Message<?> reply2 = channel.receive(0);
 		Message<?> reply3 = channel.receive(0);
@@ -250,7 +249,7 @@ public class ChannelParserTests {
 		assertEquals(3, channel.receive(0).getPayload());
 		boolean threwException = false;
 		try {
-			channel.send(new StringMessage("wrong type"));
+			channel.send(new GenericMessage<String>("wrong type"));
 		}
 		catch (MessageDeliveryException e) {
 			assertEquals("wrong type", e.getFailedMessage().getPayload());

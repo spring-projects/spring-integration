@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -35,7 +34,7 @@ public class PayloadTransformerTests {
 	@Test
 	public void testSuccessfulTransformation() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
-		Message<?> message = new StringMessage("foo");
+		Message<?> message = new GenericMessage<String>("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals(3, result.getPayload());
 	}
@@ -43,7 +42,7 @@ public class PayloadTransformerTests {
 	@Test(expected=MessagingException.class)
 	public void testExceptionThrownByTransformer() {
 		TestPayloadTransformer transformer = new TestPayloadTransformer();
-		Message<?> message = new StringMessage("bad");
+		Message<?> message = new GenericMessage<String>("bad");
 		transformer.transform(message);
 	}
 

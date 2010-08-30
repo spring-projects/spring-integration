@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.test.context.ContextConfiguration;
@@ -80,7 +81,7 @@ public class GatewayInvokingMessageHandlerTests {
 				Assert.assertEquals("oleg", message.getHeaders().get("name"));
 			}
 		});
-		channel.send(new StringMessage("hello"));
+		channel.send(new GenericMessage<String>("hello"));
 	}
 
 	@Test
@@ -177,7 +178,7 @@ public class GatewayInvokingMessageHandlerTests {
 		}
 
 		public MessageHandlingException echoWithMessagingException(String value) {
-			throw new MessageHandlingException(new StringMessage(value));
+			throw new MessageHandlingException(new GenericMessage<String>(value));
 		}
 		public RuntimeException echoWithErrorAsync(String value) {
 			throw new RuntimeException(value);

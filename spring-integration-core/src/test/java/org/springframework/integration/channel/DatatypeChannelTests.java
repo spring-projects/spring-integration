@@ -38,7 +38,6 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -49,13 +48,13 @@ public class DatatypeChannelTests {
 	@Test
 	public void supportedType() {
 		MessageChannel channel = createChannel(String.class);
-		assertTrue(channel.send(new StringMessage("test")));
+		assertTrue(channel.send(new GenericMessage<String>("test")));
 	}
 
 	@Test(expected = MessageDeliveryException.class)
 	public void unsupportedTypeAndNoConversionService() {
 		MessageChannel channel = createChannel(Integer.class);
-		channel.send(new StringMessage("123"));
+		channel.send(new GenericMessage<String>("123"));
 	}
 
 	@Test
@@ -63,7 +62,7 @@ public class DatatypeChannelTests {
 		QueueChannel channel = createChannel(Integer.class);
 		ConversionService conversionService = ConversionServiceFactory.createDefaultConversionService();
 		channel.setConversionService(conversionService);
-		assertTrue(channel.send(new StringMessage("123")));
+		assertTrue(channel.send(new GenericMessage<String>("123")));
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -139,7 +138,7 @@ public class DatatypeChannelTests {
 	@Test
 	public void multipleTypes() {
 		MessageChannel channel = createChannel(String.class, Integer.class);
-		assertTrue(channel.send(new StringMessage("test1")));
+		assertTrue(channel.send(new GenericMessage<String>("test1")));
 		assertTrue(channel.send(new GenericMessage<Integer>(2)));
 		Exception exception = null;
 		try {

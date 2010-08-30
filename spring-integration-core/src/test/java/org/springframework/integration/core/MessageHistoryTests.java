@@ -36,7 +36,7 @@ public class MessageHistoryTests {
 
 	@Test
 	public void addComponents() {
-		StringMessage original = new StringMessage("foo");
+		GenericMessage<String> original = new GenericMessage<String>("foo");
 		assertNull(MessageHistory.read(original));
 		Message<String> result1 = MessageHistory.write(original, new TestComponent(1));
 		MessageHistory history1 = MessageHistory.read(result1);

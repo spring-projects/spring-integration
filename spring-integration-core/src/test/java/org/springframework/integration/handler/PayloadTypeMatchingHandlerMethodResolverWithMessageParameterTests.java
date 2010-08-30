@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -49,7 +48,7 @@ public class PayloadTypeMatchingHandlerMethodResolverWithMessageParameterTests {
 	public void stringPayload() throws Exception {
 		Class<?>[] types = new Class<?>[] { Message.class };
 		Method expected = TestService.class.getMethod("stringPayload", types);
-		Method resolved = resolver.resolveHandlerMethod(new StringMessage("foo"));
+		Method resolved = resolver.resolveHandlerMethod(new TestStringMessage("foo"));
 		assertEquals(expected, resolved);
 	}
 
@@ -115,9 +114,9 @@ public class PayloadTypeMatchingHandlerMethodResolverWithMessageParameterTests {
 		Method[] candidates = HandlerMethodUtils.getCandidateHandlerMethods(service);
 		PayloadTypeMatchingHandlerMethodResolver methodResovler
 				= new PayloadTypeMatchingHandlerMethodResolver(candidates);
-		Class<?>[] types = new Class<?>[] { StringMessage.class };
+		Class<?>[] types = new Class<?>[] { TestStringMessage.class };
 		Method expected = TestServiceWithMessageTypes.class.getMethod("stringMessage", types);
-		Message<?> message = new StringMessage("foo");
+		Message<?> message = new TestStringMessage("foo");
 		Method resolved = methodResovler.resolveHandlerMethod(message);
 		assertEquals(expected, resolved);
 		assertEquals("foo", resolved.invoke(service, message));
@@ -215,7 +214,7 @@ public class PayloadTypeMatchingHandlerMethodResolverWithMessageParameterTests {
 
 	public static class TestServiceWithMessageTypes {
 
-		public String stringMessage(StringMessage message) {
+		public String stringMessage(TestStringMessage message) {
 			return message.getPayload();
 		}
 
@@ -246,6 +245,16 @@ public class PayloadTypeMatchingHandlerMethodResolverWithMessageParameterTests {
 	}
 
 	public class TestFooImpl2Subclass extends TestFooImpl2 {
+	}
+
+
+	@SuppressWarnings("serial")
+	private static class TestStringMessage extends GenericMessage<String> {
+
+		private TestStringMessage(String payload) {
+			super(payload);
+		}
+
 	}
 
 }

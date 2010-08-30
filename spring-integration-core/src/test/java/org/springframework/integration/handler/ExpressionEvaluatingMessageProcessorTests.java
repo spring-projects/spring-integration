@@ -25,6 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.internal.matchers.TypeSafeMatcher;
 import org.junit.rules.ExpectedException;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
@@ -32,7 +33,6 @@ import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationException;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Dave Syer
@@ -51,7 +51,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 	@Test
 	public void testProcessMessage() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload");
-		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.stringify(payload)");
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
-		assertEquals("2", processor.processMessage(new StringMessage("2")));
+		assertEquals("2", processor.processMessage(new GenericMessage<String>("2")));
 	}
 
 	@Test
@@ -76,7 +76,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		}
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.ping(payload)");
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
-		assertEquals(null, processor.processMessage(new StringMessage("2")));
+		assertEquals(null, processor.processMessage(new GenericMessage<String>("2")));
 	}
 
 	@Test
@@ -91,28 +91,28 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.find(payload)");
 		processor.setBeanFactory(new GenericApplicationContext().getBeanFactory());
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
-		String result = (String) processor.processMessage(new StringMessage("classpath:*.properties"));
+		String result = (String) processor.processMessage(new GenericMessage<String>("classpath:*.properties"));
 		assertTrue("Wrong result: "+result, result.contains("log4j.properties"));
 	}
 
 	@Test
 	public void testProcessMessageWithDollarInBrackets() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers['$id']");
-		StringMessage message = new StringMessage("foo");
+		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
 	@Test
 	public void testProcessMessageWithDollarPropertyAccess() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers.$id");
-		StringMessage message = new StringMessage("foo");
+		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
 	@Test
 	public void testProcessMessageWithStaticKey() {
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers[headers.ID]");
-		StringMessage message = new StringMessage("foo");
+		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
@@ -124,7 +124,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		context.registerBeanDefinition("testString", beanDefinition);
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.concat(@testString)");
 		processor.setBeanFactory(context);
-		StringMessage message = new StringMessage("foo");
+		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("foobar", processor.processMessage(message));
 	}
 
@@ -136,7 +136,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		context.registerBeanDefinition("testString", beanDefinition);
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("@testString.concat(payload)");
 		processor.setBeanFactory(context);
-		StringMessage message = new StringMessage("foo");
+		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("barfoo", processor.processMessage(message));
 	}
 
@@ -155,7 +155,7 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			}
 		});
 		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.fixMe()");
-		assertEquals("foo", processor.processMessage(new StringMessage("foo")));
+		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
 	@Test

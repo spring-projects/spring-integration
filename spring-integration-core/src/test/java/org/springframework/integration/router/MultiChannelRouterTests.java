@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,12 @@ import static org.junit.Assert.assertNotNull;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -48,7 +49,7 @@ public class MultiChannelRouterTests {
 		channelResolver.addChannel("channel1", channel1);
 		channelResolver.addChannel("channel2", channel2);
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
@@ -68,7 +69,7 @@ public class MultiChannelRouterTests {
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -80,7 +81,7 @@ public class MultiChannelRouterTests {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"});
 			}
 		};
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 

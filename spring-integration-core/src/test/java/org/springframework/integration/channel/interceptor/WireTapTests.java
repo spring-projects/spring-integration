@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -38,7 +38,7 @@ public class WireTapTests {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
-		mainChannel.send(new StringMessage("testing"));
+		mainChannel.send(new GenericMessage<String>("testing"));
 		Message<?> original = mainChannel.receive(0);
 		assertNotNull(original);
 		Message<?> intercepted = secondaryChannel.receive(0);
@@ -51,7 +51,7 @@ public class WireTapTests {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel, new TestSelector(false)));
-		mainChannel.send(new StringMessage("testing"));
+		mainChannel.send(new GenericMessage<String>("testing"));
 		Message<?> original = mainChannel.receive(0);
 		assertNotNull(original);
 		Message<?> intercepted = secondaryChannel.receive(0);
@@ -63,7 +63,7 @@ public class WireTapTests {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel, new TestSelector(true)));
-		mainChannel.send(new StringMessage("testing"));
+		mainChannel.send(new GenericMessage<String>("testing"));
 		Message<?> original = mainChannel.receive(0);
 		assertNotNull(original);
 		Message<?> intercepted = secondaryChannel.receive(0);
@@ -82,7 +82,7 @@ public class WireTapTests {
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		assertNull(secondaryChannel.receive(0));
-		Message<?> message = new StringMessage("testing");
+		Message<?> message = new GenericMessage<String>("testing");
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);
 		Message<?> intercepted = secondaryChannel.receive(0);

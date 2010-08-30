@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ import org.junit.Test;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -50,7 +50,7 @@ public class ExecutorChannelTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		TestHandler handler = new TestHandler(latch);
 		channel.subscribe(handler);
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertNotNull(handler.thread);
@@ -73,7 +73,7 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler2);
 		channel.subscribe(handler3);
 		for (int i = 0; i < numberOfMessages; i++) {
-			channel.send(new StringMessage("test-" + i));
+			channel.send(new GenericMessage<String>("test-" + i));
 		}
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -107,7 +107,7 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler3);
 		handler2.shouldFail = true;
 		for (int i = 0; i < numberOfMessages; i++) {
-			channel.send(new StringMessage("test-" + i));
+			channel.send(new GenericMessage<String>("test-" + i));
 		}
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -140,7 +140,7 @@ public class ExecutorChannelTests {
 		channel.subscribe(handler3);
 		handler1.shouldFail = true;
 		for (int i = 0; i < numberOfMessages; i++) {
-			channel.send(new StringMessage("test-" + i));
+			channel.send(new GenericMessage<String>("test-" + i));
 		}
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());

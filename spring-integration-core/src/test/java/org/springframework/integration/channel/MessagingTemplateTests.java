@@ -35,11 +35,11 @@ import org.junit.Test;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.ChannelResolutionException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -86,7 +86,7 @@ public class MessagingTemplateTests {
 	public void send() {
 		MessagingTemplate template = new MessagingTemplate();
 		QueueChannel channel = new QueueChannel();
-		template.send(channel, new StringMessage("test"));
+		template.send(channel, new GenericMessage<String>("test"));
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -97,7 +97,7 @@ public class MessagingTemplateTests {
 		QueueChannel channel = new QueueChannel();
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultChannel(channel);
-		template.send(new StringMessage("test"));
+		template.send(new GenericMessage<String>("test"));
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -107,7 +107,7 @@ public class MessagingTemplateTests {
 	public void sendWithDefaultChannelProvidedByConstructor() {
 		QueueChannel channel = new QueueChannel();
 		MessagingTemplate template = new MessagingTemplate(channel);
-		template.send(new StringMessage("test"));
+		template.send(new GenericMessage<String>("test"));
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -118,7 +118,7 @@ public class MessagingTemplateTests {
 		QueueChannel explicitChannel = new QueueChannel();
 		QueueChannel defaultChannel = new QueueChannel();
 		MessagingTemplate template = new MessagingTemplate(defaultChannel);
-		template.send(explicitChannel, new StringMessage("test"));
+		template.send(explicitChannel, new GenericMessage<String>("test"));
 		Message<?> reply = explicitChannel.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -128,13 +128,13 @@ public class MessagingTemplateTests {
 	@Test(expected = IllegalStateException.class)
 	public void sendWithoutChannelArgFailsIfNoDefaultAvailable() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.send(new StringMessage("test"));
+		template.send(new GenericMessage<String>("test"));
 	}
 
 	@Test
 	public void receive() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		MessagingTemplate template = new MessagingTemplate();
 		Message<?> reply = template.receive(channel);
 		assertEquals("test", reply.getPayload());
@@ -143,7 +143,7 @@ public class MessagingTemplateTests {
 	@Test
 	public void receiveWithDefaultChannelProvidedBySetter() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		MessagingTemplate template = new MessagingTemplate();
 		template.setDefaultChannel(channel);
 		Message<?> reply = template.receive();
@@ -153,7 +153,7 @@ public class MessagingTemplateTests {
 	@Test
 	public void receiveWithDefaultChannelProvidedByConstructor() {
 		QueueChannel channel = new QueueChannel();
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		MessagingTemplate template = new MessagingTemplate(channel);
 		Message<?> reply = template.receive();
 		assertEquals("test", reply.getPayload());
@@ -163,7 +163,7 @@ public class MessagingTemplateTests {
 	public void receiveWithExplicitChannelTakesPrecedenceOverDefault() {
 		QueueChannel explicitChannel = new QueueChannel();
 		QueueChannel defaultChannel = new QueueChannel();
-		explicitChannel.send(new StringMessage("test"));
+		explicitChannel.send(new GenericMessage<String>("test"));
 		MessagingTemplate template = new MessagingTemplate(defaultChannel);
 		template.setReceiveTimeout(0);
 		Message<?> reply = template.receive(explicitChannel);
@@ -188,7 +188,7 @@ public class MessagingTemplateTests {
 	public void sendAndReceive() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setReceiveTimeout(3000);
-		Message<?> reply = template.sendAndReceive(this.requestChannel, new StringMessage("test"));
+		Message<?> reply = template.sendAndReceive(this.requestChannel, new GenericMessage<String>("test"));
 		assertEquals("TEST", reply.getPayload());
 	}
 
@@ -197,7 +197,7 @@ public class MessagingTemplateTests {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setReceiveTimeout(3000);
 		template.setDefaultChannel(this.requestChannel);
-		Message<?> reply = template.sendAndReceive(new StringMessage("test"));
+		Message<?> reply = template.sendAndReceive(new GenericMessage<String>("test"));
 		assertEquals("TEST", reply.getPayload());
 	}
 
@@ -206,7 +206,7 @@ public class MessagingTemplateTests {
 		QueueChannel defaultChannel = new QueueChannel();
 		MessagingTemplate template = new MessagingTemplate(defaultChannel);
 		template.setReceiveTimeout(3000);
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		Message<?> reply = template.sendAndReceive(this.requestChannel, message);
 		assertEquals("TEST", reply.getPayload());
 		assertNull(defaultChannel.receive(0));
@@ -215,7 +215,7 @@ public class MessagingTemplateTests {
 	@Test(expected = IllegalStateException.class)
 	public void sendAndReceiveWithoutChannelArgFailsIfNoDefaultAvailable() {
 		MessagingTemplate template = new MessagingTemplate();
-		template.sendAndReceive(new StringMessage("test"));
+		template.sendAndReceive(new GenericMessage<String>("test"));
 	}
 
 	@Test

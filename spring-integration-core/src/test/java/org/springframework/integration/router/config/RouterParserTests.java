@@ -20,6 +20,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,15 +42,10 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.integration.test.util.TestUtils;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 /**
  * @author Mark Fisher
@@ -63,11 +61,11 @@ public class RouterParserTests {
 		MessageChannel input = (MessageChannel) context.getBean("input");
 		PollableChannel output1 = (PollableChannel) context.getBean("output1");
 		PollableChannel output2 = (PollableChannel) context.getBean("output2");
-		input.send(new StringMessage("1"));
+		input.send(new GenericMessage<String>("1"));
 		Message<?> result1 = output1.receive(1000);
 		assertEquals("1", result1.getPayload());
 		assertNull(output2.receive(0));
-		input.send(new StringMessage("2"));
+		input.send(new GenericMessage<String>("2"));
 		Message<?> result2 = output2.receive(1000);
 		assertEquals("2", result2.getPayload());
 		assertNull(output1.receive(0));
@@ -82,7 +80,7 @@ public class RouterParserTests {
 		PollableChannel output1 = (PollableChannel) context.getBean("output1");
 		PollableChannel output2 = (PollableChannel) context.getBean("output2");
 		PollableChannel defaultOutput = (PollableChannel) context.getBean("defaultOutput");
-		input.send(new StringMessage("99"));
+		input.send(new GenericMessage<String>("99"));
 		assertNull(output1.receive(0));
 		assertNull(output2.receive(0));
 		Message<?> result = defaultOutput.receive(0);
@@ -96,7 +94,7 @@ public class RouterParserTests {
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("inputForAbstractMessageRouterImplementation");
 		PollableChannel output = (PollableChannel) context.getBean("output3");
-		input.send(new StringMessage("test-implementation"));
+		input.send(new GenericMessage<String>("test-implementation"));
 		Message<?> result = output.receive(0);
 		assertNotNull(result);
 		assertEquals("test-implementation", result.getPayload());		
@@ -109,7 +107,7 @@ public class RouterParserTests {
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("inputForAnnotatedRouter");
 		PollableChannel output = (PollableChannel) context.getBean("output4");
-		input.send(new StringMessage("test-annotation"));
+		input.send(new GenericMessage<String>("test-annotation"));
 		Message<?> result = output.receive(0);
 		assertNotNull(result);
 		assertEquals("test-annotation", result.getPayload());	
@@ -130,7 +128,7 @@ public class RouterParserTests {
 				"routerParserTests.xml", this.getClass());
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("ignoreChannelNameResolutionFailuresInput");
-		input.send(new StringMessage("channelThatDoesNotExist"));
+		input.send(new GenericMessage<String>("channelThatDoesNotExist"));
 	}
 
 	@Test
@@ -165,7 +163,7 @@ public class RouterParserTests {
 		PollableChannel out1 = context.getBean("sequenceOut1", PollableChannel.class);
 		PollableChannel out2 = context.getBean("sequenceOut2", PollableChannel.class);
 		PollableChannel out3 = context.getBean("sequenceOut3", PollableChannel.class);
-		Message<?> originalMessage = new StringMessage("test");
+		Message<?> originalMessage = new GenericMessage<String>("test");
 		input.send(originalMessage);
 		Message<?> message1 = out1.receive(0);
 		Message<?> message2 = out2.receive(0);
@@ -189,7 +187,7 @@ public class RouterParserTests {
 		DirectChannel inputChannel = context.getBean("inputChannel", DirectChannel.class);
 		SubscribableChannel errorChannel = context.getBean("errorChannel", SubscribableChannel.class);
 		errorChannel.subscribe(handler);
-		inputChannel.send(new StringMessage("fail"));
+		inputChannel.send(new GenericMessage<String>("fail"));
 		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 	}
 	

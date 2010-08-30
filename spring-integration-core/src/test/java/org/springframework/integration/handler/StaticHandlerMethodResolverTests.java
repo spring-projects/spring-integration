@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -61,7 +61,7 @@ public class StaticHandlerMethodResolverTests {
 	public void validPayloadMethod() throws Exception {
 		Method method = TestBean.class.getDeclaredMethod("payloadMethod", new Class<?>[] {String.class});
 		HandlerMethodResolver resolver = new StaticHandlerMethodResolver(method);
-		Method resolved = resolver.resolveHandlerMethod(new StringMessage("foo"));
+		Method resolved = resolver.resolveHandlerMethod(new GenericMessage<String>("foo"));
 		assertEquals(method, resolved);
 	}
 
@@ -75,7 +75,7 @@ public class StaticHandlerMethodResolverTests {
 	public void validHeaderMethod() throws Exception {
 		Method method = TestBean.class.getDeclaredMethod("headerMethod", new Class<?>[] {String.class});
 		HandlerMethodResolver resolver = new StaticHandlerMethodResolver(method);
-		Method resolved = resolver.resolveHandlerMethod(new StringMessage("foo"));
+		Method resolved = resolver.resolveHandlerMethod(new GenericMessage<String>("foo"));
 		assertEquals(method, resolved);
 	}
 
@@ -83,7 +83,7 @@ public class StaticHandlerMethodResolverTests {
 	public void validHeaderMapMethod() throws Exception {
 		Method method = TestBean.class.getDeclaredMethod("headerMapMethod", new Class<?>[] {Map.class});
 		HandlerMethodResolver resolver = new StaticHandlerMethodResolver(method);
-		Method resolved = resolver.resolveHandlerMethod(new StringMessage("foo"));
+		Method resolved = resolver.resolveHandlerMethod(new GenericMessage<String>("foo"));
 		assertEquals(method, resolved);
 	}
 
@@ -92,7 +92,7 @@ public class StaticHandlerMethodResolverTests {
 		Class<?>[] types = new Class<?>[] { String.class, String.class };
 		Method method = TestBean.class.getDeclaredMethod("payloadAndHeaderMethod", types);
 		HandlerMethodResolver resolver = new StaticHandlerMethodResolver(method);
-		Method resolved = resolver.resolveHandlerMethod(new StringMessage("foo"));
+		Method resolved = resolver.resolveHandlerMethod(new GenericMessage<String>("foo"));
 		assertEquals(method, resolved);
 	}
 

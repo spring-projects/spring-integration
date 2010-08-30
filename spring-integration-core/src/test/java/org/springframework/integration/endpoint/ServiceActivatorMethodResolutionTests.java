@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 
 /**
@@ -37,7 +37,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.handleMessage(new StringMessage("foo"));
+		serviceActivator.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}
@@ -54,7 +54,7 @@ public class ServiceActivatorMethodResolutionTests {
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.handleMessage(new StringMessage("foo"));
+		serviceActivator.handleMessage(new GenericMessage<String>("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}

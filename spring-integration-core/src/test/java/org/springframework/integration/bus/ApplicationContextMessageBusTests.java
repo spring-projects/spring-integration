@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -80,7 +79,7 @@ public class ApplicationContextMessageBusTests {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		QueueChannel sourceChannel = new QueueChannel();
 		context.registerChannel("sourceChannel", sourceChannel);
-		sourceChannel.send(new StringMessage("test"));
+		sourceChannel.send(new GenericMessage<String>("test"));
 		QueueChannel targetChannel = new QueueChannel();
 		context.registerChannel("targetChannel", targetChannel);
 		context.refresh();
@@ -128,7 +127,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerEndpoint("testEndpoint1", endpoint1);
 		context.registerEndpoint("testEndpoint2", endpoint2);
 		context.refresh();
-		inputChannel.send(new StringMessage("testing"));
+		inputChannel.send(new GenericMessage<String>("testing"));
 		Message<?> message1 = outputChannel1.receive(3000);
 		Message<?> message2 = outputChannel2.receive(0);
 		context.stop();
@@ -166,7 +165,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerEndpoint("testEndpoint1", endpoint1);
 		context.registerEndpoint("testEndpoint2", endpoint2);
 		context.refresh();
-		inputChannel.send(new StringMessage("testing"));
+		inputChannel.send(new GenericMessage<String>("testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("both handlers should have been invoked", 0, latch.getCount());
 		Message<?> message1 = outputChannel1.receive(500);

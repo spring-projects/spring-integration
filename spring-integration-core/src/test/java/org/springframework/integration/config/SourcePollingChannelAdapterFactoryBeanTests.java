@@ -27,10 +27,11 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
@@ -77,7 +78,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 	private static class TestSource implements MessageSource<String> {
 
 		public Message<String> receive() {
-			return new StringMessage("test");
+			return new GenericMessage<String>("test");
 		}
 	}
 

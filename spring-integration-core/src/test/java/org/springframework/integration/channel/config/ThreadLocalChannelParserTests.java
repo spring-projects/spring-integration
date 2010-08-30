@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.config.TestChannelInterceptor;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -55,12 +56,12 @@ public class ThreadLocalChannelParserTests {
 
 	@Test
 	public void testSendInAnotherThread() throws Exception {
-		simpleChannel.send(new StringMessage("test"));
+		simpleChannel.send(new GenericMessage<String>("test"));
 		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
 		final CountDownLatch latch = new CountDownLatch(1);
 		otherThreadExecutor.execute(new Runnable() {
 			public void run() {
-				simpleChannel.send(new StringMessage("crap"));
+				simpleChannel.send(new GenericMessage<String>("crap"));
 				latch.countDown();
 			}
 		});
@@ -72,11 +73,11 @@ public class ThreadLocalChannelParserTests {
 
 	@Test
 	public void testReceiveInAnotherThread() throws Exception {
-		simpleChannel.send(new StringMessage("test-1.1"));
-		simpleChannel.send(new StringMessage("test-1.2"));
-		simpleChannel.send(new StringMessage("test-1.3"));
-		channelWithInterceptor.send(new StringMessage("test-2.1"));
-		channelWithInterceptor.send(new StringMessage("test-2.2"));
+		simpleChannel.send(new GenericMessage<String>("test-1.1"));
+		simpleChannel.send(new GenericMessage<String>("test-1.2"));
+		simpleChannel.send(new GenericMessage<String>("test-1.3"));
+		channelWithInterceptor.send(new GenericMessage<String>("test-2.1"));
+		channelWithInterceptor.send(new GenericMessage<String>("test-2.2"));
 		Executor otherThreadExecutor = Executors.newSingleThreadExecutor();
 		final List<Object> otherThreadResults = new ArrayList<Object>();
 		final CountDownLatch latch = new CountDownLatch(2);
@@ -108,7 +109,7 @@ public class ThreadLocalChannelParserTests {
 	@Test
 	public void testInterceptor() {
 		int before = interceptor.getSendCount();
-		channelWithInterceptor.send(new StringMessage("test"));
+		channelWithInterceptor.send(new GenericMessage<String>("test"));
 		assertEquals(before+1, interceptor.getSendCount());
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -41,7 +41,7 @@ public class SingleChannelRouterTests {
 				return channel;
 			}
 		};
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
@@ -59,7 +59,7 @@ public class SingleChannelRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel("testChannel", channel);
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
@@ -73,7 +73,7 @@ public class SingleChannelRouterTests {
 				return null;
 			}
 		};
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -86,7 +86,7 @@ public class SingleChannelRouterTests {
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 

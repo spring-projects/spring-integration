@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -54,7 +53,7 @@ public class ObjectToStringTransformerParserTests {
 
 	@Test
 	public void directChannelWithStringMessage() {
-		directInput.send(new StringMessage("foo"));
+		directInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(0);
 		assertNotNull(result);
 		assertEquals("foo", result.getPayload());
@@ -62,7 +61,7 @@ public class ObjectToStringTransformerParserTests {
 
 	@Test
 	public void queueChannelWithStringMessage() {
-		queueInput.send(new StringMessage("foo"));
+		queueInput.send(new GenericMessage<String>("foo"));
 		Message<?> result = output.receive(3000);
 		assertNotNull(result);
 		assertEquals("foo", result.getPayload());

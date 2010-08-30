@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -40,7 +39,7 @@ public class PayloadSerializingTransformerTests {
 	@Test
 	public void serializeString() throws Exception {
 		PayloadSerializingTransformer transformer = new PayloadSerializingTransformer();
-		Message<?> result = transformer.transform(new StringMessage("foo"));
+		Message<?> result = transformer.transform(new GenericMessage<String>("foo"));
 		Object payload = result.getPayload();
 		assertNotNull(payload);
 		assertTrue(payload instanceof byte[]);

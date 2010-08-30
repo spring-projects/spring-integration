@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import java.util.concurrent.ConcurrentMap;
 import org.springframework.integration.Message;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.annotation.ReleaseStrategy;
+import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Marius Bogoevici
@@ -49,7 +49,7 @@ public class TestAnnotatedEndpointWithReleaseStrategy {
 				correlationId = message.getHeaders().getCorrelationId();
 			}
 		}
-		Message<?> returnedMessage =  new StringMessage(buffer.toString());
+		Message<?> returnedMessage =  new GenericMessage<String>(buffer.toString());
 		aggregatedMessages.put(correlationId, returnedMessage);
 		return returnedMessage;
 	}

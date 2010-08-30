@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.test.util.TestUtils;
@@ -56,7 +55,7 @@ public class MethodInvokingMessageHandlerTests {
 
 	@Test(expected = MessagingException.class)
 	public void methodWithReturnValue() {
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		try {
 			MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "methodWithReturnValue");
 			handler.handleMessage(message);

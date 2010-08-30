@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 
 /**
@@ -53,11 +53,11 @@ public class SubscriberOrderTests {
 		context.refresh();
 		TestBean testBean = (TestBean) context.getBean("testBean");
 		MessageChannel channel = (MessageChannel) context.getBean("input");
-		channel.send(new StringMessage("test-1"));
-		channel.send(new StringMessage("test-2"));
-		channel.send(new StringMessage("test-3"));
-		channel.send(new StringMessage("test-4"));
-		channel.send(new StringMessage("test-5"));
+		channel.send(new GenericMessage<String>("test-1"));
+		channel.send(new GenericMessage<String>("test-2"));
+		channel.send(new GenericMessage<String>("test-3"));
+		channel.send(new GenericMessage<String>("test-4"));
+		channel.send(new GenericMessage<String>("test-5"));
 		List<Integer> calls = testBean.calls;
 		assertEquals(5, calls.size());
 		assertEquals(1, calls.get(0).intValue());
@@ -81,16 +81,16 @@ public class SubscriberOrderTests {
 		context.refresh();
 		TestBean testBean = (TestBean) context.getBean("testBean");
 		MessageChannel channel = (MessageChannel) context.getBean("input");
-		channel.send(new StringMessage("test-1"));
-		channel.send(new StringMessage("test-2"));
-		channel.send(new StringMessage("test-3"));
-		channel.send(new StringMessage("test-4"));
-		channel.send(new StringMessage("test-5"));
-		channel.send(new StringMessage("test-6"));
-		channel.send(new StringMessage("test-7"));
-		channel.send(new StringMessage("test-8"));
-		channel.send(new StringMessage("test-9"));
-		channel.send(new StringMessage("test-10"));
+		channel.send(new GenericMessage<String>("test-1"));
+		channel.send(new GenericMessage<String>("test-2"));
+		channel.send(new GenericMessage<String>("test-3"));
+		channel.send(new GenericMessage<String>("test-4"));
+		channel.send(new GenericMessage<String>("test-5"));
+		channel.send(new GenericMessage<String>("test-6"));
+		channel.send(new GenericMessage<String>("test-7"));
+		channel.send(new GenericMessage<String>("test-8"));
+		channel.send(new GenericMessage<String>("test-9"));
+		channel.send(new GenericMessage<String>("test-10"));
 		assertEquals(10, testBean.calls.size());
 		assertEquals(1, testBean.calls.get(0).intValue());
 		assertEquals(1, testBean.calls.get(1).intValue());
@@ -103,7 +103,7 @@ public class SubscriberOrderTests {
 		assertEquals(5, testBean.calls.get(8).intValue());
 		assertEquals(5, testBean.calls.get(9).intValue());
 		testBean.reset();
-		channel.send(new StringMessage("test-11"));
+		channel.send(new GenericMessage<String>("test-11"));
 		assertEquals(1, testBean.calls.size());
 		assertEquals(1, testBean.calls.get(0).intValue());
 	}
@@ -121,11 +121,11 @@ public class SubscriberOrderTests {
 		context.refresh();
 		TestBean testBean = (TestBean) context.getBean("testBean");
 		MessageChannel channel = (MessageChannel) context.getBean("input");
-		channel.send(new StringMessage("test-1"));
-		channel.send(new StringMessage("test-2"));
-		channel.send(new StringMessage("test-3"));
-		channel.send(new StringMessage("test-4"));
-		channel.send(new StringMessage("test-5"));
+		channel.send(new GenericMessage<String>("test-1"));
+		channel.send(new GenericMessage<String>("test-2"));
+		channel.send(new GenericMessage<String>("test-3"));
+		channel.send(new GenericMessage<String>("test-4"));
+		channel.send(new GenericMessage<String>("test-5"));
 		List<Integer> calls = testBean.calls;
 		assertEquals(5, calls.size());
 		assertEquals(1, calls.get(0).intValue());

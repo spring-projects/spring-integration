@@ -26,7 +26,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 
@@ -57,7 +57,7 @@ public class RouterAnnotationPostProcessorTests {
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
 		context.refresh();
-		inputChannel.send(new StringMessage("foo"));
+		inputChannel.send(new GenericMessage<String>("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);
 		assertEquals("foo", replyMessage.getPayload());
 		context.stop();

@@ -28,10 +28,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,7 +52,7 @@ public class HeaderEnricherTests {
 	public void replyChannel() {
 		PollableChannel replyChannel = context.getBean("testReplyChannel", PollableChannel.class);
 		MessageChannel inputChannel = context.getBean("replyChannelInput", MessageChannel.class);
-		inputChannel.send(new StringMessage("test"));
+		inputChannel.send(new GenericMessage<String>("test"));
 		Message<?> result = replyChannel.receive(0);
 		assertNotNull(result);
 		assertEquals("TEST", result.getPayload());
@@ -63,7 +63,7 @@ public class HeaderEnricherTests {
 	public void errorChannel() {
 		PollableChannel errorChannel = context.getBean("testErrorChannel", PollableChannel.class);
 		MessageChannel inputChannel = context.getBean("errorChannelInput", MessageChannel.class);
-		inputChannel.send(new StringMessage("test"));
+		inputChannel.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = errorChannel.receive(1000);
 		assertNotNull(errorMessage);
 		Object errorPayload = errorMessage.getPayload();

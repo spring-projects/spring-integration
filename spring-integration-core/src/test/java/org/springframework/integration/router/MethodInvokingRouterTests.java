@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Header;
@@ -34,7 +35,6 @@ import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -123,9 +123,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
@@ -155,9 +155,9 @@ public class MethodInvokingRouterTests {
 	}
 
 	private void doTestChannelInstanceResolutionByPayload(MethodInvokingRouter router, TestChannelResolver channelResolver) {
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		channelResolver.addChannel("foo-channel", fooChannel);
@@ -197,9 +197,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
@@ -234,9 +234,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
@@ -277,9 +277,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
@@ -320,9 +320,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
@@ -363,9 +363,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
@@ -406,9 +406,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
@@ -449,9 +449,9 @@ public class MethodInvokingRouterTests {
 		channelResolver.addChannel("foo-channel", fooChannel);
 		channelResolver.addChannel("bar-channel", barChannel);
 		router.setChannelResolver(channelResolver);
-		Message<String> fooMessage = new StringMessage("foo");
-		Message<String> barMessage = new StringMessage("bar");
-		Message<String> badMessage = new StringMessage("bad");
+		Message<String> fooMessage = new GenericMessage<String>("foo");
+		Message<String> barMessage = new GenericMessage<String>("bar");
+		Message<String> badMessage = new GenericMessage<String>("bad");
 		router.handleMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);

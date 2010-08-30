@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -49,7 +51,7 @@ public class DelayerUsageTests {
 	@Test
 	public void testDelayWithDefaultScheduler(){
 		long start = System.currentTimeMillis();
-		inputA.send(new StringMessage("Hello"));
+		inputA.send(new GenericMessage<String>("Hello"));
 		outputA.receive();
 		assertTrue((System.currentTimeMillis() - start) >= 1000);
 	}
@@ -66,13 +68,13 @@ public class DelayerUsageTests {
 	@Test
 	public void testDelayWithCustomScheduler(){	
 		long start = System.currentTimeMillis();
-		inputB.send(new StringMessage("1")); 
-		inputB.send(new StringMessage("2"));
-		inputB.send(new StringMessage("3"));
-		inputB.send(new StringMessage("4"));
-		inputB.send(new StringMessage("5"));
-		inputB.send(new StringMessage("6"));
-		inputB.send(new StringMessage("7"));
+		inputB.send(new GenericMessage<String>("1")); 
+		inputB.send(new GenericMessage<String>("2"));
+		inputB.send(new GenericMessage<String>("3"));
+		inputB.send(new GenericMessage<String>("4"));
+		inputB.send(new GenericMessage<String>("5"));
+		inputB.send(new GenericMessage<String>("6"));
+		inputB.send(new GenericMessage<String>("7"));
 		outputB1.receive();
 		outputB1.receive();
 		outputB1.receive();

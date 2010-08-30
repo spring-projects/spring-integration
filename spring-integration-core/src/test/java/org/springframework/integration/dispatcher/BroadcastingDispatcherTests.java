@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ import org.junit.Test;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -247,7 +247,7 @@ public class BroadcastingDispatcherTests {
 		MessageHandler target2 = new MessageStoringTestEndpoint(messages);
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
-		dispatcher.dispatch(new StringMessage("test"));
+		dispatcher.dispatch(new GenericMessage<String>("test"));
 		assertEquals(2, messages.size());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceNumber());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceSize());
@@ -266,7 +266,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.addHandler(target1);
 		dispatcher.addHandler(target2);
 		dispatcher.addHandler(target3);
-		Message<?> inputMessage = new StringMessage("test");
+		Message<?> inputMessage = new GenericMessage<String>("test");
 		Object originalId = inputMessage.getHeaders().getId();
 		dispatcher.dispatch(inputMessage);
 		assertEquals(3, messages.size());

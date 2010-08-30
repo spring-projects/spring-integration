@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 
@@ -59,7 +59,7 @@ public class SplitterAnnotationPostProcessorTests {
 		TestSplitter splitter = new TestSplitter();
 		postProcessor.postProcessAfterInitialization(splitter, "testSplitter");
 		context.refresh();
-		inputChannel.send(new StringMessage("this.is.a.test"));
+		inputChannel.send(new GenericMessage<String>("this.is.a.test"));
 		Message<?> message1 = outputChannel.receive(500);
 		assertNotNull(message1);
 		assertEquals("this", message1.getPayload());

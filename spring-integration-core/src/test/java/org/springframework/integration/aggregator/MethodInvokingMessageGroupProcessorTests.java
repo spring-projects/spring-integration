@@ -38,6 +38,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
@@ -49,10 +50,10 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
@@ -377,8 +378,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		SingleAnnotationTestBean bean = new SingleAnnotationTestBean();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(bean);
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
-		group.add(new StringMessage("foo"));
-		group.add(new StringMessage("bar"));
+		group.add(new GenericMessage<String>("foo"));
+		group.add(new GenericMessage<String>("bar"));
 		assertEquals("foo", aggregator.aggregatePayloads(group, null));
 
 	}
@@ -462,8 +463,8 @@ public class MethodInvokingMessageGroupProcessorTests {
 		NoAnnotationTestBean bean = new NoAnnotationTestBean();
 		MethodInvokingMessageGroupProcessor aggregator = new MethodInvokingMessageGroupProcessor(bean);
 		SimpleMessageGroup group = new SimpleMessageGroup("FOO");
-		group.add(new StringMessage("foo"));
-		group.add(new StringMessage("bar"));
+		group.add(new GenericMessage<String>("foo"));
+		group.add(new GenericMessage<String>("bar"));
 		assertEquals("foo", aggregator.aggregatePayloads(group, null));
 	}
 

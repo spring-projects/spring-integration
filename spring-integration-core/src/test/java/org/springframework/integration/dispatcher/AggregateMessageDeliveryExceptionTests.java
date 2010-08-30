@@ -16,25 +16,26 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.core.StringMessage;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.matchers.JUnitMatchers;
+
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Iwein Fuld
  */
 public class AggregateMessageDeliveryExceptionTests {
 
-	private Message<?> message = new StringMessage("foo");
+	private Message<?> message = new GenericMessage<String>("foo");
 
 	private AggregateMessageDeliveryException exception = new AggregateMessageDeliveryException(message,
 			"something went wrong", exceptionsList());

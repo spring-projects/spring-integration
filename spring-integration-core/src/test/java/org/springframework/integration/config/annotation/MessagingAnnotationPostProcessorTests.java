@@ -36,10 +36,10 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolver;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
@@ -70,7 +70,7 @@ public class MessagingAnnotationPostProcessorTests {
 				"serviceActivatorAnnotationPostProcessorTests.xml", this.getClass());
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		inputChannel.send(new StringMessage("world"));
+		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals("hello world", reply.getPayload());
 		context.stop();
@@ -82,7 +82,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		inputChannel.send(new StringMessage("world"));
+		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
@@ -95,7 +95,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		inputChannel.send(new StringMessage("world"));
+		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
@@ -108,7 +108,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		inputChannel.send(new StringMessage("123"));
+		inputChannel.send(new GenericMessage<String>("123"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals(246, message.getPayload());
 		context.stop();
@@ -127,7 +127,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.refresh();
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
 		MessageChannel testChannel = channelResolver.resolveChannelName("testChannel");
-		testChannel.send(new StringMessage("foo"));
+		testChannel.send(new GenericMessage<String>("foo"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("foo", testBean.getMessageText());
@@ -176,7 +176,7 @@ public class MessagingAnnotationPostProcessorTests {
 		Object proxy = proxyFactory.getProxy();
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
 		context.refresh();
-		inputChannel.send(new StringMessage("world"));
+		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
@@ -194,7 +194,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointSubclass(), "subclass");
 		context.refresh();
-		inputChannel.send(new StringMessage("world"));
+		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
@@ -214,7 +214,7 @@ public class MessagingAnnotationPostProcessorTests {
 		Object proxy = proxyFactory.getProxy();
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
 		context.refresh();
-		inputChannel.send(new StringMessage("world"));
+		inputChannel.send(new GenericMessage<String>("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
@@ -232,7 +232,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
 		context.refresh();
-		inputChannel.send(new StringMessage("ABC"));
+		inputChannel.send(new GenericMessage<String>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("test-ABC", message.getPayload());
 		context.stop();
@@ -250,7 +250,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
 		context.refresh();
-		inputChannel.send(new StringMessage("ABC"));
+		inputChannel.send(new GenericMessage<String>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("test-ABC", message.getPayload());
 		context.stop();
@@ -270,7 +270,7 @@ public class MessagingAnnotationPostProcessorTests {
 		Object proxy = proxyFactory.getProxy();
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
 		context.refresh();
-		inputChannel.send(new StringMessage("ABC"));
+		inputChannel.send(new GenericMessage<String>("ABC"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("test-ABC", message.getPayload());
 		context.stop();
@@ -289,7 +289,7 @@ public class MessagingAnnotationPostProcessorTests {
 		TransformerAnnotationTestBean testBean = new TransformerAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		context.refresh();
-		inputChannel.send(new StringMessage("foo"));
+		inputChannel.send(new GenericMessage<String>("foo"));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals("FOO", reply.getPayload());
 		context.stop();

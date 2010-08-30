@@ -25,8 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -65,7 +66,7 @@ public class MessageStoreTests {
 	
 	private static class TestMessageStore extends AbstractMessageGroupStore {
 
-		MessageGroup testMessages = new SimpleMessageGroup(Arrays.asList(new StringMessage("foo")), "bar");
+		MessageGroup testMessages = new SimpleMessageGroup(Arrays.asList(new GenericMessage<String>("foo")), "bar");
 		private boolean removed = false;
 
 		@Override

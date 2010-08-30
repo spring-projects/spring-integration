@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,16 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.message.MessageMatcher;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -68,7 +69,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void pollableChannel() {
-		Message<?> message = new StringMessage("test1");
+		Message<?> message = new GenericMessage<String>("test1");
 		this.pollableChannel.send(message);
 		Message<?> reply = this.output1.receive(6000);
 		assertThat(message, sameExceptImmutableHeaders(reply));
@@ -76,7 +77,7 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void subscribableChannel() {
-		Message<?> message = new StringMessage("test2");
+		Message<?> message = new GenericMessage<String>("test2");
 		this.subscribableChannel.send(message);
 		Message<?> reply = this.output2.receive(0);
 		assertThat(message, sameExceptImmutableHeaders(reply));

@@ -22,7 +22,6 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -62,8 +61,8 @@ public class MessageSequenceComparatorTests {
 	@Test
 	public void testEqualWithDefaultValues() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		StringMessage message1 = new StringMessage("test1");
-		StringMessage message2 = new StringMessage("test2");
+		Message<String> message1 = MessageBuilder.withPayload("test1").build();
+		Message<String> message2 = MessageBuilder.withPayload("test2").build();
 		assertEquals(0, comparator.compare(message1, message2));
 	}
 

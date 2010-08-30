@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -62,7 +61,7 @@ public class RouterFactoryBeanDelegationTests {
 
 	@Test
 	public void routeWithMappedType() {
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		assertNull(discard.receive(0));
 		assertNotNull(strings.receive(0));
 	}

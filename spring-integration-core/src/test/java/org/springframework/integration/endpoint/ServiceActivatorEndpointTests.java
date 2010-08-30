@@ -28,8 +28,8 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 
 /**
@@ -100,7 +100,7 @@ public class ServiceActivatorEndpointTests {
 		Object handler = new Object() {
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
-				return new StringMessage("foo" + message.getPayload());
+				return new GenericMessage<String>("foo" + message.getPayload());
 			}
 		};
 		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(handler, "handle");
@@ -210,7 +210,7 @@ public class ServiceActivatorEndpointTests {
 
 		@SuppressWarnings("unused")
 		public Message<?> handle(Message<?> message) {
-			return new StringMessage(message.getPayload().toString().toUpperCase());
+			return new GenericMessage<String>(message.getPayload().toString().toUpperCase());
 		}
 	}
 

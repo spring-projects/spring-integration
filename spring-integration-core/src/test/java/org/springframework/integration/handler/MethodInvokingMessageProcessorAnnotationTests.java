@@ -26,17 +26,17 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Assert;
-import org.junit.Test; 
+import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.annotation.Header; 
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -54,7 +54,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	public void optionalHeader() throws Exception {
 		Method method = TestService.class.getMethod("optionalHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		Object result = processor.processMessage(new StringMessage("foo"));
+		Object result = processor.processMessage(new GenericMessage<String>("foo"));
 		assertNull(result);
 	}
 
@@ -62,7 +62,7 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 	public void requiredHeaderNotProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
-		processor.processMessage(new StringMessage("foo"));
+		processor.processMessage(new GenericMessage<String>("foo"));
 	}
 
 	@Test 

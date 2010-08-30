@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ import static org.junit.Assert.assertThat;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.message.MessageMatcher;
 
 /**
@@ -47,7 +48,7 @@ public class BridgeHandlerTests {
 	public void simpleBridge() {
 		QueueChannel outputChannel = new QueueChannel();
 		handler.setOutputChannel(outputChannel);
-		Message<?> request = new StringMessage("test");
+		Message<?> request = new GenericMessage<String>("test");
 		handler.handleMessage(request);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
@@ -56,7 +57,7 @@ public class BridgeHandlerTests {
 
 	@Test(expected = MessageHandlingException.class)
 	public void missingOutputChannelVerifiedAtRuntime() {
-		Message<?> request = new StringMessage("test");
+		Message<?> request = new GenericMessage<String>("test");
 		handler.handleMessage(request);
 	}
 	

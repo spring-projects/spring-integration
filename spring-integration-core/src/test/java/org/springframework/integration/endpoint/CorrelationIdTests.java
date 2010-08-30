@@ -20,11 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
@@ -85,7 +86,7 @@ public class CorrelationIdTests {
 
 	@Test
 	public void testCorrelationNotCopiedFromRequestMessgeIdIfAlreadySetByHandler() throws Exception {
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
@@ -99,7 +100,7 @@ public class CorrelationIdTests {
 
 	@Test
 	public void testCorrelationIdWithSplitterWhenNotValueSetOnIncomingMessage() throws Exception {
-		Message<?> message = new StringMessage("test1,test2");
+		Message<?> message = new GenericMessage<String>("test1,test2");
 		QueueChannel testChannel = new QueueChannel();
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));

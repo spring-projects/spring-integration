@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -230,7 +230,7 @@ public class DelayHandlerTests {
 	public void verifyShutdownWithoutWaitingByDefault() throws Exception {
 		DelayHandler delayHandler = new DelayHandler(5000);
 		delayHandler.afterPropertiesSet();
-		delayHandler.handleMessage(new StringMessage("foo"));
+		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		delayHandler.destroy();
 		final ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler)
 				new DirectFieldAccessor(delayHandler).getPropertyValue("taskScheduler");
@@ -255,7 +255,7 @@ public class DelayHandlerTests {
 		DelayHandler delayHandler = new DelayHandler(5000);
 		delayHandler.setWaitForTasksToCompleteOnShutdown(true);
 		delayHandler.afterPropertiesSet();
-		delayHandler.handleMessage(new StringMessage("foo"));
+		delayHandler.handleMessage(new GenericMessage<String>("foo"));
 		delayHandler.destroy();
 		final ThreadPoolTaskScheduler taskScheduler = (ThreadPoolTaskScheduler)
 				new DirectFieldAccessor(delayHandler).getPropertyValue("taskScheduler");

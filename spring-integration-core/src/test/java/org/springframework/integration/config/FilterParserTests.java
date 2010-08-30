@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
@@ -72,7 +72,7 @@ public class FilterParserTests {
 
 	@Test
 	public void filterWithSelectorAdapterAccepts() {
-		adapterInput.send(new StringMessage("test"));
+		adapterInput.send(new GenericMessage<String>("test"));
 		Message<?> reply = adapterOutput.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -80,14 +80,14 @@ public class FilterParserTests {
 
 	@Test
 	public void filterWithSelectorAdapterRejects() {
-		adapterInput.send(new StringMessage(""));
+		adapterInput.send(new GenericMessage<String>(""));
 		Message<?> reply = adapterOutput.receive(0);
 		assertNull(reply);
 	}
 
 	@Test
 	public void filterWithSelectorImplementationAccepts() {
-		implementationInput.send(new StringMessage("test"));
+		implementationInput.send(new GenericMessage<String>("test"));
 		Message<?> reply = implementationOutput.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
@@ -95,26 +95,26 @@ public class FilterParserTests {
 
 	@Test
 	public void filterWithSelectorImplementationRejects() {
-		implementationInput.send(new StringMessage(""));
+		implementationInput.send(new GenericMessage<String>(""));
 		Message<?> reply = implementationOutput.receive(0);
 		assertNull(reply);
 	}
 
 	@Test
 	public void exceptionThrowingFilterAccepts() {
-		exceptionInput.send(new StringMessage("test"));
+		exceptionInput.send(new GenericMessage<String>("test"));
 		Message<?> reply = implementationOutput.receive(0);
 		assertNotNull(reply);
 	}
 
 	@Test(expected = MessageRejectedException.class)
 	public void exceptionThrowingFilterRejects() {
-		exceptionInput.send(new StringMessage(""));
+		exceptionInput.send(new GenericMessage<String>(""));
 	}
 
 	@Test
 	public void filterWithDiscardChannel() {
-		discardInput.send(new StringMessage(""));
+		discardInput.send(new GenericMessage<String>(""));
 		Message<?> discard = discardOutput.receive(0);
 		assertNotNull(discard);
 		assertEquals("", discard.getPayload());
@@ -125,7 +125,7 @@ public class FilterParserTests {
 	public void filterWithDiscardChannelAndException() throws Exception {
 		Exception exception = null;
 		try {
-			discardAndExceptionInput.send(new StringMessage(""));
+			discardAndExceptionInput.send(new GenericMessage<String>(""));
 		}
 		catch (Exception e) {
 			exception = e;

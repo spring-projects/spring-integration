@@ -30,7 +30,6 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.handler.MethodInvokingMessageProcessor;
 
 /**
@@ -43,7 +42,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<?> message = new StringMessage("foo");
+		Message<?> message = new GenericMessage<String>("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals("FOO!", result.getPayload());
 	}
@@ -52,7 +51,7 @@ public class MethodInvokingTransformerTests {
 	public void simplePayloadConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");
-		Message<?> message = new StringMessage("foo");
+		Message<?> message = new GenericMessage<String>("foo");
 		Message<?> result = transformer.transform(message);
 		assertEquals("FOO!", result.getPayload());
 	}
@@ -208,7 +207,7 @@ public class MethodInvokingTransformerTests {
 	public void nullReturningMethod() {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "nullReturnValueTest");
-		StringMessage message = new StringMessage("test");
+		GenericMessage<String> message = new GenericMessage<String>("test");
 		Message<?> result = transformer.transform(message);
 		assertNull(result);
 	}

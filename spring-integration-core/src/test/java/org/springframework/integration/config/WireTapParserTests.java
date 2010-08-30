@@ -28,9 +28,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.interceptor.WireTap;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -44,7 +44,7 @@ public class WireTapParserTests {
 		MessageChannel mainChannel = (MessageChannel) context.getBean("noSelectors");
 		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
 		assertNull(wireTapChannel.receive(0));
-		Message<?> original = new StringMessage("test");
+		Message<?> original = new GenericMessage<String>("test");
 		mainChannel.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNotNull(intercepted);
@@ -58,7 +58,7 @@ public class WireTapParserTests {
 		MessageChannel mainChannel = (MessageChannel) context.getBean("accepting");
 		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
 		assertNull(wireTapChannel.receive(0));
-		Message<?> original = new StringMessage("test");
+		Message<?> original = new GenericMessage<String>("test");
 		mainChannel.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNotNull(intercepted);
@@ -72,7 +72,7 @@ public class WireTapParserTests {
 		MessageChannel mainChannel = (MessageChannel) context.getBean("rejecting");
 		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
 		assertNull(wireTapChannel.receive(0));
-		Message<?> original = new StringMessage("test");
+		Message<?> original = new GenericMessage<String>("test");
 		mainChannel.send(original);
 		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNull(intercepted);

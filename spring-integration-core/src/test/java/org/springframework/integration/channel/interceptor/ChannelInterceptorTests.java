@@ -27,15 +27,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,7 +51,7 @@ public class ChannelInterceptorTests {
 	@Test
 	public void testPreSendInterceptorReturnsMessage() {
 		channel.addInterceptor(new PreSendReturnsMessageInterceptor());
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -61,7 +62,7 @@ public class ChannelInterceptorTests {
 	public void testPreSendInterceptorReturnsNull() {
 		PreSendReturnsNullInterceptor interceptor = new PreSendReturnsNullInterceptor();
 		channel.addInterceptor(interceptor);
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		channel.send(message);
 		assertEquals(1, interceptor.getCount());
 		Message<?> result = channel.receive(0);
@@ -81,7 +82,7 @@ public class ChannelInterceptorTests {
 				invoked.set(true);
 			}
 		});
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		assertTrue(invoked.get());
 	}
 
@@ -104,10 +105,10 @@ public class ChannelInterceptorTests {
 		});
 		assertEquals(0, invokedCounter.get());
 		assertEquals(0, sentCounter.get());
-		singleItemChannel.send(new StringMessage("test1"));
+		singleItemChannel.send(new GenericMessage<String>("test1"));
 		assertEquals(1, invokedCounter.get());
 		assertEquals(1, sentCounter.get());
-		singleItemChannel.send(new StringMessage("test2"), 0);
+		singleItemChannel.send(new GenericMessage<String>("test2"), 0);
 		assertEquals(2, invokedCounter.get());
 		assertEquals(1, sentCounter.get());
 	}
@@ -115,7 +116,7 @@ public class ChannelInterceptorTests {
 	@Test
 	public void testPreReceiveInterceptorReturnsTrue() {
 		channel.addInterceptor(new PreReceiveReturnsTrueInterceptor());
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		channel.send(message);
 		Message<?> result = channel.receive(0);
 		assertEquals(1, PreReceiveReturnsTrueInterceptor.counter.get());
@@ -125,7 +126,7 @@ public class ChannelInterceptorTests {
 	@Test
 	public void testPreReceiveInterceptorReturnsFalse() {
 		channel.addInterceptor(new PreReceiveReturnsFalseInterceptor());
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		channel.send(message);
 		Message<?> result = channel.receive(0);
 		assertEquals(1, PreReceiveReturnsFalseInterceptor.counter.get());
@@ -151,7 +152,7 @@ public class ChannelInterceptorTests {
 		channel.receive(0);
 		assertEquals(1, invokedCount.get());
 		assertEquals(0, messageCount.get());
-		channel.send(new StringMessage("test"));
+		channel.send(new GenericMessage<String>("test"));
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);		
 		assertEquals(2, invokedCount.get());

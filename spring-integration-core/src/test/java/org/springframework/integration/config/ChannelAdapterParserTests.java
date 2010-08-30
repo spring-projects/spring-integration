@@ -31,9 +31,9 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.BeanFactoryChannelResolver;
 import org.springframework.integration.core.ChannelResolutionException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 
@@ -108,7 +108,7 @@ public class ChannelAdapterParserTests {
 		assertTrue(adapter instanceof EventDrivenConsumer);
 		TestConsumer consumer = (TestConsumer) this.applicationContext.getBean("consumer");
 		assertNull(consumer.getLastMessage());
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		assertTrue(((MessageChannel) channel).send(message));
 		assertNotNull(consumer.getLastMessage());
 		assertEquals(message, consumer.getLastMessage());
@@ -126,7 +126,7 @@ public class ChannelAdapterParserTests {
 		assertTrue(adapter instanceof EventDrivenConsumer);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		assertNull(testBean.getMessage());
-		Message<?> message = new StringMessage("consumer test");
+		Message<?> message = new GenericMessage<String>("consumer test");
 		assertTrue(((MessageChannel) channel).send(message));
 		assertNotNull(testBean.getMessage());
 		assertEquals("consumer test", testBean.getMessage());

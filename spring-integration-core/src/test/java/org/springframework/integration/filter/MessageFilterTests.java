@@ -27,10 +27,9 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.filter.MessageFilter;
 
 /**
  * @author Mark Fisher
@@ -44,7 +43,7 @@ public class MessageFilterTests {
 				return true;
 			}
 		});
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
 		filter.handleMessage(message);
@@ -62,7 +61,7 @@ public class MessageFilterTests {
 		});
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
-		filter.handleMessage(new StringMessage("test"));
+		filter.handleMessage(new GenericMessage<String>("test"));
 		assertNull(output.receive(0));
 	}
 
@@ -76,7 +75,7 @@ public class MessageFilterTests {
 		filter.setThrowExceptionOnRejection(true);
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
-		filter.handleMessage(new StringMessage("test"));
+		filter.handleMessage(new GenericMessage<String>("test"));
 	}
 
 	@Test
@@ -91,7 +90,7 @@ public class MessageFilterTests {
 		filter.setOutputChannel(outputChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);
@@ -110,7 +109,7 @@ public class MessageFilterTests {
 		filter.setOutputChannel(outputChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		assertTrue(inputChannel.send(message));
 		assertNull(outputChannel.receive(0));
 	}
@@ -128,7 +127,7 @@ public class MessageFilterTests {
 		filter.setThrowExceptionOnRejection(true);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		assertTrue(inputChannel.send(message));
 	}
 
@@ -146,7 +145,7 @@ public class MessageFilterTests {
 		filter.setDiscardChannel(discardChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = discardChannel.receive(0);
 		assertNotNull(reply);
@@ -169,7 +168,7 @@ public class MessageFilterTests {
 		filter.setThrowExceptionOnRejection(true);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		try {
 			assertTrue(inputChannel.send(message));
 		}

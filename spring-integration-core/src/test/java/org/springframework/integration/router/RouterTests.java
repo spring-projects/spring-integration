@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,15 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -45,7 +46,7 @@ public class RouterTests {
 				return null;
 			}
 		};
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -57,7 +58,7 @@ public class RouterTests {
 			}
 		};
 		router.setResolutionRequired(true);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -68,7 +69,7 @@ public class RouterTests {
 				return Collections.emptyList();
 			}
 		};
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -80,7 +81,7 @@ public class RouterTests {
 			}
 		};
 		router.setResolutionRequired(true);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -93,7 +94,7 @@ public class RouterTests {
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -107,7 +108,7 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		router.setResolutionRequired(true);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -121,7 +122,7 @@ public class RouterTests {
 		};
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -136,7 +137,7 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		router.setResolutionRequired(true);
-		Message<String> message = new StringMessage("test");
+		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}
 
@@ -147,7 +148,7 @@ public class RouterTests {
 				return "notImportant";
 			}
 		};
-		router.handleMessage(new StringMessage("this should fail"));
+		router.handleMessage(new GenericMessage<String>("this should fail"));
 	}
 
 	@Test(expected = MessagingException.class)
@@ -158,7 +159,7 @@ public class RouterTests {
 				return CollectionUtils.arrayToList(new String[] { "notImportant" });
 			}
 		};
-		router.handleMessage(new StringMessage("this should fail"));
+		router.handleMessage(new GenericMessage<String>("this should fail"));
 	}
 
 	@Test
@@ -172,7 +173,7 @@ public class RouterTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
 		router.setBeanFactory(context);
-		router.handleMessage(new StringMessage("test"));
+		router.handleMessage(new GenericMessage<String>("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
 	}
@@ -189,7 +190,7 @@ public class RouterTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
 		router.setBeanFactory(context);
-		router.handleMessage(new StringMessage("test"));
+		router.handleMessage(new GenericMessage<String>("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
 	}

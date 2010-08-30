@@ -25,10 +25,10 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.ChannelResolutionException;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -105,7 +105,7 @@ public class ReturnAddressTests {
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
 		context.start();
-		StringMessage message = new StringMessage("*");
+		GenericMessage<String> message = new GenericMessage<String>("*");
 		channel3.send(message);
 	}
 
@@ -116,7 +116,7 @@ public class ReturnAddressTests {
 		MessageChannel channel4 = (MessageChannel) context.getBean("channel4");
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
-		StringMessage message = new StringMessage("*");
+		GenericMessage<String> message = new GenericMessage<String>("*");
 		channel4.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);

@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -43,12 +43,12 @@ public class PriorityChannelTests {
 	@Test
 	public void testCapacityEnforced() {
 		PriorityChannel channel = new PriorityChannel(3);
-		assertTrue(channel.send(new StringMessage("test1"), 0));
-		assertTrue(channel.send(new StringMessage("test2"), 0));
-		assertTrue(channel.send(new StringMessage("test3"), 0));
-		assertFalse(channel.send(new StringMessage("test4"), 0));
+		assertTrue(channel.send(new GenericMessage<String>("test1"), 0));
+		assertTrue(channel.send(new GenericMessage<String>("test2"), 0));
+		assertTrue(channel.send(new GenericMessage<String>("test3"), 0));
+		assertFalse(channel.send(new GenericMessage<String>("test4"), 0));
 		channel.receive(0);
-		assertTrue(channel.send(new StringMessage("test5")));
+		assertTrue(channel.send(new GenericMessage<String>("test5")));
 	}
 
 	@Test
@@ -74,11 +74,11 @@ public class PriorityChannelTests {
 	@Test
 	public void testCustomComparator() {
 		PriorityChannel channel = new PriorityChannel(5, new StringPayloadComparator());
-		Message<?> messageA = new StringMessage("A");
-		Message<?> messageB = new StringMessage("B");
-		Message<?> messageC = new StringMessage("C");
-		Message<?> messageD = new StringMessage("D");
-		Message<?> messageE = new StringMessage("E");
+		Message<?> messageA = new GenericMessage<String>("A");
+		Message<?> messageB = new GenericMessage<String>("B");
+		Message<?> messageC = new GenericMessage<String>("C");
+		Message<?> messageD = new GenericMessage<String>("D");
+		Message<?> messageE = new GenericMessage<String>("E");
 		channel.send(messageC);
 		channel.send(messageA);
 		channel.send(messageE);
@@ -96,7 +96,7 @@ public class PriorityChannelTests {
 		PriorityChannel channel = new PriorityChannel(5);
 		Message<?> highPriority = createPriorityMessage(5);
 		Message<?> lowPriority = createPriorityMessage(-5);
-		Message<?> nullPriority = new StringMessage("test:NULL");
+		Message<?> nullPriority = new GenericMessage<String>("test:NULL");
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
@@ -110,7 +110,7 @@ public class PriorityChannelTests {
 		PriorityChannel channel = new PriorityChannel();
 		Message<?> highPriority = createPriorityMessage(5);
 		Message<?> lowPriority = createPriorityMessage(-5);
-		Message<?> nullPriority = new StringMessage("test:NULL");
+		Message<?> nullPriority = new GenericMessage<String>("test:NULL");
 		channel.send(lowPriority);
 		channel.send(highPriority);
 		channel.send(nullPriority);
@@ -125,10 +125,10 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
-		channel.send(new StringMessage("test-1"));
+		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
 			public void run() {
-				sentSecondMessage.set(channel.send(new StringMessage("test-2"), 10));
+				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 10));
 				latch.countDown();
 			}
 		});
@@ -148,10 +148,10 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
-		channel.send(new StringMessage("test-1"));
+		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
 			public void run() {
-				sentSecondMessage.set(channel.send(new StringMessage("test-2"), 3000));
+				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), 3000));
 				latch.countDown();
 			}
 		});
@@ -173,10 +173,10 @@ public class PriorityChannelTests {
 		final AtomicBoolean sentSecondMessage = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Executor executor = Executors.newSingleThreadScheduledExecutor();
-		channel.send(new StringMessage("test-1"));
+		channel.send(new GenericMessage<String>("test-1"));
 		executor.execute(new Runnable() {
 			public void run() {
-				sentSecondMessage.set(channel.send(new StringMessage("test-2"), -1));
+				sentSecondMessage.set(channel.send(new GenericMessage<String>("test-2"), -1));
 				latch.countDown();
 			}
 		});

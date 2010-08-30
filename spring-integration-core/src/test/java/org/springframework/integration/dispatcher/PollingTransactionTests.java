@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.annotation.Propagation;
@@ -45,7 +45,7 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		txManager.waitForCompletion(1000);
 		Message<?> message = output.receive(0);
 		assertNotNull(message);		
@@ -63,7 +63,7 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		txManager.waitForCompletion(1000);
 		Message<?> message = output.receive(0);
 		assertNull(message);
@@ -80,7 +80,7 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		Message<?> reply = output.receive(3000);
 		assertNotNull(reply);
 		txManager.waitForCompletion(3000);
@@ -97,7 +97,7 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		Message<?> reply = output.receive(3000);
 		assertNotNull(reply);
 		txManager.waitForCompletion(3000);
@@ -114,7 +114,7 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		Message<?> reply = output.receive(3000);
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
@@ -130,7 +130,7 @@ public class PollingTransactionTests {
 		PollableChannel input = (PollableChannel) context.getBean("input");
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		Message<?> reply = output.receive(3000);
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
@@ -147,7 +147,7 @@ public class PollingTransactionTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		assertEquals(0, txManager.getCommitCount());
-		input.send(new StringMessage("test"));
+		input.send(new GenericMessage<String>("test"));
 		Message<?> errorMessage = errorChannel.receive(3000);
 		assertNotNull(errorMessage);
 		Object payload = errorMessage.getPayload();

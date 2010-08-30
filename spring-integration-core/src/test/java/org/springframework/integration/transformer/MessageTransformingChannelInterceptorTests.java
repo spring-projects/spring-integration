@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,16 @@
 
 package org.springframework.integration.transformer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Jonas Partner
@@ -32,7 +34,7 @@ public class MessageTransformingChannelInterceptorTests {
 
 	private QueueChannel channel; 
 
-	private StringMessage message;
+	private GenericMessage<String> message;
 
 	private TestTransformer transformer;
 
@@ -42,7 +44,7 @@ public class MessageTransformingChannelInterceptorTests {
 	@Before
 	public void setUp() {
 		channel = new QueueChannel();
-		message = new StringMessage("test");
+		message = new GenericMessage<String>("test");
 		transformer = new TestTransformer();
 		channelInterceptor = new MessageTransformingChannelInterceptor(transformer);
 		channel.addInterceptor(channelInterceptor);

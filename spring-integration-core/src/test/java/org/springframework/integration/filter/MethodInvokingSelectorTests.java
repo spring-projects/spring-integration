@@ -25,7 +25,6 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -36,7 +35,7 @@ public class MethodInvokingSelectorTests {
 	@Test
 	public void acceptedWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "acceptString");
-		assertTrue(selector.accept(new StringMessage("should accept")));
+		assertTrue(selector.accept(new GenericMessage<String>("should accept")));
 	}
 
 	@Test
@@ -44,7 +43,7 @@ public class MethodInvokingSelectorTests {
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("acceptString", new Class[] { Message.class });
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		assertTrue(selector.accept(new StringMessage("should accept")));
+		assertTrue(selector.accept(new GenericMessage<String>("should accept")));
 	}
 
 	@Test
@@ -64,7 +63,7 @@ public class MethodInvokingSelectorTests {
 	@Test
 	public void noArgMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "noArgs");
-		selector.accept(new StringMessage("test"));
+		selector.accept(new GenericMessage<String>("test"));
 	}
 
 	@Test
@@ -77,7 +76,7 @@ public class MethodInvokingSelectorTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void voidReturningMethodWithMethodName() {
 		MethodInvokingSelector selector = new MethodInvokingSelector(new TestBean(), "returnVoid");
-		selector.accept(new StringMessage("test"));
+		selector.accept(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -85,7 +84,7 @@ public class MethodInvokingSelectorTests {
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("returnVoid", new Class[] { Message.class });
 		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		selector.accept(new StringMessage("test"));
+		selector.accept(new GenericMessage<String>("test"));
 	}
 
 

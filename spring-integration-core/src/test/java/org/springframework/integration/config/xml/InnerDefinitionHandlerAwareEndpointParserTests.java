@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,20 @@
 
 package org.springframework.integration.config.xml;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
 import junit.framework.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -28,20 +39,15 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.io.ByteArrayInputStream;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
@@ -257,7 +263,7 @@ public class InnerDefinitionHandlerAwareEndpointParserTests {
 		ApplicationContext ac = this.bootStrap(configProperty);
 		MessageChannel input = (MessageChannel) ac.getBean("inChannel");
 		PollableChannel output = (PollableChannel) ac.getBean("outChannel");
-		input.send(new StringMessage("foo"));
+		input.send(new GenericMessage<String>("foo"));
 		Message<?> reply = output.receive(0);
 		assertEquals("foo", reply.getPayload());
 	}

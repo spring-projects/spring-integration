@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 
@@ -54,7 +54,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		assertEquals(1, latch.getCount());
 		assertNull(testBean.getMessageText());
 		MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
-		testChannel.send(new StringMessage("test-123"));
+		testChannel.send(new GenericMessage<String>("test-123"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("test-123", testBean.getMessageText());

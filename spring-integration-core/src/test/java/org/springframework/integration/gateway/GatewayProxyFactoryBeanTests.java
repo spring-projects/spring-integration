@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.Mockito;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -38,10 +39,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.util.ReflectionUtils;
 
@@ -110,7 +111,7 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testSolicitResponse() throws Exception {
 		QueueChannel replyChannel = new QueueChannel();
-		replyChannel.send(new StringMessage("foo"));
+		replyChannel.send(new GenericMessage<String>("foo"));
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setDefaultRequestChannel(new DirectChannel());
@@ -129,7 +130,7 @@ public class GatewayProxyFactoryBeanTests {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				StringMessage reply = new StringMessage(input.getPayload() + "456");
+				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "456");
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
@@ -208,7 +209,7 @@ public class GatewayProxyFactoryBeanTests {
 		proxyFactory.setBeanName("testGateway");
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
-		String result = service.requestReplyWithMessageParameter(new StringMessage("foo"));
+		String result = service.requestReplyWithMessageParameter(new GenericMessage<String>("foo"));
 		assertEquals("foobar", result);
 	}
 
@@ -218,7 +219,7 @@ public class GatewayProxyFactoryBeanTests {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				StringMessage reply = new StringMessage(input.getPayload() + "bar");
+				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
@@ -285,7 +286,7 @@ public class GatewayProxyFactoryBeanTests {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				StringMessage reply = new StringMessage(input.getPayload() + "bar");
+				GenericMessage<String> reply = new GenericMessage<String>(input.getPayload() + "bar");
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();

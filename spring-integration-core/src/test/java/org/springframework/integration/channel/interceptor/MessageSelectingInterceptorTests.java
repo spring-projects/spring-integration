@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageSelector;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -41,7 +41,7 @@ public class MessageSelectingInterceptorTests {
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		assertTrue(channel.send(new StringMessage("test1")));
+		assertTrue(channel.send(new GenericMessage<String>("test1")));
 	}
 
 	@Test(expected=MessageDeliveryException.class)
@@ -51,7 +51,7 @@ public class MessageSelectingInterceptorTests {
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		channel.send(new StringMessage("test1"));
+		channel.send(new GenericMessage<String>("test1"));
 	}
 
 	@Test
@@ -62,7 +62,7 @@ public class MessageSelectingInterceptorTests {
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector1, selector2);
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
-		assertTrue(channel.send(new StringMessage("test1")));
+		assertTrue(channel.send(new GenericMessage<String>("test1")));
 		assertEquals(2, counter.get());
 	}
 
@@ -78,7 +78,7 @@ public class MessageSelectingInterceptorTests {
 		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
 		try {
-			channel.send(new StringMessage("test1"));
+			channel.send(new GenericMessage<String>("test1"));
 		}
 		catch (MessageDeliveryException e) {
 			exceptionThrown = true;

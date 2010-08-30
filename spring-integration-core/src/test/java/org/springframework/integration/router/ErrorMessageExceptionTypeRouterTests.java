@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -51,7 +50,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void mostSpecificCause() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
@@ -73,7 +72,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void fallbackToNextMostSpecificCause() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
@@ -94,7 +93,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void fallbackToErrorMessageType() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
@@ -114,7 +113,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void fallbackToDefaultChannel() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
@@ -130,7 +129,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void noMatchAndNoDefaultChannel() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
@@ -146,7 +145,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void exceptionPayloadButNotErrorMessage() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
@@ -168,7 +167,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 
 	@Test
 	public void intermediateCauseHasNoMappingButMostSpecificCauseDoes() {
-		Message<?> failedMessage = new StringMessage("foo");
+		Message<?> failedMessage = new GenericMessage<String>("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
