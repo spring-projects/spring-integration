@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.event.config;
 
 import java.util.concurrent.CyclicBarrier;
+
 import junit.framework.Assert;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEvent;
@@ -29,8 +32,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.event.ApplicationEventPublishingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,7 +76,7 @@ public class EventOutboundChannelAdapterParserTests {
 		};
 		context.addApplicationListener(listener);
 		DirectChannel channel = context.getBean("input", DirectChannel.class);
-		channel.send(new StringMessage("hello"));
+		channel.send(new GenericMessage<String>("hello"));
 		Assert.assertTrue(recievedEvent);
 	}
 	
@@ -99,7 +102,7 @@ public class EventOutboundChannelAdapterParserTests {
 		};
 		ac.addApplicationListener(listener);
 		QueueChannel channel = ac.getBean("input", QueueChannel.class);
-		channel.send(new StringMessage("hello"));
+		channel.send(new GenericMessage<String>("hello"));
 		barier.await();
 		Assert.assertTrue(recievedEvent);
 	}

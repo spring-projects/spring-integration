@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -38,7 +38,7 @@ public class ApplicationEventPublishingMessageHandlerTests {
 		ApplicationEventPublishingMessageHandler handler = new ApplicationEventPublishingMessageHandler();
 		handler.setApplicationEventPublisher(publisher);
 		assertNull(publisher.getLastEvent());
-		Message<?> message = new StringMessage("testing");
+		Message<?> message = new GenericMessage<String>("testing");
 		handler.handleMessage(message);
 		ApplicationEvent event = publisher.getLastEvent();
 		assertEquals(MessagingEvent.class, event.getClass());
