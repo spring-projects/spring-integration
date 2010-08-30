@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import javax.xml.transform.Source;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
@@ -52,8 +52,8 @@ public class UnmarshallingTransformerTests {
 		Unmarshaller unmarshaller = new TestUnmarshaller(true);
 		UnmarshallingTransformer transformer = new UnmarshallingTransformer(unmarshaller);
 		Object transformed = transformer.transformPayload(new StringSource("foo"));
-		assertEquals(StringMessage.class, transformed.getClass());
-		assertEquals("message: foo", ((StringMessage) transformed).getPayload());
+		assertEquals(GenericMessage.class, transformed.getClass());
+		assertEquals("message: foo", ((Message<?>) transformed).getPayload());
 	}
 
 	@Test
@@ -79,15 +79,14 @@ public class UnmarshallingTransformerTests {
 				char[] chars = new char[8];
 				((StringSource) source).getReader().read(chars);
 				if (returnMessage) {
-					return new StringMessage("message: " + new String(chars).trim());
+					return new GenericMessage<String>("message: " + new String(chars).trim());
 				}
 				return "hello " + new String(chars).trim();
 			}
 			return null;
 		}
 
-		@SuppressWarnings("unchecked")
-		public boolean supports(Class clazz) {
+		public boolean supports(Class<?> clazz) {
 			return true;
 		}
 	}

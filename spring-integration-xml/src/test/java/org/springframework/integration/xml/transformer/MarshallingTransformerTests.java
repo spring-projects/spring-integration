@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import javax.xml.transform.dom.DOMResult;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;
@@ -45,7 +45,7 @@ public class MarshallingTransformerTests {
 		TestMarshaller marshaller = new TestMarshaller();
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		transformer.setResultFactory(new StringResultFactory());
-		Message<?> resultMessage = transformer.transform(new StringMessage("world"));
+		Message<?> resultMessage = transformer.transform(new GenericMessage<String>("world"));
 		Object resultPayload = resultMessage.getPayload();
 		assertEquals(StringResult.class, resultPayload.getClass());
 		assertEquals("hello world", resultPayload.toString());
@@ -56,7 +56,7 @@ public class MarshallingTransformerTests {
 	public void testDefaultResultFactory() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
-		Message<?> resultMessage = transformer.transform(new StringMessage("world"));
+		Message<?> resultMessage = transformer.transform(new GenericMessage<String>("world"));
 		Object resultPayload = resultMessage.getPayload();
 		assertEquals(DOMResult.class, resultPayload.getClass());
 		assertEquals("world", marshaller.payloads.get(0));
@@ -67,7 +67,7 @@ public class MarshallingTransformerTests {
 		TestMarshaller marshaller = new TestMarshaller();
 		MarshallingTransformer transformer = new MarshallingTransformer(marshaller);
 		transformer.setExtractPayload(false);
-		Message<?> message = new StringMessage("test");
+		Message<?> message = new GenericMessage<String>("test");
 		transformer.transform(message);
 		assertEquals(0, marshaller.payloads.size());
 		assertEquals(1, marshaller.messages.size());
@@ -81,12 +81,10 @@ public class MarshallingTransformerTests {
 
 		private final List<Object> payloads = new ArrayList<Object>();
 
-		@SuppressWarnings("unchecked")
-		public boolean supports(Class clazz) {
+		public boolean supports(Class<?> clazz) {
 			return true;
 		}
 
-		@SuppressWarnings("unchecked")
 		public void marshal(Object source, Result result) throws XmlMappingException, IOException {
 			if (source instanceof Message) {
 				this.messages.add((Message<?>) source);

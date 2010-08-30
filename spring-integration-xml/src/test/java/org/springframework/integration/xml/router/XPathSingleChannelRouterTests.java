@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ package org.springframework.integration.xml.router;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 /**
  * @author Jonas Partner
@@ -54,7 +54,7 @@ public class XPathSingleChannelRouterTests {
 	public void testNonNodePayload() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathSingleChannelRouter router = new XPathSingleChannelRouter(expression);
-		router.getChannelIndicatorList(new StringMessage("test"));
+		router.getChannelIndicatorList(new GenericMessage<String>("test"));
 	}
 
 	@Test
