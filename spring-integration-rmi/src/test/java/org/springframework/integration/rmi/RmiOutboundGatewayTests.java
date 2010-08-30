@@ -30,9 +30,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.gateway.RequestReplyExchanger;
-import org.springframework.integration.rmi.RmiOutboundGateway;
 import org.springframework.remoting.RemoteLookupFailureException;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 
@@ -63,7 +61,7 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	public void serializablePayload() throws RemoteException {
-		gateway.handleMessage(new StringMessage("test"));
+		gateway.handleMessage(new GenericMessage<String>("test"));
 		Message<?> replyMessage = output.receive(0);
 		assertNotNull(replyMessage);
 		assertEquals("TEST", replyMessage.getPayload());
@@ -101,7 +99,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/noSuchService");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handleMessage(new StringMessage("test"));
+			gateway.handleMessage(new GenericMessage<String>("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -115,7 +113,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://noSuchHost:1099/testRemoteHandler");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handleMessage(new StringMessage("test"));
+			gateway.handleMessage(new GenericMessage<String>("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -129,7 +127,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("invalid");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handleMessage(new StringMessage("test"));
+			gateway.handleMessage(new GenericMessage<String>("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());

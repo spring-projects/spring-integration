@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.rmi.RmiInboundGateway;
 
 /**
@@ -53,7 +53,7 @@ public class RmiOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
 		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
-		localChannel.send(new StringMessage("test"));
+		localChannel.send(new GenericMessage<String>("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -64,7 +64,7 @@ public class RmiOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
 		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
-		localChannel.send(new StringMessage("test"));
+		localChannel.send(new GenericMessage<String>("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
