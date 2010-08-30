@@ -22,11 +22,12 @@ import javax.jms.Destination;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.JmsHeaders;
 import org.springframework.integration.jms.StubTextMessage;
@@ -55,7 +56,7 @@ public class JmsHeaderEnricherTests {
 
 	@Test // INT-804
 	public void verifyReplyToValue() throws Exception {
-		valueTestInput.send(new StringMessage("test"));
+		valueTestInput.send(new GenericMessage<String>("test"));
 		Message<?> result = output.receive(0);
 		assertEquals(testDestination, result.getHeaders().get(JmsHeaders.REPLY_TO));
 		StubTextMessage jmsMessage = new StubTextMessage();
@@ -66,7 +67,7 @@ public class JmsHeaderEnricherTests {
 
 	@Test
 	public void verifyCorrelationIdValue() throws Exception {
-		valueTestInput.send(new StringMessage("test"));
+		valueTestInput.send(new GenericMessage<String>("test"));
 		Message<?> result = output.receive(0);
 		assertEquals("ABC", result.getHeaders().get(JmsHeaders.CORRELATION_ID));
 		StubTextMessage jmsMessage = new StubTextMessage();
@@ -77,7 +78,7 @@ public class JmsHeaderEnricherTests {
 
 	@Test // see INT-1122 and INT-1123
 	public void verifyCorrelationIdExpression() throws Exception {
-		expressionTestInput.send(new StringMessage("test"));
+		expressionTestInput.send(new GenericMessage<String>("test"));
 		Message<?> result = output.receive(0);
 		assertEquals(123, result.getHeaders().get(JmsHeaders.CORRELATION_ID));
 		StubTextMessage jmsMessage = new StubTextMessage();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,31 @@
 
 package org.springframework.integration.jms;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.command.ActiveMQQueue;
-import org.apache.activemq.command.ActiveMQTopic;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import javax.jms.Destination;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import javax.jms.Destination;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.command.ActiveMQTopic;
+import org.junit.Before;
+import org.junit.Test;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.core.MessageHandler;
 
 /**
  * @author Mark Fisher
@@ -82,8 +88,8 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new StringMessage("foo"));
-		channel.send(new StringMessage("bar"));
+		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(1, receivedList1.size());
 		assertNotNull(receivedList1.get(0));
@@ -120,8 +126,8 @@ public class JmsDestinationBackedMessageChannelTests {
         if (!channel.waitRegisteredWithDestination(10000)) {
         	fail("Listener failed to subscribe to topic");
         }
-        channel.send(new StringMessage("foo"));
-		channel.send(new StringMessage("bar"));
+        channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(2, receivedList1.size());
 		assertEquals("foo", receivedList1.get(0).getPayload());
@@ -155,8 +161,8 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.start();
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new StringMessage("foo"));
-		channel.send(new StringMessage("bar"));
+		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(1, receivedList1.size());
 		assertNotNull(receivedList1.get(0));
@@ -193,8 +199,8 @@ public class JmsDestinationBackedMessageChannelTests {
         }
 		channel.subscribe(handler1);
 		channel.subscribe(handler2);
-		channel.send(new StringMessage("foo"));
-		channel.send(new StringMessage("bar"));
+		channel.send(new GenericMessage<String>("foo"));
+		channel.send(new GenericMessage<String>("bar"));
 		latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
 		assertEquals(2, receivedList1.size());
 		assertEquals("foo", receivedList1.get(0).getPayload());

@@ -36,10 +36,10 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.NamedComponent;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
@@ -74,7 +74,7 @@ public class JmsMessageHistoryTests {
 		ConfigurableApplicationContext applicationContext = new ClassPathXmlApplicationContext("MessageHistoryTests-withHeaderMapper.xml", JmsMessageHistoryTests.class);
 		DirectChannel input = applicationContext.getBean("outbound-channel", DirectChannel.class);
 		PollableChannel jmsInputChannel = applicationContext.getBean("jmsInputChannel", PollableChannel.class);
-		input.send(new StringMessage("hello"));
+		input.send(new GenericMessage<String>("hello"));
 		Message<?> message = jmsInputChannel.receive(50000);
 		Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 		Properties event = historyIterator.next();
@@ -117,7 +117,7 @@ public class JmsMessageHistoryTests {
 				assertEquals("inbound-jms-channel", event.getProperty(MessageHistory.NAME_PROPERTY));
 				
 				MessageChannel channel = (MessageChannel) message.getHeaders().getReplyChannel();
-				channel.send(new StringMessage("OK"));
+				channel.send(new GenericMessage<String>("OK"));
 			}
 		};
 		handler = Mockito.spy(handler);
@@ -125,18 +125,26 @@ public class JmsMessageHistoryTests {
 		gateway.echo("hello");
 		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
 	}
-	
-	public static interface SampleGateway{
+
+
+	public static interface SampleGateway {
+
 		public void send(String value);
+
 		public Message<?> echo(String value);
+
 	}
-	
-	public static class SampleService{
-		public Message<?> echoMessage(String value){
-			return new StringMessage(value);
+
+
+	public static class SampleService {
+
+		public Message<?> echoMessage(String value) {
+			return new GenericMessage<String>(value);
 		}
+
 	}
-	
+
+
 	public static class SampleHeaderMapper extends DefaultJmsHeaderMapper {
 
 		public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
@@ -171,19 +179,26 @@ public class JmsMessageHistoryTests {
 			return headers;
 		}
 	}
-	
+
+
 	public static class SampleComponent implements NamedComponent{
+
 		private String name;
+
 		private String type;
+
 		public SampleComponent(String name, String type){
 			this.name = name;
 			this.type = type;
 		}
+
 		public String getComponentName() {
 			return name;
 		}
+
 		public String getComponentType() {
 			return type;
 		}	
 	}
+
 }

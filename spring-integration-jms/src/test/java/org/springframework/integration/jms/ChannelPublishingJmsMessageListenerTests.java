@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
@@ -82,7 +82,7 @@ public class ChannelPublishingJmsMessageListenerTests {
 		new SimpleAsyncTaskExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> request = channel.receive(5000);
-				Message<?> reply = new StringMessage(((String) request.getPayload()).toUpperCase());
+				Message<?> reply = new GenericMessage<String>(((String) request.getPayload()).toUpperCase());
 				((MessageChannel) request.getHeaders().getReplyChannel()).send(reply, 5000);
 			}
 		});

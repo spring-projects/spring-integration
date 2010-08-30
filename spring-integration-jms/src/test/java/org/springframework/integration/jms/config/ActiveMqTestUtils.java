@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
 
 import java.io.File;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.junit.Before;
 
@@ -25,17 +29,17 @@ import org.junit.Before;
  */
 public class ActiveMqTestUtils {
 
+	private static final Log logger = LogFactory.getLog(ActiveMqTestUtils.class);
+
+
 	@Before
 	public static void prepare() {
-		System.out.println("####### Refreshing ActiveMq ########");
+		logger.info("####### Refreshing ActiveMq ########");
 		File activeMqTempDir = new File("activemq-data");
 		deleteDir(activeMqTempDir);
-		
 	}
-	/*
-	 * 
-	 */
-	private static void deleteDir(File directory){
+
+	private static void deleteDir(File directory) {
 		if (directory.exists()){
 			String[] children = directory.list();
 			if (children != null){
@@ -46,4 +50,5 @@ public class ActiveMqTestUtils {
 		}
 		directory.delete();
 	}
+
 }

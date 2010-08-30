@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jms.config;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,69 +27,75 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
+
 /**
  * @author Oleg Zhurakousky
- *
  */
 public class JmsWithMarshallingMessageConverterTests {
 	
-
-	@SuppressWarnings("unchecked")
 	@Test
-	public void demoWithMarshallingConverter(){
+	@SuppressWarnings("unchecked")
+	public void demoWithMarshallingConverter() {
 		ActiveMqTestUtils.prepare();
-		ApplicationContext ac = new ClassPathXmlApplicationContext("JmsWithMarshallingMessageConverterTests-context.xml", JmsWithMarshallingMessageConverterTests.class);
+		ApplicationContext ac = new ClassPathXmlApplicationContext(
+				"JmsWithMarshallingMessageConverterTests-context.xml", JmsWithMarshallingMessageConverterTests.class);
 		MessageChannel input = ac.getBean("outbound-gateway-channel", MessageChannel.class);
 		PollableChannel output = ac.getBean("output", PollableChannel.class);
-		
-		input.send(new StringMessage("hello"));
+		input.send(new GenericMessage<String>("hello"));
 		Message<String> replyMessage = (Message<String>) output.receive();
-		System.out.println("Message: " + replyMessage);
+		assertEquals("HELLO", replyMessage.getPayload());
 	}
-	
-	public static class SampleService{
-		public String echo(String value){
+
+
+	public static class SampleService {
+
+		public String echo(String value) {
 			return value.toUpperCase();
 		}
 	}
-	
-	public static class SampleMarshaller implements Marshaller{
-		public void marshal(Object graph, Result result) throws IOException,
-				XmlMappingException {
+
+
+	public static class SampleMarshaller implements Marshaller {
+
+		public void marshal(Object graph, Result result) throws IOException, XmlMappingException {
 			String payload = null;
-			if (graph instanceof Message<?>){
+			if (graph instanceof Message<?>) {
 				payload = (String) ((Message<?>)graph).getPayload();
-			} else {
+			}
+			else {
 				payload = (String) graph;
 			}
 			((StreamResult)result).getOutputStream().write(payload.getBytes());
-
 		}
+
 		public boolean supports(Class<?> clazz) {
 			return true;
 		}	
 	}
-	
-	public static class SampleUnmarshaller implements Unmarshaller{
+
+
+	public static class SampleUnmarshaller implements Unmarshaller {
+
 		public boolean supports(Class<?> clazz) {
 			return true;
 		}
-		public Object unmarshal(Source source) throws IOException,
-				XmlMappingException {
-			
+
+		public Object unmarshal(Source source) throws IOException, XmlMappingException {
 			InputStream io = ((StreamSource)source).getInputStream();
 			byte[] bytes = new byte[io.available()];
 			io.read(bytes);
-			return new StringMessage(new String(bytes));
+			return new GenericMessage<String>(new String(bytes));
 		}
 	}
+
 }
