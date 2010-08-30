@@ -18,9 +18,9 @@ package org.springframework.integration.samples.helloworld;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 
 /**
  * Demonstrates a basic Message Endpoint that simply prepends a greeting
@@ -42,7 +42,7 @@ public class HelloWorldDemo {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("helloWorldDemo.xml", HelloWorldDemo.class);
 		MessageChannel inputChannel = context.getBean("inputChannel", MessageChannel.class);
 		PollableChannel outputChannel = context.getBean("outputChannel", PollableChannel.class);
-		inputChannel.send(new StringMessage("World"));
+		inputChannel.send(new GenericMessage<String>("World"));
 		System.out.println("==> HelloWorldDemo: " + outputChannel.receive(0).getPayload());		
 	}
 
