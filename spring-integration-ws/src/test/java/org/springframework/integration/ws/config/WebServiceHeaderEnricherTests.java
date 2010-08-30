@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.ws.WebServiceHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -50,7 +50,7 @@ public class WebServiceHeaderEnricherTests {
 	@Test
 	public void literalValue() {
 		MessagingTemplate template = new MessagingTemplate(literalValueInput);
-		Message<?> result = template.sendAndReceive(new StringMessage("foo"));
+		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("http://test", headers.get(WebServiceHeaders.SOAP_ACTION));
 	}
@@ -58,7 +58,7 @@ public class WebServiceHeaderEnricherTests {
 	@Test
 	public void expression() {
 		MessagingTemplate template = new MessagingTemplate(expressionInput);
-		Message<?> result = template.sendAndReceive(new StringMessage("foo"));
+		Message<?> result = template.sendAndReceive(new GenericMessage<String>("foo"));
 		Map<String, Object> headers = result.getHeaders();
 		assertEquals("http://foo", headers.get(WebServiceHeaders.SOAP_ACTION));
 	}
