@@ -57,10 +57,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.outputChannel = outputChannel;
 	}
 
-	protected MessageChannel getOutputChannel() {
-		return this.outputChannel;
-	}
-
 	/**
 	 * Set the timeout for sending reply Messages.
 	 */
@@ -122,7 +118,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.sendReplyMessage(replyMessage, requestHeaders.getReplyChannel());
 	}
 
-	@SuppressWarnings("unchecked")
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
 		if (reply instanceof Message) {
 			return MessageBuilder.fromMessage((Message<?>) reply).copyHeadersIfAbsent(requestHeaders).build();
@@ -144,9 +139,8 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
-		MessageChannel outputChannel = this.getOutputChannel();
-		if (outputChannel != null) {
-			this.sendMessage(replyMessage, outputChannel);
+		if (this.outputChannel != null) {
+			this.sendMessage(replyMessage, this.outputChannel);
 		}
 		else if (replyChannelHeaderValue != null) {
 			this.sendMessage(replyMessage, replyChannelHeaderValue);

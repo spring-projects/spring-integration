@@ -24,8 +24,8 @@ import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
@@ -55,18 +55,17 @@ public class BridgeHandlerTests {
 		assertThat(reply, sameExceptImmutableHeaders(request));
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test(expected = ChannelResolutionException.class)
 	public void missingOutputChannelVerifiedAtRuntime() {
 		Message<?> request = new GenericMessage<String>("test");
 		handler.handleMessage(request);
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	@Test(timeout=1000)
 	public void missingOutputChannelAllowedForReplyChannelMessages() throws Exception {
 		PollableChannel replyChannel = new QueueChannel();
-		Message request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel ).build();
-		handler.handleMessage(request );
+		Message<String> request = MessageBuilder.withPayload("tst").setReplyChannel(replyChannel ).build();
+		handler.handleMessage(request);
 		assertThat(replyChannel.receive(), sameExceptImmutableHeaders(request));
 	}
 

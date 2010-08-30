@@ -17,7 +17,6 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.Message;
-import org.springframework.util.Assert;
 
 /**
  * A simple MessageHandler implementation that passes the request Message
@@ -28,7 +27,7 @@ import org.springframework.util.Assert;
  * The BridgeHandler can be used as a stopper at the end of an assembly line of
  * channels. In this setup the output channel doesn't have to be set, but if the
  * output channel is omitted the <tt>REPLY_CHANNEL</tt> MUST be set on the
- * message.
+ * message. Otherwise, a MessagingException will be thrown at runtime.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -42,14 +41,7 @@ public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	protected Object handleRequestMessage(Message<?> requestMessage) {
-		if (requestMessage.getHeaders().getReplyChannel() == null) {
-			this.verifyOutputChannel();
-		}
 		return requestMessage;
-	}
-
-	private void verifyOutputChannel() {
-		Assert.state(super.getOutputChannel() != null, "Bridge handler requires an output channel");
 	}
 
 }
