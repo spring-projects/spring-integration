@@ -21,11 +21,12 @@ import static org.junit.Assert.assertEquals;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -54,9 +55,9 @@ public class OperationInvokingChannelAdapterParserTests {
 	@Test
 	public void adapterWithDefaults() throws Exception {
 		assertEquals(0, testBean.messages.size());
-		input.send(new StringMessage("test1"));
-		input.send(new StringMessage("test2"));
-		input.send(new StringMessage("test3"));
+		input.send(new GenericMessage<String>("test1"));
+		input.send(new GenericMessage<String>("test2"));
+		input.send(new GenericMessage<String>("test3"));
 		assertEquals(3, testBean.messages.size());
 	}
 	

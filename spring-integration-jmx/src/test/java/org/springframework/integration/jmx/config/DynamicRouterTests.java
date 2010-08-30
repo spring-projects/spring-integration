@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jmx.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
-import org.springframework.integration.jmx.JmxHeaders;
-import org.springframework.jmx.export.annotation.ManagedOperation;
-import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.Assert;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Oleg Zhurakousky
@@ -43,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DynamicRouterTests {
+
 	@Autowired
 	@Qualifier("controlChannel")
 	private MessageChannel controlChannel;
@@ -62,17 +57,19 @@ public class DynamicRouterTests {
 	@Autowired
 	@Qualifier("processCChannel")
 	private QueueChannel processCChannel;
-	
+
+
 	@Test
 	public void testRouteChange() throws Exception {
-		routingChannel.send(new StringMessage("123"));
+		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processAChannel.receive().getPayload());
 		routingChannel.send(MessageBuilder.withPayload(123).build());
 		assertEquals(123, processBChannel.receive().getPayload());
 
 		controlChannel.send(MessageBuilder.withPayload(new String[]{"java.lang.String", "processCChannel"}).build());
 		
-		routingChannel.send(new StringMessage("123"));
+		routingChannel.send(new GenericMessage<String>("123"));
 		assertEquals("123", processCChannel.receive().getPayload());
 	}
+
 }

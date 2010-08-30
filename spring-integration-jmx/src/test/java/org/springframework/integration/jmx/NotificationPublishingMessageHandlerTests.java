@@ -31,7 +31,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.integration.core.StringMessage;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.jmx.support.ObjectNameManager;
 
@@ -72,7 +72,7 @@ public class NotificationPublishingMessageHandlerTests {
 	public void simplePublish() {
 		NotificationPublishingMessageHandler adapter = context.getBean(NotificationPublishingMessageHandler.class);
 		assertEquals(0, this.listener.notifications.size());
-		adapter.handleMessage(new StringMessage("foo"));
+		adapter.handleMessage(new GenericMessage<String>("foo"));
 		assertEquals(1, this.listener.notifications.size());
 		Notification notification = this.listener.notifications.get(0);
 		assertEquals(this.publisherObjectName, notification.getSource());

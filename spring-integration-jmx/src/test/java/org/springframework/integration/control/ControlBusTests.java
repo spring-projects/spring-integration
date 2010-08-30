@@ -37,9 +37,9 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.BridgeHandler;
@@ -196,7 +196,7 @@ public class ControlBusTests {
 		MessageChannel channel = context.getBean("testChannel", MessageChannel.class);
 		for (int i = 0; i < 100; i++) {
 			try {
-				channel.send(new StringMessage("foo"));
+				channel.send(new GenericMessage<String>("foo"));
 			}
 			catch (Exception e) {
 				// ignore

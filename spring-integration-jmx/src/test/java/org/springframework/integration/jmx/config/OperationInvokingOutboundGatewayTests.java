@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
@@ -22,11 +23,12 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -37,6 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
 public class OperationInvokingOutboundGatewayTests {
+
 	@Autowired
 	@Qualifier("withReplyChannel")
 	private MessageChannel withReplyChannel;
@@ -59,21 +62,21 @@ public class OperationInvokingOutboundGatewayTests {
 
 	@Test
 	public void gatewayWithReplyChannel() throws Exception {
-		withReplyChannel.send(new StringMessage("1"));
+		withReplyChannel.send(new GenericMessage<String>("1"));
 		assertEquals(1, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
-		withReplyChannel.send(new StringMessage("2"));
+		withReplyChannel.send(new GenericMessage<String>("2"));
 		assertEquals(2, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
-		withReplyChannel.send(new StringMessage("3"));
+		withReplyChannel.send(new GenericMessage<String>("3"));
 		assertEquals(3, ((List<?>) withReplyChannelOutput.receive().getPayload()).size());
 	}
 
 	@Test
 	public void gatewayWithNoReplyChannel() throws Exception {
-		withNoReplyChannel.send(new StringMessage("1"));
+		withNoReplyChannel.send(new GenericMessage<String>("1"));
 		assertEquals(1, testBean.messages.size());
-		withNoReplyChannel.send(new StringMessage("2"));
+		withNoReplyChannel.send(new GenericMessage<String>("2"));
 		assertEquals(2, testBean.messages.size());
-		withNoReplyChannel.send(new StringMessage("3"));
+		withNoReplyChannel.send(new GenericMessage<String>("3"));
 		assertEquals(3, testBean.messages.size());
 	}
 
