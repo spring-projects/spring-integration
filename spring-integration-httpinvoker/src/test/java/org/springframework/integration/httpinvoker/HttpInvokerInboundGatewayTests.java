@@ -31,9 +31,8 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
-import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.remoting.support.RemoteInvocation;
@@ -54,7 +53,7 @@ public class HttpInvokerInboundGatewayTests {
 		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		request.setContent(createRequestContent(new StringMessage("test")));
+		request.setContent(createRequestContent(new GenericMessage<String>("test")));
 		gateway.handleRequest(request, response);
 		Message<?> message = channel.receive(500);
 		assertNotNull(message);
@@ -68,7 +67,7 @@ public class HttpInvokerInboundGatewayTests {
 			public void run() {
 				Message<?> message = channel.receive();
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
-				replyChannel.send(new StringMessage(message.getPayload().toString().toUpperCase()));
+				replyChannel.send(new GenericMessage<String>(message.getPayload().toString().toUpperCase()));
 			}
 		});
 		HttpInvokerInboundGateway gateway = new HttpInvokerInboundGateway();
@@ -77,7 +76,7 @@ public class HttpInvokerInboundGatewayTests {
 		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
-		request.setContent(createRequestContent(new StringMessage("test")));
+		request.setContent(createRequestContent(new GenericMessage<String>("test")));
 		gateway.handleRequest(request, response);
 		Message<?> reply = extractMessageFromResponse(response);
 		assertEquals("TEST", reply.getPayload());
