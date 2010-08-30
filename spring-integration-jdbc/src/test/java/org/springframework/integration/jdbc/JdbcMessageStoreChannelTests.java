@@ -1,3 +1,19 @@
+/*
+ * Copyright 2002-2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
@@ -10,9 +26,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.StringMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -38,7 +55,7 @@ public class JdbcMessageStoreChannelTests {
 	@Test
 	public void testSendAndActivate() throws Exception {
 		Service.reset(1);
-		input.send(new StringMessage("foo"));
+		input.send(new GenericMessage<String>("foo"));
 		Service.await(1000);
 		assertEquals(1, Service.messages.size());
 		assertEquals(0, messageStore.getMessageGroup("input-queue").size());
@@ -48,7 +65,7 @@ public class JdbcMessageStoreChannelTests {
 	public void testSendAndActivateWithRollback() throws Exception {
 		Service.reset(1);
 		Service.fail = true;
-		input.send(new StringMessage("foo"));
+		input.send(new GenericMessage<String>("foo"));
 		Service.await(1000);
 		assertEquals(1, Service.messages.size());
 		// After a rollback in the poller the message is still waiting to be delivered
@@ -60,7 +77,7 @@ public class JdbcMessageStoreChannelTests {
 	@Transactional
 	public void testSendAndActivateTransactionalSend() throws Exception {
 		Service.reset(1);
-		input.send(new StringMessage("foo"));
+		input.send(new GenericMessage<String>("foo"));
 		// This will time out because the transaction has not committed yet
 		Service.await(1000);
 		// So no activation
