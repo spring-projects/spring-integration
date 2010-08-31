@@ -24,8 +24,8 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
 
 /**

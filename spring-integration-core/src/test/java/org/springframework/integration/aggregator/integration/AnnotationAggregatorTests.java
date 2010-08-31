@@ -28,8 +28,8 @@ import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CorrelationStrategy;
 import org.springframework.integration.annotation.ReleaseStrategy;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

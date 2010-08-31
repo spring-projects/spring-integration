@@ -37,8 +37,8 @@ import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.message.MessageMatcher;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Jeremy Grelle

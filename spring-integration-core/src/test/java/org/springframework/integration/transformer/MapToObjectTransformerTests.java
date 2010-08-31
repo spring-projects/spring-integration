@@ -33,7 +33,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Oleg Zhurakousky

@@ -24,7 +24,6 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.GenericMessage;
 
 /**
  * @author Mark Fisher

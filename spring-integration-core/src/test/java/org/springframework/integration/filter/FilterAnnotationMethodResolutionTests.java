@@ -27,8 +27,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.FilterFactoryBean;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher

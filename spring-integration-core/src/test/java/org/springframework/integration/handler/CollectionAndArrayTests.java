@@ -32,9 +32,9 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher

@@ -24,8 +24,8 @@ import java.util.UUID;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * Base class for Message-splitting handlers.

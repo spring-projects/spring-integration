@@ -19,10 +19,10 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * Maps incoming data from a {@link TcpConnection} to a {@link Message}.

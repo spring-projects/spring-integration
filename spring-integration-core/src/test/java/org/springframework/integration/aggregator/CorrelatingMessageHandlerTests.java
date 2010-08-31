@@ -40,11 +40,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**

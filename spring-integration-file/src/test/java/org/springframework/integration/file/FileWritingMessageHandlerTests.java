@@ -22,8 +22,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.File;

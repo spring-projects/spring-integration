@@ -30,8 +30,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

@@ -22,6 +22,7 @@ import static org.junit.Assert.assertThat;
 import javax.xml.transform.Source;
 
 import org.junit.Test;
+
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;

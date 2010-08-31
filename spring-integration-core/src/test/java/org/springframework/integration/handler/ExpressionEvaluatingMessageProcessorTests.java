@@ -32,7 +32,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationException;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Dave Syer

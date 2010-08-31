@@ -35,12 +35,12 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher

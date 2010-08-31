@@ -21,8 +21,8 @@ import java.io.Serializable;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.remoting.RemoteAccessException;
 
 /**

@@ -17,7 +17,7 @@
 package org.springframework.integration.mail;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;
 
 /**

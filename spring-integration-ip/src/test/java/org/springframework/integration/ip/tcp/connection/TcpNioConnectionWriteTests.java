@@ -26,12 +26,12 @@ import java.nio.ByteBuffer;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter;
 import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell

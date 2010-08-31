@@ -23,9 +23,9 @@ import javax.jms.Destination;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 

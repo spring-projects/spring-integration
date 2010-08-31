@@ -42,11 +42,11 @@ import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ReleaseStrategy;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

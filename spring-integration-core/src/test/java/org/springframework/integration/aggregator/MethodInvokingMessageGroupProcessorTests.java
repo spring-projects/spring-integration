@@ -51,12 +51,12 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
+import org.springframework.integration.support.MessageBuilder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {

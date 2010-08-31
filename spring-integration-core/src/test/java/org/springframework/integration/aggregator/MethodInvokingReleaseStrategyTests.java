@@ -25,7 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 

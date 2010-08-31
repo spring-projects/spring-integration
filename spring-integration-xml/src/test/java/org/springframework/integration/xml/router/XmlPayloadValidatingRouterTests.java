@@ -24,7 +24,7 @@ import org.junit.Before;
 
 import org.junit.Test;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 
 public class XmlPayloadValidatingRouterTests {
 

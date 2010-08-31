@@ -30,8 +30,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;

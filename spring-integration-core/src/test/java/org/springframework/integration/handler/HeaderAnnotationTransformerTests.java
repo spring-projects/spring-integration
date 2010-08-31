@@ -25,7 +25,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 

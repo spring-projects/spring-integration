@@ -21,7 +21,7 @@ import java.nio.charset.Charset;
 
 import javax.mail.Multipart;
 
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**

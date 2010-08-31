@@ -20,8 +20,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.ErrorMessage;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
@@ -31,6 +29,8 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 

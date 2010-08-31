@@ -29,7 +29,7 @@ import java.util.List;
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**

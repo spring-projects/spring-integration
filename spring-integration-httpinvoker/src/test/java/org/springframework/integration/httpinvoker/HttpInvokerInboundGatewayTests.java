@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.remoting.support.RemoteInvocation;

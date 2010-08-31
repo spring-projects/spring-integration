@@ -26,8 +26,8 @@ import org.junit.Test;
 
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.handler.MessageProcessor;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.ScriptSource;
 import org.springframework.scripting.support.ResourceScriptSource;
 

@@ -26,9 +26,9 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

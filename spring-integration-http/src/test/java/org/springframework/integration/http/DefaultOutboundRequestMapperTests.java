@@ -37,7 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 

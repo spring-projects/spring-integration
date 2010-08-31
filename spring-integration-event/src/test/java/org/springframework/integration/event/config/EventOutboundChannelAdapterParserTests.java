@@ -32,10 +32,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.event.ApplicationEventPublishingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

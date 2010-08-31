@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint.annotation;
 import org.springframework.integration.Message;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher

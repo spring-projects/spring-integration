@@ -24,8 +24,8 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.endpoint.MessageProducerSupport;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**

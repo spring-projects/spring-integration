@@ -21,9 +21,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.entries.EntryListFilter;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 import java.io.File;

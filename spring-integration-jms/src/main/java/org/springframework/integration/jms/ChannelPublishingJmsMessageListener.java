@@ -27,9 +27,9 @@ import javax.jms.Session;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;

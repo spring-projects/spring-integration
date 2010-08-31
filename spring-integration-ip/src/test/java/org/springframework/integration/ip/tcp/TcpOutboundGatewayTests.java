@@ -42,10 +42,10 @@ import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell

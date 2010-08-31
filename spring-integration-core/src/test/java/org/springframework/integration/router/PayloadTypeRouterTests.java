@@ -30,7 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher

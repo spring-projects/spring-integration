@@ -35,9 +35,9 @@ import org.springframework.integration.aggregator.MethodInvokingCorrelationStrat
 import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

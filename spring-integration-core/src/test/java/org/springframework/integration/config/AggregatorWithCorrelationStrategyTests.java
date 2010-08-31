@@ -26,9 +26,9 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.aggregator.ReleaseStrategy;
 import org.springframework.integration.aggregator.CorrelationStrategy;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.store.MessageGroup;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 

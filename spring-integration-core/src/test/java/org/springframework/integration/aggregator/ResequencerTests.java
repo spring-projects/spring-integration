@@ -30,9 +30,9 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Marius Bogoevici

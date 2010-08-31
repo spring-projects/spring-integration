@@ -26,7 +26,7 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.context.SimpleBeanResolver;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;

@@ -26,9 +26,9 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppConnectionFactory;
 import org.springframework.integration.xmpp.XmppHeaders;
 

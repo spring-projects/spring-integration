@@ -40,11 +40,11 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
-import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 
 /**

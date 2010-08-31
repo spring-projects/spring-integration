@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 

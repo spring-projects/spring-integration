@@ -19,7 +19,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.core.ErrorMessage;
+import org.springframework.integration.message.ErrorMessage;
 
 /**
  * @author Iwein Fuld

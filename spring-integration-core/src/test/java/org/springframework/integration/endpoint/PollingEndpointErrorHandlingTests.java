@@ -23,8 +23,8 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.ErrorMessage;
 
 /**
  * @author Jonas Partner

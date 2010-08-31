@@ -19,8 +19,8 @@ package org.springframework.integration.xmpp.presence;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xmpp.XmppHeaders;
 
 /**

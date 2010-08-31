@@ -40,10 +40,10 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.ReflectionUtils;
 
 /**

@@ -27,8 +27,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

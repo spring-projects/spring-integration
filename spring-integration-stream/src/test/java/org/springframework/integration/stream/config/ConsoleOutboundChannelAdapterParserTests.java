@@ -32,7 +32,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.stream.CharacterStreamWritingMessageHandler;
 
 /**

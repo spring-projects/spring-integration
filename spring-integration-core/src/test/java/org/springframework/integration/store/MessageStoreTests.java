@@ -27,7 +27,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**

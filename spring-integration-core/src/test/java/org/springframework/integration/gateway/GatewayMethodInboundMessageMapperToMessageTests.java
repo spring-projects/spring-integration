@@ -32,8 +32,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.gateway.GatewayMethodInboundMessageMapper;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher

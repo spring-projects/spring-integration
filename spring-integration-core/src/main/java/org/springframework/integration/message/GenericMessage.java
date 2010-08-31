@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration.message;
 
 import java.io.Serializable;
 import java.util.HashMap;

@@ -5,7 +5,8 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.core.GenericMessage;
+
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.SimpleMessageGroup;
 
 /**

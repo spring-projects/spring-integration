@@ -29,8 +29,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 

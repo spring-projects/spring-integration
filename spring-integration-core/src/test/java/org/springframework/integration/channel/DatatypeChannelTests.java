@@ -36,8 +36,8 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.core.ErrorMessage;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher

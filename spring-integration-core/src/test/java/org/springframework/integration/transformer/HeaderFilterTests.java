@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.HeaderFilter;
 import org.springframework.integration.transformer.MessageTransformingHandler;
 

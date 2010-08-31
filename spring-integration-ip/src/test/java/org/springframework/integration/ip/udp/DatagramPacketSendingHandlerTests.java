@@ -33,9 +33,9 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher

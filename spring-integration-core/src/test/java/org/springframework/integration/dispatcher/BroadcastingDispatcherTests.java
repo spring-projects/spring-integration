@@ -37,9 +37,9 @@ import org.junit.Test;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher

@@ -24,9 +24,9 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * Base class for Message Routers.

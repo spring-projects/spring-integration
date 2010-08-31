@@ -4,7 +4,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
-import org.springframework.integration.core.GenericMessage;
+
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Alex Peters

@@ -26,9 +26,9 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.mapping.MessageMappingException;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell

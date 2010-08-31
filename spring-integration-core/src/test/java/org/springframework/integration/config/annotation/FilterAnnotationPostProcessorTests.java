@@ -27,7 +27,7 @@ import org.springframework.integration.annotation.Filter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 

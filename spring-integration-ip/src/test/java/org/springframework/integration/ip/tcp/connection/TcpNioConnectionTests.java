@@ -31,8 +31,8 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.util.SocketUtils;
+import org.springframework.integration.support.MessageBuilder;
 
 
 /**

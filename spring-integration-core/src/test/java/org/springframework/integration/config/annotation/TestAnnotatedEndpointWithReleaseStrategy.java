@@ -27,7 +27,7 @@ import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ReleaseStrategy;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Marius Bogoevici

@@ -29,7 +29,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.GenericMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Dave Syer

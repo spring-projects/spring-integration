@@ -23,8 +23,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.file.FileHeaders;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.Assert;
 

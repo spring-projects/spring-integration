@@ -31,8 +31,8 @@ import org.codehaus.jackson.type.JavaType;
 import org.codehaus.jackson.type.TypeReference;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**

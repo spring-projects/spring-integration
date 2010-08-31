@@ -29,11 +29,11 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 

@@ -27,7 +27,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;

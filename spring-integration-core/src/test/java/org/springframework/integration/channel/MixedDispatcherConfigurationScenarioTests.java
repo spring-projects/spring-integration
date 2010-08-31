@@ -44,10 +44,10 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.dispatcher.RoundRobinLoadBalancingStrategy;
 import org.springframework.integration.dispatcher.UnicastingDispatcher;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**

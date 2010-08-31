@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration.support;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +25,8 @@ import java.util.UUID;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

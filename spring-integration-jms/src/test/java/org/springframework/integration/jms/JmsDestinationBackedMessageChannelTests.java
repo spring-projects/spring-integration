@@ -39,8 +39,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
