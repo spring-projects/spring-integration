@@ -171,8 +171,6 @@ public interface MessagingOperations {
 	// Convenience methods for receiving auto-converted messages
 	//-------------------------------------------------------------------------
 
-	// TODO: receive and convert methods...
-
 	/**
 	 * Receive a message synchronously from the default channel, but only
 	 * wait up to a specified time for delivery. Convert the message into an
@@ -183,7 +181,7 @@ public interface MessagingOperations {
 	 * @return the message received from the channel or <code>null</code> if the timeout expires.
 	 * @throws MessagingException if an error occurs during message reception
 	 */
-	//Object receiveAndConvert() throws JmsException;
+	Object receiveAndConvert() throws MessagingException;
 
 	/**
 	 * Receive a message synchronously from the specified channel, but only
@@ -195,7 +193,7 @@ public interface MessagingOperations {
 	 * @return the message received from the channel or <code>null</code> if the timeout expires.
 	 * @throws MessagingException if an error occurs during message reception
 	 */
-	//Object receiveAndConvert(PollableChannel channel) throws JmsException;
+	Object receiveAndConvert(PollableChannel channel) throws MessagingException;
 
 	/**
 	 * Receive a message synchronously from the specified channel, but only
@@ -208,7 +206,7 @@ public interface MessagingOperations {
 	 * @return the message received from the channel or <code>null</code> if the timeout expires.
 	 * @throws MessagingException if an error occurs during message reception
 	 */
-	//Object receiveAndConvert(String channelName) throws JmsException;
+	Object receiveAndConvert(String channelName) throws MessagingException;
 
 
 	//-------------------------------------------------------------------------

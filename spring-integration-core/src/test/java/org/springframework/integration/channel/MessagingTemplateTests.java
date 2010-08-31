@@ -37,11 +37,15 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -60,13 +64,7 @@ public class MessagingTemplateTests {
 	public void setUp() {
 		this.requestChannel = new QueueChannel();
 		context.registerChannel("requestChannel", requestChannel);
-		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
-			@Override
-			public Object handleRequestMessage(Message<?> message) {
-				return message.getPayload().toString().toUpperCase();
-			}
-		};
-		PollingConsumer endpoint = new PollingConsumer(requestChannel, handler);
+		PollingConsumer endpoint = new PollingConsumer(requestChannel, new TestHandler());
 		endpoint.setTrigger(new PeriodicTrigger(10));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
@@ -219,6 +217,50 @@ public class MessagingTemplateTests {
 	}
 
 	@Test
+	public void convertSendAndReceive() {
+		MessagingTemplate template = new MessagingTemplate();
+		template.setReceiveTimeout(3000);
+		Object result = template.convertSendAndReceive(this.requestChannel, "test");
+		assertNotNull(result);
+		assertEquals("TEST", result);
+	}
+
+	@Test
+	public void convertSendAndReceiveWithDefaultChannel() {
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(this.requestChannel);
+		template.setReceiveTimeout(3000);
+		Object result = template.convertSendAndReceive("test");
+		assertNotNull(result);
+		assertEquals("TEST", result);
+	}
+
+	@Test
+	public void convertSendAndReceiveWithResolvedChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", DirectChannel.class);
+		context.refresh();
+		SubscribableChannel testChannel = context.getBean("testChannel", SubscribableChannel.class);
+		testChannel.subscribe(new TestHandler());
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.setReceiveTimeout(3000);
+		Object result = template.convertSendAndReceive("testChannel", "test");
+		assertNotNull(result);
+		assertEquals("TEST", result);
+	}
+
+	@Test(expected = ChannelResolutionException.class)
+	public void convertSendAndReceiveWithUnresolvableChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.setReceiveTimeout(3000);
+		template.convertSendAndReceive("testChannel", "test");
+	}
+
+	@Test
 	public void sendWithReturnAddress() throws InterruptedException {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
@@ -344,6 +386,153 @@ public class MessagingTemplateTests {
 		template.setBeanFactory(context);
 		template.afterPropertiesSet();
 		template.receive("noSuchChannel");
+	}
+
+	@Test
+	public void convertAndSendToChannel() {
+		MessagingTemplate template = new MessagingTemplate();
+		QueueChannel channel = new QueueChannel();
+		template.convertAndSend(channel, "test");
+		Message<?> reply = channel.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());		
+	}
+
+	@Test
+	public void convertAndSendToDefaultChannel() {
+		QueueChannel channel = new QueueChannel();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(channel);
+		template.convertAndSend("test");
+		Message<?> reply = channel.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void convertAndSendToResolvedChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		template.convertAndSend("testChannel", "test");
+		PollableChannel channel = context.getBean("testChannel", PollableChannel.class);
+		Message<?> reply = channel.receive(0);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test(expected = ChannelResolutionException.class)
+	public void convertAndSendToUnresolvableChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		template.convertAndSend("testChannel", "test");
+	}
+
+	@Test
+	public void convertAndSendWithCustomConverter() {
+		MessagingTemplate template = new MessagingTemplate();
+		TestMapper mapper = new TestMapper();
+		template.setMessageConverter(new SimpleMessageConverter(mapper, mapper));
+		QueueChannel channel = new QueueChannel();
+		template.convertAndSend(channel, "test");
+		Message<?> reply = channel.receive(0);
+		assertNotNull(reply);
+		assertEquals("to:test", reply.getPayload());		
+	}
+
+	@Test
+	public void receiveAndConvertFromChannel() {
+		MessagingTemplate template = new MessagingTemplate();
+		QueueChannel channel = new QueueChannel();
+		channel.send(new GenericMessage<String>("test"));
+		Object result = template.receiveAndConvert(channel);
+		assertNotNull(result);
+		assertEquals("test", result);
+	}
+
+	@Test
+	public void recieveAndConvertFromDefaultChannel() {
+		QueueChannel channel = new QueueChannel();
+		channel.send(new GenericMessage<String>("test"));
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(channel);
+		Object result = template.receiveAndConvert();
+		assertNotNull(result);
+		assertEquals("test", result);
+	}
+
+	@Test
+	public void receiveAndConvertFromResolvedChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		PollableChannel channel = context.getBean("testChannel", PollableChannel.class);
+		channel.send(new GenericMessage<String>("test"));
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		Object result = template.receiveAndConvert("testChannel");
+		assertNotNull(result);
+		assertEquals("test", result);
+	}
+
+	@Test(expected = ChannelResolutionException.class)
+	public void receiveAndConvertFromUnresolvableChannel() {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.refresh();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setBeanFactory(context);
+		template.afterPropertiesSet();
+		template.receiveAndConvert("testChannel");
+	}
+
+	@Test
+	public void receiveAndConvertWithCustomConverter() {
+		MessagingTemplate template = new MessagingTemplate();
+		TestMapper mapper = new TestMapper();
+		template.setMessageConverter(new SimpleMessageConverter(mapper, mapper));
+		QueueChannel channel = new QueueChannel();
+		channel.send(new GenericMessage<String>("test"));
+		Object result = template.receiveAndConvert(channel);
+		assertNotNull(result);
+		assertEquals("from:test", result);
+	}
+
+	@Test
+	public void convertSendAndReceiveWithCustomConverter() {
+		TestMapper mapper = new TestMapper();
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(this.requestChannel);
+		template.setMessageConverter(new SimpleMessageConverter(mapper, mapper));
+		Object result = template.convertSendAndReceive("test");
+		assertNotNull(result);
+		assertEquals("from:TO:TEST", result);
+	}
+
+
+	private static class TestMapper implements InboundMessageMapper<Object>, OutboundMessageMapper<Object> {
+
+		public Object fromMessage(Message<?> message) throws Exception {
+			return "from:" + message.getPayload();
+		}
+
+		public Message<?> toMessage(Object object) throws Exception {
+			return new GenericMessage<String>("to:" + object);
+		}
+	}
+
+
+	private static class TestHandler extends AbstractReplyProducingMessageHandler {
+
+		@Override
+		public Object handleRequestMessage(Message<?> message) {
+			return message.getPayload().toString().toUpperCase();
+		}
 	}
 
 }

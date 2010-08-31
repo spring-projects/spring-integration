@@ -29,6 +29,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
@@ -267,6 +268,21 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		Assert.isInstanceOf(PollableChannel.class, channel,
 				"A PollableChannel is required for receive operations. ");
 		return this.receive((PollableChannel) channel);
+	}
+
+	public Object receiveAndConvert() throws MessagingException {
+		Message<?> message = this.receive();
+		return (message != null) ? this.messageConverter.fromMessage(message) : null;
+	}
+
+	public Object receiveAndConvert(PollableChannel channel) throws MessagingException {
+		Message<?> message = this.receive(channel);
+		return (message != null) ? this.messageConverter.fromMessage(message) : null;
+	}
+
+	public Object receiveAndConvert(String channelName) throws MessagingException {
+		Message<?> message = this.receive(channelName);
+		return (message != null) ? this.messageConverter.fromMessage(message) : null;
 	}
 
 	public Message<?> sendAndReceive(final Message<?> requestMessage) {

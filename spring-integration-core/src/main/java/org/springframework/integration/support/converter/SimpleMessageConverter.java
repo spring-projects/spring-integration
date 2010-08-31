@@ -38,11 +38,13 @@ public class SimpleMessageConverter implements MessageConverter {
 	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper) {
-		this(inboundMessageMapper, null);
+		this(inboundMessageMapper,
+				(inboundMessageMapper instanceof OutboundMessageMapper ? (OutboundMessageMapper<?>) inboundMessageMapper : null));
 	}
 
 	public SimpleMessageConverter(OutboundMessageMapper<?> outboundMessageMapper) {
-		this(null, outboundMessageMapper);
+		this(outboundMessageMapper instanceof InboundMessageMapper ? (InboundMessageMapper<?>) outboundMessageMapper : null,
+				outboundMessageMapper);
 	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper, OutboundMessageMapper<?> outboundMessageMapper) {
