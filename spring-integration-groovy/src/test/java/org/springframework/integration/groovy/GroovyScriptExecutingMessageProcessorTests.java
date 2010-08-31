@@ -17,15 +17,16 @@
 package org.springframework.integration.groovy;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Test;
-
 import org.springframework.core.io.AbstractResource;
 import org.springframework.integration.Message;
+import org.springframework.integration.groovy.config.RefreshableResourceScriptSource;
 import org.springframework.integration.handler.MessageProcessor;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.scripting.ScriptSource;
@@ -38,12 +39,60 @@ import org.springframework.scripting.support.ResourceScriptSource;
 public class GroovyScriptExecutingMessageProcessorTests {
 
 	@Test
-	public void simpleTest() throws Exception {
+	public void testSimpleExecution() throws Exception {
 		String script = "return \"payload is $payload, header is $headers.testHeader\"";
 		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new ResourceScriptSource(resource);
-		MessageProcessor processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		Object result = processor.processMessage(message);
+		assertEquals("payload is foo, header is bar", result.toString());
+	}
+
+	@Test
+	public void testLastModified() throws Exception {
+		String script = "return \"payload is $payload, header is $headers.testHeader\"";
+		TestResource resource = new TestResource(script, "simpleTest");
+		long lastModified = resource.lastModified();
+		Thread.sleep(20L);
+		resource.setScript("foo");
+		assertFalse("Expected last modified to change: "+lastModified+"=="+resource.lastModified(), lastModified==resource.lastModified());
+	}
+
+	@Test
+	public void testModifiedScriptExecution() throws Exception {
+		String script = "return \"payload is $payload, header is $headers.testHeader\"";
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
+		TestResource resource = new TestResource(script, "simpleTest");
+		ScriptSource scriptSource = new ResourceScriptSource(resource);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		Thread.sleep(20L);
+		resource.setScript("return \"payload is $payload\"");
+		Object result = processor.processMessage(message);
+		assertEquals("payload is foo", result.toString());
+	}
+
+	@Test
+	public void testRefreshableScriptExecution() throws Exception {
+		String script = "return \"payload is $payload, header is $headers.testHeader\"";
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
+		TestResource resource = new TestResource(script, "simpleTest");
+		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 1000L);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		Thread.sleep(20L);
+		resource.setScript("return \"payload is $payload\"");
+		Object result = processor.processMessage(message);
+		assertEquals("payload is foo, header is bar", result.toString());
+	}
+
+	@Test
+	public void testRefreshableScriptExecutionWithInfiniteDelay() throws Exception {
+		String script = "return \"payload is $payload, header is $headers.testHeader\"";
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
+		TestResource resource = new TestResource(script, "simpleTest");
+		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, -1L);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		resource.setScript("return \"payload is $payload\"");
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
 	}
@@ -51,13 +100,24 @@ public class GroovyScriptExecutingMessageProcessorTests {
 
 	private static class TestResource extends AbstractResource {
 
-		private final String scriptString;
+		private String script;
 
 		private final String filename;
 
-		private TestResource(String scriptString, String filename) {
-			this.scriptString = scriptString;
+		private long lastModified;
+
+		private TestResource(String script, String filename) {
+			setScript(script);
 			this.filename = filename;
+		}
+		
+		public long lastModified() throws IOException {
+			return lastModified;
+		}
+		
+		public void setScript(String script) {
+			this.lastModified = System.currentTimeMillis();
+			this.script = script;
 		}
 		
 		public String getDescription() {
@@ -70,7 +130,7 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		}
 
 		public InputStream getInputStream() throws IOException {
-			return new ByteArrayInputStream(scriptString.getBytes("UTF-8")); 
+			return new ByteArrayInputStream(script.getBytes("UTF-8")); 
 		}
 	} 
 

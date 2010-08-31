@@ -33,6 +33,7 @@ import org.springframework.util.xml.DomUtils;
 public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String LOCATION_ATTRIBUTE = "location";
+	private static final String REFRESH_CHECK_DELAY_ATTRIBUTE = "refresh-check-delay";
 
 
 	@Override
@@ -53,9 +54,16 @@ public class GroovyScriptParser extends AbstractSingleBeanDefinitionParser {
 			return null;
 		}
 		else if (hasScriptLocation) {
+			String refreshDelayText = element.getAttribute(REFRESH_CHECK_DELAY_ATTRIBUTE);			
+			String beanClassName = "org.springframework.integration.groovy.config.RefreshableResourceScriptSource";
 			BeanDefinitionBuilder resourceScriptSourceBuilder =
-					BeanDefinitionBuilder.genericBeanDefinition("org.springframework.scripting.support.ResourceScriptSource");
+					BeanDefinitionBuilder.genericBeanDefinition(beanClassName);
 			resourceScriptSourceBuilder.addConstructorArgValue(element.getAttribute(LOCATION_ATTRIBUTE));
+			if (StringUtils.hasText(refreshDelayText)) {
+				resourceScriptSourceBuilder.addConstructorArgValue(refreshDelayText);
+			} else {
+				resourceScriptSourceBuilder.addConstructorArgValue(-1L);				
+			}
 			return resourceScriptSourceBuilder.getBeanDefinition();
 		}
 		return new StaticScriptSource(scriptText, "groovy.lang.Script");
