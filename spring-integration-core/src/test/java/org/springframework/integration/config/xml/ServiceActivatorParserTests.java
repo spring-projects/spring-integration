@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.gateway.SimpleMessagingGateway;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -92,9 +92,8 @@ public class ServiceActivatorParserTests {
 
 
 	private Object sendAndReceive(MessageChannel channel, Object payload) {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(channel);
-		return gateway.sendAndReceive(payload);
+		MessagingTemplate template = new MessagingTemplate(channel);
+		return template.convertSendAndReceive(payload);
 	}
 
 
