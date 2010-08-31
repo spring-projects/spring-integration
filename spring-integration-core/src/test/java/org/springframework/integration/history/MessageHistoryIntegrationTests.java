@@ -16,12 +16,6 @@
 
 package org.springframework.integration.history;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -29,17 +23,22 @@ import java.util.Properties;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Oleg Zhurakousky
@@ -170,6 +169,30 @@ public class MessageHistoryIntegrationTests {
 			public void handleMessage(Message<?> message) {
 				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
 				assertTrue(historyIterator.hasNext());
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
+		});
+		endOfThePipeChannel.subscribe(handler);
+		gateway.echo("hello");
+		Mockito.verify(handler, Mockito.times(1)).handleMessage(Mockito.any(Message.class));
+	}
+	
+	@Test
+	public void testMessageHistoryParserWithNamePatterns() {
+		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespaceAndPatterns.xml", MessageHistoryIntegrationTests.class);
+		SampleGateway gateway = ac.getBean("sampleGateway", SampleGateway.class);
+		DirectChannel endOfThePipeChannel = ac.getBean("endOfThePipeChannel", DirectChannel.class);
+		MessageHandler handler = Mockito.spy(new MessageHandler() {	
+			public void handleMessage(Message<?> message) {
+				Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
+				assertTrue(historyIterator.hasNext());
+				Properties gatewayHistory = historyIterator.next();
+				assertEquals("sampleGateway", gatewayHistory.get("name"));
+				assertTrue(historyIterator.hasNext());
+				Properties chainHistory = historyIterator.next();
+				assertEquals("sampleChain", chainHistory.get("name"));
+				assertFalse(historyIterator.hasNext());
 				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
 				replyChannel.send(message);
 			}

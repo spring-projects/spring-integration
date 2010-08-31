@@ -2454,6 +2454,17 @@ only be one Message History writer per ApplicationContext hierarchy.
 					]]>
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="tracked-components" type="xsd:string" default="*">
+			<xsd:annotation>
+				<xsd:documentation>
+				<![CDATA[
+The list of component name patterns you want to track (e.g.,  tracked-components="inputChannel, out*, *Channel, *Service")
+					]]>
+			</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:attributeGroup name="inputOutputChannelGroup">

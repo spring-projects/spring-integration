@@ -16,12 +16,12 @@
 
 package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.w3c.dom.Element;
 
 /**
  * @author Oleg Zhurakousky
@@ -48,6 +48,15 @@ public class MessageHistoryParser extends AbstractSimpleBeanDefinitionParser {
 			throw new BeanDefinitionStoreException("At most one MessageHistoryConfigurer may be registered within a context.");
 		}
 		return CONFIGURER_CLASSNAME;
+	}
+	
+	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
+		
+	}
+	
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "tracked-components", "componentNamePatterns");
+		postProcess(builder, element);
 	}
 
 }
