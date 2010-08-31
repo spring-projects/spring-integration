@@ -23,7 +23,7 @@ import java.net.SocketAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Gary Russell
  * @since 2.0
  */
-public abstract class AbstractInternetProtocolSendingMessageHandler implements MessageHandler, CommonSocketOptions {
+public abstract class AbstractInternetProtocolSendingMessageHandler extends AbstractMessageHandler implements CommonSocketOptions {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 

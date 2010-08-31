@@ -28,6 +28,8 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.BridgeHandler;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
@@ -42,10 +44,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingGateway extends AbstractEndpoint {
+public abstract class AbstractMessagingGateway extends AbstractEndpoint implements TrackableComponent{
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
+	private volatile boolean shouldTrack = false;
 
 	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
@@ -74,6 +77,10 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 	@Override
 	public String getComponentType(){
 		return "gateway";
+	}
+	
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
 	}
 
 	/**
@@ -152,6 +159,10 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 		Assert.state(this.requestChannel != null,
 				"send is not supported, because no request channel has been configured");
 		Message<?> message = this.toMessage(object);
+		if (this.shouldTrack) {
+			message = MessageHistory.write(message, this);
+		}
+		
 		Assert.notNull(message, "message must not be null");
 		this.messagingTemplate.send(this.requestChannel, message);
 	}
@@ -182,6 +193,9 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 
 	Object sendAndReceive(Object object, boolean shouldMapMessage) {
 		Message<?> request = this.toMessage(object);
+		if (this.shouldTrack) {
+			request = MessageHistory.write(request, this);
+		}
 		Message<?> reply = this.sendAndReceiveMessage(request);
 		if (!shouldMapMessage) {
 			return reply;

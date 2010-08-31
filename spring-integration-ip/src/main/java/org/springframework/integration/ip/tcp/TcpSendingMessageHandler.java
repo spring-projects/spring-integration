@@ -25,7 +25,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -43,7 +43,7 @@ import org.springframework.integration.mapping.MessageMappingException;
  * @since 2.0
  *
  */
-public class TcpSendingMessageHandler implements MessageHandler, TcpSender {
+public class TcpSendingMessageHandler extends AbstractMessageHandler implements TcpSender {
 	
 	protected Log logger = LogFactory.getLog(this.getClass());	
 	
@@ -78,7 +78,7 @@ public class TcpSendingMessageHandler implements MessageHandler, TcpSender {
 	 * message format. 
 	 * @see org.springframework.integration.core.MessageHandler#handleMessage(org.springframework.integration.Message)
 	 */
-	public void handleMessage(final Message<?> message) throws MessageRejectedException,
+	public void handleMessageInternal(final Message<?> message) throws MessageRejectedException,
 			MessageHandlingException, MessageDeliveryException {
 		if (this.serverConnectionFactory != null) {
 			// We don't own the connection
@@ -161,5 +161,4 @@ public class TcpSendingMessageHandler implements MessageHandler, TcpSender {
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
-
 }

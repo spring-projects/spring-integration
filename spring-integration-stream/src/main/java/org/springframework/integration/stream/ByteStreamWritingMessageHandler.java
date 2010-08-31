@@ -26,13 +26,14 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 
 /**
  * A {@link MessageHandler} that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamWritingMessageHandler implements MessageHandler {
+public class ByteStreamWritingMessageHandler extends AbstractMessageHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -53,7 +54,7 @@ public class ByteStreamWritingMessageHandler implements MessageHandler {
 	}
 
 
-	public void handleMessage(Message<?> message) {
+	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

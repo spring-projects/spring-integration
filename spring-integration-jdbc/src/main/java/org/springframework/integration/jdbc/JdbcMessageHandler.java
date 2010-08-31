@@ -19,7 +19,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcOperations;
@@ -40,7 +40,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author Dave Syer
  * @since 2.0
  */
-public class JdbcMessageHandler implements MessageHandler {
+public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private final SimpleJdbcOperations jdbcOperations;
 
@@ -83,7 +83,7 @@ public class JdbcMessageHandler implements MessageHandler {
 	/**
 	 * Executes the update, passing the message into the {@link SqlParameterSourceFactory}.
 	 */
-	public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
+	protected void handleMessageInternal(Message<?> message) throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		executeUpdateQuery(message);
 	}

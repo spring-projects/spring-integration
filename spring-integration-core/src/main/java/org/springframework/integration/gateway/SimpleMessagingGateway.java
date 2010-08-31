@@ -18,8 +18,6 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.util.Assert;
@@ -34,15 +32,12 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleMessagingGateway extends AbstractMessagingGateway implements TrackableComponent {
+@SuppressWarnings({"unchecked"})
+public class SimpleMessagingGateway extends AbstractMessagingGateway  {
 
 	private final InboundMessageMapper inboundMapper;
 
 	private final OutboundMessageMapper outboundMapper;
-
-	private volatile boolean shouldTrack = false;
-
 
 	public SimpleMessagingGateway() {
 		SimpleMessageMapper mapper = new SimpleMessageMapper();
@@ -55,11 +50,6 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 		Assert.notNull(outboundMapper, "OutboundMessageMapper must not be null");
 		this.inboundMapper = inboundMapper;
 		this.outboundMapper = outboundMapper;
-	}
-
-
-	public void setShouldTrack(boolean shouldTrack) {
-		this.shouldTrack = shouldTrack;
 	}
 
 	public Message<?> sendAndReceiveMessage(Object object) {
@@ -89,9 +79,6 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway implements 
 		Message<?> message = null;
 		try {
 			message = this.inboundMapper.toMessage(object);
-			if (this.shouldTrack) {
-				message = MessageHistory.write(message, this);
-			}
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {

@@ -24,6 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.MessageMappingException;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
@@ -49,7 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class MailSendingMessageHandler implements MessageHandler {
+public class MailSendingMessageHandler extends AbstractMessageHandler {
 
 	private final JavaMailSender mailSender;
 
@@ -66,7 +67,7 @@ public class MailSendingMessageHandler implements MessageHandler {
 	}
 
 
-	public final void handleMessage(Message<?> message) {
+	protected final void handleMessageInternal(Message<?> message) {
 		MailMessage mailMessage = this.convertMessageToMailMessage(message);
 		if (mailMessage instanceof SimpleMailMessage) {
 			this.mailSender.send((SimpleMailMessage) mailMessage);

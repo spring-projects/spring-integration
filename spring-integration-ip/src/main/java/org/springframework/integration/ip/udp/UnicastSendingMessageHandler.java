@@ -32,7 +32,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
@@ -54,7 +53,7 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class UnicastSendingMessageHandler extends
-		AbstractInternetProtocolSendingMessageHandler implements Runnable, InitializingBean {
+		AbstractInternetProtocolSendingMessageHandler implements Runnable{
 
 	protected final DatagramPacketMessageMapper mapper = new DatagramPacketMessageMapper();
 
@@ -170,7 +169,7 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	public void afterPropertiesSet() {
+	public void onInit() {
 		if (this.acknowledge) {
 			if (this.taskExecutor == null) {
 				Executor executor = Executors
@@ -188,7 +187,7 @@ public class UnicastSendingMessageHandler extends
 		}
 	}
 
-	public void handleMessage(Message<?> message)
+	public void handleMessageInternal(Message<?> message)
 			throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		if (this.acknowledge) {
@@ -343,6 +342,4 @@ public class UnicastSendingMessageHandler extends
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
-
-	
 }

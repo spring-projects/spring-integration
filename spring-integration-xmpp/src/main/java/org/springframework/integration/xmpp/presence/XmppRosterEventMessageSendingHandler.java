@@ -6,10 +6,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 
 /**
@@ -17,13 +14,14 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
  * {@link org.jivesoftware.smack.Roster#setSubscriptionMode(org.jivesoftware.smack.Roster.SubscriptionMode)} property.
  *
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @see org.jivesoftware.smack.packet.Presence.Mode the mode (i.e.:
  *      {@link org.jivesoftware.smack.packet.Presence.Mode#away})
  * @see org.jivesoftware.smack.packet.Presence.Type the type (i.e.:
  *      {@link org.jivesoftware.smack.packet.Presence.Type#available} )
  * @since 2.0
  */
-public class XmppRosterEventMessageSendingHandler implements MessageHandler, Lifecycle {
+public class XmppRosterEventMessageSendingHandler extends AbstractMessageHandler implements  Lifecycle {
 	private static final Log logger = LogFactory.getLog(XmppRosterEventMessageDrivenEndpoint.class);
 
 	private volatile boolean running;
@@ -34,17 +32,6 @@ public class XmppRosterEventMessageSendingHandler implements MessageHandler, Lif
 
 	public void setXmppConnection(final XMPPConnection xmppConnection) {
 		this.xmppConnection = xmppConnection;
-	}
-
-	public void handleMessage(final Message<?> message) throws MessageRejectedException, MessageHandlingException,
-			MessageDeliveryException {
-		try {
-			Presence presence = this.messageMapper.fromMessage(message);
-			this.xmppConnection.sendPacket(presence);
-		}
-		catch (Exception e) {
-			logger.error("Failed to map packet to message ", e);
-		}
 	}
 
 	public boolean isRunning() {
@@ -79,5 +66,16 @@ public class XmppRosterEventMessageSendingHandler implements MessageHandler, Lif
 	 */
 	public void setMessageMapper(OutboundMessageMapper<Presence> messageMapper) {
 		this.messageMapper = messageMapper;
+	}
+
+	@Override
+	protected void handleMessageInternal(Message<?> message) throws Exception {
+		try {
+			Presence presence = this.messageMapper.fromMessage(message);
+			this.xmppConnection.sendPacket(presence);
+		}
+		catch (Exception e) {
+			logger.error("Failed to map packet to message ", e);
+		}
 	}
 }

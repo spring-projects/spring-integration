@@ -26,10 +26,10 @@ import java.io.Writer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamWritingMessageHandler implements MessageHandler {
+public class CharacterStreamWritingMessageHandler extends AbstractMessageHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -117,7 +117,7 @@ public class CharacterStreamWritingMessageHandler implements MessageHandler {
 		this.shouldAppendNewLine = shouldAppendNewLine;
 	}
 
-	public void handleMessage(Message<?> message) {
+	protected void handleMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

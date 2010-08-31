@@ -9,7 +9,15 @@
 	             service-interface="org.springframework.integration.history.MessageHistoryIntegrationTests.SampleGateway"
 	             default-request-channel="bridgeInChannel"/>
 	             
-	<int:bridge id="testBridge" input-channel="bridgeInChannel" output-channel="headerEnricherChannel"/>
+	<int:channel id="bridgeInChannel">
+		<int:queue/>
+	</int:channel>
+	             
+	<int:bridge id="testBridge" input-channel="bridgeInChannel" output-channel="headerEnricherChannel">
+		<int:poller max-messages-per-poll="1">
+			<int:interval-trigger interval="100"/>
+		</int:poller>
+	</int:bridge>
 	
 	<int:header-enricher id="testHeaderEnricher" input-channel="headerEnricherChannel" output-channel="chainChannel">
 		<int:header name="foo" value="foo"/>

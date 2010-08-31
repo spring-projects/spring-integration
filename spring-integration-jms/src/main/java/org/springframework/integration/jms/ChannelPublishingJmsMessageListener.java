@@ -28,7 +28,6 @@ import javax.jms.Session;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.gateway.AbstractMessagingGateway;
-import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -223,7 +222,6 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 		Message<?> requestMessage = (object instanceof Message<?>) ?
 				MessageBuilder.fromMessage((Message<?>) object).copyHeaders(headers).build() : 
 				MessageBuilder.withPayload(object).copyHeaders(headers).build();
-		requestMessage = MessageHistory.write(requestMessage, this);
 		if (!this.expectReply) {
 			this.send(requestMessage);
 		}

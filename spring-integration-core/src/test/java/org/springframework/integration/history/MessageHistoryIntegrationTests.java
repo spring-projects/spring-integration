@@ -20,11 +20,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -44,17 +42,6 @@ import static org.junit.Assert.assertNull;
  * @author Oleg Zhurakousky
  */
 public class MessageHistoryIntegrationTests {
-
-	@Test @Ignore
-	public void testHistoryAwareMessageHandler() {
-		ApplicationContext ac = new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter.xml", MessageHistoryIntegrationTests.class);
-		Map<String, ConsumerEndpointFactoryBean> cefBeans = ac.getBeansOfType(ConsumerEndpointFactoryBean.class);
-		for (ConsumerEndpointFactoryBean cefBean : cefBeans.values()) {
-			DirectFieldAccessor bridgeAccessor = new DirectFieldAccessor(cefBean);
-			String handlerClassName = bridgeAccessor.getPropertyValue("handler").getClass().getName();
-			assertEquals("org.springframework.integration.config.MessageHistoryWritingMessageHandler", handlerClassName);
-		}
-	}
 
 	@Test
 	public void testNoHistoryAwareMessageHandler() {
@@ -206,12 +193,6 @@ public class MessageHistoryIntegrationTests {
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
 	}
-
-	@Test(expected=BeanCreationException.class) @Ignore
-	public void testMessageHistoryMoreThanOneFail() {
-		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriter-fail.xml", MessageHistoryIntegrationTests.class);
-	}
-
 
 	public static interface SampleGateway {
 		public Message<?> echo(String value);
