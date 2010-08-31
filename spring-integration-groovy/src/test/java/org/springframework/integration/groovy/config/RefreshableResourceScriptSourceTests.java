@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.groovy.config;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +25,6 @@ import org.springframework.core.io.ByteArrayResource;
 
 /**
  * @author Dave Syer
- *
  */
 public class RefreshableResourceScriptSourceTests {
 
@@ -49,7 +49,7 @@ public class RefreshableResourceScriptSourceTests {
 			}
 		}, 0);
 		assertEquals(false, source.isModified());
-		Thread.sleep(20L);
+		Thread.sleep(100L);
 		assertEquals(true, source.isModified());
 		assertEquals("foo", source.getScriptAsString());
 	}
