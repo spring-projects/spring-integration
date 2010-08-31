@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.xmpp.XmppHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * @author Mario Gray
  * @since 2.0
  */
-public class XmppMessageSendingMessageHandler implements MessageHandler, Lifecycle {
+public class XmppMessageSendingMessageHandler extends AbstractMessageHandler implements Lifecycle {
 
 	private static final Log logger = LogFactory.getLog(XmppMessageSendingMessageHandler.class);
 
@@ -42,7 +42,7 @@ public class XmppMessageSendingMessageHandler implements MessageHandler, Lifecyc
 		this.xmppConnection = xmppConnection;
 	}
 
-	public void handleMessage(final org.springframework.integration.Message<?> message) {
+	protected void handleMessageInternal(final org.springframework.integration.Message<?> message) {
 		try {
 			// pre-reqs: user to send, string to send as msg body
 			String messageBody = null;
