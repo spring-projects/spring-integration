@@ -28,8 +28,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.gateway.SimpleMessagingGateway;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -140,9 +141,9 @@ public class HeaderEnricherOverwriteTests {
 
 	@Test
 	public void priorityExplicitOverwriteTrue() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessageChannel channel = context.getBean("priorityExplicitOverwriteTrueInput", MessageChannel.class);
+		MessagingTemplate template = new MessagingTemplate(channel);
+		Message<?> result = template.sendAndReceive(new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(new Integer(42), result.getHeaders().getPriority());
 	}

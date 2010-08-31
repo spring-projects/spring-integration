@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.transformer.MessageTransformationException;
@@ -75,18 +75,18 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void correlationIdValue() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("correlationIdValueInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("correlationIdValueInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals("ABC", result.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void correlationIdValueWithType() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("correlationIdValueWithTypeInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("correlationIdValueWithTypeInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		Object correlationId = result.getHeaders().getCorrelationId();
 		assertEquals(Long.class, correlationId.getClass());
@@ -95,64 +95,64 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void correlationIdRef() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("correlationIdRefInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("correlationIdRefInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(new Integer(123), result.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void expirationDateValue() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("expirationDateValueInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("expirationDateValueInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(new Long(1111), result.getHeaders().getExpirationDate());
 	}
 
 	@Test
 	public void expirationDateRef() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("expirationDateRefInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("expirationDateRefInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(new Long(9999), result.getHeaders().getExpirationDate());
 	}
 
 	@Test
 	public void priority() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("priorityInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("priorityInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(new Integer(42), result.getHeaders().getPriority());
 	}
 
 	@Test
 	public void expressionUsingPayload() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("payloadExpressionInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage(new TestBean("foo"));
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("payloadExpressionInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<TestBean>(new TestBean("foo")));
 		assertNotNull(result);
 		assertEquals("foobar", result.getHeaders().get("testHeader"));
 	}
 
 	@Test
 	public void expressionUsingHeader() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("headerExpressionInput", MessageChannel.class));
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("headerExpressionInput", MessageChannel.class);
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeader1", "foo").build();
-		Message<?> result = gateway.sendAndReceiveMessage(message);
+		Message<?> result = template.sendAndReceive(channel, message);
 		assertNotNull(result);
 		assertEquals("foobar", result.getHeaders().get("testHeader2"));
 	}
 
 	@Test
 	public void expressionWithDateType() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("expressionWithDateTypeInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("expressionWithDateTypeInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		Object headerValue = result.getHeaders().get("currentDate");
 		assertEquals(Date.class, headerValue.getClass());
@@ -162,9 +162,9 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void expressionWithLongType() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("expressionWithLongTypeInput", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("expressionWithLongTypeInput", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(Long.class, result.getHeaders().get("number").getClass());
 		assertEquals(new Long(12345), result.getHeaders().get("number"));
@@ -172,9 +172,9 @@ public class HeaderEnricherTests {
 
 	@Test
 	public void refWithMethod() {
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
-		gateway.setRequestChannel(context.getBean("refWithMethod", MessageChannel.class));
-		Message<?> result = gateway.sendAndReceiveMessage("test");
+		MessagingTemplate template = new MessagingTemplate();
+		MessageChannel channel = context.getBean("refWithMethod", MessageChannel.class);
+		Message<?> result = template.sendAndReceive(channel, new GenericMessage<String>("test"));
 		assertNotNull(result);
 		assertEquals(String.class, result.getHeaders().get("testHeader").getClass());
 		assertEquals("testBeanForMethodInvoker", result.getHeaders().get("testHeader"));
