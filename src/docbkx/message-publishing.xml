@@ -17,24 +17,15 @@
 	 	<section id="publisher-annotation">
 		    <title>Annotation-driven approach via @Publisher annotation</title>
 		    <para>
-		   	The annotation-driven approach allows you to annotate any method with the <interfacename>@Publisher</interfacename>  annotation and 
-		   	provide configuration attributes which will dictate the structure of a <emphasis>Message</emphasis>. The invocation of the annotated
-		   	method will be proxied through <classname>PublisherAnnotationAdvisor</classname> which will 
-		   	construct a <emphasis>Message</emphasis> and send it to a <emphasis>Message Channel</emphasis>.	   
+		   	The annotation-driven approach allows you to annotate any method with the <interfacename>@Publisher</interfacename> annotation, specifying 'channel' attribute.
+		   	The Message will be constructed from the return value of method invocation and sent to a channel specified by 'channel' attribute. 
+		   	To further manage message structure you can also use a combination of both <interfacename>@Payload</interfacename> and <interfacename>@Header</interfacename> annotations.
 		    </para>
 		    <para>
-		    Internally <classname>PublisherAnnotationAdvisor</classname> uses the Spring 3.0 Expression Language support, giving you 
-		    considerable flexibility and control over the structure of the <emphasis>Message</emphasis> it will build. Here's an example:
+		    Internally message publishing feature of Spring Integration uses both Spring AOP by defining <classname>PublisherAnnotationAdvisor</classname> and
+		    Spring 3.0 Expression Language (SpEL) support, giving you considerable flexibility and control over the structure of the <emphasis>Message</emphasis> it will build. 
 		    </para>
-		    
 		    <para>
-<programlisting language="java">@Publisher(payload="#return", channel="testChannel", headers="bar='123',fname=#args.fname")
-public String setName(String fname, String lname){
-	return fname + " " + lname;
-}</programlisting>
-	 		</para>
-	 		
-		     <para>
 		   <classname>PublisherAnnotationAdvisor</classname> defines and binds the following variables:
 		   <itemizedlist>
 		        <listitem>
@@ -51,22 +42,84 @@ public String setName(String fname, String lname){
 		        </listitem>	       
 	      </itemizedlist>
 		    </para>
-	 		
+		    
+		    <para>
+		    Let's look at couple of examples:
+		    </para>
+	<para>
+<programlisting language="java">@Publisher
+public String defaultPayload(String fname, String lname) {
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>		
 	 		<para>
 	 		In the above example the Message will be constructed with the following structure:
 	 		<itemizedlist>
 		        <listitem>
-		          <para>Message payload - will be of type String and contain the value returned by the method.</para>
+		          <para>Message payload - will be the return type and value of the method. This is the default.</para>
 		        </listitem>
 		        <listitem>
-		          <para>Message headers will contain 'bar' with a value of "123" and 'fname' with the value of the 'fname' argument passed to the method at runtime.</para>
+		          <para>A newly constructed message will be sent to a default publisher channel configured with annotation post processor (see the end of this section).</para>
 		        </listitem>      
 	      </itemizedlist>
+	 		</para>	    
+		    <para>
+<programlisting language="java">@Publisher(channel="testChannel")
+public String defaultPayload(String fname, @Header("last") String lname) {
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>		
+	 		<para>
+	 		In this example everything is the same as above, however we are not using default publishing channel. Instead we are specifying 
+	 		the publishing channel via 'channel' attribute of <interface>@Publisher</interface> annotation.
+	 		We are also adding <interface>@Header</interface> annotation which results in the Message header with the name 'last' and the value of 'lname' input parameter
+	 		to be added to the newly constructed Message.
 	 		</para>
+	 		
+	 		<para>
+<programlisting language="java">@Publisher(channel="testChannel")
+@Payload
+public String defaultPayloadButExplicitAnnotation(String fname, @Header String lname) {
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>		
+	 		<para>
+	 		The above example is almost identical to the previous one. The only difference here is that we are using <interface>@Payload</interface> annotation 
+	 		on the method, thus explicitly specifying that the return value of the method should be used as a payload of the Message.
+	 		</para>
+	 		
+	 		<para>
+<programlisting language="java">@Publisher(channel="testChannel")
+@Payload("#return + #args.lname")
+public String setName(String fname, String lname, @Header("x") int num) {
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>		
+	 		<para>
+	 		Here we are expending on the previous configuration by using Spring Expression language in the <interface>@Payload</interface> annotation further instructing 
+	 		the framework on how the message should be constructed. In this particular case the message will be a concatenation of the return value of the method invocation and
+	 		'lname' input argument. Message header 'x' with value of 'num' input argument will be added to the newly constructed Message.
+	 		</para>
+	 		
+	 		<para>
+<programlisting language="java">@Publisher(channel="testChannel")
+public String argumentAsPayload(@Payload String fname, @Header String lname) {
+	return fname + " " + lname;
+}</programlisting>
+	 		</para>		
+	 		<para>
+	 		In the above example you see another usage of <interface>@Payload</interface> annotation. Here we are annotating method argument 
+	 		which will become a payload of newly constructed message.
+	 		</para>
+	 		
+	 		
 	 		<para>
 	 		As with most other annotation-driven features in Spring, you will need to register a post-processor       
 	        (<classname>PublisherAnnotationBeanPostProcessor</classname>).
 		<programlisting language="xml">&lt;bean class="org.springframework.integration.aop.PublisherAnnotationBeanPostProcessor"/&gt;</programlisting>
+			You can also use namespace support for added convenience:
+			
+<programlisting language="xml">&lt;si:annotation-config default-publisher-channel="defaultChannel"/&gt;</programlisting>
 	 		</para>
 	  	</section>
 
@@ -84,7 +137,7 @@ public String setName(String fname, String lname){
 			<itemizedlist>
 		        <listitem>
 		          <para>Provide configuration for <classname>MessagePublishingInterceptor</classname> 
-		          via the <code>&lt;publisher&gt;</code> XML element.</para>
+		          via the <code>&lt;publishing-interceptor&gt;</code> XML element.</para>
 		        </listitem>
 		        <listitem>
 		          <para>Provide AOP configuration to apply the <classname>MessagePublishingInterceptor</classname> to managed objects.</para>
@@ -98,11 +151,11 @@ public String setName(String fname, String lname){
 	&lt;aop:advisor advice-ref="interceptor" pointcut="bean(testBean)" /&gt;
 &lt;/aop:config&gt;
 	
-&lt;publisher id="interceptor" default-channel="defaultChannel"&gt;
+&lt;publishing-interceptor id="interceptor" default-channel="defaultChannel"&gt;
 	&lt;method pattern="echo" payload="'Echoing: ' + #return" headers="foo='bar'" channel="echoChannel"/&gt;
 	&lt;method pattern="echoDef*" payload="#return"/&gt;
 	&lt;method pattern="foo*"/&gt;
-&lt;/publisher&gt;
+&lt;/publishing-interceptor&gt;
 	</programlisting>		    
 		    </para>
 		    <para>
@@ -150,6 +203,70 @@ public String setName(String fname, String lname){
 		This will map the return value of every method that matches the pointcut expression to a payload and will be sent to a <emphasis>default-channel</emphasis>. 
 		If the <emphasis>defaultChannel</emphasis>is not specified (as above) the messages will be sent to the global <emphasis>nullChannel</emphasis>.
 	     </para>
+		</section>
+		
+		<section id="scheduled-producer">
+		    <title>Producing and publishing messages based on schedule</title>
+		    <para>
+		    In the above sections we looked at the Message publishing feature of Spring Intergarion which constructs and publishes messages as by-products of Method invocations.
+		    However you are still respponsible to invoke the method. 
+		    With scheduling support added to Spring framework 3.0 we've added another useful feature to Spring Integrarion - support for scheduled Message producers/publishers. Scheduling could be based on several triggers.
+		   Currently we support <code>cron</code>, <code>fixed-rate</code>, <code>fixed-delay</code> as well as the custom triggers implemented by you.
+		    </para>
+		    <para>
+		    Support for scheduled producers/publishers is provided via <emphasis>&lt;scheduled-producer&gt;</emphasis> xml element.
+		    Lets look at couple of examples:
+		    </para>
+		 	<para>
+		 	
+		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="fixedDelayProducer" 
+		 	fixed-delay="1000" 
+		 	payload-expression="'fixedDelayTest'" 
+		 	channel="fixedDelayChannel"/>]]></programlisting>
+		 	
+		 	In the above example scheduled producer will be created which will construct the Message with payload being the result of the expression 
+			defined in <code>payload-expression</code> attribute. Such message will be created and sent every time after a delay specified in the <code>fixed-delay</code> attribute.
+		 	
+		 	
+		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="fixedDelayProducer" 
+		 	fixed-rate="1000" 
+		 	payload-expression="'fixedDelayTest'" 
+		 	channel="fixedDelayChannel"/>]]></programlisting>
+		 	
+		 	This example is very similar to the previous one, except that we are using <code>fixed-rate</code> attribute which will allow us to send messages at the fixed rate.
+
+		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="fixedDelayProducer" 
+		 	cron="7 6 5 4 3 ?" 
+		 	payload-expression="'fixedDelayTest'" 
+		 	channel="fixedDelayChannel"/>]]></programlisting>
+		 	
+		 	This example demonstrates how you can apply Cron trigger specified by <code>cron</code> attribute.
+		 	
+		 	
+		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="headerExpressionsProducer" fixed-delay="99" 
+		 	payload-expression="'headerExpressionsTest'" 
+		 	channel="headerExpressionsChannel" 
+		 	auto-startup="false">
+	<header name="foo" expression="6 * 7"/>
+	<header name="bar" value="x"/>
+</scheduled-producer>]]></programlisting>
+		 	
+		 	Here you can see that in a way very similar to Message publishing feature we are enriching a newly constructed Message with 
+		 	extra Message headers which could take scalar values as well as Spring expressions.
+		 	</para>
+		 	
+		 	<para>
+		 	If you need to implement your own custom trigger you can use <code>trigger</code> attribute pointing to any spring configured 
+		 	bean which implements <classname>org.springframework.scheduling.Trigger</classname> interface.
+		 	
+		 	<programlisting language="xml"><![CDATA[<scheduled-producer id="triggerRefProducer" trigger="customTrigger" 
+		 	payload-expression="'triggerRefTest'" channel="triggerRefChannel"/>
+
+<beans:bean id="customTrigger" class="org.springframework.scheduling.support.PeriodicTrigger">
+	<beans:constructor-arg value="9999"/>
+</beans:bean>]]></programlisting>
+		
+		 	</para>
 		</section>
   </section>
 </chapter>
