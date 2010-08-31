@@ -77,8 +77,6 @@ public interface MessagingOperations {
 	// Convenience methods for sending auto-converted messages
 	//-------------------------------------------------------------------------
 
-	// TODO: convert and send methods...
-
 	/**
 	 * Send the given object to the default channel, converting the object
 	 * to a message with a configured MessageConverter.
@@ -86,7 +84,7 @@ public interface MessagingOperations {
 	 * @param message the object to convert to a message
 	 * @throws MessagingException if an error occurs
 	 */
-	//void convertAndSend(Object message) throws MessagingException;
+	<T> void convertAndSend(T message) throws MessagingException;
 
 	/**
 	 * Send the given object to the specified channel, converting the object
@@ -95,7 +93,7 @@ public interface MessagingOperations {
 	 * @param message the object to convert to a message
 	 * @throws MessagingException if an error occurs
 	 */
-	//void convertAndSend(MessageChannel channel, Object message) throws MessagingException;
+	<T> void convertAndSend(MessageChannel channel, T message) throws MessagingException;
 
 	/**
 	 * Send the given object to the specified channel, converting the object
@@ -105,16 +103,16 @@ public interface MessagingOperations {
 	 * @param message the object to convert to a message
 	 * @throws MessagingException if an error occurs
 	 */
-	//void convertAndSend(String destinationName, Object message) throws MessagingException;
+	<T> void convertAndSend(String channelName, T message) throws MessagingException;
 
 	/**
-	 * Send the given object to the default destination, converting the object
-	 * to a JMS message with a configured MessageConverter. The MessagePostProcessor
+	 * Send the given object to the default channel, converting the object
+	 * to a message with a configured MessageConverter. The MessagePostProcessor
 	 * callback allows for modification of the message after conversion.
-	 * <p>This will only work with a default destination specified!
+	 * <p>This will only work with a default channel specified!
 	 * @param message the object to convert to a message
 	 * @param postProcessor the callback to modify the message
-	 * @throws JmsException checked JMSException converted to unchecked
+	 * @throws MessagingException if an error occurs
 	 */
 	//void convertAndSend(Object message, MessagePostProcessor postProcessor) throws MessagingException;
 
@@ -169,8 +167,6 @@ public interface MessagingOperations {
 	<P> Message<P> receive(String channelName) throws MessagingException;
 
 
-	// TODO: receiveSelected(selector), receiveSelected(channel, selector), receiveSelected(channelName, selector) ? 
-
 	//-------------------------------------------------------------------------
 	// Convenience methods for receiving auto-converted messages
 	//-------------------------------------------------------------------------
@@ -213,5 +209,73 @@ public interface MessagingOperations {
 	 * @throws MessagingException if an error occurs during message reception
 	 */
 	//Object receiveAndConvert(String channelName) throws JmsException;
+
+
+	//-------------------------------------------------------------------------
+	// Convenience methods for sending request and receiving reply messages
+	//-------------------------------------------------------------------------
+
+	/**
+	 * Send a message to the default channel and receive a reply.
+	 * <p>This will only work with a default channel specified!
+	 * @param requestMessage the message to send
+	 * @return the reply Message if received within the receive timeout.
+	 * @throws MessagingException if an error occurs
+	 */
+	Message<?> sendAndReceive(Message<?> requestMessage);
+
+	/**
+	 * Send a message to the specified channel and receive a reply.
+	 * @param channel the channel to which the request Message will be sent
+	 * @param requestMessage the message to send
+	 * @return the reply Message if received within the receive timeout.
+	 * @throws MessagingException if an error occurs
+	 */
+	Message<?> sendAndReceive(MessageChannel channel, Message<?> requestMessage);
+
+	/**
+	 * Send a message to the specified channel and receive a reply.
+	 * @param channelName the name of the channel to which the request Message will be sent
+	 * (to be resolved to an actual channel by a ChannelResolver)
+	 * @param requestMessage the message to send
+	 * @return the reply Message if received within the receive timeout.
+	 * @throws ChannelResolutionException if the channel name cannot be resolved
+	 * @throws MessagingException if an error occurs
+	 */
+	Message<?> sendAndReceive(String channelName, Message<?> requestMessage);
+
+	/**
+	 * Send the given request object to the default channel, converting the object
+	 * to a message with a configured MessageConverter. If a reply Message is
+	 * received within the receive timeout, it will be converted and returned.
+	 * <p>This will only work with a default channel specified!
+	 * @param request the object to convert to a request message
+	 * @return the result of converting the reply Message
+	 * @throws MessagingException if an error occurs
+	 */
+	Object convertSendAndReceive(Object request);
+
+	/**
+	 * Send the given request object to the specified channel, converting the object
+	 * to a message with a configured MessageConverter. If a reply Message is
+	 * received within the receive timeout, it will be converted and returned.
+	 * @param channel the channel to which the request message will be sent
+	 * @param request the object to convert to a request message
+	 * @return the result of converting the reply Message
+	 * @throws MessagingException if an error occurs
+	 */
+	Object convertSendAndReceive(MessageChannel channel, Object request);
+
+	/**
+	 * Send the given request object to the specified channel, converting the object
+	 * to a message with a configured MessageConverter. If a reply Message is
+	 * received within the receive timeout, it will be converted and returned.
+	 * @param channelName the name of the channel to which the request message will be sent
+	 * (to be resolved to an actual channel by a ChannelResolver)
+	 * @param request the object to convert to a request message
+	 * @return the result of converting the reply Message
+	 * @throws MessagingException if an error occurs
+	 */
+	Object convertSendAndReceive(String channelName, Object request);
 
 }

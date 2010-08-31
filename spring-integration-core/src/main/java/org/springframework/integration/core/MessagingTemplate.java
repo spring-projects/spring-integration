@@ -33,6 +33,8 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.integration.support.converter.MessageConverter;
+import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -58,6 +60,8 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	private volatile MessageChannel defaultChannel;
 
 	private volatile ChannelResolver channelResolver;
+
+	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile long sendTimeout = -1;
 
@@ -112,6 +116,16 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "'channelResolver' must not be null");
 		this.channelResolver = channelResolver;
+	}
+
+	/**
+	 * Set the {@link MessageConverter} that is to be used to convert
+	 * between Messages and objects for this template.
+	 * <p>The default is {@link SimpleMessageConverter}.
+	 */
+	public void setMessageConverter(MessageConverter messageConverter) {
+		Assert.notNull(messageConverter, "'messageConverter' must not be null");
+		this.messageConverter = messageConverter;
 	}
 
 	/**
@@ -208,6 +222,27 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		this.send(this.resolveChannelName(channelName), message);
 	}
 
+	public <T> void convertAndSend(T object) {
+		Message<?> message = this.messageConverter.toMessage(object);
+		if (message != null) {
+			this.send(message);
+		}
+	}
+
+	public <T> void convertAndSend(MessageChannel channel, T object) {
+		Message<?> message = this.messageConverter.toMessage(object);
+		if (message != null) {
+			this.send(channel, message);
+		}
+	}
+
+	public <T> void convertAndSend(String channelName, T object) {
+		Message<?> message = this.messageConverter.toMessage(object);
+		if (message != null) {
+			this.send(channelName, message);
+		}
+	}
+
 	public <P> Message<P> receive() {
 		MessageChannel channel = this.getRequiredDefaultChannel();
 		Assert.state(channel instanceof PollableChannel,
@@ -234,20 +269,42 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		return this.receive((PollableChannel) channel);
 	}
 
-	public Message<?> sendAndReceive(final Message<?> request) {
-		return this.sendAndReceive(this.getRequiredDefaultChannel(), request);
+	public Message<?> sendAndReceive(final Message<?> requestMessage) {
+		return this.sendAndReceive(this.getRequiredDefaultChannel(), requestMessage);
 	}
 
-	public Message<?> sendAndReceive(final MessageChannel channel, final Message<?> request) {
+	public Message<?> sendAndReceive(final MessageChannel channel, final Message<?> requestMessage) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return txTemplate.execute(new TransactionCallback<Message<?>>() {
 				public Message<?> doInTransaction(TransactionStatus status) {
-					return doSendAndReceive(channel, request);
+					return doSendAndReceive(channel, requestMessage);
 				}
 			});
 		}
-		return this.doSendAndReceive(channel, request);
+		return this.doSendAndReceive(channel, requestMessage);
+	}
+
+	public Message<?> sendAndReceive(final String channelName, final Message<?> requestMessage) {
+		return this.sendAndReceive(this.resolveChannelName(channelName), requestMessage);
+	}
+
+	public Object convertSendAndReceive(final Object request) {
+		Message<?> requestMessage = this.messageConverter.toMessage(request);
+		Message<?> replyMessage = this.sendAndReceive(requestMessage);
+		return this.messageConverter.fromMessage(replyMessage);
+	}
+
+	public Object convertSendAndReceive(final MessageChannel channel, final Object request) {
+		Message<?> message = this.messageConverter.toMessage(request);
+		Message<?> reply = this.sendAndReceive(channel, message);
+		return this.messageConverter.fromMessage(reply);
+	}
+
+	public Object convertSendAndReceive(final String channelName, final Object request) {
+		Message<?> message = this.messageConverter.toMessage(request);
+		Message<?> reply = this.sendAndReceive(channelName, message);
+		return this.messageConverter.fromMessage(reply);
 	}
 
 	private void doSend(MessageChannel channel, Message<?> message) {
@@ -275,16 +332,16 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		return (Message<P>) message;
 	}
 
-	private Message<?> doSendAndReceive(MessageChannel channel, Message<?> request) {
-		Object originalReplyChannelHeader = request.getHeaders().getReplyChannel();
-		Object originalErrorChannelHeader = request.getHeaders().getErrorChannel();
+	private <S, R> Message<R> doSendAndReceive(MessageChannel channel, Message<S> requestMessage) {
+		Object originalReplyChannelHeader = requestMessage.getHeaders().getReplyChannel();
+		Object originalErrorChannelHeader = requestMessage.getHeaders().getErrorChannel();
 		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout);
-		request = MessageBuilder.fromMessage(request)
+		requestMessage = MessageBuilder.fromMessage(requestMessage)
 				.setReplyChannel(replyChannel)
 				.setErrorChannel(replyChannel)
 				.build();
-		this.doSend(channel, request);
-		Message<?> reply = this.doReceive(replyChannel);
+		this.doSend(channel, requestMessage);
+		Message<R> reply = this.doReceive(replyChannel);
 		if (reply != null) {
 			reply = MessageBuilder.fromMessage(reply)
 					.setHeader(MessageHeaders.REPLY_CHANNEL, originalReplyChannelHeader)
