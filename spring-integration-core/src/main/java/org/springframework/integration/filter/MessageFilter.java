@@ -18,7 +18,6 @@ package org.springframework.integration.filter;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
@@ -114,9 +113,8 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 	}
 
 	@Override
-	protected void handleResult(Object replyMessage, MessageHeaders requestHeaders) {
-		Assert.isInstanceOf(Message.class, replyMessage);
-		this.sendReplyMessage((Message<?>) replyMessage, requestHeaders.getReplyChannel());
+	protected boolean shouldCopyRequestHeaders() {
+		return false;
 	}
 
 }

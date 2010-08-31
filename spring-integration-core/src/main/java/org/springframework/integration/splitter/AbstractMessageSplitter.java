@@ -54,8 +54,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			else {
 				incomingSequenceDetails = new ArrayList<Object[]>(incomingSequenceDetails);
 			}
-			incomingSequenceDetails.add(new Object[] { incomingCorrelationId, headers.getSequenceNumber(),
-					headers.getSequenceSize() });
+			incomingSequenceDetails.add(new Object[] {
+					incomingCorrelationId, headers.getSequenceNumber(), headers.getSequenceSize() });
 			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
 		}
 		Object correlationId = headers.getId();
@@ -65,8 +65,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(item, incomingSequenceDetails, correlationId, ++sequenceNumber,
-						sequenceSize));
+				messageBuilders.add(this.createBuilder(
+						item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
 			}
 		}
 		else if (result.getClass().isArray()) {
@@ -74,8 +74,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.length;
 			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(item, incomingSequenceDetails, correlationId, ++sequenceNumber,
-						sequenceSize));
+				messageBuilders.add(this.createBuilder(
+						item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
 			}
 		}
 		else {
@@ -84,7 +84,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		return messageBuilders;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private MessageBuilder createBuilder(Object item, List<Object[]> incomingSequenceDetails, Object correlationId,
 			int sequenceNumber, int sequenceSize) {
 		MessageBuilder builder = (item instanceof Message) ? MessageBuilder.fromMessage((Message) item)
@@ -98,16 +98,8 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	protected void handleResult(Object result, MessageHeaders requestHeaders) {
-		if (result instanceof Iterable) {
-			for (Object o : (Iterable<?>) result) {
-				super.handleResult(o, requestHeaders);
-			}
-		}
-		else {
-			super.handleResult(result, requestHeaders);
-		}
+	protected boolean shouldSplitIterableReply() {
+		return true;
 	}
 
 	@Override

@@ -113,18 +113,39 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
-	protected void handleResult(Object result, MessageHeaders requestHeaders) {
-		Message<?> replyMessage = this.createReplyMessage(result, requestHeaders);
+	private void handleResult(Object result, MessageHeaders requestHeaders) {
+		if (result instanceof Iterable && this.shouldSplitIterableReply()) {
+			for (Object o : (Iterable<?>) result) {
+				this.produceReply(o, requestHeaders);
+			}
+		}
+		else if (result != null) {
+			this.produceReply(result, requestHeaders);
+		}
+	}
+
+	private void produceReply(Object reply, MessageHeaders requestHeaders) {
+		Message<?> replyMessage = this.createReplyMessage(reply, requestHeaders);
 		this.sendReplyMessage(replyMessage, requestHeaders.getReplyChannel());
 	}
 
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
+		MessageBuilder<?> builder = null;
 		if (reply instanceof Message) {
-			return MessageBuilder.fromMessage((Message<?>) reply).copyHeadersIfAbsent(requestHeaders).build();
+			if (!this.shouldCopyRequestHeaders()) {
+				return (Message<?>) reply;
+			}
+			builder = MessageBuilder.fromMessage((Message<?>) reply);
 		}
-		MessageBuilder<?> builder = (reply instanceof MessageBuilder)
-				? (MessageBuilder<?>) reply : MessageBuilder.withPayload(reply);
-		builder.copyHeadersIfAbsent(requestHeaders);
+		else if (reply instanceof MessageBuilder<?>) {
+			builder = (MessageBuilder<?>) reply;
+		}
+		else {
+			builder = MessageBuilder.withPayload(reply);
+		}
+		if (this.shouldCopyRequestHeaders()) {
+			builder.copyHeadersIfAbsent(requestHeaders);
+		}
 		return builder.build();
 	}
 
@@ -135,7 +156,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	 * @param replyMessage the reply Message to send
 	 * @param replyChannelHeaderValue the 'replyChannel' header value from the original request 
 	 */
-	protected final void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
+	private final void sendReplyMessage(Message<?> replyMessage, final Object replyChannelHeaderValue) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
 		}
@@ -165,6 +186,20 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 			throw new MessageDeliveryException(message,
 					"a non-null reply channel value of type MesssageChannel or String is required");
 		}
+	}
+
+	/**
+	 * Subclasses may override this. False by default.
+	 */
+	protected boolean shouldSplitIterableReply() {
+		return false;
+	}
+
+	/**
+	 * Subclasses may override this. True by default.
+	 */
+	protected boolean shouldCopyRequestHeaders() {
+		return true;
 	}
 
 	/**
