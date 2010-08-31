@@ -34,14 +34,14 @@ import org.junit.Test;
 
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.ChannelResolutionException;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 import org.springframework.scheduling.support.PeriodicTrigger;

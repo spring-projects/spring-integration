@@ -25,7 +25,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.mapping.InboundMessageMapper;

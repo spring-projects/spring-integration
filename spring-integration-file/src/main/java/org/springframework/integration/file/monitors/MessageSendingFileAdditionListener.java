@@ -1,9 +1,9 @@
 package org.springframework.integration.file.monitors;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 
 import org.springframework.transaction.PlatformTransactionManager;

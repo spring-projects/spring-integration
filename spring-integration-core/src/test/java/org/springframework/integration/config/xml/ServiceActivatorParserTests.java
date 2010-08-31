@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;

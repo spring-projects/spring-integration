@@ -25,12 +25,12 @@ import java.util.Map;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageChannel;
 
 /**
  * @author Mark Fisher

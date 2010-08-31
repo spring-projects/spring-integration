@@ -19,7 +19,7 @@ package org.springframework.integration.security.channel;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.util.Assert;
 
 /**

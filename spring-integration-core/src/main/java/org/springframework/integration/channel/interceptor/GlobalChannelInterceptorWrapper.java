@@ -17,8 +17,8 @@ package org.springframework.integration.channel.interceptor;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.core.MessageChannel;
 
 /**
  * @author Oleg Zhurakousky

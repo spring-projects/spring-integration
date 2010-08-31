@@ -33,10 +33,10 @@ import org.springframework.expression.spel.SpelParserConfiguration;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.ChannelResolver;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.support.channel;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.core.ChannelResolutionException;
-import org.springframework.integration.core.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.util.Assert;
 
 /**

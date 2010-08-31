@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 
 /**
  * Extends {@link AbstractMessageRouter} to support router implementations that

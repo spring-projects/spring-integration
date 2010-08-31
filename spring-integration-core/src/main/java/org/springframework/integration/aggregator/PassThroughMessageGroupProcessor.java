@@ -14,7 +14,7 @@
 package org.springframework.integration.aggregator;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 

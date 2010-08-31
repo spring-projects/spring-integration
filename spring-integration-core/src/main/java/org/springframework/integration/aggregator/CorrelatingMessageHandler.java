@@ -21,12 +21,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.core.ChannelResolutionException;
-import org.springframework.integration.core.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -35,6 +32,9 @@ import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 
 /**

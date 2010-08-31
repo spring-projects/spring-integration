@@ -17,7 +17,7 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;

@@ -25,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
 

@@ -25,11 +25,11 @@ import org.junit.Test;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.ChannelResolutionException;
 import org.springframework.integration.core.GenericMessage;
 import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.MessageMatcher;
+import org.springframework.integration.support.channel.ChannelResolutionException;
 
 /**
  * @author Mark Fisher

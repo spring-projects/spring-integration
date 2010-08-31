@@ -25,11 +25,11 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.core.ChannelResolutionException;
-import org.springframework.integration.core.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

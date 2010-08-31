@@ -39,8 +39,8 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;
 

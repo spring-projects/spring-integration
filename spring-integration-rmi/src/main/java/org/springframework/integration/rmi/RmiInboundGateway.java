@@ -19,8 +19,8 @@ package org.springframework.integration.rmi;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.NamedComponent;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.gateway.RemotingInboundGatewaySupport;
 import org.springframework.integration.gateway.RequestReplyExchanger;
 import org.springframework.remoting.rmi.RmiServiceExporter;

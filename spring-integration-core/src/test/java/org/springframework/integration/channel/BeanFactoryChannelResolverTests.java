@@ -22,9 +22,9 @@ import static org.junit.Assert.assertSame;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.core.ChannelResolutionException;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolutionException;
 
 /**
  * @author Mark Fisher

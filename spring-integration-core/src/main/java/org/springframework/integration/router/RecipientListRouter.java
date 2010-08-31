@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.util.Assert;
 

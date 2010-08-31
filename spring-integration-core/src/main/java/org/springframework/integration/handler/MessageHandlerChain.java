@@ -22,13 +22,13 @@ import java.util.List;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.core.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.filter.MessageFilter;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 
 /**

@@ -19,8 +19,8 @@ package org.springframework.integration.config.annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;

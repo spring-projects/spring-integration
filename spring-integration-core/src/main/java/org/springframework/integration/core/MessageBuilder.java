@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

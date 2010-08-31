@@ -13,19 +13,21 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+
 package org.springframework.integration.twitter;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
-import twitter4j.GeoLocation;
 
+import twitter4j.GeoLocation;
 
 /**
  * @author Josh Long

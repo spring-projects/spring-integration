@@ -13,24 +13,26 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package org.springframework.integration.twitter;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.core.MessagingTemplate;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.twitter.oauth.OAuthConfiguration;
-import org.springframework.util.Assert;
-import twitter4j.RateLimitStatus;
-import twitter4j.ResponseList;
-import twitter4j.Twitter;
+package org.springframework.integration.twitter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
+
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.MessageBuilder;
+import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.twitter.oauth.OAuthConfiguration;
+import org.springframework.util.Assert;
+
+import twitter4j.RateLimitStatus;
+import twitter4j.ResponseList;
+import twitter4j.Twitter;
 
 /**
  * There are a lot of operations that are common to receiving the various types of messages when using the Twitter API, and this

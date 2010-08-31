@@ -35,10 +35,10 @@ import org.springframework.integration.aggregator.CorrelatingMessageHandler;
 import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
 import org.springframework.integration.aggregator.SequenceSizeReleaseStrategy;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.core.ChannelResolver;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.test.util.TestUtils;
 
 /**

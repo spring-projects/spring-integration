@@ -34,7 +34,7 @@ import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;

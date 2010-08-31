@@ -26,7 +26,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;

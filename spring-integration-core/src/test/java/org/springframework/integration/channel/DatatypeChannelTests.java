@@ -32,12 +32,12 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.ErrorMessage;
 import org.springframework.integration.core.GenericMessage;
-import org.springframework.integration.core.MessageChannel;
 
 /**
  * @author Mark Fisher

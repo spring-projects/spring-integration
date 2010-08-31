@@ -35,8 +35,8 @@ import org.springframework.aop.support.annotation.AnnotationMethodMatcher;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.context.BeanFactoryChannelResolver;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.Assert;
 
 /**

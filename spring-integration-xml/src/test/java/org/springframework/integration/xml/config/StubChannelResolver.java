@@ -16,8 +16,8 @@
 
 package org.springframework.integration.xml.config;
 
-import org.springframework.integration.core.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.channel.ChannelResolver;
 
 class StubChannelResolver implements ChannelResolver{
 

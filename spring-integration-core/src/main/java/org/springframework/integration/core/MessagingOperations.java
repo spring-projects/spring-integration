@@ -17,7 +17,10 @@
 package org.springframework.integration.core;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
 
 /**
  * Specifies a basic set of messaging operations.

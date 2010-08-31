@@ -19,8 +19,8 @@ package org.springframework.integration.channel;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.core.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 
 /**

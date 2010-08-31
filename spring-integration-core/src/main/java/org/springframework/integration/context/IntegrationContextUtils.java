@@ -20,7 +20,7 @@ import org.springframework.beans.factory.BeanFactory;
 
 import org.springframework.core.convert.ConversionService;
 
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.metadata.MetadataPersister;
 import org.springframework.integration.scheduling.PollerMetadata;
 

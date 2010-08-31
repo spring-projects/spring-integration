@@ -21,8 +21,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.util.Assert;
 

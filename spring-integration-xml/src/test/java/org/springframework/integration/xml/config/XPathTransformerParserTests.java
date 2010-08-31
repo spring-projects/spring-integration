@@ -34,8 +34,8 @@ import org.xml.sax.InputSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.test.context.ContextConfiguration;

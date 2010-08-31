@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.core;
+package org.springframework.integration.support.channel;
+
+import org.springframework.integration.MessageChannel;
 
 /**
  * Strategy for resolving a name to a {@link MessageChannel}.

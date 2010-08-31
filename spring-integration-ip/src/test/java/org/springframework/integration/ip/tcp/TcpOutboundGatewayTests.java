@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
@@ -45,7 +46,6 @@ import org.springframework.integration.core.MessageBuilder;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
 import org.springframework.integration.ip.util.SocketUtils;
-
 
 /**
  * @author Gary Russell

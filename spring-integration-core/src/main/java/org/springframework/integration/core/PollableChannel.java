@@ -17,6 +17,7 @@
 package org.springframework.integration.core;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 
 
 /**
