@@ -45,8 +45,8 @@ public class RmiInboundGatewayParserTests {
 		MessagingTemplate template = (MessagingTemplate)
 				accessor.getPropertyValue("messagingTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
-		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
-		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
+		assertEquals(1000L, templateAccessor.getPropertyValue("sendTimeout"));
+		assertEquals(1000L, templateAccessor.getPropertyValue("receiveTimeout"));
 	}
 
 	@Test

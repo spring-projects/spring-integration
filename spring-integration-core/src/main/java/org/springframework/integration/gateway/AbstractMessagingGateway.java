@@ -43,14 +43,17 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public abstract class AbstractMessagingGateway extends AbstractEndpoint {
-	
+
+	private static final long DEFAULT_TIMEOUT = 1000L;
+
+
 	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private volatile MessageChannel requestChannel;
 
 	private volatile MessageChannel replyChannel;
 
-	private volatile long replyTimeout = 1000;
+	private volatile long replyTimeout = DEFAULT_TIMEOUT;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -61,6 +64,12 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 	private volatile AbstractEndpoint replyMessageCorrelator;
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
+
+
+	public AbstractMessagingGateway() {
+		this.messagingTemplate.setSendTimeout(DEFAULT_TIMEOUT);
+		this.messagingTemplate.setReceiveTimeout(this.replyTimeout);
+	}
 
 	@Override
 	public String getComponentType(){
@@ -88,7 +97,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 
 	/**
 	 * Set the timeout value for sending request messages. If not
-	 * explicitly configured, the default is an indefinite timeout.
+	 * explicitly configured, the default is one second.
 	 * 
 	 * @param requestTimeout the timeout value in milliseconds
 	 */
@@ -98,7 +107,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint {
 
 	/**
 	 * Set the timeout value for receiving reply messages. If not
-	 * explicitly configured, the default is an indefinite timeout.
+	 * explicitly configured, the default is one second.
 	 * 
 	 * @param replyTimeout the timeout value in milliseconds
 	 */

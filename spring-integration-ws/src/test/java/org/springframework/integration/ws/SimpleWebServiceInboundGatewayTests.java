@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,22 @@
 
 package org.springframework.integration.ws;
 
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.StringReader;
+import java.io.StringWriter;
+
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Before;
@@ -25,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -32,20 +49,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.context.MessageContext;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.StringReader;
-import java.io.StringWriter;
-
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
-
 /**
- * 
  * @author Iwein Fuld
- * 
  */
 @RunWith(MockitoJUnitRunner.class)
 public class SimpleWebServiceInboundGatewayTests {
@@ -85,12 +90,12 @@ public class SimpleWebServiceInboundGatewayTests {
 
 	@Test
 	public void invokePoxSourceWithReply() throws Exception {
-		when(requestChannel.send(isA(Message.class))).thenAnswer(
+		when(requestChannel.send(isA(Message.class), eq(1000L))).thenAnswer(
 				withReplyTo(replyChannel));
 		when(request.getPayloadSource()).thenReturn(payloadSource);
 		gateway.start();
 		gateway.invoke(context);
-		verify(requestChannel).send(messageWithPayload(payloadSource));
+		verify(requestChannel).send(messageWithPayload(payloadSource), eq(1000L));
 		assertTrue(output.toString().endsWith(input));
 	}
 

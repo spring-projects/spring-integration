@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.isA;
@@ -73,7 +74,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendMessage() {
-		expect(requestChannel.send(messageMock)).andReturn(true);
+		expect(requestChannel.send(messageMock, 1000L)).andReturn(true);
 		replay(allmocks);
 		this.simpleMessagingGateway.send(messageMock);
 		verify(allmocks);
@@ -82,7 +83,7 @@ public class SimpleMessagingGatewayTests {
 	@Test(expected=MessageDeliveryException.class)
 	public void sendMessage_failure() {
 		expect(messageMock.getHeaders()).andReturn(new MessageHeaders(null));
-		expect(requestChannel.send(messageMock)).andReturn(false);
+		expect(requestChannel.send(messageMock, 1000)).andReturn(false);
 		replay(allmocks);
 		this.simpleMessagingGateway.send(messageMock);
 		verify(allmocks);
@@ -90,7 +91,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void sendObject() {
-		expect(requestChannel.send(isA(Message.class))).andAnswer(new IAnswer<Boolean>() {
+		expect(requestChannel.send(isA(Message.class), eq(1000L))).andAnswer(new IAnswer<Boolean>() {
 			public Boolean answer() throws Throwable {
 				assertEquals("test", ((Message) getCurrentArguments()[0]).getPayload());
 				return true;
@@ -103,7 +104,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test(expected=MessageDeliveryException.class)
 	public void sendObject_failure() {
-		expect(requestChannel.send(isA(Message.class))).andAnswer(new IAnswer<Boolean>() {
+		expect(requestChannel.send(isA(Message.class), eq(1000L))).andAnswer(new IAnswer<Boolean>() {
 			public Boolean answer() throws Throwable {
 				assertEquals("test", ((Message) getCurrentArguments()[0]).getPayload());
 				return false;
@@ -129,7 +130,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void receiveMessage() {
-		expect(replyChannel.receive()).andReturn(messageMock);
+		expect(replyChannel.receive(1000)).andReturn(messageMock);
 		expect(messageMock.getPayload()).andReturn("test").anyTimes();
 		replay(allmocks);
 		assertEquals("test", this.simpleMessagingGateway.receive());
@@ -138,7 +139,7 @@ public class SimpleMessagingGatewayTests {
 
 	@Test
 	public void receiveMessage_null() {
-		expect(replyChannel.receive()).andReturn(null);
+		expect(replyChannel.receive(1000)).andReturn(null);
 		replay(allmocks);
 		assertNull(this.simpleMessagingGateway.receive());
 		verify(allmocks);
@@ -149,7 +150,7 @@ public class SimpleMessagingGatewayTests {
 	@Test
 	public void sendObjectAndReceiveObject() {
 		expect(replyChannel.receive(100)).andReturn(messageMock);
-		expect(requestChannel.send(isA(Message.class))).andReturn(true);
+		expect(requestChannel.send(isA(Message.class), eq(1000L))).andReturn(true);
 		replay(allmocks);
 		// TODO: if timeout is 0, this will fail occasionally
 		this.simpleMessagingGateway.setReplyTimeout(100);
@@ -191,7 +192,7 @@ public class SimpleMessagingGatewayTests {
 	@Test
 	public void sendObjectAndReceiveMessage() {
 		expect(replyChannel.receive(100)).andReturn(messageMock);
-		expect(requestChannel.send(isA(Message.class))).andReturn(true);
+		expect(requestChannel.send(isA(Message.class), eq(1000L))).andReturn(true);
 		replay(allmocks);
 		// TODO: commenting the next line causes the test to hang
 		this.simpleMessagingGateway.setReplyTimeout(100);
