@@ -32,4 +32,7 @@
 		<beans:property name="threadGroupName" value="dispatchers"/>
 	</beans:bean>
 
+	<!-- send async errors to null channel to avoid chatter -->
+	<bridge input-channel="errorChannel" output-channel="nullChannel"/>
+
 </beans:beans>
