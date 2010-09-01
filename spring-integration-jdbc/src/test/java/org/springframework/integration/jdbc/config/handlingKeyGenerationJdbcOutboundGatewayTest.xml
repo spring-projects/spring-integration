@@ -9,18 +9,13 @@
 			http://www.springframework.org/schema/integration/jdbc
 			http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
 
-	<inbound-channel-adapter query="select * from item where status=2" channel="target"
-		update="update item set status=1, name=:foo where id in (:id)" jdbc-operations="jdbcTemplate"
-		update-sql-parameter-source-factory="sqlParameterSourceFactory" />
+	<si:channel id="output">
+		<si:queue />
+	</si:channel>
 
-	<beans:import resource="jdbcInboundChannelAdapterCommonConfig.xml" />
+	<outbound-gateway update="insert into bars (status, name) values (0, :payload[foo])" request-channel="target"
+		reply-channel="output" data-source="dataSource" keys-generated="true" />
 
-	<beans:bean id="sqlParameterSourceFactory" class="org.springframework.integration.jdbc.ExpressionEvaluatingSqlParameterSourceFactory">
-		<beans:property name="staticParameters">
-			<beans:map>
-				<beans:entry key="foo" value="bar" />
-			</beans:map>
-		</beans:property>
-	</beans:bean>
+	<beans:import resource="jdbcOutboundChannelAdapterCommonConfig.xml" />
 
 </beans:beans>

@@ -88,7 +88,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
 				this.embeddedDatabase,
 				"select * from item where status=:status");
-		adapter.setSqlQueryParameterSource(new SqlParameterSource() {
+		adapter.setSelectSqlParameterSource(new SqlParameterSource() {
 
 			public boolean hasValue(String name) {
 				return "status".equals(name);

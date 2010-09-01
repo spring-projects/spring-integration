@@ -54,10 +54,10 @@ public class JdbcMessageHandlerParser extends AbstractOutboundChannelAdapterPars
 		}
 		String query = IntegrationNamespaceUtils.getTextFromAttributeOrNestedElement(element, "query", parserContext);
 		if (!StringUtils.hasText(query)) {
-			throw new BeanCreationException("The query attrbitue is required");
+			throw new BeanCreationException("The query attribute is required");
 		}
 		if (!StringUtils.hasText(query)) {
-			throw new BeanCreationException("The query attrbitue is required");
+			throw new BeanCreationException("The query attribute is required");
 		}
 		if (refToDataSourceSet) {
 			builder.addConstructorArgReference(dataSourceRef);

@@ -28,12 +28,13 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 /**
  * An implementation of {@link SqlParameterSourceFactory} which creates an {@link SqlParameterSource} that evaluates
- * Spring EL expressions.  In addition the user can supply static parameters that always take precedence.
+ * Spring EL expressions. In addition the user can supply static parameters that always take precedence.
  * 
  * @author Dave Syer
  * @since 2.0
  */
-public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements SqlParameterSourceFactory {
+public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpressionEvaluator implements
+		SqlParameterSourceFactory {
 
 	private final static Log logger = LogFactory.getLog(ExpressionEvaluatingSqlParameterSourceFactory.class);
 
@@ -77,20 +78,24 @@ public class ExpressionEvaluatingSqlParameterSourceFactory extends AbstractExpre
 			}
 			String expression = paramName;
 			if (input instanceof Collection<?>) {
-				expression = "#root.!["+paramName+"]";
+				expression = "#root.![" + paramName + "]";
 			}
 			Object value = evaluateExpression(expression, input);
 			values.put(paramName, value);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Resolved expression " + expression + " to " + value);
+			}
 			return value;
 		}
 
 		public boolean hasValue(String paramName) {
 			try {
 				Object value = getValue(paramName);
-				if (value==ERROR) {
-					return false; 
+				if (value == ERROR) {
+					return false;
 				}
-			} catch (ExpressionException e) {
+			}
+			catch (ExpressionException e) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Could not evaluate expression", e);
 				}

@@ -36,15 +36,16 @@
     the next poll. The update can be parameterised by the list of ids from the
     original select. This is done through a naming convention by default (a
     column in the input result set called "id" is translated into a list in
-    the parameter map for the update called "id"). The following example
-    defines an inbound Channel Adapter with an update query and a
-    <classname>DataSource</classname> reference. <programlisting
-    language="xml">&lt;jdbc:inbound-channel-adapter query="select * from item where status=2" 
+    the parameter map for the update called "id").  The following example defines
+    an inbound Channel Adapter with an update query and a <classname>DataSource</classname>
+    reference. <programlisting language="xml"><![CDATA[<jdbc:inbound-channel-adapter query="select * from item where status=2" 
   channel="target" data-source="dataSource" 
-  update="update item set status=10 where id in (:id)" /&gt;</programlisting>
+  update="update item set status=10 where id in (:id)" />]]></programlisting>
     <note>
-         The parameters in the update query are specified with a colon (:) prefix to the name of a parameter (which in this case is an expression to be applied to each of the rows in the polled result set). This is a standard feature of the named parameter JDBC support in Spring JDBC combined with a convention (projection onto the polled result list) adopted in Spring Integration. The underlying Spring JDBC features limit the available expressions (e.g. most special characters other than period are disallowed), but since the target is usually a list of or an individual object addressable by simple bean paths this isn't unduly restrictive. 
-      </note> To change the parameter generation strategy you can inject a
+         The parameters in the update query are specified with a colon (:) prefix to the name of a parameter (which in this case is an expression to be applied to each of the rows in the polled result set). This is a standard feature of the named parameter JDBC support in Spring JDBC combined with a convention (projection onto the polled result list) adopted in Spring Integration. The underlying Spring JDBC features limit the available expressions (e.g. most special characters other than period are disallowed), but since the target is usually a list of or an individual object addressable by simple bean paths this isn't unduly restrictive.
+      </note>
+	To change the parameter
+    generation strategy you can inject a
     <classname>SqlParameterSourceFactory</classname> into the adapter to
     override the default behaviour (the adapter has a
     <code>sql-parameter-source-factory</code> attribute).</para>
@@ -57,14 +58,14 @@
       controlled. A very important feature of the poller for JDBC usage is the
       option to wrap the poll operation in a transaction, for example:</para>
 
-      <programlisting>&lt;jdbc:inbound-channel-adapter query="..." 
+      <programlisting><![CDATA[<jdbc:inbound-channel-adapter query="..." 
   channel="target" data-source="dataSource" 
-  update="..."&gt;
-  &lt;poller&gt;
-    &lt;interval-trigger interval="1000"/&gt;
-    &lt;transactional/&gt;
-  &lt;/poller&gt;
-&lt;/jdbc:inbound-channel-adapter&gt;</programlisting>
+  update="...">
+  <poller>
+    <interval-trigger interval="1000"/>
+    <transactional/>
+  </poller>
+</jdbc:inbound-channel-adapter>]]></programlisting>
 
       <para><note>
            If a poller is not explicitly specified a default value will be used (and as per normal with Spring Integration can be defined as a top level bean) 
@@ -86,21 +87,17 @@
     <para>The outbound Channel Adapter is the inverse of the inbound: its role
     is to handle a message and use it to execute a SQL query. The message
     payload and headers are available by default as input parameters to the
-    query, for instance: <programlisting language="xml">&lt;jdbc:outbound-channel-adapter 
+    query, for instance: <programlisting language="xml"><![CDATA[<jdbc:outbound-channel-adapter 
   query="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
-  channel="input" data-source="dataSource"/&gt;</programlisting> In the
+  channel="input" data-source="dataSource"/>]]></programlisting> In the
     example above, messages arriving on the channel "input" have a payload of
     a map with key "foo", so the <code>[]</code> operator dereferences that
     value from the map. The headers are also accessed as a map. <note>
          The parameters in the query above are bean property expressions on the incoming message (not Spring EL expressions). This behaviour is part of the 
-
-        <classname>SqlParameterSource</classname>
-
-         which is the default source created by the outbound adapter. Other behaviour is possible in the adapter, and requires the user to inject a different 
-
-        <classname>SqlParameterSourceFactory</classname>
-
-        . 
+        <classname>SqlParameterSource</classname> which is the default 
+		source created by the outbound adapter. Other behaviour is possible 
+		in the adapter, and requires the user to inject a different 
+        <classname>SqlParameterSourceFactory</classname>. 
       </note></para>
 
     <para>The outbound adapter requires a reference to either a DataSource or
@@ -116,50 +113,30 @@
   <section id="jdbc-outbound-gateway">
     <title>Outbound Gateway</title>
 
-    <para>The outbound Gateway is like a combination of the outbound and
-    inbound adapters: its role is to handle a message and use it to execute a
-    SQL query and then respond with the result sending it to a reply channel.
-    The message payload and headers are available by default as input
-    parameters to the query, for instance: <programlisting language="xml">&lt;jdbc:outbound-gateway 
-  update="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
-  request-channel="input" reply-channel="output" data-source="dataSource" /&gt;</programlisting></para>
+    <para>The outbound Gateway is like a combination of the inbound and outbound adapters: its role
+    is to handle a message and use it to execute a SQL query. The message
+    payload and headers are available by default as input parameters to the
+    query, for instance: <programlisting language="xml"><![CDATA[<jdbc:outbound-channel-adapter 
+  query="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
+  channel="input" data-source="dataSource"/>]]></programlisting> In the
+    example above, messages arriving on the channel "input" have a payload of
+    a map with key "foo", so the <code>[]</code> operator dereferences that
+    value from the map. The headers are also accessed as a map. <note>
+         The parameters in the query above are bean property expressions on the incoming message (not Spring EL expressions). This behaviour is part of the 
+        <classname>SqlParameterSource</classname> which is the default 
+		source created by the outbound adapter. Other behaviour is possible 
+		in the adapter, and requires the user to inject a different 
+        <classname>SqlParameterSourceFactory</classname>. 
+      </note></para>
 
-    <para>The result of the above would be to insert a record into the "foos"
-    table and return a message to the output channel indicating the number of
-    rows affected (the payload is a map <literal>{UPDATED=1}</literal>.</para>
-
-    <para>If the update query is an insert with auto-generated keys, the reply
-    message can be populated with the generated keys by adding
-    <literal>keys-generated="true"</literal> to the above example (this is not
-    the default because it is not supported by some database platforms). For
-    example:</para>
-
-    <programlisting>&lt;jdbc:outbound-gateway 
-  update="insert into foos (status, name) values (0, :payload[foo])"
-  request-channel="input" reply-channel="output" data-source="dataSource" 
-  keys-generated="true"/&gt;</programlisting>
-
-    <para>Instead of the update count or the generated keys, you can also
-    provide a select query to execute and generate a reply message that way
-    (like the inbound adapter), e.g:</para>
-
-    <programlisting>&lt;jdbc:outbound-gateway 
-  update="insert into foos (id, status, name) values (:headers[$id], 0, :payload[foo])"
-  query="select * from foos where id=:headers[$id]"
-  request-channel="input" reply-channel="output" data-source="dataSource" /&gt;</programlisting>
-
-    <para>Like with the adapters there is also the option to provide
-    <classname>SqlParameterSourceFactory</classname> instances for request and
-    reply. The default is the same as for the outbound adapter, so the request
-    message is available as the root of an expression. If
-    keys-generated="true" then the root of the expression is the generated
-    keys (a map if there is only one or a list of maps if
-    multi-valued).</para>
-
-    <para>The outbound gateway requires a reference to either a DataSource or
+    <para>The outbound adapter requires a reference to either a DataSource or
     a JdbcTemplate. It can also have a
     <classname>SqlParameterSourceFactory</classname> injected to control the
     binding of incoming message to the query.</para>
+
+    <para>If the input channel is a direct channel then the outbound adapter
+    runs its query in the same thread, and therefor ethe same transaction (if
+    there is one) as the sender of the message.</para>
   </section>
 
   <section>
@@ -172,15 +149,15 @@
     implemented by the JdbcMessageStore and there is also support for
     configuring store instances in XML. For example:</para>
 
-    <programlisting>&lt;jdbc:message-store id="messageStore" data-source="dataSource"/&gt;</programlisting>
+    <programlisting><![CDATA[<jdbc:message-store id="messageStore" data-source="dataSource"/>]]></programlisting>
 
     <para>A <classname>JdbcTemplate</classname> can be specified instead of a
     <classname>DataSource</classname>.</para>
 
     <para>Other optional attributes are show in the next example:</para>
 
-    <para><programlisting>&lt;jdbc:message-store id="messageStore" data-source="dataSource"
-  lob-handler="lobHandler" table-prefix="MY_INT_"/&gt;</programlisting>Here we
+    <para><programlisting><![CDATA[<jdbc:message-store id="messageStore" data-source="dataSource"
+  lob-handler="lobHandler" table-prefix="MY_INT_"/>]]></programlisting>Here we
     have specified a <classname>LobHandler</classname> for dealing with
     messages as large objects (e.g. often necessary if using Oracle) and a
     prefix for the table names in the queries generated by the store. The

@@ -61,7 +61,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 
 	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
-	private int maxRowsPerPoll = 0;
+	private volatile int maxRowsPerPoll = 0;
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be
@@ -99,7 +99,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 		this.updatePerRow = updatePerRow;
 	}
 
-	public void setSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
+	public void setUpdateSqlParameterSourceFactory(SqlParameterSourceFactory sqlParameterSourceFactory) {
 		this.sqlParameterSourceFactory = sqlParameterSourceFactory;
 	}
 
@@ -108,7 +108,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	 * 
 	 * @param sqlQueryParameterSource the sql query parameter source to set
 	 */
-	public void setSqlQueryParameterSource(SqlParameterSource sqlQueryParameterSource) {
+	public void setSelectSqlParameterSource(SqlParameterSource sqlQueryParameterSource) {
 		this.sqlQueryParameterSource = sqlQueryParameterSource;
 	}
 
@@ -143,7 +143,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 	 * mapped results are returned.
 	 */
 	private Object poll() {
-		List<?> payload = doPoll();
+		List<?> payload = doPoll(this.sqlQueryParameterSource);
 		if (payload.size() < 1) {
 			payload = null;
 		}
@@ -165,7 +165,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 		this.jdbcOperations.update(this.updateSql, updateParamaterSource);
 	}
 
-	private List<?> doPoll() {
+	protected List<?> doPoll(SqlParameterSource sqlQueryParameterSource) {
 
 		List<?> payload = null;
 		final RowMapper<?> rowMapper = this.rowMapper == null ? new ColumnMapRowMapper() : this.rowMapper;
@@ -190,9 +190,9 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 			resultSetExtractor = temp;
 		}
 
-		if (this.sqlQueryParameterSource != null) {
+		if (sqlQueryParameterSource != null) {
 			payload = this.jdbcOperations.getNamedParameterJdbcOperations().query(this.selectQuery,
-					this.sqlQueryParameterSource, resultSetExtractor);
+					sqlQueryParameterSource, resultSetExtractor);
 		}
 		else {
 			payload = this.jdbcOperations.getJdbcOperations().query(this.selectQuery, resultSetExtractor);

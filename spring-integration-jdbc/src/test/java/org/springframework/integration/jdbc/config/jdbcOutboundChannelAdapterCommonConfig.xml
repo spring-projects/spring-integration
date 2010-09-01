@@ -9,7 +9,7 @@
 
 	<si:channel id="target"/>
 
-	<jdbc:embedded-database type="HSQL" id="dataSource">
+	<jdbc:embedded-database type="H2" id="dataSource">
 		<jdbc:script location="org/springframework/integration/jdbc/config/outboundSchema.sql" />
 	</jdbc:embedded-database>
 	

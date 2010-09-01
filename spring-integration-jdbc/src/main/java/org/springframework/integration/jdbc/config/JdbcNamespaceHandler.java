@@ -30,6 +30,7 @@ public class JdbcNamespaceHandler extends AbstractIntegrationNamespaceHandler {
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new JdbcPollingChannelAdapterParser());
 		registerBeanDefinitionParser("outbound-channel-adapter", new JdbcMessageHandlerParser());
+		registerBeanDefinitionParser("outbound-gateway", new JdbcOutboundGatewayParser());
 		registerBeanDefinitionParser("message-store", new JdbcMessageStoreParser());
 	}
 

@@ -79,6 +79,12 @@
 			<version>10.5.3.0_1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.2.125</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
@@ -97,8 +103,7 @@
 							<tasks>
 								<typedef resource="foundrylogic/vpp/typedef.properties" />
 								<taskdef resource="foundrylogic/vpp/taskdef.properties" />
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -111,8 +116,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-hsqldb.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -125,8 +129,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-h2.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -139,8 +142,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-db2.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -153,8 +155,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-derby.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -167,8 +168,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-oracle10g.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -181,8 +181,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-postgresql.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -195,8 +194,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-mysql.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -209,8 +207,7 @@
 									<fileset dir="${basedir}/src/main/sql" includes="schema*.sql.vpp" />
 									<mapper type="glob" from="*.sql.vpp" to="*-sqlserver.sql" />
 								</vppcopy>
-								<vppcopy todir="${basedir}/target/generated-resources"
-									overwrite="true">
+								<vppcopy todir="${basedir}/target/generated-resources" overwrite="true">
 									<config>
 										<context>
 											<property key="includes" value="src/main/sql" />
@@ -262,7 +259,9 @@
 			<id>repository.objectstyle</id>
 			<name>ObjectStyle.org Repository</name>
 			<url>http://objectstyle.org/maven2/</url>
-			<snapshots><enabled>false</enabled></snapshots>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 	</repositories>
 </project>
