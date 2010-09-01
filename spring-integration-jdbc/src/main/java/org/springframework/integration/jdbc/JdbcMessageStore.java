@@ -26,8 +26,12 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.commons.serializer.DeserializingConverter;
+import org.springframework.commons.serializer.InputStreamingConverter;
+import org.springframework.commons.serializer.OutputStreamingConverter;
+import org.springframework.commons.serializer.SerializingConverter;
+import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.Message;
-import org.springframework.integration.jdbc.util.SerializationUtils;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageStore;
@@ -103,6 +107,10 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private String tablePrefix = DEFAULT_TABLE_PREFIX;
 
 	private JdbcOperations jdbcTemplate;
+	
+	private DeserializingConverter deserializer;
+
+	private SerializingConverter serializer;
 
 	private LobHandler lobHandler = new DefaultLobHandler();
 
@@ -112,6 +120,9 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * Convenient constructor for configuration use.
 	 */
 	public JdbcMessageStore() {
+		JavaStreamingConverter converter = new JavaStreamingConverter();
+		deserializer = new DeserializingConverter(converter);
+		serializer = new SerializingConverter(converter);
 	}
 
 	/**
@@ -120,6 +131,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param dataSource a {@link DataSource}
 	 */
 	public JdbcMessageStore(DataSource dataSource) {
+		this();
 		jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
@@ -182,6 +194,26 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	public void setLobHandler(LobHandler lobHandler) {
 		this.lobHandler = lobHandler;
 	}
+	
+	/**
+	 * A converter for serializing messages to byte arrays for storage.
+	 * 
+	 * @param serializer the serializer to set
+	 */
+	@SuppressWarnings("unchecked")
+	public void setSerializer(OutputStreamingConverter<? super Message<?>> serializer) {
+		this.serializer = new SerializingConverter((OutputStreamingConverter<Object>) serializer);
+	}
+	
+	/**
+	 * A converter for deserializing byte arrays to messages.
+	 * 
+	 * @param deserializer the deserializer to set
+	 */
+	@SuppressWarnings("unchecked")
+	public void setDeserializer(InputStreamingConverter<? super Message<?>> deserializer) {
+		this.deserializer = new DeserializingConverter((InputStreamingConverter<Object>) deserializer);
+	}
 
 	/**
 	 * Check mandatory properties (data source and incrementer).
@@ -228,7 +260,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		Message<T> result = MessageBuilder.fromMessage(message).setHeader(SAVED_KEY, Boolean.TRUE).setHeader(
 				CREATED_DATE_KEY, new Long(createdDate)).build();
 		final String messageId = getKey(result.getHeaders().getId());
-		final byte[] messageBytes = SerializationUtils.serialize(result);
+		final byte[] messageBytes = serializer.convert(result);
 
 		jdbcTemplate.update(getQuery(CREATE_MESSAGE), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
@@ -247,7 +279,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 		final long createdDate = System.currentTimeMillis();
 		final String messageId = getKey(message.getHeaders().getId());
 		final String groupKey = getKey(groupId);
-		final byte[] messageBytes = SerializationUtils.serialize(message);
+		final byte[] messageBytes = serializer.convert(message);
 
 		jdbcTemplate.update(getQuery(CREATE_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
@@ -365,7 +397,7 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	private class MessageMapper implements RowMapper<Message<?>> {
 
 		public Message<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-			Message<?> message = (Message<?>) SerializationUtils.deserialize(lobHandler.getBlobAsBytes(rs,
+			Message<?> message = (Message<?>) deserializer.convert(lobHandler.getBlobAsBytes(rs,
 					"MESSAGE_BYTES"));
 			return message;
 		}

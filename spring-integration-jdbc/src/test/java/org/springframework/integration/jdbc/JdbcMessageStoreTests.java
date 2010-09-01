@@ -24,6 +24,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.integration.test.matcher.PayloadAndHeaderMatcher.sameExceptIgnorableHeaders;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -33,7 +38,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.commons.serializer.InputStreamingConverter;
+import org.springframework.commons.serializer.OutputStreamingConverter;
 import org.springframework.integration.Message;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
@@ -74,6 +82,30 @@ public class JdbcMessageStoreTests {
 		assertThat(saved, sameExceptIgnorableHeaders(result));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.SAVED_KEY));
 		assertNotNull(result.getHeaders().get(JdbcMessageStore.CREATED_DATE_KEY));
+	}
+
+	@Test
+	@Transactional
+	public void testSerializer() throws Exception {
+		// N.B. these serializers are not realistic (just for test purposes)
+		messageStore.setSerializer(new OutputStreamingConverter<Message<?>>() {
+			public void convert(Message<?> object, OutputStream outputStream) throws IOException {
+				outputStream.write(object.getPayload().toString().getBytes());
+				outputStream.flush();
+			}
+		});
+		messageStore.setDeserializer(new InputStreamingConverter<Message<?>>() {
+			public Message<?> convert(InputStream inputStream) throws IOException {
+				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+				return new GenericMessage<String>(reader.readLine());
+			}
+		});
+		Message<String> message = MessageBuilder.withPayload("foo").build();
+		Message<String> saved = messageStore.addMessage(message);
+		assertNull(messageStore.getMessage(message.getHeaders().getId()));
+		Message<?> result = messageStore.getMessage(saved.getHeaders().getId());
+		assertNotNull(result);
+		assertEquals("foo", result.getPayload());
 	}
 
 	@Test

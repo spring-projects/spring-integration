@@ -55,6 +55,8 @@ public class JdbcMessageStoreParser extends AbstractBeanDefinitionParser {
 		}
 
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "lob-handler");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "serializer");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "table-prefix", "tablePrefix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "region", "region");
 
