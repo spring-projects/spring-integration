@@ -28,9 +28,9 @@ import org.springframework.integration.support.MessageBuilder;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleMessageConverter implements MessageConverter {
 
-	private final InboundMessageMapper inboundMessageMapper;
+	private volatile InboundMessageMapper inboundMessageMapper;
 
-	private final OutboundMessageMapper outboundMessageMapper;
+	private volatile OutboundMessageMapper outboundMessageMapper;
 
 
 	public SimpleMessageConverter() {
@@ -48,10 +48,18 @@ public class SimpleMessageConverter implements MessageConverter {
 	}
 
 	public SimpleMessageConverter(InboundMessageMapper<?> inboundMessageMapper, OutboundMessageMapper<?> outboundMessageMapper) {
-		this.inboundMessageMapper = (inboundMessageMapper != null) ? inboundMessageMapper : new DefaultInboundMessageMapper();
-		this.outboundMessageMapper = (outboundMessageMapper != null) ? outboundMessageMapper : new DefaultOutboundMessageMapper();
+		this.setInboundMessageMapper(inboundMessageMapper);
+		this.setOutboundMessageMapper(outboundMessageMapper);
 	}
 
+
+	public void setInboundMessageMapper(InboundMessageMapper<?> inboundMessageMapper) {
+		this.inboundMessageMapper = (inboundMessageMapper != null) ? inboundMessageMapper : new DefaultInboundMessageMapper();
+	}
+
+	public void setOutboundMessageMapper(OutboundMessageMapper<?> outboundMessageMapper) {
+		this.outboundMessageMapper = (outboundMessageMapper != null) ? outboundMessageMapper : new DefaultOutboundMessageMapper();
+	}
 
 	public <P> Message<P> toMessage(Object object) {
 		try {
