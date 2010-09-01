@@ -8,6 +8,7 @@
 	</parent>
 	<artifactId>multipart-http</artifactId>
 	<name>Spring Integration HTTP Multipart Demo</name>
+	<packaging>war</packaging>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
