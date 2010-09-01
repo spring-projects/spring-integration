@@ -10,10 +10,11 @@
 	xmlns:int-http="http://www.springframework.org/schema/integration/http">
 
 	
-	<int-http:inbound-channel-adapter  channel="receiveChannel" name="/inboundAdapter.htm" supported-methods="GET, POST" />
+	<int-http:inbound-channel-adapter id="httpInboundAdapter" channel="receiveChannel" name="/inboundAdapter.htm" supported-methods="GET, POST" />
+	
 	<int:channel id="receiveChannel"/>
 	
-	<int:service-activator input-channel="receiveChannel">
+	<int:service-activator id="multipartReceiver" input-channel="receiveChannel">
 		<bean class="org.springframework.integration.samples.multipart.MultipartReceiever"/>
 	</int:service-activator>
 	

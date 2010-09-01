@@ -140,4 +140,69 @@ By default the HTTP request will be generated using an instance of <classname>Si
 			auto-startup="false"/>]]></programlisting>
 	</para>
   </section>
+  <section id="http-samples">
+    <title>HTTP Samples</title>
+	<section id="multipart-rest-inbound">
+		<title>Multipart HTTP request - RestTemplate (client) and Http Inbound Gateway (server)</title>
+		<para>
+			This example demonstrates how simple it is to send a Multipart HTTP request via Spring's RestTemplate and receive it by Spring Integration HTTP Inbound Adapter.
+All we are doing is creating <classname>MultiValueMap</classname> and populating it with multi-part data. <classname>RestTemplate</classname> will take care of the rest 
+by converting it to <classname>MultipartHttpServletRequest</classname>  
+THis particular client will send a multipart Http Request which contains the name of the company as well as the image file with company logo.		
+		<programlisting language="java"><![CDATA[RestTemplate template = new RestTemplate();
+String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
+Resource s2logo = 
+   new ClassPathResource("org/springframework/integration/samples/multipart/spring09_logo.png");
+MultiValueMap map = new LinkedMultiValueMap();
+map.add("company", "SpringSource");
+map.add("company-logo", s2logo);
+HttpHeaders headers = new HttpHeaders();
+headers.setContentType(new MediaType("multipart", "form-data"));
+HttpEntity request = new HttpEntity(map, headers);
+ResponseEntity<?> httpResponse = template.exchange(uri, HttpMethod.POST, request, null);]]></programlisting>
+</para>
+<para>
+That is all for the client.
+</para>
+<para>
+On the server side we have the following configuration:
+<programlisting language="xml"><![CDATA[<int-http:inbound-channel-adapter id="httpInboundAdapter" 
+	channel="receiveChannel" 
+	name="/inboundAdapter.htm" 
+	supported-methods="GET, POST" />
+	
+<int:channel id="receiveChannel"/>
+	
+<int:service-activator input-channel="receiveChannel">
+	<bean class="org.springframework.integration.samples.multipart.MultipartReceiever"/>
+</int:service-activator>
+	
+<bean id="multipartResolver" 
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+]]></programlisting>
+</para>
+<para>
+The 'httpInboundAdapter' will receive the request, convert it to a <classname>Message</classname> with a payload as <classname>LinkedMultiValueMap</classname> which 
+we are parsing in the 'multipartReceiver' service-activator;
+<programlisting language="java"><![CDATA[public void recieve(LinkedMultiValueMap<String, Object> multipartRequest){	
+  System.out.println("### Successfully recieved multipart request ###");
+  for (String elementName : multipartRequest.keySet()) {
+    if (elementName.equals("company")){
+      System.out.println("\t" + elementName + " - " + 
+        ((String[]) multipartRequest.getFirst("company"))[0]);
+    } else if (elementName.equals("company-logo")){
+      System.out.println("\t" + elementName + " - as UploadedMultipartFile: " + 
+        ((UploadedMultipartFile) multipartRequest.getFirst("company-logo")).getOriginalFilename());
+    }
+  }
+}
+
+]]></programlisting>
+You should see the following output:
+<programlisting language="xml"><![CDATA[### Successfully recieved multipart request ###
+   company - SpringSource
+   company-logo - as UploadedMultipartFile: spring09_logo.png]]></programlisting>
+</para>
+	</section>
+  </section>
 </chapter>

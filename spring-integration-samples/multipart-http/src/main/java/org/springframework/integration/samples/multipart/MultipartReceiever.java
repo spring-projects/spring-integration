@@ -23,8 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
  */
 public class MultipartReceiever {
 
-	public void recieve(LinkedMultiValueMap<String, Object> multipartRequest){
-		
+	public void recieve(LinkedMultiValueMap<String, Object> multipartRequest){	
 		System.out.println("### Successfully recieved multipart request ###");
 		for (String elementName : multipartRequest.keySet()) {
 			if (elementName.equals("company")){
