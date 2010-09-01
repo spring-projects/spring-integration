@@ -18,7 +18,6 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessagingTemplate;
@@ -28,11 +27,13 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.BridgeHandler;
-import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
 import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
+import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
@@ -44,13 +45,10 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingGateway extends AbstractEndpoint implements TrackableComponent{
+public abstract class AbstractMessagingGateway extends AbstractEndpoint implements TrackableComponent {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
-	private volatile boolean shouldTrack = false;
-
-	private volatile InboundMessageMapper<Throwable> exceptionMapper;
 
 	private volatile MessageChannel requestChannel;
 
@@ -58,7 +56,16 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 	private volatile long replyTimeout = DEFAULT_TIMEOUT;
 
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	@SuppressWarnings("rawtypes")
+	private volatile InboundMessageMapper requestMapper = new DefaultRequestMapper();
+
+	private volatile InboundMessageMapper<Throwable> exceptionMapper;
+
+	private final SimpleMessageConverter messageConverter = new SimpleMessageConverter();
+
+	private final MessagingTemplate messagingTemplate;
+
+	private final HistoryWritingMessagePostProcessor historyWritingPostProcessor = new HistoryWritingMessagePostProcessor();
 
 	private volatile boolean shouldThrowErrors = true;
 
@@ -70,18 +77,13 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 
 	public AbstractMessagingGateway() {
-		this.messagingTemplate.setSendTimeout(DEFAULT_TIMEOUT);
-		this.messagingTemplate.setReceiveTimeout(this.replyTimeout);
+		MessagingTemplate template = new MessagingTemplate();
+		template.setMessageConverter(this.messageConverter);
+		template.setSendTimeout(DEFAULT_TIMEOUT);
+		template.setReceiveTimeout(this.replyTimeout);
+		this.messagingTemplate = template;
 	}
 
-	@Override
-	public String getComponentType(){
-		return "gateway";
-	}
-	
-	public void setShouldTrack(boolean shouldTrack) {
-		this.shouldTrack = shouldTrack;
-	}
 
 	/**
 	 * Set the request channel.
@@ -124,13 +126,21 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 	}
 
 	/**
-	 * Specify whether the Throwable payload of a received {@link ErrorMessage}
-	 * should be extracted and thrown from a send-and-receive operation.
-	 * Otherwise, the ErrorMessage would be returned just like any other
-	 * reply Message. The default is <code>true</code>.
+	 * Provide an {@link InboundMessageMapper} for creating request Messages
+	 * from any object passed in a send or sendAndReceive operation.
 	 */
-	public void setShouldThrowErrors(boolean shouldThrowErrors) {
-		this.shouldThrowErrors = shouldThrowErrors;
+	public void setRequestMapper(InboundMessageMapper<?> requestMapper) {
+		requestMapper = (requestMapper != null) ? requestMapper : new DefaultRequestMapper();
+		this.requestMapper = requestMapper;
+		this.messageConverter.setInboundMessageMapper(requestMapper);
+	}
+
+	/**
+	 * Provide an {@link OutboundMessageMapper} for mapping to objects from
+	 * any reply Messages received in receive or sendAndReceive operations.
+	 */
+	public void setReplyMapper(OutboundMessageMapper<?> replyMapper) {
+		this.messageConverter.setOutboundMessageMapper(replyMapper);
 	}
 
 	/**
@@ -143,8 +153,32 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 		this.exceptionMapper = exceptionMapper;
 	}
 
+	/**
+	 * Specify whether the Throwable payload of a received {@link ErrorMessage}
+	 * should be extracted and thrown from a send-and-receive operation.
+	 * Otherwise, the ErrorMessage would be returned just like any other
+	 * reply Message. The default is <code>true</code>.
+	 */
+	public void setShouldThrowErrors(boolean shouldThrowErrors) {
+		this.shouldThrowErrors = shouldThrowErrors;
+	}
+
+	/**
+	 * Specify whether this gateway should be tracked in the Message History
+	 * of Messages that originate from its send or sendAndReceive operations.
+	 */
+	public void setShouldTrack(boolean shouldTrack) {
+		this.historyWritingPostProcessor.setShouldTrack(shouldTrack);
+	}
+
+	@Override
+	public String getComponentType() {
+		return "gateway";
+	}
+
 	@Override
 	protected void onInit() throws Exception {
+		this.historyWritingPostProcessor.setTrackableComponent(this);
 		this.initialized = true;
 	}
 
@@ -156,80 +190,66 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 	protected void send(Object object) {
 		this.initializeIfNecessary();
+		Assert.notNull(object, "request must not be null");
 		Assert.state(this.requestChannel != null,
 				"send is not supported, because no request channel has been configured");
-		Message<?> message = this.toMessage(object);
-		if (this.shouldTrack) {
-			message = MessageHistory.write(message, this);
-		}
-		
-		Assert.notNull(message, "message must not be null");
-		this.messagingTemplate.send(this.requestChannel, message);
+		this.messagingTemplate.convertAndSend(this.requestChannel, object, this.historyWritingPostProcessor);
 	}
 
 	protected Object receive() {
 		this.initializeIfNecessary();
 		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
 				"receive is not supported, because no pollable reply channel has been configured");
-		Message<?> message = this.messagingTemplate.receive((PollableChannel) this.replyChannel);
-		try {
-			return this.fromMessage(message);
-		}
-		catch (Exception e) {
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			}
-			else throw new MessagingException(message, e);
-		}
+		return this.messagingTemplate.receiveAndConvert((PollableChannel) this.replyChannel);
 	}
 
 	protected Object sendAndReceive(Object object) {
-		return this.sendAndReceive(object, true);
+		return this.doSendAndReceive(object, true);
 	}
 
 	protected Message<?> sendAndReceiveMessage(Object object) {
-		return (Message<?>) this.sendAndReceive(object, false);
+		return (Message<?>) this.doSendAndReceive(object, false);
 	}
 
-	Object sendAndReceive(Object object, boolean shouldMapMessage) {
-		Message<?> request = this.toMessage(object);
-		if (this.shouldTrack) {
-			request = MessageHistory.write(request, this);
-		}
-		Message<?> reply = this.sendAndReceiveMessage(request);
-		if (!shouldMapMessage) {
-			return reply;
-		}
-		return this.fromMessage(reply);
-	}
-
-	private Message<?> sendAndReceiveMessage(Message<?> message) {
+	@SuppressWarnings("unchecked")
+	private Object doSendAndReceive(Object object, boolean shouldConvert) {
 		this.initializeIfNecessary();
-		Assert.notNull(message, "request message must not be null");
+		Assert.notNull(object, "request must not be null");
 		if (this.requestChannel == null) {
-			throw new MessageDeliveryException(message,
-					"No request channel available. Cannot send request message.");
+			throw new MessagingException("No request channel available. Cannot send request message.");
 		}
 		if (this.replyChannel != null && this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
-		Message<?> reply = null;
+		Object reply = null;
 		Throwable error = null;
 		try {
-			reply = this.messagingTemplate.sendAndReceive(this.requestChannel, message);
-			if (reply instanceof ErrorMessage) {
-				error = ((ErrorMessage) reply).getPayload();
+			if (shouldConvert) {
+				reply = this.messagingTemplate.convertSendAndReceive(this.requestChannel, object, this.historyWritingPostProcessor);
+				if (reply instanceof Throwable) {
+					error = (Throwable) reply;
+				}
+			}
+			else {
+				Message<?> requestMessage = (object instanceof Message<?>)
+						? (Message<?>) object : this.requestMapper.toMessage(object);
+				requestMessage = this.historyWritingPostProcessor.postProcessMessage(requestMessage);
+				reply = this.messagingTemplate.sendAndReceive(this.requestChannel, requestMessage);
+				if (reply instanceof ErrorMessage) {
+					error = ((ErrorMessage) reply).getPayload();
+				}
 			}
 		}
 		catch (Exception e) {
-			logger.warn("failure occurred in gateway sendAndReceive.", e);
+			logger.warn("failure occurred in gateway sendAndReceive", e);
 			error = e;
 		}
 
 		if (error != null && this.exceptionMapper != null) {
 			try {
 				// create a reply message from the error
-				return this.exceptionMapper.toMessage(error);
+				Message<?> errorMessage = this.exceptionMapper.toMessage(error);
+				return (shouldConvert) ? errorMessage.getPayload() : errorMessage;
 			}
 			catch (Exception e2) {
 				// ignore this, we'll handle the original error next 
@@ -271,19 +291,6 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 		}
 	}
 
-	protected Object fromMessage(Message<?> message) {
-		return (message != null ? message.getPayload() : null);
-	}
-
-	protected Message<?> toMessage(Object object) {
-		if (object instanceof Message<?>) {
-			return (Message<?>) object;
-		}
-		else {
-			return MessageBuilder.withPayload(object).build();
-		}
-	}
-
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
 		if (this.replyMessageCorrelator != null) {
@@ -297,4 +304,16 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 			this.replyMessageCorrelator.stop();
 		}
 	}
+
+
+	private static class DefaultRequestMapper implements InboundMessageMapper<Object> {
+
+		public Message<?> toMessage(Object object) throws Exception {
+			if (object instanceof Message<?>) {
+				return (Message<?>) object;
+			}
+			return (object != null) ? MessageBuilder.withPayload(object).build() : null;
+		}
+	}
+
 }

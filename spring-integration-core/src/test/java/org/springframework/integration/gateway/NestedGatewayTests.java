@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		final SimpleMessagingGateway innerGateway = new SimpleMessagingGateway();
+		final AbstractMessagingGateway innerGateway = new AbstractMessagingGateway() {};
 		innerGateway.setRequestChannel(innerChannel);
 		innerGateway.afterPropertiesSet();
 		outerChannel.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -50,7 +50,7 @@ public class NestedGatewayTests {
 						"pre-" + requestMessage.getPayload()).getPayload() + "-post";
 			}
 		});
-		SimpleMessagingGateway outerGateway = new SimpleMessagingGateway();
+		AbstractMessagingGateway outerGateway = new AbstractMessagingGateway() {};
 		outerGateway.setRequestChannel(outerChannel);
 		outerGateway.afterPropertiesSet();
 		Message<?> reply = outerGateway.sendAndReceiveMessage("test");
@@ -67,7 +67,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		AbstractMessagingGateway gateway = new AbstractMessagingGateway() {};
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test")
@@ -87,7 +87,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway();
+		AbstractMessagingGateway gateway = new AbstractMessagingGateway() {};
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test")

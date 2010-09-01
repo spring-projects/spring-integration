@@ -43,29 +43,31 @@ import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 @SuppressWarnings("unchecked")
-public class SimpleMessagingGatewayTests {
+public class MessagingGatewayTests {
 
-	private SimpleMessagingGateway simpleMessagingGateway;
+	private volatile AbstractMessagingGateway messagingGateway;
 
-	private MessageChannel requestChannel = createMock(MessageChannel.class);
+	private volatile MessageChannel requestChannel = createMock(MessageChannel.class);
 
-	private PollableChannel replyChannel = createMock(PollableChannel.class);
+	private volatile PollableChannel replyChannel = createMock(PollableChannel.class);
 
-	private Message messageMock = createMock(Message.class);
+	@SuppressWarnings("rawtypes")
+	private volatile Message messageMock = createMock(Message.class);
 
-	private Object[] allmocks = new Object[] { requestChannel, replyChannel, messageMock };
+	private  final Object[] allmocks = new Object[] { requestChannel, replyChannel, messageMock };
 
 
 	@Before
 	public void initializeSample() {
-		this.simpleMessagingGateway = new SimpleMessagingGateway();
-		this.simpleMessagingGateway.setRequestChannel(requestChannel);
-		this.simpleMessagingGateway.setReplyChannel(replyChannel);
-		this.simpleMessagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
-		this.simpleMessagingGateway.afterPropertiesSet();
-		this.simpleMessagingGateway.start();
+		this.messagingGateway = new AbstractMessagingGateway() {};
+		this.messagingGateway.setRequestChannel(requestChannel);
+		this.messagingGateway.setReplyChannel(replyChannel);
+		this.messagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
+		this.messagingGateway.afterPropertiesSet();
+		this.messagingGateway.start();
 		reset(allmocks);
 	}
 
@@ -76,7 +78,7 @@ public class SimpleMessagingGatewayTests {
 	public void sendMessage() {
 		expect(requestChannel.send(messageMock, 1000L)).andReturn(true);
 		replay(allmocks);
-		this.simpleMessagingGateway.send(messageMock);
+		this.messagingGateway.send(messageMock);
 		verify(allmocks);
 	}
 
@@ -85,7 +87,7 @@ public class SimpleMessagingGatewayTests {
 		expect(messageMock.getHeaders()).andReturn(new MessageHeaders(null));
 		expect(requestChannel.send(messageMock, 1000)).andReturn(false);
 		replay(allmocks);
-		this.simpleMessagingGateway.send(messageMock);
+		this.messagingGateway.send(messageMock);
 		verify(allmocks);
 	}
 
@@ -93,12 +95,12 @@ public class SimpleMessagingGatewayTests {
 	public void sendObject() {
 		expect(requestChannel.send(isA(Message.class), eq(1000L))).andAnswer(new IAnswer<Boolean>() {
 			public Boolean answer() throws Throwable {
-				assertEquals("test", ((Message) getCurrentArguments()[0]).getPayload());
+				assertEquals("test", ((Message<?>) getCurrentArguments()[0]).getPayload());
 				return true;
 			}
 		});
 		replay(allmocks);
-		this.simpleMessagingGateway.send("test");
+		this.messagingGateway.send("test");
 		verify(allmocks);
 	}
 
@@ -106,12 +108,12 @@ public class SimpleMessagingGatewayTests {
 	public void sendObject_failure() {
 		expect(requestChannel.send(isA(Message.class), eq(1000L))).andAnswer(new IAnswer<Boolean>() {
 			public Boolean answer() throws Throwable {
-				assertEquals("test", ((Message) getCurrentArguments()[0]).getPayload());
+				assertEquals("test", ((Message<?>) getCurrentArguments()[0]).getPayload());
 				return false;
 			}
 		});
 		replay(allmocks);
-		this.simpleMessagingGateway.send("test");
+		this.messagingGateway.send("test");
 		verify(allmocks);
 	}
 
@@ -119,7 +121,7 @@ public class SimpleMessagingGatewayTests {
 	public void sendMessage_null() {
 		replay(allmocks);
 		try {
-			this.simpleMessagingGateway.send(null);
+			this.messagingGateway.send(null);
 		}
 		finally {
 			verify(allmocks);
@@ -133,7 +135,7 @@ public class SimpleMessagingGatewayTests {
 		expect(replyChannel.receive(1000)).andReturn(messageMock);
 		expect(messageMock.getPayload()).andReturn("test").anyTimes();
 		replay(allmocks);
-		assertEquals("test", this.simpleMessagingGateway.receive());
+		assertEquals("test", this.messagingGateway.receive());
 		verify(allmocks);
 	}
 
@@ -141,7 +143,7 @@ public class SimpleMessagingGatewayTests {
 	public void receiveMessage_null() {
 		expect(replyChannel.receive(1000)).andReturn(null);
 		replay(allmocks);
-		assertNull(this.simpleMessagingGateway.receive());
+		assertNull(this.messagingGateway.receive());
 		verify(allmocks);
 	}
 
@@ -153,8 +155,8 @@ public class SimpleMessagingGatewayTests {
 		expect(requestChannel.send(isA(Message.class), eq(1000L))).andReturn(true);
 		replay(allmocks);
 		// TODO: if timeout is 0, this will fail occasionally
-		this.simpleMessagingGateway.setReplyTimeout(100);
-		this.simpleMessagingGateway.sendAndReceive("test");
+		this.messagingGateway.setReplyTimeout(100);
+		this.messagingGateway.sendAndReceive("test");
 		verify(allmocks);
 	}
 
@@ -172,8 +174,8 @@ public class SimpleMessagingGatewayTests {
 		//play scenario
 		replay(allmocks);
 		replay(messageHeadersMock);
-		this.simpleMessagingGateway.setReplyTimeout(0);
-		this.simpleMessagingGateway.sendAndReceive(messageMock);
+		this.messagingGateway.setReplyTimeout(0);
+		this.messagingGateway.sendAndReceive(messageMock);
 		verify(allmocks);
 		verify(messageHeadersMock);
 	}
@@ -182,7 +184,7 @@ public class SimpleMessagingGatewayTests {
 	public void sendNullAndReceiveObject() {
 		replay(allmocks);
 		try {
-			this.simpleMessagingGateway.sendAndReceive(null);
+			this.messagingGateway.sendAndReceive(null);
 		}
 		finally {
 			verify(allmocks);
@@ -195,8 +197,8 @@ public class SimpleMessagingGatewayTests {
 		expect(requestChannel.send(isA(Message.class), eq(1000L))).andReturn(true);
 		replay(allmocks);
 		// TODO: commenting the next line causes the test to hang
-		this.simpleMessagingGateway.setReplyTimeout(100);
-		this.simpleMessagingGateway.sendAndReceiveMessage("test");
+		this.messagingGateway.setReplyTimeout(100);
+		this.messagingGateway.sendAndReceiveMessage("test");
 		verify(allmocks);
 	}
 
@@ -213,7 +215,7 @@ public class SimpleMessagingGatewayTests {
 		expect(messageHeadersMock.getId()).andReturn(UUID.randomUUID());
 
 		replay(allmocks);
-		this.simpleMessagingGateway.sendAndReceiveMessage(messageMock);
+		this.messagingGateway.sendAndReceiveMessage(messageMock);
 		verify(allmocks);
 	}
 
@@ -221,7 +223,7 @@ public class SimpleMessagingGatewayTests {
 	public void sendNullAndReceiveMessage() {
 		replay(allmocks);
 		try {
-			this.simpleMessagingGateway.sendAndReceiveMessage(null);
+			this.messagingGateway.sendAndReceiveMessage(null);
 		}
 		finally {
 			verify(allmocks);

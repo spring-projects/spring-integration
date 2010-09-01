@@ -26,7 +26,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.gateway.SimpleMessagingGateway;
+import org.springframework.integration.gateway.AbstractMessagingGateway;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.TaskScheduler;
@@ -40,7 +40,8 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		implements BeanNameAware, BeanFactoryAware, InitializingBean, SmartLifecycle {
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
-	private final SimpleMessagingGateway gatewayDelegate = new SimpleMessagingGateway();
+
+	private final GatewayDelegate gatewayDelegate = new GatewayDelegate();
 
 
 	/**
@@ -187,4 +188,12 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 	public int getPhase() {
 		return 0;
 	}
+
+	private static class GatewayDelegate extends AbstractMessagingGateway {
+
+		public Object sendAndReceive(Object request) {
+			return super.sendAndReceive(request);
+		}
+	}
+
 }

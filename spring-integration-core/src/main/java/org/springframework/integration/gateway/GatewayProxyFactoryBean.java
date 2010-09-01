@@ -83,7 +83,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private volatile Object serviceProxy;
 
-	private final Map<Method, SimpleMessagingGateway> gatewayMap = new HashMap<Method, SimpleMessagingGateway>();
+	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
 
 	private volatile boolean initialized;
 
@@ -162,7 +162,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
 		if (!CollectionUtils.isEmpty(this.gatewayMap)) {
-			for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
+			for (MethodInvocationGateway gateway : this.gatewayMap.values()) {
 				gateway.setShouldTrack(shouldTrack);
 			}
 		}
@@ -190,7 +190,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			Class<?> proxyInterface = this.determineServiceInterface();
 			Method[] methods = proxyInterface.getDeclaredMethods();
 			for (Method method : methods) {
-				SimpleMessagingGateway gateway = this.createGatewayForMethod(method);
+				MethodInvocationGateway gateway = this.createGatewayForMethod(method);
 				this.gatewayMap.put(method, gateway);
 			}
 			this.serviceProxy = new ProxyFactory(proxyInterface, this).getProxy(this.beanClassLoader);
@@ -243,7 +243,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			this.afterPropertiesSet();
 		}
 		Method method = invocation.getMethod();
-		SimpleMessagingGateway gateway = this.gatewayMap.get(method);
+		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
 		boolean isReturnTypeMessage = Message.class.isAssignableFrom(returnType);
 		boolean shouldReply = returnType != void.class;
@@ -282,7 +282,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		throw originalException;
 	}
 
-	private SimpleMessagingGateway createGatewayForMethod(Method method) {
+	private MethodInvocationGateway createGatewayForMethod(Method method) {
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
 		MessageChannel replyChannel = this.defaultReplyChannel;
@@ -330,7 +330,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 			messageMapper.setPayloadExpression(payloadExpression);
 		}
  		messageMapper.setBeanFactory(this.getBeanFactory());
-		SimpleMessagingGateway gateway = new SimpleMessagingGateway(messageMapper, new SimpleMessageMapper());
+ 		MethodInvocationGateway gateway = new MethodInvocationGateway(messageMapper);
 		gateway.setExceptionMapper(exceptionMapper);
 		if (this.getTaskScheduler() != null) {
 			gateway.setTaskScheduler(this.getTaskScheduler());
@@ -361,14 +361,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStart() {
-		for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
+		for (MethodInvocationGateway gateway : this.gatewayMap.values()) {
 			gateway.start();
 		}
 	}
 
 	@Override // guarded by super#lifecycleLock
 	protected void doStop() {
-		for (SimpleMessagingGateway gateway : this.gatewayMap.values()) {
+		for (MethodInvocationGateway gateway : this.gatewayMap.values()) {
 			gateway.stop();
 		}
 	}
@@ -392,8 +392,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	private <T> T convert(Object source, Class<T> expectedReturnType) {
 		if (this.getConversionService() != null) {
 			return this.getConversionService().convert(source, expectedReturnType);
-		} else {
+		}
+		else {
 			return typeConverter.convertIfNecessary(source, expectedReturnType);
 		}
 	}
+
+
+	private static class MethodInvocationGateway extends AbstractMessagingGateway {
+
+		private MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
+			this.setRequestMapper(messageMapper);
+		}
+	}
+
 }
