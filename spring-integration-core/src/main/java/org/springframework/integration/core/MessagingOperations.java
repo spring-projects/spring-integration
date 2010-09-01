@@ -114,17 +114,30 @@ public interface MessagingOperations {
 	 * @param postProcessor the callback to modify the message
 	 * @throws MessagingException if an error occurs
 	 */
-	//void convertAndSend(Object message, MessagePostProcessor postProcessor) throws MessagingException;
+	<T> void convertAndSend(T message, MessagePostProcessor postProcessor) throws MessagingException;
 
 	/**
-	 * TODO: either define a MessagePostProcessor that accepts a builder or accept HeaderMapper here
+	 * Send the given object to the specified channel, converting the object
+	 * to a message with a configured MessageConverter. The MessagePostProcessor
+	 * callback allows for modification of the message after conversion.
+	 * @param channel the channel to which the message will be sent
+	 * @param message the object to convert to a message
+	 * @param postProcessor the callback to modify the message
+	 * @throws MessagingException if an error occurs
 	 */
-	//void convertAndSend(MessageChannel channel, Object message, MessagePostProcessor postProcessor) throws MessagingException;
+	<T> void convertAndSend(MessageChannel channel, T message, MessagePostProcessor postProcessor) throws MessagingException;
 
 	/**
-	 * TODO: see above
+	 * Send the given object to the specified channel, converting the object
+	 * to a message with a configured MessageConverter. The MessagePostProcessor
+	 * callback allows for modification of the message after conversion.
+	 * @param channelName the name of the channel to which the message will be sent
+	 * (to be resolved to an actual channel by a ChannelResolver)
+	 * @param message the object to convert to a message
+	 * @param postProcessor the callback to modify the message
+	 * @throws MessagingException if an error occurs
 	 */
-	//void convertAndSend(String channelName, Object message, MessagePostProcessor postProcessor) throws MessagingException;
+	<T> void convertAndSend(String channelName, T message, MessagePostProcessor postProcessor) throws MessagingException;
 
 
 	//-------------------------------------------------------------------------
@@ -275,5 +288,48 @@ public interface MessagingOperations {
 	 * @throws MessagingException if an error occurs
 	 */
 	Object convertSendAndReceive(String channelName, Object request);
+
+	/**
+	 * Send the given request object to the default channel, converting the object
+	 * to a message with a configured MessageConverter. The MessagePostProcessor
+	 * callback allows for modification of the request message after conversion.
+	 * If a reply Message is received within the receive timeout, it will be
+	 * converted and returned.
+	 * <p>This will only work with a default channel specified!
+	 * @param request the object to convert to a request message
+	 * @param requestPostProcessor the callback to modify the request message
+	 * @return the result of converting the reply Message
+	 * @throws MessagingException if an error occurs
+	 */
+	Object convertSendAndReceive(Object request, MessagePostProcessor requestPostProcessor);
+
+	/**
+	 * Send the given request object to the specified channel, converting the object
+	 * to a message with a configured MessageConverter. The MessagePostProcessor
+	 * callback allows for modification of the request message after conversion.
+	 * If a reply Message is received within the receive timeout, it will be
+	 * converted and returned.
+	 * @param channel the channel to which the request message will be sent
+	 * @param request the object to convert to a request message
+	 * @param requestPostProcessor the callback to modify the request message
+	 * @return the result of converting the reply Message
+	 * @throws MessagingException if an error occurs
+	 */
+	Object convertSendAndReceive(MessageChannel channel, Object request, MessagePostProcessor requestPostProcessor);
+
+	/**
+	 * Send the given request object to the specified channel, converting the object
+	 * to a message with a configured MessageConverter. The MessagePostProcessor
+	 * callback allows for modification of the request message after conversion.
+	 * If a reply Message is received within the receive timeout, it will be
+	 * converted and returned.
+	 * @param channelName the name of the channel to which the request message will be sent
+	 * (to be resolved to an actual channel by a ChannelResolver)
+	 * @param request the object to convert to a request message
+	 * @param requestPostProcessor the callback to modify the request message
+	 * @return the result of converting the reply Message
+	 * @throws MessagingException if an error occurs
+	 */
+	Object convertSendAndReceive(String channelName, Object request, MessagePostProcessor requestPostProcessor);
 
 }

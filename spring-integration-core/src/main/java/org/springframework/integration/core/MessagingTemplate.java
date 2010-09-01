@@ -244,6 +244,30 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		}
 	}
 
+	public <T> void convertAndSend(T object, MessagePostProcessor postProcessor) {
+		Message<?> message = this.messageConverter.toMessage(object);
+		message = postProcessor.postProcessMessage(message);
+		if (message != null) {
+			this.send(message);
+		}
+	}
+
+	public <T> void convertAndSend(MessageChannel channel, T object, MessagePostProcessor postProcessor) {
+		Message<?> message = this.messageConverter.toMessage(object);
+		message = postProcessor.postProcessMessage(message);
+		if (message != null) {
+			this.send(channel, message);
+		}
+	}
+
+	public <T> void convertAndSend(String channelName, T object, MessagePostProcessor postProcessor) {
+		Message<?> message = this.messageConverter.toMessage(object);
+		message = postProcessor.postProcessMessage(message);
+		if (message != null) {
+			this.send(channelName, message);
+		}
+	}
+
 	public <P> Message<P> receive() {
 		MessageChannel channel = this.getRequiredDefaultChannel();
 		Assert.state(channel instanceof PollableChannel,
@@ -312,15 +336,36 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 	public Object convertSendAndReceive(final MessageChannel channel, final Object request) {
-		Message<?> message = this.messageConverter.toMessage(request);
-		Message<?> reply = this.sendAndReceive(channel, message);
-		return this.messageConverter.fromMessage(reply);
+		Message<?> requestMessage = this.messageConverter.toMessage(request);
+		Message<?> replyMessage = this.sendAndReceive(channel, requestMessage);
+		return this.messageConverter.fromMessage(replyMessage);
 	}
 
 	public Object convertSendAndReceive(final String channelName, final Object request) {
-		Message<?> message = this.messageConverter.toMessage(request);
-		Message<?> reply = this.sendAndReceive(channelName, message);
-		return this.messageConverter.fromMessage(reply);
+		Message<?> requestMessage = this.messageConverter.toMessage(request);
+		Message<?> replyMessage = this.sendAndReceive(channelName, requestMessage);
+		return this.messageConverter.fromMessage(replyMessage);
+	}
+
+	public Object convertSendAndReceive(final Object request, MessagePostProcessor requestPostProcessor) {
+		Message<?> requestMessage = this.messageConverter.toMessage(request);
+		requestMessage = requestPostProcessor.postProcessMessage(requestMessage);
+		Message<?> replyMessage = this.sendAndReceive(requestMessage);
+		return this.messageConverter.fromMessage(replyMessage);
+	}
+
+	public Object convertSendAndReceive(final MessageChannel channel, final Object request, MessagePostProcessor requestPostProcessor) {
+		Message<?> requestMessage = this.messageConverter.toMessage(request);
+		requestMessage = requestPostProcessor.postProcessMessage(requestMessage);
+		Message<?> replyMessage = this.sendAndReceive(channel, requestMessage);
+		return this.messageConverter.fromMessage(replyMessage);
+	}
+
+	public Object convertSendAndReceive(final String channelName, final Object request, MessagePostProcessor requestPostProcessor) {
+		Message<?> requestMessage = this.messageConverter.toMessage(request);
+		requestMessage = requestPostProcessor.postProcessMessage(requestMessage);
+		Message<?> replyMessage = this.sendAndReceive(channelName, requestMessage);
+		return this.messageConverter.fromMessage(replyMessage);
 	}
 
 	private void doSend(MessageChannel channel, Message<?> message) {
