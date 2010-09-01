@@ -32,7 +32,5 @@
 	<int:aggregator id="testAggregator" input-channel="aggregatorChannel" output-channel="endOfThePipeChannel"/>
 	
 	<int:channel id="endOfThePipeChannel"/>
-	
-	<bean class="org.springframework.integration.history.MessageHistoryConfigurer"/>
 
 </beans>

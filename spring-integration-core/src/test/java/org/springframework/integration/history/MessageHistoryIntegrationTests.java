@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
@@ -28,9 +29,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.util.StopWatch;
+
+import static org.mockito.Mockito.mock;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -192,6 +199,49 @@ public class MessageHistoryIntegrationTests {
 	@Test(expected=BeanDefinitionParsingException.class)
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
+	}
+	
+	@Test @Ignore
+	public void testMessageHistoryWithHistoryPerformance() {
+		ApplicationContext acWithHistory = new ClassPathXmlApplicationContext("perfWithMessageHistory.xml", MessageHistoryIntegrationTests.class);
+		ApplicationContext acWithoutHistory = new ClassPathXmlApplicationContext("perfWithoutMessageHistory.xml", MessageHistoryIntegrationTests.class);
+		
+		SampleGateway gatewayHistory = acWithHistory.getBean("sampleGateway", SampleGateway.class);
+		DirectChannel endOfThePipeChannelHistory = acWithHistory.getBean("endOfThePipeChannel", DirectChannel.class);
+		endOfThePipeChannelHistory.subscribe(new MessageHandler() {	
+			public void handleMessage(Message<?> message)
+					throws MessageRejectedException, MessageHandlingException,
+					MessageDeliveryException {
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
+		});
+		
+		SampleGateway gateway = acWithoutHistory.getBean("sampleGateway", SampleGateway.class);
+		DirectChannel endOfThePipeChannel = acWithoutHistory.getBean("endOfThePipeChannel", DirectChannel.class);
+		endOfThePipeChannel.subscribe(new MessageHandler() {	
+			public void handleMessage(Message<?> message)
+					throws MessageRejectedException, MessageHandlingException,
+					MessageDeliveryException {
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+				replyChannel.send(message);
+			}
+		});
+		
+		StopWatch stopWatch = new StopWatch();
+		stopWatch.start();
+		for (int i = 0; i < 10000; i++) {
+			gatewayHistory.echo("hello");
+		}
+		stopWatch.stop();
+		System.out.println("Elapsed time with history 10000 calls: " + stopWatch.getTotalTimeSeconds());
+		stopWatch = new StopWatch();
+		stopWatch.start();
+		for (int i = 0; i < 10000; i++) {
+			gateway.echo("hello");
+		}
+		stopWatch.stop();
+		System.out.println("Elapsed time without history 10000 calls: " + stopWatch.getTotalTimeSeconds());
 	}
 
 	public static interface SampleGateway {
