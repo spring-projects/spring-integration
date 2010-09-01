@@ -18,9 +18,12 @@ package org.springframework.integration.util;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
@@ -28,16 +31,21 @@ import org.springframework.integration.context.SimpleBeanResolver;
 
 /**
  * @author Mark Fisher
+ * @author Dave Syer
+ * 
  * @since 2.0
  */
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
 	
+	private final ExpressionParser expressionParser = new SpelExpressionParser();
+	
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 	
 	public AbstractExpressionEvaluator() {
 		evaluationContext.setTypeConverter(typeConverter);
+		evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
 
 	/**
@@ -76,8 +84,20 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		}
 	}
 
-	protected <T> T evaluateExpression(Expression expression, Object message, Class<T> expectedType) {
-		return expression.getValue(this.evaluationContext, message, expectedType);
+	protected <T> T evaluateExpression(String expression, Object input) {
+		return evaluateExpression(expression, input, null);
+	}
+	
+	protected <T> T evaluateExpression(String expression, Object input, Class<T> expectedType) {
+		return expressionParser.parseExpression(expression).getValue(this.evaluationContext, input, expectedType);
+	}
+
+	protected <T> T evaluateExpression(Expression expression, Object input) {
+		return evaluateExpression(expression, input, null);
+	}
+	
+	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {
+		return expression.getValue(this.evaluationContext, input, expectedType);
 	}
 
 }

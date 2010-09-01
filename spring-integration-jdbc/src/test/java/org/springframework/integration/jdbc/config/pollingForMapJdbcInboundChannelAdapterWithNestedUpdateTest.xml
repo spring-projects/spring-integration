@@ -12,7 +12,7 @@
 
 	<inbound-channel-adapter channel="target" data-source="dataSource">
 		<query>select * from item where status=2</query>
-		<update>update item set status=10 where id in (:idList)</update>
+		<update>update item set status=10 where id in (:id)</update>
 	</inbound-channel-adapter>
 
 	<beans:import  resource="jdbcInboundChannelAdapterCommonConfig.xml" />

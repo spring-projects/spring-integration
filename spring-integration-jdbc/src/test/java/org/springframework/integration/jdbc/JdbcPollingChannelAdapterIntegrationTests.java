@@ -141,7 +141,7 @@ public class JdbcPollingChannelAdapterIntegrationTests {
 		JdbcPollingChannelAdapter adapter = new JdbcPollingChannelAdapter(
 				this.embeddedDatabase, "select * from item where status=2");
 		adapter
-				.setUpdateSql("update item set status = 10 where id in (:idList)");
+				.setUpdateSql("update item set status = 10 where id in (:id)");
 		adapter.setRowMapper(new ItemRowMapper());
 
 		this.jdbcTemplate.update("insert into item values(1,2)");

@@ -59,7 +59,7 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 
 	private volatile String updateSql;
 
-	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new DefaultSqlParameterSourceFactory();
+	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new ExpressionEvaluatingSqlParameterSourceFactory();
 
 	private int maxRowsPerPoll = 0;
 

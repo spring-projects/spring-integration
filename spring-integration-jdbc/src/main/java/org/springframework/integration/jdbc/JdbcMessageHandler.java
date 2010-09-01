@@ -46,7 +46,7 @@ public class JdbcMessageHandler extends AbstractMessageHandler {
 
 	private volatile String updateSql;
 
-	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new DefaultSqlParameterSourceFactory();
+	private volatile SqlParameterSourceFactory sqlParameterSourceFactory = new BeanPropertySqlParameterSourceFactory();
 
 	/**
 	 * Constructor taking {@link DataSource} from which the DB Connection can be obtained and the select query to

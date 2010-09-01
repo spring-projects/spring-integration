@@ -11,7 +11,7 @@
 
 	<inbound-channel-adapter query="select * from item where status=2"
 		channel="target" data-source="dataSource" max-rows-per-poll="2"
-		update="update item set status=10 where id in (:idList)" />
+		update="update item set status=10 where id in (:id)" />
 
 	<beans:import resource="jdbcInboundChannelAdapterCommonConfig.xml" />
 

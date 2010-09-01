@@ -71,7 +71,7 @@ public class JdbcMessageHandlerParserTests {
 		channel.send(message);
 		Map<String, Object> map = this.jdbcTemplate.queryForMap("SELECT * from FOOS");
 		assertEquals("Wrong id", message.getHeaders().getId().toString(), map.get("ID"));
-		assertEquals("Wrong name", "foo", map.get("name"));
+		assertEquals("Wrong name", "bar", map.get("name"));
 	}
 
 	@After
