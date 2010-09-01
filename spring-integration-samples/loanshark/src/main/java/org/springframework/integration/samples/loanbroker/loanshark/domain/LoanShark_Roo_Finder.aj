@@ -1,4 +1,4 @@
-package com.springframework.integration.samples.loanbroker.loanshark.domain;
+package org.springframework.integration.samples.loanbroker.loanshark.domain;
 
 import java.lang.String;
 import java.lang.SuppressWarnings;

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.springframework.integration.samples.loanbroker.loanshark.biz;
+package org.springframework.integration.samples.loanbroker.loanshark.biz;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 
 /**
  * @author Gary Russell

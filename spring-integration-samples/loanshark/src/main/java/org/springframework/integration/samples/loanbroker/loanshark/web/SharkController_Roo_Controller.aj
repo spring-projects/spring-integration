@@ -1,10 +1,11 @@
-package com.springframework.integration.samples.loanbroker.loanshark.web;
+package org.springframework.integration.samples.loanbroker.loanshark.web;
 
-import com.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 
 import java.lang.Long;
 import java.lang.String;
 import javax.validation.Valid;
+
+import org.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;

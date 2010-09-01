@@ -1,4 +1,4 @@
-project --topLevelPackage com.springframework.samples.integration.loanbroker.loanshark3
+project --topLevelPackage org.springframework.samples.integration.loanbroker.loanshark3
 persistence setup --provider HIBERNATE --database HYPERSONIC_IN_MEMORY
 entity --class ~.domain.LoanShark
 field string --fieldName name

@@ -1,6 +1,5 @@
-package com.springframework.integration.samples.loanbroker.loanshark.domain;
+package org.springframework.integration.samples.loanbroker.loanshark.domain;
 
-import com.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 
 import java.lang.Integer;
 import java.lang.Long;
@@ -12,6 +11,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Version;
+
+import org.springframework.integration.samples.loanbroker.loanshark.domain.LoanShark;
 import org.springframework.transaction.annotation.Transactional;
 
 privileged aspect LoanShark_Roo_Entity {

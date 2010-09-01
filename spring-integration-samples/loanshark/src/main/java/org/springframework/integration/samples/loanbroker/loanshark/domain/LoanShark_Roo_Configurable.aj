@@ -1,4 +1,4 @@
-package com.springframework.integration.samples.loanbroker.loanshark.domain;
+package org.springframework.integration.samples.loanbroker.loanshark.domain;
 
 import org.springframework.beans.factory.annotation.Configurable;
 
