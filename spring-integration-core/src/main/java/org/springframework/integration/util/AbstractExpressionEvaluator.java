@@ -38,11 +38,11 @@ import org.springframework.integration.context.SimpleBeanResolver;
 public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 
 	private final StandardEvaluationContext evaluationContext = new StandardEvaluationContext();
-	
+
 	private final ExpressionParser expressionParser = new SpelExpressionParser();
-	
+
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
-	
+
 	public AbstractExpressionEvaluator() {
 		evaluationContext.setTypeConverter(typeConverter);
 		evaluationContext.addPropertyAccessor(new MapAccessor());
@@ -85,17 +85,17 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	}
 
 	protected Object evaluateExpression(String expression, Object input) {
-		return evaluateExpression(expression, input, null);
+		return evaluateExpression(expression, input, (Class<?>) null);
 	}
-	
+
 	protected <T> T evaluateExpression(String expression, Object input, Class<T> expectedType) {
 		return expressionParser.parseExpression(expression).getValue(this.evaluationContext, input, expectedType);
 	}
 
 	protected Object evaluateExpression(Expression expression, Object input) {
-		return evaluateExpression(expression, input, null);
+		return evaluateExpression(expression, input, (Class<?>) null);
 	}
-	
+
 	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {
 		return expression.getValue(this.evaluationContext, input, expectedType);
 	}

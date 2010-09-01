@@ -217,12 +217,13 @@ public class MessagingMethodInvokerHelper<T> extends AbstractExpressionEvaluator
 			try {
 				Expression expression = candidate.getExpression();
 				Class<?> expectedType = this.expectedType != null ? this.expectedType : candidate.method.getReturnType();
-				Object result = this.evaluateExpression(expression, parameters, expectedType);
+				@SuppressWarnings("unchecked")
+				T result = (T) this.evaluateExpression(expression, parameters, expectedType);
 				if (this.requiresReply) {
 					Assert.notNull(result,
 							"Expression evaluation result was null, but this processor requires a reply.");
 				}
-				return (T) result;
+				return result;
 			}
 			// keep the first exception
 			catch (EvaluationException e) {
