@@ -84,7 +84,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		}
 	}
 
-	protected <T> T evaluateExpression(String expression, Object input) {
+	protected Object evaluateExpression(String expression, Object input) {
 		return evaluateExpression(expression, input, null);
 	}
 	
@@ -92,7 +92,7 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 		return expressionParser.parseExpression(expression).getValue(this.evaluationContext, input, expectedType);
 	}
 
-	protected <T> T evaluateExpression(Expression expression, Object input) {
+	protected Object evaluateExpression(Expression expression, Object input) {
 		return evaluateExpression(expression, input, null);
 	}
 	
