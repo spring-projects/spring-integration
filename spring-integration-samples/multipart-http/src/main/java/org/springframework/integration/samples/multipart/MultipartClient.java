@@ -7,9 +7,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.BufferedImageHttpMessageConverter;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -26,11 +23,6 @@ public class MultipartClient {
 	public static void main(String[] args) throws Exception{
 
 		RestTemplate template = new RestTemplate();
-		for (HttpMessageConverter converter : template.getMessageConverters()) {
-			if (converter instanceof FormHttpMessageConverter){
-				((FormHttpMessageConverter)converter).addPartConverter(new BufferedImageHttpMessageConverter());
-			}
-		}
 		String uri = "http://localhost:8080/multipart-http/inboundAdapter.htm";
 		Resource s2logo = new ClassPathResource("org/springframework/integration/samples/multipart/spring09_logo.png");
 		MultiValueMap map = new LinkedMultiValueMap();
