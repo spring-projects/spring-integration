@@ -98,11 +98,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	}
 
 	@Override
-	protected boolean shouldSplitIterableReply() {
-		return true;
-	}
-
-	@Override
 	public String getComponentType() {
 		return "splitter";
 	}

@@ -114,7 +114,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	private void handleResult(Object result, MessageHeaders requestHeaders) {
-		if (result instanceof Iterable && this.shouldSplitIterableReply()) {
+		if (result instanceof Iterable && this.shouldSplitReply((Iterable<?>) result)) {
 			for (Object o : (Iterable<?>) result) {
 				this.produceReply(o, requestHeaders);
 			}
@@ -188,10 +188,12 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		}
 	}
 
-	/**
-	 * Subclasses may override this. False by default.
-	 */
-	protected boolean shouldSplitIterableReply() {
+	private boolean shouldSplitReply(Iterable<?> reply) {
+		for (Object next : reply) {
+			if (next instanceof Message<?> || next instanceof MessageBuilder<?>) {
+				return true;
+			}
+		}
 		return false;
 	}
 
