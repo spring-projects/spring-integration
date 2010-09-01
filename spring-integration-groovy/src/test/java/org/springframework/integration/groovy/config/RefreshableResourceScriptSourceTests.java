@@ -48,7 +48,6 @@ public class RefreshableResourceScriptSourceTests {
 				return System.currentTimeMillis();
 			}
 		}, 0);
-		assertEquals(false, source.isModified());
 		Thread.sleep(100L);
 		assertEquals(true, source.isModified());
 		assertEquals("foo", source.getScriptAsString());
