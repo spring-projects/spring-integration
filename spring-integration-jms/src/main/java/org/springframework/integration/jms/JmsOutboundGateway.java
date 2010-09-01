@@ -77,7 +77,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private ConnectionFactory connectionFactory;
 
-	private volatile MessageConverter messageConverter;
+	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 
@@ -288,12 +288,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			Assert.notNull(this.connectionFactory, "connectionFactory must not be null");
 			Assert.isTrue(this.requestDestination != null || this.requestDestinationName != null,
 					"Either a 'requestDestination' or 'requestDestinationName' is required.");
-			if (this.messageConverter == null) {
-				DefaultMessageConverter hmmc = new DefaultMessageConverter(null);
-				hmmc.setExtractIntegrationMessagePayload(this.extractRequestPayload);
-				hmmc.setExtractJmsMessageBody(this.extractReplyPayload);
-				this.messageConverter = hmmc;
-			}
 			this.initialized = true;
 		}
 	}
@@ -310,7 +304,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 				throw new MessageTimeoutException(message,
 						"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
 			}
-			return this.messageConverter.fromMessage(jmsReply);
+			Object result = jmsReply;
+			if (this.extractRequestPayload) {
+				result = this.messageConverter.fromMessage(jmsReply);
+				if (logger.isDebugEnabled()) {
+					logger.debug("converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
+				}
+			}
+			return result;
 		}
 		catch (JMSException e) {
 			throw new MessageHandlingException(requestMessage, e);
@@ -326,7 +327,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 		try {
 			session = createSession(connection);
 			// convert to JMS Message
-			javax.jms.Message jmsRequest = this.messageConverter.toMessage(requestMessage, session);
+			Object objectToSend = requestMessage;
+			if (this.extractReplyPayload){
+				objectToSend = requestMessage.getPayload();
+			}
+			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);
 			// map headers
 			headerMapper.fromHeaders(requestMessage.getHeaders(), jmsRequest);
 			// create JMS Producer and send

@@ -31,6 +31,7 @@ import org.springframework.integration.gateway.AbstractMessagingGateway;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
@@ -50,7 +51,7 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 	
 	private volatile boolean expectReply;
 
-	private volatile MessageConverter messageConverter;
+	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile boolean extractRequestPayload = true;
 
@@ -204,24 +205,20 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 		this.extractReplyPayload = extractReplyPayload;
 	}
 
-	public final void onInit() throws Exception {
-		if (!(this.messageConverter instanceof DefaultMessageConverter)) {
-			DefaultMessageConverter hmmc = new DefaultMessageConverter(this.messageConverter);
-			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
-			hmmc.setExtractIntegrationMessagePayload(this.extractReplyPayload);
-			this.messageConverter = hmmc;
-		}
-		super.onInit();
-	}
-
 	@SuppressWarnings("unchecked")
 	public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
-		Object object = this.messageConverter.fromMessage(jmsMessage);
-		
+		Object result = jmsMessage;
+		if (this.extractRequestPayload) {
+			result = this.messageConverter.fromMessage(jmsMessage);
+			if (logger.isDebugEnabled()) {
+				logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message payload [" + result + "]");
+			}
+		}
+	
 		Map<String, Object> headers = (Map<String, Object>) headerMapper.toHeaders(jmsMessage);
-		Message<?> requestMessage = (object instanceof Message<?>) ?
-				MessageBuilder.fromMessage((Message<?>) object).copyHeaders(headers).build() : 
-				MessageBuilder.withPayload(object).copyHeaders(headers).build();
+		Message<?> requestMessage = (result instanceof Message<?>) ?
+				MessageBuilder.fromMessage((Message<?>) result).copyHeaders(headers).build() : 
+				MessageBuilder.withPayload(result).copyHeaders(headers).build();
 		if (!this.expectReply) {
 			this.send(requestMessage);
 		}
@@ -231,7 +228,11 @@ public class ChannelPublishingJmsMessageListener extends AbstractMessagingGatewa
 				Destination destination = this.getReplyDestination(jmsMessage, session);
 				if (destination != null){
 					// convert SI Message to JMS Message
-					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyMessage, session);
+					Object replyResult = replyMessage;
+					if (this.extractReplyPayload){
+						replyResult = replyMessage.getPayload();
+					}
+					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
 					// map SI Message Headers to JMS Message Properties/Headers
 					headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
 					

@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * @author Oleg Zhurakousky
  */
 public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectSupport {
-	
+
 	private volatile boolean extractPayload = true;
 
 	private volatile ConnectionFactory connectionFactory;
@@ -200,7 +200,7 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 			if (this.messageConverter != null) {
 				this.jmsTemplate.setMessageConverter(this.messageConverter);
 			}
-			this.configureMessageConverter(this.jmsTemplate);
+			//this.configureMessageConverter(this.jmsTemplate);
 			this.initialized = true;
 		}
 	}
@@ -221,12 +221,13 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 		return jmsTemplate;
 	}
 
-	protected void configureMessageConverter(JmsTemplate jmsTemplate) {
-		MessageConverter converter = jmsTemplate.getMessageConverter();
-		if (converter == null || !(converter instanceof DefaultMessageConverter)) {
-			DefaultMessageConverter dmc = new DefaultMessageConverter(converter);
-			dmc.setExtractIntegrationMessagePayload(this.extractPayload);
-			jmsTemplate.setMessageConverter(dmc);
-		}
+//	protected void configureMessageConverter(JmsTemplate jmsTemplate) {
+//		MessageConverter converter = jmsTemplate.getMessageConverter();
+//		if (converter == null) {
+//			jmsTemplate.setMessageConverter(new SimpleMessageConverter());
+//		}
+//	}
+	protected boolean shouldExtractPayload() {
+		return extractPayload;
 	}
 }
