@@ -20,4 +20,6 @@
 
 	<inbound-channel-adapter id="putOrDeleteAdapter" channel="requests" supported-methods="PUT, delete"/>
 
+	<inbound-channel-adapter id="inboundController" channel="requests" view-name="foo" error-code="oops"/>
+
 </beans:beans>

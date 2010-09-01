@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.http.HttpRequestHandlingController;
 import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -61,6 +62,9 @@ public class HttpInboundChannelAdapterParserTests {
 
 	@Autowired
 	private HttpRequestHandlingMessagingGateway putOrDeleteAdapter;
+
+	@Autowired
+	private HttpRequestHandlingController inboundController;
 
 
 	@Test
@@ -135,6 +139,13 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals(2, supportedMethods.size());
 		assertTrue(supportedMethods.contains(HttpMethod.PUT));
 		assertTrue(supportedMethods.contains(HttpMethod.DELETE));
+	}
+
+	@Test
+	public void testController() throws Exception {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
+		String errorCode =  (String) accessor.getPropertyValue("errorCode");
+		assertEquals("oops", errorCode);
 	}
 
 

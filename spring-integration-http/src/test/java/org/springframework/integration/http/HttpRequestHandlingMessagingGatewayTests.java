@@ -19,8 +19,18 @@ package org.springframework.integration.http;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Test;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
 
+import org.junit.Test;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpOutputMessage;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.AbstractHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -90,6 +100,52 @@ public class HttpRequestHandlingMessagingGatewayTests {
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		gateway.handleRequest(request, response);
 		assertEquals("HELLO", response.getContentAsString());
+	}
+
+	@Test
+	public void testExceptionConversion() throws Exception {
+		QueueChannel requestChannel = new QueueChannel() {
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				throw new RuntimeException("Planned");
+			}
+		};
+		HttpRequestHandlingMessagingGateway gateway = new HttpRequestHandlingMessagingGateway(true);
+		gateway.setRequestChannel(requestChannel);
+		gateway.setConvertExceptions(true);
+		gateway.setMessageConverters(Arrays.<HttpMessageConverter<?>>asList(new DumbHttpMessageConverter()));
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.addHeader("Accept", "application/x-java-serialized-object");
+		request.setMethod("GET");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		gateway.handleRequest(request, response);
+		String content = response.getContentAsString();
+		assertEquals("Planned", content);
+	}
+
+	private static class DumbHttpMessageConverter extends AbstractHttpMessageConverter<Exception> {
+		
+		public DumbHttpMessageConverter() {
+			setSupportedMediaTypes(Arrays.asList(MediaType.ALL));
+		}
+
+		@Override
+		protected Exception readInternal(Class<? extends Exception> clazz, HttpInputMessage inputMessage) throws IOException,
+				HttpMessageNotReadableException {
+			return null;
+		}
+
+		@Override
+		protected boolean supports(Class<?> clazz) {
+			return true;
+		}
+
+		@Override
+		protected void writeInternal(Exception t, HttpOutputMessage outputMessage) throws IOException,
+				HttpMessageNotWritableException {
+			new PrintWriter(outputMessage.getBody()).append(t.getCause().getMessage()).flush();
+		}
+
 	}
 
 }

@@ -55,44 +55,38 @@ import org.springframework.web.servlet.DispatcherServlet;
 /**
  * Base class for HTTP request handling endpoints.
  * <p/>
- * By default GET and POST requests are accepted, but the 'supportedMethods'
- * property may be set to include others or limit the options (e.g. POST only).
- * A GET request will generate a payload containing its 'parameterMap' while
- * a POST request will be converted to a Message payload according to
- * the registered {@link HttpMessageConverter}s. Several are registered
- * by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
+ * By default GET and POST requests are accepted, but the 'supportedMethods' property may be set to include others or
+ * limit the options (e.g. POST only). A GET request will generate a payload containing its 'parameterMap' while a POST
+ * request will be converted to a Message payload according to the registered {@link HttpMessageConverter}s. Several are
+ * registered by default, but the list can be explicitly set via {@link #setMessageConverters(List)}.
  * <p/>
- * To customize the mapping of request headers to the MessageHeaders, provide
- * a reference to a {@link HeaderMapper HeaderMapper<HttpHeaders>} implementation
- * to the {@link #setHeaderMapper(HeaderMapper)} method.
+ * To customize the mapping of request headers to the MessageHeaders, provide a reference to a {@link HeaderMapper
+ * HeaderMapper<HttpHeaders>} implementation to the {@link #setHeaderMapper(HeaderMapper)} method.
  * <p/>
- * The behavior is "request/reply" by default. Pass <code>false</code>
- * to the constructor to force send-only as opposed to sendAndReceive.
- * Send-only means that as soon as the Message is created and passed to the
- * {@link #setRequestChannel(org.springframework.integration.core.MessageChannel) request channel},
- * a response will be generated. Subclasses determine how that response is
- * generated (e.g. simple status response or rendering a View).
+ * The behavior is "request/reply" by default. Pass <code>false</code> to the constructor to force send-only as opposed
+ * to sendAndReceive. Send-only means that as soon as the Message is created and passed to the
+ * {@link #setRequestChannel(org.springframework.integration.MessageChannel) request channel}, a response will be
+ * generated. Subclasses determine how that response is generated (e.g. simple status response or rendering a View).
  * <p/>
- * In a request-reply scenario, the reply Message's payload will be
- * extracted prior to generating a response by default. To have the entire
- * serialized Message available for the response, switch the
- * {@link #extractReplyPayload} value to <code>false</code>.
+ * In a request-reply scenario, the reply Message's payload will be extracted prior to generating a response by default.
+ * To have the entire serialized Message available for the response, switch the {@link #extractReplyPayload} value to
+ * <code>false</code>.
  * 
  * @author Mark Fisher
  * @since 2.0
  */
 abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGateway {
 
-	private static final boolean jaxb2Present =
-			ClassUtils.isPresent("javax.xml.bind.Binder", HttpRequestHandlingEndpointSupport.class.getClassLoader());
+	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
+			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
-	private static final boolean jacksonPresent =
-			ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper", HttpRequestHandlingEndpointSupport.class.getClassLoader()) &&
-					ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class.getClassLoader());
+	private static final boolean jacksonPresent = ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper",
+			HttpRequestHandlingEndpointSupport.class.getClassLoader())
+			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator", HttpRequestHandlingEndpointSupport.class
+					.getClassLoader());
 
-	private static boolean romePresent =
-			ClassUtils.isPresent("com.sun.syndication.feed.WireFeed", HttpRequestHandlingEndpointSupport.class.getClassLoader());
-
+	private static boolean romePresent = ClassUtils.isPresent("com.sun.syndication.feed.WireFeed",
+			HttpRequestHandlingEndpointSupport.class.getClassLoader());
 
 	private volatile List<HttpMethod> supportedMethods = Arrays.asList(HttpMethod.GET, HttpMethod.POST);
 
@@ -107,7 +101,6 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	private volatile boolean extractReplyPayload = true;
 
 	private volatile MultipartResolver multipartResolver;
-
 
 	public HttpRequestHandlingEndpointSupport() {
 		this(true);
@@ -130,11 +123,17 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 		}
 		if (romePresent) {
 			// TODO add deps for:
-			//this.messageConverters.add(new AtomFeedHttpMessageConverter());
-			//this.messageConverters.add(new RssChannelHttpMessageConverter());
+			// this.messageConverters.add(new AtomFeedHttpMessageConverter());
+			// this.messageConverters.add(new RssChannelHttpMessageConverter());
 		}
 	}
-
+	
+	/**
+	 * @return whether to expect reply
+	 */
+	protected boolean isExpectReply() {
+		return expectReply;
+	}
 
 	/**
 	 * Set the message body converters to use. These converters are used to convert from and to HTTP requests and
@@ -158,8 +157,7 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
-	 * Specify the supported request method names for this gateway.
-	 * By default, only GET and POST are supported.
+	 * Specify the supported request method names for this gateway. By default, only GET and POST are supported.
 	 */
 	public void setSupportedMethodNames(String... supportedMethods) {
 		Assert.notEmpty(supportedMethods, "at least one supported method is required");
@@ -171,8 +169,7 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
-	 * Specify the supported request methods for this gateway.
-	 * By default, only GET and POST are supported.
+	 * Specify the supported request methods for this gateway. By default, only GET and POST are supported.
 	 */
 	public void setSupportedMethods(HttpMethod... supportedMethods) {
 		Assert.notEmpty(supportedMethods, "at least one supported method is required");
@@ -180,29 +177,26 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
-	 * Specify the type of payload to be generated when the inbound HTTP request content
-	 * is read by the {@link HttpMessageConverter}s. By default this value is null which
-	 * means at runtime any "text" Content-Type will result in String while all others
-	 * default to <code>byte[].class</code>.
+	 * Specify the type of payload to be generated when the inbound HTTP request content is read by the
+	 * {@link HttpMessageConverter}s. By default this value is null which means at runtime any "text" Content-Type will
+	 * result in String while all others default to <code>byte[].class</code>.
 	 */
 	public void setRequestPayloadType(Class<?> requestPayloadType) {
 		this.requestPayloadType = requestPayloadType;
 	}
 
 	/**
-	 * Specify whether only the reply Message's payload should be passed
-	 * in the response. If this is set to 'false', the entire Message will
-	 * be used to generate the response. The default is 'true'.
+	 * Specify whether only the reply Message's payload should be passed in the response. If this is set to 'false', the
+	 * entire Message will be used to generate the response. The default is 'true'.
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
-		this.extractReplyPayload = extractReplyPayload; 
+		this.extractReplyPayload = extractReplyPayload;
 	}
 
 	/**
-	 * Specify the {@link MultipartResolver} to use when checking requests.
-	 * If no resolver is provided, the "multipartResolver" bean in the context
-	 * will be used as a fallback. If that is not available either, this endpoint
-	 * will not support multipart requests.
+	 * Specify the {@link MultipartResolver} to use when checking requests. If no resolver is provided, the
+	 * "multipartResolver" bean in the context will be used as a fallback. If that is not available either, this
+	 * endpoint will not support multipart requests.
 	 */
 	public void setMultipartResolver(MultipartResolver multipartResolver) {
 		this.multipartResolver = multipartResolver;
@@ -210,12 +204,12 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 
 	@Override
 	public String getComponentType() {
-		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter"; 
+		return (this.expectReply) ? "http:inbound-gateway" : "http:inbound-channel-adapter";
 	}
 
 	/**
-	 * Locates the {@link MultipartResolver} bean based on the default name defined by
-	 * the {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
+	 * Locates the {@link MultipartResolver} bean based on the default name defined by the
+	 * {@link DispatcherServlet#MULTIPART_RESOLVER_BEAN_NAME} constant if available.
 	 */
 	@Override
 	protected void onInit() throws Exception {
@@ -223,8 +217,8 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 		BeanFactory beanFactory = this.getBeanFactory();
 		if (this.multipartResolver == null && beanFactory != null) {
 			try {
-				MultipartResolver multipartResolver =
-						this.getBeanFactory().getBean(DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
+				MultipartResolver multipartResolver = this.getBeanFactory().getBean(
+						DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME, MultipartResolver.class);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Using MultipartResolver [" + multipartResolver + "]");
 				}
@@ -232,19 +226,20 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 			}
 			catch (NoSuchBeanDefinitionException e) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Unable to locate MultipartResolver with name '" + DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME +
-							"': no multipart request handling will be supported.");
+					logger.debug("Unable to locate MultipartResolver with name '"
+							+ DispatcherServlet.MULTIPART_RESOLVER_BEAN_NAME
+							+ "': no multipart request handling will be supported.");
 				}
 			}
 		}
 	}
 
 	/**
-	 * Handles the HTTP request by generating a Message and sending it to the request channel.
-	 * If this gateway's 'expectReply' property is true, it will also generate a response from
-	 * the reply Message once received.
+	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
+	 * 'expectReply' property is true, it will also generate a response from the reply Message once received.
 	 */
-	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException {
+	protected final Object doHandleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
+			throws IOException {
 		try {
 			ServletServerHttpRequest request = this.prepareRequest(servletRequest);
 			if (!this.supportedMethods.contains(request.getMethod())) {
@@ -259,12 +254,12 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 				payload = this.convertParameterMap(servletRequest.getParameterMap());
 			}
 			Map<String, ?> headers = this.headerMapper.toHeaders(request.getHeaders());
-			Message<?> message = MessageBuilder.withPayload(payload)
-					.copyHeaders(headers)
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD, request.getMethod().toString())
-					.setHeader(org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL, servletRequest.getUserPrincipal())
-					.build();
+			Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headers).setHeader(
+					org.springframework.integration.http.HttpHeaders.REQUEST_URL, request.getURI().toString())
+					.setHeader(org.springframework.integration.http.HttpHeaders.REQUEST_METHOD,
+							request.getMethod().toString()).setHeader(
+							org.springframework.integration.http.HttpHeaders.USER_PRINCIPAL,
+							servletRequest.getUserPrincipal()).build();
 			Object reply = null;
 			if (this.expectReply) {
 				reply = this.sendAndReceiveMessage(message);
@@ -287,9 +282,9 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
-	 * Prepares an instance of {@link ServletServerHttpRequest} from the raw {@link HttpServletRequest}.
-	 * Also converts the request into a multipart request to make multiparts available if necessary.
-	 * If no multipart resolver is set, simply returns the existing request.
+	 * Prepares an instance of {@link ServletServerHttpRequest} from the raw {@link HttpServletRequest}. Also converts
+	 * the request into a multipart request to make multiparts available if necessary. If no multipart resolver is set,
+	 * simply returns the existing request.
 	 * @param request current HTTP request
 	 * @return the processed request (multipart wrapper if necessary)
 	 * @see MultipartResolver#resolveMultipart
@@ -305,8 +300,7 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 	}
 
 	/**
-	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request)
-	 * and a Content-Type header.
+	 * Checks if the request has a readable body (not a GET, HEAD, or OPTIONS request) and a Content-Type header.
 	 */
 	private boolean isReadable(ServletServerHttpRequest request) {
 		HttpMethod method = request.getMethod();
@@ -354,8 +348,9 @@ abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGatew
 				return converter.read((Class) expectedType, request);
 			}
 		}
-		throw new MessagingException("Could not convert request: no suitable HttpMessageConverter found for expected type [" +
-				expectedType.getName() + "] and content type [" + contentType + "]");
+		throw new MessagingException(
+				"Could not convert request: no suitable HttpMessageConverter found for expected type ["
+						+ expectedType.getName() + "] and content type [" + contentType + "]");
 	}
 
 }

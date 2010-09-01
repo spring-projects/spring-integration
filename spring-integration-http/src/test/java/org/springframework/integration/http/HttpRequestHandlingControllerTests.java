@@ -22,12 +22,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -135,5 +136,30 @@ public class HttpRequestHandlingControllerTests {
 		assertTrue(reply instanceof Message<?>);
 		assertEquals("ABC", ((Message<?>) reply).getPayload());
 	}
+
+	@Test
+	public void testSendWithError() throws Exception {
+		QueueChannel requestChannel = new QueueChannel() {
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				throw new RuntimeException("Planned");
+			}
+		};
+		HttpRequestHandlingController controller = new HttpRequestHandlingController(false);
+		controller.setRequestChannel(requestChannel);
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContent("hello".getBytes());
+		request.setContentType("text/plain");
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		ModelAndView modelAndView = controller.handleRequest(request, response);
+		assertEquals(1, modelAndView.getModel().size());
+		Errors errors = (Errors) modelAndView.getModel().get("errors");
+		assertEquals(1, errors.getErrorCount());
+		ObjectError error = errors.getAllErrors().get(0);
+		assertEquals(3, error.getArguments().length);
+		assertTrue("Wrong message: "+error, ((String)error.getArguments()[1]).startsWith("failed to send Message"));
+	}
+
 
 }

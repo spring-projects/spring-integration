@@ -32,31 +32,31 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.HttpRequestHandler;
 
 /**
- * Inbound Messaging Gateway that handles HTTP Requests. May be configured as a bean in the
- * Application Context and delegated to from a simple HttpRequestHandlerServlet in
- * <code>web.xml</code> where the servlet and bean both have the same name. If the
- * {@link #expectReply} property is set to true, a response can generated from a
- * reply Message. Otherwise, the gateway will play the role of a unidirectional
- * Channel Adapter with a simple status-based response (e.g. 200 OK).
+ * Inbound Messaging Gateway that handles HTTP Requests. May be configured as a bean in the Application Context and
+ * delegated to from a simple HttpRequestHandlerServlet in <code>web.xml</code> where the servlet and bean both have the
+ * same name. If the {@link #expectReply} property is set to true, a response can generated from a reply Message.
+ * Otherwise, the gateway will play the role of a unidirectional Channel Adapter with a simple status-based response
+ * (e.g. 200 OK).
  * <p/>
- * The default supported request methods are GET and POST, but the list of values can
- * be configured with the {@link #supportedMethods} property. The payload generated from
- * a GET request (or HEAD or OPTIONS if supported) will be a {@link MultiValueMap} 
- * containing the parameter values. For a request containing a body (e.g. a POST),
- * the type of the payload is determined by the {@link #setRequestPayloadType(Class) request payload type}.
+ * The default supported request methods are GET and POST, but the list of values can be configured with the
+ * {@link #supportedMethods} property. The payload generated from a GET request (or HEAD or OPTIONS if supported) will
+ * be a {@link MultiValueMap} containing the parameter values. For a request containing a body (e.g. a POST), the type
+ * of the payload is determined by the {@link #setRequestPayloadType(Class) request payload type}.
  * <p/>
- * If the HTTP request is a multipart and a "multipartResolver" bean has been defined
- * in the context, then it will be converted by the {@link MultipartAwareFormHttpMessageConverter}
- * as long as the default message converters have not been overwritten (although
- * providing a customized instance of the Multipart-aware converter is also an option).
+ * If the HTTP request is a multipart and a "multipartResolver" bean has been defined in the context, then it will be
+ * converted by the {@link MultipartAwareFormHttpMessageConverter} as long as the default message converters have not
+ * been overwritten (although providing a customized instance of the Multipart-aware converter is also an option).
  * <p/>
- * By default a number of {@link HttpMessageConverter}s are already configured. The list
- * can be overridden by calling the {@link #setMessageConverters(List)} method.
+ * By default a number of {@link HttpMessageConverter}s are already configured. The list can be overridden by calling
+ * the {@link #setMessageConverters(List)} method.
  * 
  * @author Mark Fisher
  * @since 2.0
  */
-public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements HttpRequestHandler {
+public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndpointSupport implements
+		HttpRequestHandler {
+
+	private volatile boolean convertExceptions;
 
 	public HttpRequestHandlingMessagingGateway() {
 		this(true);
@@ -66,14 +66,31 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		super(expectReply);
 	}
 
+	/**
+	 * Flag to determine if conversion and writing out of message handling exceptions should be attempted (default
+	 * false, in which case they will simply be re-thrown). If the flag is true and no message converter can convert the
+	 * exception a new exception will be thrown.
+	 * 
+	 * @param convertExceptions the flag to set
+	 */
+	public void setConvertExceptions(boolean convertExceptions) {
+		this.convertExceptions = convertExceptions;
+	}
 
 	/**
-	 * Handles the HTTP request by generating a Message and sending it to the request channel.
-	 * If this gateway's 'expectReply' property is true, it will also generate a response from
-	 * the reply Message once received. That response will be written by the {@link HttpMessageConverter}s.
+	 * Handles the HTTP request by generating a Message and sending it to the request channel. If this gateway's
+	 * 'expectReply' property is true, it will also generate a response from the reply Message once received. That
+	 * response will be written by the {@link HttpMessageConverter}s.
 	 */
-	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws ServletException, IOException {
-		Object responseContent = super.doHandleRequest(servletRequest, servletResponse);
+	public final void handleRequest(HttpServletRequest servletRequest, HttpServletResponse servletResponse)
+			throws ServletException, IOException {
+		Object responseContent = null;
+		try {
+			responseContent = super.doHandleRequest(servletRequest, servletResponse);
+		}
+		catch (Exception e) {
+			responseContent = handleExceptionInternal(e);
+		}
 		if (responseContent != null) {
 			ServletServerHttpRequest request = new ServletServerHttpRequest(servletRequest);
 			ServletServerHttpResponse response = new ServletServerHttpResponse(servletResponse);
@@ -81,8 +98,23 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 		}
 	}
 
+	private Object handleExceptionInternal(Exception e) throws IOException {
+		if (convertExceptions && isExpectReply()) {
+			return e;
+		}
+		else {
+			if (e instanceof IOException) {
+				throw (IOException) e;
+			}
+			else {
+				throw (RuntimeException) e;
+			}
+		}
+	}
+
 	@SuppressWarnings("unchecked")
-	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes) throws IOException {
+	private void writeResponse(Object content, ServletServerHttpResponse response, List<MediaType> acceptTypes)
+			throws IOException {
 		for (HttpMessageConverter converter : this.getMessageConverters()) {
 			for (MediaType acceptType : acceptTypes) {
 				if (converter.canWrite(content.getClass(), acceptType)) {
@@ -91,8 +123,8 @@ public class HttpRequestHandlingMessagingGateway extends HttpRequestHandlingEndp
 				}
 			}
 		}
-		throw new MessagingException("Could not convert reply: no suitable HttpMessageConverter found for type [" +
-				content.getClass().getName() + "] and accept types [" + acceptTypes + "]");
+		throw new MessagingException("Could not convert reply: no suitable HttpMessageConverter found for type ["
+				+ content.getClass().getName() + "] and accept types [" + acceptTypes + "]");
 	}
 
 }

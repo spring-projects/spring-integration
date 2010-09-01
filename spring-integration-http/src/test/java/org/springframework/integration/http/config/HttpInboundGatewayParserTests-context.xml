@@ -17,6 +17,8 @@
 		<si:queue/>
 	</si:channel>
 
-	<inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses"/>
+	<inbound-gateway id="inboundGateway" request-channel="requests" reply-channel="responses" convert-exceptions="true"/>
+
+	<inbound-gateway id="inboundController" request-channel="requests" reply-channel="responses" view-name="foo" error-code="oops"/>
 
 </beans:beans>

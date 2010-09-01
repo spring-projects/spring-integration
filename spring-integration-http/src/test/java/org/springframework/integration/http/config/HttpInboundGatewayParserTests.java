@@ -18,6 +18,7 @@ package org.springframework.integration.http.config;
 
 import static org.hamcrest.CoreMatchers.any;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
@@ -28,10 +29,12 @@ import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
+import org.springframework.integration.http.HttpRequestHandlingController;
 import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.MockHttpServletRequest;
 import org.springframework.integration.http.MockHttpServletResponse;
@@ -50,6 +53,9 @@ public class HttpInboundGatewayParserTests {
 	private HttpRequestHandlingMessagingGateway gateway;
 
 	@Autowired
+	private HttpRequestHandlingController inboundController;
+
+	@Autowired
 	private SubscribableChannel requests;
 
 	@Autowired
@@ -60,6 +66,7 @@ public class HttpInboundGatewayParserTests {
 	public void checkConfig() {
 		assertNotNull(gateway);
 		assertThat((Boolean) getPropertyValue(gateway, "expectReply"), is(true));
+		assertThat((Boolean) getPropertyValue(gateway, "convertExceptions"), is(true));
 		assertThat((PollableChannel) getPropertyValue(gateway, "replyChannel"), is(responses));
 	}
 	
@@ -74,6 +81,13 @@ public class HttpInboundGatewayParserTests {
 		gateway.handleRequest(request, response);
 		assertThat(response.getStatus(), is(HttpServletResponse.SC_OK));
 		assertThat(response.getContentType(), is("application/x-java-serialized-object"));
+	}
+
+	@Test
+	public void testController() throws Exception {
+		DirectFieldAccessor accessor = new DirectFieldAccessor(inboundController);
+		String errorCode =  (String) accessor.getPropertyValue("errorCode");
+		assertEquals("oops", errorCode);
 	}
 
 }

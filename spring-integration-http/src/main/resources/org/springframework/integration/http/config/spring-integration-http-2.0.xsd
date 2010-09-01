@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.springframework.org/schema/integration/http"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:tool="http://www.springframework.org/schema/tool"
-		targetNamespace="http://www.springframework.org/schema/integration/http"
-		elementFormDefault="qualified"
-		attributeFormDefault="unqualified">
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/http" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans" xmlns:tool="http://www.springframework.org/schema/tool"
+	targetNamespace="http://www.springframework.org/schema/integration/http" elementFormDefault="qualified"
+	attributeFormDefault="unqualified">
 
-	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
-	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -20,16 +17,16 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an inbound HTTP-based Channel Adapter.
+					Defines an inbound HTTP-based Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="name" type="xsd:string"/>
+			<xsd:attribute name="id" type="xsd:ID" />
+			<xsd:attribute name="name" type="xsd:string" />
 			<xsd:attribute name="channel" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -41,12 +38,34 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="send-timeout" type="xsd:string"/>
-			<xsd:attribute name="supported-methods" type="xsd:string"/>
+			<xsd:attribute name="send-timeout" type="xsd:string" />
+			<xsd:attribute name="supported-methods" type="xsd:string" />
 			<xsd:attribute name="view-name" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
 						View name to be resolved when rendering a response.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="errors-key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						In the case that a view-name is specified this attribute can be used to
+						override the default key of the Errors (if the request cannot be handled).
+						Defaults to "errors" (similar to normal MVC
+						usage). 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-code" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						In the case that a view-name is specified this attribute can be used to
+						override the default error code under which the handling exception is exposed.
+						Defaults to
+						"spring.integration.http.handler.error" and is supplied with 3
+						parameters: the exception itself, its message and
+						its stack trace as a String.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -61,7 +80,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -73,18 +92,47 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an inbound HTTP-based Messaging Gateway.
+					Defines an inbound HTTP-based Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="name" type="xsd:string"/>
-					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
-					<xsd:attribute name="supported-methods" type="xsd:string"/>
+					<xsd:attribute name="name" type="xsd:string" />
+					<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true" />
+					<xsd:attribute name="supported-methods" type="xsd:string" />
 					<xsd:attribute name="view-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
 								View name to be resolved when rendering a response.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="errors-key" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								In the case that a view-name is specified this attribute can be used to
+								override the default key of the Errors (if the request cannot be handled).
+								Defaults to "errors" (similar to normal MVC usage). 
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-code" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								In the case that a view-name is specified this attribute can be used to
+								override the default error code under which the handling exception is exposed.
+								Defaults to "spring.integration.http.handler.error" and is supplied with 3
+								parameters: the exception itself, its message and its stack trace as a String.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="convert-exceptions" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								In the case that a view-name is not specified this attribute can be used to
+								override the default behaviour when there is a message handling exception (which
+								is to rethrow).  If this flag is true then the normal conversion process will be 
+								applied to the exception and written out to the response body.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -106,13 +154,13 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="reply-key" type="xsd:string"/>
-					<xsd:attribute name="reply-timeout" type="xsd:string"/>
+					<xsd:attribute name="reply-key" type="xsd:string" />
+					<xsd:attribute name="reply-timeout" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -122,13 +170,13 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an outbound HTTP-based Channel Adapter.
+					Defines an outbound HTTP-based Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="id" type="xsd:ID" />
 			<xsd:attribute name="url" type="xsd:string" use="required">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -140,7 +188,7 @@
 			<xsd:attribute name="http-method">
 				<xsd:annotation>
 					<xsd:documentation>
-	The HTTP method to use when executing requests with this adapter. 
+						The HTTP method to use when executing requests with this adapter. 
 					</xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
@@ -151,21 +199,21 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="charset" type="xsd:string"/>
-			<xsd:attribute name="extract-payload" type="xsd:string"/>
+			<xsd:attribute name="charset" type="xsd:string" />
+			<xsd:attribute name="extract-payload" type="xsd:string" />
 			<xsd:attribute name="expected-response-type" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	The expected type to which the response body should be converted. 
+						The expected type to which the response body should be converted. 
 					</xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="direct">
-							<tool:expected-type type="java.lang.Class"/>
+							<tool:expected-type type="java.lang.Class" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -173,8 +221,8 @@
 			<xsd:attribute name="message-converters" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
-	all of the default converters that would normally be present on the underlying RestTemplate.
+						Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
+						all of the default converters that would normally be present on the underlying RestTemplate.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -182,7 +230,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+							<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -199,7 +247,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory"/>
+							<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -214,7 +262,7 @@
 			<xsd:attribute name="auto-startup" type="xsd:string">
 				<xsd:annotation>
 					<xsd:documentation>
-	Specifies whether this adapter should start automatically.
+						Specifies whether this adapter should start automatically.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
@@ -225,25 +273,25 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an outbound HTTP-based Messaging Gateway.
+					Defines an outbound HTTP-based Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 					<xsd:sequence>
-						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded"/>
+						<xsd:element name="uri-variable" type="uriVariableType" minOccurs="0" maxOccurs="unbounded" />
 					</xsd:sequence>
 					<xsd:attribute name="url" type="xsd:string" use="required">
 						<xsd:annotation>
 							<xsd:documentation>
-	URL to be used as a fallback for any request Message does not contain the request URL Message header.
+								URL to be used as a fallback for any request Message does not contain the request URL Message header.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
 					<xsd:attribute name="http-method">
 						<xsd:annotation>
 							<xsd:documentation>
-	The HTTP method to use when executing requests with this adapter. 
+								The HTTP method to use when executing requests with this adapter. 
 							</xsd:documentation>
 						</xsd:annotation>
 						<xsd:simpleType>
@@ -253,8 +301,8 @@
 					<xsd:attribute name="message-converters" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
-	all of the default converters that would normally be present on the underlying RestTemplate.
+								Provide a reference to a list of HttpMessageConverter instances. If specified, these converters will replace
+								all of the default converters that would normally be present on the underlying RestTemplate.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
@@ -262,7 +310,7 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper"/>
+									<tool:expected-type type="org.springframework.integration.mapping.HeaderMapper" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -283,25 +331,25 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="extract-request-payload" type="xsd:string"/>
+					<xsd:attribute name="extract-request-payload" type="xsd:string" />
 					<xsd:attribute name="expected-response-type" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
-	The expected type to which the response body should be converted. 
+								The expected type to which the response body should be converted. 
 							</xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="direct">
-									<tool:expected-type type="java.lang.Class"/>
+									<tool:expected-type type="java.lang.Class" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="charset" type="xsd:string"/>
+					<xsd:attribute name="charset" type="xsd:string" />
 					<xsd:attribute name="request-factory" type="xsd:string">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
-									<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory"/>
+									<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -313,7 +361,7 @@
 							]]></xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
-					<xsd:attribute name="auto-startup" type="xsd:string"/>
+					<xsd:attribute name="auto-startup" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -359,15 +407,15 @@
 	<xsd:complexType name="gatewayType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines common configuration for gateway adapters.
+				Defines common configuration for gateway adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="id" type="xsd:ID" />
 		<xsd:attribute name="request-channel" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -376,12 +424,12 @@
 			<xsd:annotation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						<tool:expected-type type="org.springframework.integration.core.MessageChannel" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="request-timeout" type="xsd:string"/>
+		<xsd:attribute name="request-timeout" type="xsd:string" />
 	</xsd:complexType>
 
 </xsd:schema>

@@ -80,6 +80,7 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-key");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "convert-exceptions");
 		}
 		else {
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(
@@ -88,6 +89,8 @@ public class HttpInboundEndpointParser extends AbstractSingleBeanDefinitionParse
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "supported-methods", "supportedMethodNames");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-payload-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "view-name");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "errors-key");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "error-code");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converters");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
 	}
