@@ -21,6 +21,7 @@
 		<module>jmx</module>
 		<module>loan-broker</module>
 		<module>loanshark</module>
+		<module>multipart-http</module>
 		<module>oddeven</module>
 		<module>quote</module>
 		<module>ws-inbound-gateway</module>
