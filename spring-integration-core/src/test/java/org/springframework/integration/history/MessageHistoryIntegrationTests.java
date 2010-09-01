@@ -37,8 +37,6 @@ import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.util.StopWatch;
 
-import static org.mockito.Mockito.mock;
-
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
@@ -200,7 +198,7 @@ public class MessageHistoryIntegrationTests {
 	public void testMessageHistoryMoreThanOneNamespaceFail() {
 		new ClassPathXmlApplicationContext("messageHistoryWithHistoryWriterNamespace-fail.xml", MessageHistoryIntegrationTests.class);
 	}
-	
+
 	@Test @Ignore
 	public void testMessageHistoryWithHistoryPerformance() {
 		ApplicationContext acWithHistory = new ClassPathXmlApplicationContext("perfWithMessageHistory.xml", MessageHistoryIntegrationTests.class);
