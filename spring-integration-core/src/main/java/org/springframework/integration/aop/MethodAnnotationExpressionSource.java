@@ -62,6 +62,14 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 		this.channelAttributeName = channelAttributeName;
 	}
 
+	public String getChannelName(Method method) {
+		String channelName = this.getAnnotationValue(method, this.channelAttributeName, String.class);
+		if (channelName == null) {
+			channelName = this.getAnnotationValue(method.getDeclaringClass(), this.channelAttributeName, String.class);
+		}
+		return (StringUtils.hasText(channelName) ? channelName : null);
+	}
+
 	public String getPayloadExpression(Method method) {
 		String payloadExpression = null;
 		method.getAnnotation(Payload.class);
@@ -69,7 +77,7 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 		if (methodPayloadAnnotation != null) {
 			payloadExpression = StringUtils.hasText(methodPayloadAnnotation.value())
 					? methodPayloadAnnotation.value()
-					: "#" + this.getReturnValueVariableName(method);
+					: "#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME;
 		}
 		Annotation[][] annotationArray = method.getParameterAnnotations();
 		for (int i = 0; i < annotationArray.length; i++) {
@@ -80,7 +88,7 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 							"@Payload can be used at most once on a @Publisher method, either at method-level or on a single parameter");
 					Assert.state("".equals(((Payload) currentAnnotation).value()),
 							"@Payload on a parameter for a @Publisher method may not contain an expression");
-					payloadExpression = "#" + this.getArgumentMapVariableName(method) + "[" + i + "]";
+					payloadExpression = "#" + ExpressionSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]";
 				}
 			}
 		}
@@ -100,62 +108,11 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 					if (!StringUtils.hasText(name)) {
 						name = parameterNames[i];
 					}
-					headerExpressions.put(name, "#" + this.getArgumentMapVariableName(method) + "['" + i + "']");
+					headerExpressions.put(name, "#" + ExpressionSource.ARGUMENT_MAP_VARIABLE_NAME + "['" + i + "']");
 				}
 			}
 		}
 		return headerExpressions;
-	}
-
-	public String getMethodNameVariableName(Method method) {
-		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
-		if (annotation != null) {
-			return annotation.methodNameVariableName();
-		}
-		return ExpressionSource.DEFAULT_METHOD_NAME_VARIABLE_NAME;
-	}
-
-	public String[] getArgumentVariableNames(Method method) {
-		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
-		if (annotation != null) {
-			String argNameList = annotation.argumentVariableNames();
-			if (StringUtils.hasText(argNameList)) {
-				return StringUtils.tokenizeToStringArray(argNameList, ",");
-			}
-		}
-		return this.parameterNameDiscoverer.getParameterNames(method);
-	}
-
-	public String getArgumentMapVariableName(Method method) {
-		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
-		if (annotation != null) {
-			return annotation.argumentMapVariableName();
-		}
-		return ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME;
-	}
-
-	public String getReturnValueVariableName(Method method) {
-		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
-		if (annotation != null) {
-			return annotation.returnValueVariableName();
-		}
-		return ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME;
-	}
-
-	public String getExceptionVariableName(Method method) {
-		ExpressionBinding annotation = AnnotationUtils.findAnnotation(method, ExpressionBinding.class);
-		if (annotation != null) {
-			return annotation.exceptionVariableName();
-		}
-		return ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME;		
-	}
-
-	public String getChannelName(Method method) {
-		String channelName = this.getAnnotationValue(method, this.channelAttributeName, String.class);
-		if (channelName == null) {
-			channelName = this.getAnnotationValue(method.getDeclaringClass(), this.channelAttributeName, String.class);
-		}
-		return (StringUtils.hasText(channelName) ? channelName : null);
 	}
 
 	private <T> T getAnnotationValue(Method method, String attributeName, Class<T> expectedType) {

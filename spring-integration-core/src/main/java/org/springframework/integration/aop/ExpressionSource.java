@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,14 +28,20 @@ import java.util.Map;
  */
 interface ExpressionSource {
 
-	static final String DEFAULT_METHOD_NAME_VARIABLE_NAME = "method";
+	static final String METHOD_NAME_VARIABLE_NAME = "method";
 
-	static final String DEFAULT_ARGUMENT_MAP_VARIABLE_NAME = "args";
+	static final String ARGUMENT_MAP_VARIABLE_NAME = "args";
 
-	static final String DEFAULT_RETURN_VALUE_VARIABLE_NAME = "return";
+	static final String RETURN_VALUE_VARIABLE_NAME = "return";
 
-	static final String DEFAULT_EXCEPTION_VARIABLE_NAME = "exception";
+	static final String EXCEPTION_VARIABLE_NAME = "exception";
 
+
+	/**
+	 * Returns the channel name to which Messages should be published
+	 * for this particular method invocation.
+	 */
+	String getChannelName(Method method);
 
 	/**
 	 * Returns the expression string to be evaluated for creating the Message
@@ -49,42 +55,5 @@ interface ExpressionSource {
 	 * header names, the values are the expression strings.
 	 */
 	Map<String, String> getHeaderExpressions(Method method);
-
-	/**
-	 * Returns the variable name to be associated with the intercepted
-	 * method's name.
-	 */
-	String getMethodNameVariableName(Method method);
-
-	/**
-	 * Returns the variable names to be associated with the intercepted method
-	 * invocation's argument array.
-	 */
-	String[] getArgumentVariableNames(Method method);
-
-	/**
-	 * Returns the variable name to use in the evaluation context for the Map
-	 * of arguments. The keys in this map will be determined by the result of
-	 * the {@link #getArgumentVariableNames(Method)} method.
-	 */
-	String getArgumentMapVariableName(Method method);
-
-	/**
-	 * Returns the variable name to use in the evaluation context for any
-	 * return value resulting from the method invocation.
-	 */
-	String getReturnValueVariableName(Method method);
-
-	/**
-	 * Returns the variable name to use in the evaluation context for any
-	 * exception thrown from the method invocation.
-	 */
-	String getExceptionVariableName(Method method);
-
-	/**
-	 * Returns the channel name to which Messages should be published
-	 * for this particular method invocation.
-	 */
-	String getChannelName(Method method);
 
 }

@@ -25,6 +25,8 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.expression.MapAccessor;
+import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationException;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -59,6 +61,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private volatile ChannelResolver channelResolver;
 
+	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+
 
 	public MessagePublishingInterceptor(ExpressionSource expressionSource) {
 		Assert.notNull(expressionSource, "expressionSource must not be null");
@@ -85,8 +89,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		context.addPropertyAccessor(new MapAccessor());
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
-		String[] argumentNames = this.expressionSource.getArgumentVariableNames(method);
-		context.setVariable(this.expressionSource.getMethodNameVariableName(method), method.getName());
+		String[] argumentNames = this.resolveArgumentNames(method);
+		context.setVariable(ExpressionSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
 			Map<String, Object> argumentMap = new HashMap<String, Object>();
 			for (int i = 0; i < argumentNames.length; i++) {
@@ -97,15 +101,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				argumentMap.put("" + i, argValue);
 				argumentMap.put(argumentNames[i], argValue);
 			}
-			context.setVariable(this.expressionSource.getArgumentMapVariableName(method), argumentMap);
+			context.setVariable(ExpressionSource.ARGUMENT_MAP_VARIABLE_NAME, argumentMap);
 		}
 		try {
 			Object returnValue = invocation.proceed();
-			context.setVariable(this.expressionSource.getReturnValueVariableName(method), returnValue);
+			context.setVariable(ExpressionSource.RETURN_VALUE_VARIABLE_NAME, returnValue);
 			return returnValue;
 		}
 		catch (Throwable t) {
-			context.setVariable(this.expressionSource.getExceptionVariableName(method), t);
+			context.setVariable(ExpressionSource.EXCEPTION_VARIABLE_NAME, t);
 			throw t;
 		}
 		finally {
@@ -113,10 +117,14 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		}
 	}
 
+	private String[] resolveArgumentNames(Method method) {
+		return this.parameterNameDiscoverer.getParameterNames(method);
+	}
+
 	private void publishMessage(Method method, StandardEvaluationContext context) throws Exception {
 		String payloadExpressionString = this.expressionSource.getPayloadExpression(method);
 		if (!StringUtils.hasText(payloadExpressionString)) {
-			payloadExpressionString = "#" + this.expressionSource.getReturnValueVariableName(method);
+			payloadExpressionString = "#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME;
 		}
 		Expression expression = this.parser.parseExpression(payloadExpressionString);
 		Object result = expression.getValue(context);

@@ -27,7 +27,7 @@ import java.util.Map;
  * @author Mark Fisher
  * @since 2.0
  */
-public class SimpleExpressionSource extends AbstractExpressionSource {
+public class SimpleExpressionSource implements ExpressionSource {
 
 	private volatile String channelName;
 
@@ -40,7 +40,6 @@ public class SimpleExpressionSource extends AbstractExpressionSource {
 		this.channelName = channelName;
 	}
 
-	@Override
 	public String getChannelName(Method method) {
 		return this.channelName;
 	}
@@ -49,7 +48,6 @@ public class SimpleExpressionSource extends AbstractExpressionSource {
 		this.payloadExpression = payloadExpression;
 	}
 
-	@Override
 	public String getPayloadExpression(Method method) {
 		return this.payloadExpression;
 	}
@@ -58,14 +56,8 @@ public class SimpleExpressionSource extends AbstractExpressionSource {
 		this.headerExpressions = headerExpressions;
 	}
 
-	@Override
 	public Map<String, String> getHeaderExpressions(Method method) {
 		return this.headerExpressions;
-	}
-
-	@Override
-	public String[] getArgumentVariableNames(Method method) {
-		return this.discoverMethodParameterNames(method);
 	}
 
 }

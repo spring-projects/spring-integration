@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class MessagePublishingInterceptorTests {
 		proxy.test();
 		Message<?> message = testChannel.receive(0);
 		assertNotNull(message);
-		assertEquals("foo", message.getPayload());
+		assertEquals("test-foo", message.getPayload());
 	}
 	@Test
 	public void demoMethodNameMappingExpressionSource() {
@@ -111,28 +111,8 @@ public class MessagePublishingInterceptorTests {
 
 	private static class TestExpressionSource implements ExpressionSource {
 
-		public String getMethodNameVariableName(Method method) {
-			return "m";
-		}
-
-		public String getArgumentMapVariableName(Method method) {
-			return "map";
-		}
-
-		public String[] getArgumentVariableNames(Method method) {
-			return new String[] { "a1", "a2"};
-		}
-
-		public String getReturnValueVariableName(Method method) {
-			return "r";
-		}
-
-		public String getExceptionVariableName(Method method) {
-			return "x";
-		}
-
 		public String getPayloadExpression(Method method) {
-			return "#r";
+			return "'test-' + #return";
 		}
 
 		public Map<String, String> getHeaderExpressions(Method method) {

@@ -27,7 +27,7 @@ import org.springframework.util.PatternMatchUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MethodNameMappingExpressionSource extends AbstractExpressionSource {
+public class MethodNameMappingExpressionSource implements ExpressionSource {
 
 	private final Map<String, String> payloadExpressionMap;
 
@@ -35,17 +35,12 @@ public class MethodNameMappingExpressionSource extends AbstractExpressionSource 
 
 	private volatile Map<String, String> channelMap = Collections.emptyMap();
 
-	private volatile Map<String, String[]> argumentVariableNameMap;
-
 
 	public MethodNameMappingExpressionSource(Map<String, String> payloadExpressionMap) {
 		Assert.notEmpty(payloadExpressionMap, "payloadExpressionMap must not be empty");
 		this.payloadExpressionMap = payloadExpressionMap;
 	}
 
-	public void setArgumentVariableNameMap(Map<String, String[]> argumentVariableNameMap) {
-		this.argumentVariableNameMap = argumentVariableNameMap;
-	}
 
 	public void setHeaderExpressionMap(Map<String, Map<String, String>> headerExpressionMap) {
 		this.headerExpressionMap = headerExpressionMap;
@@ -53,17 +48,6 @@ public class MethodNameMappingExpressionSource extends AbstractExpressionSource 
 
 	public void setChannelMap(Map<String, String> channelMap) {
 		this.channelMap = channelMap;
-	}
-
-	public String[] getArgumentVariableNames(Method method) {
-		if (this.argumentVariableNameMap != null) {
-			for (Map.Entry<String, String[]> entry : this.argumentVariableNameMap.entrySet()) {
-				if (PatternMatchUtils.simpleMatch(entry.getKey(), method.getName())) {
-					return entry.getValue();
-				}
-			}
-		}
-		return this.discoverMethodParameterNames(method);
 	}
 
 	public String getPayloadExpression(Method method) {

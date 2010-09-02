@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Payload;
 
 /**
@@ -34,40 +35,36 @@ public class MethodAnnotationExpressionSourceTests {
 
 	private final MethodAnnotationExpressionSource source = new MethodAnnotationExpressionSource();
 
-	@Test
-	public void defaultBindings() {
-		Method method = getMethod("methodWithExpressionAnnotationOnly", String.class, int.class);
-		String expressionString = source.getPayloadExpression(method);
-		assertEquals("testExpression1", expressionString);
-		assertEquals(2, source.getArgumentVariableNames(method).length);
-		assertEquals("arg1", source.getArgumentVariableNames(method)[0]);
-		assertEquals("arg2", source.getArgumentVariableNames(method)[1]);
-		Map<String, String> headerMap = source.getHeaderExpressions(method);
-		assertNotNull(headerMap);
-		assertEquals(0, headerMap.size());
-		assertEquals(ExpressionSource.DEFAULT_ARGUMENT_MAP_VARIABLE_NAME, source.getArgumentMapVariableName(method));
-		assertEquals(ExpressionSource.DEFAULT_EXCEPTION_VARIABLE_NAME, source.getExceptionVariableName(method));
-		assertEquals(ExpressionSource.DEFAULT_RETURN_VALUE_VARIABLE_NAME, source.getReturnValueVariableName(method));
-	}
-
-	@Test
-	public void annotationBindings() {
-		Method method = getMethod("methodWithExpressionBinding", String.class, int.class);
-		String expressionString = source.getPayloadExpression(method);
-		assertEquals("testExpression2", expressionString);
-		assertEquals(2, source.getArgumentVariableNames(method).length);
-		assertEquals("s", source.getArgumentVariableNames(method)[0]);
-		assertEquals("i", source.getArgumentVariableNames(method)[1]);
-		assertEquals("argz", source.getArgumentMapVariableName(method));
-		assertEquals("x", source.getExceptionVariableName(method));
-		assertEquals("result", source.getReturnValueVariableName(method));
-	}
 
 	@Test
 	public void channelName() {
 		Method method = getMethod("methodWithChannelAndReturnAsPayload");
 		String channelName = source.getChannelName(method);
+		String payloadExpression = source.getPayloadExpression(method);
 		assertEquals("foo", channelName);
+		assertEquals("#method", payloadExpression);
+	}
+
+	@Test
+	public void payloadButNoHeaders() {
+		Method method = getMethod("methodWithPayloadAnnotation", String.class, int.class);
+		String expressionString = source.getPayloadExpression(method);
+		assertEquals("testExpression1", expressionString);
+		Map<String, String> headerMap = source.getHeaderExpressions(method);
+		assertNotNull(headerMap);
+		assertEquals(0, headerMap.size());
+	}
+
+	@Test
+	public void payloadAndHeaders() {
+		Method method = getMethod("methodWithHeaderAnnotations", String.class, String.class, String.class);
+		String expressionString = source.getPayloadExpression(method);
+		assertEquals("testExpression2", expressionString);
+		Map<String, String> headerMap = source.getHeaderExpressions(method);
+		assertNotNull(headerMap);
+		assertEquals(2, headerMap.size());
+		assertEquals("#args['1']", headerMap.get("foo"));
+		assertEquals("#args['2']", headerMap.get("bar"));
 	}
 
 
@@ -83,19 +80,17 @@ public class MethodAnnotationExpressionSourceTests {
 
 	@Publisher
 	@Payload("testExpression1")
-	public void methodWithExpressionAnnotationOnly(String arg1, int arg2) {
+	public void methodWithPayloadAnnotation(String arg1, int arg2) {
 	}
 
 	@Publisher(channel="foo")
-	@Payload
+	@Payload("#method")
 	public void methodWithChannelAndReturnAsPayload() {
 	}
 
 	@Publisher
 	@Payload("testExpression2")
-	@ExpressionBinding(argumentVariableNames="s, i", argumentMapVariableName="argz",
-			exceptionVariableName="x", returnValueVariableName="result")
-	public void methodWithExpressionBinding(String arg1, int arg2) {
+	public void methodWithHeaderAnnotations(String arg1, @Header("foo") String h1, @Header("bar") String h2) {
 	}
 
 }
