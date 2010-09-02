@@ -70,13 +70,16 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String SEQUENCE_SIZE = PREFIX + "sequenceSize";
 
+
 	private final Map<String, Object> headers;
+
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null) ? new HashMap<String, Object>(headers) : new HashMap<String, Object>();
 		this.headers.put(ID, UUID.randomUUID());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
+
 
 	public UUID getId() {
 		return this.get(ID, UUID.class);

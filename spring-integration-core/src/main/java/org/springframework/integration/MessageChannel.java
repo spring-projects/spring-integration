@@ -17,7 +17,7 @@
 package org.springframework.integration;
 
 /**
- * Base channel interface defining common behavior for message sending and receiving.
+ * Base channel interface defining common behavior for sending messages.
  * 
  * @author Mark Fisher
  */
