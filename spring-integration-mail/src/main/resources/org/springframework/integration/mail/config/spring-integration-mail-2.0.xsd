@@ -195,7 +195,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="should-mark-messages-as-read" type="xsd:string" use="optional" default="false">
+		<xsd:attribute name="should-mark-messages-as-read" type="xsd:string" use="optional" default="true">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Specify whether mail messages should be marked as read aftre being retrieved (Not supported in POP3).

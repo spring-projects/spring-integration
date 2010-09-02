@@ -64,7 +64,7 @@ public class ImapIdleChannelAdapterParserTests {
 		Properties properties = (Properties) receiverAccessor.getPropertyValue("javaMailProperties");
 		assertEquals(0, properties.size());
 		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldDeleteMessages"));
-		assertEquals(Boolean.FALSE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
+		assertEquals(Boolean.TRUE, receiverAccessor.getPropertyValue("shouldMarkMessagesAsRead"));
 	}
 	@Test
 	public void simpleAdapterWithMarkeMessagesAsRead() {
