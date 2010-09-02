@@ -20,6 +20,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.util.Assert;
 
 /**
@@ -28,11 +30,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
+public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
 
 	private volatile MessageSource<?> source;
 
 	private volatile MessageChannel outputChannel;
+
+	private volatile boolean shouldTrack;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
@@ -59,6 +63,13 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 		this.messagingTemplate.setSendTimeout(sendTimeout);
 	}
 
+	/**
+	 * Specify whether this component should be tracked in the Message History.
+	 */
+	public void setShouldTrack(boolean shouldTrack) {
+		this.shouldTrack = shouldTrack;
+	}
+
 	@Override
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
@@ -75,6 +86,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 	protected boolean doPoll() {
 		Message<?> message = this.source.receive();
 		if (message != null) {
+			if (this.shouldTrack) {
+				message = MessageHistory.write(message, this);
+			}
 			this.messagingTemplate.send(this.outputChannel, message);
 			return true;
 		}
