@@ -42,6 +42,57 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 				(AsyncTaskExecutor) executor : new TaskExecutorAdapter(executor);
 	}
 
+	public <P> Future<Message<P>> asyncReceive() {
+		return this.executor.submit(new Callable<Message<P>>() {
+			public Message<P> call() throws Exception {
+				return receive();
+			}
+		});
+	}
+
+	public <P> Future<Message<P>> asyncReceive(final PollableChannel channel) {
+		return this.executor.submit(new Callable<Message<P>>() {
+			public Message<P> call() throws Exception {
+				return receive(channel);
+			}
+		});
+	}
+
+	public <P> Future<Message<P>> asyncReceive(final String channelName) {
+		return this.executor.submit(new Callable<Message<P>>() {
+			public Message<P> call() throws Exception {
+				return receive(channelName);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncReceiveAndConvert() {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) receiveAndConvert();
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncReceiveAndConvert(final PollableChannel channel) {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) receiveAndConvert(channel);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncReceiveAndConvert(final String channelName) {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) receiveAndConvert(channelName);
+			}
+		});
+	}
+
 	public Future<Message<?>> asyncSendAndReceive(final Message<?> requestMessage) {
 		return this.executor.submit(new Callable<Message<?>>() {
 			public Message<?> call() throws Exception {
@@ -93,53 +144,29 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 		});
 	}
 
-	public <P> Future<Message<P>> asyncReceive() {
-		return this.executor.submit(new Callable<Message<P>>() {
-			public Message<P> call() throws Exception {
-				return receive();
-			}
-		});
-	}
-
-	public <P> Future<Message<P>> asyncReceive(final PollableChannel channel) {
-		return this.executor.submit(new Callable<Message<P>>() {
-			public Message<P> call() throws Exception {
-				return receive(channel);
-			}
-		});
-	}
-
-	public <P> Future<Message<P>> asyncReceive(final String channelName) {
-		return this.executor.submit(new Callable<Message<P>>() {
-			public Message<P> call() throws Exception {
-				return receive(channelName);
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncConvertSendAndReceive(final Object request, final MessagePostProcessor requestPostProcessor) {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) convertSendAndReceive(request, requestPostProcessor);
 			}
 		});
 	}
 
 	@SuppressWarnings("unchecked")
-	public <R> Future<R> asyncReceiveAndConvert() {
+	public <R> Future<R> asyncConvertSendAndReceive(final MessageChannel channel, final Object request, final MessagePostProcessor requestPostProcessor) {
 		return this.executor.submit(new Callable<R>() {
 			public R call() throws Exception {
-				return (R) receiveAndConvert();
+				return (R) convertSendAndReceive(channel, request, requestPostProcessor);
 			}
 		});
 	}
 
 	@SuppressWarnings("unchecked")
-	public <R> Future<R> asyncReceiveAndConvert(final PollableChannel channel) {
+	public <R> Future<R> asyncConvertSendAndReceive(final String channelName, final Object request, final MessagePostProcessor requestPostProcessor) {
 		return this.executor.submit(new Callable<R>() {
 			public R call() throws Exception {
-				return (R) receiveAndConvert(channel);
-			}
-		});
-	}
-
-	@SuppressWarnings("unchecked")
-	public <R> Future<R> asyncReceiveAndConvert(final String channelName) {
-		return this.executor.submit(new Callable<R>() {
-			public R call() throws Exception {
-				return (R) receiveAndConvert(channelName);
+				return (R) convertSendAndReceive(channelName, request, requestPostProcessor);
 			}
 		});
 	}

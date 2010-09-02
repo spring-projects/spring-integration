@@ -51,4 +51,10 @@ public interface AsyncMessagingOperations {
 
 	<R> Future<R> asyncConvertSendAndReceive(String channelName, Object request);
 
+	<R> Future<R> asyncConvertSendAndReceive(Object request, MessagePostProcessor requestPostProcessor);
+
+	<R> Future<R> asyncConvertSendAndReceive(MessageChannel channel, Object request, MessagePostProcessor requestPostProcessor);
+
+	<R> Future<R> asyncConvertSendAndReceive(String channelName, Object request, MessagePostProcessor requestPostProcessor);
+
 }
