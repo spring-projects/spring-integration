@@ -21,7 +21,6 @@
 		<module>spring-integration-jmx</module>
 		<module>spring-integration-mail</module>
 		<module>spring-integration-rmi</module>
-		<module>spring-integration-samples</module>
 		<module>spring-integration-security</module>
 		<module>spring-integration-stream</module>
 		<module>spring-integration-test</module>
@@ -259,7 +258,6 @@
 									<packages>org.springframework.integration.xmpp:org.springframework.integration.xmpp.*</packages>
 								</group>
 							</groups>
-							<excludePackageNames>org.springframework.integration.samples:com.springframework.integration.samples</excludePackageNames>
 							<links>
 								<link>http://static.springframework.org/spring/docs/3.0.3.RELEASE/javadoc-api</link>
 								<link>http://static.springsource.org/spring-integration/sites/${project.version}/apidocs</link>

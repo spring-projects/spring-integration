@@ -252,8 +252,7 @@
 			dependency definitions to be inherited by child poms. any
 			<dependency> declarations here will automatically show up on child
 			project classpaths. only items that are truly common across all
-			projects (modules and samples) should go here. otherwise, consider
-			<dependencyManagement> above
+			projects should go here. otherwise, consider <dependencyManagement/>
 		-->
 		<dependency>
 			<groupId>log4j</groupId>
@@ -348,54 +347,43 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<!--
+					configures the springsource bundlor plugin, which generates
+					OSGI-compatible MANIFEST.MF files during the 'compile' phase of
+					the maven build. For more information, see
+					http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
+				-->
+				<groupId>com.springsource.bundlor</groupId>
+				<artifactId>com.springsource.bundlor.maven</artifactId>
+				<version>1.0.0.RELEASE</version>
+				<configuration>
+					<failOnWarnings>true</failOnWarnings>
+				</configuration>
+				<executions>
+					<execution>
+						<id>bundlor</id>
+						<goals>
+							<goal>bundlor</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!--
+					configures the jar plugin to pick up the manifest created by
+					bundlor (see above)
+				-->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<archive>
+						<manifestFile>target/classes/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<!--
-						configures the springsource bundlor plugin, which generates
-						OSGI-compatible MANIFEST.MF files during the 'compile' phase of
-						the maven build. this plugin is declared within the
-						pluginManagement section because not every module that inherits
-						from this pom needs bundlor's services, e.g.:
-						spring-integration-samples and all its children. for this reason,
-						all modules that wish to use bundlor must declare it explicitly.
-						it is not necessary to specify the <version> or <configuration>
-						sections, but groupId and artifactId are required. see
-						http://static.springsource.org/s2-bundlor/1.0.x/user-guide/html/ch04s03.html
-						for more info
-					-->
-					<groupId>com.springsource.bundlor</groupId>
-					<artifactId>com.springsource.bundlor.maven</artifactId>
-					<version>1.0.0.RELEASE</version>
-					<configuration>
-						<failOnWarnings>true</failOnWarnings>
-					</configuration>
-					<executions>
-						<execution>
-							<id>bundlor</id>
-							<goals>
-								<goal>bundlor</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-				<plugin>
-					<!--
-						configures the jar plugin to pick up the manifest created by
-						bundlor (see above)
-					-->
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-jar-plugin</artifactId>
-					<version>2.2</version>
-					<configuration>
-						<archive>
-							<manifestFile>target/classes/META-INF/MANIFEST.MF</manifestFile>
-						</archive>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 	<reporting>
 		<plugins>
