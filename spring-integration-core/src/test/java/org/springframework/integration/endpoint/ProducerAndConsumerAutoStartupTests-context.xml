@@ -7,15 +7,15 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
 
-	<si:inbound-channel-adapter id="inboundEndpoint" ref="counter" method="next" channel="testChannel">
+	<si:inbound-channel-adapter id="inboundEndpoint" ref="counter" method="next" channel="producerAndConsumerAutoStartupTestChannel">
 		<si:poller max-messages-per-poll="1">
 			<si:interval-trigger interval="50"/>
 		</si:poller>
 	</si:inbound-channel-adapter>
 
-	<si:channel id="testChannel"/>
+	<si:channel id="producerAndConsumerAutoStartupTestChannel"/>
 
-	<si:service-activator id="consumerEndpoint" input-channel="testChannel" ref="consumer"/>
+	<si:service-activator id="consumerEndpoint" input-channel="producerAndConsumerAutoStartupTestChannel" ref="consumer"/>
 
 	<bean id="counter" class="org.springframework.integration.endpoint.ProducerAndConsumerAutoStartupTests$Counter"/>
 

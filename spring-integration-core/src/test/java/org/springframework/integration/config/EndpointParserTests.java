@@ -37,7 +37,7 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleEndpointTests.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
+		MessageChannel channel = (MessageChannel) context.getBean("endpointParserTestInput");
 		TestHandler handler = (TestHandler) context.getBean("testHandler");
 		assertNull(handler.getMessageString());
 		channel.send(new GenericMessage<String>("test"));

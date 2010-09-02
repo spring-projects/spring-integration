@@ -9,7 +9,7 @@
 
 	<bean id="testBean" class="org.springframework.integration.aop.AnnotationConfigRegistrationTests$TestBean" />
 
-	<si:channel id="testChannel">
+	<si:channel id="annotationConfigRegistrationTest">
 		<si:queue />
 	</si:channel>
 

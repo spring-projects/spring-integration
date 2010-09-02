@@ -80,18 +80,18 @@ public class MessagePublishingAnnotationUsageTests {
 
 	public static class TestBean {
 
-		@Publisher(channel="testChannel")
+		@Publisher(channel="messagePublishingAnnotationUsageTestChannel")
 		public String defaultPayload(String fname, @Header("last") String lname) {
 			return fname + " " + lname;
 		}
 
-		@Publisher(channel="testChannel")
+		@Publisher(channel="messagePublishingAnnotationUsageTestChannel")
 		@Payload
 		public String defaultPayloadButExplicitAnnotation(String fname, @Header String lname) {
 			return fname + " " + lname;
 		}
 
-		@Publisher(channel="testChannel")
+		@Publisher(channel="messagePublishingAnnotationUsageTestChannel")
 		public String argumentAsPayload(@Payload String fname, @Header String lname) {
 			return fname + " " + lname;
 		}

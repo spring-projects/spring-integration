@@ -10,7 +10,7 @@
 	<bean id="testBean"
 		class="org.springframework.integration.aop.MessagePublishingInterceptorUsageTests$TestBean" />
 
-	<si:channel id="testChannel">
+	<si:channel id="messagePublishingInterceptorUsageTestChannel">
 		<si:queue />
 	</si:channel>
 
@@ -47,7 +47,7 @@
 				class="org.springframework.integration.channel.MapBasedChannelResolver">
 				<property name="channelMap">
 					<map>
-						<entry key="channel" value-ref="testChannel" />
+						<entry key="channel" value-ref="messagePublishingInterceptorUsageTestChannel" />
 					</map>
 				</property>
 			</bean>

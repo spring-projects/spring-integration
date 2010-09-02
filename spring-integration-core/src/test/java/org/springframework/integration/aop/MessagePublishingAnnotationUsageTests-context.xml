@@ -10,7 +10,7 @@
 	<bean id="testBean"
 		class="org.springframework.integration.aop.MessagePublishingAnnotationUsageTests$TestBean" />
 
-	<si:channel id="testChannel">
+	<si:channel id="messagePublishingAnnotationUsageTestChannel">
 		<si:queue />
 	</si:channel>
 	

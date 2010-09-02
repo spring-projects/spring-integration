@@ -7,11 +7,11 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-	<channel id="testChannel">
+	<channel id="endpointParserTestInput">
 		<queue capacity="50"/>
 	</channel>
 
-	<service-activator input-channel="testChannel" ref="testHandler">
+	<service-activator input-channel="endpointParserTestInput" ref="testHandler">
 		<poller>
 			<interval-trigger interval="100"/>
 		</poller>

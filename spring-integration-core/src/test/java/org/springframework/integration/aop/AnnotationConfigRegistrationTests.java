@@ -41,7 +41,7 @@ public class AnnotationConfigRegistrationTests {
 	private TestBean testBean;
 
 	@Autowired
-	private QueueChannel testChannel;
+	private QueueChannel annotationConfigRegistrationTest;
 
 	@Autowired
 	private QueueChannel defaultChannel;
@@ -51,7 +51,7 @@ public class AnnotationConfigRegistrationTests {
 	public void verifyInterception() {
 		String name = testBean.setName("John", "Doe", 123);
 		Assert.assertNotNull(name);
-		Message<?> message = testChannel.receive(0);
+		Message<?> message = annotationConfigRegistrationTest.receive(0);
 		Assert.assertNotNull(message);
 		Assert.assertEquals("John DoeDoe", message.getPayload());
 		Assert.assertEquals(123, message.getHeaders().get("x"));
@@ -70,7 +70,7 @@ public class AnnotationConfigRegistrationTests {
 
 	public static class TestBean {
 
-		@Publisher(channel="testChannel")
+		@Publisher(channel="annotationConfigRegistrationTest")
 		@Payload("#return + #args.lname")
 		public String setName(String fname, String lname, @Header("x") int num) {
 			return fname + " " + lname;
