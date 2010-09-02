@@ -33,7 +33,7 @@
 				<version>2.2</version>
 				<configuration>
 					<archive>
-						<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+						<manifestFile>target/classes/META-INF/MANIFEST.MF</manifestFile>
 					</archive>
 				</configuration>
 			</plugin>
@@ -50,6 +50,13 @@
 				<directory>${basedir}/src/main/resources</directory>
 				<includes>
 					<include>META-INF/spring/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<filtering>true</filtering>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>META-INF/MANIFEST.MF</include>
 				</includes>
 			</resource>
 		</resources>
