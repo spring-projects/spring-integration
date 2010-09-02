@@ -79,10 +79,21 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 1000L);
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
-		Thread.sleep(20L);
-		resource.setScript("return \"payload is $payload\"");
+		// should be the original script
 		Object result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
+		//reset the script with the new strimg
+		resource.setScript("return \"payload is $payload\"");
+		Thread.sleep(20L);
+		// should still assert to the old script because not enough time elapsed for refresh to kick in
+		result = processor.processMessage(message);
+		assertEquals("payload is foo, header is bar", result.toString());
+		// sleep some more, past refresh time
+		Thread.sleep(1000L);
+		// now you go the new script
+		resource.setScript("return \"payload is $payload\"");
+		result = processor.processMessage(message);
+		assertEquals("payload is foo", result.toString());
 	}
 
 	@Test
@@ -92,8 +103,13 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		TestResource resource = new TestResource(script, "simpleTest");
 		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, -1L);
 		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
-		resource.setScript("return \"payload is $payload\"");
+		// process with the first script
 		Object result = processor.processMessage(message);
+		assertEquals("payload is foo, header is bar", result.toString());
+		// change script, but since refresh-delay is less then 0 we should still se old script executing
+		resource.setScript("return \"payload is $payload\"");
+		// process and see assert that the old script is used
+		result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
 	}
 

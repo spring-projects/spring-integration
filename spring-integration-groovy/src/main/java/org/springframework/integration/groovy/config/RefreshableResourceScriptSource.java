@@ -50,9 +50,7 @@ public class RefreshableResourceScriptSource implements ScriptSource {
 	}
 
 	public String getScriptAsString() throws IOException {
-		if (isModified()) {
-			this.script = source.getScriptAsString();
-		}
+		this.script = source.getScriptAsString();
 		return script;
 	}
 
