@@ -79,6 +79,11 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 					? methodPayloadAnnotation.value()
 					: "#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME;
 		}
+		if (payloadExpression == null || payloadExpression.contains("#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME)) {
+			Assert.isTrue(!void.class.equals(method.getReturnType()),
+					"When defining @Publisher on a void-returning method, an explicit payload " +
+					"expression that does not rely upon a #return value is required.");
+		}
 		Annotation[][] annotationArray = method.getParameterAnnotations();
 		for (int i = 0; i < annotationArray.length; i++) {
 			Annotation[] parameterAnnotations = annotationArray[i];

@@ -37,12 +37,21 @@ public class MethodAnnotationExpressionSourceTests {
 
 
 	@Test
-	public void channelName() {
-		Method method = getMethod("methodWithChannelAndReturnAsPayload");
+	public void channelNameAndExplicitReturnValuePayload() {
+		Method method = getMethod("methodWithChannelAndExplicitReturnAsPayload");
 		String channelName = source.getChannelName(method);
 		String payloadExpression = source.getPayloadExpression(method);
 		assertEquals("foo", channelName);
-		assertEquals("#method", payloadExpression);
+		assertEquals("#return", payloadExpression);
+	}
+
+	@Test
+	public void channelNameAndEmptyPayloadAnnotation() {
+		Method method = getMethod("methodWithChannelAndEmptyPayloadAnnotation");
+		String channelName = source.getChannelName(method);
+		String payloadExpression = source.getPayloadExpression(method);
+		assertEquals("foo", channelName);
+		assertEquals("#return", payloadExpression);
 	}
 
 	@Test
@@ -67,6 +76,21 @@ public class MethodAnnotationExpressionSourceTests {
 		assertEquals("#args['2']", headerMap.get("bar"));
 	}
 
+	@Test
+	public void voidReturnWithValidPayloadExpression() {
+		Method method = getMethod("methodWithVoidReturnAndMethodNameAsPayload");
+		String channelName = source.getChannelName(method);
+		String payloadExpression = source.getPayloadExpression(method);
+		assertEquals("foo", channelName);
+		assertEquals("#method", payloadExpression);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void voidReturnWithInvalidPayloadExpression() {
+		Method method = getMethod("methodWithVoidReturnAndReturnValueAsPayload");
+		source.getPayloadExpression(method);
+	}
+
 
 	private static Method getMethod(String name, Class<?> ... params) {
 		try {
@@ -84,8 +108,26 @@ public class MethodAnnotationExpressionSourceTests {
 	}
 
 	@Publisher(channel="foo")
+	@Payload("#return")
+	public String methodWithChannelAndExplicitReturnAsPayload() {
+		return "hello";
+	}
+
+	@Publisher(channel="foo")
+	@Payload
+	public String methodWithChannelAndEmptyPayloadAnnotation() {
+		return "hello";
+	}
+
+
+	@Publisher(channel="foo")
 	@Payload("#method")
-	public void methodWithChannelAndReturnAsPayload() {
+	public void methodWithVoidReturnAndMethodNameAsPayload() {
+	}
+
+	@Publisher(channel="foo")
+	@Payload("#return")
+	public void methodWithVoidReturnAndReturnValueAsPayload() {
 	}
 
 	@Publisher
