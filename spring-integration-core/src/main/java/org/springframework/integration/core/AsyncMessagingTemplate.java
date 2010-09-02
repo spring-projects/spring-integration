@@ -93,4 +93,55 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 		});
 	}
 
+	public <P> Future<Message<P>> asyncReceive() {
+		return this.executor.submit(new Callable<Message<P>>() {
+			public Message<P> call() throws Exception {
+				return receive();
+			}
+		});
+	}
+
+	public <P> Future<Message<P>> asyncReceive(final PollableChannel channel) {
+		return this.executor.submit(new Callable<Message<P>>() {
+			public Message<P> call() throws Exception {
+				return receive(channel);
+			}
+		});
+	}
+
+	public <P> Future<Message<P>> asyncReceive(final String channelName) {
+		return this.executor.submit(new Callable<Message<P>>() {
+			public Message<P> call() throws Exception {
+				return receive(channelName);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncReceiveAndConvert() {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) receiveAndConvert();
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncReceiveAndConvert(final PollableChannel channel) {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) receiveAndConvert(channel);
+			}
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	public <R> Future<R> asyncReceiveAndConvert(final String channelName) {
+		return this.executor.submit(new Callable<R>() {
+			public R call() throws Exception {
+				return (R) receiveAndConvert(channelName);
+			}
+		});
+	}
+
 }

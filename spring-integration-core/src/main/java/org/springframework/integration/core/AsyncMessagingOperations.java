@@ -27,6 +27,18 @@ import org.springframework.integration.MessageChannel;
  */
 public interface AsyncMessagingOperations {
 
+	<P> Future<Message<P>> asyncReceive();
+
+	<P> Future<Message<P>> asyncReceive(PollableChannel channel);
+
+	<P> Future<Message<P>> asyncReceive(String channelName);
+
+	<R> Future<R> asyncReceiveAndConvert();
+
+	<R> Future<R> asyncReceiveAndConvert(PollableChannel channel);
+
+	<R> Future<R> asyncReceiveAndConvert(String channelName);
+
 	Future<Message<?>> asyncSendAndReceive(Message<?> requestMessage);
 
 	Future<Message<?>> asyncSendAndReceive(MessageChannel channel, Message<?> requestMessage);
