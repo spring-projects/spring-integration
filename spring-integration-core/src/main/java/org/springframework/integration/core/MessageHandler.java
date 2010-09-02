@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
-
+import org.springframework.integration.MessagingException;
 
 /**
  * Base interface for any component that handles Messages.
@@ -38,19 +38,16 @@ public interface MessageHandler {
 	 * thrown. In the last case it is recommended to treat the message as tainted
 	 * and go into an error scenario.
 	 * <p/>
-	 * When the handling results in a message being sent failure to send that
-	 * message will result in a <code>MessageDeliveryException</code>.
+	 * When the handling results in a failure of another message being sent
+	 * (e.g. a "reply" message), that failure  will trigger a
+	 * <code>MessageDeliveryException</code>.
 	 * 
 	 * @param message the message to be handled
-	 * 
-	 * @throws MessageRejectedException if the handler doesn't select these
-	 * types of messages
-	 * @throws MessageHandlingException when something went wrong during the
-	 * handling
+	 * @throws MessageRejectedException if the handler doesn't accept the message
+	 * @throws MessageHandlingException when something fails during the handling
 	 * @throws MessageDeliveryException when this handler failed to deliver the
 	 * reply related to the handling of the message
 	 */
-	void handleMessage(Message<?> message) throws MessageRejectedException,
-			MessageHandlingException, MessageDeliveryException;
+	void handleMessage(Message<?> message) throws MessagingException;
 
 }
