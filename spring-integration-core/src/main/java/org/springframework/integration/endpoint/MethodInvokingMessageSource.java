@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
@@ -24,11 +23,8 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.util.DefaultMethodInvoker;
-import org.springframework.integration.util.MethodInvoker;
-import org.springframework.integration.util.MethodValidator;
-import org.springframework.integration.util.NameResolvingMethodInvoker;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * A {@link MessageSource} implementation that invokes a no-argument method so
@@ -44,7 +40,9 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 
 	private volatile String methodName;
 
-	private volatile MethodInvoker invoker;
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
 
 
 	public void setObject(Object object) {
@@ -55,7 +53,6 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 	public void setMethod(Method method) {
 		Assert.notNull(method, "'method' must not be null");
 		this.method = method;
-		this.methodName = method.getName();
 	}
 
 	public void setMethodName(String methodName) {
@@ -64,26 +61,29 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 	}
 
 	public void afterPropertiesSet() {
-		if (this.method != null) {
-			this.invoker = new DefaultMethodInvoker(this.object, this.method);
-		}
-		else if (this.methodName != null) {
-			NameResolvingMethodInvoker nrmi = new NameResolvingMethodInvoker(this.object, this.methodName);
-			nrmi.setMethodValidator(new MessageReceivingMethodValidator());
-			this.invoker = nrmi;
-		}
-		else {
-			throw new IllegalArgumentException("either 'method' or 'methodName' is required");
+		synchronized (this.initializationMonitor) {
+			if (this.initialized) {
+				return;
+			}
+			Assert.notNull(this.object, "object is required");
+			Assert.isTrue(this.method != null || this.methodName != null, "method or methodName is required");
+			if (this.method == null) {
+				this.method = ReflectionUtils.findMethod(this.object.getClass(), this.methodName);
+			}
+			Assert.isTrue(!void.class.equals(this.method.getReturnType()),
+					"invalid MessageSource method '"+ this.method.getName() + "', a non-void return is required");
+			this.method.setAccessible(true);
+			this.initialized = true;
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public Message<Object> receive() {
-		if (this.invoker == null) {
-			this.afterPropertiesSet();
-		}
 		try {
-			Object result = this.invoker.invokeMethod(new Object[] {});
+			if (!this.initialized) {
+				this.afterPropertiesSet();
+			}
+			Object result = ReflectionUtils.invokeMethod(this.method, this.object);
 			if (result == null) {
 				return null;
 			}
@@ -92,21 +92,8 @@ public class MethodInvokingMessageSource implements MessageSource<Object>, Initi
 			}
 			return new GenericMessage<Object>(result);
 		}
-		catch (InvocationTargetException e) {
-			throw new MessagingException(
-					"Source method '" + this.methodName + "' threw an Exception.", e.getTargetException());
-		}
 		catch (Throwable e) {
-			throw new MessagingException("Failed to invoke source method '" + this.methodName + "'.");
-		}
-	}
-
-
-	private static class MessageReceivingMethodValidator implements MethodValidator {
-
-		public void validate(Method method) {
-			Assert.isTrue(!method.getReturnType().equals(void.class),
-					"MethodInvokingSource requires a non-void returning method.");
+			throw new MessagingException("Failed to invoke MessageSource", e);
 		}
 	}
 

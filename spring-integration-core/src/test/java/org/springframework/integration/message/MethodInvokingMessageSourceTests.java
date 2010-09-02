@@ -28,7 +28,7 @@ import org.springframework.integration.endpoint.MethodInvokingMessageSource;
 /**
  * @author Mark Fisher
  */
-public class MethodInvokingSourceTests {
+public class MethodInvokingMessageSourceTests {
 
 	@Test
 	public void testValidMethod() {
