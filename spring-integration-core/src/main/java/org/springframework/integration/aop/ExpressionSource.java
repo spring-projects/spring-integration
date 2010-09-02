@@ -20,8 +20,8 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * Strategy for determining the expression string and evaluation context
- * variable names from a Method.
+ * Strategy for determining the channel name, payload expression, and header expressions
+ * for the {@link MessagePublishingInterceptor}.
  * 
  * @author Mark Fisher
  * @since 2.0
