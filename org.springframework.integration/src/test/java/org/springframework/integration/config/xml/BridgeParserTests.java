@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,17 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,6 +63,11 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	@Qualifier("output2")
 	private PollableChannel output2;
 
+	@Autowired
+	@Qualifier("bridgeWithSendTimeout")
+	private EventDrivenConsumer bridgeWithSendTimeout;
+
+
 	@Test
 	public void pollableChannel() {
 		Message<?> message = new StringMessage("test1");
@@ -88,6 +97,13 @@ public class BridgeParserTests extends AbstractJUnit4SpringContextTests {
 	public void stopperWithoutReplyHeader() {
 		Message<?> message = MessageBuilder.withPayload("test3").build();
 		this.stopperChannel.send(message);
+	}
+
+	@Test
+	public void bridgeWithSendTimeout() {
+		BridgeHandler handler = (BridgeHandler) new DirectFieldAccessor(bridgeWithSendTimeout).getPropertyValue("handler");
+		MessageChannelTemplate template = (MessageChannelTemplate) new DirectFieldAccessor(handler).getPropertyValue("channelTemplate");
+		assertEquals(new Long(1234), new DirectFieldAccessor(template).getPropertyValue("sendTimeout"));
 	}
 
 }

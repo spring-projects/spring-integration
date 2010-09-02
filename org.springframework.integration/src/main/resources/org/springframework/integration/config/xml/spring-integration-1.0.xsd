@@ -659,6 +659,7 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="send-timeout" type="xsd:string" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

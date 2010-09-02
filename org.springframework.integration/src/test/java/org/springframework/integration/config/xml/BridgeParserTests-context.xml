@@ -34,5 +34,6 @@
 	<channel id="stopperChannel" />
 	<bridge input-channel="stopperChannel" />
 
+	<bridge id="bridgeWithSendTimeout" input-channel="bridgeWithSendTimeoutChannel" send-timeout="1234"/>
 
 </beans:beans>
