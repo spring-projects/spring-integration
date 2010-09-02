@@ -29,8 +29,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource;
-import org.springframework.integration.channel.MapBasedChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -47,13 +45,15 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.MessagePublishingInterceptor");
-		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodNameMappingPublisherMetadataSource.class.getName());
+		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource");
 		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
 		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
 		if (mappings.get("headers") != null) {
 			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}
-		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(MapBasedChannelResolver.class.getName());
+		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.channel.MapBasedChannelResolver");
 		if (mappings.get("channels") != null){
 			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));
 			chResolverBuilder.addConstructorArgValue(mappings.get("resolvableChannels"));
