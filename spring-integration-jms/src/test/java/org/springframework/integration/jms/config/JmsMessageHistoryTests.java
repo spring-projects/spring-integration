@@ -25,21 +25,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.context.NamedComponent;
-import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.message.GenericMessage;
@@ -60,12 +54,13 @@ public class JmsMessageHistoryTests {
 		gateway.send("hello");
 		Message<?> message = jmsInputChannel.receive(5000);
 		Iterator<Properties> historyIterator = message.getHeaders().get(MessageHistory.HEADER_NAME, MessageHistory.class).iterator();
-		Properties event = historyIterator.next();
-		assertEquals("jms:inbound-channel-adapter", event.getProperty(MessageHistory.TYPE_PROPERTY));
-		assertEquals("sampleJmsInboundAdapter", event.getProperty(MessageHistory.NAME_PROPERTY));
-		event = historyIterator.next();
-		assertEquals("channel", event.getProperty(MessageHistory.TYPE_PROPERTY));
-		assertEquals("jmsInputChannel", event.getProperty(MessageHistory.NAME_PROPERTY));
+		Properties event1 = historyIterator.next();
+		assertEquals("jms:inbound-channel-adapter", event1.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("sampleJmsInboundAdapter", event1.getProperty(MessageHistory.NAME_PROPERTY));
+		Properties event2 = historyIterator.next();
+		System.out.println(event2);
+		assertEquals("channel", event2.getProperty(MessageHistory.TYPE_PROPERTY));
+		assertEquals("jmsInputChannel", event2.getProperty(MessageHistory.NAME_PROPERTY));
 	}
 
 

@@ -24,7 +24,6 @@ import javax.jms.Destination;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -80,7 +79,7 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 		if (jmsMessage == null) {
 			return null;
 		}
-		try {	
+		try {
 			// Map headers
 			Map<String, Object> mappedHeaders = (Map<String, Object>) this.getHeaderMapper().toHeaders(jmsMessage);
 			MessageConverter converter = this.getJmsTemplate().getMessageConverter();
@@ -88,7 +87,6 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			MessageBuilder<Object> builder = (convertedObject instanceof Message)
 					? MessageBuilder.fromMessage((Message<Object>) convertedObject) : MessageBuilder.withPayload(convertedObject);
 			convertedMessage = builder.copyHeadersIfAbsent(mappedHeaders).build();
-			convertedMessage = MessageHistory.write(convertedMessage, this);
 		}
 		catch (Exception e) {
 			throw new MessagingException(e.getMessage(), e);

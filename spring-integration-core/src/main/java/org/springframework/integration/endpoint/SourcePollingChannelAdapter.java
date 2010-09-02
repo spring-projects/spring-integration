@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.history.MessageHistory;
@@ -68,6 +69,12 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	 */
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
+	}
+
+	@Override
+	public String getComponentType() {
+		return (this.source instanceof NamedComponent) ?
+				((NamedComponent) this.source).getComponentType() : "inbound-channel-adapter";
 	}
 
 	@Override
