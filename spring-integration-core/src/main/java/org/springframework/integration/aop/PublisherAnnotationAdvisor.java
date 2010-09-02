@@ -57,8 +57,8 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor implemen
 
 	public PublisherAnnotationAdvisor(Class<? extends Annotation> ... publisherAnnotationTypes) {
 		this.publisherAnnotationTypes = new HashSet<Class<? extends Annotation>>(Arrays.asList(publisherAnnotationTypes));
-		ExpressionSource source = new MethodAnnotationExpressionSource(this.publisherAnnotationTypes);
-		this.interceptor = new MessagePublishingInterceptor(source);
+		PublisherMetadataSource metadataSource = new MethodAnnotationPublisherMetadataSource(this.publisherAnnotationTypes);
+		this.interceptor = new MessagePublishingInterceptor(metadataSource);
 	}
 
 	@SuppressWarnings("unchecked")

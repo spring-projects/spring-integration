@@ -29,7 +29,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aop.MethodNameMappingExpressionSource;
+import org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource;
 import org.springframework.integration.channel.MapBasedChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.util.StringUtils;
@@ -47,7 +47,7 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder rootBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".aop.MessagePublishingInterceptor");
-		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodNameMappingExpressionSource.class.getName());
+		BeanDefinitionBuilder spelSourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodNameMappingPublisherMetadataSource.class.getName());
 		Map<String, Map<?,?>> mappings = this.getMappings(element, element.getAttribute("default-channel"), parserContext);
 		spelSourceBuilder.addConstructorArgValue(mappings.get("payload"));
 		if (mappings.get("headers") != null) {

@@ -31,9 +31,9 @@ import org.springframework.integration.annotation.Payload;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MethodAnnotationExpressionSourceTests {
+public class MethodAnnotationPublisherMetadataSourceTests {
 
-	private final MethodAnnotationExpressionSource source = new MethodAnnotationExpressionSource();
+	private final MethodAnnotationPublisherMetadataSource source = new MethodAnnotationPublisherMetadataSource();
 
 
 	@Test
@@ -94,7 +94,7 @@ public class MethodAnnotationExpressionSourceTests {
 
 	private static Method getMethod(String name, Class<?> ... params) {
 		try {
-			return MethodAnnotationExpressionSourceTests.class.getMethod(name, params);
+			return MethodAnnotationPublisherMetadataSourceTests.class.getMethod(name, params);
 		}
 		catch (Exception e) {
 			throw new RuntimeException("failed to resolve method", e);

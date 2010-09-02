@@ -32,13 +32,13 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * An {@link ExpressionSource} implementation that retrieves the expression
- * string and evaluation context variable names from an annotation.
+ * An {@link PublisherMetadataSource} implementation that retrieves the channel
+ * name and expression strings from an annotation.
  * 
  * @author Mark Fisher
  * @since 2.0
  */
-public class MethodAnnotationExpressionSource implements ExpressionSource {
+public class MethodAnnotationPublisherMetadataSource implements PublisherMetadataSource {
 
 	private final Set<Class<? extends Annotation>> annotationTypes;
 
@@ -47,11 +47,11 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
 
-	public MethodAnnotationExpressionSource() {
+	public MethodAnnotationPublisherMetadataSource() {
 		this(Collections.<Class<? extends Annotation>>singleton(Publisher.class));
 	}
 
-	public MethodAnnotationExpressionSource(Set<Class<? extends Annotation>> annotationTypes) {
+	public MethodAnnotationPublisherMetadataSource(Set<Class<? extends Annotation>> annotationTypes) {
 		Assert.notEmpty(annotationTypes, "annotationTypes must not be empty");
 		this.annotationTypes = annotationTypes;
 	}
@@ -77,9 +77,9 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 		if (methodPayloadAnnotation != null) {
 			payloadExpression = StringUtils.hasText(methodPayloadAnnotation.value())
 					? methodPayloadAnnotation.value()
-					: "#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME;
+					: "#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME;
 		}
-		if (payloadExpression == null || payloadExpression.contains("#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME)) {
+		if (payloadExpression == null || payloadExpression.contains("#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME)) {
 			Assert.isTrue(!void.class.equals(method.getReturnType()),
 					"When defining @Publisher on a void-returning method, an explicit payload " +
 					"expression that does not rely upon a #return value is required.");
@@ -93,7 +93,7 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 							"@Payload can be used at most once on a @Publisher method, either at method-level or on a single parameter");
 					Assert.state("".equals(((Payload) currentAnnotation).value()),
 							"@Payload on a parameter for a @Publisher method may not contain an expression");
-					payloadExpression = "#" + ExpressionSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]";
+					payloadExpression = "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "[" + i + "]";
 				}
 			}
 		}
@@ -113,7 +113,7 @@ public class MethodAnnotationExpressionSource implements ExpressionSource {
 					if (!StringUtils.hasText(name)) {
 						name = parameterNames[i];
 					}
-					headerExpressions.put(name, "#" + ExpressionSource.ARGUMENT_MAP_VARIABLE_NAME + "['" + i + "']");
+					headerExpressions.put(name, "#" + PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME + "['" + i + "']");
 				}
 			}
 		}

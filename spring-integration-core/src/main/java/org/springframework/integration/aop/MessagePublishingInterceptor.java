@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  * A {@link MethodInterceptor} that publishes Messages to a channel. The
  * payload of the published Message can be derived from arguments or any return
  * value or exception resulting from the method invocation. That mapping is the
- * responsibility of the EL expression provided by the ExpressionSource.
+ * responsibility of the EL expression provided by the {@link PublisherMetadataSource}.
  * 
  * @author Mark Fisher
  * @since 2.0
@@ -55,7 +55,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-	private volatile ExpressionSource expressionSource;
+	private volatile PublisherMetadataSource metadataSource;
 
 	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
 
@@ -64,15 +64,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
 
-	public MessagePublishingInterceptor(ExpressionSource expressionSource) {
-		Assert.notNull(expressionSource, "expressionSource must not be null");
-		this.expressionSource = expressionSource;
+	public MessagePublishingInterceptor(PublisherMetadataSource metadataSource) {
+		Assert.notNull(metadataSource, "metadataSource must not be null");
+		this.metadataSource = metadataSource;
 	}
 
 
-	public void setExpressionSource(ExpressionSource expressionSource) {
-		Assert.notNull(expressionSource, "expressionSource must not be null");
-		this.expressionSource = expressionSource;
+	public void setPublisherMetadataSource(PublisherMetadataSource metadataSource) {
+		Assert.notNull(metadataSource, "metadataSource must not be null");
+		this.metadataSource = metadataSource;
 	}
 
 	public void setDefaultChannel(MessageChannel defaultChannel) {
@@ -84,13 +84,13 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	public final Object invoke(final MethodInvocation invocation) throws Throwable {
-		Assert.notNull(this.expressionSource, "ExpressionSource is required.");
+		Assert.notNull(this.metadataSource, "PublisherMetadataSource is required.");
 		final StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		String[] argumentNames = this.resolveArgumentNames(method);
-		context.setVariable(ExpressionSource.METHOD_NAME_VARIABLE_NAME, method.getName());
+		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
 			Map<String, Object> argumentMap = new HashMap<String, Object>();
 			for (int i = 0; i < argumentNames.length; i++) {
@@ -101,15 +101,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				argumentMap.put("" + i, argValue);
 				argumentMap.put(argumentNames[i], argValue);
 			}
-			context.setVariable(ExpressionSource.ARGUMENT_MAP_VARIABLE_NAME, argumentMap);
+			context.setVariable(PublisherMetadataSource.ARGUMENT_MAP_VARIABLE_NAME, argumentMap);
 		}
 		try {
 			Object returnValue = invocation.proceed();
-			context.setVariable(ExpressionSource.RETURN_VALUE_VARIABLE_NAME, returnValue);
+			context.setVariable(PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME, returnValue);
 			return returnValue;
 		}
 		catch (Throwable t) {
-			context.setVariable(ExpressionSource.EXCEPTION_VARIABLE_NAME, t);
+			context.setVariable(PublisherMetadataSource.EXCEPTION_VARIABLE_NAME, t);
 			throw t;
 		}
 		finally {
@@ -122,9 +122,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	private void publishMessage(Method method, StandardEvaluationContext context) throws Exception {
-		String payloadExpressionString = this.expressionSource.getPayloadExpression(method);
+		String payloadExpressionString = this.metadataSource.getPayloadExpression(method);
 		if (!StringUtils.hasText(payloadExpressionString)) {
-			payloadExpressionString = "#" + ExpressionSource.RETURN_VALUE_VARIABLE_NAME;
+			payloadExpressionString = "#" + PublisherMetadataSource.RETURN_VALUE_VARIABLE_NAME;
 		}
 		Expression expression = this.parser.parseExpression(payloadExpressionString);
 		Object result = expression.getValue(context);
@@ -137,7 +137,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				builder.copyHeaders(headers);
 			}
 			Message<?> message = builder.build();
-			String channelName = this.expressionSource.getChannelName(method);
+			String channelName = this.metadataSource.getChannelName(method);
 			MessageChannel channel = null;
 			if (channelName != null) {
 				Assert.state(this.channelResolver != null, "ChannelResolver is required to resolve channel names.");
@@ -155,7 +155,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	private Map<String, Object> evaluateHeaders(Method method, StandardEvaluationContext context)
 			throws ParseException, EvaluationException {
 
-		Map<String, String> headerExpressionMap = this.expressionSource.getHeaderExpressions(method);
+		Map<String, String> headerExpressionMap = this.metadataSource.getHeaderExpressions(method);
 		if (headerExpressionMap != null) {
 			Map<String, Object> headers = new HashMap<String, Object>();
 			for (Map.Entry<String, String> headerExpressionEntry : headerExpressionMap.entrySet()) {

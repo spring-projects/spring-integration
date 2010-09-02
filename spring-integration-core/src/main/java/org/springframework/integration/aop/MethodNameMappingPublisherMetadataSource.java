@@ -27,7 +27,7 @@ import org.springframework.util.PatternMatchUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MethodNameMappingExpressionSource implements ExpressionSource {
+public class MethodNameMappingPublisherMetadataSource implements PublisherMetadataSource {
 
 	private final Map<String, String> payloadExpressionMap;
 
@@ -36,7 +36,7 @@ public class MethodNameMappingExpressionSource implements ExpressionSource {
 	private volatile Map<String, String> channelMap = Collections.emptyMap();
 
 
-	public MethodNameMappingExpressionSource(Map<String, String> payloadExpressionMap) {
+	public MethodNameMappingPublisherMetadataSource(Map<String, String> payloadExpressionMap) {
 		Assert.notEmpty(payloadExpressionMap, "payloadExpressionMap must not be empty");
 		this.payloadExpressionMap = payloadExpressionMap;
 	}

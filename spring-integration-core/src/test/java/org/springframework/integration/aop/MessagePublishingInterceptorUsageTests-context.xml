@@ -22,7 +22,7 @@
 		class="org.springframework.integration.aop.MessagePublishingInterceptor">
 		<constructor-arg>
 			<bean
-				class="org.springframework.integration.aop.MethodNameMappingExpressionSource">
+				class="org.springframework.integration.aop.MethodNameMappingPublisherMetadataSource">
 				<constructor-arg>
 					<map>
 						<entry key="setName" value="#return" />

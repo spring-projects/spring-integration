@@ -26,7 +26,7 @@ import java.util.Map;
  * @author Mark Fisher
  * @since 2.0
  */
-interface ExpressionSource {
+interface PublisherMetadataSource {
 
 	static final String METHOD_NAME_VARIABLE_NAME = "method";
 

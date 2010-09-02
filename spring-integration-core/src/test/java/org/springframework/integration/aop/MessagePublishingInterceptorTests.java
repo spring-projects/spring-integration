@@ -39,8 +39,6 @@ import org.springframework.integration.channel.QueueChannel;
  */
 public class MessagePublishingInterceptorTests {
 
-	private final ExpressionSource source = new TestExpressionSource();
-
 	private final MapBasedChannelResolver channelResolver = new MapBasedChannelResolver();
 
 	private final QueueChannel testChannel = new QueueChannel();
@@ -53,7 +51,8 @@ public class MessagePublishingInterceptorTests {
 
 	@Test
 	public void returnValue() {
-		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(source);
+		PublisherMetadataSource metadataSource = new TestPublisherMetadataSource();
+		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(metadataSource);
 		interceptor.setChannelResolver(channelResolver);
 		ProxyFactory pf = new ProxyFactory(new TestBeanImpl());
 		pf.addAdvice(interceptor);
@@ -63,23 +62,24 @@ public class MessagePublishingInterceptorTests {
 		assertNotNull(message);
 		assertEquals("test-foo", message.getPayload());
 	}
+
 	@Test
 	public void demoMethodNameMappingExpressionSource() {
 		Map<String, String> expressionMap = new HashMap<String, String>();
 		expressionMap.put("test", "#return");
-		MethodNameMappingExpressionSource source = new MethodNameMappingExpressionSource(expressionMap);
+		MethodNameMappingPublisherMetadataSource metadataSource = new MethodNameMappingPublisherMetadataSource(expressionMap);
 		Map<String, String> channelMap = new HashMap<String, String>();
 		channelMap.put("test", "c");
-		source.setChannelMap(channelMap);
+		metadataSource.setChannelMap(channelMap);
 
 		Map<String, Map<String, String>> headerExpressionMap = new HashMap<String, Map<String, String>>();
 		Map<String, String> headerExpressions = new HashMap<String, String>();
 		headerExpressions.put("bar", "#return");
 		headerExpressions.put("name", "'oleg'");
 		headerExpressionMap.put("test", headerExpressions);
-		source.setHeaderExpressionMap(headerExpressionMap);
+		metadataSource.setHeaderExpressionMap(headerExpressionMap);
 
-		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(source);
+		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor(metadataSource);
 		interceptor.setChannelResolver(channelResolver);
 		ProxyFactory pf = new ProxyFactory(new TestBeanImpl());
 		pf.addAdvice(interceptor);
@@ -109,7 +109,7 @@ public class MessagePublishingInterceptorTests {
 	}
 
 
-	private static class TestExpressionSource implements ExpressionSource {
+	private static class TestPublisherMetadataSource implements PublisherMetadataSource {
 
 		public String getPayloadExpression(Method method) {
 			return "'test-' + #return";
