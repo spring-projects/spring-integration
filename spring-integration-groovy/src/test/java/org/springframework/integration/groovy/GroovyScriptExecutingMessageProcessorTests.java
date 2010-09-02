@@ -34,6 +34,8 @@ import org.springframework.scripting.support.ResourceScriptSource;
 
 /**
  * @author Mark Fisher
+ * @author Dave Syer
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class GroovyScriptExecutingMessageProcessorTests {
@@ -111,6 +113,27 @@ public class GroovyScriptExecutingMessageProcessorTests {
 		// process and see assert that the old script is used
 		result = processor.processMessage(message);
 		assertEquals("payload is foo, header is bar", result.toString());
+	}
+	
+	@Test
+	public void testRefreshableScriptExecutionWithAlwaysRefresh() throws Exception {
+		String script = "return \"payload is $payload, header is $headers.testHeader\"";
+		Message<?> message = MessageBuilder.withPayload("foo").setHeader("testHeader", "bar").build();
+		TestResource resource = new TestResource(script, "simpleTest");
+		ScriptSource scriptSource = new RefreshableResourceScriptSource(resource, 0);
+		MessageProcessor<Object> processor = new GroovyScriptExecutingMessageProcessor(scriptSource);
+		// process with the first script
+		Object result = processor.processMessage(message);
+		assertEquals("payload is foo, header is bar", result.toString());
+		// change script, but since refresh-delay is less then 0 we should still se old script executing
+		resource.setScript("return \"payload is $payload\"");
+		// process and see assert that the old script is used
+		result = processor.processMessage(message);
+		assertEquals("payload is foo", result.toString());
+		resource.setScript("return \"payload is 'hello'\"");
+		// process and see assert that the old script is used
+		result = processor.processMessage(message);
+		assertEquals("payload is 'hello'", result.toString());
 	}
 
 

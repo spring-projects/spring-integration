@@ -24,7 +24,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
 
 /**
  * @author Dave Syer
- * 
+ * @author Oleg Zhurakousky
  * @since 2.0
  * 
  */
