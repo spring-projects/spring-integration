@@ -62,14 +62,14 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	@Test(expected = AccessDeniedException.class)
 	@DirtiesContext
 	public void testSecuredWithNotEnoughPermission() {
-		login("bob", "bobspassword", "ROLE_ADMIN");
+		login("bob", "bobspassword", "ROLE_ADMINA");
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
 	}
 	
 	@Test
 	@DirtiesContext
 	public void testSecuredWithPermission() {
-		login("bob", "bobspassword", "ROLE_ADMIN, ROLE_PRESIDENT");
+		login("bob", "bobspassword", "ROLE_ADMIN", "ROLE_PRESIDENT");
 		securedChannelAdapter.send(new GenericMessage<String>("test"));
 		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}

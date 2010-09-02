@@ -16,6 +16,10 @@
 
 package org.springframework.integration.security.channel;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
 import org.springframework.util.Assert;
@@ -30,9 +34,9 @@ import org.springframework.util.StringUtils;
  */
 public class ChannelAccessPolicy {
 
-	private final ConfigAttribute configAttributeDefinitionForSend;
+	private final Collection<ConfigAttribute> configAttributeDefinitionForSend;
 
-	private final ConfigAttribute configAttributeDefinitionForReceive;
+	private final Collection<ConfigAttribute> configAttributeDefinitionForReceive;
 
 
 	/**
@@ -41,21 +45,39 @@ public class ChannelAccessPolicy {
 	 * will be trimmed. A <code>null</code> value indicates that the policy does not
 	 * apply for either send or receive access type. At most one of the values may be null. 
 	 */
+	@SuppressWarnings("unchecked")
 	public ChannelAccessPolicy(String sendAccess, String receiveAccess) {
-		Assert.isTrue(sendAccess != null || receiveAccess != null,
+		boolean sendAccessDefined = StringUtils.hasText(sendAccess);
+		boolean recieveAccessDefined = StringUtils.hasText(receiveAccess);
+		Assert.isTrue(sendAccessDefined || recieveAccessDefined,
 				"At least one of 'sendAccess' and 'receiveAccess' must not be null.");
-		this.configAttributeDefinitionForSend = (StringUtils.hasText(sendAccess))
-				? new SecurityConfig(sendAccess) : null;
-		this.configAttributeDefinitionForReceive = (StringUtils.hasText(receiveAccess))
-				? new SecurityConfig(receiveAccess) : null;
+		
+		if (sendAccessDefined){
+			String[] sendAccessValues = StringUtils.commaDelimitedListToStringArray(sendAccess);
+			configAttributeDefinitionForSend = new HashSet<ConfigAttribute>();
+			for (String sendAccessValue : sendAccessValues) {
+				configAttributeDefinitionForSend.add(new SecurityConfig(StringUtils.trimAllWhitespace(sendAccessValue)));
+			}
+		} else {
+			configAttributeDefinitionForSend = Collections.EMPTY_SET;
+		}
+		if (recieveAccessDefined){
+			String[] receiveAccessValues = StringUtils.commaDelimitedListToStringArray(receiveAccess);
+			configAttributeDefinitionForReceive = new HashSet<ConfigAttribute>();
+			for (String receiveAccessValue : receiveAccessValues) {
+				configAttributeDefinitionForReceive.add(new SecurityConfig(StringUtils.trimAllWhitespace(receiveAccessValue)));
+			}
+		} else {
+			configAttributeDefinitionForReceive = Collections.EMPTY_SET;
+		}
 	}
 
 
-	public ConfigAttribute getConfigAttributeDefinitionForSend() {
+	public Collection<ConfigAttribute> getConfigAttributeDefinitionForSend() {
 		return this.configAttributeDefinitionForSend;
 	}
 
-	public ConfigAttribute getConfigAttributeDefinitionForReceive() {
+	public Collection<ConfigAttribute> getConfigAttributeDefinitionForReceive() {
 		return this.configAttributeDefinitionForReceive;
 	}
 
