@@ -16,7 +16,12 @@
 
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,16 +30,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  * @since 2.0.0
  */
 @ContextConfiguration
@@ -65,7 +65,11 @@ public class ProducerAndConsumerAutoStartupTests {
 
 		private final AtomicInteger count = new AtomicInteger();
 
-		public Integer next() {
+		public Integer next() throws InterruptedException {
+			if (count.get()>2){
+				//prevent message overload
+				return null;
+			}
 			return new Integer(count.incrementAndGet());
 		}
 	}
