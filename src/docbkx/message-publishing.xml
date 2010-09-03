@@ -216,7 +216,7 @@ static class BankingOperationsImpl implements BankingOperations {
 	      </para>
 	      
 	      <para>
-	      The second method is very siumilar to the first. Here every method that begings with 'repl' will rander a Message with teh following structure:
+	      The second method is very similar to the first. Here every method that begins with 'repl' will render a Message with the following structure:
 	      <itemizedlist>
 		        <listitem>
 		          <para>The Message payload will be the same as in the above sample</para>
@@ -257,9 +257,9 @@ static class BankingOperationsImpl implements BankingOperations {
 		<section id="scheduled-producer">
 		    <title>Producing and publishing messages based on schedule</title>
 		    <para>
-		    In the above sections we looked at the Message publishing feature of Spring Intergarion which constructs and publishes messages as by-products of Method invocations.
-		    However you are still respponsible to invoke the method. 
-		    With scheduling support added to Spring framework 3.0 we've added another useful feature to Spring Integrarion - support for scheduled Message producers/publishers. Scheduling could be based on several triggers.
+		    In the above sections we looked at the Message publishing feature of Spring Integration which constructs and publishes messages as by-products of Method invocations.
+		    However you are still responsible to invoke the method. 
+		    With scheduling support added to Spring Framework 3.0 we've added another useful feature to Spring Integration - support for scheduled Message producers/publishers. Scheduling could be based on several triggers.
 		   Currently we support <code>cron</code>, <code>fixed-rate</code>, <code>fixed-delay</code> as well as the custom triggers implemented by you.
 		    </para>
 		    <para>
