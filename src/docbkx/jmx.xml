@@ -140,7 +140,7 @@
     Header</para>
   </section>
 
-  <section id="jmx-control-bus">
+  <section id="jmx-mbean-exporter">
     <title>MBean Exporter</title>
 
     <para>Spring Integration components themselves may be exposed as MBeans
