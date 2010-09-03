@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -154,12 +156,34 @@ public class AsyncMessagingTemplateTests {
 		}
 	}
 
+	@Test(expected = CancellationException.class)
+	public void cancellationException() throws Throwable {
+		DirectChannel channel = new DirectChannel();
+		EchoHandler handler = new EchoHandler(10000);
+		channel.subscribe(handler);
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setDefaultChannel(channel);
+		Future<Message<?>> result = template.asyncSendAndReceive(MessageBuilder.withPayload("test").build());
+		try {
+			Thread.sleep(200);
+			result.cancel(true);
+			result.get();
+			fail();
+		}
+		catch (ExecutionException e) {
+			Assert.isTrue(handler.interrupted, "handler should have been interrupted");
+			throw e.getCause();
+		}
+	}
+
 
 	private static class EchoHandler extends AbstractReplyProducingMessageHandler {
 
 		private final long delay;
 
 		private final boolean shouldFail;
+
+		private volatile boolean interrupted;
 
 		private EchoHandler(long delay) {
 			this.delay = delay;
@@ -175,7 +199,9 @@ public class AsyncMessagingTemplateTests {
 				Thread.sleep(this.delay);
 			}
 			catch (InterruptedException e) {
-				// ignore
+				Thread.currentThread().interrupt();
+				this.interrupted = true;
+				return null;
 			}
 			return requestMessage.getPayload().toString().toUpperCase();
 		}
