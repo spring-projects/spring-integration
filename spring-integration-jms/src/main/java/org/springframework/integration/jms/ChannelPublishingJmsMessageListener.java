@@ -27,7 +27,7 @@ import javax.jms.Session;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
-import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  * @author Juergen Hoeller
  * @author Oleg Zhurakousky
  */
-public class ChannelPublishingJmsMessageListener extends AbstractMessagingGateway
+public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 		implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
 	
 	private volatile boolean expectReply;

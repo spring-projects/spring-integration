@@ -26,7 +26,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.TaskScheduler;
@@ -189,7 +189,7 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		return 0;
 	}
 
-	private static class GatewayDelegate extends AbstractMessagingGateway {
+	private static class GatewayDelegate extends MessagingGatewaySupport {
 
 		public Object sendAndReceive(Object request) {
 			return super.sendAndReceive(request);

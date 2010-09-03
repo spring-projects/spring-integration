@@ -45,7 +45,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingGateway extends AbstractEndpoint implements TrackableComponent {
+public abstract class MessagingGatewaySupport extends AbstractEndpoint implements TrackableComponent {
 
 	private static final long DEFAULT_TIMEOUT = 1000L;
 
@@ -76,7 +76,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
 
-	public AbstractMessagingGateway() {
+	public MessagingGatewaySupport() {
 		MessagingTemplate template = new MessagingTemplate();
 		template.setMessageConverter(this.messageConverter);
 		template.setSendTimeout(DEFAULT_TIMEOUT);

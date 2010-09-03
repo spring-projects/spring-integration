@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 import org.springframework.expression.ExpressionException;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.ws.WebServiceMessage;
@@ -45,7 +45,7 @@ import org.springframework.xml.transform.TransformerObjectSupport;
  * @author Mark Fisher
  * @since 1.0.2
  */
-public class SimpleWebServiceInboundGateway extends AbstractMessagingGateway implements MessageEndpoint {
+public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport implements MessageEndpoint {
 
 	private final TransformerSupportDelegate transformerSupportDelegate = new TransformerSupportDelegate();
 

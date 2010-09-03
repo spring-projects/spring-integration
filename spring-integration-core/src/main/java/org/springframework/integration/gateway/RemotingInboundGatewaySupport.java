@@ -23,7 +23,7 @@ import org.springframework.integration.Message;
  * 
  * @author Mark Fisher
  */
-public abstract class RemotingInboundGatewaySupport extends AbstractMessagingGateway implements RequestReplyExchanger {
+public abstract class RemotingInboundGatewaySupport extends MessagingGatewaySupport implements RequestReplyExchanger {
 
 	private volatile boolean expectReply = true;
 

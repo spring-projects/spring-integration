@@ -41,7 +41,7 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -75,7 +75,7 @@ import org.springframework.web.servlet.DispatcherServlet;
  * @author Mark Fisher
  * @since 2.0
  */
-abstract class HttpRequestHandlingEndpointSupport extends AbstractMessagingGateway {
+abstract class HttpRequestHandlingEndpointSupport extends MessagingGatewaySupport {
 
 	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
 			HttpRequestHandlingEndpointSupport.class.getClassLoader());

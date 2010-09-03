@@ -40,7 +40,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		final AbstractMessagingGateway innerGateway = new AbstractMessagingGateway() {};
+		final MessagingGatewaySupport innerGateway = new MessagingGatewaySupport() {};
 		innerGateway.setRequestChannel(innerChannel);
 		innerGateway.afterPropertiesSet();
 		outerChannel.subscribe(new AbstractReplyProducingMessageHandler() {
@@ -50,7 +50,7 @@ public class NestedGatewayTests {
 						"pre-" + requestMessage.getPayload()).getPayload() + "-post";
 			}
 		});
-		AbstractMessagingGateway outerGateway = new AbstractMessagingGateway() {};
+		MessagingGatewaySupport outerGateway = new MessagingGatewaySupport() {};
 		outerGateway.setRequestChannel(outerChannel);
 		outerGateway.afterPropertiesSet();
 		Message<?> reply = outerGateway.sendAndReceiveMessage("test");
@@ -67,7 +67,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		AbstractMessagingGateway gateway = new AbstractMessagingGateway() {};
+		MessagingGatewaySupport gateway = new MessagingGatewaySupport() {};
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test")
@@ -87,7 +87,7 @@ public class NestedGatewayTests {
 				return requestMessage.getPayload() + "-reply";
 			}
 		});
-		AbstractMessagingGateway gateway = new AbstractMessagingGateway() {};
+		MessagingGatewaySupport gateway = new MessagingGatewaySupport() {};
 		gateway.setRequestChannel(requestChannel);
 		gateway.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test")

@@ -48,7 +48,7 @@ import org.springframework.integration.test.util.TestUtils;
 @SuppressWarnings("unchecked")
 public class MessagingGatewayTests {
 
-	private volatile AbstractMessagingGateway messagingGateway;
+	private volatile MessagingGatewaySupport messagingGateway;
 
 	private volatile MessageChannel requestChannel = createMock(MessageChannel.class);
 
@@ -62,7 +62,7 @@ public class MessagingGatewayTests {
 
 	@Before
 	public void initializeSample() {
-		this.messagingGateway = new AbstractMessagingGateway() {};
+		this.messagingGateway = new MessagingGatewaySupport() {};
 		this.messagingGateway.setRequestChannel(requestChannel);
 		this.messagingGateway.setReplyChannel(replyChannel);
 		this.messagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());

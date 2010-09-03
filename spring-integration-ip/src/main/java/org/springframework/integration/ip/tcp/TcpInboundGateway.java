@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.gateway.AbstractMessagingGateway;
+import org.springframework.integration.gateway.MessagingGatewaySupport;
 import org.springframework.integration.ip.IpHeaders;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
@@ -38,7 +38,7 @@ import org.springframework.integration.ip.tcp.connection.TcpSender;
  * @since 2.0
  *
  */
-public class TcpInboundGateway extends AbstractMessagingGateway implements TcpListener, TcpSender {
+public class TcpInboundGateway extends MessagingGatewaySupport implements TcpListener, TcpSender {
 
 	protected AbstractServerConnectionFactory connectionFactory;
 	

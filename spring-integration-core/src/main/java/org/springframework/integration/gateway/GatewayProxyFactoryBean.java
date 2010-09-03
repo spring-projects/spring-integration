@@ -446,7 +446,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 	}
 
 
-	private static class MethodInvocationGateway extends AbstractMessagingGateway {
+	private static class MethodInvocationGateway extends MessagingGatewaySupport {
 
 		private MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			this.setRequestMapper(messageMapper);
