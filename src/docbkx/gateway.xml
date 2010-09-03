@@ -55,13 +55,13 @@
     </para>
     <para>
     	You can also provide individual headers per method invocation via XML. 
-    	This could be very useful if headers you want to set are static in nature and you don't want 
-    	to embed them in the gateway's method signature via <classname>@Header</classname> annotation. 
-    	For example; in the Loan Broker example we want to influence how aggregation of the Loan quotes 
+    	This could be very useful if the headers you want to set are static in nature and you don't want 
+    	to embed them in the gateway's method signature via <classname>@Header</classname> annotations.
+    	For example, in the Loan Broker example we want to influence how aggregation of the Loan quotes 
     	will be done based on what type of request was initiated (single quote or all quotes). Determining the 
-    	type of the request by evaluating what gateway's method was invoked, although possible would 
+    	type of the request by evaluating what gateway method was invoked, although possible would 
     	violate the separation of concerns paradigm (method is a java artifact),  but expressing your 
-    	intention (meta information) via Message headers is natural to Messaging architecture.
+    	intention (meta information) via Message headers is natural in a Messaging architecture.
     	
     	<programlisting language="xml"><![CDATA[<int:gateway id="loanBrokerGateway" 
     	   service-interface="org.springframework.integration.loanbroker.LoanBrokerGateway">
@@ -76,11 +76,11 @@
 	header based on the gateway's method.
     </para>
     <para>
-    As with anything else, Gateway invocation might result in error.
-    By default all error that have occurred downstream will be re-thrown as MessagingExeption (RuntimeException) 
-    upon Gateway's method invocation. However there are times when you may want to treat Exception as a valid reply, 
-    by mapping it to a Message. To accomplish this Gateway provides support for Exception mappers via <emphasis>exception-mapper</emphasis> 
-    attribute. 
+    As with anything else, Gateway invocation might result in errors.
+    By default any error that has occurred downstream will be re-thrown as a MessagingExeption (RuntimeException) 
+    upon the Gateway's method invocation. However there are times when you may want to treat an Exception as a valid reply, 
+    by mapping it to a Message. To accomplish this our Gateway provides support for Exception mappers via the
+    <emphasis>exception-mapper</emphasis> attribute. 
     </para>
 <programlisting language="xml"><![CDATA[<si:gateway id="sampleGateway"
 		default-request-channel="gatewayChannel" 
@@ -92,7 +92,7 @@
 				]]></programlisting>
 				
 	<emphasis>foo.bar.SampleExceptionMapper</emphasis> is the implementation of 
-	<emphasis>org.springframework.integration.message.InboundMessageMapper</emphasis> which only defines one method <code>toMessage(Object object)</code>.
+	<emphasis>org.springframework.integration.message.InboundMessageMapper</emphasis> which only defines one method: <code>toMessage(Object object)</code>.
 <programlisting language="java"><![CDATA[public static class SampleExceptionMapper implements InboundMessageMapper<Throwable>{
 	public Message<?> toMessage(Throwable object) throws Exception {
 		MessageHandlingException ex = (MessageHandlingException) object;		
@@ -108,19 +108,21 @@
   <section id="async-gateway">
     <title>Asynchronous Gateway</title>
     <para>
-      As a pattern Messaging Gateway is a very nice way to hide you from messaging-specific code while still exposing full capabilities of the 
-      messaging system. And <classname>GatewayProxyFactoryBean</classname> provides a convenient way to expose Proxy over the service-interface thus giving you a POJO-based access 
-      to a messaging system.  But when gateway is exposed via simple POJO method which returns value it does imply that for each Request message (method is invoked) 
-      there must be a Reply message (method has returned). Since Messaging systems naturally are asynchronous you may not always able to 
-      guarantee the contract where <emphasis>"for each request there will always be be a reply"</emphasis>. 
-      With Spring Integration 2.0 we are introducing an <emphasis>Asynchronous Gateway</emphasis> which is a convenient way to initiate flows where you may not know 
-      if reply is coming or how long will it take for it to come. 
+      As a pattern the Messaging Gateway is a very nice way to hide messaging-specific code while still exposing the full capabilities of the 
+      messaging system. And <classname>GatewayProxyFactoryBean</classname> provides a convenient way to expose a Proxy over a service-interface
+      thus giving you a POJO-based access to a messaging system (based on objects in your own domain, or primitives/Strings, etc).  But when a
+      gateway is exposed via simple POJO methods which return values it does imply that for each Request message (generated when the method is invoked) 
+      there must be a Reply message (generated when the method has returned). Since Messaging systems naturally are asynchronous you may not always be
+      able to guarantee the contract where <emphasis>"for each request there will always be be a reply"</emphasis>. 
+      With Spring Integration 2.0 we are introducing support for an <emphasis>Asynchronous Gateway</emphasis> which is a convenient way to initiate
+      flows where you may not know if a reply is expected or how long will it take for it to arrive.
       </para>
       <para>
-      A natural way to handle these types of scenarios in Java would be <emphasis>java.util.concurrent.Future</emphasis>s and that is exactly what Spring Integration uses to create an <emphasis>Asynchronous Gateway</emphasis>.
+      A natural way to handle these types of scenarios in Java would be relying upon <emphasis>java.util.concurrent.Future</emphasis> instances, and
+      that is exactly what Spring Integration uses to support an <emphasis>Asynchronous Gateway</emphasis>.
       </para>
       <para>
-	  From the XML configuration, there is nothing different and you still define <emphasis>Asynchronous Gateway</emphasis> the same way as regular Gateway
+	  From the XML configuration, there is nothing different and you still define <emphasis>Asynchronous Gateway</emphasis> the same way as a regular Gateway.
       <programlisting language="xml"><![CDATA[<int:gateway id="mathService" 
      service-interface="org.springframework.integration.sample.gateway.futures.MathServiceGateway"
      default-request-channel="requestChannel"/>]]></programlisting>
@@ -131,14 +133,17 @@
 }</programlisting>
     </para>
     <para>
-    As you can see from the example above the return type for the gateway method is <classname>Future</classname>. When <classname>GatewayProxyFactoryBean</classname> sees that the 
-    return type of the gateway method is <classname>Future</classname> it immediately switches to the async mode by utilizing <classname>AsyncTaskExecutor</classname>
-    That is all. The call to a method always returns immediately with <classname>Future</classname> encapsulating  the interaction with the framework. 
+    As you can see from the example above the return type for the gateway method is <classname>Future</classname>. When
+    <classname>GatewayProxyFactoryBean</classname> sees that the 
+    return type of the gateway method is <classname>Future</classname>, it immediately switches to the async mode by utilizing
+    an <classname>AsyncTaskExecutor</classname>. That is all. The call to a method always returns immediately with <classname>Future</classname>
+    encapsulating  the interaction with the framework. 
     Now you can interact with the <classname>Future</classname> at your own pace to get the result, timeout, get the exception etc...
     <programlisting language="java">MathServiceGateway mathService = ac.getBean("mathService", MathServiceGateway.class);
 Future&lt;Integer&gt; result = mathService.multiplyByTwo(number);
+// do something else here since the reply might take a moment
 int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
-For more detailed example please refer to <emphasis>async-gateway</emphasis> sample distributed with Spring Integration samples.
+For a more detailed example, please refer to the <emphasis>async-gateway</emphasis> sample distributed within the Spring Integration samples.
     </para>
     
   </section>
