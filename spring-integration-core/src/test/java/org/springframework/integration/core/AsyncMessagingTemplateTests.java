@@ -99,6 +99,57 @@ public class AsyncMessagingTemplateTests {
 	}
 
 	@Test
+	public void asyncReceiveAndConvertWithDefaultChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setDefaultChannel(channel);
+		Future<?> result = template.asyncReceiveAndConvert();
+		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		long start = System.currentTimeMillis();
+		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertEquals("test", result.get());
+		assertTrue(elapsed >= 200);
+	}
+
+	@Test
+	public void asyncReceiveAndConvertWithExplicitChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<?> result = template.asyncReceiveAndConvert(channel);
+		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		long start = System.currentTimeMillis();
+		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertEquals("test", result.get());
+		assertTrue(elapsed >= 200);
+	}
+
+	@Test
+	public void asyncReceiveAndConvertWithResolvedChannel() throws Exception {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setBeanFactory(context);
+		Future<?> result = template.asyncReceiveAndConvert("testChannel");
+		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		long start = System.currentTimeMillis();
+		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("test", result.get());
+	}
+
+	@Test(expected = TimeoutException.class)
+	public void asyncReceiveAndConvertWithTimeoutException() throws Exception {
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<?> result = template.asyncReceiveAndConvert(new QueueChannel());
+		result.get(100, TimeUnit.MILLISECONDS);
+	}
+
+	@Test
 	public void asyncSendAndReceiveWithDefaultChannel() throws Exception {
 		DirectChannel channel = new DirectChannel();
 		channel.subscribe(new EchoHandler(200));
