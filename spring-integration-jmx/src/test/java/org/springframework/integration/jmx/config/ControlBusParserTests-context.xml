@@ -17,6 +17,8 @@
 
 	<si:channel id="testChannel"/>
 
-	<jmx:mbean-exporter id="mbeanExporter" mbean-server="mbs" domain="tests.MBeanExpoerterParser"/>
+	<jmx:control-bus mbean-exporter="mbeanExporter" operation-channel="testChannel"/>
+
+	<jmx:mbean-exporter id="mbeanExporter" mbean-server="mbs" domain="tests.ControlBusParser"/>
 
 </beans>

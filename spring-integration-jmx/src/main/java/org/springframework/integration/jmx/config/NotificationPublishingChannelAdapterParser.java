@@ -31,6 +31,11 @@ import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 public class NotificationPublishingChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
+	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
 				"org.springframework.integration.jmx.NotificationPublishingMessageHandler");

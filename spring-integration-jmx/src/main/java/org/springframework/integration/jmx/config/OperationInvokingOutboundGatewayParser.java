@@ -25,7 +25,7 @@ import org.w3c.dom.Element;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class OperationInvokingOutboundGatewayParser extends AbstractConsumerEndpointParser{
+public class OperationInvokingOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	
 	@Override
 	protected String getInputChannelAttributeName() {

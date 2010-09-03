@@ -31,6 +31,11 @@ import org.springframework.util.StringUtils;
 public class NotificationListeningChannelAdapterParser extends AbstractSimpleBeanDefinitionParser {
 	
 	@Override
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
+	@Override
 	protected String getBeanClassName(Element element) {
 		return "org.springframework.integration.jmx.NotificationListeningMessageProducer";
 	}

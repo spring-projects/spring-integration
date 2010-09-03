@@ -16,13 +16,9 @@
 
 package org.springframework.integration.jmx.config;
 
-import javax.management.MBeanServerFactory;
-
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -30,8 +26,8 @@ import org.w3c.dom.Element;
  * @author Mark Fisher
  * @since 2.0
  */
-public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
-	
+public class ControlBusParser extends AbstractSingleBeanDefinitionParser {
+
 	@Override
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;
@@ -39,24 +35,16 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.monitor.IntegrationMBeanExporter";
+		return "org.springframework.integration.jmx.config.ControlBusFactoryBean";
 	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		Object mbeanServer = getMBeanServer(element, parserContext);
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "domain");
-		builder.addPropertyValue("server", mbeanServer);
-	}
-
-	private Object getMBeanServer(Element element, ParserContext parserContext) {
-		String mbeanServer = element.getAttribute("mbean-server");
-		if (StringUtils.hasText(mbeanServer)) {
-			return new RuntimeBeanReference(mbeanServer);
-		}
-		else {
-			return MBeanServerFactory.createMBeanServer();
+		builder.addConstructorArgReference(element.getAttribute("mbean-exporter"));
+		if (StringUtils.hasLength(element.getAttribute("operation-channel"))) {
+			builder.addConstructorArgReference(element.getAttribute("operation-channel"));
+			
 		}
 	}
 

@@ -22,9 +22,11 @@ import javax.management.MBeanServer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
+import org.springframework.integration.control.ControlBus;
+import org.springframework.jmx.export.MBeanExporter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -34,15 +36,17 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class MBeanExporterParserTests {
+public class ControlBusParserTests {
 
 	@Autowired
 	private ApplicationContext context;
 
 	@Test
 	public void test() throws InterruptedException {
-		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
+		ControlBus controlBus = this.context.getBean(ControlBus.class);
+		assertEquals(controlBus.getOperationChannel(), this.context.getBean("testChannel"));
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
+		MBeanExporter exporter = (MBeanExporter) new DirectFieldAccessor(controlBus).getPropertyValue("exporter");
 		assertEquals(server, exporter.getServer());
 		exporter.destroy();
 	}
