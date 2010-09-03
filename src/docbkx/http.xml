@@ -14,27 +14,27 @@
   <section id="http-inbound">
     <title>Http Inbound Gateway</title>
     <para>
-		To receive messages over HTTP you need to use an <classname>HttpInboundEndpoint</classname>.  In common with the HttpInvoker 
-	support the Http Inbound Gateway needs to be deployed within a servlet container.  The easiest way to do this is to provide a servlet 
+		To receive messages over HTTP you need to use an HTTP inbound Channel Adapter or Gateway.  In common with the HttpInvoker 
+	support the HTTP inbound adapters need to be deployed within a servlet container.  The easiest way to do this is to provide a servlet 
 	definition in <emphasis>web.xml</emphasis>, see 
-	<xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple <classname>HttpInboundEndpoint</classname>	
-		<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
+	<xref linkend="httpinvoker-inbound"/> for further details.  Below is an example bean definition for a simple HTTP inbound endpoint.
+		<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpRequestHandlingMessagingGateway">
 	<property name="requestChannel" ref="httpRequestChannel" />
 	<property name="replyChannel" ref="httpReplyChannel" />	
 </bean>]]></programlisting>
-	The <classname>HttpInboundEndpoint</classname> accepts an instance of <interfacename>InboundRequestMapper</interfacename> which allows 
-	customisation of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>.  If none is 
-	provided an instance of <classname>DefaultInboundRequestMapper</classname> will be used.  This encapsulates a simple strategy, which for
+	The <classname>HttpRequestHandlingMessagingGateway</classname> accepts a list of <interfacename>HttpMessageConverter</interfacename> instances or else
+	relies on a default list. The converters allow
+	customization of the mapping from <interfacename>HttpServletRequest</interfacename> to <interfacename>Message</interfacename>. The default converters
+	encapsulate simple strategies, which for
 	example will create a String message for a <emphasis>POST</emphasis> request where the content type starts with "text", see the Javadoc for 
-	full details.   		
+	full details.
       </para>
       <para>Starting with this release MultiPart File support was implemented. If the request has been wrapped as a
-	  <emphasis>MultipartHttpServletRequest</emphasis>, then the 'content type' can be checked. If it is known, and
-	  begins with "text", then the <emphasis>MultipartFile</emphasis> will be copied to a String in the parameter
-	  map. If the content type does not begin with "text", then the <emphasis>MultipartFile</emphasis> will be copied
-	  to a byte array within the parameter map instead.
+	  <emphasis>MultipartHttpServletRequest</emphasis>, when using the default converters, that request will be converted 
+	  to a Message payload that is a MultiValueMap containing values that may be byte arrays, Strings, or instances of
+	  Spring's <interfacename>MultipartFile</interfacename> depending on the content type of the individual parts.
 	  <note>
-		The HttpInboundEndpoint will locate a MultipartResolver in the context if one exists with the bean name
+		The HTTP inbound Endpoint will locate a MultipartResolver in the context if one exists with the bean name
 		"multipartResolver" (the same name expected by Spring's DispatcherServlet). If it does in fact locate that
 		bean, then the support for MultipartFiles will be enabled on the inbound request mapper. Otherwise, it will
 		fail when trying to map a multipart-file request to a Spring Integration Message. For more on Spring's
@@ -43,28 +43,30 @@
       </para>
       <para>
 		In sending a response to the client there are a number of ways to customize the behavior of the gateway.  By default the gateway will 
-	simply acknowledge that the request was received by sending a 200 status code back.  It is possible to customize this response by providing an 
-	implementation of the Spring MVC <interfacename>View</interfacename> which will be invoked with the created <interfacename>Message</interfacename>.  
-        In the case that the gateway should expect a reply to the <interfacename>Message</interfacename> then setting the <property>expectReply</property> flag will cause 
-	the gateway to wait for a response <interfacename>Message</interfacename> before creating an Http response.  Below is an example of a gateway 
-	configured to use a custom view and to wait for a response.  It also shows how to customize the Http methods accepted by the gateway, which 
+	simply acknowledge that the request was received by sending a 200 status code back.  It is possible to customize this response by providing a
+	'viewName' to be resolved by the Spring MVC <interfacename>ViewResolver</interfacename>.  
+        In the case that the gateway should expect a reply to the <interfacename>Message</interfacename> then setting the <property>expectReply</property> flag
+    (constructor argument) will cause 
+	the gateway to wait for a reply <interfacename>Message</interfacename> before creating an HTTP response.  Below is an example of a gateway 
+	configured to serve as a Spring MVC Controller with a view name. Because of the constructor arg value of TRUE, it wait for a reply.  This also shows
+	how to customize the HTTP methods accepted by the gateway, which 
 	are <emphasis>POST</emphasis> and <emphasis>GET</emphasis> by default.    
-	<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpInboundEndpoint">
+	<programlisting language="xml"><![CDATA[<bean id="httpInbound" class="org.springframework.integration.http.HttpRequestHandlingController">
+	<constructor-arg value="true" /> <!-- indicates that a reply is expected -->
 	<property name="requestChannel" ref="httpRequestChannel" />
 	<property name="replyChannel" ref="httpReplyChannel" />
-	<property name="view" ref="jsonView" />
-	<property name="supportedMethods" >
+	<property name="viewName" value="jsonView" />
+	<property name="supportedMethodNames" >
 		<list>
 			<value>GET</value>
 			<value>DELETE</value>
 		</list>
 	</property>
 	<property name="expectReply" value="true" />
-	<property name="requestMapper" ref="customRequestMapper" />
 </bean>]]></programlisting>
-	The message created from the request will be available in the Model map. The key that is used
-	for that map entry by default is 'requestMessage', but this can be overridden by setting the
-	'requestKey' property on the endpoint's configuration.
+	The reply message will be available in the Model map. The key that is used
+	for that map entry by default is 'reply', but this can be overridden by setting the
+	'replyKey' property on the endpoint's configuration.
      </para>
   </section>	
 
