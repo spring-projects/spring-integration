@@ -42,25 +42,25 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 				(AsyncTaskExecutor) executor : new TaskExecutorAdapter(executor);
 	}
 
-	public <P> Future<Message<P>> asyncReceive() {
-		return this.executor.submit(new Callable<Message<P>>() {
-			public Message<P> call() throws Exception {
+	public Future<Message<?>> asyncReceive() {
+		return this.executor.submit(new Callable<Message<?>>() {
+			public Message<?> call() throws Exception {
 				return receive();
 			}
 		});
 	}
 
-	public <P> Future<Message<P>> asyncReceive(final PollableChannel channel) {
-		return this.executor.submit(new Callable<Message<P>>() {
-			public Message<P> call() throws Exception {
+	public Future<Message<?>> asyncReceive(final PollableChannel channel) {
+		return this.executor.submit(new Callable<Message<?>>() {
+			public Message<?> call() throws Exception {
 				return receive(channel);
 			}
 		});
 	}
 
-	public <P> Future<Message<P>> asyncReceive(final String channelName) {
-		return this.executor.submit(new Callable<Message<P>>() {
-			public Message<P> call() throws Exception {
+	public Future<Message<?>> asyncReceive(final String channelName) {
+		return this.executor.submit(new Callable<Message<?>>() {
+			public Message<?> call() throws Exception {
 				return receive(channelName);
 			}
 		});

@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -31,9 +32,12 @@ import org.junit.Test;
 
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -42,6 +46,57 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class AsyncMessagingTemplateTests {
+
+	@Test
+	public void asyncReceiveWithDefaultChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setDefaultChannel(channel);
+		Future<Message<?>> result = template.asyncReceive();
+		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		long start = System.currentTimeMillis();
+		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertEquals("test", result.get().getPayload());
+		assertTrue(elapsed >= 200);
+	}
+
+	@Test
+	public void asyncReceiveWithExplicitChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<Message<?>> result = template.asyncReceive(channel);
+		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		long start = System.currentTimeMillis();
+		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertEquals("test", result.get().getPayload());
+		assertTrue(elapsed >= 200);
+	}
+
+	@Test
+	public void asyncReceiveWithResolvedChannel() throws Exception {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setBeanFactory(context);
+		Future<Message<?>> result = template.asyncReceive("testChannel");
+		sendMessageAfterDelay(channel, new GenericMessage<String>("test"), 200);
+		long start = System.currentTimeMillis();
+		assertNotNull(result.get(1000, TimeUnit.MILLISECONDS));
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("test", result.get().getPayload());
+	}
+
+	@Test(expected = TimeoutException.class)
+	public void asyncReceiveWithTimeoutException() throws Exception {
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<Message<?>> result = template.asyncReceive(new QueueChannel());
+		result.get(100, TimeUnit.MILLISECONDS);
+	}
 
 	@Test
 	public void asyncSendAndReceiveWithDefaultChannel() throws Exception {
@@ -176,6 +231,21 @@ public class AsyncMessagingTemplateTests {
 		}
 	}
 
+
+	private static void sendMessageAfterDelay(final MessageChannel channel, final GenericMessage<String> message, final int delay) {
+		Executors.newSingleThreadExecutor().execute(new Runnable() {
+			public void run() {
+				try {
+					Thread.sleep(delay);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					return;
+				}
+				channel.send(message);
+			}
+		});
+	}
 
 	private static class EchoHandler extends AbstractReplyProducingMessageHandler {
 
