@@ -5,28 +5,15 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<int:channel id="testDirectChannel" />
+	<int:channel id="requests" />
 
-	<int:channel id="testQueueChannel">
+	<int:channel id="intermediate">
 		<int:queue capacity="99" />
 	</int:channel>
 
-	<int:bridge id="testEventDrivenBridge" input-channel="testDirectChannel" />
+	<int:bridge id="bridge" input-channel="requests" output-channel="intermediate"/>
 
-	<int:bridge input-channel="testDirectChannel" />
-
-	<int:bridge id="testPollingBridge" input-channel="testQueueChannel" output-channel="nullChannel">
-		<int:poller max-messages-per-poll="1">
-			<int:interval-trigger interval="10000" />
-		</int:poller>
-	</int:bridge>
-
-	<bean id="controlBus" class="org.springframework.integration.control.ControlBus">
-		<constructor-arg ref="mbeanExporter" />
-		<constructor-arg ref="mbeanServer" />
-	</bean>
-
-	<bean id="mbeanExporter" class="org.springframework.integration.monitor.IntegrationMBeanExporter">
+	<bean id="integrationExecutions" class="org.springframework.integration.monitor.IntegrationMBeanExporter">
 		<property name="server" ref="mbeanServer" />
 	</bean>
 

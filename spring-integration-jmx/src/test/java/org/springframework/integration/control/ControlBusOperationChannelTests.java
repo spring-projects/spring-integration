@@ -19,10 +19,9 @@ package org.springframework.integration.control;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import javax.management.MBeanServer;
-
 import org.junit.Test;
-
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
@@ -30,16 +29,15 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jmx.JmxHeaders;
+import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.jmx.support.JmxUtils;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 
 /**
  * @author Mark Fisher
  * @since 2.0
  */
 public class ControlBusOperationChannelTests {
-
-	private final MBeanServer server = JmxUtils.locateMBeanServer();
 
 	private final String domain = "domain.test";
 
@@ -49,12 +47,9 @@ public class ControlBusOperationChannelTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		RootBeanDefinition endpointDef = new RootBeanDefinition(EventDrivenConsumer.class);
 		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new DirectChannel());
-		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new TestHandler());
+		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RootBeanDefinition(TestHandler.class));
 		context.registerBeanDefinition("testEndpoint", endpointDef);
-		RootBeanDefinition busDef = new RootBeanDefinition(ControlBus.class);
-		busDef.getConstructorArgumentValues().addGenericArgumentValue(server);
-		busDef.getConstructorArgumentValues().addGenericArgumentValue(domain);
-		context.registerBeanDefinition("controlBus", busDef);
+		registerControlBus(context, domain);
 		context.refresh();
 		ControlBus controlBus = context.getBean("controlBus", ControlBus.class);
 		EventDrivenConsumer endpoint = context.getBean("testEndpoint", EventDrivenConsumer.class);
@@ -74,6 +69,20 @@ public class ControlBusOperationChannelTests {
 		context.close();
 	}
 
+	private BeanDefinition registerControlBus(GenericApplicationContext context, String domain) {
+		RootBeanDefinition serverDef = new RootBeanDefinition(MBeanServerFactoryBean.class);
+		serverDef.getPropertyValues().add("locateExistingServerIfPossible", true);
+		context.registerBeanDefinition("mbeanServer", serverDef);
+		BeanDefinition exporterDef = new RootBeanDefinition(IntegrationMBeanExporter.class);
+		exporterDef.getPropertyValues().addPropertyValue("server", new RuntimeBeanReference("mbeanServer"));
+		exporterDef.getPropertyValues().addPropertyValue("domain", domain);
+		context.registerBeanDefinition("exporter", exporterDef);
+		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("exporter"));
+		context.registerBeanDefinition("controlBus", controlBusDef);
+		return exporterDef;
+	}
 
 	private static class TestHandler implements MessageHandler {
 		public void handleMessage(Message<?> message) {

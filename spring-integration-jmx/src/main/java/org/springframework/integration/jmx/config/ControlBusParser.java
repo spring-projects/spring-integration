@@ -18,13 +18,14 @@ package org.springframework.integration.jmx.config;
 
 import javax.management.MBeanServerFactory;
 
-import org.w3c.dom.Element;
-
+import org.springframework.beans.BeanMetadataElement;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Mark Fisher
@@ -39,20 +40,30 @@ public class ControlBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		Object source = parserContext.extractSource(element);
-		builder.getRawBeanDefinition().setSource(source);
+		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
+		Object mbeanServer = getMBeanServer(element, parserContext);
+		builder.addConstructorArgValue(getMBeanExporter(element, parserContext, mbeanServer));
+		builder.addConstructorArgValue(mbeanServer);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "operation-channel");
+	}
+
+	private Object getMBeanServer(Element element, ParserContext parserContext) {
 		String mbeanServer = element.getAttribute("mbean-server");
 		if (StringUtils.hasText(mbeanServer)) {
-			builder.addConstructorArgReference(mbeanServer);
+			return new RuntimeBeanReference(mbeanServer);
 		}
 		else {
-			builder.addConstructorArgValue(MBeanServerFactory.createMBeanServer());
+			return MBeanServerFactory.createMBeanServer();
 		}
-		String domain = element.getAttribute("domain");
-		if (StringUtils.hasText(domain)) {
-			builder.addConstructorArgValue(domain);
-		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "operation-channel");
+	}
+
+	private BeanMetadataElement getMBeanExporter(Element element, ParserContext parserContext, Object mbeanServer) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder
+				.genericBeanDefinition("org.springframework.integration.monitor.IntegrationMBeanExporter");
+		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "domain");
+		builder.addPropertyValue("server", mbeanServer);
+		return builder.getBeanDefinition();
 	}
 
 }

@@ -19,11 +19,9 @@ package org.springframework.integration.channel;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.core.OrderComparator;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.integration.Message;
@@ -52,10 +50,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	private volatile boolean shouldTrack = false;
 
-	private final AtomicLong sendSuccessCount = new AtomicLong();
-
-	private final AtomicLong sendErrorCount = new AtomicLong();
-
 	private volatile Class<?>[] datatypes = new Class<?>[] { Object.class };
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
@@ -67,24 +61,6 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 
 	public void setShouldTrack(boolean shouldTrack) {
 		this.shouldTrack = shouldTrack;
-	}
-
-	/**
-	 * Return the current count of Messages that have been sent
-	 * to this channel successfully.
-	 */
-	public long getSendSuccessCount() {
-		return this.sendSuccessCount.get();
-	}
-
-	/**
-	 * Return the current count of errors that have occurred while
-	 * attempting to send a Message to this channel. This value is
-	 * incremented whenever an Exception is thrown from one of the
-	 * send() methods. 
-	 */
-	public long getSendErrorCount() {
-		return this.sendErrorCount.get();
 	}
 
 	/**
@@ -179,14 +155,10 @@ public abstract class AbstractMessageChannel extends IntegrationObjectSupport im
 		}
 		try {
 			boolean sent = this.doSend(message, timeout);
-			if (sent) {
-				this.sendSuccessCount.incrementAndGet();
-			}
 			this.interceptors.postSend(message, this, sent);
 			return sent;
 		}
 		catch (Exception e) {
-			this.sendErrorCount.incrementAndGet();
 			if (e instanceof MessagingException) {
 				throw (MessagingException) e;
 			}
