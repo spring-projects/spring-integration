@@ -112,11 +112,12 @@ public class GlobalChannelInterceptorTests {
          DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
 			Object iList = cAccessor.getPropertyValue("interceptors");
 			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
-			List<SampleInterceptor> interceptorList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
+			List<GlobalChannelInterceptorWrapper> interceptorList = (List<GlobalChannelInterceptorWrapper>) iAccessor.getPropertyValue("interceptors");
 			List<String> interceptorNames = new ArrayList<String>();
-			for (ChannelInterceptor interceptor: interceptorList){
+			for (GlobalChannelInterceptorWrapper interceptor : interceptorList) {
 				interceptorNames.add(interceptor.toString());
 			}
+		
 			Assert.assertTrue(interceptorNames.contains("interceptor-ten"));
 			Assert.assertTrue(interceptorNames.contains("interceptor-eleven"));
 	}
