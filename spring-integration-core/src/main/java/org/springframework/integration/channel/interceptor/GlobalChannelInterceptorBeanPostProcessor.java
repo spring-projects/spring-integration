@@ -17,13 +17,9 @@ package org.springframework.integration.channel.interceptor;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +30,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.util.PatternMatchUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Will apply global interceptors to channels (&lt;channel-interceptor&gt;). 
@@ -46,7 +44,7 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 	private final static Log logger = LogFactory.getLog(GlobalChannelInterceptorBeanPostProcessor.class);
 	private final OrderComparator comparator = new OrderComparator();
 	private List<GlobalChannelInterceptorWrapper> channelInterceptors;
-	private final Map<String, Pattern> compiledPatterns = new HashMap<String, Pattern>();
+	//private final Map<String, Pattern> compiledPatterns = new HashMap<String, Pattern>();
 
 	private final Set<GlobalChannelInterceptorWrapper> positiveOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
 	private final Set<GlobalChannelInterceptorWrapper> negativeOrderInterceptors = new LinkedHashSet<GlobalChannelInterceptorWrapper>();
@@ -97,18 +95,9 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 		List<GlobalChannelInterceptorWrapper> tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : positiveOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-			for (String channelPattern : patterns) {
-				channelPattern = channelPattern.trim();
-				if (channelPattern.equals("*")){
-					tempInterceptors.add(globalChannelInterceptorWrapper);
-				} else {
-					Pattern pattern = compiledPatterns.get(channelPattern);
-					
-					Matcher m = pattern.matcher(beanName);
-					if (m.find()){
-						tempInterceptors.add(globalChannelInterceptorWrapper);
-					}
-				}
+			patterns = StringUtils.trimArrayElements(patterns);
+			if (PatternMatchUtils.simpleMatch(patterns, beanName)){
+				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
 		Collections.sort(tempInterceptors, comparator);
@@ -117,13 +106,9 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 		tempInterceptors = new ArrayList<GlobalChannelInterceptorWrapper>();
 		for (GlobalChannelInterceptorWrapper globalChannelInterceptorWrapper : negativeOrderInterceptors) {
 			String[] patterns = globalChannelInterceptorWrapper.getPatterns();
-			for (String channelPattern : patterns) {
-				channelPattern = channelPattern.trim();
-				Pattern pattern = compiledPatterns.get(channelPattern);
-				Matcher m = pattern.matcher(beanName);
-				if (m.find()){
-					tempInterceptors.add(globalChannelInterceptorWrapper);
-				}
+			patterns = StringUtils.trimArrayElements(patterns);
+			if (PatternMatchUtils.simpleMatch(patterns, beanName)){
+				tempInterceptors.add(globalChannelInterceptorWrapper);
 			}
 		}
 		Collections.sort(tempInterceptors, comparator);
@@ -137,14 +122,6 @@ final class GlobalChannelInterceptorBeanPostProcessor implements BeanPostProcess
 		for (GlobalChannelInterceptorWrapper channelInterceptor : channelInterceptors) {
 			String[] patterns = channelInterceptor.getPatterns();
 			for (String pattern : patterns) {
-				pattern = pattern.trim();
-				if (!pattern.equals("*" )){
-					Pattern p = compiledPatterns.get(pattern);
-					if (p == null){
-						p = Pattern.compile(pattern);
-						compiledPatterns.put(pattern, p);
-					}
-				}	
 				if (channelInterceptor.getOrder() >= 0){
 					positiveOrderInterceptors.add(channelInterceptor);
 				} else {

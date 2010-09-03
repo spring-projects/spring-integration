@@ -15,6 +15,7 @@
  */
 package org.springframework.integration.channel.interceptor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import org.springframework.integration.channel.ChannelInterceptor;
 
 /**
  * @author Oleg Zhurakousky
+ * @author Dave Turanski
  * @since 2.0
  */
 @SuppressWarnings("all")
@@ -46,9 +48,9 @@ public class GlobalChannelInterceptorTests {
 			DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
 			Object iList = cAccessor.getPropertyValue("interceptors");
 			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
-			List<SampleInterceptor> interceptoList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
+			List<SampleInterceptor> interceptorList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
 			if (channelName.equals("inputA")){ // 328741
-				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				ChannelInterceptor[] inter = interceptorList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length ==10);
 				Assert.assertEquals("interceptor-three", inter[0].toString());
 				Assert.assertEquals("interceptor-two", inter[1].toString());
@@ -63,7 +65,7 @@ public class GlobalChannelInterceptorTests {
 			} 
 			else
 			if (channelName.equals("inputB")){
-				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				ChannelInterceptor[] inter = interceptorList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length == 6);
 				Assert.assertEquals("interceptor-three", inter[0].toString());
 				Assert.assertEquals("interceptor-two", inter[1].toString());
@@ -74,7 +76,7 @@ public class GlobalChannelInterceptorTests {
 			} 
 			else 
 			if (channelName.equals("foo")){
-				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				ChannelInterceptor[] inter = interceptorList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length == 6);
 				Assert.assertEquals("interceptor-two", inter[0].toString());
 				Assert.assertEquals("interceptor-five", inter[1].toString());
@@ -85,7 +87,7 @@ public class GlobalChannelInterceptorTests {
 			}
 			else 
 			if (channelName.equals("bar")){
-				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				ChannelInterceptor[] inter = interceptorList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length == 4);
 				Assert.assertEquals("interceptor-eight", inter[0].toString());
 				Assert.assertEquals("interceptor-seven", inter[1].toString());
@@ -94,12 +96,29 @@ public class GlobalChannelInterceptorTests {
 			}
 			else 
 			if (channelName.equals("baz")){
-				ChannelInterceptor[] inter = interceptoList.toArray(new ChannelInterceptor[]{});
+				ChannelInterceptor[] inter = interceptorList.toArray(new ChannelInterceptor[]{});
 				Assert.assertTrue(inter.length == 2);
 				Assert.assertEquals("interceptor-ten", inter[0].toString());
 				Assert.assertEquals("interceptor-eleven", inter[1].toString());
 			}
 		}
+	}
+	
+	@Test
+	public void testWildCardPatternMatch(){
+		ApplicationContext applicationContext = 
+			new ClassPathXmlApplicationContext("GlobalChannelInterceptorTests-context.xml", GlobalChannelInterceptorTests.class);
+         AbstractMessageChannel channel = applicationContext.getBean("inpuC",AbstractMessageChannel.class);
+         DirectFieldAccessor cAccessor = new DirectFieldAccessor(channel);
+			Object iList = cAccessor.getPropertyValue("interceptors");
+			DirectFieldAccessor iAccessor = new DirectFieldAccessor(iList);
+			List<SampleInterceptor> interceptorList = (List<SampleInterceptor>) iAccessor.getPropertyValue("interceptors");
+			List<String> interceptorNames = new ArrayList<String>();
+			for (Object interceptor: interceptorList){
+				interceptorNames.add(interceptor.toString());
+			}
+			Assert.assertTrue(interceptorNames.contains("interceptor-ten"));
+			Assert.assertTrue(interceptorNames.contains("interceptor-eleven"));
 	}
 
 	
