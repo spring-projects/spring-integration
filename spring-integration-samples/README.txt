@@ -1,5 +1,5 @@
 Instructions for building the samples using Maven (http://maven.apache.org)
-NOTE: this requires Maven 2.1.0 or later
+NOTE: this requires Maven 2.2.0 or later
 -------------------------------------------------------------------------------
 
 1. Open a command prompt and navigate to the 'samples' directory within the
