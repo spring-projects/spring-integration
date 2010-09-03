@@ -83,7 +83,7 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 						"At least one of 'send-access' or 'receive-access' must be provided.", accessPolicyElement);
 			}
 			BeanDefinitionBuilder accessPolicyBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					BASE_PACKAGE_NAME + ".channel.ChannelAccessPolicy");
+					BASE_PACKAGE_NAME + ".channel.DefaultChannelAccessPolicy");
 			accessPolicyBuilder.addConstructorArgValue(sendAccess);
 			accessPolicyBuilder.addConstructorArgValue(receiveAccess);
 			accessPolicyBuilder.getBeanDefinition().setRole(BeanDefinition.ROLE_SUPPORT);

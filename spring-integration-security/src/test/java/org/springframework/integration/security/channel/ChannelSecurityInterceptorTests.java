@@ -80,7 +80,7 @@ public class ChannelSecurityInterceptorTests {
 
 	private static ChannelSecurityInterceptor createInterceptor(String role) throws Exception {
 		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
-		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new ChannelAccessPolicy(role, null));
+		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy(role, null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
 		AffirmativeBased accessDecisionManager = new AffirmativeBased();
 		

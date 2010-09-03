@@ -72,13 +72,13 @@ public class ChannelInvocationDefinitionSource implements SecurityMetadataSource
 			ChannelAccessPolicy accessPolicy = mapping.getValue();
 			if (pattern.matcher(channelName).matches()) {
 				if (invocation.isSend()) {
-					Collection<ConfigAttribute> definition = accessPolicy.getConfigAttributeDefinitionForSend();
+					Collection<ConfigAttribute> definition = accessPolicy.getConfigAttributesForSend();
 					if (definition != null) {
 						attributes.addAll(definition);
 					}
 				}
 				else if (invocation.isReceive()) {
-					Collection<ConfigAttribute> definition = accessPolicy.getConfigAttributeDefinitionForReceive();
+					Collection<ConfigAttribute> definition = accessPolicy.getConfigAttributesForReceive();
 					if (definition != null) {
 						attributes.addAll(definition);
 					}
@@ -92,9 +92,9 @@ public class ChannelInvocationDefinitionSource implements SecurityMetadataSource
 		Set<ConfigAttribute> allAttributes = new HashSet<ConfigAttribute>();
 
         for (ChannelAccessPolicy policy : patternMappings.values()) {
-        	Collection<ConfigAttribute> receiveAttributes = policy.getConfigAttributeDefinitionForReceive();
+        	Collection<ConfigAttribute> receiveAttributes = policy.getConfigAttributesForReceive();
         	allAttributes.addAll(receiveAttributes);
-        	Collection<ConfigAttribute> sendAttributes = policy.getConfigAttributeDefinitionForSend();
+        	Collection<ConfigAttribute> sendAttributes = policy.getConfigAttributesForSend();
         	allAttributes.addAll(sendAttributes);
         }
 

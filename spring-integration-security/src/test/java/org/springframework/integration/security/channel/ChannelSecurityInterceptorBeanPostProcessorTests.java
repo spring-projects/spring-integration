@@ -36,7 +36,7 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 	@Test
 	public void securedChannelIsProxied() {
 		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
-		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new ChannelAccessPolicy("ROLE_ADMIN", null));
+		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
 		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(interceptor);
 		QueueChannel securedChannel = new QueueChannel();
@@ -48,7 +48,7 @@ public class ChannelSecurityInterceptorBeanPostProcessorTests {
 	@Test
 	public void nonsecuredChannelIsNotProxied() {
 		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
-		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new ChannelAccessPolicy("ROLE_ADMIN", null));
+		objectDefinitionSource.addPatternMapping(Pattern.compile("secured.*"), new DefaultChannelAccessPolicy("ROLE_ADMIN", null));
 		ChannelSecurityInterceptor interceptor = new ChannelSecurityInterceptor(objectDefinitionSource);
 		ChannelSecurityInterceptorBeanPostProcessor postProcessor = new ChannelSecurityInterceptorBeanPostProcessor(interceptor);
 		QueueChannel channel = new QueueChannel();
