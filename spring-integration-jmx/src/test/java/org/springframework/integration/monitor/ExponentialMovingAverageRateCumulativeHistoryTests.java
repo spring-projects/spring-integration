@@ -71,7 +71,7 @@ public class ExponentialMovingAverageRateCumulativeHistoryTests {
 		Thread.sleep(22L);
 		history.increment();
 		Thread.sleep(18L);
-		assertEquals(1.5, history.getStandardDeviation(), 1);
+		assertEquals(0, Math.log10(history.getStandardDeviation()), 1);
 	}
 
 }
