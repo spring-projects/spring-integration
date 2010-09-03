@@ -111,6 +111,9 @@
 				<include>org.springframework.integration:spring-integration-ws</include>
 				<include>org.springframework.integration:spring-integration-xml</include>
 				<include>org.springframework.integration:spring-integration-xmpp</include>
+				<include>org.springframework.integration:spring-integration-sftp</include>
+				<include>org.springframework.integration:spring-integration-ftp</include>
+				<include>org.springframework.integration:spring-integration-twitter</include>
 			</includes>
 			<binaries>
 				<attachmentClassifier>sources</attachmentClassifier>

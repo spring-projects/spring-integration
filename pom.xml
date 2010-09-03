@@ -281,6 +281,10 @@
 									<packages>org.springframework.integration.test:org.springframework.integration.test.*</packages>
 								</group>
 								<group>
+									<title>Spring Integration Twitter Support</title>
+									<packages>org.springframework.integration.twitter:org.springframework.integration.twitter.*</packages>
+								</group>
+								<group>
 									<title>Spring Integration XML Support</title>
 									<packages>org.springframework.integration.xml:org.springframework.integration.xml.*</packages>
 								</group>
