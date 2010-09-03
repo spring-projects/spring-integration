@@ -20,8 +20,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -29,7 +27,6 @@ import org.springframework.integration.store.MessageGroup;
  * 
  * @author Iwein Fuld
  * @author Dave Syer
- * 
  * @since 2.0
  */
 public class ResequencingMessageGroupProcessor implements MessageGroupProcessor {
@@ -38,22 +35,20 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 
 	/**
 	 * A comparator to use to order messages before processing. The default is to order by sequence number.
-	 * 
 	 * @param comparator the comparator to use to order messages
 	 */
 	public void setComparator(Comparator<Message<?>> comparator) {
 		this.comparator = comparator;
 	}
 
-	public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate, MessageChannel outputChannel) {
+	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getUnmarked();
 		if (messages.size() > 0) {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
-			Collections.sort(sorted, comparator);
-			for (Message<?> message : sorted) {
-				messagingTemplate.send(outputChannel, message);
-			}
+			Collections.sort(sorted, this.comparator);
+			return sorted;
 		}
+		return null;
 	}
 
 }

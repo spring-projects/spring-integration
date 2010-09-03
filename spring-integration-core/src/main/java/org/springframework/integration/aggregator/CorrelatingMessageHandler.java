@@ -23,6 +23,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.NullChannel;
 import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
@@ -32,9 +33,6 @@ import org.springframework.integration.store.MessageGroupCallback;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageStore;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.support.channel.ChannelResolutionException;
-import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -77,8 +75,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	private MessageChannel outputChannel;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
-
-	private volatile ChannelResolver channelResolver;
 
 	private volatile MessageChannel discardChannel = new NullChannel();
 
@@ -136,8 +132,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 	protected void onInit() throws Exception {
 		super.onInit();
 		BeanFactory beanFactory = this.getBeanFactory();
-		if (this.channelResolver == null && beanFactory != null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		if (beanFactory != null) {
+			this.messagingTemplate.setBeanFactory(beanFactory);
 		}
 	}
 
@@ -160,7 +156,6 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) throws Exception {
-
 		Object correlationKey = correlationStrategy.getCorrelationKey(message);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Handling message with correlationKey ["
@@ -182,11 +177,10 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 								+ correlationKey + "]");
 					}
 					try {
-						outputProcessor.processAndSend(group, messagingTemplate,
-								this.resolveReplyChannel(message, this.outputChannel));
+						Object result = outputProcessor.processMessageGroup(group);
+						this.sendReplies(result, message.getHeaders().getReplyChannel());
 					}
 					finally {
-
 						// Always clean up even if there was an exception
 						// processing messages
 						if (group.isComplete() || group.getSequenceSize() == 0) {
@@ -230,8 +224,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 				// last chance for normal completion
 				try {
 					if (releaseStrategy.canRelease(group)) {
-						outputProcessor.processAndSend(group, messagingTemplate,
-								resolveReplyChannel(group.getOne(), this.outputChannel));
+						Object result = outputProcessor.processMessageGroup(group);
+						this.sendRepliesForGroup(result, group);
 					}
 					else {
 						if (sendPartialResultOnExpiry) {
@@ -239,8 +233,8 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 								logger.info("Processing partially complete messages for key ["
 										+ correlationKey + "] to: " + outputChannel);
 							}
-							outputProcessor.processAndSend(group, messagingTemplate,
-									resolveReplyChannel(group.getOne(), this.outputChannel));
+							Object result = outputProcessor.processMessageGroup(group);
+							this.sendRepliesForGroup(result, group);
 						}
 						else {
 							if (logger.isInfoEnabled()) {
@@ -281,28 +275,62 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		return messageStore.addMessageToGroup(correlationKey, message);
 	}
 
-	private MessageChannel resolveReplyChannel(Message<?> requestMessage, MessageChannel defaultOutputChannel) {
-		MessageChannel replyChannel = defaultOutputChannel;
-		if (replyChannel == null) {
-			Object replyChannelHeader = requestMessage.getHeaders().getReplyChannel();
-			if (replyChannelHeader instanceof MessageChannel) {
-				replyChannel = (MessageChannel) replyChannelHeader;
-			}
-			else if (replyChannelHeader instanceof String) {
-				Assert.state(channelResolver != null,
-						"ChannelResolver is required for resolving a reply channel by name");
-				replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
-			}
-			else if (replyChannelHeader != null) {
-				throw new ChannelResolutionException(
-						"expected a MessageChannel or String for 'replyChannel' header, " +
-						"but type is [" + replyChannelHeader.getClass() + "]");
+	private void sendRepliesForGroup(Object processorResult, MessageGroup group) {
+		Object replyChannelHeader = null;
+		if (group != null) {
+			Message<?> first = group.getOne();
+			if (first != null) {
+				replyChannelHeader = first.getHeaders().getReplyChannel();
 			}
 		}
-		if (replyChannel == null) {
-			throw new ChannelResolutionException("unable to resolve reply channel for message: " + requestMessage);
+		this.sendReplies(processorResult, replyChannelHeader);
+	}
+
+	private void sendReplies(Object processorResult, Object replyChannelHeader) {
+		Object replyChannel = this.outputChannel;
+		if (this.outputChannel == null) {
+			replyChannel = replyChannelHeader;
 		}
-		return replyChannel;
+		Assert.notNull(replyChannel, "no outputChannel or replyChannel header available");
+		if (processorResult instanceof Iterable<?> && shouldSendMultipleReplies((Iterable<?>) processorResult)) {
+			for (Object next : (Iterable<?>) processorResult) {
+				this.sendReplyMessage(next, replyChannel);
+			}
+		}
+		else {
+			this.sendReplyMessage(processorResult, replyChannel);
+		}
+	}
+
+	private void sendReplyMessage(Object reply, Object replyChannel) {
+		if (replyChannel instanceof MessageChannel) {
+			if (reply instanceof Message<?>) {
+				this.messagingTemplate.send((MessageChannel) replyChannel, (Message<?>) reply);
+			}
+			else {
+				this.messagingTemplate.convertAndSend((MessageChannel) replyChannel, reply);
+			}
+		}
+		else if (replyChannel instanceof String) {
+			if (reply instanceof Message<?>) {
+				this.messagingTemplate.send((String) replyChannel, (Message<?>) reply);
+			}
+			else {
+				this.messagingTemplate.convertAndSend((String) replyChannel, reply);
+			}
+		}
+		else {
+			throw new MessagingException("replyChannel must be a MessageChannel or String");
+		}
+	}
+
+	private boolean shouldSendMultipleReplies(Iterable<?> iter) {
+		for (Object next : iter) {
+			if (next instanceof Message<?>) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

@@ -23,10 +23,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -39,16 +38,15 @@ import org.springframework.util.Assert;
  * @author Alexander Peters
  * @author Mark Fisher
  * @author Dave Syer
- * 
  * @since 2.0
  */
 public abstract class AbstractAggregatingMessageGroupProcessor implements MessageGroupProcessor {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	public final void processAndSend(MessageGroup group, MessagingOperations messagingTemplate, MessageChannel outputChannel) {
+
+	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
-		Assert.notNull(outputChannel, "'outputChannel' must not be null");
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
 		MessageBuilder<?> builder;
@@ -58,8 +56,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 		else {
 			builder = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers);
 		}
-		Message<?> message = builder.build();
-		messagingTemplate.send(outputChannel, message);
+		return builder.build();
 	}
 
 	/**

@@ -20,9 +20,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -35,7 +32,6 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
@@ -44,14 +40,12 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payloads;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
@@ -61,16 +55,11 @@ import org.springframework.integration.support.MessageBuilder;
 @RunWith(MockitoJUnitRunner.class)
 public class MethodInvokingMessageGroupProcessorTests {
 
-	@Mock
-	private MessageChannel outputChannel;
-
 	private List<Message<?>> messagesUpForProcessing = new ArrayList<Message<?>>(3);
 
 	@Mock
 	private MessageGroup messageGroupMock;
 
-	@Mock
-	private MessagingTemplate messagingTemplate;
 
 	@Before
 	public void initializeMessagesUpForProcessing() {
@@ -79,7 +68,7 @@ public class MethodInvokingMessageGroupProcessorTests {
 		messagesUpForProcessing.add(MessageBuilder.withPayload(4).build());
 	}
 
-	@SuppressWarnings("unchecked")
+
 	@Test
 	public void shouldFindAnnotatedAggregatorMethod() throws Exception {
 
@@ -101,17 +90,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new AnnotatedAggregatorMethod());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethod() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -126,17 +110,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethodForMessages() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -151,17 +130,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindAnnotatedPayloads() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -179,18 +153,13 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		messagesUpForProcessing.add(MessageBuilder.withPayload(3).setHeader("foo", Arrays.asList(101, 102)).build());
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((String) messageCaptor.getValue().getPayload(), is("[1, 2, 4, 3, 101, 102]"));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4, 3, 101, 102]"));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldUseAnnotatedPayloads() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -209,17 +178,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((String) messageCaptor.getValue().getPayload(), is("[1, 2, 4]"));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((String) ((Message<?>) result).getPayload(), is("[1, 2, 4]"));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethodWithCollection() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -234,17 +198,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethodWithArray() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -259,17 +218,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new SimpleAggregator());
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindSimpleAggregatorMethodWithIterator() throws Exception {
 
 		@SuppressWarnings("unused")
@@ -291,17 +245,12 @@ public class MethodInvokingMessageGroupProcessorTests {
 			}
 		});
 		processor.setConversionService(conversionService);
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void shouldFindFittingMethodAmongMultipleUnannotated() {
 
 		@SuppressWarnings("unused")
@@ -325,15 +274,9 @@ public class MethodInvokingMessageGroupProcessorTests {
 		}
 
 		MessageGroupProcessor processor = new MethodInvokingMessageGroupProcessor(new UnannotatedAggregator());
-
-		ArgumentCaptor<Message> messageCaptor = ArgumentCaptor.forClass(Message.class);
-
-		when(outputChannel.send(isA(Message.class))).thenReturn(true);
 		when(messageGroupMock.getUnmarked()).thenReturn(messagesUpForProcessing);
-		processor.processAndSend(messageGroupMock, messagingTemplate, outputChannel);
-		// verify
-		verify(messagingTemplate).send(eq(outputChannel), messageCaptor.capture());
-		assertThat((Integer) messageCaptor.getValue().getPayload(), is(7));
+		Object result = processor.processMessageGroup(messageGroupMock);
+		assertThat((Integer) ((Message<?>) result).getPayload(), is(7));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -381,7 +324,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		group.add(new GenericMessage<String>("foo"));
 		group.add(new GenericMessage<String>("bar"));
 		assertEquals("foo", aggregator.aggregatePayloads(group, null));
-
 	}
 
 	@Test
@@ -401,7 +343,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		group.add(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		group.add(MessageBuilder.withPayload("bar").setHeader("foo", "bar").build());
 		assertEquals("foobar", aggregator.aggregatePayloads(group, aggregator.aggregateHeaders(group)));
-
 	}
 
 	@Test
@@ -421,7 +362,6 @@ public class MethodInvokingMessageGroupProcessorTests {
 		group.add(MessageBuilder.withPayload("foo").setHeader("foo", "bar").build());
 		group.add(MessageBuilder.withPayload("bar").setHeader("foo", "bar").build());
 		assertEquals("foobar", aggregator.aggregatePayloads(group, aggregator.aggregateHeaders(group)));
-
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -540,9 +480,11 @@ public class MethodInvokingMessageGroupProcessorTests {
 		assertEquals("hello proxy", output.receive(0).getPayload());
 	}
 
+
 	public interface GreetingService {
 		String sayHello(List<String> names);
 	}
+
 
 	public static class GreetingBean implements GreetingService {
 

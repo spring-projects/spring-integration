@@ -19,6 +19,7 @@ package org.springframework.integration.aggregator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,8 +29,6 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.integration.Message;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
@@ -39,10 +38,6 @@ import org.springframework.integration.support.MessageBuilder;
  * @since 2.0
  */
 public class AggregatingMessageGroupProcessorHeaderTests {
-
-	private final QueueChannel outputChannel = new QueueChannel(1);
-
-	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
 	private final DefaultAggregatingMessageGroupProcessor defaultProcessor = new DefaultAggregatingMessageGroupProcessor();
 
@@ -107,11 +102,12 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message = correlatedMessage(1, 1, 1, headers);
 		List<Message<?>> messages = Collections.<Message<?>>singletonList(message);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, messagingTemplate, outputChannel);
-		Message<?> result = outputChannel.receive(0);
+		Object result = processor.processMessageGroup(group);
 		assertNotNull(result);
-		assertEquals("value1", result.getHeaders().get("k1"));
-		assertEquals(2, result.getHeaders().get("k2"));
+		assertTrue(result instanceof Message<?>);
+		Message<?> resultMessage = (Message<?>) result;
+		assertEquals("value1", resultMessage.getHeaders().get("k1"));
+		assertEquals(2, resultMessage.getHeaders().get("k2"));
 	}
 
 	private void twoMessagesWithoutConflicts(MessageGroupProcessor processor) {
@@ -122,11 +118,12 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, messagingTemplate, outputChannel);
-		Message<?> result = outputChannel.receive(0);
+		Object result = processor.processMessageGroup(group);
 		assertNotNull(result);
-		assertEquals("value1", result.getHeaders().get("k1"));
-		assertEquals(2, result.getHeaders().get("k2"));
+		assertTrue(result instanceof Message<?>);
+		Message<?> resultMessage = (Message<?>) result;
+		assertEquals("value1", resultMessage.getHeaders().get("k1"));
+		assertEquals(2, resultMessage.getHeaders().get("k2"));
 	}
 
 	private void twoMessagesWithConflicts(MessageGroupProcessor processor) {
@@ -140,11 +137,12 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message2 = correlatedMessage(1, 2, 2, headers2);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, messagingTemplate, outputChannel);
-		Message<?> result = outputChannel.receive(0);
+		Object result = processor.processMessageGroup(group);
 		assertNotNull(result);
-		assertNull(result.getHeaders().get("k1"));
-		assertEquals(123, result.getHeaders().get("k2"));
+		assertTrue(result instanceof Message<?>);
+		Message<?> resultMessage = (Message<?>) result;
+		assertNull(resultMessage.getHeaders().get("k1"));
+		assertEquals(123, resultMessage.getHeaders().get("k2"));
 	}
 
 	private void missingValuesDoNotConflict(MessageGroupProcessor processor) {
@@ -170,17 +168,18 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, messagingTemplate, outputChannel);
-		Message<?> result = outputChannel.receive(0);
+		Object result = processor.processMessageGroup(group);
 		assertNotNull(result);
-		assertEquals("value1", result.getHeaders().get("only1"));
-		assertEquals("value2", result.getHeaders().get("only2"));
-		assertEquals("value3", result.getHeaders().get("only3"));
-		assertEquals("foo", result.getHeaders().get("commonTo1And2"));
-		assertEquals("bar", result.getHeaders().get("commonTo2And3"));
-		assertEquals(123, result.getHeaders().get("commonToAll"));
-		assertNull(result.getHeaders().get("conflictBetween1And2"));
-		assertNull(result.getHeaders().get("conflictBetween2And3"));
+		assertTrue(result instanceof Message<?>);
+		Message<?> resultMessage = (Message<?>) result;
+		assertEquals("value1", resultMessage.getHeaders().get("only1"));
+		assertEquals("value2", resultMessage.getHeaders().get("only2"));
+		assertEquals("value3", resultMessage.getHeaders().get("only3"));
+		assertEquals("foo", resultMessage.getHeaders().get("commonTo1And2"));
+		assertEquals("bar", resultMessage.getHeaders().get("commonTo2And3"));
+		assertEquals(123, resultMessage.getHeaders().get("commonToAll"));
+		assertNull(resultMessage.getHeaders().get("conflictBetween1And2"));
+		assertNull(resultMessage.getHeaders().get("conflictBetween2And3"));
 	}
 
 	private void multipleValuesConflict(MessageGroupProcessor processor) {
@@ -198,11 +197,12 @@ public class AggregatingMessageGroupProcessorHeaderTests {
 		Message<?> message3 = correlatedMessage(1, 3, 3, headers3);
 		List<Message<?>> messages = Arrays.<Message<?>>asList(message1, message2, message3);
 		MessageGroup group = new SimpleMessageGroup(messages, 1);
-		processor.processAndSend(group, messagingTemplate, outputChannel);
-		Message<?> result = outputChannel.receive(0);
+		Object result = processor.processMessageGroup(group);
 		assertNotNull(result);
-		assertEquals("valueForAll", result.getHeaders().get("common"));
-		assertNull(result.getHeaders().get("conflict"));
+		assertTrue(result instanceof Message<?>);
+		Message<?> resultMessage = (Message<?>) result;
+		assertEquals("valueForAll", resultMessage.getHeaders().get("common"));
+		assertNull(resultMessage.getHeaders().get("conflict"));
 	}
 
 	private static Message<?> correlatedMessage(Object correlationId, Integer sequenceSize,

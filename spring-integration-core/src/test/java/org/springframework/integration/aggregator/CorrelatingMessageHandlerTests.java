@@ -18,7 +18,6 @@ package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -34,13 +33,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.internal.stubbing.answers.DoesNothing;
 import org.mockito.internal.stubbing.answers.ThrowsException;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -69,13 +67,13 @@ public class CorrelatingMessageHandlerTests {
 
 	private MessageGroupStore store = new SimpleMessageStore();
 
+
 	@Before
 	public void initializeSubject() {
 		handler = new CorrelatingMessageHandler(processor, store, correlationStrategy, ReleaseStrategy);
 		handler.setOutputChannel(outputChannel);
-		doAnswer(new DoesNothing()).when(processor).processAndSend(isA(SimpleMessageGroup.class),
-				isA(MessagingTemplate.class), eq(outputChannel));
 	}
+
 
 	@Test
 	public void bufferCompletesNormally() throws Exception {
@@ -93,8 +91,7 @@ public class CorrelatingMessageHandlerTests {
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor)
-				.processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
+		verify(processor).processMessageGroup(isA(SimpleMessageGroup.class));
 	}
 
 	private void verifyLocks(CorrelatingMessageHandler handler, int lockCount) {
@@ -104,8 +101,8 @@ public class CorrelatingMessageHandlerTests {
 	@Test
 	public void bufferCompletesWithException() throws Exception {
 
-		doAnswer(new ThrowsException(new RuntimeException("Planned test exception"))).when(processor).processAndSend(
-				isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
+		doAnswer(new ThrowsException(new RuntimeException("Planned test exception")))
+				.when(processor).processMessageGroup(isA(SimpleMessageGroup.class));
 
 		String correlationKey = "key";
 		Message<?> message1 = testMessage(correlationKey, 1, 2);
@@ -125,8 +122,7 @@ public class CorrelatingMessageHandlerTests {
 
 		verify(correlationStrategy).getCorrelationKey(message1);
 		verify(correlationStrategy).getCorrelationKey(message2);
-		verify(processor)
-				.processAndSend(isA(SimpleMessageGroup.class), isA(MessagingTemplate.class), eq(outputChannel));
+		verify(processor).processMessageGroup(isA(SimpleMessageGroup.class));
 	}
 
 	/*
@@ -160,7 +156,6 @@ public class CorrelatingMessageHandlerTests {
 		assertEquals(0, store.expireMessageGroups(10000));
 
 		bothMessagesHandled.await();
-
 	}
 
 	@Test
@@ -170,7 +165,8 @@ public class CorrelatingMessageHandlerTests {
 		try {
 			handler.handleMessage(message1);
 			fail("Expected MessageHandlingException");
-		} catch (MessageHandlingException e) {
+		}
+		catch (MessageHandlingException e) {
 			Throwable cause = e.getCause();
 			boolean pass = cause instanceof IllegalStateException && cause.getMessage().toLowerCase().contains("null correlation");
 			if (!pass) {
@@ -178,6 +174,7 @@ public class CorrelatingMessageHandlerTests {
 			}
 		}
 	}
+
 
 	private Message<?> testMessage(String correlationKey, int sequenceNumber, int sequenceSize) {
 		return MessageBuilder.withPayload("test" + sequenceNumber).setCorrelationId(correlationKey).setSequenceNumber(

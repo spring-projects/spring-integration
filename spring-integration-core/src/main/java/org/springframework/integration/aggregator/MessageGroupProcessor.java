@@ -13,8 +13,6 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 
 /**
@@ -26,11 +24,10 @@ import org.springframework.integration.store.MessageGroup;
 public interface MessageGroupProcessor {
 
 	/**
-	 * Process the given group and send the resulting message(s) to the output channel using the messaging operations.
-	 * Implementations are free to send as few or as many messages based on the invocation as needed. For example an
-	 * aggregating processor will send only a single message representing the group, where a resequencing strategy will
-	 * send all messages in the group individually.
+	 * Process the given MessageGroup. Implementations are free to return as few or as many messages based on the
+	 * invocation as needed. For example an aggregating processor will return only a single message representing the
+	 * group, while a resequencing processor will return all messages whose preceding sequence has been satisfied.
 	 */
-	void processAndSend(MessageGroup group, MessagingOperations messagingTemplate, MessageChannel outputChannel);
+	Object processMessageGroup(MessageGroup group);
 
 }

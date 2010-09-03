@@ -25,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
@@ -43,12 +43,15 @@ import org.springframework.integration.support.MessageBuilder;
 public class AggregatorTests {
 
 	private CorrelatingMessageHandler aggregator;
+
 	private SimpleMessageStore store = new SimpleMessageStore(50);
+
 
 	@Before
 	public void configureAggregator() {
 		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), store);
 	}
+
 
 	@Test
 	public void testCompleteGroupWithinTimeout() throws InterruptedException {
@@ -220,6 +223,7 @@ public class AggregatorTests {
 		assertNull(reply);
 	}
 
+
 	private static Message<?> createMessage(Object payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel, String predefinedId) {
 		MessageBuilder<Object> builder = MessageBuilder.withPayload(payload).setCorrelationId(correlationId)
@@ -230,21 +234,22 @@ public class AggregatorTests {
 		return builder.build();
 	}
 
+
 	private class MultiplyingProcessor implements MessageGroupProcessor {
-		public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate,
-				MessageChannel outputChannel) {
+		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
 			for (Message<?> message : group.getUnmarked()) {
 				product *= (Integer) message.getPayload();
 			}
-			messagingTemplate.send(outputChannel, MessageBuilder.withPayload(product).build());
+			return product;
 		}
 	}
 
+
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
-		public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate,
-				MessageChannel outputChannel) {
-			// noop
+		public Object processMessageGroup(MessageGroup group) {
+			return null;
 		}
 	}
+
 }

@@ -13,25 +13,20 @@
 
 package org.springframework.integration.aggregator;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
-import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 
 /**
- * This implementation of MessageGroupProcessor will forward all messages inside the group to the given output channel.
- * This is useful if there is no requirement to process the messages, but they should just be blocked as a group until
- * their ReleaseStrategy lets them pass through.
- *
+ * This implementation of MessageGroupProcessor will return all unmarked messages inside the group.
+ * This is useful if there is no requirement to process the messages, but they should just be
+ * blocked as a group until their ReleaseStrategy lets them pass through.
+ * 
  * @author Iwein Fuld
  * @since 2.0.0
  */
 public class PassThroughMessageGroupProcessor implements MessageGroupProcessor {
 
-    public void processAndSend(MessageGroup group, MessagingOperations messagingTemplate, MessageChannel outputChannel) {
-        for (Message<?> message : group.getUnmarked()) {
-            messagingTemplate.send(outputChannel, message);
-        }
-    }
+	public Object processMessageGroup(MessageGroup group) {
+		return group.getUnmarked();
+	}
 
 }

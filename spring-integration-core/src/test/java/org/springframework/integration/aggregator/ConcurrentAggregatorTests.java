@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.Message;
@@ -36,7 +37,6 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.core.MessagingOperations;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
@@ -55,11 +55,13 @@ public class ConcurrentAggregatorTests {
 
 	private MessageGroupStore store = new SimpleMessageStore();
 
+
 	@Before
 	public void configureAggregator() {
 		this.taskExecutor = new SimpleAsyncTaskExecutor();
 		this.aggregator = new CorrelatingMessageHandler(new MultiplyingProcessor(), store);
 	}
+
 
 	@Test
 	public void testCompleteGroupWithinTimeout() throws InterruptedException {
@@ -296,6 +298,7 @@ public class ConcurrentAggregatorTests {
 		assertNull(reply);
 	}
 
+
 	private static Message<?> createMessage(Object payload,
 			Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel, String predefinedId) {
@@ -308,6 +311,7 @@ public class ConcurrentAggregatorTests {
 		}
 		return builder.build();
 	}
+
 
 	private static class AggregatorTestTask implements Runnable {
 
@@ -342,23 +346,23 @@ public class ConcurrentAggregatorTests {
 		}
 	}
 
+
 	private class MultiplyingProcessor implements MessageGroupProcessor {
-		public void processAndSend(MessageGroup group,
-				MessagingOperations messagingTemplate,
-				MessageChannel outputChannel) {
+		public Object processMessageGroup(MessageGroup group) {
 			Integer product = 1;
 			for (Message<?> message : group.getUnmarked()) {
 				product *= (Integer) message.getPayload();
 			}
-			messagingTemplate.send(outputChannel, MessageBuilder.withPayload(product).build());
+			return product;
+			//messagingTemplate.send(outputChannel, MessageBuilder.withPayload(product).build());
 		}
 	}
 
+
 	private class NullReturningMessageProcessor implements MessageGroupProcessor {
-		public void processAndSend(MessageGroup group,
-				MessagingOperations messagingTemplate,
-				MessageChannel outputChannel) {
-			// noop
+		public Object processMessageGroup(MessageGroup group) {
+			return null;
 		}
 	}
+
 }
