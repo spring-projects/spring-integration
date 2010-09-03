@@ -77,6 +77,41 @@
 					<url>s3://maven.springframework.org/milestone</url>
 				</repository>
 			</distributionManagement>
+			<build>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.4</version>
+					<executions>
+						<execution>
+							<id>upload-dist</id>
+							<phase>deploy</phase>
+							<configuration>
+								<tasks>
+									<ant antfile="${basedir}/src/ant/upload-dist.xml">
+										<target name="upload-dist" />
+									</ant>
+								</tasks>
+							</configuration>
+							<goals>
+								<goal>run</goal>
+							</goals>
+						</execution>
+					</executions>
+					<dependencies>
+						<dependency>
+							<groupId>org.springframework.build</groupId>
+							<artifactId>org.springframework.build.aws.ant</artifactId>
+							<version>3.0.5.RELEASE</version>
+						</dependency>
+						<dependency>
+							<groupId>net.java.dev.jets3t</groupId>
+							<artifactId>jets3t</artifactId>
+							<version>0.7.2</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+			</build>
 		</profile>
 		<profile>
 			<id>release</id>
@@ -89,6 +124,41 @@
 					<url>file://${java.io.tmpdir}/spring-integration-repo</url>
 				</repository>
 			</distributionManagement>
+			<build>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.4</version>
+					<executions>
+						<execution>
+							<id>upload-dist</id>
+							<phase>deploy</phase>
+							<configuration>
+								<tasks>
+									<ant antfile="${basedir}/src/ant/upload-dist.xml">
+										<target name="upload-dist" />
+									</ant>
+								</tasks>
+							</configuration>
+							<goals>
+								<goal>run</goal>
+							</goals>
+						</execution>
+					</executions>
+					<dependencies>
+						<dependency>
+							<groupId>org.springframework.build</groupId>
+							<artifactId>org.springframework.build.aws.ant</artifactId>
+							<version>3.0.5.RELEASE</version>
+						</dependency>
+						<dependency>
+							<groupId>net.java.dev.jets3t</groupId>
+							<artifactId>jets3t</artifactId>
+							<version>0.7.2</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+			</build>
 		</profile>
 		<profile>
 			<id>staging</id>
@@ -323,39 +393,6 @@
 							</configuration>
 						</execution>
 					</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<id>upload-dist</id>
-						<phase>deploy</phase>
-						<configuration>
-							<tasks>
-								<ant antfile="${basedir}/src/ant/upload-dist.xml">
-									<target name="upload-dist" />
-								</ant>
-							</tasks>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework.build</groupId>
-						<artifactId>org.springframework.build.aws.ant</artifactId>
-						<version>3.0.5.RELEASE</version>
-					</dependency>
-					<dependency>
-						<groupId>net.java.dev.jets3t</groupId>
-						<artifactId>jets3t</artifactId>
-						<version>0.7.2</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 			<plugin>
 				<!-- depend explicitly on 2.0 in order to pick up the new
