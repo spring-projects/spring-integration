@@ -4,29 +4,6 @@
 <chapter id="gateway">
   <title>Inbound Messaging Gateways</title>
 
-  <section id="gateway-simple">
-    <title>SimpleMessagingGateway</title>
-    <para>
-      Even though the <classname>MessageChannelTemplate</classname> is fairly straightforward, it does not hide the
-      details of messaging from your application code. To support working with plain Objects instead of messages,
-      Spring Integration provides <classname>SimpleMessagingGateway</classname> with the following methods:
-      <programlisting language="java"><![CDATA[ public void send(Object object) { ... }
-
- public Object receive() { ... }
-
- public Object sendAndReceive(Object object) { ... }
-
- Message<?> sendAndReceiveMessage(Object object);]]></programlisting>
-      It enables configuration of a request and/or reply channel and delegates to instances of the
-      <interfacename>InboundMessageMapper</interfacename> and <interfacename>OutboundMessageMapper</interfacename>
-      strategy interfaces.
-      <programlisting language="java"> SimpleMessagingGateway gateway = new SimpleMessagingGateway(inboundMapper, outboundMapper);
- gateway.setRequestChannel(requestChannel);
- gateway.setReplyChannel(replyChannel);
- Object result = gateway.sendAndReceive("test");</programlisting>
-    </para>
-  </section>
-
   <section id="gateway-proxy">
     <title>GatewayProxyFactoryBean</title>
     <para>
@@ -127,6 +104,43 @@
 				]]></programlisting>	
  
  
+  </section>
+  <section id="async-gateway">
+    <title>Asynchronous Gateway</title>
+    <para>
+      As a pattern Messaging Gateway is a very nice way to hide you from messaging-specific code while still exposing full capabilities of the 
+      messaging system. And <classname>GatewayProxyFactoryBean</classname> provides a convenient way to expose Proxy over the service-interface thus giving you a POJO-based access 
+      to a messaging system.  But when gateway is exposed via simple POJO method which returns value it does imply that for each Request message (method is invoked) 
+      there must be a Reply message (method has returned). Since Messaging systems naturally are asynchronous you may not always able to 
+      guarantee the contract where <emphasis>"for each request there will always be be a reply"</emphasis>. 
+      With Spring Integration 2.0 we are introducing an <emphasis>Asynchronous Gateway</emphasis> which is a convenient way to initiate flows where you may not know 
+      if reply is coming or how long will it take for it to come. 
+      </para>
+      <para>
+      A natural way to handle these types of scenarios in Java would be <emphasis>java.util.concurrent.Future</emphasis>s and that is exactly what Spring Integration uses to create an <emphasis>Asynchronous Gateway</emphasis>.
+      </para>
+      <para>
+	  From the XML configuration, there is nothing different and you still define <emphasis>Asynchronous Gateway</emphasis> the same way as regular Gateway
+      <programlisting language="xml"><![CDATA[<int:gateway id="mathService" 
+     service-interface="org.springframework.integration.sample.gateway.futures.MathServiceGateway"
+     default-request-channel="requestChannel"/>]]></programlisting>
+      However the Gateway Interface (service-interface) is a bit different.
+      
+      <programlisting language="java">public interface MathServiceGateway {
+	Future&lt;Integer&gt; multiplyByTwo(int i);
+}</programlisting>
+    </para>
+    <para>
+    As you can see from the example above the return type for the gateway method is <classname>Future</classname>. When <classname>GatewayProxyFactoryBean</classname> sees that the 
+    return type of the gateway method is <classname>Future</classname> it immediately switches to the async mode by utilizing <classname>AsyncTaskExecutor</classname>
+    That is all. The call to a method always returns immediately with <classname>Future</classname> encapsulating  the interaction with the framework. 
+    Now you can interact with the <classname>Future</classname> at your own pace to get the result, timeout, get the exception etc...
+    <programlisting language="java">MathServiceGateway mathService = ac.getBean("mathService", MathServiceGateway.class);
+Future&lt;Integer&gt; result = mathService.multiplyByTwo(number);
+int finalResult =  result.get(1000, TimeUnit.SECONDS);</programlisting>
+For more detailed example please refer to <emphasis>async-gateway</emphasis> sample distributed with Spring Integration samples.
+    </para>
+    
   </section>
 
 </chapter>
