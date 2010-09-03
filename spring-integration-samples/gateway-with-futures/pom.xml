@@ -6,8 +6,8 @@
 		<artifactId>spring-integration-samples</artifactId>
 		<version>2.0.0.BUILD-SNAPSHOT</version>
 	</parent>
-	<artifactId>gateway-with-futures</artifactId>
-	<name>Gateway with Futures Demo</name>
+	<artifactId>async-gateway</artifactId>
+	<name>	 Gateway Demo</name>
 	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>

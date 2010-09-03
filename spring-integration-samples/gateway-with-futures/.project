@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>gateway-with-futures</name>
+	<name>async-gateway</name>
 	<comment></comment>
 	<projects>
 	</projects>
