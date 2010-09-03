@@ -19,6 +19,7 @@ package org.springframework.integration.control;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -40,11 +41,12 @@ import org.springframework.jmx.support.MBeanServerFactoryBean;
 public class ControlBusOperationChannelTests {
 
 	private final String domain = "domain.test";
+	private GenericApplicationContext context;
 
 
 	@Test
 	public void replyProducingOperation() throws Exception {
-		GenericApplicationContext context = new GenericApplicationContext();
+		context = new GenericApplicationContext();
 		RootBeanDefinition endpointDef = new RootBeanDefinition(EventDrivenConsumer.class);
 		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new DirectChannel());
 		endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RootBeanDefinition(TestHandler.class));
@@ -66,6 +68,11 @@ public class ControlBusOperationChannelTests {
 		assertFalse("endpoint should have been stopped", endpoint.isRunning());
 		controlBus.getOperationChannel().send(startMessage);
 		assertTrue("endpoint should be running after being restarted", endpoint.isRunning());
+		close();
+	}
+
+	@After
+	public void close() {
 		context.close();
 	}
 

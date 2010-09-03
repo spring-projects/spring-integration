@@ -1,10 +1,19 @@
 package org.springframework.integration;
 
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.springframework.integration.control.ControlBusTests;
 import org.springframework.integration.control.ControlBusXmlTests;
+import org.springframework.integration.jmx.AttributePollingMessageSourceTests;
+import org.springframework.integration.jmx.NotificationListeningMessageProducerTests;
+import org.springframework.integration.jmx.OperationInvokingMessageHandlerTests;
+import org.springframework.integration.jmx.config.NotificationListeningChannelAdapterParserTests;
+import org.springframework.integration.jmx.config.OperationInvokingChannelAdapterParserTests;
+import org.springframework.integration.jmx.config.OperationInvokingOutboundGatewayTests;
+import org.springframework.integration.monitor.ExponentialMovingAverageCumulativeHistoryTests;
+import org.springframework.integration.monitor.ExponentialMovingAverageRatioCumulativeHistoryTests;
+import org.springframework.integration.monitor.HandlerMonitoringIntegrationTests;
 import org.springframework.integration.monitor.MessageChannelsMonitorIntegrationTests;
 
 /*
@@ -30,8 +39,13 @@ import org.springframework.integration.monitor.MessageChannelsMonitorIntegration
  * 
  */
 @RunWith(Suite.class)
-@SuiteClasses(value = { ControlBusXmlTests.class, MessageChannelsMonitorIntegrationTests.class })
-@Ignore
+@SuiteClasses(value = { OperationInvokingMessageHandlerTests.class,
+		ExponentialMovingAverageCumulativeHistoryTests.class, OperationInvokingChannelAdapterParserTests.class,
+		HandlerMonitoringIntegrationTests.class, NotificationListeningMessageProducerTests.class,
+		OperationInvokingOutboundGatewayTests.class, NotificationListeningChannelAdapterParserTests.class,
+		ControlBusXmlTests.class, ExponentialMovingAverageRatioCumulativeHistoryTests.class,
+		AttributePollingMessageSourceTests.class, ControlBusTests.class, MessageChannelsMonitorIntegrationTests.class })
+// @Ignore
 public class IgnoredTestSuite {
 
 }

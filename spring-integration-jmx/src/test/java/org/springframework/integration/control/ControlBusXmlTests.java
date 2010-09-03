@@ -30,7 +30,6 @@ import org.springframework.integration.monitor.LifecycleMessageHandlerMonitor;
 import org.springframework.integration.monitor.QueueChannelMonitor;
 import org.springframework.integration.monitor.SimpleMessageChannelMonitor;
 import org.springframework.jmx.support.ObjectNameManager;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -41,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ControlBusXmlTests {
 
-	private static final String DOMAIN = "spring.application";
+	private static final String DOMAIN = "control.bus.xml.test";
 
 
 	@Autowired
@@ -78,8 +77,6 @@ public class ControlBusXmlTests {
 	}
 
 	@Test
-	// Assume this one runs last and force MBeans to be unregistered to avoid clashes in later tests
-	@DirtiesContext
 	public void pollingConsumerRegistered() throws Exception {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageHandler,name=testPollingBridge,bean=endpoint"));

@@ -13,8 +13,9 @@
 
 	<int:bridge id="bridge" input-channel="requests" output-channel="intermediate"/>
 
-	<bean id="integrationExecutions" class="org.springframework.integration.monitor.IntegrationMBeanExporter">
+	<bean id="mbeanExporter" class="org.springframework.integration.monitor.IntegrationMBeanExporter">
 		<property name="server" ref="mbeanServer" />
+		<property name="domain" value="test.ChannelIntegrationTests"/>
 	</bean>
 
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">

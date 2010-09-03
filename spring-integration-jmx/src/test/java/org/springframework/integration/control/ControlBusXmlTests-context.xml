@@ -16,9 +16,7 @@
 	<int:bridge input-channel="testDirectChannel" />
 
 	<int:bridge id="testPollingBridge" input-channel="testQueueChannel" output-channel="nullChannel">
-		<int:poller max-messages-per-poll="1">
-			<int:interval-trigger interval="10000" />
-		</int:poller>
+		<int:poller max-messages-per-poll="1" fixed-rate="10000" />
 	</int:bridge>
 
 	<bean id="controlBus" class="org.springframework.integration.control.ControlBus">
@@ -28,6 +26,7 @@
 
 	<bean id="mbeanExporter" class="org.springframework.integration.monitor.IntegrationMBeanExporter">
 		<property name="server" ref="mbeanServer" />
+		<property name="domain" value="control.bus.xml.test" />
 	</bean>
 
 	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
