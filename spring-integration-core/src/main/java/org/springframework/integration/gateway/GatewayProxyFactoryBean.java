@@ -17,10 +17,15 @@
 package org.springframework.integration.gateway;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Future;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -33,9 +38,13 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.support.TaskExecutorAdapter;
 import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -85,6 +94,8 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 
 	private final Map<Method, MethodInvocationGateway> gatewayMap = new HashMap<Method, MethodInvocationGateway>();
 
+	private volatile AsyncTaskExecutor asyncExecutor = new SimpleAsyncTaskExecutor();
+
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
@@ -115,7 +126,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		Assert.isTrue(serviceInterface.isInterface(), "'serviceInterface' must be an interface");
 		this.serviceInterface = serviceInterface;
 	}
-
 
 	/**
 	 * Set the default request channel.
@@ -166,6 +176,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 				gateway.setShouldTrack(shouldTrack);
 			}
 		}
+	}
+
+	public void setAsyncExecutor(Executor executor) {
+		Assert.notNull(executor, "executor must not be null");
+		this.asyncExecutor = (executor instanceof AsyncTaskExecutor) ? (AsyncTaskExecutor) executor
+				: new TaskExecutorAdapter(executor);
 	}
 
 	public void setTypeConverter(TypeConverter typeConverter) {
@@ -222,7 +238,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		return true;
 	}
 
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public Object invoke(final MethodInvocation invocation) throws Throwable {
+		if (Future.class.isAssignableFrom(invocation.getMethod().getReturnType())) {
+			return this.asyncExecutor.submit(new AsyncInvocationTask(invocation));
+		}
+		return this.doInvoke(invocation);
+	}
+
+	private Object doInvoke(MethodInvocation invocation) throws Throwable {
 		Method method = invocation.getMethod();
 		if (AopUtils.isToStringMethod(method)) {
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
@@ -245,13 +268,14 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		Method method = invocation.getMethod();
 		MethodInvocationGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
-		boolean isReturnTypeMessage = Message.class.isAssignableFrom(returnType);
+		boolean shouldReturnMessage = Message.class.isAssignableFrom(returnType)
+				|| hasFutureParameterizedWithMessage(method);
 		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
 		if (paramCount == 0) {
 			if (shouldReply) {
-				if (isReturnTypeMessage) {
+				if (shouldReturnMessage) {
 					return gateway.receive();
 				}
 				response = gateway.receive();
@@ -260,7 +284,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		else {
 			Object[] args = invocation.getArguments();
 			if (shouldReply) {
-				response = isReturnTypeMessage ? gateway.sendAndReceiveMessage(args) : gateway.sendAndReceive(args);
+				response = shouldReturnMessage ? gateway.sendAndReceiveMessage(args) : gateway.sendAndReceive(args);
 			}
 			else {
 				gateway.send(args);
@@ -389,7 +413,11 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		this.exceptionMapper = exceptionMapper;
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> T convert(Object source, Class<T> expectedReturnType) {
+		if (Future.class.isAssignableFrom(expectedReturnType)) {
+			return (T) source;
+		}
 		if (this.getConversionService() != null) {
 			return this.getConversionService().convert(source, expectedReturnType);
 		}
@@ -398,11 +426,52 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Trackab
 		}
 	}
 
+	private static boolean hasFutureParameterizedWithMessage(Method method) {
+		if (Future.class.isAssignableFrom(method.getReturnType())) {
+			Type returnType = method.getGenericReturnType();
+			if (returnType instanceof ParameterizedType) {
+				Type[] typeArgs = ((ParameterizedType) returnType).getActualTypeArguments();
+				if (typeArgs != null && typeArgs.length == 1) {
+					Type parameterizedType = typeArgs[0];
+					if (parameterizedType instanceof ParameterizedType) {
+						Type rawType = ((ParameterizedType) parameterizedType).getRawType();
+						if (rawType instanceof Class) {
+							return Message.class.isAssignableFrom((Class<?>) rawType);
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 
 	private static class MethodInvocationGateway extends AbstractMessagingGateway {
 
 		private MethodInvocationGateway(GatewayMethodInboundMessageMapper messageMapper) {
 			this.setRequestMapper(messageMapper);
+		}
+	}
+
+
+	private class AsyncInvocationTask implements Callable<Object> {
+
+		private final MethodInvocation invocation;
+
+		private AsyncInvocationTask(MethodInvocation invocation) {
+			this.invocation = invocation;
+		}
+	
+		public Object call() throws Exception {
+			try {
+				return doInvoke(this.invocation);
+			}
+			catch (Throwable t) {
+				if (t instanceof RuntimeException) {
+					throw (RuntimeException) t;
+				}
+				throw new MessagingException("asynchronous gateway invocation failed", t);
+			}
 		}
 	}
 
