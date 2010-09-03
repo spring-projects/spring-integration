@@ -121,10 +121,46 @@ public String argumentAsPayload(@Payload String fname, @Header String lname) {
 			
 <programlisting language="xml">&lt;si:annotation-config default-publisher-channel="defaultChannel"/&gt;</programlisting>
 	 		</para>
+	 		
+	 		<para>
+	 		Similar to other Spring annotations (e.g., @Controller), <classname>@Publisher</classname> is a meta-annotation, which means you can define your own annotations 
+	 		that will be treated as <classname>@Publisher</classname>
+	 		<programlisting language="java"><![CDATA[@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Publisher(channel="auditChannel")
+public @interface Audit {
+}]]></programlisting>
+Here we defined <classname>@Audit</classname> annotation which itself is a <classname>@Publisher</classname>. Also note that you can define <code>channel</code>
+attribute on the meta-annotation thus encapsulating the behavior of where messages will be sent inside of this annotation.
+
+Now you can annotate any method:
+<programlisting language="java"><![CDATA[@Audit
+public String test() {
+    return "foo";
+}]]></programlisting>
+
+In the above example every invocation of <code>test()</code> method will result in Message with payload which is the return value of the method 
+invocation to be sent to <emphasis>auditChannel</emphasis>
+
+You can also annotate the class which would mean that the properties of this annotation will be applied on every public method of this class
+
+<programlisting language="java"><![CDATA[@Audit
+static class BankingOperationsImpl implements BankingOperations {
+
+  public String debit(String amount) {
+     . . .
+  }
+
+  public String credit(String amount) {
+     . . .
+  }
+}]]></programlisting>
+
+	 		</para>
 	  	</section>
 
 	  	<section id="aop-based-interceptor">
-		    <title>XML-based approach via &lt;publisher&gt; element</title>
+		    <title>XML-based approach via &lt;publishing-interceptor&gt; element</title>
 		    <para>
 		    The XML-based approach allows you to configure the same AOP-based Message Publishing functionality with
 		    simple namespace-based configuration of a <classname>MessagePublishingInterceptor</classname>.
@@ -145,22 +181,22 @@ public String argumentAsPayload(@Payload String fname, @Header String lname) {
 	      </itemizedlist>
 		    </para>
 		    <para>
-<programlisting language="xml">
-&lt;beans:bean id="testBean" class="org.foo.bar.TestBean" /&gt;
-&lt;aop:config&gt;
-	&lt;aop:advisor advice-ref="interceptor" pointcut="bean(testBean)" /&gt;
-&lt;/aop:config&gt;
-	
-&lt;publishing-interceptor id="interceptor" default-channel="defaultChannel"&gt;
-	&lt;method pattern="echo" payload="'Echoing: ' + #return" headers="foo='bar'" channel="echoChannel"/&gt;
-	&lt;method pattern="echoDef*" payload="#return"/&gt;
-	&lt;method pattern="foo*"/&gt;
-&lt;/publishing-interceptor&gt;
-	</programlisting>		    
+<programlisting language="xml"><![CDATA[<aop:config>
+	<aop:advisor advice-ref="interceptor" pointcut="bean(testBean)" />
+</aop:config>
+<publishing-interceptor id="interceptor" default-channel="defaultChannel">
+  <method pattern="echo" payload="'Echoing: ' + #return" channel="echoChannel">
+    <header name="foo" value="bar"/>
+  </method>
+  <method pattern="repl*" payload="'Echoing: ' + #return" channel="echoChannel">
+    <header name="foo" expression="'bar'.toUpperCase()"/>
+  </method>
+  <method pattern="echoDef*" payload="#return"/>
+</publishing-interceptor>]]></programlisting>		    
 		    </para>
 		    <para>
-		    As you can see the <code>&lt;publisher&gt;</code> element expects the same variables as the
-		    <classname>PublisherAnnotationAdvisor</classname> and also utilizes the power of the Spring 3.0 Expression Language.
+		    As you can see the <code>&lt;publishing-interceptor&gt;</code> configuration look rather similar to Annotation-based approach
+		    and it also utilizes the power of the Spring 3.0 Expression Language.
 		    </para>
 		    <para>
 		    In the above example the execution of the <code>echo</code> method of a <code>testBean</code> will 
@@ -169,15 +205,31 @@ public String argumentAsPayload(@Payload String fname, @Header String lname) {
 		        <listitem>
 		          <para>The Message payload will be of type String and value of "Echoing: [value]" where <code>value</code> is the value 
 		          returned by an executed method.</para>
-		        </listitem>
+		        </listitem>		
 		        <listitem>
-		          <para>The Message headers will contain the key "foo" with a value of "bar".</para>
+		          <para>The Message will have header with the key "foo" value "bar".</para>
 		        </listitem>  
 		        <listitem>
 		          <para>The Message will be sent to <code>echoChannel</code>.</para>
 		        </listitem>      
 	      </itemizedlist>
 	      </para>
+	      
+	      <para>
+	      The second method is very siumilar to the first. Here every method that begings with 'repl' will rander a Message with teh following structure:
+	      <itemizedlist>
+		        <listitem>
+		          <para>The Message payload will be the same as in the above sample</para>
+		        </listitem>		
+		        <listitem>
+		          <para>The Message will have header with the key "foo" and value that is the result of the SpEL expression <code>'bar'.toUpperCase()</code>	.</para>
+		        </listitem>  
+		        <listitem>
+		          <para>The Message will be sent to <code>echoChannel</code>.</para>
+		        </listitem>      
+	      </itemizedlist>
+	      </para>
+	
 	      <para>
 	      The second method, mapping the execution of any method that begins with <code>echoDef</code> of <code>testBean</code>, will produce a 
 	      Message with the following structure.
@@ -191,14 +243,11 @@ public String argumentAsPayload(@Payload String fname, @Header String lname) {
 		        </listitem>      
 	      </itemizedlist>
 	      </para>
-	      <para>
-	      The third mapping is almost identical to the previous one (with the exception of method pattern), 
-	      since the return value will be mapped to the Message payload by default if nothing else is specified.
-	      </para>
+	      
 	     <para>
 	     For simple mapping rules you can rely on the <emphasis>publisher</emphasis> defaults. For example:
 	     <programlisting language="xml">
-&lt;publisher id="anotherInterceptor"/&gt;
+&lt;publishing-interceptor id="anotherInterceptor"/&gt;
 	</programlisting>
 		This will map the return value of every method that matches the pointcut expression to a payload and will be sent to a <emphasis>default-channel</emphasis>. 
 		If the <emphasis>defaultChannel</emphasis>is not specified (as above) the messages will be sent to the global <emphasis>nullChannel</emphasis>.
