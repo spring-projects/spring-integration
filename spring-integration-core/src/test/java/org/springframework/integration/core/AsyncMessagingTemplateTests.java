@@ -236,6 +236,50 @@ public class AsyncMessagingTemplateTests {
 		assertEquals("TEST", result.get());
 	}
 
+	@Test
+	public void asyncConvertSendAndReceiveWithDefaultChannelAndMessagePostProcessor() throws Exception {
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new EchoHandler(200));
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setDefaultChannel(channel);
+		long start = System.currentTimeMillis();
+		Future<String> result = template.asyncConvertSendAndReceive(new Integer(123), new TestMessagePostProcessor());
+		assertNotNull(result.get());
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("123-bar", result.get());
+	}
+
+	@Test
+	public void asyncConvertSendAndReceiveWithExplicitChannelAndMessagePostProcessor() throws Exception {
+		DirectChannel channel = new DirectChannel();
+		channel.subscribe(new EchoHandler(200));
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		long start = System.currentTimeMillis();
+		Future<String> result = template.asyncConvertSendAndReceive(channel, "test", new TestMessagePostProcessor());
+		assertNotNull(result.get());
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("TEST-bar", result.get());
+	}
+
+	@Test
+	public void asyncConvertSendAndReceiveWithResolvedChannelAndMessagePostProcessor() throws Exception {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", DirectChannel.class);
+		context.refresh();
+		DirectChannel channel = context.getBean("testChannel", DirectChannel.class);
+		channel.subscribe(new EchoHandler(200));
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setBeanFactory(context);
+		long start = System.currentTimeMillis();
+		Future<String> result = template.asyncConvertSendAndReceive("testChannel", "test", new TestMessagePostProcessor());
+		assertNotNull(result.get());
+		long elapsed = System.currentTimeMillis() - start;
+		assertTrue(elapsed >= 200);
+		assertEquals("TEST-bar", result.get());
+	}
+
 	@Test(expected = TimeoutException.class)
 	public void timeoutException() throws Exception {
 		DirectChannel channel = new DirectChannel();
@@ -324,7 +368,17 @@ public class AsyncMessagingTemplateTests {
 				this.interrupted = true;
 				return null;
 			}
-			return requestMessage.getPayload().toString().toUpperCase();
+			String result = requestMessage.getPayload().toString().toUpperCase();
+			String header = requestMessage.getHeaders().get("foo", String.class);
+			return (header != null) ? result + "-" + header : result;
+		}
+	}
+
+
+	private static class TestMessagePostProcessor implements MessagePostProcessor {
+
+		public Message<?> postProcessMessage(Message<?> message) {
+			return MessageBuilder.fromMessage(message).setHeader("foo", "bar").build();
 		}
 	}
 
