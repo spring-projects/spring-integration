@@ -1,5 +1,6 @@
 package org.springframework.integration;
 
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
@@ -45,7 +46,7 @@ import org.springframework.integration.monitor.MessageChannelsMonitorIntegration
 		OperationInvokingOutboundGatewayTests.class, NotificationListeningChannelAdapterParserTests.class,
 		ControlBusXmlTests.class, ExponentialMovingAverageRatioCumulativeHistoryTests.class,
 		AttributePollingMessageSourceTests.class, ControlBusTests.class, MessageChannelsMonitorIntegrationTests.class })
-// @Ignore
+@Ignore
 public class IgnoredTestSuite {
 
 }
