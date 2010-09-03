@@ -10,7 +10,7 @@ http://www.springsource.org/spring-integration
 There you will find links to the forum, issue tracker, and several other resources.
 
 To build and run the sample applications that are included with this distribution,
-view the README.txt file in the 'spring-integration-samples' directory.
+view the README.txt file in the 'samples' directory.
 
 To checkout the project from the SVN head and build from source, do the following
 (NOTE: this requires Maven 2.2.x):
