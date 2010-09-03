@@ -36,15 +36,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ControlBusParserTests {
+public class MBeanExporterParserTests {
 
 	@Autowired
 	private ApplicationContext context;
 
-
 	@Test
 	public void test() throws InterruptedException {
-		ControlBus controlBus = this.context.getBean("controlBus", ControlBus.class);
+		ControlBus controlBus = this.context.getBean(ControlBus.class);
 		assertEquals(controlBus.getOperationChannel(), this.context.getBean("testChannel"));
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
 		MBeanExporter exporter = (MBeanExporter) new DirectFieldAccessor(controlBus).getPropertyValue("exporter");

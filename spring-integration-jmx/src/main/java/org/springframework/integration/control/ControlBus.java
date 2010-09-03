@@ -25,7 +25,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.jmx.JmxHeaders;
 import org.springframework.integration.jmx.OperationInvokingMessageHandler;
@@ -43,7 +42,7 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 
 	public static final String TARGET_BEAN_NAME = JmxHeaders.PREFIX + "_controlBus_targetBeanName";
 
-	private volatile SubscribableChannel operationChannel;
+	private final SubscribableChannel operationChannel;
 
 	private volatile ListableBeanFactory beanFactory;
 
@@ -51,16 +50,12 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 
 	private final MBeanServer server;
 
-
 	/**
 	 * Create a {@link ControlBus}.
 	 */
-	public ControlBus(ObjectNameLocator locator, MBeanServer server) {
+	public ControlBus(ObjectNameLocator locator, MBeanServer server, SubscribableChannel operationChannel) {
 		this.exporter = locator;
 		this.server = server;
-	}
-
-	public void setOperationChannel(SubscribableChannel operationChannel) {
 		this.operationChannel = operationChannel;
 	}
 
@@ -78,16 +73,12 @@ public class ControlBus implements BeanFactoryAware, InitializingBean {
 		Assert.isTrue(beanFactory instanceof ListableBeanFactory, "A ListableBeanFactory is required.");
 		this.beanFactory = (ListableBeanFactory) beanFactory;
 	}
-	
 
 	public void afterPropertiesSet() throws Exception {
 		OperationInvokingMessageHandler handler = new ControlBusOperationInvokingMessageHandler();
 		handler.setBeanFactory(this.beanFactory);
 		handler.setServer(this.server);
 		handler.afterPropertiesSet();
-		if (this.operationChannel == null) {
-			this.operationChannel = new DirectChannel();
-		}
 		this.operationChannel.subscribe(handler);
 	}
 

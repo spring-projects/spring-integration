@@ -189,6 +189,7 @@ public class ControlBusTests {
 		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
 		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));
 		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("exporter"));
+		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new DirectChannel());
 		context.registerBeanDefinition("controlBus", controlBusDef);
 		return exporterDef;
 	}

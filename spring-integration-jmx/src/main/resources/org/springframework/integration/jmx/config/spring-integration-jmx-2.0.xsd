@@ -105,11 +105,11 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="control-bus">
+	<xsd:element name="mbean-exporter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a Control Bus that exports Message Channels and Endpoints as MBeans
-	and connects to an "operation channel".
+	Exports Message Channels and Endpoints as MBeans
+	and optionally connects to an "operation channel".
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -126,7 +126,8 @@
 					<xsd:attribute name="operation-channel" use="optional">
 						<xsd:annotation>  
 							<xsd:documentation>
-			The Message Channel that can be used to send operation commands to
+			If provided a control bus will be created and subscribed to the Message Channel.
+			The channel can then be used to send operation commands to
 			this Control Bus. It must implement SubscribableChannel.
 							</xsd:documentation>
 							<xsd:appinfo>
@@ -140,7 +141,7 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:complexType name="adapterType">
 		<xsd:annotation>
 			<xsd:documentation>

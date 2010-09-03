@@ -5,6 +5,8 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
+	<int:channel id="controlChannel" />
+
 	<int:channel id="testDirectChannel" />
 
 	<int:channel id="testQueueChannel">
@@ -22,6 +24,7 @@
 	<bean id="controlBus" class="org.springframework.integration.control.ControlBus">
 		<constructor-arg ref="mbeanExporter" />
 		<constructor-arg ref="mbeanServer" />
+		<constructor-arg ref="controlChannel" />
 	</bean>
 
 	<bean id="mbeanExporter" class="org.springframework.integration.monitor.IntegrationMBeanExporter">
