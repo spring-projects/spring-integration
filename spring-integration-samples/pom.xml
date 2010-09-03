@@ -27,6 +27,7 @@
 	</properties>
 	<name>Spring Integration Samples</name>
 	<modules>
+		<module>async-gateway</module>
 		<module>cafe</module>
 		<module>errorhandling</module>
 		<module>filecopy</module>
