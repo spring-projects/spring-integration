@@ -24,16 +24,6 @@
 			<outputDirectory/>
 			<lineEnding>dos</lineEnding>
 		</fileSet>
-		<!-- TODO: commented out, pending resolution of what to do with distributing 3rd party deps
-		<fileSet>
-			     adds dependency jars to the distribution archive under the 'lib' directory
-				 see pom.xml 'maven-dependency-plugin' declaration
-			<directory>${project.build.directory}/dependency</directory>
-			<includes>
-				<include>**/*.jar</include>
-			</includes>
-			<outputDirectory>lib</outputDirectory>
-		</fileSet> -->
 		<fileSet>
 			<!-- adds reference manual (html and pdf) to the distribution archive under the
 			     'docs/reference' directory
