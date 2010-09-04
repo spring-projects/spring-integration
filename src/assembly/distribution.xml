@@ -82,6 +82,7 @@
 				<include>org.springframework.integration:spring-integration-sftp</include>
 				<include>org.springframework.integration:spring-integration-ftp</include>
 				<include>org.springframework.integration:spring-integration-twitter</include>
+				<include>org.springframework.integration:spring-integration-activiti</include>
 			</includes>
 			<binaries>
 				<outputDirectory>dist</outputDirectory>

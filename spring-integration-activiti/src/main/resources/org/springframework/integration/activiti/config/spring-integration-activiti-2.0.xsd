@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2010 the original author or authors
+  ~
+  ~     Licensed under the Apache License, Version 2.0 (the "License");
+  ~     you may not use this file except in compliance with the License.
+  ~     You may obtain a copy of the License at
+  ~
+  ~         http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~     Unless required by applicable law or agreed to in writing, software
+  ~     distributed under the License is distributed on an "AS IS" BASIS,
+  ~     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~     See the License for the specific language governing permissions and
+  ~     limitations under the License.
+  -->
+
+
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/activiti"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:beans="http://www.springframework.org/schema/beans"
+			xmlns:tool="http://www.springframework.org/schema/tool"
+			xmlns:integration="http://www.springframework.org/schema/integration"
+			targetNamespace="http://www.springframework.org/schema/integration/activiti"
+			elementFormDefault="qualified"
+			attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration" schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+
+	<!--
+		 outbound adapter
+		-->
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[
+
+                Builds an outbound-channel-adapter that writes files to a remote FTP endpoint.
+
+            ]]></xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="process-engine" use="required" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.activiti.ProcessEngine"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+			<xsd:attribute name="process-definition-name" type="xsd:string"/>
+
+
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+
+				Defines an inbound Activiti Messaging Gateway.
+
+				This bean should be referenced from a BPMN workflow artifact. Once entered, execution of the task will be dispatched to Spring Integration
+				where Spring Integration can then do whatever it likes so long as execution ultimately travels through the 'reply-channel'.
+
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="update-process-variables-from-reply-message-headers" type="xsd:boolean"/>
+			<xsd:attribute name="async" type="xsd:boolean"/>
+			<xsd:attribute name="forward-process-variables-as-message-headers" type="xsd:boolean"/>
+			<xsd:attribute name="request-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="reply-channel" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="process-engine" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.activiti.ProcessEngine"/>
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

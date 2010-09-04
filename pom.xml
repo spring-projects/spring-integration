@@ -29,6 +29,7 @@
 		<module>spring-integration-ftp</module>
 		<module>spring-integration-sftp</module>
 		<module>spring-integration-twitter</module>
+		<module>spring-integration-activiti</module>
 	</modules>
 	<scm>
 		<connection>scm:svn:https://src.springframework.org/svn/spring-integration/trunk</connection>

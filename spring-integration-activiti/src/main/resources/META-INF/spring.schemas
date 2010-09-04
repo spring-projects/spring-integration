@@ -1,0 +1,2 @@
+http\://www.springframework.org/schema/integration/activiti/spring-integration-activiti-2.0.xsd=org/springframework/integration/activiti/config/spring-integration-activiti-2.0.xsd
+http\://www.springframework.org/schema/integration/activiti/spring-integration-activiti.xsd=org/springframework/integration/activiti/config/spring-integration-activiti-2.0.xsd
