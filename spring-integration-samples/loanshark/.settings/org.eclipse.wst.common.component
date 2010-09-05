@@ -4,6 +4,9 @@
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/spring-integration-ip/spring-integration-ip">
             <dependency-type>uses</dependency-type>
         </dependent-module>
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/spring-integration-core/spring-integration-core">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/spring-integration-stream/spring-integration-stream">
             <dependency-type>uses</dependency-type>
         </dependent-module>

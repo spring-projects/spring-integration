@@ -31,11 +31,6 @@
 		<module>spring-integration-twitter</module>
 		<module>spring-integration-activiti</module>
 	</modules>
-	<scm>
-		<connection>scm:svn:https://src.springframework.org/svn/spring-integration/trunk</connection>
-		<developerConnection>scm:svn:https://src.springframework.org/svn/spring-integration/trunk/</developerConnection>
-		<url>https://fisheye.springframework.org/browse/spring-integration/trunk</url>
-	</scm>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- dist.* properties are used by the antrun tasks below -->
@@ -257,7 +252,9 @@
 								<include name="**/*.jpg" />
 							</fileset>
 						</copy>
-						<move file="${project.basedir}/target/site/reference/pdf/index.pdf" tofile="${project.basedir}/target/site/reference/pdf/spring-integration-reference.pdf" failonerror="false" />
+						<move file="${project.basedir}/target/site/reference/pdf/index.pdf"
+							tofile="${project.basedir}/target/site/reference/pdf/spring-integration-reference.pdf"
+							failonerror="false" />
 					</postProcess>
 				</configuration>
 			</plugin>
@@ -377,9 +374,11 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin><!--
-				run `mvn package assembly:assembly` to trigger assembly creation.
-				see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html -->
+			<plugin>
+				<!--
+					run `mvn package assembly:assembly` to trigger assembly creation.
+					see http://www.sonatype.com/books/mvnref-book/reference/assemblies-set-dist-assemblies.html
+				 -->
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.2-beta-5</version>
 				<inherited>false</inherited>
@@ -400,8 +399,10 @@
 					</executions>
 			</plugin>
 			<plugin>
-				<!-- depend explicitly on 2.0 in order to pick up the new
-				     release:update-versions goal -->
+				<!--
+					depend explicitly on 2.0 in order to pick up the new
+					release:update-versions goal
+				-->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.0</version>
