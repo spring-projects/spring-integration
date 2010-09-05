@@ -9,7 +9,10 @@ Import-Template:
  org.springframework.beans.*;version="[3.0.0, 4.0.0)",
  org.springframework.context;version="[3.0.0, 4.0.0)",
  org.springframework.core.*;version="[3.0.0, 4.0.0)",
+ org.springframework.scheduling.*;version="[3.0.0, 4.0.0)",
  org.springframework.util;version="[3.0.0, 4.0.0)",
- org.jivesoftware.*;version="[3.1.0, 4.0.0)",
+ org.springframework.transaction.*;version="[3.0.0, 4.0.0)",
+ org.activiti.engine.*;version="[5.0.0, 6.0.0)",
+ org.activiti.pvm.*;version="[5.0.0, 6.0.0)",
  javax.*;version="0",
  org.w3c.dom.*;version="0"

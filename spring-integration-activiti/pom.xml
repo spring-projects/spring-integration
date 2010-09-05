@@ -91,12 +91,20 @@
 			<version>5.0.beta1</version>
 		</dependency>
 	</dependencies>
-	<build>
+	<build> 
+		
 		<!--  <plugins>
 					<plugin>
 						<groupId>com.springsource.bundlor</groupId>
 						<artifactId>com.springsource.bundlor.maven</artifactId>
 					</plugin>
 				</plugins> -->
-	</build>
+	</build> 
+	
+	<repositories>
+		<repository>
+			<id>activiti</id>
+			<name>Activiti.org site</name>
+			<url>http://maven.alfresco.com/nexus/content/repositories/activiti/</url>
+		</repository> </repositories>
 </project>
