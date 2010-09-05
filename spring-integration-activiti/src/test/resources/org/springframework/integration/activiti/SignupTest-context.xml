@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:activiti="http://www.springframework.org/schema/integration/activiti"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xsi:schemaLocation="
+            http://www.springframework.org/schema/integration/activiti http://www.springframework.org/schema/integration/activiti/spring-integration-activiti-2.0.xsd
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+            http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       ">
+
+
+	<context:component-scan base-package="org.springframework.integration.activiti.signup"/>
+
+	<bean id="dataSource"
+		  class="org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy">
+		<property name="targetDataSource">
+			<bean class="org.apache.commons.dbcp.BasicDataSource"
+				  p:url="jdbc:h2:tcp://localhost/~/activiti_example"
+				  p:driverClassName="org.h2.Driver"
+				  p:username="sa"
+				  p:password=""
+					/>
+		</property>
+	</bean>
+
+	<bean id="transactionManager"
+		  class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+		  p:dataSource-ref="dataSource"/>
+
+	<bean id="processEngine"
+	  class="org.activiti.engine.impl.cfg.spring.ProcessEngineFactoryBean"
+	  p:dataSource-ref="dataSource"
+	  p:transactionManager-ref="transactionManager"
+	  p:dbSchemaStrategy="CHECK_VERSION"
+	>
+		<property name="deploymentResources"
+		  value="classpath:/processes/signup.bpmn20.xml"/>
+	</bean>
+
+
+</beans>

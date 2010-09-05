@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions id="definitions"
+			 xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:activiti="http://activiti.org/bpmn-extensions"
+			 typeLanguage="http://www.w3.org/2001/XMLSchema"
+			 expressionLanguage="http://www.w3.org/1999/XPath"
+			 targetNamespace="http://www.activiti.org/bpmn2.0">
+
+	<process id="signup">
+		<startEvent id="start"/>
+
+		<sequenceFlow sourceRef="start" targetRef="sign-up"/>
+
+		<userTask name = "sign-up" id="sign-up">
+			<documentation>
+				the potential customer must fill out the form online first
+			</documentation>
+			<humanPerformer>
+				<resourceAssignmentExpression>
+					<formalExpression>customer</formalExpression>
+				</resourceAssignmentExpression>
+			</humanPerformer>
+		</userTask>
+
+		<sequenceFlow sourceRef="sign-up" targetRef="check-form"/>
+
+		<serviceTask id="check-form" activiti:class = "#{checkForm}"/>
+
+		<sequenceFlow sourceRef="check-form" targetRef="form-completed-decision-gateway"/>
+
+		<exclusiveGateway gatewayDirection="Diverging" id="form-completed-decision-gateway"/>
+
+		<sequenceFlow id="formOK" sourceRef="form-completed-decision-gateway" targetRef="send-confirmation-email">
+			<conditionExpression xsi:type="tFormalExpression">${formOK == true}</conditionExpression>
+		</sequenceFlow>
+
+		<sequenceFlow id="formNotOK" sourceRef="form-completed-decision-gateway" targetRef="fix-errors">
+			<conditionExpression xsi:type="tFormalExpression">${formOK == false}</conditionExpression>
+		</sequenceFlow>
+
+		<userTask name="fix-errors" id="fix-errors">
+			<documentation>
+				the potential customer must fill out the form online first
+			</documentation>
+			<humanPerformer>
+				<resourceAssignmentExpression>
+					<formalExpression>customer</formalExpression>
+				</resourceAssignmentExpression>
+			</humanPerformer>
+		</userTask>
+
+		<sequenceFlow sourceRef="fix-errors" targetRef="check-form"/>
+
+		<serviceTask id="send-confirmation-email" activiti:class = "#{sendEmail}"/>
+
+		<sequenceFlow sourceRef="send-confirmation-email" targetRef="confirm-email"/>
+
+		<userTask name="confirm-email" id="confirm-email">
+			<documentation>
+				confirm the user's email
+			</documentation>
+			<humanPerformer>
+				<resourceAssignmentExpression>
+					<formalExpression>customer</formalExpression>
+				</resourceAssignmentExpression>
+			</humanPerformer>
+		</userTask>
+
+		<sequenceFlow sourceRef="confirm-email" targetRef="end"/>
+
+		<endEvent id="end"/>
+	</process>
+</definitions>
