@@ -56,7 +56,25 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * MBean exporter for Spring Integration components in an existing application.
+ * <p>
+ * MBean exporter for Spring Integration components in an existing application. Add an instance of this as a bean
+ * definition in the same context as the components you need to monitor and all message channels and message handlers
+ * will be exposed.
+ * </p>
+ * <p>
+ * Channels will report metrics on send and receive (counts, rates, errors) and handlers will report metrics on
+ * execution duration. Channels will be registered under their name (bean id), if explicit, or the last part of their
+ * internal name (e.g. "nullChannel") if registered by the framework. A handler that is attached to an endpoint will be
+ * registered with the endpoint name (bean id) if there is one, otherwise under the name of the input channel. Handler
+ * object names contain a <code>bean</code> key that reports the source of the name: "endpoint" if the name is the
+ * endpoint id; "anonymous" if it is the input channel; and "handler" as a fallback, where the object name is just the
+ * <code>toString()</code> of the handler.
+ * </p>
+ * <p>
+ * This component is itself an MBean, reporting attributes concerning the names and object names of the channels and
+ * handlers. It doesn't register itself to avoid conflicts with the standard <code>&lt;context:mbean-export/&gt;</code>
+ * from Spring (which should therefore be used any time you need to expose those features).
+ * </p>
  * 
  * @author Dave Syer
  * @author Helena Edelson
@@ -288,13 +306,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public Map<String, String> getObjectNames() {
 		return Collections.unmodifiableMap(objectNamesByName);
 	}
-	
+
 	public Statistics getHandlerDuration(String name) {
 		if (handlersByName.containsKey(name)) {
 			return handlersByName.get(name).getDuration();
 		}
 		logger.debug("No handler found for (" + name + ")");
-		return null;		
+		return null;
 	}
 
 	public int getChannelReceiveCount(String name) {
@@ -355,8 +373,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
-	private Object applyChannelInterceptor(Object bean, DirectChannelMonitor interceptor,
-			ClassLoader beanClassLoader) {
+	private Object applyChannelInterceptor(Object bean, DirectChannelMonitor interceptor, ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor channelsAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		channelsAdvice.addMethodName("send");
 		channelsAdvice.addMethodName("receive");

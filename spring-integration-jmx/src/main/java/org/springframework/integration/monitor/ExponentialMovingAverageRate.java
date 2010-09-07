@@ -13,8 +13,17 @@
 package org.springframework.integration.monitor;
 
 /**
- * Cumulative statistics for rate with higher weight given to recent data but without storing any history. Older values
- * are given exponentially smaller weight, with a decay factor determined by a duration chosen by the client.
+ * Cumulative statistics for an event rate with higher weight given to recent data but without storing any history.
+ * Clients call {@link #increment()} when a new event occurs, and then use convenience methods (e.g. {@link #getMean()})
+ * to retrieve estimates of the rate of event arrivals and the statistics of the series. Older values are given
+ * exponentially smaller weight, with a decay factor determined by a duration chosen by the client. The rate measurement
+ * weights decay in two dimensions:
+ * <ul>
+ * <li>in time according to the lapse period supplied: <code>weight = exp((t0-t)/T)</code> where <code>t0</code> is the
+ * last measurement time, <code>t</code> is the current time and <code>T</code> is the lapse period)</li>
+ * <li>per measurement according to the lapse window supplied: <code>weight = exp(-i/L)</code> where <code>L</code> is
+ * the lapse window and <code>i</code> is the sequence number of the measurement.</li>
+ * </ul>
  * 
  * @author Dave Syer
  * 
@@ -48,6 +57,9 @@ public class ExponentialMovingAverageRate {
 		this.period = period * 1000; // convert to millisecs
 	}
 
+	/**
+	 * Add a new event to the series.
+	 */
 	public void increment() {
 
 		long t = System.currentTimeMillis();
@@ -66,6 +78,9 @@ public class ExponentialMovingAverageRate {
 
 	}
 
+	/**
+	 * @return the number of measurements recorded
+	 */
 	public int getCount() {
 		return rates.getCount();
 	}
@@ -77,9 +92,12 @@ public class ExponentialMovingAverageRate {
 		return (System.currentTimeMillis() - t0) / 1000.;
 	}
 
+	/**
+	 * @return the mean value
+	 */
 	public double getMean() {
 		int count = rates.getCount();
-		if (count==0) {
+		if (count == 0) {
 			return 0;
 		}
 		long t = System.currentTimeMillis();
@@ -87,18 +105,30 @@ public class ExponentialMovingAverageRate {
 		return count / (count / rates.getMean() + value);
 	}
 
+	/**
+	 * @return the approximate standard deviation
+	 */
 	public double getStandardDeviation() {
 		return rates.getStandardDeviation();
 	}
 
+	/**
+	 * @return the maximum value recorded (not weighted)
+	 */
 	public double getMax() {
 		return min > 0 ? 1 / min : 0;
 	}
 
+	/**
+	 * @return the minimum value recorded (not weighted)
+	 */
 	public double getMin() {
 		return max > 0 ? 1 / max : 0;
 	}
 
+	/**
+	 * @return summary statistics (count, mean, standard deviation etc.)
+	 */
 	public Statistics getStatistics() {
 		return new Statistics(getCount(), min, max, getMean(), getStandardDeviation());
 	}

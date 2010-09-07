@@ -21,15 +21,19 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
+ * A {@link MessageHandlerMonitor} that exposes in addition the {@link Lifecycle} interface. The lifecycle methods can
+ * be used to stop and start polling endpoints, for instance, in a live system.
+ * 
  * @author Dave Syer
  * 
  * @since 2.0
- *
+ * 
  */
 @ManagedResource
-public class LifecycleMessageHandlerMonitor implements MessageHandlerMonitor {
+public class LifecycleMessageHandlerMonitor implements MessageHandlerMonitor, Lifecycle {
 
 	private final Lifecycle lifecycle;
+
 	private final MessageHandlerMonitor delegate;
 
 	public LifecycleMessageHandlerMonitor(Lifecycle lifecycle, MessageHandlerMonitor delegate) {

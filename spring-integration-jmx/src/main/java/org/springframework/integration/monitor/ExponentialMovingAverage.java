@@ -14,8 +14,11 @@ package org.springframework.integration.monitor;
 
 /**
  * Cumulative statistics for a series of real numbers with higher weight given to recent data but without storing any
- * history. Older values are given exponentially smaller weight, with a decay factor determined by a "window" size
- * chosen by the client.
+ * history. Clients call {@link #append(double)} every time there is a new measurement, and then can collect summary
+ * statistics from the convenience getters (e.g. {@link #getStatistics()}). Older values are given exponentially smaller
+ * weight, with a decay factor determined by a "window" size chosen by the caller. The result is a good approximation to
+ * the statistics of the series but with more weight given to recent measurements, so if the statistics change over time
+ * those trends can be approximately reflected.
  * 
  * @author Dave Syer
  * 
@@ -37,12 +40,20 @@ public class ExponentialMovingAverage {
 	private final double decay;
 
 	/**
+	 * Create a moving average accumulator with decay lapse window provided. Measurements older than this will have
+	 * smaller weight than <code>1/e</code>.
+	 * 
 	 * @param window the exponential lapse window (number of measurements)
 	 */
 	public ExponentialMovingAverage(int window) {
 		this.decay = 1 - 1. / window;
 	}
 
+	/**
+	 * Add a new measurement to the series.
+	 * 
+	 * @param value the measurement to append
+	 */
 	public void append(double value) {
 		if (value > max || count == 0)
 			max = value;
@@ -54,28 +65,46 @@ public class ExponentialMovingAverage {
 		count++;
 	}
 
+	/**
+	 * @return the number of measurements recorded
+	 */
 	public int getCount() {
 		return count;
 	}
 
+	/**
+	 * @return the mean value
+	 */
 	public double getMean() {
 		return weight > 0 ? sum / weight : 0.;
 	}
 
+	/**
+	 * @return the approximate standard deviation
+	 */
 	public double getStandardDeviation() {
 		double mean = getMean();
 		double var = weight > 0 ? sumSquares / weight - mean * mean : 0.;
 		return var > 0 ? Math.sqrt(var) : 0;
 	}
 
+	/**
+	 * @return the maximum value recorded (not weighted)
+	 */
 	public double getMax() {
 		return max;
 	}
 
+	/**
+	 * @return the minimum value recorded (not weighted)
+	 */
 	public double getMin() {
 		return min;
 	}
 
+	/**
+	 * @return summary statistics (count, mean, standard deviation etc.)
+	 */
 	public Statistics getStatistics() {
 		return new Statistics(count, min, max, getMean(), getStandardDeviation());
 	}

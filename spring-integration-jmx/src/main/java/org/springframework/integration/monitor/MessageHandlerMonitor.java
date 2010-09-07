@@ -25,24 +25,42 @@ import org.springframework.jmx.support.MetricType;
  */
 public interface MessageHandlerMonitor {
 
+	/**
+	 * @return the number of successful handler calls
+	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count", description = "rate=1h")
 	int getHandleCount();
 
+	/**
+	 * @return the number of failed handler calls
+	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count", description = "rate=1h")
 	int getErrorCount();
 
+	/**
+	 * @return the maximum handler duration (milliseconds)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration")
 	double getMeanDuration();
 
+	/**
+	 * @return the minimum handler duration (milliseconds)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Min Duration")
 	double getMinDuration();
 
+	/**
+	 * @return the standard deviation handler duration (milliseconds)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration")
 	double getMaxDuration();
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
 	double getStandardDeviationDuration();
 	
+	/**
+	 * @return summary statistics about the handler duration (milliseconds)
+	 */
 	Statistics getDuration();
 
 	String getName();
