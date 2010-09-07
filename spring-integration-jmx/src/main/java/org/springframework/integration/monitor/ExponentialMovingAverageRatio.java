@@ -20,7 +20,7 @@ package org.springframework.integration.monitor;
  * @author Dave Syer
  * 
  */
-public class ExponentialMovingAverageRatioCumulativeHistory {
+public class ExponentialMovingAverageRatio {
 
 	private double weight;
 
@@ -30,14 +30,14 @@ public class ExponentialMovingAverageRatioCumulativeHistory {
 
 	private final double lapse;
 
-	private final ExponentialMovingAverageCumulativeHistory cumulative;
+	private final ExponentialMovingAverage cumulative;
 
 	/**
 	 * @param lapsePeriod the exponential lapse rate for the rate average (in seconds)
 	 * @param window the exponential lapse window (number of measurements)
 	 */
-	public ExponentialMovingAverageRatioCumulativeHistory(double lapsePeriod, int window) {
-		this.cumulative = new ExponentialMovingAverageCumulativeHistory(window);
+	public ExponentialMovingAverageRatio(double lapsePeriod, int window) {
+		this.cumulative = new ExponentialMovingAverage(window);
 		this.lapse = lapsePeriod > 0 ? 0.001 / lapsePeriod : 0; // convert to millisecs
 	}
 
@@ -93,10 +93,13 @@ public class ExponentialMovingAverageRatioCumulativeHistory {
 		return cumulative.getMin();
 	}
 
+	public Statistics getStatistics() {
+		return new Statistics(getCount(), getMin(), getMax(), getMean(), getStandardDeviation());
+	}
+
 	@Override
 	public String toString() {
-		return String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f, timeSinceLast=%f]", getCount(), getMin(),
-				getMax(), getMean(), getStandardDeviation(), getTimeSinceLastMeasurement());
+		return String.format("[%s, timeSinceLast=%f]", getStatistics(), getTimeSinceLastMeasurement());
 	}
 
 }

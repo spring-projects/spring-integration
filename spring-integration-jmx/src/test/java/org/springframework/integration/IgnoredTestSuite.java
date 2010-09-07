@@ -12,8 +12,8 @@ import org.springframework.integration.jmx.OperationInvokingMessageHandlerTests;
 import org.springframework.integration.jmx.config.NotificationListeningChannelAdapterParserTests;
 import org.springframework.integration.jmx.config.OperationInvokingChannelAdapterParserTests;
 import org.springframework.integration.jmx.config.OperationInvokingOutboundGatewayTests;
-import org.springframework.integration.monitor.ExponentialMovingAverageCumulativeHistoryTests;
-import org.springframework.integration.monitor.ExponentialMovingAverageRatioCumulativeHistoryTests;
+import org.springframework.integration.monitor.ExponentialMovingAverageTests;
+import org.springframework.integration.monitor.ExponentialMovingAverageRatioTests;
 import org.springframework.integration.monitor.HandlerMonitoringIntegrationTests;
 import org.springframework.integration.monitor.MessageChannelsMonitorIntegrationTests;
 
@@ -41,10 +41,10 @@ import org.springframework.integration.monitor.MessageChannelsMonitorIntegration
  */
 @RunWith(Suite.class)
 @SuiteClasses(value = { OperationInvokingMessageHandlerTests.class,
-		ExponentialMovingAverageCumulativeHistoryTests.class, OperationInvokingChannelAdapterParserTests.class,
+		ExponentialMovingAverageTests.class, OperationInvokingChannelAdapterParserTests.class,
 		HandlerMonitoringIntegrationTests.class, NotificationListeningMessageProducerTests.class,
 		OperationInvokingOutboundGatewayTests.class, NotificationListeningChannelAdapterParserTests.class,
-		ControlBusXmlTests.class, ExponentialMovingAverageRatioCumulativeHistoryTests.class,
+		ControlBusXmlTests.class, ExponentialMovingAverageRatioTests.class,
 		AttributePollingMessageSourceTests.class, ControlBusTests.class, MessageChannelsMonitorIntegrationTests.class })
 @Ignore
 public class IgnoredTestSuite {

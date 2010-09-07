@@ -16,6 +16,7 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -23,31 +24,54 @@ import org.junit.Test;
  * @author Dave Syer
  * 
  */
-public class ExponentialMovingAverageCumulativeHistoryTests {
+public class ExponentialMovingAverageRateTests {
 
-	private ExponentialMovingAverageCumulativeHistory history = new ExponentialMovingAverageCumulativeHistory(10);
+	private ExponentialMovingAverageRate history = new ExponentialMovingAverageRate(
+			1., 10., 10);
 
 	@Test
 	public void testGetCount() {
 		assertEquals(0, history.getCount());
-		history.append(1);
+		history.increment();
 		assertEquals(1, history.getCount());
+	}
+
+	@Test
+	public void testGetTimeSinceLastMeasurement() throws Exception {
+		history.increment();
+		Thread.sleep(20L);
+		assertTrue(history.getTimeSinceLastMeasurement() > 0);
+	}
+
+	@Test
+	public void testGetEarlyMean() throws Exception {
+		assertEquals(0, history.getMean(), 0.01);
+		Thread.sleep(20L);
+		history.increment();
+		assertEquals(50, history.getMean(), 10);
 	}
 
 	@Test
 	public void testGetMean() throws Exception {
 		assertEquals(0, history.getMean(), 0.01);
-		history.append(1);
-		history.append(1);
-		assertEquals(1, history.getMean(), 0.01);
+		Thread.sleep(20L);
+		history.increment();
+		Thread.sleep(20L);
+		history.increment();
+		assertEquals(50, history.getMean(), 10);
+		Thread.sleep(20L);
+		assertEquals(35, history.getMean(), 10);
 	}
 
 	@Test
 	public void testGetStandardDeviation() throws Exception {
 		assertEquals(0, history.getStandardDeviation(), 0.01);
-		history.append(1);
-		history.append(1);
-		assertEquals(0, history.getStandardDeviation(), 0.01);
+		Thread.sleep(20L);
+		history.increment();
+		Thread.sleep(22L);
+		history.increment();
+		Thread.sleep(18L);
+		assertTrue("Standard deviation should be non-zero: "+history, history.getStandardDeviation()>0);
 	}
 
 }

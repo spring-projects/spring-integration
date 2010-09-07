@@ -13,7 +13,6 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -70,11 +69,8 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertEquals(before + 50, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			double sends = messageChannelsMonitor.getChannelSendCount("" + channel);
+			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertEquals("No send statistics for input channel", 50, sends, 0.01);
-			double rate = messageChannelsMonitor.getChannelSendRate("" + channel);
-			assertTrue(String.format("Unexpected rate statistics for input channel %f %f", 60000. / 20L, rate),
-					60000. / 20L > rate && rate > 0);
 
 		}
 		finally {
@@ -106,13 +102,10 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertEquals(before + 10, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			double sends = messageChannelsMonitor.getChannelSendCount("" + channel);
+			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertEquals("No send statistics for input channel", 11, sends, 0.01);
-			double errors = messageChannelsMonitor.getChannelSendErrorCount("" + channel);
+			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
 			assertEquals("No error statistics for input channel", 1, errors, 0.01);
-			double rate = messageChannelsMonitor.getChannelErrorRate("" + channel);
-			assertTrue(String.format("Unexpected error statistics for input channel %f %f", 60000. / 20L, rate),
-					60000. / 20L > rate && rate > 0);
 		}
 		finally {
 			context.close();
@@ -143,11 +136,11 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertEquals(before + 10, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			long sends = messageChannelsMonitor.getChannelSendCount("" + channel);
+			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertEquals("No send statistics for input channel", 11, sends);
-			long receives = messageChannelsMonitor.getChannelReceiveCount("" + channel);
+			int receives = messageChannelsMonitor.getChannelReceiveCount("" + channel);
 			assertEquals("No send statistics for input channel", 11, receives);
-			long errors = messageChannelsMonitor.getChannelSendErrorCount("" + channel);
+			int errors = messageChannelsMonitor.getChannelErrorRate("" + channel).getCount();
 			assertEquals("Expect no errors for input channel (handler fails)", 0, errors);
 		}
 		finally {
@@ -167,7 +160,7 @@ public class MessageChannelsMonitorIntegrationTests {
 			assertEquals(before + 1, service.getCounter());
 
 			// The handler monitor is registered under the endpoint id (since it is explicit)
-			double sends = messageChannelsMonitor.getChannelSendCount("" + channel);
+			int sends = messageChannelsMonitor.getChannelSendRate("" + channel).getCount();
 			assertEquals("No statistics for input channel", 1, sends, 0.01);
 
 		}

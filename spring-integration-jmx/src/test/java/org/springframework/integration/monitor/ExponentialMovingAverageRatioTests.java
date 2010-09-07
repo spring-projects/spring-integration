@@ -24,9 +24,9 @@ import org.junit.Test;
  * @author Dave Syer
  * 
  */
-public class ExponentialMovingAverageRatioCumulativeHistoryTests {
+public class ExponentialMovingAverageRatioTests {
 
-	private ExponentialMovingAverageRatioCumulativeHistory history = new ExponentialMovingAverageRatioCumulativeHistory(
+	private ExponentialMovingAverageRatio history = new ExponentialMovingAverageRatio(
 			0.5, 10);
 
 	@Test

@@ -20,7 +20,7 @@ package org.springframework.integration.monitor;
  * @author Dave Syer
  * 
  */
-public class ExponentialMovingAverageCumulativeHistory {
+public class ExponentialMovingAverage {
 
 	private int count;
 
@@ -39,7 +39,7 @@ public class ExponentialMovingAverageCumulativeHistory {
 	/**
 	 * @param window the exponential lapse window (number of measurements)
 	 */
-	public ExponentialMovingAverageCumulativeHistory(int window) {
+	public ExponentialMovingAverage(int window) {
 		this.decay = 1 - 1. / window;
 	}
 
@@ -76,10 +76,13 @@ public class ExponentialMovingAverageCumulativeHistory {
 		return min;
 	}
 
+	public Statistics getStatistics() {
+		return new Statistics(count, min, max, getMean(), getStandardDeviation());
+	}
+
 	@Override
 	public String toString() {
-		return String.format("[N=%d, min=%f, max=%f, mean=%f, sigma=%f]", count, min, max, getMean(),
-				getStandardDeviation());
+		return getStatistics().toString();
 	}
 
 }

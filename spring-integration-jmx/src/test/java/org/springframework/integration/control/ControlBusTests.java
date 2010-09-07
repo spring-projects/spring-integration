@@ -44,7 +44,7 @@ import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.integration.monitor.LifecycleMessageHandlerMonitor;
 import org.springframework.integration.monitor.QueueChannelMonitor;
-import org.springframework.integration.monitor.SimpleMessageChannelMonitor;
+import org.springframework.integration.monitor.DirectChannelMonitor;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -86,7 +86,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test1:type=MessageChannel,name=directChannel"));
-		assertEquals(SimpleMessageChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -99,7 +99,7 @@ public class ControlBusTests {
 		ObjectInstance instance = mbeanServer
 				.getObjectInstance(ObjectNameManager
 						.getInstance("domain.test1b:type=MessageChannel,name=org.springframework.integration.generated#0,source=anonymous"));
-		assertEquals(SimpleMessageChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -111,7 +111,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test1a:type=MessageChannel,name=directChannel,foo=bar"));
-		assertEquals(SimpleMessageChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
 	}
 
 	@Test

@@ -42,6 +42,8 @@ public interface MessageHandlerMonitor {
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
 	double getStandardDeviationDuration();
+	
+	Statistics getDuration();
 
 	String getName();
 

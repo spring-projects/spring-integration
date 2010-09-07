@@ -76,6 +76,10 @@ public class LifecycleMessageHandlerMonitor implements MessageHandlerMonitor {
 		return delegate.getStandardDeviationDuration();
 	}
 
+	public Statistics getDuration() {
+		return delegate.getDuration();
+	}
+
 	public String getName() {
 		return delegate.getName();
 	}

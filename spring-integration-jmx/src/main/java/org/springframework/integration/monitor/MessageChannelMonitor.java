@@ -34,13 +34,13 @@ public interface MessageChannelMonitor {
 	double getTimeSinceLastSend();
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Rate per Second")
-	double getSendRate();
+	double getMeanSendRate();
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Error Rate per Second")
-	double getErrorRate();
+	double getMeanErrorRate();
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Mean Channel Error Ratio per Minute")
-	double getErrorRatio();
+	double getMeanErrorRatio();
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Mean Duration")
 	double getMeanSendDuration();
@@ -53,5 +53,11 @@ public interface MessageChannelMonitor {
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Standard Deviation Duration")
 	double getStandardDeviationSendDuration();
+
+	Statistics getSendDuration();
+
+	Statistics getSendRate();
+
+	Statistics getErrorRate();
 
 }

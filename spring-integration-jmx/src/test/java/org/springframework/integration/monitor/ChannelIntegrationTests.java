@@ -42,11 +42,11 @@ public class ChannelIntegrationTests {
 		
 		requests.send(new GenericMessage<String>("foo"));
 
-		double duration = messageChannelsMonitor.getChannelMeanSendDuration("" + requests);
-		assertTrue("No statistics for requests channel", duration >= 0);
+		double rate = messageChannelsMonitor.getChannelSendRate("" + requests).getMean();
+		assertTrue("No statistics for requests channel", rate >= 0);
 
-		duration = messageChannelsMonitor.getChannelMeanSendDuration("" + intermediate);
-		assertTrue("No statistics for intermediate channel", duration >= 0);
+		rate = messageChannelsMonitor.getChannelSendRate("" + intermediate).getMean();
+		assertTrue("No statistics for intermediate channel", rate >= 0);
 		
 		assertNotNull(intermediate.receive(100L));
 		double count = messageChannelsMonitor.getChannelReceiveCount("" + intermediate);

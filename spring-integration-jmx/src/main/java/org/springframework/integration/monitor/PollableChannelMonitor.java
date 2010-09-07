@@ -15,7 +15,7 @@
  */
 package org.springframework.integration.monitor;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.MessageChannel;
@@ -28,11 +28,11 @@ import org.springframework.jmx.support.MetricType;
  * @since 2.0
  * 
  */
-public class PollableChannelMonitor extends SimpleMessageChannelMonitor {
+public class PollableChannelMonitor extends DirectChannelMonitor {
 
-	private final AtomicLong receiveCount = new AtomicLong();
+	private final AtomicInteger receiveCount = new AtomicInteger();
 
-	private final AtomicLong receiveErrorCount = new AtomicLong();
+	private final AtomicInteger receiveErrorCount = new AtomicInteger();
 
 	/**
 	 * @param name
@@ -68,12 +68,12 @@ public class PollableChannelMonitor extends SimpleMessageChannelMonitor {
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receives")
-	public long getReceiveCount() {
+	public int getReceiveCount() {
 		return receiveCount.get();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receive Errors")
-	public long getReceiveErrorCount() {
+	public int getReceiveErrorCount() {
 		return receiveErrorCount.get();
 	}
 

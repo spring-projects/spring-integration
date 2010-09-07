@@ -81,9 +81,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private Set<SimpleMessageHandlerMonitor> handlers = new HashSet<SimpleMessageHandlerMonitor>();
 
-	private Set<SimpleMessageChannelMonitor> channels = new HashSet<SimpleMessageChannelMonitor>();
+	private Set<DirectChannelMonitor> channels = new HashSet<DirectChannelMonitor>();
 
-	private Map<String, SimpleMessageChannelMonitor> channelsByName = new HashMap<String, SimpleMessageChannelMonitor>();
+	private Map<String, DirectChannelMonitor> channelsByName = new HashMap<String, DirectChannelMonitor>();
 
 	private Map<String, MessageHandlerMonitor> handlersByName = new HashMap<String, MessageHandlerMonitor>();
 
@@ -149,7 +149,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			return monitor;
 		}
 		if (bean instanceof MessageChannel) {
-			SimpleMessageChannelMonitor monitor;
+			DirectChannelMonitor monitor;
 			if (bean instanceof PollableChannel) {
 				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
@@ -160,7 +160,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				}
 			}
 			else {
-				monitor = new SimpleMessageChannelMonitor(beanName);
+				monitor = new DirectChannelMonitor(beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
@@ -288,32 +288,16 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public Map<String, String> getObjectNames() {
 		return Collections.unmodifiableMap(objectNamesByName);
 	}
-
-	public double getHandlerMeanDuration(String name) {
+	
+	public Statistics getHandlerDuration(String name) {
 		if (handlersByName.containsKey(name)) {
-			return handlersByName.get(name).getMeanDuration();
+			return handlersByName.get(name).getDuration();
 		}
 		logger.debug("No handler found for (" + name + ")");
-		return -1;
+		return null;		
 	}
 
-	public long getChannelSendCount(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getSendCount();
-		}
-		logger.debug("No channel found for (" + name + ")");
-		return -1;
-	}
-
-	public long getChannelSendErrorCount(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getSendErrorCount();
-		}
-		logger.debug("No channel found for (" + name + ")");
-		return -1;
-	}
-
-	public long getChannelReceiveCount(String name) {
+	public int getChannelReceiveCount(String name) {
 		if (channelsByName.containsKey(name)) {
 			if (channelsByName.get(name) instanceof PollableChannelMonitor) {
 				return ((PollableChannelMonitor) channelsByName.get(name)).getReceiveCount();
@@ -323,32 +307,24 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return -1;
 	}
 
-	public double getChannelSendRate(String name) {
+	public Statistics getChannelSendRate(String name) {
 		if (channelsByName.containsKey(name)) {
 			return channelsByName.get(name).getSendRate();
 		}
 		logger.debug("No channel found for (" + name + ")");
-		return -1;
+		return null;
 	}
 
-	public double getChannelErrorRate(String name) {
+	public Statistics getChannelErrorRate(String name) {
 		if (channelsByName.containsKey(name)) {
 			return channelsByName.get(name).getErrorRate();
 		}
 		logger.debug("No channel found for (" + name + ")");
-		return -1;
-	}
-
-	public double getChannelMeanSendDuration(String name) {
-		if (channelsByName.containsKey(name)) {
-			return channelsByName.get(name).getMeanSendDuration();
-		}
-		logger.debug("No channel found for (" + name + ")");
-		return -1;
+		return null;
 	}
 
 	private void registerChannels() {
-		for (SimpleMessageChannelMonitor monitor : channels) {
+		for (DirectChannelMonitor monitor : channels) {
 			String name = monitor.getName();
 			// Only register once...
 			if (!channelsByName.containsKey(name)) {
@@ -379,7 +355,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
-	private Object applyChannelInterceptor(Object bean, SimpleMessageChannelMonitor interceptor,
+	private Object applyChannelInterceptor(Object bean, DirectChannelMonitor interceptor,
 			ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor channelsAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		channelsAdvice.addMethodName("send");
