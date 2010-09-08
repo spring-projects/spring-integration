@@ -8,10 +8,11 @@ body,div,td {
 
 body {
 	background-color: #fff;
-	background-image: url(../images/banner-graphic.png);
-	background-position: top center;
-	background-repeat: no-repeat;
 	text-align: center;
+}
+
+#header {
+	margin-bottom: 1em;
 }
 
 #wrapper {
@@ -20,12 +21,12 @@ body {
 	max-width: 800px;
 	margin-right: auto;
 	margin-left: auto;
+
 	/* fix max-width incompatibility in IE6 */
 	width:expression(document.body.clientWidth > 800? "800px": "auto" );
 	
 	overflow:hidden;
 	display:block;
-	margin-top: 90px;
 }
 
 /* header and footer elements */
@@ -94,6 +95,18 @@ body {
 }
 
 #footer a:link {color: #7db223;}
+
+.quicklinks {
+	clear:both; 
+	padding-bottom: 15px
+}
+.quicklinks span {
+	float: right;
+}
+
+table.navigation {
+	border: 0px;
+}
 
 label {
 	width:100px;
@@ -201,21 +214,9 @@ a:visited {
 	color: #7db223;
 }
 
-ul {
-	list-style: disc url(../images/bullet-arrow.png);
-}
-
 li {
 	padding-top: 5px;
 	text-align: left;
-}
-
-li ul {
-	list-style: square url(../images/sub-bullet.gif);
-}
-
-li ul li ul {
-	list-style: circle none;
 }
 
 ul li {
@@ -250,7 +251,7 @@ table td form {
 }
 
 table th {
-	font-size: 0.75em;
+	font-size: 0.9em;
 	text-align: left;
 	font-weight: bold;
 	color: #FFF;
@@ -345,4 +346,21 @@ fieldset th {
 	padding:2px 8px;
 	font-size:11px;
 	color:#888888;
+}
+
+.dijitTextArea{
+    min-height:5.5em !important;
+    max-height:22em !important;
+    overflow-y: auto !important;
+    max-width: 175px;
+}
+
+.RichTextEditable{
+    min-height:18em !important;
+    max-height:18em !important;
+}
+
+.flag {
+	height: 11px;
+	width: 16px;
 }

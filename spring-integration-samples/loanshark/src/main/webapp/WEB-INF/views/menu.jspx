@@ -1,34 +1,12 @@
-<div xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:spring="http://www.springframework.org/tags" id="menu" version="2.0">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<div xmlns:jsp="http://java.sun.com/JSP/Page" xmlns:menu="urn:jsptagdir:/WEB-INF/tags/menu" id="menu" version="2.0">
 	<jsp:output omit-xml-declaration="yes"/>
-	<ul id="roo_menu">
-			
-	<li id="web_mvc_jsp_loanshark_category">
-            <h2>
-                <spring:message code="menu.category.web_mvc_jsp_loanshark_category.label"/>
-            </h2>
-            <ul>
-                <li id="web_mvc_jsp_create_loanshark_menu_item">
-                    <spring:url value="/loanshark/form" var="web_mvc_jsp_create_loanshark_menu_item_url"/>
-                    <a href="${web_mvc_jsp_create_loanshark_menu_item_url}">
-                        <spring:message code="label.loanshark" var="label_loanshark"/>
-                        <spring:message arguments="${label_loanshark}" code="global.menu.new"/>
-                    </a>
-                </li>
-            <li id="web_mvc_jsp_list_loanshark_menu_item">
-                    <spring:url value="/loanshark?page=${empty param.page ? 1 : param.page}&amp;amp;size=${empty param.size ? 10 : param.size}" var="web_mvc_jsp_list_loanshark_menu_item_url"/>
-                    <a href="${web_mvc_jsp_list_loanshark_menu_item_url}">
-                        <spring:message code="label.loansharks" var="label_loansharks"/>
-                        <spring:message arguments="${label_loansharks}" code="global.menu.list"/>
-                    </a>
-                </li>
-            <li id="finder_findloansharksbyname_menu_item">
-                    <spring:url value="/loanshark/find/ByName/form" var="finder_findloansharksbyname_menu_item_url"/>
-                    <a href="${finder_findloansharksbyname_menu_item_url}">
-                        <spring:message code="label.name" var="label_name"/>
-                        <spring:message arguments="${label_name}" code="global.menu.find"/>
-                    </a>
-                </li>
-            </ul>
-        </li>
-    </ul>
+
+<menu:menu id="_menu" z="nZaf43BjUg1iM0v70HJVEsXDopc=">
+        <menu:category id="c_loanshark" z="8WhvO4BkJx0liJrPcVuP2MdHid0=">
+            <menu:item id="i_loanshark_new" messageCode="global_menu_new" url="/loansharks?form" z="cljPwN6n9eTQzC6NQ3Xi2zVo/xA="/>
+        <menu:item id="i_loanshark_list" messageCode="global_menu_list" url="/loansharks?page=${empty param.page ? 1 : param.page}&amp;size=${empty param.size ? 10 : param.size}" z="VD7u9XTs1kINHz9TpYe/mckdgOo="/>
+        <menu:item id="fi_loanshark_name" messageCode="global_menu_find" url="/loansharks?find=ByName&amp;form" z="yOgcsk0sqfq0Xcy6NTnL6c8kJ74="/>
+        </menu:category>
+    </menu:menu>
 </div>
