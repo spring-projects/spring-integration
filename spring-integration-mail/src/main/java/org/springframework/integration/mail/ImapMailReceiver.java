@@ -161,5 +161,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			}
 		}
 	}
-
+	protected void onInit() throws Exception {
+		this.setShouldMarkMessagesAsRead(this.isShouldMarkMessagesAsRead() == null ? true : this.isShouldMarkMessagesAsRead());
+	}
 }

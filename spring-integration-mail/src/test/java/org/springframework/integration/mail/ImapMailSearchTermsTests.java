@@ -69,6 +69,8 @@ public class ImapMailSearchTermsTests {
 	@Test
 	public void validateSearchTermsWhenShouldNotMarkAsReadNoExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
+		receiver.setShouldMarkMessagesAsRead(false);
+		receiver.afterPropertiesSet();
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
@@ -78,6 +80,8 @@ public class ImapMailSearchTermsTests {
 	@Test
 	public void validateSearchTermsWhenShouldNotMarkAsReadWithExistingFlags() throws Exception {
 		ImapMailReceiver receiver = new ImapMailReceiver();
+		receiver.setShouldMarkMessagesAsRead(false);
+		receiver.afterPropertiesSet();
 		Method compileSearchTerms = ReflectionUtils.findMethod(receiver.getClass(), "compileSearchTerms", Flags.class);
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();

@@ -102,6 +102,7 @@ public class AbstractMailReceiverTests {
 	@Test
 	public void receieveAndDontMarkAsRead() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
+		receiver.setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
 		Message msg1 = mock(MimeMessage.class);
 		Message msg2 = mock(MimeMessage.class);
@@ -124,6 +125,7 @@ public class AbstractMailReceiverTests {
 				return null;
 			}
 		}).when(receiver).fetchMessages(messages);
+		receiver.afterPropertiesSet();
 		receiver.receive();
 		verify(msg1, times(0)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(0)).setFlag(Flag.SEEN, true);
