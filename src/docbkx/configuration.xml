@@ -250,6 +250,7 @@ public class FooService {
     }
 
 }</programlisting>
+    </para>
     <para>
       For several of these annotations, when a Message-handling method returns a non-null value, the endpoint will
       attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in
