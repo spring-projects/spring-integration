@@ -8,12 +8,15 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 
+import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.integration.MessageChannel;
 
 import org.springframework.transaction.PlatformTransactionManager;
 
 
-public class ActivityBehaviorMessagingGatewayFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware {
+public class ActivityBehaviorMessagingGatewayFactoryBean
+        extends AbstractFactoryBean<Object> implements
+        BeanFactoryAware, BeanNameAware {
     private volatile boolean updateProcessVariablesFromReplyMessageHeaders = false;
     private volatile boolean forwardProcessVariablesAsMessageHeaders = false;
     private volatile PlatformTransactionManager platformTransactionManager;
@@ -27,6 +30,38 @@ public class ActivityBehaviorMessagingGatewayFactoryBean implements FactoryBean,
     @SuppressWarnings("unused")
     public void setAsync(boolean async) {
         this.async = async;
+    }
+
+    @Override
+    protected Object createInstance() throws Exception {
+
+         if (this.async) {
+            AsyncActivityBehaviorMessagingGateway asyncActivityBehaviorMessagingGateway = new AsyncActivityBehaviorMessagingGateway();
+            asyncActivityBehaviorMessagingGateway.setForwardProcessVariablesAsMessageHeaders(this.forwardProcessVariablesAsMessageHeaders);
+            asyncActivityBehaviorMessagingGateway.setUpdateProcessVariablesFromReplyMessageHeaders(this.updateProcessVariablesFromReplyMessageHeaders);
+            asyncActivityBehaviorMessagingGateway.setPlatformTransactionManager(this.platformTransactionManager);
+            asyncActivityBehaviorMessagingGateway.setReplyChannel(this.replyChannel);
+            asyncActivityBehaviorMessagingGateway.setProcessEngine(this.processEngine);
+            asyncActivityBehaviorMessagingGateway.setRequestChannel(this.requestChannel);
+            asyncActivityBehaviorMessagingGateway.setBeanFactory(this.beanFactory);
+            asyncActivityBehaviorMessagingGateway.setBeanName(this.beanName);
+            asyncActivityBehaviorMessagingGateway.afterPropertiesSet();
+
+            return asyncActivityBehaviorMessagingGateway;
+        } else {
+            SyncActivityBehaviorMessagingGateway syncActivityBehaviorMessagingGateway = new SyncActivityBehaviorMessagingGateway();
+            syncActivityBehaviorMessagingGateway.setForwardProcessVariablesAsMessageHeaders(this.forwardProcessVariablesAsMessageHeaders);
+            syncActivityBehaviorMessagingGateway.setUpdateProcessVariablesFromReplyMessageHeaders(this.updateProcessVariablesFromReplyMessageHeaders);
+            syncActivityBehaviorMessagingGateway.setPlatformTransactionManager(this.platformTransactionManager);
+            syncActivityBehaviorMessagingGateway.setReplyChannel(this.replyChannel);
+            syncActivityBehaviorMessagingGateway.setProcessEngine(this.processEngine);
+            syncActivityBehaviorMessagingGateway.setRequestChannel(this.requestChannel);
+            syncActivityBehaviorMessagingGateway.setBeanFactory(this.beanFactory);
+            syncActivityBehaviorMessagingGateway.setBeanName(this.beanName);
+            syncActivityBehaviorMessagingGateway.afterPropertiesSet();
+
+            return syncActivityBehaviorMessagingGateway;
+        }
     }
 
     @SuppressWarnings("unused")
@@ -65,35 +100,6 @@ public class ActivityBehaviorMessagingGatewayFactoryBean implements FactoryBean,
         this.replyChannel = replyChannel;
     }
 
-    public Object getObject() throws Exception {
-        if (this.async) {
-            AsyncActivityBehaviorMessagingGateway asyncActivityBehaviorMessagingGateway = new AsyncActivityBehaviorMessagingGateway();
-            asyncActivityBehaviorMessagingGateway.setForwardProcessVariablesAsMessageHeaders(this.forwardProcessVariablesAsMessageHeaders);
-            asyncActivityBehaviorMessagingGateway.setUpdateProcessVariablesFromReplyMessageHeaders(this.updateProcessVariablesFromReplyMessageHeaders);
-            asyncActivityBehaviorMessagingGateway.setPlatformTransactionManager(this.platformTransactionManager);
-            asyncActivityBehaviorMessagingGateway.setReplyChannel(this.replyChannel);
-            asyncActivityBehaviorMessagingGateway.setProcessEngine(this.processEngine);
-            asyncActivityBehaviorMessagingGateway.setRequestChannel(this.requestChannel);
-            asyncActivityBehaviorMessagingGateway.setBeanFactory(this.beanFactory);
-            asyncActivityBehaviorMessagingGateway.setBeanName(this.beanName);
-            asyncActivityBehaviorMessagingGateway.afterPropertiesSet();
-
-            return asyncActivityBehaviorMessagingGateway;
-        } else {
-            SyncActivityBehaviorMessagingGateway syncActivityBehaviorMessagingGateway = new SyncActivityBehaviorMessagingGateway();
-            syncActivityBehaviorMessagingGateway.setForwardProcessVariablesAsMessageHeaders(this.forwardProcessVariablesAsMessageHeaders);
-            syncActivityBehaviorMessagingGateway.setUpdateProcessVariablesFromReplyMessageHeaders(this.updateProcessVariablesFromReplyMessageHeaders);
-            syncActivityBehaviorMessagingGateway.setPlatformTransactionManager(this.platformTransactionManager);
-            syncActivityBehaviorMessagingGateway.setReplyChannel(this.replyChannel);
-            syncActivityBehaviorMessagingGateway.setProcessEngine(this.processEngine);
-            syncActivityBehaviorMessagingGateway.setRequestChannel(this.requestChannel);
-            syncActivityBehaviorMessagingGateway.setBeanFactory(this.beanFactory);
-            syncActivityBehaviorMessagingGateway.setBeanName(this.beanName);
-            syncActivityBehaviorMessagingGateway.afterPropertiesSet();
-
-            return syncActivityBehaviorMessagingGateway;
-        }
-    }
 
     public Class<?> getObjectType() {
         return this.async ? AsyncActivityBehaviorMessagingGateway.class : SyncActivityBehaviorMessagingGateway.class;

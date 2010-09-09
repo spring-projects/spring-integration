@@ -71,10 +71,14 @@
 	<bean class="org.springframework.integration.activiti.impls.AnnouncingServiceActivator" id="activator"/>
 
 
-	<int:channel id="tc">
+	<int:channel id="triggerChannl">
 		<int:queue capacity="100"/>
 	</int:channel>
 
-	<activiti:outbound-channel-adapter channel="tc" process-engine="processEngine" process-definition-name="helloWorldProcess"/>
+	<activiti:outbound-channel-adapter
+        channel="triggerChannl"
+        process-engine="processEngine"
+        process-definition-name="helloWorldProcess"
+    />
 
 </beans>
