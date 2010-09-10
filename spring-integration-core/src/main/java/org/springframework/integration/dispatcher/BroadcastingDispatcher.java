@@ -17,28 +17,22 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
- * A broadcasting dispatcher implementation. If the 'ignoreFailures' property
- * is set to <code>false</code> (the default), it will fail fast such that any
- * Exception thrown by a MessageHandler may prevent subsequent handlers from
- * receiving the Message. However, when an Executor is provided, the Messages
- * may be dispatched in separate Threads so that other handlers are invoked even
- * when the 'ignoreFailures' flag is <code>false</code>.
+ * A broadcasting dispatcher implementation. If the 'ignoreFailures' property is set to <code>false</code> (the
+ * default), it will fail fast such that any Exception thrown by a MessageHandler may prevent subsequent handlers from
+ * receiving the Message. However, when an Executor is provided, the Messages may be dispatched in separate Threads so
+ * that other handlers are invoked even when the 'ignoreFailures' flag is <code>false</code>.
  * <p>
- * If the 'ignoreFailures' flag is set to <code>true</code> on the other hand,
- * it will make a best effort to send the message to each of its handlers. In
- * other words, when 'ignoreFailures' is <code>true</code>, if it fails to send
- * to any one handler, it will simply log a warn-level message but continue to
- * send the Message to any other handlers.
+ * If the 'ignoreFailures' flag is set to <code>true</code> on the other hand, it will make a best effort to send the
+ * message to each of its handlers. In other words, when 'ignoreFailures' is <code>true</code>, if it fails to send to
+ * any one handler, it will simply log a warn-level message but continue to send the Message to any other handlers.
  * 
  * @author Mark Fisher
  * @author Iwein Fuld
@@ -52,7 +46,6 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	private final Executor executor;
 
-
 	public BroadcastingDispatcher() {
 		this.executor = null;
 	}
@@ -61,26 +54,22 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		this.executor = executor;
 	}
 
-
 	/**
-	 * Specify whether failures for one or more of the handlers should be
-	 * ignored. By default this is <code>false</code> meaning that an 
-	 * Exception will be thrown when a handler fails. To override this and
-	 * suppress Exceptions, set the value to <code>true</code>.
+	 * Specify whether failures for one or more of the handlers should be ignored. By default this is <code>false</code>
+	 * meaning that an Exception will be thrown when a handler fails. To override this and suppress Exceptions, set the
+	 * value to <code>true</code>.
 	 * <p>
-	 * Keep in mind that when using an Executor, even without ignoring the
-	 * failures, other handlers may be invoked after one throws an Exception. 
-	 * Since the Executor is most likely using a different thread, this flag would
-	 * only affect whether an error Message is sent to the error channel or not in
-	 * the case that such an Executor has been configured.
+	 * Keep in mind that when using an Executor, even without ignoring the failures, other handlers may be invoked after
+	 * one throws an Exception. Since the Executor is most likely using a different thread, this flag would only affect
+	 * whether an error Message is sent to the error channel or not in the case that such an Executor has been
+	 * configured.
 	 */
 	public void setIgnoreFailures(boolean ignoreFailures) {
 		this.ignoreFailures = ignoreFailures;
 	}
 
 	/**
-	 * Specify whether to apply sequence numbers to the messages
-	 * prior to sending to the handlers. By default, sequence
+	 * Specify whether to apply sequence numbers to the messages prior to sending to the handlers. By default, sequence
 	 * numbers will <em>not</em> be applied
 	 */
 	public void setApplySequence(boolean applySequence) {
@@ -93,13 +82,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		List<MessageHandler> handlers = this.getHandlers();
 		int sequenceSize = handlers.size();
 		for (final MessageHandler handler : handlers) {
-			final Message<?> messageToSend = (!this.applySequence) ? message
-				: MessageBuilder.fromMessage(message)
-						.setSequenceNumber(sequenceNumber++)
-						.setSequenceSize(sequenceSize)
-						.setCorrelationId(message.getHeaders().getId())
-						.setHeader(MessageHeaders.ID, UUID.randomUUID())
-						.build();
+			final Message<?> messageToSend = (!this.applySequence) ? message : MessageBuilder.fromMessage(message)
+					.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 			if (this.executor != null) {
 				this.executor.execute(new Runnable() {
 					public void run() {
@@ -123,8 +107,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		}
 		catch (RuntimeException e) {
 			if (!this.ignoreFailures) {
-				if (e instanceof MessagingException &&
-						((MessagingException) e).getFailedMessage() == null) {
+				if (e instanceof MessagingException && ((MessagingException) e).getFailedMessage() == null) {
 					((MessagingException) e).setFailedMessage(message);
 				}
 				throw e;

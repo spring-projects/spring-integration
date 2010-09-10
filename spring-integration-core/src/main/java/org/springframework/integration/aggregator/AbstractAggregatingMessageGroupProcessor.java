@@ -13,20 +13,15 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
-import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -44,19 +39,18 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-
 	public final Object processMessageGroup(MessageGroup group) {
 		Assert.notNull(group, "MessageGroup must not be null");
 		Map<String, Object> headers = this.aggregateHeaders(group);
 		Object payload = this.aggregatePayloads(group, headers);
 		MessageBuilder<?> builder;
 		if (payload instanceof Message<?>) {
-			builder = MessageBuilder.fromMessage((Message<?>) payload);
+			builder = MessageBuilder.fromMessage((Message<?>) payload).copyHeadersIfAbsent(headers);
 		}
 		else {
 			builder = MessageBuilder.withPayload(payload).copyHeadersIfAbsent(headers);
 		}
-		return builder.build();
+		return builder.popSequenceDetails().build();
 	}
 
 	/**
@@ -71,28 +65,7 @@ public abstract class AbstractAggregatingMessageGroupProcessor implements Messag
 			MessageHeaders currentHeaders = message.getHeaders();
 			for (String key : currentHeaders.keySet()) {
 				if (MessageHeaders.ID.equals(key) || MessageHeaders.TIMESTAMP.equals(key)
-						|| MessageHeaders.SEQUENCE_SIZE.equals(key) || MessageHeaders.SEQUENCE_NUMBER.equals(key)
-						|| MessageHeaders.CORRELATION_ID.equals(key)) {
-					continue;
-				}
-				if (AbstractMessageSplitter.SEQUENCE_DETAILS.equals(key)
-						&& !aggregatedHeaders.containsKey(MessageHeaders.CORRELATION_ID)) {
-					@SuppressWarnings("unchecked")
-					List<Object[]> incomingSequenceDetails = new ArrayList<Object[]>(currentHeaders
-							.get(key, List.class));
-					Object[] sequenceDetails = incomingSequenceDetails.remove(incomingSequenceDetails.size() - 1);
-					Assert.state(sequenceDetails.length == 3, "Wrong sequence details (not created by splitter?): "
-							+ Arrays.asList(sequenceDetails));
-					aggregatedHeaders.put(MessageHeaders.CORRELATION_ID, sequenceDetails[0]);
-					Integer sequenceNumber = (Integer) sequenceDetails[1];
-					Integer sequenceSize = (Integer) sequenceDetails[2];
-					if (sequenceSize > 0) {
-						aggregatedHeaders.put(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
-						aggregatedHeaders.put(MessageHeaders.SEQUENCE_SIZE, sequenceSize);
-					}
-					if (!incomingSequenceDetails.isEmpty()) {
-						aggregatedHeaders.put(AbstractMessageSplitter.SEQUENCE_DETAILS, incomingSequenceDetails);
-					}
+						|| MessageHeaders.SEQUENCE_SIZE.equals(key) || MessageHeaders.SEQUENCE_NUMBER.equals(key)) {
 					continue;
 				}
 				Object value = currentHeaders.get(key);

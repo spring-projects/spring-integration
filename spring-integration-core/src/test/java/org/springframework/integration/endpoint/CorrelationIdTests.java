@@ -20,13 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -126,8 +125,8 @@ public class CorrelationIdTests {
 		Message<?> reply2 = testChannel.receive(100);
 		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
 		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());		
-		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(AbstractMessageSplitter.SEQUENCE_DETAILS));
-		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(AbstractMessageSplitter.SEQUENCE_DETAILS));
+		assertTrue("Sequence details missing", reply1.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
+		assertTrue("Sequence details missing", reply2.getHeaders().containsKey(MessageHeaders.SEQUENCE_DETAILS));
 	}
 
 	@SuppressWarnings("unused")

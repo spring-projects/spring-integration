@@ -41,24 +41,36 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class NestedAggregationTests {
 
 	@Autowired
-	DirectChannel input;
+	DirectChannel splitter;
+
+	@Autowired
+	DirectChannel router;
 
 	@Test
 	public void testAggregatorWithNestedSplitter() throws Exception {
-		List<String> result = sendAndReceiveMessage(input, 2000);
+		@SuppressWarnings("unchecked")
+		Message<?> input = new GenericMessage<List<List<String>>>(Arrays.asList(Arrays.asList("foo", "bar", "spam"),
+				Arrays.asList("bar", "foo")));
+		List<String> result = sendAndReceiveMessage(splitter, 2000, input);
 		assertNotNull("Expected result and got null", result);
 		assertEquals("[[foo, bar, spam], [bar, foo]]", result.toString());
 	}
 
-	private List<String> sendAndReceiveMessage(DirectChannel channel, int timeout) {
+	@Test
+	public void testAggregatorWithNestedRouter() throws Exception {
+		Message<?> input = new GenericMessage<List<String>>(Arrays.asList("bar", "foo"));
+		List<String> result = sendAndReceiveMessage(router, 2000, input);
+		assertNotNull("Expected result and got null", result);
+		assertEquals("[[bar, foo], [bar, foo]]", result.toString());
+	}
+
+	private List<String> sendAndReceiveMessage(DirectChannel channel, int timeout, Message<?> input) {
 
 		MessagingTemplate messagingTemplate = new MessagingTemplate();
 		messagingTemplate.setReceiveTimeout(timeout);
 
 		@SuppressWarnings("unchecked")
-		Message<List<String>> message = (Message<List<String>>) messagingTemplate.sendAndReceive(channel,
-				new GenericMessage<List<List<String>>>(Arrays.asList(Arrays.asList("foo", "bar", "spam"), Arrays.asList("bar",
-						"foo"))));
+		Message<List<String>> message = (Message<List<String>>) messagingTemplate.sendAndReceive(channel, input);
 
 		return message == null ? null : message.getPayload();
 

@@ -114,7 +114,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	private void handleResult(Object result, MessageHeaders requestHeaders) {
-		if (result instanceof Iterable && this.shouldSplitReply((Iterable<?>) result)) {
+		if (result instanceof Iterable<?> && this.shouldSplitReply((Iterable<?>) result)) {
 			for (Object o : (Iterable<?>) result) {
 				this.produceReply(o, requestHeaders);
 			}
@@ -131,7 +131,7 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	private Message<?> createReplyMessage(Object reply, MessageHeaders requestHeaders) {
 		MessageBuilder<?> builder = null;
-		if (reply instanceof Message) {
+		if (reply instanceof Message<?>) {
 			if (!this.shouldCopyRequestHeaders()) {
 				return (Message<?>) reply;
 			}

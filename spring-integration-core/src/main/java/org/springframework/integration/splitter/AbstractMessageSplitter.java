@@ -18,9 +18,7 @@ package org.springframework.integration.splitter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -35,8 +33,6 @@ import org.springframework.integration.support.MessageBuilder;
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
-	public static final String SEQUENCE_DETAILS = MessageHeaders.PREFIX + "sequenceDetails";
-
 	@Override
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
@@ -45,19 +41,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			return null;
 		}
 		MessageHeaders headers = message.getHeaders();
-		Object incomingCorrelationId = headers.getCorrelationId();
-		List<Object[]> incomingSequenceDetails = headers.get(SEQUENCE_DETAILS, List.class);
-		if (incomingCorrelationId != null) {
-			if (incomingSequenceDetails == null) {
-				incomingSequenceDetails = new ArrayList<Object[]>();
-			}
-			else {
-				incomingSequenceDetails = new ArrayList<Object[]>(incomingSequenceDetails);
-			}
-			incomingSequenceDetails.add(new Object[] {
-					incomingCorrelationId, headers.getSequenceNumber(), headers.getSequenceSize() });
-			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
-		}
 		Object correlationId = headers.getId();
 		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
 		if (result instanceof Collection) {
@@ -65,8 +48,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(
-						item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
+				messageBuilders.add(this.createBuilder(item, headers, correlationId, ++sequenceNumber, sequenceSize));
 			}
 		}
 		else if (result.getClass().isArray()) {
@@ -74,26 +56,27 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.length;
 			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(
-						item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
+				messageBuilders.add(this.createBuilder(item, headers, correlationId, ++sequenceNumber, sequenceSize));
 			}
 		}
 		else {
-			messageBuilders.add(this.createBuilder(result, incomingSequenceDetails, correlationId, 1, 1));
+			messageBuilders.add(this.createBuilder(result, headers, correlationId, 1, 1));
 		}
 		return messageBuilders;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private MessageBuilder createBuilder(Object item, List<Object[]> incomingSequenceDetails, Object correlationId,
-			int sequenceNumber, int sequenceSize) {
-		MessageBuilder builder = (item instanceof Message) ? MessageBuilder.fromMessage((Message) item)
-				: MessageBuilder.withPayload(item);
-		builder.setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize)
-				.setHeader(MessageHeaders.ID, UUID.randomUUID());
-		if (incomingSequenceDetails != null) {
-			builder.setHeader(SEQUENCE_DETAILS, incomingSequenceDetails);
+	@SuppressWarnings( { "unchecked" })
+	private MessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId, int sequenceNumber,
+			int sequenceSize) {
+		MessageBuilder builder;
+		if (item instanceof Message) {
+			builder = MessageBuilder.fromMessage((Message) item);
 		}
+		else {
+			builder = MessageBuilder.withPayload(item);
+			builder.copyHeaders(headers);
+		}
+		builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
 		return builder;
 	}
 
