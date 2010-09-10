@@ -8,3 +8,5 @@ spring-integration-jms/activemq-data/
 si.java.hsp
 */src/main/java/META-INF
 spring-integration-parent/.project
+*.iml
+.idea
