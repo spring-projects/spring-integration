@@ -16,18 +16,9 @@
 
 package org.springframework.integration.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageHeaders;
@@ -37,6 +28,13 @@ import org.springframework.integration.annotation.Headers;
 import org.springframework.integration.annotation.Payload;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.MessageBuilder;
+
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -63,6 +61,19 @@ public class MethodInvokingMessageProcessorAnnotationTests {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
 		processor.processMessage(new GenericMessage<String>("foo"));
+	}
+
+	@Ignore //see INT-988
+	@Test(expected = MessageHandlingException.class)
+	public void requiredHeaderNotProvidedOnSecondMessage() throws Exception {
+		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
+		MethodInvokingMessageProcessor processor = new MethodInvokingMessageProcessor(testService, method);
+				Message<String> messageWithHeader = MessageBuilder.withPayload("foo")
+				.setHeader("num", new Integer(123)).build();
+		GenericMessage<String> messageWithoutHeader = new GenericMessage<String>("foo");
+		
+		processor.processMessage(messageWithHeader);
+		processor.processMessage(messageWithoutHeader);
 	}
 
 	@Test 
