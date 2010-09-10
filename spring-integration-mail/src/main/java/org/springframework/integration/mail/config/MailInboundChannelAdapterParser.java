@@ -81,7 +81,11 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 			}
 		}
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
-		receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", element.getAttribute("should-mark-messages-as-read"));
+		String markAsRead = element.getAttribute("should-mark-messages-as-read");
+		if (StringUtils.hasText(markAsRead)){
+			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
+		}
+		
 		return receiverBuilder.getBeanDefinition();
 	}
 

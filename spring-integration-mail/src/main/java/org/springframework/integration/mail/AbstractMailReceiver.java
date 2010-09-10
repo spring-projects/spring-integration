@@ -34,6 +34,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
 
 /**
@@ -45,7 +47,7 @@ import org.springframework.util.Assert;
  * @author Iwein Fuld
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractMailReceiver implements MailReceiver, DisposableBean {
+public abstract class AbstractMailReceiver extends IntegrationObjectSupport implements MailReceiver, DisposableBean{
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -63,7 +65,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 
 	private volatile boolean shouldDeleteMessages = false;
 	
-	private volatile boolean shouldMarkMessagesAsRead = false;
+	private volatile Boolean shouldMarkMessagesAsRead;
 
 	private volatile Properties javaMailProperties = new Properties();
 
@@ -153,14 +155,14 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	 * Check if messages should be marked as read
 	 * @return
 	 */
-	public boolean isShouldMarkMessagesAsRead() {
+	public Boolean isShouldMarkMessagesAsRead() {
 		return shouldMarkMessagesAsRead;
 	}
 	/**
 	 * Specify is messages should be marked as read
 	 * @return
 	 */
-	public void setShouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
+	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
 
@@ -251,7 +253,7 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 
 			Message[] copiedMessages = new Message[messages.length];
 			for (int i = 0; i < messages.length; i++) {
-				if (this.isShouldMarkMessagesAsRead()){
+				if (this.shouldMarkMessagesAsRead){
 					messages[i].setFlag(Flag.SEEN, true);
 				}
 				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
@@ -312,5 +314,4 @@ public abstract class AbstractMailReceiver implements MailReceiver, DisposableBe
 	public String toString() {
 		return this.url.toString();
 	}
-
 }

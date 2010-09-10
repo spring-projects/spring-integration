@@ -44,7 +44,7 @@
       The argument in the service method could be either a Message or an arbitrary type. If the latter, then it will
       be assumed that it is a Message payload, which will be extracted from the message and injected into such service
       method. This is generally the recommended approach as it follows and promotes a POJO model when working with Spring
-      Integration. Arguments may also have @Header, @Headers or @MessageMapping annotations as described in <xref linkend="annotations"/>
+      Integration. Arguments may also have @Header, @Headers annotations as described in <xref linkend="annotations"/>
     </para>
     <note>
        Since v1.0.3 of Spring Integration, the service method is not required to have an argument at all, which means you

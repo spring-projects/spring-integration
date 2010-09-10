@@ -80,8 +80,10 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(receiverBuilder, element, "max-fetch-size");
 		receiverBuilder.addPropertyValue("shouldDeleteMessages", element.getAttribute("should-delete-messages"));
-		receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", element.getAttribute("should-mark-messages-as-read"));
-		return receiverBuilder.getBeanDefinition();
+		String markAsRead = element.getAttribute("should-mark-messages-as-read");
+		if (StringUtils.hasText(markAsRead)){
+			receiverBuilder.addPropertyValue("shouldMarkMessagesAsRead", markAsRead);
+		}
+		return receiverBuilder.getBeanDefinition(); 
 	}
-
 }

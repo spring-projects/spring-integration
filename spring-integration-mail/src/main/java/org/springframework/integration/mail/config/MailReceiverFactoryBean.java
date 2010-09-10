@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  * @since 1.0.3
  */
-public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean {
+public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, DisposableBean{
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String storeUri;
@@ -59,7 +59,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 	 */
 	private volatile Boolean shouldDeleteMessages = null;
 	
-	private volatile boolean shouldMarkMessagesAsRead;
+	private volatile Boolean shouldMarkMessagesAsRead = null;
 
 	private volatile int maxFetchSize = 1;
 
@@ -147,11 +147,14 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			receiver.setShouldDeleteMessages(this.shouldDeleteMessages);
 		}
 		receiver.setMaxFetchSize(this.maxFetchSize);
-		if (isPop3 && this.shouldMarkMessagesAsRead){
-			logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
-		} else {
-			receiver.setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
-		}	
+		
+		if (this.isShouldMarkMessagesAsRead()){
+			if (isPop3){
+				logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
+			} else if (isImap){
+				receiver.setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+			}
+		}
 		return receiver;
 	}
 
@@ -160,13 +163,12 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			((DisposableBean) this.receiver).destroy();
 		}
 	}
-	
-	public boolean isShouldMarkMessagesAsRead() {
-		return shouldMarkMessagesAsRead;
+
+	public Boolean isShouldMarkMessagesAsRead() {
+		return shouldMarkMessagesAsRead != null && shouldMarkMessagesAsRead;
 	}
 
-	public void setShouldMarkMessagesAsRead(boolean shouldMarkMessagesAsRead) {
+	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
 		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
 	}
-
 }
