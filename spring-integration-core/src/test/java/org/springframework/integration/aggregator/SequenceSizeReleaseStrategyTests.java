@@ -16,16 +16,18 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 import org.springframework.integration.Message;
+import org.springframework.integration.store.MessageGroup;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class SequenceSizeReleaseStrategyTests {
 
@@ -56,6 +58,73 @@ public class SequenceSizeReleaseStrategyTests {
 	public void testEmptyList() {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		assertTrue(releaseStrategy.canRelease(new SimpleMessageGroup("FOO")));
+	}
+
+		@Test
+	public void shouldReleaseHeadOfSequenceDeliveredInOrder() {
+		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
+		releaseStrategy.setReleasePartialSequences(true);
+
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
+
+		assertTrue(releaseStrategy.canRelease(groupWithFirstMessagesOfIncompleteSequence(messages)));
+	}
+
+	private SimpleMessageGroup groupWithFirstMessagesOfIncompleteSequence(SimpleMessageGroup messages) {
+		Message<String> message1 = MessageBuilder.withPayload("test1")
+				.setSequenceSize(3).setSequenceNumber(1).build();
+		Message<String> message2 = MessageBuilder.withPayload("test2")
+				.setSequenceSize(3).setSequenceNumber(2).build();
+
+		messages.add(message1);
+		messages.add(message2);
+		return messages;
+	}
+
+	@Test
+	public void shouldReleaseHeadOfSequenceDeliveredOutOfOrder() {
+		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
+		releaseStrategy.setReleasePartialSequences(true);
+
+		assertTrue(releaseStrategy.canRelease(groupWithLastAndFirstMessagesOfIncompleteSequence()));
+	}
+
+	private MessageGroup groupWithLastAndFirstMessagesOfIncompleteSequence() {
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
+
+		Message<String> message1 = MessageBuilder.withPayload("test1")
+				.setSequenceSize(3).setSequenceNumber(3).build();
+		Message<String> message2 = MessageBuilder.withPayload("test2")
+				.setSequenceSize(3).setSequenceNumber(1).build();
+
+		messages.add(message1);
+		messages.add(message2);
+		return messages;
+	}
+
+	@Test
+	public void shouldPartiallyReleaseAsEarlyAsPossible() {
+		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
+		releaseStrategy.setReleasePartialSequences(true);
+
+		SimpleMessageGroup messages = new SimpleMessageGroup("FOO");
+
+		Message<String> message1 = MessageBuilder.withPayload("test1").setSequenceSize(5).setSequenceNumber(1).build();
+		Message<String> message2 = MessageBuilder.withPayload("test2").setSequenceSize(5).setSequenceNumber(2).build();
+		Message<String> message3 = MessageBuilder.withPayload("test3").setSequenceSize(5).setSequenceNumber(3).build();
+		Message<String> message4 = MessageBuilder.withPayload("test4").setSequenceSize(5).setSequenceNumber(4).build();
+		Message<String> message5 = MessageBuilder.withPayload("test5").setSequenceSize(5).setSequenceNumber(5).build();
+
+		messages.add(message5);
+		assertFalse(releaseStrategy.canRelease(messages));
+		messages.add(message1);
+		assertTrue(releaseStrategy.canRelease(messages));
+		messages.add(message2);
+		assertTrue(releaseStrategy.canRelease(messages));
+		messages.add(message3);
+		assertTrue(releaseStrategy.canRelease(messages));
+		messages.add(message4);
+		assertTrue(releaseStrategy.canRelease(messages));
 	}
 
 }
