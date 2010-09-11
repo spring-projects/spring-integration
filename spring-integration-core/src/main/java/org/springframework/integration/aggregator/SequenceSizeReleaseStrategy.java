@@ -16,13 +16,13 @@
 
 package org.springframework.integration.aggregator;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.store.MessageGroup;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.store.MessageGroup;
 
 /**
  * An implementation of {@link ReleaseStrategy} that simply compares the
@@ -60,9 +60,8 @@ public class SequenceSizeReleaseStrategy implements ReleaseStrategy {
 		if (releasePartialSequences) {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages.getUnmarked());
 			Collections.sort(sorted, comparator);
-			int head = sorted.get(sorted.size() - 1).getHeaders().getSequenceNumber();
 			int tail = sorted.get(0).getHeaders().getSequenceNumber() - 1;
-			return tail == messages.getMarked().size() && head - tail == sorted.size();
+			return tail == messages.getMarked().size();
 		}
 		return messages.isComplete();
 	}

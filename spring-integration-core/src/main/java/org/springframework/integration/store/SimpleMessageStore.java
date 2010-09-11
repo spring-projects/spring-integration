@@ -13,16 +13,16 @@
 
 package org.springframework.integration.store;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.util.UpperBound;
+import org.springframework.util.Assert;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.springframework.integration.Message;
-import org.springframework.integration.MessagingException;
-import org.springframework.integration.util.UpperBound;
-import org.springframework.util.Assert;
 
 /**
  * Map-based implementation of {@link MessageStore} and {@link MessageGroupStore}. Enforces a maximum capacity for the
@@ -125,9 +125,15 @@ public class SimpleMessageStore extends AbstractMessageGroupStore implements Mes
 		groupIdToMessageGroup.remove(groupId);
 	}
 
-	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark) {
+	public MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove) {
 		SimpleMessageGroup group = getMessageGroupInternal(key);
-		group.remove(messageToMark);
+		group.remove(messageToRemove);
+		return group;
+	}
+
+	public MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark) {
+		SimpleMessageGroup group = getMessageGroupInternal(key);
+		group.mark(messageToMark);
 		return group;
 	}
 

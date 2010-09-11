@@ -13,18 +13,14 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.store.MessageGroup;
 
+import java.util.*;
+
 /**
  * This class implements all the strategy interfaces needed for a default resequencer.
- * 
+ *
  * @author Iwein Fuld
  * @author Dave Syer
  * @since 2.0
@@ -35,6 +31,7 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 
 	/**
 	 * A comparator to use to order messages before processing. The default is to order by sequence number.
+	 *
 	 * @param comparator the comparator to use to order messages
 	 */
 	public void setComparator(Comparator<Message<?>> comparator) {
@@ -43,12 +40,28 @@ public class ResequencingMessageGroupProcessor implements MessageGroupProcessor 
 
 	public Object processMessageGroup(MessageGroup group) {
 		Collection<Message<?>> messages = group.getUnmarked();
+
 		if (messages.size() > 0) {
 			List<Message<?>> sorted = new ArrayList<Message<?>>(messages);
 			Collections.sort(sorted, this.comparator);
-			return sorted;
+			ArrayList<Message> partialSequence = new ArrayList<Message>();
+			int previousSequence = extractSequenceNumber(sorted.get(0));
+			int currentSequence = previousSequence;
+			for (Message<?> message : sorted) {
+				previousSequence = currentSequence;
+				currentSequence = extractSequenceNumber(message);
+				if (currentSequence - 1 > previousSequence) {
+					//there is a gap in the sequence here
+					break;
+				}
+				partialSequence.add(message);
+			}
+			return partialSequence;
 		}
 		return null;
 	}
 
+	private Integer extractSequenceNumber(Message<?> message) {
+		return message.getHeaders().getSequenceNumber();
+	}
 }

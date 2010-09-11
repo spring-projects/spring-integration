@@ -13,17 +13,6 @@
 
 package org.springframework.integration.jdbc;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
-import javax.sql.DataSource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.commons.serializer.DeserializingConverter;
@@ -38,15 +27,17 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import javax.sql.DataSource;
+import java.sql.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Implementation of {@link MessageStore} using a relational database via JDBC. SQL scripts to create the necessary
@@ -330,11 +321,29 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	}
 
-	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToMark) {
+	public MessageGroup removeMessageFromGroup(Object groupId, Message<?> messageToRemove) {
+		final String groupKey = getKey(groupId);
+		final String messageId = getKey(messageToRemove.getHeaders().getId());
+
+		jdbcTemplate.update(getQuery(REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
+			public void setValues(PreparedStatement ps) throws SQLException {
+				logger.debug("Removing message from group with group key=" + groupKey);
+				ps.setString(1, groupKey);
+				ps.setString(2, region);
+				ps.setString(3, messageId);
+			}
+		});
+		return getMessageGroup(groupId);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(messageToMark.getHeaders().getId());
 
-		jdbcTemplate.update(getQuery(REMOVE_MESSAGE_FROM_GROUP), new PreparedStatementSetter() {
+		jdbcTemplate.update(getQuery(MARK_MESSAGES_IN_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
 				logger.debug("Removing message from group with group key=" + groupKey);
 				ps.setString(1, groupKey);

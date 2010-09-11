@@ -27,6 +27,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.store.*;
 import org.springframework.util.Assert;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,15 +49,12 @@ import java.util.concurrent.ConcurrentMap;
  * @author Dave Syer
  * @since 2.0
  */
+@SuppressWarnings({"SynchronizationOnLocalVariableOrMethodParameter"})
 public class CorrelatingMessageHandler extends AbstractMessageHandler implements MessageProducer {
 
 	private static final Log logger = LogFactory.getLog(CorrelatingMessageHandler.class);
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000L;
-
-	public static final long DEFAULT_REAPER_INTERVAL = 1000L;
-
-	public static final long DEFAULT_TIMEOUT = 60000L;
 
 
 	private MessageGroupStore messageStore;
@@ -166,21 +164,14 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 			if (group.canAdd(message)) {
 				group = store(correlationKey, message);
 				if (releaseStrategy.canRelease(group)) {
+					Collection<Message> completedMessages = null;
 					try {
-						completeGroup(message, correlationKey, group);
+						completedMessages = completeGroup(message, correlationKey, group);
 					}
 					finally {
 						// Always clean up even if there was an exception
 						// processing messages
-						if (group.isComplete() || group.getSequenceSize() == 0) {
-							// The group is complete or else there is no
-							// sequence so there is no more state to track
-							remove(group);
-						} else {
-							// Mark these messages as processed, but do not
-							// remove the group from store
-							mark(group);
-						}
+						cleanUpForReleasedGroup(group, completedMessages);
 					}
 				} else if (group.isComplete()) {
 					try {
@@ -196,6 +187,22 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 				}
 			} else {
 				discardChannel.send(message);
+			}
+		}
+	}
+
+	private void cleanUpForReleasedGroup(MessageGroup group, Collection<Message> completedMessages) {
+		if (group.isComplete() || group.getSequenceSize() == 0) {
+			// The group is complete or else there is no
+			// sequence so there is no more state to track
+			remove(group);
+		} else {
+			// Mark these messages as processed, but do not
+			// remove the group from store
+			if (completedMessages == null) {
+				mark(group);
+			} else {
+				mark(group, completedMessages);
 			}
 		}
 	}
@@ -230,6 +237,13 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 
 	private void mark(MessageGroup group) {
 		messageStore.markMessageGroup(group);
+	}
+
+	private void mark(MessageGroup group, Collection<Message> partialSequence) {
+		Object id = group.getGroupId();
+		for (Message message : partialSequence) {
+			messageStore.markMessageFromGroup(id, message);
+		}
 	}
 
 	private void remove(MessageGroup group) {
@@ -271,13 +285,19 @@ public class CorrelatingMessageHandler extends AbstractMessageHandler implements
 		completeGroup(first, correlationKey, group);
 	}
 
-	private void completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
+	private Collection<Message> completeGroup(Message<?> message, Object correlationKey, MessageGroup group) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Completing group with correlationKey ["
 					+ correlationKey + "]");
 		}
 		Object result = outputProcessor.processMessageGroup(group);
+		Collection<Message> partialSequence = null;
+		if (result instanceof Collection<?>) {
+			//Taking a risk here because of Type Erasure. This is covered in the processor contract
+			partialSequence = (Collection<Message>) result;
+		}
 		this.sendReplies(result, message);
+		return partialSequence;
 	}
 
 	private void sendReplies(Object processorResult, Message message) {

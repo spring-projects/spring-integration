@@ -13,32 +13,22 @@
 
 package org.springframework.integration.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.aggregator.CorrelatingMessageHandler;
-import org.springframework.integration.aggregator.CorrelationStrategy;
-import org.springframework.integration.aggregator.MethodInvokingCorrelationStrategy;
-import org.springframework.integration.aggregator.MethodInvokingReleaseStrategy;
-import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
+import org.springframework.integration.aggregator.*;
 import org.springframework.integration.channel.NullChannel;
-import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
+
+import java.util.Comparator;
+
+import static org.junit.Assert.*;
+import static org.springframework.integration.test.util.TestUtils.getPropertyValue;
 
 /**
  * @author Marius Bogoevici
@@ -52,28 +42,6 @@ public class ResequencerParserTests {
 	@Before
 	public void setUp() {
 		this.context = new ClassPathXmlApplicationContext("resequencerParserTests.xml", this.getClass());
-	}
-
-	@Test
-	public void testResequencing() {
-		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
-		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
-		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-		outboundMessages.add(createMessage("123", "id1", 3, 3, outputChannel));
-		outboundMessages.add(createMessage("789", "id1", 3, 1, outputChannel));
-		outboundMessages.add(createMessage("456", "id1", 3, 2, outputChannel));
-		for (Message<?> message : outboundMessages) {
-			inputChannel.send(message);
-		}
-		Message<?> message1 = outputChannel.receive(500);
-		Message<?> message2 = outputChannel.receive(500);
-		Message<?> message3 = outputChannel.receive(500);
-		assertNotNull(message1);
-		assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
-		assertNotNull(message2);
-		assertEquals(new Integer(2), message2.getHeaders().getSequenceNumber());
-		assertNotNull(message3);
-		assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
 	}
 
 	@Test

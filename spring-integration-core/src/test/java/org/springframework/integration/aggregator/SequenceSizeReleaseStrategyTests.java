@@ -86,7 +86,9 @@ public class SequenceSizeReleaseStrategyTests {
 		SequenceSizeReleaseStrategy releaseStrategy = new SequenceSizeReleaseStrategy();
 		releaseStrategy.setReleasePartialSequences(true);
 
-		assertTrue(releaseStrategy.canRelease(groupWithLastAndFirstMessagesOfIncompleteSequence()));
+		boolean canRelease = releaseStrategy.canRelease(groupWithLastAndFirstMessagesOfIncompleteSequence());
+
+		assertTrue(canRelease);
 	}
 
 	private MessageGroup groupWithLastAndFirstMessagesOfIncompleteSequence() {

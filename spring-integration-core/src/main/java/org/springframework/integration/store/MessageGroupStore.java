@@ -49,12 +49,20 @@ public interface MessageGroupStore {
 	MessageGroup markMessageGroup(MessageGroup group);
 
 	/**
+	 * Persist a deletion on a single message from the group. The group is modified to reflect that 'messageToRemove' is no
+	 * longer present in the group.
+	 * @param key the groupId for the group containing the message
+	 * @param messageToRemove the message to be removed
+	 */
+	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToRemove);
+
+	/**
 	 * Persist a mark on a single message from the group. The group is modified to reflect that 'messageToMark' is no
 	 * longer unmarked but became marked instead.
 	 * @param key the groupId for the group containing the message
 	 * @param messageToMark the message to be marked
 	 */
-	MessageGroup removeMessageFromGroup(Object key, Message<?> messageToMark);
+	MessageGroup markMessageFromGroup(Object key, Message<?> messageToMark);
 
 	/**
 	 * Remove the message group with this id.

@@ -16,15 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.Message;
@@ -34,10 +25,19 @@ import org.springframework.integration.store.MessageGroupStore;
 import org.springframework.integration.store.SimpleMessageStore;
 import org.springframework.integration.support.MessageBuilder;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
+import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
+
 /**
  * @author Marius Bogoevici
  * @author Alex Peters
  * @author Dave Syer
+ * @author Iwein Fuld
  */
 public class ResequencerTests {
 
@@ -65,11 +65,11 @@ public class ResequencerTests {
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
 		assertNotNull(reply1);
-		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertThat( reply1.getHeaders().getSequenceNumber(), is(1));
 		assertNotNull(reply2);
-		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertThat(reply2.getHeaders().getSequenceNumber(), is(2));
 		assertNotNull(reply3);
-		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+		assertThat( reply3.getHeaders().getSequenceNumber(), is(3));
 	}
 
 	@Test
@@ -141,7 +141,8 @@ public class ResequencerTests {
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		this.resequencer.handleMessage(message4);
-		reply3 = replyChannel.receive(0);		Message<?> reply4 = replyChannel.receive(0);
+		reply3 = replyChannel.receive(0);
+		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply3);
 		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
 		assertNotNull(reply4);
