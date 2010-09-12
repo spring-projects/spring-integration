@@ -68,7 +68,7 @@ public class SftpNamespaceHandler extends NamespaceHandlerSupport {
 
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
 
-			for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-working-directory,auto-delete-remote-files-on-sync".split(",")) {
+			for (String p : "filename-pattern,auto-create-directories,username,password,host,key-file,key-file-password,remote-directory,local-directory-path,auto-delete-remote-files-on-sync".split(",")) {
 				IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, p);
 			}
 
