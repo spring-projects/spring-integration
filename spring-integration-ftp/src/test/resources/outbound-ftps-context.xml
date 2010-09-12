@@ -29,6 +29,7 @@
 	<ftps:outbound-channel-adapter
 			remote-directory="${ftp.remotedir}"
 			channel="ftpOutbound"
+			file-type="binary-file-type"
 			host="${ftp.host}"
 			username="${ftp.username}"
 			password="${ftp.password}" port="21"

@@ -71,7 +71,7 @@ public class ClientFactorySupport {
         return defaultFtpClientFactory;
     }
 
-    public static DefaultFtpClientFactory ftpClientFactory(String host, int port, String remoteDir, String user, String pw, int clientMode) {
+    public static DefaultFtpClientFactory ftpClientFactory(String host, int port, String remoteDir, String user, String pw, int clientMode, int fileType) {
         DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
         defaultFtpClientFactory.setHost(host);
         defaultFtpClientFactory.setPassword(pw);
@@ -79,6 +79,7 @@ public class ClientFactorySupport {
         defaultFtpClientFactory.setRemoteWorkingDirectory(remoteDir);
         defaultFtpClientFactory.setUsername(user);
         defaultFtpClientFactory.setClientMode(clientMode);
+	    defaultFtpClientFactory.setFileType( fileType );
 
         return defaultFtpClientFactory;
     }
