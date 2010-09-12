@@ -19,13 +19,19 @@ package org.springframework.integration.aggregator;
 import org.springframework.integration.Message;
 
 /**
- * Strategy for determining how messages shall be correlated. Implementations
- * shall return the correlation key value associated with a particular message.
- * 
+ * Strategy for determining how messages can be correlated. Implementations
+ * should return the correlation key value associated with a particular message.
+ *
  * @author Marius Bogoevici
+ * @author Iwein Fuld
  */
 public interface CorrelationStrategy {
 
-    Object getCorrelationKey(Message<?> message);
+	/**
+	 * Find the correlation key for the given message. If no key can be determined the strategy should not return
+	 * <code>null</code>, but throw an exception.
+	 *
+	 */
+	Object getCorrelationKey(Message<?> message);
 
 }
