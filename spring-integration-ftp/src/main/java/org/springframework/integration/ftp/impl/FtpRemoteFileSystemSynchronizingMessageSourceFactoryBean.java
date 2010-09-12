@@ -38,6 +38,7 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 	protected volatile int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 	protected volatile int fileType = FTP.BINARY_FILE_TYPE;
 
+	@SuppressWarnings("unused")
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
 	}
@@ -61,7 +62,8 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 	}
 
 	protected AbstractFtpClientFactory defaultClientFactory() throws Exception {
-		 return ClientFactorySupport.ftpClientFactory( this.host ,  Integer.parseInt(this.port) , this.remoteDirectory , this.username ,this.password, this.clientMode );
+		 return ClientFactorySupport.ftpClientFactory( this.host ,  Integer.parseInt(this.port) , this.remoteDirectory ,
+				 this.username ,this.password, this.clientMode , this.fileType);
 	}
 
 	protected String defaultFtpInboundFolderName = "ftpInbound";
