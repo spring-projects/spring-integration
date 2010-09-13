@@ -25,7 +25,7 @@ import java.util.*;
 
 /**
  * Base class for Message-splitting handlers.
- * 
+ *
  * @author Mark Fisher
  * @author Dave Syer
  * @author Iwein Fuld
@@ -43,51 +43,61 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		}
 		MessageHeaders headers = message.getHeaders();
 		Object incomingCorrelationId = headers.getCorrelationId();
-		List<Object[]> incomingSequenceDetails = headers.get(SEQUENCE_DETAILS, List.class);
-		if (incomingCorrelationId != null) {
-			if (incomingSequenceDetails == null) {
-				incomingSequenceDetails = new ArrayList<Object[]>();
-			}
-			else {
-				incomingSequenceDetails = new ArrayList<Object[]>(incomingSequenceDetails);
-			}
-			incomingSequenceDetails.add(new Object[] {
-					incomingCorrelationId, headers.getSequenceNumber(), headers.getSequenceSize() });
-			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
-		}
+		List<Object[]> incomingSequenceDetails = extractSequenceDetails(headers, incomingCorrelationId);
 		Object correlationId = headers.getId();
-		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
+		List<MessageBuilder> messageBuilders;
 		if (result instanceof Collection) {
-			Collection<?> items = (Collection<?>) result;
-			//TODO put this return statement in a more obvious place
-			if(items.isEmpty()){
-				return null;
-			}
-			int sequenceNumber = 0;
-			int sequenceSize = items.size();
-			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(
-						item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
-			}
+			messageBuilders = messageBuildersForCollection(result, incomingSequenceDetails, correlationId);
+		} else if (result.getClass().isArray()) {
+			messageBuilders = messageBuildersForArray(result, incomingSequenceDetails, correlationId);
+		} else {
+			messageBuilders = Collections.singletonList(this.createBuilder(result, incomingSequenceDetails, correlationId, 1, 1));
 		}
-		else if (result.getClass().isArray()) {
-			Object[] items = (Object[]) result;
-			int sequenceNumber = 0;
-			int sequenceSize = items.length;
-			for (Object item : items) {
-				messageBuilders.add(this.createBuilder(
-						item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
-			}
-		}
-		else {
-			messageBuilders.add(this.createBuilder(result, incomingSequenceDetails, correlationId, 1, 1));
+		return messageBuilders.isEmpty() ? null : messageBuilders;
+	}
+
+	private List<MessageBuilder> messageBuildersForArray(Object result, List<Object[]> incomingSequenceDetails, Object correlationId) {
+		List<MessageBuilder> messageBuilders = new ArrayList<MessageBuilder>();
+		Object[] items = (Object[]) result;
+		int sequenceNumber = 0;
+		int sequenceSize = items.length;
+		for (Object item : items) {
+			messageBuilders.add(this.createBuilder(
+					item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
 		}
 		return messageBuilders;
 	}
 
+	private List<MessageBuilder> messageBuildersForCollection(Object result, List<Object[]> incomingSequenceDetails, Object correlationId) {
+		List<MessageBuilder> messageBuilders = new ArrayList<MessageBuilder>();
+		Collection<?> items = (Collection<?>) result;
+		int sequenceNumber = 0;
+		int sequenceSize = items.size();
+		for (Object item : items) {
+			messageBuilders.add(this.createBuilder(
+					item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
+		}
+		return messageBuilders;
+	}
+
+	private List<Object[]> extractSequenceDetails(MessageHeaders headers, Object incomingCorrelationId) {
+		List<Object[]> incomingSequenceDetails = headers.get(SEQUENCE_DETAILS, List.class);
+		if (incomingCorrelationId != null) {
+			if (incomingSequenceDetails == null) {
+				incomingSequenceDetails = new ArrayList<Object[]>();
+			} else {
+				incomingSequenceDetails = new ArrayList<Object[]>(incomingSequenceDetails);
+			}
+			incomingSequenceDetails.add(new Object[]{
+					incomingCorrelationId, headers.getSequenceNumber(), headers.getSequenceSize()});
+			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
+		}
+		return incomingSequenceDetails;
+	}
+
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	private MessageBuilder createBuilder(Object item, List<Object[]> incomingSequenceDetails, Object correlationId,
-			int sequenceNumber, int sequenceSize) {
+										 int sequenceNumber, int sequenceSize) {
 		MessageBuilder builder = (item instanceof Message) ? MessageBuilder.fromMessage((Message) item)
 				: MessageBuilder.withPayload(item);
 		builder.setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize)
