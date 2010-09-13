@@ -191,21 +191,13 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 						&& (this.destination != null || this.destinationName != null),
 						"Either a 'jmsTemplate' or *both* 'connectionFactory' and"
 						+ " 'destination' (or 'destination-name') are required.");
-				this.jmsTemplate = this.createDefaultJmsTemplate();
+				this.jmsTemplate = this.createJmsTemplate();
 			}
-			this.jmsTemplate.setExplicitQosEnabled(this.explicitQosEnabled);
-			this.jmsTemplate.setTimeToLive(this.timeToLive);
-			this.jmsTemplate.setPriority(this.priority);
-			this.jmsTemplate.setDeliveryMode(this.deliveryMode);
-			if (this.messageConverter != null) {
-				this.jmsTemplate.setMessageConverter(this.messageConverter);
-			}
-			//this.configureMessageConverter(this.jmsTemplate);
 			this.initialized = true;
 		}
 	}
 
-	private JmsTemplate createDefaultJmsTemplate() {
+	private JmsTemplate createJmsTemplate() {
 		JmsTemplate jmsTemplate = new JmsTemplate();
 		jmsTemplate.setConnectionFactory(this.connectionFactory);
 		if (this.destination != null) {
@@ -218,16 +210,18 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 		if (this.destinationResolver != null) {
 			jmsTemplate.setDestinationResolver(this.destinationResolver);
 		}
+		jmsTemplate.setExplicitQosEnabled(this.explicitQosEnabled);
+		jmsTemplate.setTimeToLive(this.timeToLive);
+		jmsTemplate.setPriority(this.priority);
+		jmsTemplate.setDeliveryMode(this.deliveryMode);
+		if (this.messageConverter != null) {
+			jmsTemplate.setMessageConverter(this.messageConverter);
+		}
 		return jmsTemplate;
 	}
 
-//	protected void configureMessageConverter(JmsTemplate jmsTemplate) {
-//		MessageConverter converter = jmsTemplate.getMessageConverter();
-//		if (converter == null) {
-//			jmsTemplate.setMessageConverter(new SimpleMessageConverter());
-//		}
-//	}
 	protected boolean shouldExtractPayload() {
 		return extractPayload;
 	}
+
 }

@@ -26,6 +26,11 @@
 			  ref="splitterImpl"
 	          input-channel="splitterImplementationInput"
 	          output-channel="output"/>
+	          
+	<splitter id="splitterImplementationRequiresReply"
+	          input-channel="requiresReplyInput"
+	          output-channel="output" 
+	          requires-reply="true"/>
 
 	<beans:bean id="splitterBean" class="org.springframework.integration.router.config.TestSplitterBean"/>
 

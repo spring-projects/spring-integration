@@ -42,6 +42,54 @@ public class AsyncMessagingTemplate extends MessagingTemplate implements AsyncMe
 				(AsyncTaskExecutor) executor : new TaskExecutorAdapter(executor);
 	}
 
+	public Future<?> asyncSend(final Message<?> message) {
+		return this.executor.submit(new Runnable() {
+			public void run() {
+				send(message);
+			}
+		});
+	}
+
+	public Future<?> asyncSend(final MessageChannel channel, final Message<?> message) {
+		return this.executor.submit(new Runnable() {
+			public void run() {
+				send(channel, message);
+			}
+		});
+	}
+
+	public Future<?> asyncSend(final String channelName, final Message<?> message) {
+		return this.executor.submit(new Runnable() {
+			public void run() {
+				send(channelName, message);
+			}
+		});
+	}
+
+	public Future<?> asyncConvertAndSend(final Object object) {
+		return this.executor.submit(new Runnable() {
+			public void run() {
+				convertAndSend(object);
+			}
+		});
+	}
+
+	public Future<?> asyncConvertAndSend(final MessageChannel channel, final Object object) {
+		return this.executor.submit(new Runnable() {
+			public void run() {
+				convertAndSend(channel, object);
+			}
+		});
+	}
+
+	public Future<?> asyncConvertAndSend(final String channelName, final Object object) {
+		return this.executor.submit(new Runnable() {
+			public void run() {
+				convertAndSend(channelName, object);
+			}
+		});
+	}
+
 	public Future<Message<?>> asyncReceive() {
 		return this.executor.submit(new Callable<Message<?>>() {
 			public Message<?> call() throws Exception {

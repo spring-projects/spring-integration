@@ -16,21 +16,23 @@
 
 package org.springframework.integration.splitter;
 
+import static junit.framework.Assert.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static junit.framework.Assert.assertEquals;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.*;
 
 /**
  * @author Mark Fisher
@@ -104,5 +106,4 @@ public class DefaultSplitterTests {
 		Message<?> output = replyChannel.receive(15);
 		assertThat(output, is(nullValue()));
 	}
-
 }

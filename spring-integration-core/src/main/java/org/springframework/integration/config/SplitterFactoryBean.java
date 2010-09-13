@@ -31,6 +31,7 @@ import org.springframework.util.StringUtils;
 public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
+	private volatile boolean requiresReply;
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
@@ -64,7 +65,14 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		if (this.sendTimeout != null) {
 			splitter.setSendTimeout(sendTimeout);
 		}
+		splitter.setRequiresReply(requiresReply);
 		return splitter;
 	}
+	public boolean isRequiresReply() {
+		return requiresReply;
+	}
 
+	public void setRequiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
+	}
 }
