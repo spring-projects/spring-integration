@@ -120,8 +120,10 @@ public class JmsOutboundChannelAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithMessageConverter.xml", this.getClass());
 		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
-		MessageConverter messageConverter = (MessageConverter) handlerAccessor.getPropertyValue("messageConverter");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		JmsTemplate jmsTemlate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
+		MessageConverter messageConverter = jmsTemlate.getMessageConverter();
 		assertNotNull(messageConverter);
 		assertEquals(TestMessageConverter.class, messageConverter.getClass());
 	}

@@ -18,7 +18,10 @@ package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -53,7 +56,7 @@ abstract class JmsAdapterParserUtils {
 	static final String HEADER_MAPPER_PROPERTY = "headerMapper";
 
 	private static final String[] JMS_TEMPLATE_ATTRIBUTES = { "destination", "destination-name",
-		"connection-factory", "message-converter", "time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled" };
+		"connection-factory", "message-converter", "destination-resolver", "time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled" };
 
 
 	/*
@@ -104,6 +107,20 @@ abstract class JmsAdapterParserUtils {
 		else {
 			return null;
 		}
+	}
+
+	static BeanDefinition parseJmsTemplateBeanDefinition(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.jms.core.JmsTemplate");
+		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
+				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
+		return builder.getBeanDefinition();
 	}
 
 	static void verifyNoJmsTemplateAttributes(Element element, ParserContext parserContext) {

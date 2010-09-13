@@ -107,8 +107,16 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 		this.destination = destination;
 	}
 
+	Destination getDestination() {
+		return this.destination;
+	}
+
 	public void setDestinationName(String destinationName) {
 		this.destinationName = destinationName;
+	}
+
+	String getDestinationName() {
+		return this.destinationName;
 	}
 
 	public void setPubSubDomain(boolean pubSubDomain) {
@@ -133,8 +141,8 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
 	}
-	
-	JmsHeaderMapper getHeaderMapper(){
+
+	JmsHeaderMapper getHeaderMapper() {
 		return this.headerMapper;
 	}
 
@@ -187,10 +195,6 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 				return;
 			}
 			if (this.jmsTemplate == null) {
-				Assert.isTrue(this.connectionFactory != null
-						&& (this.destination != null || this.destinationName != null),
-						"Either a 'jmsTemplate' or *both* 'connectionFactory' and"
-						+ " 'destination' (or 'destination-name') are required.");
 				this.jmsTemplate = this.createJmsTemplate();
 			}
 			this.initialized = true;
@@ -198,6 +202,10 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 	}
 
 	private JmsTemplate createJmsTemplate() {
+		Assert.isTrue(this.connectionFactory != null
+				&& (this.destination != null || this.destinationName != null),
+				"Either a 'jmsTemplate' or *both* 'connectionFactory' and"
+				+ " 'destination' (or 'destination-name') are required.");
 		JmsTemplate jmsTemplate = new JmsTemplate();
 		jmsTemplate.setConnectionFactory(this.connectionFactory);
 		if (this.destination != null) {

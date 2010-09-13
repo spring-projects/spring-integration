@@ -47,8 +47,7 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else if (hasDestinationRef ^ hasDestinationName) {
-			builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
-					JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
+			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
 			if (StringUtils.hasText(destination)) {
 				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
 			}
@@ -65,13 +64,7 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "explicit-qos-enabled");
 		return builder.getBeanDefinition();
 	}
 

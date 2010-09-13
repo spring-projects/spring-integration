@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms;
 
+import javax.jms.Destination;
 import javax.jms.JMSException;
 
 import org.springframework.core.Ordered;
@@ -76,12 +77,38 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 		if (this.shouldExtractPayload()) {
 			objectToSend = messageToSend.getPayload();
 		}
-		this.getJmsTemplate().convertAndSend(objectToSend, new MessagePostProcessor() {
-			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage) throws JMSException {
-				getHeaderMapper().fromHeaders(messageToSend.getHeaders(), jmsMessage);
-				return jmsMessage;
+		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(messageToSend, this.getHeaderMapper());
+		Destination destination = this.getDestination();
+		if (destination != null) {
+			this.getJmsTemplate().convertAndSend(destination, objectToSend, messagePostProcessor);
+		}
+		else {
+			String destinationName = this.getDestinationName();
+			if (destinationName != null) {
+				this.getJmsTemplate().convertAndSend(destinationName, objectToSend, messagePostProcessor);
 			}
-		});
+			else { // fallback to default destination of the template
+				this.getJmsTemplate().convertAndSend(objectToSend, messagePostProcessor);
+			}
+		}
+	}
+
+
+	private static class HeaderMappingMessagePostProcessor implements MessagePostProcessor {
+
+		private final Message<?> integrationMessage;
+
+		private final JmsHeaderMapper headerMapper;
+
+		private HeaderMappingMessagePostProcessor(Message<?> integrationMessage, JmsHeaderMapper headerMapper) {
+			this.integrationMessage = integrationMessage;
+			this.headerMapper = headerMapper;
+		}
+
+		public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage) throws JMSException {
+			this.headerMapper.fromHeaders(this.integrationMessage.getHeaders(), jmsMessage);
+			return jmsMessage;
+		}
 	}
 
 }
