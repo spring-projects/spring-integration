@@ -18,6 +18,7 @@ package org.springframework.integration.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -46,6 +47,97 @@ import org.springframework.util.Assert;
  * @since 2.0
  */
 public class AsyncMessagingTemplateTests {
+
+	@Test
+	public void asyncSendWithDefaultChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setDefaultChannel(channel);
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		Future<?> future = template.asyncSend(message);
+		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
+		Message<?> result = channel.receive(0);
+		assertEquals(message, result);
+	}
+
+	@Test
+	public void asyncSendWithExplicitChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		Future<?> future = template.asyncSend(channel, message);
+		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
+		Message<?> result = channel.receive(0);
+		assertEquals(message, result);
+	}
+
+	@Test
+	public void asyncSendWithResolvedChannel() throws Exception {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setBeanFactory(context);
+		Message<?> message = MessageBuilder.withPayload("test").build();
+		Future<?> future = template.asyncSend("testChannel", message);
+		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
+		Message<?> result = channel.receive(0);
+		assertEquals(message, result);
+	}
+
+	@Test(expected = TimeoutException.class)
+	public void asyncSendWithTimeoutException() throws Exception {
+		QueueChannel channel = new QueueChannel(1);
+		channel.send(MessageBuilder.withPayload("blocker").build());
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<?> result = template.asyncSend(channel, MessageBuilder.withPayload("test").build());
+		result.get(100, TimeUnit.MILLISECONDS);
+	}
+
+	@Test
+	public void asyncConvertAndSendWithDefaultChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setDefaultChannel(channel);
+		Future<?> future = template.asyncConvertAndSend("test");
+		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
+		Message<?> result = channel.receive(0);
+		assertEquals("test", result.getPayload());
+	}
+
+	@Test
+	public void asyncConvertAndSendWithExplicitChannel() throws Exception {
+		QueueChannel channel = new QueueChannel();
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<?> future = template.asyncConvertAndSend(channel, "test");
+		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
+		Message<?> result = channel.receive(0);
+		assertEquals("test", result.getPayload());
+	}
+
+	@Test
+	public void asyncConvertAndSendWithResolvedChannel() throws Exception {
+		StaticApplicationContext context = new StaticApplicationContext();
+		context.registerSingleton("testChannel", QueueChannel.class);
+		context.refresh();
+		QueueChannel channel = context.getBean("testChannel", QueueChannel.class);
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		template.setBeanFactory(context);
+		Future<?> future = template.asyncConvertAndSend("testChannel", "test");
+		assertNull(future.get(1000, TimeUnit.MILLISECONDS));
+		Message<?> result = channel.receive(0);
+		assertEquals("test", result.getPayload());
+	}
+
+	@Test(expected = TimeoutException.class)
+	public void asyncConvertAndSendWithTimeoutException() throws Exception {
+		QueueChannel channel = new QueueChannel(1);
+		channel.send(MessageBuilder.withPayload("blocker").build());
+		AsyncMessagingTemplate template = new AsyncMessagingTemplate();
+		Future<?> result = template.asyncConvertAndSend(channel, "test");
+		result.get(100, TimeUnit.MILLISECONDS);
+	}
 
 	@Test
 	public void asyncReceiveWithDefaultChannel() throws Exception {
