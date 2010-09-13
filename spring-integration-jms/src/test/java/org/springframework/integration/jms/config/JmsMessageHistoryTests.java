@@ -58,7 +58,6 @@ public class JmsMessageHistoryTests {
 		assertEquals("jms:inbound-channel-adapter", event1.getProperty(MessageHistory.TYPE_PROPERTY));
 		assertEquals("sampleJmsInboundAdapter", event1.getProperty(MessageHistory.NAME_PROPERTY));
 		Properties event2 = historyIterator.next();
-		System.out.println(event2);
 		assertEquals("channel", event2.getProperty(MessageHistory.TYPE_PROPERTY));
 		assertEquals("jmsInputChannel", event2.getProperty(MessageHistory.NAME_PROPERTY));
 	}

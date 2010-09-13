@@ -102,6 +102,20 @@ public class JmsOutboundChannelAdapterParserTests {
 	}
 
 	@Test
+	public void adapterWithJmsTemplateQos() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsOutboundWithJmsTemplateQos.xml", this.getClass());
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
+		JmsTemplate jmsTemplate = (JmsTemplate) handlerAccessor.getPropertyValue("jmsTemplate");
+		assertNotNull(jmsTemplate);
+		assertEquals(context.getBean("template"), jmsTemplate);
+		assertTrue(jmsTemplate.isExplicitQosEnabled());
+		assertEquals(7, jmsTemplate.getPriority());
+		assertEquals(12345, jmsTemplate.getTimeToLive());
+	}
+
+	@Test
 	public void adapterWithMessageConverter() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithMessageConverter.xml", this.getClass());
