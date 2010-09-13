@@ -16,22 +16,19 @@
 
 package org.springframework.integration.splitter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+
+import java.util.*;
 
 /**
  * Base class for Message-splitting handlers.
  * 
  * @author Mark Fisher
  * @author Dave Syer
+ * @author Iwein Fuld
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
@@ -62,6 +59,10 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
+			//TODO put this return statement in a more obvious place
+			if(items.isEmpty()){
+				return null;
+			}
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {

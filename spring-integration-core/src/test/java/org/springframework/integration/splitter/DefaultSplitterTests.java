@@ -16,23 +16,25 @@
 
 package org.springframework.integration.splitter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.support.MessageBuilder;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static junit.framework.Assert.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.*;
+
 /**
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 public class DefaultSplitterTests {
 
@@ -90,6 +92,17 @@ public class DefaultSplitterTests {
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
+	}
+
+	@Test
+	public void splitMessageWithEmptyCollectionPayload() throws Exception {
+		Message<List<String>> message = MessageBuilder.withPayload(Collections.<String>emptyList()).build();
+		QueueChannel replyChannel = new QueueChannel();
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(replyChannel);
+		splitter.handleMessage(message);
+		Message<?> output = replyChannel.receive(15);
+		assertThat(output, is(nullValue()));
 	}
 
 }
