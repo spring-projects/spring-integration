@@ -45,41 +45,39 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		Object source = parserContext.extractSource(element);
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.jms.JmsDestinationPollingSource");
 		String componentName =  this.resolveId(element, builder.getBeanDefinition(), parserContext);
-		if (StringUtils.hasText(componentName)){
+		if (StringUtils.hasText(componentName)) {
 			builder.addPropertyValue("componentName", componentName);
 		}
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
-		String pubSubDomain = element.getAttribute(JmsAdapterParserUtils.PUB_SUB_DOMAIN_ATTRIBUTE);
 		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		boolean hasJmsTemplate = StringUtils.hasText(jmsTemplate);
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
-		if (StringUtils.hasText(jmsTemplate)) {
+		if (hasJmsTemplate) {
 			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
 		}
-		else if (hasDestinationRef || hasDestinationName) {
-			builder.addConstructorArgReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
+		else {
+			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
+		}
+		if (hasDestinationRef || hasDestinationName) {
 			if (hasDestinationRef) {
 				if (hasDestinationName) {
 					parserContext.getReaderContext().error("The 'destination-name' " +
-							"and 'destination' attributes are mutually exclusive.", source);
+							"and 'destination' attributes are mutually exclusive.", parserContext.extractSource(element));
 				}
-				builder.addConstructorArgReference(destination);
+				builder.addPropertyReference("destination", destination);
 			}
 			else if (hasDestinationName) {
-				builder.addConstructorArgValue(destinationName);
-				if (StringUtils.hasText(pubSubDomain)) {
-					builder.addPropertyValue(JmsAdapterParserUtils.PUB_SUB_DOMAIN_PROPERTY, pubSubDomain);
-				}
+				builder.addPropertyValue("destinationName", destinationName);
 			}
 		}
-		else {
+		else if (!hasJmsTemplate) {
 			throw new BeanCreationException("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
 					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '"
 					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
@@ -88,9 +86,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "selector", "messageSelector");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		BeanDefinition beanDefinition = builder.getBeanDefinition();
 		String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, parserContext.getRegistry());
 		BeanComponentDefinition component = new BeanComponentDefinition(beanDefinition, beanName); 

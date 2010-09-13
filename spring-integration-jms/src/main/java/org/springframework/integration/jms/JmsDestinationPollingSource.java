@@ -18,15 +18,16 @@ package org.springframework.integration.jms;
 
 import java.util.Map;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.util.Assert;
 
 /**
  * A source for receiving JMS Messages with a polling listener. This source is
@@ -37,24 +38,35 @@ import org.springframework.jms.support.converter.MessageConverter;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter implements MessageSource<Object> {
+public class JmsDestinationPollingSource extends IntegrationObjectSupport implements MessageSource<Object> {
+
+	private final JmsTemplate jmsTemplate;
+
+	private volatile Destination destination;
+
+	private volatile String destinationName;
 
 	private volatile String messageSelector;
 
+	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+
 
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
-		super(jmsTemplate);
-	}
-
-	public JmsDestinationPollingSource(ConnectionFactory connectionFactory, Destination destination) {
-		super(connectionFactory, destination);
-	}
-
-	public JmsDestinationPollingSource(ConnectionFactory connectionFactory, String destinationName) {
-		super(connectionFactory, destinationName);
+		this.jmsTemplate = jmsTemplate;
 	}
 
 
+	public void setDestination(Destination destination) {
+		Assert.isNull(this.destinationName, "The 'destination' and 'destinationName' properties are mutually exclusive.");
+		this.destination = destination;
+	}
+
+	public void setDestinationName(String destinationName) {
+		Assert.isNull(this.destination, "The 'destination' and 'destinationName' properties are mutually exclusive.");
+		this.destinationName = destinationName;
+	}
+
+	@Override
 	public String getComponentType() {
 		return "jms:inbound-channel-adapter";
 	}
@@ -65,7 +77,11 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 	public void setMessageSelector(String messageSelector) {
 		this.messageSelector = messageSelector;
 	}
-	
+
+	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
+	}
+
 	/**
 	 * Will receive a JMS {@link javax.jms.Message} converting and returning it as 
 	 * a Spring Integration {@link Message}. This method will also use the current
@@ -74,15 +90,14 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 	@SuppressWarnings("unchecked")
 	public Message<Object> receive() {
 		Message<Object> convertedMessage = null;
-		// receive JMS Message
-		javax.jms.Message jmsMessage = this.getJmsTemplate().receiveSelected(this.messageSelector);
+		javax.jms.Message jmsMessage = this.doReceiveJmsMessage();
 		if (jmsMessage == null) {
 			return null;
 		}
 		try {
 			// Map headers
-			Map<String, Object> mappedHeaders = (Map<String, Object>) this.getHeaderMapper().toHeaders(jmsMessage);
-			MessageConverter converter = this.getJmsTemplate().getMessageConverter();
+			Map<String, Object> mappedHeaders = (Map<String, Object>) this.headerMapper.toHeaders(jmsMessage);
+			MessageConverter converter = this.jmsTemplate.getMessageConverter();
 			Object convertedObject = converter.fromMessage(jmsMessage);
 			MessageBuilder<Object> builder = (convertedObject instanceof Message)
 					? MessageBuilder.fromMessage((Message<Object>) convertedObject) : MessageBuilder.withPayload(convertedObject);
@@ -92,6 +107,20 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			throw new MessagingException(e.getMessage(), e);
 		}
 		return convertedMessage;
+	}
+
+	private javax.jms.Message doReceiveJmsMessage() {
+		javax.jms.Message jmsMessage = null;
+		if (this.destination != null) {
+			jmsMessage = this.jmsTemplate.receiveSelected(this.destination, this.messageSelector);
+		}
+		else if (this.destinationName != null) {
+			jmsMessage = this.jmsTemplate.receiveSelected(this.destinationName, this.messageSelector);
+		}
+		else {
+			jmsMessage = this.jmsTemplate.receiveSelected(this.messageSelector);
+		}
+		return jmsMessage;
 	}
 
 }
