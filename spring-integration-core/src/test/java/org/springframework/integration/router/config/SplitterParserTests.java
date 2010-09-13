@@ -19,13 +19,19 @@ package org.springframework.integration.router.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -87,6 +93,15 @@ public class SplitterParserTests {
 		Message<?> result4 = output.receive(1000);
 		assertEquals("test", result4.getPayload());
 		assertNull(output.receive(0));
+	}
+	
+	@Test(expected=MessageHandlingException.class)
+	public void splitterParserTestWithRequiresReply() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"splitterParserTests.xml", this.getClass());
+		context.start();
+		DirectChannel inputChannel = context.getBean("requiresReplyInput", DirectChannel.class);
+		inputChannel.send(MessageBuilder.withPayload(Collections.emptyList()).build());
 	}
 
 }
