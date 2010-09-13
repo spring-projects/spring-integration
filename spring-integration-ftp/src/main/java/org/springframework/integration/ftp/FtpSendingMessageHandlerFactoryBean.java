@@ -23,6 +23,12 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
     protected String remoteDirectory;
     protected int clientMode;
 
+	public void setFileType(int fileType) {
+		this.fileType = fileType;
+	}
+
+	private int fileType ;
+
     // private vars
     private ResourceLoader resourceLoader;
     private ApplicationContext applicationContext;
@@ -46,7 +52,7 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
     }
 
     protected AbstractFtpClientFactory clientFactory() {
-      return ClientFactorySupport.ftpClientFactory( this.host,   this.port ,  this.remoteDirectory , this.username , this.password , this.clientMode );
+      return ClientFactorySupport.ftpClientFactory( this.host,   this.port ,  this.remoteDirectory , this.username , this.password , this.clientMode, this.fileType );
     }
 
     @Override
@@ -59,6 +65,7 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
         QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, defaultFtpClientFactory);
 
         FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(queuedFtpClientPool);
+
         ftpSendingMessageHandler.afterPropertiesSet();
 
         return ftpSendingMessageHandler;

@@ -73,17 +73,20 @@ public class SftpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemo
 
 				String remoteFqPath = this.remotePath + "/" + entry.getFilename();
 				in = sftpSession.getChannel().get(remoteFqPath);
-				IOUtils.copy(in, fileOutputStream);
+				try {
+					IOUtils.copy(in, fileOutputStream);
+				} finally {
+					IOUtils.closeQuietly(in);
+					IOUtils.closeQuietly(fileOutputStream);
+				}
 
 				if (tmpLocalTarget.renameTo(localFile)) {
-					// last step
 					this.acknowledge(sftpSession, entry);
 				}
 
 				return true;
 			} catch (Throwable th) {
-				IOUtils.closeQuietly(in);
-				IOUtils.closeQuietly(fileOutputStream);
+				logger.error("exception thrown in #copyFromRemoteToLocalDirectory", th);
 			}
 		} else {
 			return true;

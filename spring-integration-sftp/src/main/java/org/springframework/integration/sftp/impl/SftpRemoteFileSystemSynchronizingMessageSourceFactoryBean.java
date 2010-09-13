@@ -127,7 +127,7 @@ public class SftpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends A
 		sftpMsgSrc.setAutoCreateDirectories(autoCreatDirs);
 
 		// local directories
-		if ((this.localDirectoryResource == null) || !StringUtils.hasText(this.localDirectoryPath)) {
+		if ((this.localDirectoryResource == null) && !StringUtils.hasText(this.localDirectoryPath)) {
 			File tmp = SystemUtils.getJavaIoTmpDir();
 			File sftpTmp = new File(tmp, "sftpInbound");
 			this.localDirectoryPath = "file://" + sftpTmp.getAbsolutePath();

@@ -14,6 +14,9 @@ public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandl
 	   */
 	  protected volatile String protocol;
 
+
+
+
 	  /**
 	   * "P"
 	   */
