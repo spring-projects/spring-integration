@@ -20,7 +20,10 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 /**
@@ -38,7 +41,10 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
-		if (result == null) {
+		// return null if 'null', empty Collection or empty Array
+		if ( result == null ||
+			 (result instanceof Collection && CollectionUtils.isEmpty((Collection<?>)result)) ||
+			 (result.getClass().isArray() && ObjectUtils.isEmpty((Object[]) result))  ) { 	
 			return null;
 		}
 		MessageHeaders headers = message.getHeaders();
@@ -59,10 +65,6 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
-			//TODO put this return statement in a more obvious place
-			if(items.isEmpty()){
-				return null;
-			}
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
