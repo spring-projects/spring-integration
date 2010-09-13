@@ -19,13 +19,11 @@ package org.springframework.integration.jms;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 
-import org.springframework.core.Ordered;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.history.TrackableComponent;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessagePostProcessor;
+import org.springframework.util.Assert;
 
 /**
  * A MessageConsumer that sends the converted Message payload within a JMS Message.
@@ -33,63 +31,68 @@ import org.springframework.jms.core.MessagePostProcessor;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter implements MessageHandler, TrackableComponent, Ordered {
+public class JmsSendingMessageHandler extends AbstractMessageHandler {
 
-	private volatile int order = Ordered.LOWEST_PRECEDENCE;
+	private final JmsTemplate jmsTemplate;
 
-	private volatile boolean shouldTrack;
+	private volatile Destination destination;
+
+	private volatile String destinationName;
+
+	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
+
+	private volatile boolean extractPayload = true;
 
 
 	public JmsSendingMessageHandler(JmsTemplate jmsTemplate) {
-		super(jmsTemplate);
+		this.jmsTemplate = jmsTemplate;
+	}
+
+	public void setDestination(Destination destination) {
+		Assert.isNull(this.destinationName, "The 'destination' and 'destinationName' properties are mutually exclusive.");
+		this.destination = destination;
+	}
+
+	public void setDestinationName(String destinationName) {
+		Assert.isNull(this.destination, "The 'destination' and 'destinationName' properties are mutually exclusive.");
+		this.destinationName = destinationName;
+	}
+
+	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
 	}
 
 	/**
-	 * No-arg constructor provided for convenience when configuring with
-	 * setters. Note that the initialization callback will validate.
+	 * Specify whether the payload should be extracted from each integration
+	 * Message to be used as the JMS Message body.
+	 * 
+	 * <p>The default value is <code>true</code>. To force passing of the full
+	 * Spring Integration Message instead, set this to <code>false</code>.
 	 */
-	public JmsSendingMessageHandler() {
-		super();
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
 	}
 
-	public void setShouldTrack(boolean shouldTrack) {
-		this.shouldTrack = shouldTrack;
-	}
-
+	@Override
 	public String getComponentType() {
 		return "jms:outbound-channel-adapter";
 	}
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	public int getOrder() {
-		return this.order;
-	}
-
-	public final void handleMessage(Message<?> message) {
+	@Override
+	protected void handleMessageInternal(final Message<?> message) throws Exception {
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
-		final Message<?> messageToSend = (this.shouldTrack) ? MessageHistory.write(message, this) : message;
-		Object objectToSend = messageToSend;
-		if (this.shouldExtractPayload()) {
-			objectToSend = messageToSend.getPayload();
+		Object objectToSend = (this.extractPayload) ? message.getPayload() : message;
+		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(message, this.headerMapper);
+		if (this.destination != null) {
+			this.jmsTemplate.convertAndSend(this.destination, objectToSend, messagePostProcessor);
 		}
-		MessagePostProcessor messagePostProcessor = new HeaderMappingMessagePostProcessor(messageToSend, this.getHeaderMapper());
-		Destination destination = this.getDestination();
-		if (destination != null) {
-			this.getJmsTemplate().convertAndSend(destination, objectToSend, messagePostProcessor);
+		else if (this.destinationName != null) {
+			this.jmsTemplate.convertAndSend(this.destinationName, objectToSend, messagePostProcessor);
 		}
-		else {
-			String destinationName = this.getDestinationName();
-			if (destinationName != null) {
-				this.getJmsTemplate().convertAndSend(destinationName, objectToSend, messagePostProcessor);
-			}
-			else { // fallback to default destination of the template
-				this.getJmsTemplate().convertAndSend(objectToSend, messagePostProcessor);
-			}
+		else { // fallback to default destination of the template
+			this.jmsTemplate.convertAndSend(objectToSend, messagePostProcessor);
 		}
 	}
 
@@ -110,5 +113,6 @@ public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter im
 			return jmsMessage;
 		}
 	}
+
 
 }

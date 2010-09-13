@@ -35,8 +35,6 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectSupport {
 
-	private volatile boolean extractPayload = true;
-
 	private volatile ConnectionFactory connectionFactory;
 
 	private volatile Destination destination;
@@ -87,18 +85,7 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 	public AbstractJmsTemplateBasedAdapter() {
 	}
 
-	/**
-	 * Specify whether the payload should be extracted from each received JMS
-	 * Message to be used as the Spring Integration Message payload.
-	 * 
-	 * <p>The default value is <code>true</code>. To force creation of Spring
-	 * Integration Messages whose payload is the actual JMS Message, set this
-	 * to <code>false</code>.
-	 */
-	public void setExtractPayload(boolean extractPayload) {
-		this.extractPayload = extractPayload;
-	}
-	
+
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
@@ -226,10 +213,6 @@ public abstract class AbstractJmsTemplateBasedAdapter extends IntegrationObjectS
 			jmsTemplate.setMessageConverter(this.messageConverter);
 		}
 		return jmsTemplate;
-	}
-
-	protected boolean shouldExtractPayload() {
-		return extractPayload;
 	}
 
 }

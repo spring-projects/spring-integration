@@ -55,8 +55,10 @@ abstract class JmsAdapterParserUtils {
 
 	static final String HEADER_MAPPER_PROPERTY = "headerMapper";
 
-	private static final String[] JMS_TEMPLATE_ATTRIBUTES = { "destination", "destination-name",
-		"connection-factory", "message-converter", "destination-resolver", "time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled" };
+	private static final String[] JMS_TEMPLATE_ATTRIBUTES = {
+		"connection-factory", "message-converter", "destination-resolver", "pub-sub-domain",
+		"time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled"
+	};
 
 
 	/*
@@ -116,6 +118,7 @@ abstract class JmsAdapterParserUtils {
 				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element, parserContext));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-persistent");
