@@ -60,15 +60,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		if (StringUtils.hasText(jmsTemplate)) {
-			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
-					hasDestinationRef || hasDestinationName) {
-				parserContext.getReaderContext().error(
-						"When providing '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
-						"', none of '" + JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE +
-						"', '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "', or '" +
-						JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' are allowed.",
-						source);
-			}
+			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else if (hasDestinationRef || hasDestinationName) {

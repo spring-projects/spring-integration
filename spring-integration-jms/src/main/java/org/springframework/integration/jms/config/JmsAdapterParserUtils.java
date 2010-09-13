@@ -52,6 +52,10 @@ abstract class JmsAdapterParserUtils {
 
 	static final String HEADER_MAPPER_PROPERTY = "headerMapper";
 
+	private static final String[] JMS_TEMPLATE_ATTRIBUTES = { "destination", "destination-name",
+		"connection-factory", "message-converter", "time-to-live", "priority", "delivery-persistent", "explicit-qos-enabled" };
+
+
 	/*
 	 * The following constants match those of javax.jms.Session.
 	 * They are duplicated here to avoid a dependency in tooling.
@@ -102,4 +106,13 @@ abstract class JmsAdapterParserUtils {
 		}
 	}
 
+	static void verifyNoJmsTemplateAttributes(Element element, ParserContext parserContext) {
+		for (String attributeName : JMS_TEMPLATE_ATTRIBUTES) {
+			if (element.hasAttribute(attributeName)) {
+				parserContext.getReaderContext().error("When providing a 'jms-template' reference, the '"
+						+ attributeName + "' attribute is not allowed", parserContext.extractSource(element));
+			}
+		}
+	}
+	
 }

@@ -18,7 +18,6 @@ package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -44,11 +43,7 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
 		if (StringUtils.hasText(jmsTemplate)) {
-			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
-					hasDestinationRef || hasDestinationName) {
-				throw new BeanCreationException("When providing a 'jms-template' reference, none of " +
-						"'connection-factory', 'destination', or 'destination-name' should be provided.");
-			}
+			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else if (hasDestinationRef ^ hasDestinationName) {
@@ -64,8 +59,8 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 			}
 		}
 		else {
-			throw new BeanCreationException("Either a 'jms-template' reference " +
-			"or one of 'destination' or 'destination-name' must be provided.");
+			parserContext.getReaderContext().error("Either a 'jms-template' reference " +
+			"or one of 'destination' or 'destination-name' must be provided.", parserContext.extractSource(element));
 		}
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
