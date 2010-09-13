@@ -40,26 +40,33 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
 		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
+		boolean hasJmsTemplate = StringUtils.hasText(jmsTemplate);
 		boolean hasDestinationRef = StringUtils.hasText(destination);
 		boolean hasDestinationName = StringUtils.hasText(destinationName);
-		if (StringUtils.hasText(jmsTemplate)) {
+		if (hasJmsTemplate) {
 			JmsAdapterParserUtils.verifyNoJmsTemplateAttributes(element, parserContext);
 			builder.addConstructorArgReference(jmsTemplate);
 		}
-		else if (hasDestinationRef ^ hasDestinationName) {
+		else {
 			builder.addConstructorArgValue(JmsAdapterParserUtils.parseJmsTemplateBeanDefinition(element, parserContext));
-			if (StringUtils.hasText(destination)) {
+		}
+		if (hasDestinationRef || hasDestinationName) {
+			if (hasDestinationRef) {
+				if (hasDestinationName) {
+					parserContext.getReaderContext().error("The 'destination-name' " +
+							"and 'destination' attributes are mutually exclusive.", parserContext.extractSource(element));
+				}
 				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
 			}
-			else {
+			else if (hasDestinationName) {
 				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
-				IntegrationNamespaceUtils.setValueIfAttributeDefined(
-						builder, element, JmsAdapterParserUtils.PUB_SUB_DOMAIN_ATTRIBUTE);
 			}
 		}
-		else {
-			parserContext.getReaderContext().error("Either a 'jms-template' reference " +
-			"or one of 'destination' or 'destination-name' must be provided.", parserContext.extractSource(element));
+		else if (!hasJmsTemplate) {
+			parserContext.getReaderContext().error("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '"
+					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
+					"' attributes must be provided", parserContext.extractSource(element));
 		}
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);

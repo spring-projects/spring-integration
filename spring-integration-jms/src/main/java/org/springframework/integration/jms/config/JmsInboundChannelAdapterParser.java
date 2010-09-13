@@ -18,7 +18,6 @@ package org.springframework.integration.jms.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -71,17 +70,17 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 					parserContext.getReaderContext().error("The 'destination-name' " +
 							"and 'destination' attributes are mutually exclusive.", parserContext.extractSource(element));
 				}
-				builder.addPropertyReference("destination", destination);
+				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
 			}
 			else if (hasDestinationName) {
-				builder.addPropertyValue("destinationName", destinationName);
+				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
 		}
 		else if (!hasJmsTemplate) {
-			throw new BeanCreationException("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+			parserContext.getReaderContext().error("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
 					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '"
 					+ JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
-					"' attributes must be provided for a polling JMS adapter");
+					"' attributes must be provided for a polling JMS adapter", parserContext.extractSource(element));
 		}
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
