@@ -17,14 +17,13 @@
 package org.springframework.integration.jdbc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +32,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 @ContextConfiguration
@@ -45,7 +45,7 @@ public class JdbcMessageStoreChannelTests {
 	@Autowired
 	private JdbcMessageStore messageStore;
 	
-	@Before
+	@BeforeTransaction
 	public void clear() {
 		for (MessageGroup group : messageStore) {
 			messageStore.removeMessageGroup(group.getGroupId());
@@ -75,12 +75,16 @@ public class JdbcMessageStoreChannelTests {
 	
 	@Test
 	@Transactional
-	@Ignore // TODO: fix rollback test
 	public void testSendAndActivateTransactionalSend() throws Exception {
 		Service.reset(1);
 		input.send(new GenericMessage<String>("foo"));
 		// This will time out because the transaction has not committed yet
-		Service.await(1000);
+		try {
+			Service.await(1000);
+			fail("Expected timeout");
+		} catch (IllegalStateException e) {
+			// expected
+		}
 		// So no activation
 		assertEquals(0, Service.messages.size());
 		// But inside the transaction the message is still there
