@@ -19,39 +19,89 @@ import org.springframework.jmx.export.annotation.ManagedMetric;
 import org.springframework.jmx.support.MetricType;
 
 /**
- * @author dsyer
- *
+ * Interface for all message channel monitors containing accessors for various useful metrics that are generic for all
+ * channel types.
+ * 
+ * @author Dave Syer
+ * 
+ * @since 2.0
+ * 
  */
 public interface MessageChannelMonitor {
 
+	/**
+	 * @return the number of successful sends
+	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Sends")
 	int getSendCount();
 
+	/**
+	 * @return the number of failed sends (either throwing an exception or rejected by the channel)
+	 */
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Errors")
 	int getSendErrorCount();
 
+	/**
+	 * @return the time in seconds since the last send
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Time Since Last Send in Seconds")
 	double getTimeSinceLastSend();
 
+	/**
+	 * @return the mean send rate (per second)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Rate per Second")
-	double getSendRate();
+	double getMeanSendRate();
 
+	/**
+	 * @return the mean error rate (per second).  Errors comprise all failed sends.
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Error Rate per Second")
-	double getErrorRate();
+	double getMeanErrorRate();
 
+	/**
+	 * @return the mean ratio of failed to successful sends in approximately the last minute
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Mean Channel Error Ratio per Minute")
-	double getErrorRatio();
+	double getMeanErrorRatio();
 
+	/**
+	 * @return the mean send duration (milliseconds)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Mean Duration")
 	double getMeanSendDuration();
 
+	/**
+	 * @return the minimum send duration (milliseconds) since startup
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Min Duration")
 	double getMinSendDuration();
 
+	/**
+	 * @return the maximum send duration (milliseconds) since startup
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Max Duration")
 	double getMaxSendDuration();
 
+	/**
+	 * @return the standard deviation send duration (milliseconds)
+	 */
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Standard Deviation Duration")
 	double getStandardDeviationSendDuration();
+
+	/**
+	 * @return summary statistics about the send duration (milliseconds)
+	 */
+	Statistics getSendDuration();
+
+	/**
+	 * @return summary statistics about the send rates (per second)
+	 */
+	Statistics getSendRate();
+
+	/**
+	 * @return summary statistics about the error rates (per second)
+	 */
+	Statistics getErrorRate();
 
 }

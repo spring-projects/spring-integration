@@ -18,6 +18,8 @@ package org.springframework.integration.monitor;
 import java.util.Map;
 
 /**
+ * Locator interface for mapping bean names to JMX object names.
+ * 
  * @author Dave Syer
  * 
  * @since 2.0
@@ -25,8 +27,15 @@ import java.util.Map;
  */
 public interface ObjectNameLocator {
 
+	/**
+	 * @param beanName the bean name to query
+	 * @return a String representation of the corresponding JMX object name (or null if there is none)
+	 */
 	String getObjectName(String beanName);
 
+	/**
+	 * @return a map of all the known bean and object names
+	 */
 	Map<String, String> getObjectNames();
 
 }

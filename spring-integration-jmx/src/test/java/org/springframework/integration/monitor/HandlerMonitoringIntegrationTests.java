@@ -82,8 +82,8 @@ public class HandlerMonitoringIntegrationTests {
 			channel.send(new GenericMessage<String>("bar"));
 			assertEquals(before + 1, service.getCounter());
 
-			double duration = messageHandlersMonitor.getHandlerMeanDuration(monitor);
-			assertTrue("No statistics for input channel", duration > 0);
+			int count = messageHandlersMonitor.getHandlerDuration(monitor).getCount();
+			assertTrue("No statistics for input channel", count > 0);
 
 		} finally {
 			context.close();

@@ -70,6 +70,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String SEQUENCE_SIZE = PREFIX + "sequenceSize";
 
+	public static final String SEQUENCE_DETAILS = PREFIX + "sequenceDetails";
+
 
 	private final Map<String, Object> headers;
 

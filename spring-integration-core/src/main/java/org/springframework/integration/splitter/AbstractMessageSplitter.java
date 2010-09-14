@@ -16,6 +16,10 @@
 
 package org.springframework.integration.splitter;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -23,93 +27,60 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
-
 /**
  * Base class for Message-splitting handlers.
- *
+ * 
  * @author Mark Fisher
  * @author Dave Syer
- * @author Iwein Fuld
  */
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
-
-	public static final String SEQUENCE_DETAILS = MessageHeaders.PREFIX + "sequenceDetails";
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected final Object handleRequestMessage(Message<?> message) {
 		Object result = this.splitMessage(message);
 		// return null if 'null', empty Collection or empty Array
-		if ( result == null ||
-			 (result instanceof Collection && CollectionUtils.isEmpty((Collection<?>)result)) ||
-			 (result.getClass().isArray() && ObjectUtils.isEmpty((Object[]) result))  ) { 	
+		if (result == null || (result instanceof Collection && CollectionUtils.isEmpty((Collection) result))
+				|| (result.getClass().isArray() && ObjectUtils.isEmpty((Object[]) result))) {
 			return null;
 		}
 		MessageHeaders headers = message.getHeaders();
-		Object incomingCorrelationId = headers.getCorrelationId();
-		List<Object[]> incomingSequenceDetails = extractSequenceDetails(headers, incomingCorrelationId);
 		Object correlationId = headers.getId();
-		List<MessageBuilder> messageBuilders;
+		List<MessageBuilder<?>> messageBuilders = new ArrayList<MessageBuilder<?>>();
 		if (result instanceof Collection) {
-			messageBuilders = messageBuildersForCollection(result, incomingSequenceDetails, correlationId);
-		} else if (result.getClass().isArray()) {
-			messageBuilders = messageBuildersForArray(result, incomingSequenceDetails, correlationId);
-		} else {
-			messageBuilders = Collections.singletonList(this.createBuilder(result, incomingSequenceDetails, correlationId, 1, 1));
-		}
-		return messageBuilders;
-	}
-
-	private List<MessageBuilder> messageBuildersForArray(Object result, List<Object[]> incomingSequenceDetails, Object correlationId) {
-		List<MessageBuilder> messageBuilders = new ArrayList<MessageBuilder>();
-		Object[] items = (Object[]) result;
-		int sequenceNumber = 0;
-		int sequenceSize = items.length;
-		for (Object item : items) {
-			messageBuilders.add(this.createBuilder(
-					item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
-		}
-		return messageBuilders;
-	}
-
-	private List<MessageBuilder> messageBuildersForCollection(Object result, List<Object[]> incomingSequenceDetails, Object correlationId) {
-		List<MessageBuilder> messageBuilders = new ArrayList<MessageBuilder>();
-		Collection<?> items = (Collection<?>) result;
-		int sequenceNumber = 0;
-		int sequenceSize = items.size();
-		for (Object item : items) {
-			messageBuilders.add(this.createBuilder(
-					item, incomingSequenceDetails, correlationId, ++sequenceNumber, sequenceSize));
-		}
-		return messageBuilders;
-	}
-
-	private List<Object[]> extractSequenceDetails(MessageHeaders headers, Object incomingCorrelationId) {
-		List<Object[]> incomingSequenceDetails = headers.get(SEQUENCE_DETAILS, List.class);
-		if (incomingCorrelationId != null) {
-			if (incomingSequenceDetails == null) {
-				incomingSequenceDetails = new ArrayList<Object[]>();
-			} else {
-				incomingSequenceDetails = new ArrayList<Object[]>(incomingSequenceDetails);
+			Collection<?> items = (Collection<?>) result;
+			int sequenceNumber = 0;
+			int sequenceSize = items.size();
+			for (Object item : items) {
+				messageBuilders.add(this.createBuilder(item, headers, correlationId, ++sequenceNumber, sequenceSize));
 			}
-			incomingSequenceDetails.add(new Object[]{
-					incomingCorrelationId, headers.getSequenceNumber(), headers.getSequenceSize()});
-			incomingSequenceDetails = Collections.unmodifiableList(incomingSequenceDetails);
 		}
-		return incomingSequenceDetails;
+		else if (result.getClass().isArray()) {
+			Object[] items = (Object[]) result;
+			int sequenceNumber = 0;
+			int sequenceSize = items.length;
+			for (Object item : items) {
+				messageBuilders.add(this.createBuilder(item, headers, correlationId, ++sequenceNumber, sequenceSize));
+			}
+		}
+		else {
+			messageBuilders.add(this.createBuilder(result, headers, correlationId, 1, 1));
+		}
+		return messageBuilders;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
-	private MessageBuilder createBuilder(Object item, List<Object[]> incomingSequenceDetails, Object correlationId,
-										 int sequenceNumber, int sequenceSize) {
-		MessageBuilder builder = (item instanceof Message) ? MessageBuilder.fromMessage((Message) item)
-				: MessageBuilder.withPayload(item);
-		builder.setCorrelationId(correlationId).setSequenceNumber(sequenceNumber).setSequenceSize(sequenceSize)
-				.setHeader(MessageHeaders.ID, UUID.randomUUID());
-		if (incomingSequenceDetails != null) {
-			builder.setHeader(SEQUENCE_DETAILS, incomingSequenceDetails);
+	@SuppressWarnings( { "unchecked" })
+	private MessageBuilder createBuilder(Object item, MessageHeaders headers, Object correlationId, int sequenceNumber,
+			int sequenceSize) {
+		MessageBuilder builder;
+		if (item instanceof Message) {
+			builder = MessageBuilder.fromMessage((Message) item);
 		}
+		else {
+			builder = MessageBuilder.withPayload(item);
+			builder.copyHeaders(headers);
+		}
+		builder.pushSequenceDetails(correlationId, sequenceNumber, sequenceSize);
 		return builder;
 	}
 

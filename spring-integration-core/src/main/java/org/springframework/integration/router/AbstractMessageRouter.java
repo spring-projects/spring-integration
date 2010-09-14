@@ -17,12 +17,10 @@
 package org.springframework.integration.router;
 
 import java.util.Collection;
-import java.util.UUID;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -45,39 +43,35 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-
 	/**
-	 * Set the default channel where Messages should be sent if channel
-	 * resolution fails to return any channels. If no default channel is
-	 * provided, the router will either drop the Message or throw an Exception
-	 * depending on the value of {@link #resolutionRequired}. 
+	 * Set the default channel where Messages should be sent if channel resolution fails to return any channels. If no
+	 * default channel is provided, the router will either drop the Message or throw an Exception depending on the value
+	 * of {@link #resolutionRequired}.
 	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
 	}
 
 	/**
-	 * Set the timeout for sending a message to the resolved channel. By
-	 * default, there is no timeout, meaning the send will block indefinitely.
+	 * Set the timeout for sending a message to the resolved channel. By default, there is no timeout, meaning the send
+	 * will block indefinitely.
 	 */
 	public void setTimeout(long timeout) {
 		this.messagingTemplate.setSendTimeout(timeout);
 	}
 
 	/**
-	 * Set whether this router should always be required to resolve at least one
-	 * channel. The default is 'false'. To trigger an exception whenever the
-	 * resolver returns null or an empty channel list, and this endpoint has 
-	 * no 'defaultOutputChannel' configured, set this value to 'true'.
+	 * Set whether this router should always be required to resolve at least one channel. The default is 'false'. To
+	 * trigger an exception whenever the resolver returns null or an empty channel list, and this endpoint has no
+	 * 'defaultOutputChannel' configured, set this value to 'true'.
 	 */
 	public void setResolutionRequired(boolean resolutionRequired) {
 		this.resolutionRequired = resolutionRequired;
 	}
 
 	/**
-	 * Specify whether send failures for one or more of the recipients should be
-	 * ignored. By default this is <code>false</code> meaning that an Exception
-	 * will be thrown whenever a send fails. To override this and suppress
+	 * Specify whether send failures for one or more of the recipients should be ignored. By default this is
+	 * <code>false</code> meaning that an Exception will be thrown whenever a send fails. To override this and suppress
 	 * Exceptions, set the value to <code>true</code>.
 	 */
 	public void setIgnoreSendFailures(boolean ignoreSendFailures) {
@@ -85,12 +79,10 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Specify whether to apply the sequence number and size headers to the
-	 * messages prior to sending to the recipient channels. By default, this
-	 * value is <code>false</code> meaning that sequence headers will
-	 * <em>not</em> be applied. If planning to use an Aggregator downstream with
-	 * the default correlation and completion strategies, you should set this
-	 * flag to <code>true</code>.
+	 * Specify whether to apply the sequence number and size headers to the messages prior to sending to the recipient
+	 * channels. By default, this value is <code>false</code> meaning that sequence headers will <em>not</em> be
+	 * applied. If planning to use an Aggregator downstream with the default correlation and completion strategies, you
+	 * should set this flag to <code>true</code>.
 	 */
 	public void setApplySequence(boolean applySequence) {
 		this.applySequence = applySequence;
@@ -116,13 +108,8 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			int sequenceSize = results.size();
 			int sequenceNumber = 1;
 			for (MessageChannel channel : results) {
-				final Message<?> messageToSend = (!this.applySequence) ? message
-						: MessageBuilder.fromMessage(message)
-								.setSequenceNumber(sequenceNumber++)
-								.setSequenceSize(sequenceSize)
-								.setCorrelationId(message.getHeaders().getId())
-								.setHeader(MessageHeaders.ID, UUID.randomUUID())
-								.build();
+				final Message<?> messageToSend = (!this.applySequence) ? message : MessageBuilder.fromMessage(message)
+						.pushSequenceDetails(message.getHeaders().getId(), sequenceNumber++, sequenceSize).build();
 				if (channel != null) {
 					try {
 						this.messagingTemplate.send(channel, messageToSend);
@@ -151,8 +138,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	}
 
 	/**
-	 * Subclasses must implement this method to return the target channels for
-	 * a given Message.
+	 * Subclasses must implement this method to return the target channels for a given Message.
 	 */
 	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
 

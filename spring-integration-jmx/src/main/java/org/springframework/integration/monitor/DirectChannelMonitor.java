@@ -33,7 +33,7 @@ import org.springframework.util.StopWatch;
  * @author Helena Edelson
  */
 @ManagedResource
-public class SimpleMessageChannelMonitor implements MethodInterceptor, MessageChannelMonitor {
+public class DirectChannelMonitor implements MethodInterceptor, MessageChannelMonitor {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
@@ -43,16 +43,16 @@ public class SimpleMessageChannelMonitor implements MethodInterceptor, MessageCh
 
 	public static final int DEFAULT_MOVING_AVERAGE_WINDOW = 10;
 
-	private ExponentialMovingAverageCumulativeHistory sendDuration = new ExponentialMovingAverageCumulativeHistory(
+	private ExponentialMovingAverage sendDuration = new ExponentialMovingAverage(
 			DEFAULT_MOVING_AVERAGE_WINDOW);
 
-	private final ExponentialMovingAverageRateCumulativeHistory sendErrorRate = new ExponentialMovingAverageRateCumulativeHistory(
+	private final ExponentialMovingAverageRate sendErrorRate = new ExponentialMovingAverageRate(
 			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
 
-	private final ExponentialMovingAverageRatioCumulativeHistory sendSuccessRatio = new ExponentialMovingAverageRatioCumulativeHistory(
+	private final ExponentialMovingAverageRatio sendSuccessRatio = new ExponentialMovingAverageRatio(
 			ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
 
-	private final ExponentialMovingAverageRateCumulativeHistory sendRate = new ExponentialMovingAverageRateCumulativeHistory(
+	private final ExponentialMovingAverageRate sendRate = new ExponentialMovingAverageRate(
 			ONE_SECOND_SECONDS, ONE_MINUTE_SECONDS, DEFAULT_MOVING_AVERAGE_WINDOW);
 
 	private final AtomicInteger sendCount = new AtomicInteger();
@@ -61,7 +61,7 @@ public class SimpleMessageChannelMonitor implements MethodInterceptor, MessageCh
 
 	private final String name;
 
-	public SimpleMessageChannelMonitor(String name) {
+	public DirectChannelMonitor(String name) {
 		this.name = name;
 	}
 
@@ -107,14 +107,20 @@ public class SimpleMessageChannelMonitor implements MethodInterceptor, MessageCh
 			Object result = invocation.proceed();
 
 			timer.stop();
-			sendSuccessRatio.success();
-			sendDuration.append(timer.getTotalTimeSeconds());
+			if ((Boolean)result) {
+				sendSuccessRatio.success();
+				sendDuration.append(timer.getTotalTimeSeconds());
+			} else {
+				sendSuccessRatio.failure();
+				sendErrorCount.incrementAndGet();
+				sendErrorRate.increment();
+			}
 			return result;
 
 		}
 		catch (Throwable e) {
-			sendErrorCount.incrementAndGet();
 			sendSuccessRatio.failure();
+			sendErrorCount.incrementAndGet();
 			sendErrorRate.increment();
 			throw e;
 		}
@@ -141,17 +147,17 @@ public class SimpleMessageChannelMonitor implements MethodInterceptor, MessageCh
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Rate per Second")
-	public double getSendRate() {
+	public double getMeanSendRate() {
 		return sendRate.getMean();
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Error Rate per Second")
-	public double getErrorRate() {
+	public double getMeanErrorRate() {
 		return sendErrorRate.getMean();
 	}
 
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Mean Channel Error Ratio per Minute")
-	public double getErrorRatio() {
+	public double getMeanErrorRatio() {
 		return 1 - sendSuccessRatio.getMean();
 	}
 
@@ -173,6 +179,18 @@ public class SimpleMessageChannelMonitor implements MethodInterceptor, MessageCh
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Standard Deviation Duration")
 	public double getStandardDeviationSendDuration() {
 		return sendDuration.getStandardDeviation();
+	}
+	
+	public Statistics getSendDuration() {
+		return sendDuration.getStatistics();
+	}
+	
+	public Statistics getSendRate() {
+		return sendRate.getStatistics();
+	}
+
+	public Statistics getErrorRate() {
+		return sendErrorRate.getStatistics();
 	}
 
 	@Override

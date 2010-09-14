@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.monitor.LifecycleMessageHandlerMonitor;
 import org.springframework.integration.monitor.QueueChannelMonitor;
-import org.springframework.integration.monitor.SimpleMessageChannelMonitor;
+import org.springframework.integration.monitor.DirectChannelMonitor;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,7 +51,7 @@ public class ControlBusXmlTests {
 	public void directChannelRegistered() throws Exception {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageChannel,name=testDirectChannel"));
-		assertEquals(SimpleMessageChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
 	}
 
 	@Test

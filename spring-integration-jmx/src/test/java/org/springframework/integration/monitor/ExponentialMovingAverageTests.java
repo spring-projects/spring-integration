@@ -23,9 +23,9 @@ import org.junit.Test;
  * @author Dave Syer
  * 
  */
-public class ExponentialMovingAverageCumulativeHistoryTests {
+public class ExponentialMovingAverageTests {
 
-	private ExponentialMovingAverageCumulativeHistory history = new ExponentialMovingAverageCumulativeHistory(10);
+	private ExponentialMovingAverage history = new ExponentialMovingAverage(10);
 
 	@Test
 	public void testGetCount() {

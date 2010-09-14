@@ -36,7 +36,7 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 
 	private final AtomicInteger errorCount = new AtomicInteger();
 
-	private final ExponentialMovingAverageCumulativeHistory duration = new ExponentialMovingAverageCumulativeHistory(
+	private final ExponentialMovingAverage duration = new ExponentialMovingAverage(
 			DEFAULT_MOVING_AVERAGE_WINDOW);
 
 	private String name;
@@ -127,6 +127,10 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
 	public double getStandardDeviationDuration() {
 		return duration.getStandardDeviation();
+	}
+	
+	public Statistics getDuration() {
+		return duration.getStatistics();
 	}
 
 	@Override

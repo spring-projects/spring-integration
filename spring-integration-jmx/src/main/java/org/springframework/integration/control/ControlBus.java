@@ -33,7 +33,11 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * JMX-based Control Bus implementation. Exports all channel and endpoint beans from a given BeanFactory as MBeans.
+ * JMX-based Control Bus implementation. Routes control messages on an operation channel to the other control points
+ * (channels and handlers) via JMX. To use the control bus send a message to the operation channel with a header
+ * {@link #TARGET_BEAN_NAME} equal to the bean name of the channel or endpoint you want to target. Include also a header
+ * {@link JmxHeaders#OPERATION_NAME} to specify the operation you want to invoke and a message payload containing the
+ * arguments (if any).
  * 
  * @author Mark Fisher
  * @since 2.0
