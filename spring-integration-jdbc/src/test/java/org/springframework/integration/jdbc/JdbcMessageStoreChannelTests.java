@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -97,7 +96,9 @@ public class JdbcMessageStoreChannelTests {
 			latch = new CountDownLatch(count);
 		}
 		public static void await(long timeout) throws InterruptedException {
-			latch.await(timeout, TimeUnit.MILLISECONDS);
+			if (!latch.await(timeout, TimeUnit.MILLISECONDS)) {
+				throw new IllegalStateException("Timed out waiting for message");
+			}
 		}
 		public String echo(String input) {
 			messages.add(input);
