@@ -156,8 +156,7 @@ public class ConsumerEndpointFactoryBean
 				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
 				pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
-				pollingConsumer.setTransactionManager(this.pollerMetadata.getTransactionManager());
-				pollingConsumer.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());
+				pollingConsumer.setPollingDecorator(this.pollerMetadata.getPollingDecorator());
 				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
 				this.endpoint = pollingConsumer;
 			}

@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * FactoryBean for creating a SourcePollingChannelAdapter instance.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<SourcePollingChannelAdapter>,
 		BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
@@ -127,8 +128,6 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			spca.setTrigger(this.pollerMetadata.getTrigger());
 			spca.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
 			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
-			spca.setTransactionManager(this.pollerMetadata.getTransactionManager());
-			spca.setTransactionDefinition(this.pollerMetadata.getTransactionDefinition());
 			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
 			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);

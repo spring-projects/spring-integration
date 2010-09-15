@@ -20,10 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -33,18 +29,22 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.ManagedProperties;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;poller&gt; element.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Oleg Zhurakousky
  */
 public class PollerParser extends AbstractBeanDefinitionParser {
 
@@ -202,15 +202,19 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	 * and "transactionDefinition" properties for the target builder.
 	 */
 	private void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder) {
-		targetBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-		DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
-		txDefinition.setPropagationBehaviorName(
-				DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
-		txDefinition.setIsolationLevelName(
-				DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
-		txDefinition.setTimeout(Integer.valueOf(txElement.getAttribute("timeout")));
-		txDefinition.setReadOnly(txElement.getAttribute("read-only").equalsIgnoreCase("true"));
-		targetBuilder.addPropertyValue("transactionDefinition", txDefinition);
+		ManagedProperties transactionalProperties = new ManagedProperties();
+		transactionalProperties.setProperty("transactionManager", txElement.getAttribute("transaction-manager"));
+		
+		transactionalProperties.setProperty("PROPAGATION", "PROPAGATION_" + txElement.getAttribute("propagation"));
+		transactionalProperties.setProperty("ISOLATION", "ISOLATION_" + txElement.getAttribute("isolation"));
+		transactionalProperties.setProperty("timeout", txElement.getAttribute("timeout"));
+		transactionalProperties.setProperty("readOnly", txElement.getAttribute("read-only"));
+		
+		BeanDefinitionBuilder pollingDecoratorBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.endpoint.TransactionalCallbackDecorator");
+		pollingDecoratorBuilder.addPropertyValue("transactionalProperties", transactionalProperties);
+		
+		targetBuilder.addPropertyValue("pollingDecorator", pollingDecoratorBuilder.getBeanDefinition());
 	}
 
 	/**

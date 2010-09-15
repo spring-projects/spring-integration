@@ -22,6 +22,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import org.aopalliance.aop.Advice;
+import org.springframework.aop.framework.Advised;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -29,18 +30,13 @@ import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.scheduling.Trigger;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware {
 
@@ -54,12 +50,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile Executor taskExecutor;
 
 	private volatile ErrorHandler errorHandler;
+	
+	private PollerCallbackDecorator pollingDecorator;
 
-	private volatile PlatformTransactionManager transactionManager;
-
-	private volatile TransactionDefinition transactionDefinition;
-
-	private volatile TransactionTemplate transactionTemplate;
+	public void setPollingDecorator(PollerCallbackDecorator pollingDecorator) {
+		this.pollingDecorator = pollingDecorator;
+	}
 
 	private final List<Advice> adviceChain = new CopyOnWriteArrayList<Advice>();
 
@@ -104,24 +100,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.errorHandler = errorHandler;
 	}
 
-	/**
-	 * Specify a transaction manager to use for all polling operations.
-	 * If none is provided, then the operations will occur without any
-	 * transactional behavior (i.e. there is no default transaction manager).
-	 */
-	public void setTransactionManager(PlatformTransactionManager transactionManager) {
-		this.transactionManager = transactionManager;
-	}
-
-	public void setTransactionDefinition(TransactionDefinition transactionDefinition) {
-		this.transactionDefinition = transactionDefinition;
-	}
-
 	public void setBeanClassLoader(ClassLoader classLoader) {
 		Assert.notNull(classLoader, "ClassLoader must not be null");
 		this.classLoader = classLoader;
 	}
-
+//
 	public void setAdviceChain(List<Advice> adviceChain) {
 		synchronized (this.adviceChain) {
 			this.adviceChain.clear();
@@ -131,13 +114,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 	}
 
-	private TransactionTemplate getTransactionTemplate() {
-		if (!this.initialized) {
-			this.onInit();
-		}
-		return this.transactionTemplate;
-	}
-
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -145,13 +121,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.trigger, "trigger is required");
-			if (this.transactionManager != null) {
-				if (this.transactionDefinition == null) {
-					this.transactionDefinition = new DefaultTransactionDefinition();
-				}
-				this.transactionTemplate = new TransactionTemplate(
-						this.transactionManager, this.transactionDefinition);
-			}
 			if (this.taskExecutor != null && !(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
 					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
@@ -164,14 +133,25 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	private Runnable createPoller() {
-		if (this.adviceChain.isEmpty()) {
-			return new Poller();
+		Runnable poller = new Poller();
+		if (pollingDecorator != null){
+			poller = (Runnable) pollingDecorator.decorate(poller);
 		}
-		ProxyFactory proxyFactory = new ProxyFactory(new Poller());
-		for (Advice advice : this.adviceChain) {
-			proxyFactory.addAdvice(advice);
+		if (poller instanceof Advised){
+			Advised advised = (Advised) poller;
+			for (Advice advice : adviceChain) {
+				advised.addAdvice(advice);
+			}
+		} else {
+			if (adviceChain.size() > 0){
+				ProxyFactory proxyFactory = new ProxyFactory(poller);
+				for (Advice advice : adviceChain) {
+					proxyFactory.addAdvice(advice);
+				}
+				poller = (Runnable) proxyFactory.getProxy(this.classLoader);
+			}
 		}
-		return (Runnable) proxyFactory.getProxy(this.classLoader);
+		return poller;
 	}
 
 
@@ -225,16 +205,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 
 		private boolean innerPoll() {
-			TransactionTemplate txTemplate = getTransactionTemplate();
-			if (txTemplate != null) {
-				return txTemplate.execute(new TransactionCallback<Boolean>() {
-					public Boolean doInTransaction(TransactionStatus status) {
-						return doPoll();
-					}
-				});
-			}
 			return doPoll();
 		}
 	}
-
 }

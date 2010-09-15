@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
+import org.springframework.integration.endpoint.PollerCallbackDecorator;
 import org.springframework.scheduling.Trigger;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class PollerMetadata {
 
@@ -38,11 +38,16 @@ public class PollerMetadata {
 	private List<Advice> adviceChain;
 
 	private volatile Executor taskExecutor;
+	
+	private PollerCallbackDecorator pollingDecorator;
 
-	private volatile PlatformTransactionManager transactionManager;
+	public PollerCallbackDecorator getPollingDecorator() {
+		return pollingDecorator;
+	}
 
-	private volatile TransactionDefinition transactionDefinition;
-
+	public void setPollingDecorator(PollerCallbackDecorator pollingDecorator) {
+		this.pollingDecorator = pollingDecorator;
+	}
 
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
@@ -83,21 +88,4 @@ public class PollerMetadata {
 	public Executor getTaskExecutor() {
 		return this.taskExecutor;
 	}
-
-	public void setTransactionManager(PlatformTransactionManager transactionManager) {
-		this.transactionManager = transactionManager;
-	}
-
-	public PlatformTransactionManager getTransactionManager() {
-		return this.transactionManager;
-	}
-
-	public void setTransactionDefinition(TransactionDefinition transactionDefinition) {
-		this.transactionDefinition = transactionDefinition;
-	}
-
-	public TransactionDefinition getTransactionDefinition() {
-		return this.transactionDefinition;
-	}
-
 }
