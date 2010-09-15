@@ -73,7 +73,7 @@ public class ExponentialMovingAverageRateTests {
 		Thread.sleep(22L);
 		history.increment();
 		Thread.sleep(18L);
-		System.err.println(history);
+		// System.err.println(history);
 		assertTrue("Standard deviation should be non-zero: "+history, history.getStandardDeviation()>0);
 	}
 
