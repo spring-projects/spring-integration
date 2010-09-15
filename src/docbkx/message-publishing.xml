@@ -252,6 +252,50 @@ static class BankingOperationsImpl implements BankingOperations {
 		This will map the return value of every method that matches the pointcut expression to a payload and will be sent to a <emphasis>default-channel</emphasis>. 
 		If the <emphasis>defaultChannel</emphasis>is not specified (as above) the messages will be sent to the global <emphasis>nullChannel</emphasis>.
 	     </para>
+	     <para>
+	     <emphasis>Async Publishing</emphasis>
+	     </para>
+	     <para>
+	     One important thing to understand is that publishing occurs in the same thread as your component's execution. So by default in is synchronous.
+	     This means that the entire message flow would have to wait until he publisher flow completes. 
+         However, quite often you want the complete opposite and that is to use Message publishing feature to initiate asynchronous sub-flows. 
+         For example, you might host a service (HTTP, WS etc.) which receives a remote request.You may want to send this request internally into a 
+         process that might take a while. However you may also want to reply to the user right away. So, instead of sending inbound 
+         request for processing via the output channel (the conventional way), you can simply use ''outout-channel or $replyChannel'' header 
+         to send simple acknowledgment-like reply back to the caller while using Message publisher feature to initiate a complex flow. 
+	     </para>
+	     <para>
+	     EXAMPLE:
+         Here is the simple service that receives a complex payload, which needs to be sent further for processing, but it 
+         also need to reply to the caller with a simple acknowledgment.
+	     <programlisting language="java"><![CDATA[public String echo(Object complexPayload){
+     return "ACK"; 
+}]]></programlisting>	
+         So instead of hooking up the complex flow to the output channel we use Message publishing feature instead configuring it to create a 
+         new Message using the input argument of the service method (above) and sending it to the 'localProcessChannel'. And to make sure this sub-flow 
+         is asynchronous all we need to do is make sure that we send it to any type of async channel (ExecutorChannel in this example).
+         <programlisting language="xml"><![CDATA[<int:service-activator  input-channel="inputChannel" output-channel="outputChannel" ref="sampleservice"/>
+
+<bean id="sampleservice" class="test.SampleService"/>
+
+<aop:config>
+	<aop:advisor advice-ref="interceptor" pointcut="bean(sampleservice)" />
+</aop:config>
+
+<int:publishing-interceptor id="interceptor" >
+	<int:method pattern="echo" payload="#args[0]" channel="localProcessChannel">
+		<int:header name="sample_header" expression="'some sample value'"/>
+	</int:method>
+</int:publishing-interceptor>
+	
+<int:channel id="localProcessChannel">
+	<int:dispatcher task-executor="executor"/>
+</int:channel>
+<task:executor id="executor" pool-size="5"/>]]></programlisting>
+	     </para>
+	     <para>
+	     Another way of handling thi type of scenario is through wire-tap
+	     </para>
 		</section>
 		
 		<section id="scheduled-producer">
