@@ -58,9 +58,4 @@ public interface MessageGroup {
 	 * @return the timestamp (milliseconds since epoch) associated with the creation of this group
 	 */
 	long getTimestamp();
-
-	/**
-	 * Mark the given message in this group. If the message is not part of this group then this call has no effect.
-	 */
-	void mark(Message<?> messageToMark);
 }
