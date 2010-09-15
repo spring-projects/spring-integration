@@ -43,6 +43,8 @@ public class IntegrationNamespaceHandler extends AbstractIntegrationNamespaceHan
 		registerBeanDefinitionParser("object-to-string-transformer", new ObjectToStringTransformerParser());
 		registerBeanDefinitionParser("object-to-map-transformer", new ObjectToMapTransformerParser());
 		registerBeanDefinitionParser("map-to-object-transformer", new MapToObjectTransformerParser());
+		registerBeanDefinitionParser("object-to-json-transformer", new ObjectToJsonTransformerParser());
+		registerBeanDefinitionParser("json-to-object-transformer", new JsonToObjectTransformerParser());
 		registerBeanDefinitionParser("payload-serializing-transformer", new PayloadSerializingTransformerParser());
 		registerBeanDefinitionParser("payload-deserializing-transformer", new PayloadDeserializingTransformerParser());
 		registerBeanDefinitionParser("claim-check-in", new ClaimCheckInParser());

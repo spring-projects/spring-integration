@@ -1014,7 +1014,8 @@
 			<xsd:element name="object-to-string-transformer" type="specialized-transformer-type" />
 			<xsd:element name="object-to-map-transformer" type="specialized-transformer-type" />
 			<xsd:element name="map-to-object-transformer" type="map-to-object-transformer-type" />
-
+			<xsd:element name="object-to-json-transformer" type="object-to-json-transformer-type" />
+			<xsd:element name="json-to-object-transformer" type="json-to-object-transformer-type" />
 			<xsd:element name="chain" type="chain-type" />
 		</xsd:choice>
 	</xsd:complexType>
@@ -1547,6 +1548,81 @@
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
 						<tool:expected-type type="java.lang.Object" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:element name="object-to-json-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Transformer that converts any Object payload to a JSON String.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="object-to-json-transformer-type">
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="object-to-json-transformer-type">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element ref="poller" />
+		</xsd:choice>
+		<xsd:attribute name="object-mapper" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a Jackson ObjectMapper instance to be provided optionally
+					if the default ObjectMapper configuration is not desirable.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.codehaus.jackson.map.ObjectMapper" />
+					</tool:annotation>
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:element name="json-to-object-transformer">
+		<xsd:annotation>
+			<xsd:documentation>
+				Defines a Transformer that converts a JSON String to an object.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="json-to-object-transformer-type">
+					<xsd:attributeGroup ref="inputOutputChannelGroup" />
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="json-to-object-transformer-type">
+		<xsd:choice minOccurs="0" maxOccurs="unbounded">
+			<xsd:element ref="poller" />
+		</xsd:choice>
+		<xsd:attribute name="type" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[
+					Fully qulified name of the java type to be created by this transformer (e.g. foo.bar.Foo)
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="object-mapper" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Reference to a Jackson ObjectMapper instance to be provided optionally
+					if the default ObjectMapper configuration is not desirable.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.codehaus.jackson.map.ObjectMapper" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
