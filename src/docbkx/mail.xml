@@ -120,8 +120,8 @@
 	<prop key="mail.imap.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
 	<prop key="mail.imap.socketFactory.fallback">false</prop>
 	<prop key="mail.store.protocol">imaps</prop>
-<prop key="mail.debug">false</prop>]]></programlisting>
-	</util:properties>
+	<prop key="mail.debug">false</prop>
+</util:properties>]]></programlisting>
     </para>
     
     <note>When using <emphasis>should-mark-messages-as-read</emphasis> be aware of the protocol you are using ti retrieve messages. For example POP3 does not support this flag 
