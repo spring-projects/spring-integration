@@ -20,12 +20,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
@@ -47,6 +54,27 @@ public class PollingTransactionTests {
 		assertEquals(0, txManager.getRollbackCount());
 		input.send(new GenericMessage<String>("test"));
 		txManager.waitForCompletion(1000);
+		Message<?> message = output.receive(0);
+		assertNotNull(message);		
+		assertEquals(1, txManager.getCommitCount());
+		assertEquals(0, txManager.getRollbackCount());
+		context.stop();
+	}
+	
+	@Test
+	public void transactionWithCommitAndAdvices() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionTests.xml", this.getClass());
+		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
+		List<Advice> adviceChain = (List<Advice>) new DirectFieldAccessor(advicedPoller).getPropertyValue("adviceChain");
+		assertEquals(2, adviceChain.size());
+		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
+		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		assertEquals(0, txManager.getCommitCount());
+		assertEquals(0, txManager.getRollbackCount());
+		input.send(new GenericMessage<String>("test"));
+		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
 		assertNotNull(message);		
 		assertEquals(1, txManager.getCommitCount());
@@ -157,4 +185,9 @@ public class PollingTransactionTests {
 		context.stop();
 	}
 
+	public static class SampleAdvice implements MethodInterceptor {
+		public Object invoke(MethodInvocation invocation) throws Throwable {
+			return invocation.proceed();
+		}	
+	}
 }
