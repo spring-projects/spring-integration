@@ -114,16 +114,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		}
 		finally {
 			publishMessage(method, context);
-//			Thread t = new Thread(new Runnable() {	
-//				public void run() {
-//					try {
-//						publishMessage(method, context);
-//					} catch (Exception e) {
-//						e.printStackTrace();					}
-//					
-//				}
-//			});
-//			t.start();
 		}
 	}
 
