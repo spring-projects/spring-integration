@@ -41,6 +41,7 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jmx.export.MBeanExporter;
@@ -78,6 +79,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Dave Syer
  * @author Helena Edelson
+ * @author Oleg Zhurakousky
  */
 @ManagedResource
 public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostProcessor, BeanFactoryAware,
@@ -162,7 +164,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MessageHandler) {
-			SimpleMessageHandlerMonitor monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
+			SimpleMessageHandlerMonitor monitor = null;
+			if (bean instanceof MessageProducer){ // we need to maintain semantics of the handler also being a producer see INT-1431
+				monitor = new SimpleMessageProducingHandlerMonitor((MessageHandler) bean);
+			} else {
+				monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
+			}	
 			handlers.add(monitor);
 			return monitor;
 		}

@@ -88,7 +88,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		final StandardEvaluationContext context = new StandardEvaluationContext();
 		context.addPropertyAccessor(new MapAccessor());
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
-		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
+		final Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		String[] argumentNames = this.resolveArgumentNames(method);
 		context.setVariable(PublisherMetadataSource.METHOD_NAME_VARIABLE_NAME, method.getName());
 		if (invocation.getArguments().length > 0 && argumentNames != null) {
@@ -114,6 +114,16 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 		}
 		finally {
 			publishMessage(method, context);
+//			Thread t = new Thread(new Runnable() {	
+//				public void run() {
+//					try {
+//						publishMessage(method, context);
+//					} catch (Exception e) {
+//						e.printStackTrace();					}
+//					
+//				}
+//			});
+//			t.start();
 		}
 	}
 

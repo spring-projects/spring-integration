@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:p="http://www.springframework.org/schema/p">
+
+	<int:channel id="controlChannel" />
+
+	<bean id="controlBus" class="org.springframework.integration.control.ControlBus">
+		<constructor-arg ref="mbeanExporter" />
+		<constructor-arg ref="mbeanServer" />
+		<constructor-arg ref="controlChannel" />
+	</bean>
+
+	<bean id="mbeanExporter"
+		class="org.springframework.integration.monitor.IntegrationMBeanExporter"
+		p:server-ref="mbeanServer" p:domain="forum" />
+
+	<bean id="mbeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean"
+		p:locateExistingServerIfPossible="true" />
+
+	<int:chain input-channel="inputChannel">
+		<int:transformer>
+			<bean class="org.springframework.integration.monitor.ChainWithMessageProducingHandlersTests.SampleProducer" />
+		</int:transformer>
+		<int:service-activator>
+			<bean class="org.springframework.integration.monitor.ChainWithMessageProducingHandlersTests.SampleService" />
+		</int:service-activator>
+	</int:chain>
+
+</beans>
