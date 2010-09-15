@@ -155,7 +155,7 @@ public class SimpleMessageGroup implements MessageGroup {
 	}
 
 	/**
-	 * {@inheritDoc}}
+	 * Mark the given message in this group. If the message is not part of this group then this call has no effect.
 	 */
 	public void mark(Message<?> messageToMark) {
 		synchronized (lock) {
