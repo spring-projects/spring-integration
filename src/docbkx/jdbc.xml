@@ -60,8 +60,7 @@
       <programlisting>&lt;jdbc:inbound-channel-adapter query="..." 
   channel="target" data-source="dataSource" 
   update="..."&gt;
-  &lt;poller&gt;
-    &lt;interval-trigger interval="1000"/&gt;
+  &lt;poller fixed-rate"1000"&gt;
     &lt;transactional/&gt;
   &lt;/poller&gt;
 &lt;/jdbc:inbound-channel-adapter&gt;</programlisting>

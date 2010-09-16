@@ -93,9 +93,7 @@
 
     <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
-    <poller id="poller" default="true">
-        <interval-trigger interval="1000"/>
-    </poller>
+    <poller id="poller" default="true" fixed-rate="1000"/>
 
 </beans:beans>]]></programlisting>
       As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
@@ -221,9 +219,8 @@
                    ref="barista"
                    method="prepareHotDrink"
                    output-channel="preparedDrinks">
-    ]]><emphasis><![CDATA[<poller task-executor="pool">
-        <interval-trigger interval="1000"/>
-    </poller>]]></emphasis><![CDATA[
+    ]]><emphasis><![CDATA[<poller task-executor="pool" fixed-rate="1000"/>
+        ]]></emphasis><![CDATA[
 </service-activator>
 
 ]]><emphasis><![CDATA[<task:executor id="pool" pool-size="5"/>]]></emphasis></programlisting>

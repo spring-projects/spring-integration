@@ -89,9 +89,7 @@
                 channel="channel"
                 object-name="example.domain:name=someService"
                 attribute-name="InvocationCount"&gt;
-     &lt;si:poller max-messages-per-poll="1"&gt;
-         &lt;si:interval-trigger interval="5000"/&gt;
-     &lt;/si:poller&gt;
+     &lt;si:poller max-messages-per-poll="1" fixed-rate="5000"/&gt;
  &lt;/jmx:attribute-polling-channel-adapter&gt;
 </programlisting></para>
   </section>

@@ -276,10 +276,7 @@ public class XmppMessageConsumer {
       class="com.myxmppproducer.outbound.XmppMessageProducer"
       p:recipient="${user.2.login}"/>
 
-    <poller default="true">
-        <interval-trigger fixed-rate="true"
-           interval="10" time-unit="SECONDS"/>
-    </poller>
+    <poller default="true" fixed-rate="10000"/>
 
     <xmpp:xmpp-connection
         id="testConnection"

@@ -22,15 +22,11 @@
       provide a 'poller' element with either an 'interval-trigger' (in milliseconds) or 'cron-trigger'
       sub-element.
       <programlisting language="xml"><![CDATA[<inbound-channel-adapter ref="source1" method="method1" channel="channel1">
-    <poller>
-        <interval-trigger interval="5000"/>
-    </poller>
+    <poller fixed-rate="5000"/>
 </inbound-channel-adapter>
 
 <inbound-channel-adapter ref="source2" method="method2" channel="channel2">
-    <poller>
-        <cron-trigger expression="30 * 9-17 * * MON-FRI"/>
-    </poller>
+    <poller cron="30 * 9-17 * * MON-FRI"/>
 </channel-adapter>]]></programlisting>
     </para>
     <note>
@@ -49,9 +45,8 @@
       <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel1" ref="target1" method="method1"/>]]></programlisting>
       If the channel being adapted is a <interfacename>PollableChannel</interfacename>, provide a poller sub-element:
         <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel2" ref="target2" method="method2">
-    ]]><emphasis><![CDATA[<poller>
-        <interval-trigger interval="3000"/>
-    </poller>]]></emphasis><![CDATA[
+    ]]><emphasis><![CDATA[<poller fixed-rate="3000"/>
+]]></emphasis><![CDATA[
 </outbound-channel-adapter>
 <beans:bean id="target1" class="org.bar.Foo"/>
 ]]></programlisting>

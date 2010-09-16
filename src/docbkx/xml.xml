@@ -140,9 +140,7 @@
     input-channel="input"
     output-channel="output"
     unmarshaller="unmarshaller">
-    <si:poller>
-        <si:interval-trigger interval="2000"/>
-    </si:poller>
+    <si:poller fixed-rate="2000"/>
 <si-xml:unmarshalling-transformer/>    
     ]]></programlisting>
     </para>
@@ -386,9 +384,7 @@
                        output-channel="orderItemsChannel"
                        create-documents="true">
     <si-xml:xpath-expression expression="/order/items"/>
-    <si:poller>
-        <si:interval-trigger interval="2000"/>
-    </si:poller>
+    <si:poller fixed-rate="2000"/>
 </si-xml:xpath-splitter>]]></programlisting>  
 		</para>
 		<para>
@@ -403,9 +399,7 @@
 <!-- route the order to all responders-->
 <si-xml:xpath-router id="responderRouter" input-channel="orderChannel" multi-channel="true">
     <si-xml:xpath-expression expression="/request/responders"/>
-    <si:poller>
-        <si:interval-trigger interval="2000"/>
-    </si:poller>
+    <si:poller fixed-rate="2000"/>
 </si-xml:xpath-router>]]></programlisting>
 		</para>
 	</section>

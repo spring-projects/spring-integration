@@ -37,9 +37,7 @@
       <interfacename>PollableChannel</interfacename> to a <interfacename>SubscribableChannel</interfacename>, and when
       performing this role, the Messaging Bridge may also serve as a throttler:
       <programlisting language="xml"><![CDATA[ <bridge input-channel="pollable" output-channel="subscribable">
-     <poller max-messages-per-poll="10">
-         <interval-trigger interval="5" time-unit="SECONDS"/>
-     </poller>
+     <poller max-messages-per-poll="10" fixed-rate="5000"/>
  </bridge>]]></programlisting>
     </para>
     <para>

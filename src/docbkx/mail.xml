@@ -99,9 +99,7 @@
 			should-delete-messages="true" 
 			should-mark-messages-as-read="true"
 			auto-startup="true">
-			<int:poller max-messages-per-poll="1">
-				<int:interval-trigger interval="5000"/>
-			</int:poller>
+			<int:poller max-messages-per-poll="1" fixed-rate="5000"/>
 </int-mail:inbound-channel-adapter>]]></programlisting>
       If you do have IMAP idle support, then you may want to configure the "imap-idle-channel-adapter" element instead.
       Since the "idle" command enables event-driven notifications, no poller is necessary for this adapter. It will

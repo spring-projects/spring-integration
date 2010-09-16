@@ -28,9 +28,7 @@
       (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines an
       inbound Channel Adapter with a <classname>Destination</classname> reference.
       <programlisting language="xml"><![CDATA[ <jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel">
-     <integration:poller>
-         <integration:interval-trigger interval="30" time-unit="SECONDS"/>
-     </integration:poller>
+     <integration:poller fixed-rate="30000"/>
  </jms:inbound-channel-adapter>]]></programlisting>
       <tip>
         Notice from the configuration that the inbound-channel-adapter is a Polling Consumer. That means that
@@ -56,9 +54,7 @@
                               destination="inQueue"
                               channel="exampleChannel"
                               extract-payload="false"/>
-     <integration:poller>
-         <integration:interval-trigger interval="30" time-unit="SECONDS"/>
-     </integration:poller>
+     <integration:poller fixed-rate="30000"/>
  </jms:inbound-channel-adapter>]]></programlisting>
     </para>
   </section>
