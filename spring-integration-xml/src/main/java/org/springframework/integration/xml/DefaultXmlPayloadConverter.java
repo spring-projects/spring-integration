@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml;
 
+import java.io.File;
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -54,6 +55,14 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
     public Document convertToDocument(Object object) {
         if (object instanceof Document) {
             return (Document) object;
+        }
+        if (object instanceof File) {
+        	try {
+        		return getDocumentBuilder().parse((File) object);
+        	}
+        	catch (Exception e) {
+        		throw new MessagingException("failed to parse File payload '" + object + "'", e);
+        	}
         }
         if (object instanceof String) {
             try {
