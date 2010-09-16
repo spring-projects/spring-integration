@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -36,23 +35,15 @@ import org.springframework.integration.support.channel.ChannelResolutionExceptio
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.support.converter.MessageConverter;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 /**
  * This is the central class for invoking message exchange operations across
  * {@link MessageChannel}s. It supports one-way send and receive calls as well
  * as request/reply.
- * <p>
- * To enable transactions, configure the 'transactionManager' property with a
- * reference to an instance of Spring's {@link PlatformTransactionManager}
- * strategy and optionally provide the other transactional attributes
- * (e.g. 'propagationBehaviorName').
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class MessagingTemplate implements MessagingOperations, BeanFactoryAware, InitializingBean {
 
@@ -67,18 +58,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	private volatile long sendTimeout = -1;
 
 	private volatile long receiveTimeout = -1;
-
-	private volatile PlatformTransactionManager transactionManager;
-
-	private volatile TransactionTemplate transactionTemplate;
-
-	private volatile String propagationBehaviorName = "PROPAGATION_REQUIRED";
-
-	private volatile String isolationLevelName = "ISOLATION_DEFAULT";
-
-	private volatile int transactionTimeout = -1;
-
-	private volatile boolean readOnly = false;
 
 	private volatile boolean initialized;
 
@@ -147,38 +126,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	/**
-	 * Specify a transaction manager to use for all exchange operations.
-	 * If none is provided, then the operations will occur without any
-	 * transactional behavior (i.e. there is no default transaction manager).
-	 */
-	public void setTransactionManager(PlatformTransactionManager transactionManager) {
-		this.transactionManager = transactionManager;
-	}
-
-	public void setPropagationBehaviorName(String propagationBehaviorName) {
-		this.propagationBehaviorName = propagationBehaviorName;
-	}
-
-	public void setIsolationLevelName(String isolationLevelName) {
-		this.isolationLevelName = isolationLevelName;
-	}
-
-	public void setTransactionTimeout(int transactionTimeout) {
-		this.transactionTimeout = transactionTimeout;
-	}
-
-	public void setTransactionReadOnly(boolean readOnly) {
-		this.readOnly = readOnly;
-	}
-
-	private TransactionTemplate getTransactionTemplate() {
-		if (!this.initialized) {
-			this.afterPropertiesSet();
-		}
-		return this.transactionTemplate;
-	}
-
 	public void setBeanFactory(BeanFactory beanFactory) {
 		if (this.channelResolver == null && beanFactory != null) {
 			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
@@ -190,14 +137,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 			if (this.initialized) {
 				return;
 			}
-			if (this.transactionManager != null) {
-				TransactionTemplate template = new TransactionTemplate(this.transactionManager);
-				template.setPropagationBehaviorName(this.propagationBehaviorName);
-				template.setIsolationLevelName(this.isolationLevelName);
-				template.setTimeout(this.transactionTimeout);
-				template.setReadOnly(this.readOnly);
-				this.transactionTemplate = template;
-			}
 			this.initialized = true;
 		}
 	}
@@ -207,15 +146,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 	public <P> void send(final MessageChannel channel, final Message<P> message) {
-		TransactionTemplate txTemplate = this.getTransactionTemplate();
-		if (txTemplate != null) {
-			txTemplate.execute(new TransactionCallback<Object>() {
-				public Object doInTransaction(TransactionStatus status) {
-					doSend(channel, message);
-					return null;
-				}
-			});
-		}
 		this.doSend(channel, message);
 	}
 
@@ -276,14 +206,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 	public <P> Message<P> receive(final PollableChannel channel) {
-		TransactionTemplate txTemplate = this.getTransactionTemplate();
-		if (txTemplate != null) {
-			return txTemplate.execute(new TransactionCallback<Message<P>>() {
-				public Message<P> doInTransaction(TransactionStatus status) {
-					return doReceive(channel);
-				}
-			});
-		}
 		return this.doReceive(channel);
 	}
 
@@ -314,14 +236,6 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 	}
 
 	public Message<?> sendAndReceive(final MessageChannel channel, final Message<?> requestMessage) {
-		TransactionTemplate txTemplate = this.getTransactionTemplate();
-		if (txTemplate != null) {
-			return txTemplate.execute(new TransactionCallback<Message<?>>() {
-				public Message<?> doInTransaction(TransactionStatus status) {
-					return doSendAndReceive(channel, requestMessage);
-				}
-			});
-		}
 		return this.doSendAndReceive(channel, requestMessage);
 	}
 
@@ -482,7 +396,5 @@ public class MessagingTemplate implements MessagingOperations, BeanFactoryAware,
 			this.latch.countDown();
 			return true;
 		}
-
 	}
-
 }
