@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import org.junit.Test;
@@ -130,7 +131,12 @@ public class PayloadSerializingTransformerParserTests {
 	public static class TestSerializingConverter implements Converter<Object, byte[]> {
 
 		public byte[] convert(Object source) {
-			return source.toString().toUpperCase().getBytes(Charset.forName("UTF-8"));
+			try {
+				return source.toString().toUpperCase().getBytes("UTF-8");
+			}
+			catch (UnsupportedEncodingException e) {
+				throw new MessageTransformationException("failed to convert payload", e);
+			}
 		}
 	}
 
