@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,18 +33,17 @@ import org.springframework.core.convert.converter.Converter;
  */
 public class PayloadSerializingTransformer extends PayloadTypeConvertingTransformer<Object, byte[]> {
 
-	
+	@Override
+	public void setConverter(Converter<Object, byte[]> converter) {
+		this.converter = converter;
+	}
+
 	@Override
 	protected byte[] transformPayload(Object payload) throws Exception {
 		if (this.converter == null) {
 			this.converter = new SerializingConverter(new JavaStreamingConverter());
 		}
-		return converter.convert(payload);
+		return this.converter.convert(payload);
 	}
 
-	@Override
-	public void setConverter(Converter<Object, byte[]> converter) {
-		this.converter = converter;
-	}
-	
 }

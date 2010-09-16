@@ -23,12 +23,13 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -45,15 +46,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class PayloadSerializingTransformerParserTests {
 
 	@Autowired
-	@Qualifier("directInput")
 	private MessageChannel directInput;
 
 	@Autowired
-	@Qualifier("queueInput")
 	private MessageChannel queueInput;
 
 	@Autowired
-	@Qualifier("output")
+	private MessageChannel customConverterInput;
+
+	@Autowired
 	private PollableChannel output;
 
 
@@ -101,6 +102,15 @@ public class PayloadSerializingTransformerParserTests {
 		directInput.send(new GenericMessage<Object>(new Object()));
 	}
 
+	@Test
+	public void customConverter() throws Exception {
+		customConverterInput.send(new GenericMessage<String>("test"));
+		Message<?> result = output.receive(3000);
+		assertNotNull(result);
+		assertEquals(byte[].class, result.getPayload().getClass());
+		assertEquals("TEST", new String((byte[]) result.getPayload(), Charset.forName("UTF-8")));
+	}
+
 
 	private static Object deserialize(byte[] bytes) throws Exception {
 		ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
@@ -114,6 +124,14 @@ public class PayloadSerializingTransformerParserTests {
 
 		public final String name = "test";
 
+	}
+
+
+	public static class TestSerializingConverter implements Converter<Object, byte[]> {
+
+		public byte[] convert(Object source) {
+			return source.toString().toUpperCase().getBytes(Charset.forName("UTF-8"));
+		}
 	}
 
 }

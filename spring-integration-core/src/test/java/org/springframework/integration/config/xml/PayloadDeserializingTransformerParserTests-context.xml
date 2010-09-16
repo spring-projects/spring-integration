@@ -13,6 +13,8 @@
 		<queue capacity="1"/>
 	</channel>
 
+	<channel id="customConverterInput"/>
+
 	<channel id="output">
 		<queue capacity="1"/>
 	</channel>
@@ -20,9 +22,11 @@
 	<payload-deserializing-transformer input-channel="directInput" output-channel="output"/>
 
 	<payload-deserializing-transformer input-channel="queueInput" output-channel="output">
-		<poller>
-			<interval-trigger interval="10000"/>
-		</poller>
+		<poller fixed-delay="10000"/>
 	</payload-deserializing-transformer>
+
+	<payload-deserializing-transformer input-channel="customConverterInput" output-channel="output" converter="customConverter"/>
+
+	<beans:bean id="customConverter" class="org.springframework.integration.config.xml.PayloadDeserializingTransformerParserTests$TestDeserializingConverter"/>
 
 </beans:beans>

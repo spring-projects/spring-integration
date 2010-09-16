@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -45,15 +46,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class PayloadDeserializingTransformerParserTests {
 
 	@Autowired
-	@Qualifier("directInput")
 	private MessageChannel directInput;
 
 	@Autowired
-	@Qualifier("queueInput")
 	private MessageChannel queueInput;
 
 	@Autowired
-	@Qualifier("output")
+	private MessageChannel customConverterInput;
+
+	@Autowired
 	private PollableChannel output;
 
 
@@ -103,6 +104,15 @@ public class PayloadDeserializingTransformerParserTests {
 		directInput.send(new GenericMessage<byte[]>(bytes));
 	}
 
+	@Test
+	public void customConverter() throws Exception {
+		customConverterInput.send(new GenericMessage<byte[]>("test".getBytes(Charset.forName("UTF-8"))));
+		Message<?> result = output.receive(3000);
+		assertNotNull(result);
+		assertEquals(String.class, result.getPayload().getClass());
+		assertEquals("TEST", result.getPayload());
+	}
+
 
 	private static byte[] serialize(Object object) throws Exception {
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -117,6 +127,14 @@ public class PayloadDeserializingTransformerParserTests {
 
 		public final String name = "test";
 
+	}
+
+
+	public static class TestDeserializingConverter implements Converter<byte[], Object> {
+
+		public Object convert(byte[] source) {
+			return new String(source, Charset.forName("UTF-8")).toUpperCase();
+		}
 	}
 
 }
