@@ -24,7 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -109,7 +108,7 @@ public class PayloadSerializingTransformerParserTests {
 		Message<?> result = output.receive(3000);
 		assertNotNull(result);
 		assertEquals(byte[].class, result.getPayload().getClass());
-		assertEquals("TEST", new String((byte[]) result.getPayload(), Charset.forName("UTF-8")));
+		assertEquals("TEST", new String((byte[]) result.getPayload(), "UTF-8"));
 	}
 
 

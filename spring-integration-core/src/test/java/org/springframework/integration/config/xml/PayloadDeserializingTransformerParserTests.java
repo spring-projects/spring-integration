@@ -24,7 +24,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,7 +106,7 @@ public class PayloadDeserializingTransformerParserTests {
 
 	@Test
 	public void customConverter() throws Exception {
-		customConverterInput.send(new GenericMessage<byte[]>("test".getBytes(Charset.forName("UTF-8"))));
+		customConverterInput.send(new GenericMessage<byte[]>("test".getBytes("UTF-8")));
 		Message<?> result = output.receive(3000);
 		assertNotNull(result);
 		assertEquals(String.class, result.getPayload().getClass());
