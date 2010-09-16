@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN" "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
 <chapter id="xml">
-	<title>Dealing with XML Payloads</title>
+	<title>XML Support - Dealing with XML Payloads</title>
 
 	<section id="xml-intro">
 		<title>Introduction</title>
@@ -326,6 +326,104 @@
         </bean>
     </constructor-arg>
 </bean>]]></programlisting>
+	</section>
+	
+	<section id="xpath-transformer">
+		<title>Transforming xml messages using XPath</title>
+		<para>
+			When it comes to message transformation XPath is a great way to transform Messages that have XML 
+			payloads by defining XPath transformers via <emphasis>xpath-transformer</emphasis> element.
+		</para>
+		<para>
+		<emphasis>Simple XPath transformation</emphasis>
+		</para>
+		<para>
+		Let's look at the following transformer configuration:
+		<programlisting language="xml"><![CDATA[<xpath-transformer input-channel="inputChannel" output-channel="outputChannel" 
+			xpath-expression="/person/@name" />]]></programlisting>
+		
+		. . . and Message
+		<programlisting language="java"><![CDATA[Message<?> message = 
+	MessageBuilder.withPayload("<person name='John Doe' age='42' married='true'/>").build();]]></programlisting>
+		After sending this message to the 'inputChannel' the XPath transformer configured above will transform 
+		this XML Message to a simple Message with payload of 'John Doe' all based on 
+		the simple XPath Expression specified in the <emphasis>xpath-expression</emphasis> attribute.
+		</para>
+		<para>
+		XPath also has capability to perform simple conversion of extracted elements 
+		to a desired type. Valid return types are defined in <classname>XPathConstants</classname> and follows 
+		the conversion rules specified by the <classname>XPath</classname>.
+		</para>
+		<para>
+		The following constants are defined by the <classname>XPathConstants</classname>: <emphasis>BOOLEAN, DOM_OBJECT_MODEL, NODE, NODESET, NUMBER, STRING</emphasis>
+		</para>
+		<para>
+		You can configure the desired type by simply using <emphasis>evaluation-type</emphasis> 
+		attribute of the <emphasis>xpath-transformer</emphasis> element.
+		<programlisting language="xml"><![CDATA[<xpath-transformer input-channel="numberInput" xpath-expression="/person/@age" 
+		evaluation-type="NUMBER_RESULT" output-channel="output"/>
+
+<xpath-transformer input-channel="booleanInput" xpath-expression="/person/@married = 'true'" 
+		evaluation-type="BOOLEAN_RESULT" output-channel="output"/>
+]]></programlisting>
+		</para>
+		<para>
+		<emphasis>Node Mappers</emphasis>
+		</para>
+		<para>
+		If you need to provide custom mapping for the node extracted by the XPath expression simply provide a reference to the 
+		implementation of the <classname>org.springframework.xml.xpath.NodeMapper</classname> - an interface used by 
+		<classname>XPathOperations</classname> implementations for mapping Node objects on a per-node basis. To provide a 
+		reference to a <classname>NodeMapper</classname> simply use <emphasis>node-mapper</emphasis> attribute:
+		<programlisting language="xml"><![CDATA[<xpath-transformer input-channel="nodeMapperInput" xpath-expression="/person/@age" 
+		node-mapper="testNodeMapper" output-channel="output"/>
+]]></programlisting>
+. . . and Sample NodeMapper implementation:
+<programlisting language="java"><![CDATA[class TestNodeMapper implements NodeMapper {
+	public Object mapNode(Node node, int nodeNum) throws DOMException {
+		return node.getTextContent() + "-mapped";
+	}
+}]]></programlisting>
+		</para>
+		<para>
+		<emphasis>XML Payload Converter</emphasis>
+		</para>
+		<para>
+		You can also use implementation of the <classname>org.springframework.integration.xml.XmlPayloadConverter</classname> to 
+		provide more granular transformation:	
+		<programlisting language="xml"><![CDATA[<xpath-transformer input-channel="customConverterInput" xpath-expression="/test/@type" 
+		converter="testXmlPayloadConverter" output-channel="output"/>
+]]></programlisting>
+. . . and Sample XmlPayloadConverter implementation:
+<programlisting language="java"><![CDATA[class TestXmlPayloadConverter implements XmlPayloadConverter {
+	public Source convertToSource(Object object) {
+		throw new UnsupportedOperationException();
+	}
+	//
+	public Node convertToNode(Object object) {
+		try {
+			return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+					new InputSource(new StringReader("<test type='custom'/>")));
+		}
+		catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+	//
+	public Document convertToDocument(Object object) {
+		throw new UnsupportedOperationException();
+	}
+}]]></programlisting>
+		</para>
+		<para>
+		<emphasis>Combination of SpEL and XPath expressions</emphasis>
+		</para>
+		<para>
+		You can also combine Spring Expression Language (SpEL) expressions with XPath expression and configure 
+		them using <emphasis>expression</emphasis> attribute:
+		<programlisting language="xml"><![CDATA[xpath-expression id="testExpression" expression="/person/@age * 2"/>]]></programlisting>
+		In the above case the overall result of the expression will be the result of the XPathe expression multiplied by 2.
+		</para>	
 	</section>
 	
 	
