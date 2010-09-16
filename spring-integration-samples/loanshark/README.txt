@@ -1,3 +1,5 @@
+See README.txt in loan-broker sample for information about this sample.
+
 To change the multicast code in udps.groovy to rely on unicast instead, simply
 change the MulticastSocket type to DatagramSocket and remove the next 2 lines
 that deal with joining the multicast group. Then, in the configuration of the
