@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -34,6 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.
@@ -228,15 +231,17 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				this.fetchMessages(messages);
 			}
 
-			Message[] copiedMessages = new Message[messages.length];
+			List<Message> copiedMessages = new ArrayList<Message>();
 			for (int i = 0; i < messages.length; i++) {
-				this.setAdditionalFlags(messages[i]);
-				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
+				if (!messages[i].isExpunged()){
+					this.setAdditionalFlags(messages[i]);
+					copiedMessages.add(new MimeMessage((MimeMessage) messages[i]));
+				}
 			}
 			if (this.shouldDeleteMessages()) {
 				this.deleteMessages(messages);
 			}
-			return copiedMessages;
+			return copiedMessages.toArray(new Message[]{});
 		}
 		catch (Exception e) {
 			throw new org.springframework.integration.MessagingException(
