@@ -43,28 +43,30 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 
 	private final BeanFactoryTypeConverter typeConverter = new BeanFactoryTypeConverter();
 
+
 	public AbstractExpressionEvaluator() {
-		evaluationContext.setTypeConverter(typeConverter);
-		evaluationContext.addPropertyAccessor(new MapAccessor());
+		this.evaluationContext.setTypeConverter(this.typeConverter);
+		this.evaluationContext.addPropertyAccessor(new MapAccessor());
 	}
+
 
 	/**
 	 * Specify a BeanFactory in order to enable resolution via <code>@beanName</code> in the expression.
 	 */
 	public void setBeanFactory(final BeanFactory beanFactory) {
 		if (beanFactory != null) {
-			typeConverter.setBeanFactory(beanFactory);
+			this.typeConverter.setBeanFactory(beanFactory);
 			this.getEvaluationContext().setBeanResolver(new SimpleBeanResolver(beanFactory));
 		}
 	}
 
 	public void setConversionService(ConversionService conversionService) {
 		if (conversionService != null) {
-			typeConverter.setConversionService(conversionService);
+			this.typeConverter.setConversionService(conversionService);
 		}
 	}
 
-	// TODO: does this need to be public?
+	// TODO: should we make this protected (would require changes to tests only)
 	public StandardEvaluationContext getEvaluationContext() {
 		return this.evaluationContext;
 	}
@@ -85,15 +87,15 @@ public abstract class AbstractExpressionEvaluator implements BeanFactoryAware {
 	}
 
 	protected Object evaluateExpression(String expression, Object input) {
-		return evaluateExpression(expression, input, (Class<?>) null);
+		return this.evaluateExpression(expression, input, (Class<?>) null);
 	}
 
 	protected <T> T evaluateExpression(String expression, Object input, Class<T> expectedType) {
-		return expressionParser.parseExpression(expression).getValue(this.evaluationContext, input, expectedType);
+		return this.expressionParser.parseExpression(expression).getValue(this.evaluationContext, input, expectedType);
 	}
 
 	protected Object evaluateExpression(Expression expression, Object input) {
-		return evaluateExpression(expression, input, (Class<?>) null);
+		return this.evaluateExpression(expression, input, (Class<?>) null);
 	}
 
 	protected <T> T evaluateExpression(Expression expression, Object input, Class<T> expectedType) {

@@ -45,6 +45,7 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 		this(expression, null);
 	}
 
+
 	/**
 	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
 	 */
@@ -60,13 +61,6 @@ public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProc
 		}
 	}
 
-
-	/**
-	 * Set the result type expected from evaluation of the expression.
-	 */
-//	public void setExpectedType(Class<?> expectedType) {
-//		this.expectedType = expectedType;
-//	}
 
 	/**
 	 * Processes the Message by evaluating the expression with that Message as the
