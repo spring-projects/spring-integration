@@ -19,7 +19,6 @@ package org.springframework.integration.core;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 
-
 /**
  * Interface for Message Channels from which Messages may be actively received through polling.
  * 
