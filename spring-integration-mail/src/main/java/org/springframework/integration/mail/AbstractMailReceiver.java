@@ -231,17 +231,15 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 				this.fetchMessages(messages);
 			}
 
-			List<Message> copiedMessages = new ArrayList<Message>();
+			Message[] copiedMessages = new Message[messages.length];
 			for (int i = 0; i < messages.length; i++) {
-				if (!messages[i].isExpunged()){
-					this.setAdditionalFlags(messages[i]);
-					copiedMessages.add(new MimeMessage((MimeMessage) messages[i]));
-				}
+				this.setAdditionalFlags(messages[i]);
+				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
 			}
 			if (this.shouldDeleteMessages()) {
 				this.deleteMessages(messages);
 			}
-			return copiedMessages.toArray(new Message[]{});
+			return copiedMessages;
 		}
 		catch (Exception e) {
 			throw new org.springframework.integration.MessagingException(

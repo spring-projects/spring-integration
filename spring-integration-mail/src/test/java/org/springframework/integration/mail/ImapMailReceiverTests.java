@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.mail;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.Flags.Flag;
@@ -184,44 +187,5 @@ public class ImapMailReceiverTests {
 		verify(msg1, times(1)).setFlag(Flag.SEEN, true);
 		verify(msg2, times(1)).setFlag(Flag.SEEN, true);
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
-	}
-	@Test
-	/*
-	 * This test emulates https://jira.springsource.org/browse/INT-1415
-	 */
-	public void receieveAndDontMarkAsReadWithOneMessageExpanged() throws Exception{
-		AbstractMailReceiver receiver = new ImapMailReceiver();
-		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
-		receiver = spy(receiver);
-		receiver.afterPropertiesSet();
-		Message msg1 = mock(MimeMessage.class);
-		Message msg2 = mock(MimeMessage.class);
-		when(msg2.isExpunged()).thenReturn(true);
-		final Message[] messages = new Message[]{msg1, msg2};
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				DirectFieldAccessor accessor = new DirectFieldAccessor(invocation.getMock());
-				int folderOpenMode = (Integer) accessor.getPropertyValue("folderOpenMode");
-				if (folderOpenMode == Folder.READ_WRITE){
-					throw new IllegalArgumentException("Folder had to be open in READ_ONLY mode");
-				}
-				return null;
-			}
-		}).when(receiver).openFolder();
-		
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return messages;
-			}
-		}).when(receiver).searchForNewMessages();
-		
-		doAnswer(new Answer<Object>() {
-			public Object answer(InvocationOnMock invocation) throws Throwable {
-				return null;
-			}
-		}).when(receiver).fetchMessages(messages);
-		receiver.afterPropertiesSet();
-		Message[] receievedMessages =  receiver.receive();
-		assertEquals(1, receievedMessages.length);
 	}
 }
