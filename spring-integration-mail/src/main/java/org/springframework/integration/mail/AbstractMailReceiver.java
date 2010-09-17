@@ -34,7 +34,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
 
@@ -253,7 +252,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 			Message[] copiedMessages = new Message[messages.length];
 			for (int i = 0; i < messages.length; i++) {
-				if (this.shouldMarkMessagesAsRead){
+				if (this.shouldMarkMessagesAsRead != null && this.shouldMarkMessagesAsRead) {
 					messages[i].setFlag(Flag.SEEN, true);
 				}
 				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
