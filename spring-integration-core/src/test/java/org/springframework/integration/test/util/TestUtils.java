@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.hamcrest.Matcher;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.factory.BeanFactory;
@@ -54,7 +53,7 @@ import org.springframework.util.ErrorHandler;
  */
 public abstract class TestUtils {
 
-    public static Object getPropertyValue(Object root, String propertyPath) {
+	public static <T> T getPropertyValue(Object root, String propertyPath) {
         Object value = null;
         DirectFieldAccessor accessor = new DirectFieldAccessor(root);
         String[] tokens = propertyPath.split("\\.");
@@ -69,7 +68,9 @@ public abstract class TestUtils {
                         "intermediate property '" + tokens[i] + "' is null");
             }
         }
-        return value;
+        @SuppressWarnings("unchecked")
+        T result = (T) value;
+		return result;
     }
 
     @SuppressWarnings("unchecked")

@@ -211,7 +211,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		transactionalProperties.setProperty("readOnly", txElement.getAttribute("read-only"));
 		
 		BeanDefinitionBuilder pollingDecoratorBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.endpoint.TransactionalCallbackDecorator");
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.config.TransactionalCallbackDecorator");
 		pollingDecoratorBuilder.addPropertyValue("transactionalProperties", transactionalProperties);
 		
 		targetBuilder.addPropertyValue("pollingDecorator", pollingDecoratorBuilder.getBeanDefinition());
