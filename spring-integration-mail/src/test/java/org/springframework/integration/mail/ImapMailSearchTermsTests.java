@@ -15,6 +15,9 @@
  */
 package org.springframework.integration.mail;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.lang.reflect.Method;
 
 import javax.mail.Flags;
@@ -26,10 +29,6 @@ import javax.mail.search.SearchTerm;
 
 import org.junit.Test;
 import org.springframework.util.ReflectionUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Oleg Zhurakousky
@@ -45,8 +44,11 @@ public class ImapMailSearchTermsTests {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertTrue(searchTerms instanceof NotTerm);
-		NotTerm notTerm = (NotTerm) searchTerms;
+		assertTrue(searchTerms instanceof AndTerm);
+		AndTerm andTerm = (AndTerm) searchTerms;
+		SearchTerm[] terms = andTerm.getTerms();
+		assertEquals(2, terms.length);
+		NotTerm notTerm = (NotTerm) terms[1];
 		assertTrue(((FlagTerm)notTerm.getTerm()).getFlags().contains(Flag.SEEN));
 	}
 	@Test
@@ -75,7 +77,7 @@ public class ImapMailSearchTermsTests {
 		compileSearchTerms.setAccessible(true);
 		Flags flags = new Flags();
 		SearchTerm searchTerms = (SearchTerm) compileSearchTerms.invoke(receiver, flags);
-		assertNull(searchTerms);
+		assertTrue(searchTerms instanceof NotTerm);
 	}
 	@Test
 	public void validateSearchTermsWhenShouldNotMarkAsReadWithExistingFlags() throws Exception {

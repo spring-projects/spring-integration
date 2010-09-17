@@ -144,15 +144,14 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				}
 			}
 		}
+		NotTerm notDeleted = new NotTerm( new FlagTerm(new Flags(Flags.Flag.DELETED), true) );
+		NotTerm notSeen = new NotTerm( new FlagTerm(new Flags(Flags.Flag.SEEN), true) );
 		if (searchTerm == null){
-			if (this.isShouldMarkMessagesAsRead()){
-				searchTerm = new NotTerm( new FlagTerm(new Flags(Flags.Flag.SEEN), true) );
-			}
-		} else {
-			if (this.isShouldMarkMessagesAsRead()){
-				searchTerm = new AndTerm(searchTerm, new NotTerm( new FlagTerm(new Flags(Flags.Flag.SEEN), true) ));
-			}
-		}
+			searchTerm = notDeleted;
+		} 
+		if (this.isShouldMarkMessagesAsRead()){
+			searchTerm = new AndTerm(searchTerm, notSeen);
+		} 
 		return searchTerm;
 	}
 
