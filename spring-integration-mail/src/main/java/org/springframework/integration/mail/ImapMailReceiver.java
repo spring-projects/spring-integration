@@ -17,6 +17,7 @@
 package org.springframework.integration.mail;
 
 import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -45,7 +46,7 @@ import com.sun.mail.imap.IMAPFolder;
  * @author Oleg Zhurakousky
  */
 public class ImapMailReceiver extends AbstractMailReceiver {
-
+	private volatile boolean shouldMarkMessagesAsRead = true;;
 	private final MessageCountListener messageCountListener = new SimpleMessageCountListener();
 
 
@@ -65,7 +66,20 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 		}
 	}
 
-
+	/**
+	 * Check if messages should be marked as read
+	 * @return
+	 */
+	public Boolean isShouldMarkMessagesAsRead() {
+		return shouldMarkMessagesAsRead;
+	}
+	/**
+	 * Specify is messages should be marked as read
+	 * @return
+	 */
+	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
+		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
+	}
 	/**
 	 * This method is unique to the IMAP receiver and only works if IMAP IDLE
 	 * is supported (see RFC 2177 for more detail).
@@ -161,7 +175,20 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			}
 		}
 	}
+	/**
+	 * 
+	 */
 	protected void onInit() throws Exception {
-		this.setShouldMarkMessagesAsRead(this.isShouldMarkMessagesAsRead() == null ? true : this.isShouldMarkMessagesAsRead());
+		if (this.shouldMarkMessagesAsRead){
+			this.setFolderOpenMode(Folder.READ_WRITE);
+		}
+	}
+	/**
+	 * 
+	 */
+	protected void setAdditionalFlags(Message message) throws MessagingException{
+		if (this.shouldMarkMessagesAsRead) {
+			message.setFlag(Flag.SEEN, true);
+		}
 	}
 }

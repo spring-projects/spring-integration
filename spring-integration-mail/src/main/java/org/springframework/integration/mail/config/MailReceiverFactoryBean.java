@@ -152,7 +152,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 			if (isPop3){
 				logger.warn("Setting 'should-mark-messages-as-read' to 'true' while using POP3 has no effect");
 			} else if (isImap){
-				receiver.setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
+				((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 			}
 		}
 		return receiver;

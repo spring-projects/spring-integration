@@ -65,22 +65,6 @@ public class InboundChannelAdapterParserTests {
 	}
 	
 	@Test
-	public void pop3IgnoreMarkAsReadWithTrue() {
-		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldMarkAsReadTrue");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
-		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldMarkMessagesAsRead");
-		assertNull(value);
-	}
-	
-	@Test
-	public void pop3IgnoreMarkAsReadWithFalse() {
-		AbstractMailReceiver receiver = this.getReceiver("pop3ShouldMarkAsReadFalse");
-		assertEquals(Pop3MailReceiver.class, receiver.getClass());
-		Boolean value = (Boolean) new DirectFieldAccessor(receiver).getPropertyValue("shouldMarkMessagesAsRead");
-		assertNull(value);
-	}
-	
-	@Test
 	public void imapShouldMarkMessagesAsRead() {
 		AbstractMailReceiver receiver = this.getReceiver("imapShouldMarkAsReadTrue");
 		assertEquals(ImapMailReceiver.class, receiver.getClass());

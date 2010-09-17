@@ -27,12 +27,10 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
-import javax.mail.Flags.Flag;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
@@ -64,7 +62,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile boolean shouldDeleteMessages = false;
 	
-	private volatile Boolean shouldMarkMessagesAsRead;
+	private volatile int folderOpenMode = Folder.READ_ONLY;
 
 	private volatile Properties javaMailProperties = new Properties();
 
@@ -151,21 +149,6 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		this.shouldDeleteMessages = shouldDeleteMessages;
 	}
 	/**
-	 * Check if messages should be marked as read
-	 * @return
-	 */
-	public Boolean isShouldMarkMessagesAsRead() {
-		return shouldMarkMessagesAsRead;
-	}
-	/**
-	 * Specify is messages should be marked as read
-	 * @return
-	 */
-	public void setShouldMarkMessagesAsRead(Boolean shouldMarkMessagesAsRead) {
-		this.shouldMarkMessagesAsRead = shouldMarkMessagesAsRead;
-	}
-
-	/**
 	 * Indicates whether the mail messages should be deleted after being received.
 	 */
 	protected boolean shouldDeleteMessages() {
@@ -223,14 +206,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (logger.isDebugEnabled()) {
 			logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
 		}
-		if (this.shouldDeleteMessages() || this.shouldMarkMessagesAsRead) {
-			this.folder.open(Folder.READ_WRITE);
-		}
-		else {	
-			this.folder.open(Folder.READ_ONLY);
-		}
+		this.folder.open(folderOpenMode);
 	}
-
+	
 	public synchronized Message[] receive() {
 		try {
 			this.openFolder();
@@ -252,9 +230,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 			Message[] copiedMessages = new Message[messages.length];
 			for (int i = 0; i < messages.length; i++) {
-				if (this.shouldMarkMessagesAsRead != null && this.shouldMarkMessagesAsRead) {
-					messages[i].setFlag(Flag.SEEN, true);
-				}
+				this.setAdditionalFlags(messages[i]);
 				copiedMessages[i] = new MimeMessage((MimeMessage) messages[i]);
 			}
 			if (this.shouldDeleteMessages()) {
@@ -312,5 +288,13 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	@Override
 	public String toString() {
 		return this.url.toString();
+	}
+	
+	protected void setAdditionalFlags(Message message) throws MessagingException {
+		// nothing at the base class
+	}
+	
+	void setFolderOpenMode(int folderOpenMode) {
+		this.folderOpenMode = folderOpenMode;
 	}
 }
