@@ -22,15 +22,16 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
-
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.integration.endpoint.PollerCallbackDecorator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
@@ -74,6 +75,44 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		assertTrue("adviceChain was not applied", adviceApplied.get());
 	}
 
+	@Test
+	public void testTransactionalAdviceChain() throws Exception {
+		SourcePollingChannelAdapterFactoryBean factoryBean = new SourcePollingChannelAdapterFactoryBean();
+		QueueChannel outputChannel = new QueueChannel();
+		TestApplicationContext context = TestUtils.createTestApplicationContext();
+		factoryBean.setBeanFactory(context.getBeanFactory());
+		factoryBean.setBeanClassLoader(ClassUtils.getDefaultClassLoader());
+		factoryBean.setOutputChannel(outputChannel);
+		factoryBean.setSource(new TestSource());
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		List<Advice> adviceChain = new ArrayList<Advice>();
+		final AtomicBoolean adviceApplied = new AtomicBoolean(false);
+		adviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				adviceApplied.set(true);
+				return invocation.proceed();
+			}
+		});
+		pollerMetadata.setTrigger(new PeriodicTrigger(5000));
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		final AtomicInteger count = new AtomicInteger();
+		pollerMetadata.setPollingDecorator(new PollerCallbackDecorator() {
+			public Object decorate(Object poller) {
+				count.incrementAndGet();
+				return poller;
+			}
+		});
+		pollerMetadata.setAdviceChain(adviceChain);
+		factoryBean.setPollerMetadata(pollerMetadata);
+		factoryBean.setAutoStartup(true);
+		factoryBean.afterPropertiesSet();
+		context.registerEndpoint("testPollingEndpoint", factoryBean.getObject());
+		context.refresh();
+		Message<?> message = outputChannel.receive(30000);
+		assertEquals("test", message.getPayload());
+		assertEquals(1, count.get());
+		assertTrue("adviceChain was not applied", adviceApplied.get());
+	}
 
 	private static class TestSource implements MessageSource<String> {
 
