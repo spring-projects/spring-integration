@@ -53,7 +53,7 @@ import org.springframework.util.ErrorHandler;
  */
 public abstract class TestUtils {
 
-	public static <T> T getPropertyValue(Object root, String propertyPath) {
+	public static Object getPropertyValue(Object root, String propertyPath) {
         Object value = null;
         DirectFieldAccessor accessor = new DirectFieldAccessor(root);
         String[] tokens = propertyPath.split("\\.");
@@ -68,9 +68,7 @@ public abstract class TestUtils {
                         "intermediate property '" + tokens[i] + "' is null");
             }
         }
-        @SuppressWarnings("unchecked")
-        T result = (T) value;
-		return result;
+ 		return value;
     }
 
     @SuppressWarnings("unchecked")

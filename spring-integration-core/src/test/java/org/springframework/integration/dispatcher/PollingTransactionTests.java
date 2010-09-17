@@ -69,9 +69,10 @@ public class PollingTransactionTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
-		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain");
+		@SuppressWarnings("unchecked")
+		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain",List.class);
 		assertEquals(2, adviceChain.size());
-		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller");
+		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
 		assertTrue("Poller is not Advised", poller instanceof Advised);
 		Advisor[] advisors = ((Advised)poller).getAdvisors();
 		assertEquals(3, advisors.length);
