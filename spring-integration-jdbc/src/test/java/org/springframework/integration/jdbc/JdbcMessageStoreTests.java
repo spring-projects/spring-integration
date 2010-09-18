@@ -208,6 +208,17 @@ public class JdbcMessageStoreTests {
 
 	@Test
 	@Transactional
+	public void testAddAndMarkMessageInGroup() throws Exception {
+		String groupId = "X";
+		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();
+		messageStore.addMessageToGroup(groupId, message);
+		messageStore.addMessageToGroup(groupId,  MessageBuilder.withPayload("bar").setCorrelationId(groupId).build());
+		MessageGroup group = messageStore.markMessageFromGroup(groupId, message);
+		assertEquals(1, group.getMarked().size());
+	}
+
+	@Test
+	@Transactional
 	public void testExpireMessageGroup() throws Exception {
 		String groupId = "X";
 		Message<String> message = MessageBuilder.withPayload("foo").setCorrelationId(groupId).build();

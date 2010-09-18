@@ -71,6 +71,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 
 	private static final String MARK_MESSAGES_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MARKED=0 and GROUP_KEY=? and REGION=?";
 
+	private static final String MARK_MESSAGE_IN_GROUP = "UPDATE %PREFIX%MESSAGE_GROUP set UPDATED_DATE=?, MARKED=1 where MESSAGE_ID=? and MARKED=0 and GROUP_KEY=? and REGION=?";
+
 	private static final String REMOVE_MESSAGE_FROM_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=? and MESSAGE_ID=?";
 
 	private static final String DELETE_MESSAGE_GROUP = "DELETE from %PREFIX%MESSAGE_GROUP where GROUP_KEY=? and REGION=?";
@@ -340,15 +342,18 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * {@inheritDoc}
 	 */
 	public MessageGroup markMessageFromGroup(Object groupId, Message<?> messageToMark) {
+
+		final long updatedDate = System.currentTimeMillis();
 		final String groupKey = getKey(groupId);
 		final String messageId = getKey(messageToMark.getHeaders().getId());
 
-		jdbcTemplate.update(getQuery(MARK_MESSAGES_IN_GROUP), new PreparedStatementSetter() {
+		jdbcTemplate.update(getQuery(MARK_MESSAGE_IN_GROUP), new PreparedStatementSetter() {
 			public void setValues(PreparedStatement ps) throws SQLException {
-				logger.debug("Removing message from group with group key=" + groupKey);
-				ps.setString(1, groupKey);
-				ps.setString(2, region);
-				ps.setString(3, messageId);
+				logger.debug("Marking message "+messageId+" in group with group key=" + groupKey);
+				ps.setTimestamp(1, new Timestamp(updatedDate));
+				ps.setString(2, messageId);
+				ps.setString(3, groupKey);
+				ps.setString(4, region);
 			}
 		});
 		return getMessageGroup(groupId);
