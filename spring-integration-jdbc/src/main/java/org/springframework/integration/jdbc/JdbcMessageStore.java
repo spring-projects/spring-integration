@@ -26,7 +26,6 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.commons.serializer.Deserializer;
 import org.springframework.commons.serializer.DeserializingConverter;
 import org.springframework.commons.serializer.Serializer;
@@ -298,7 +297,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	}
 
 	public MessageGroup getMessageGroup(Object groupId) {
-		String key = getKey(groupId);
+		String key = getKey(groupId);		
+		// TODO: collapse 3 queries into 1
 		List<Message<?>> marked = jdbcTemplate.query(getQuery(LIST_MARKED_MESSAGES_BY_GROUP_KEY), new Object[] {
 				key, region }, mapper);
 		List<Message<?>> unmarked = jdbcTemplate.query(getQuery(LIST_UNMARKED_MESSAGES_BY_GROUP_KEY),

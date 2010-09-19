@@ -36,7 +36,7 @@ import org.springframework.integration.Message;
  */
 public class MessageGroupQueue extends AbstractQueue<Message<?>> implements BlockingQueue<Message<?>> {
 
-	private static final int DEFAULT_CAPACITY = Integer.MAX_VALUE;
+	private static final int DEFAULT_CAPACITY = -1;
 
 	private final MessageGroupStore messageGroupStore;
 
@@ -45,13 +45,13 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	private final int capacity;
 
 	// This one could be a global semaphore
-	private Object storeLock = new Object();
+	private volatile Object storeLock = new Object();
 
 	// This one only needs to be local
-	private Object writeLock = new Object();
+	private final Object writeLock = new Object();
 
 	// This one only needs to be local
-	private Object readLock = new Object();
+	private final Object readLock = new Object();
 
 	public MessageGroupQueue(MessageGroupStore messageGroupStore, Object groupId) {
 		this(messageGroupStore, groupId, DEFAULT_CAPACITY);
@@ -61,6 +61,13 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 		this.messageGroupStore = messageGroupStore;
 		this.groupId = groupId;
 		this.capacity = capacity;
+	}
+	
+	/**
+	 * @param storeLock the storeLock to set
+	 */
+	public void setStoreLock(Object storeLock) {
+		this.storeLock = storeLock;
 	}
 
 	public Iterator<Message<?>> iterator() {
@@ -73,7 +80,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 
 	public boolean offer(Message<?> e) {
 		synchronized (storeLock) {
-			if (messageGroupStore.getMessageGroup(groupId).size() >= capacity) {
+			if (capacity>0 && messageGroupStore.getMessageGroup(groupId).size() >= capacity) {
 				return false;
 			}
 			messageGroupStore.addMessageToGroup(groupId, e);
@@ -174,7 +181,7 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public int remainingCapacity() {
-		return capacity - messageGroupStore.getMessageGroup(groupId).size();
+		return (capacity>0 ? capacity : Integer.MAX_VALUE) - messageGroupStore.getMessageGroup(groupId).size();
 	}
 
 	public Message<?> take() throws InterruptedException {
