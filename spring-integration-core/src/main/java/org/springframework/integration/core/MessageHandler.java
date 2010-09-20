@@ -17,9 +17,6 @@
 package org.springframework.integration.core;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.MessagingException;
 
 /**
@@ -43,9 +40,9 @@ public interface MessageHandler {
 	 * <code>MessageDeliveryException</code>.
 	 * 
 	 * @param message the message to be handled
-	 * @throws MessageRejectedException if the handler doesn't accept the message
-	 * @throws MessageHandlingException when something fails during the handling
-	 * @throws MessageDeliveryException when this handler failed to deliver the
+	 * @throws org.springframework.integration.MessageRejectedException if the handler doesn't accept the message
+	 * @throws org.springframework.integration.MessageHandlingException when something fails during the handling
+	 * @throws org.springframework.integration.MessageDeliveryException when this handler failed to deliver the
 	 * reply related to the handling of the message
 	 */
 	void handleMessage(Message<?> message) throws MessagingException;
