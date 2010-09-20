@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -35,6 +36,8 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollerFactory;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
@@ -65,18 +68,22 @@ public class PollingTransactionTests {
 	}
 	
 	@Test
+	@SuppressWarnings("unchecked")
 	public void transactionWithCommitAndAdvices() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
-		@SuppressWarnings("unchecked")
-		List<Advice> adviceChain = TestUtils.getPropertyValue(advicedPoller, "adviceChain",List.class);
+		
+		PollerFactory pollerFactory = TestUtils.getPropertyValue(advicedPoller, "pollerFactory",PollerFactory.class);
+		PollerMetadata pollerMetedata = TestUtils.getPropertyValue(pollerFactory, "pollerMetadata",PollerMetadata.class);
+		List<Advice> adviceChain = TestUtils.getPropertyValue(pollerMetedata, "adviceChain",List.class);
 		assertEquals(2, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
-		assertTrue("Poller is not Advised", poller instanceof Advised);
-		Advisor[] advisors = ((Advised)poller).getAdvisors();
+		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);
+		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
+		Advisor[] advisors = ((Advised)pollingTask).getAdvisors();
 		assertEquals(3, advisors.length);
-		// System.err.println(Arrays.asList(advisors));
+
 		assertTrue("First advisor is not TX", advisors[0] instanceof TransactionAttributeSourceAdvisor);
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");

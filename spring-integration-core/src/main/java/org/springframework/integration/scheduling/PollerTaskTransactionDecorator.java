@@ -13,40 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.config;
+package org.springframework.integration.scheduling;
 
 import java.util.Properties;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.endpoint.PollerCallbackDecorator;
+import org.springframework.integration.config.Poller;
+import org.springframework.integration.util.ObjectDecorator;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionProxyFactoryBean;
+import org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
+import org.springframework.util.Assert;
+
 /**
+ * A simple implementation of {@link ObjectDecorator} which will add 
+ * {@link TransactionInterceptor} advice to any instance of {@link Advised}.
+ * Currently used to decorate {@link Poller}'s <code>pollingTask</code>.  
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-class TransactionalCallbackDecorator implements PollerCallbackDecorator, BeanFactoryAware {
+public class PollerTaskTransactionDecorator implements ObjectDecorator, BeanFactoryAware {
 	private BeanFactory beanFactory;
-	
 	private Properties transactionalProperties;
 
-	public Properties getTransactionalProperties() {
-		return transactionalProperties;
-	}
-
-	public void setTransactionalProperties(Properties transactionalProperties) {
-		this.transactionalProperties = transactionalProperties;
-	}
-
-	public Object decorate(Object pollingCallback){
-		TransactionProxyFactoryBean txFactoryBean = new TransactionProxyFactoryBean();
-		txFactoryBean.setBeanFactory(beanFactory);
+	/* (non-Javadoc)
+	 * @see org.springframework.integration.util.ObjectDecorator#decorate(java.lang.Object)
+	 */
+	public Object decorate(Object advisedPollingTask) {
+		Assert.isInstanceOf(Advised.class, advisedPollingTask, "'pollingTask' must be an instance of Advised");
 		PlatformTransactionManager txManager = (PlatformTransactionManager) this.beanFactory.getBean(transactionalProperties.getProperty("transactionManager"));
-		txFactoryBean.setTransactionManager(txManager);
 		DefaultTransactionAttribute txDefinition = new DefaultTransactionAttribute();
 		txDefinition.setPropagationBehaviorName(transactionalProperties.getProperty("PROPAGATION"));
 		txDefinition.setIsolationLevelName(transactionalProperties.getProperty("ISOLATION"));
@@ -54,13 +55,25 @@ class TransactionalCallbackDecorator implements PollerCallbackDecorator, BeanFac
 		txDefinition.setReadOnly(transactionalProperties.getProperty("readOnly").equalsIgnoreCase("true"));
 		MatchAlwaysTransactionAttributeSource attributeSource = new MatchAlwaysTransactionAttributeSource();
 		attributeSource.setTransactionAttribute(txDefinition);
-		txFactoryBean.setTransactionAttributeSource(attributeSource);
-		txFactoryBean.setTarget(pollingCallback);
-		txFactoryBean.afterPropertiesSet();
-		return txFactoryBean.getObject();
+		
+		TransactionInterceptor transactionInterceptor = new TransactionInterceptor();
+		transactionInterceptor.setTransactionManager(txManager);
+		transactionInterceptor.setTransactionAttributeSource(attributeSource);
+		transactionInterceptor.afterPropertiesSet();
+		((Advised)advisedPollingTask).addAdvisor(new TransactionAttributeSourceAdvisor(transactionInterceptor));
+		
+		return advisedPollingTask;
 	}
-	
+
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory;
+	}
+	
+	public Properties getTransactionalProperties() {
+		return transactionalProperties;
+	}
+
+	public void setTransactionalProperties(Properties transactionalProperties) {
+		this.transactionalProperties = transactionalProperties;
 	}
 }

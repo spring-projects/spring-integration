@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * {@link MessageSource} to a {@link MessageChannel}.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements TrackableComponent {
 
@@ -81,11 +82,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
-		if (this.maxMessagesPerPoll < 0) {
-			// the default is 1 since a source might return
-			// a non-null value every time it is invoked
-			this.setMaxMessagesPerPoll(1);
-		}
 		super.onInit();
 	}
 

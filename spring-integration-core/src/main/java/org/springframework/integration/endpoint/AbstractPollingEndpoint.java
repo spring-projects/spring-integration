@@ -13,53 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.endpoint;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Executor;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
-import org.aopalliance.aop.Advice;
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.util.ErrorHandlingTaskExecutor;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.config.Poller;
+import org.springframework.integration.scheduling.PollerFactory;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ErrorHandler;
-
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware {
-
-	public static final int MAX_MESSAGES_UNBOUNDED = -1;
-
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean{
 
 	private volatile Trigger trigger;
 
-	protected volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED; 
-
-	private volatile Executor taskExecutor;
-
-	private volatile ErrorHandler errorHandler;
-	
-	private PollerCallbackDecorator pollingDecorator;
-
-	public void setPollingDecorator(PollerCallbackDecorator pollingDecorator) {
-		this.pollingDecorator = pollingDecorator;
-	}
-
-	private final List<Advice> adviceChain = new CopyOnWriteArrayList<Advice>();
-
-	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private  PollerFactory pollerFactory;
 
 	private volatile ScheduledFuture<?> runningTask;
 
@@ -68,52 +41,24 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-
-
+	/**
+	 * 
+	 */
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
 	}
-
-
+	/**
+	 * @param trigger
+	 */
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;
 	}
-
 	/**
-	 * Set the maximum number of messages to receive for each poll.
-	 * A non-positive value indicates that polling should repeat as long
-	 * as non-null messages are being received and successfully sent.
-	 * 
-	 * <p>The default is unbounded.
-	 * 
-	 * @see #MAX_MESSAGES_UNBOUNDED
+	 * @param pollerFactory
 	 */
-	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
-		this.maxMessagesPerPoll = maxMessagesPerPoll;
+	public void setPollerFactory(PollerFactory pollerFactory) {
+		this.pollerFactory = pollerFactory;
 	}
-
-	public void setTaskExecutor(Executor taskExecutor) {
-		this.taskExecutor = taskExecutor;
-	}
-
-	public void setErrorHandler(ErrorHandler errorHandler){
-		this.errorHandler = errorHandler;
-	}
-
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		Assert.notNull(classLoader, "ClassLoader must not be null");
-		this.classLoader = classLoader;
-	}
-//
-	public void setAdviceChain(List<Advice> adviceChain) {
-		synchronized (this.adviceChain) {
-			this.adviceChain.clear();
-			if (adviceChain != null) {
-				this.adviceChain.addAll(adviceChain);
-			}
-		}
-	}
-
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
@@ -121,39 +66,28 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.trigger, "trigger is required");
-			if (this.taskExecutor != null && !(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
-				if (this.errorHandler == null) {
-					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
-				}
-				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
+			try {
+				this.poller = this.createPoller();
+				this.initialized = true;
+			} catch (Exception e) {
+				throw new MessagingException("Problems creating a poller", e);
 			}
-			this.poller = this.createPoller();
-			this.initialized = true;
 		}
 	}
 
-	private Runnable createPoller() {
-		Runnable poller = new Poller();
-		if (pollingDecorator != null){
-			poller = (Runnable) pollingDecorator.decorate(poller);
-		}
-		if (poller instanceof Advised){
-			Advised advised = (Advised) poller;
-			for (Advice advice : adviceChain) {
-				advised.addAdvice(advice);
+	private Runnable createPoller() throws Exception{
+		Callable<Boolean> pollingTask = new Callable<Boolean>() {
+			public Boolean call() throws Exception {
+				return doPoll();
 			}
+		};
+		if (pollerFactory == null){
+			poller = new Poller(pollingTask);
 		} else {
-			if (adviceChain.size() > 0){
-				ProxyFactory proxyFactory = new ProxyFactory(poller);
-				for (Advice advice : adviceChain) {
-					proxyFactory.addAdvice(advice);
-				}
-				poller = (Runnable) proxyFactory.getProxy(this.classLoader);
-			}
+			poller = pollerFactory.createPoller(pollingTask);
 		}
 		return poller;
 	}
-
 
 	// LifecycleSupport implementation
 
@@ -175,37 +109,5 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.runningTask = null;
 	}
 
-
 	protected abstract boolean doPoll();
-
-
-	private class Poller implements Runnable {
-
-		public void run() {
-			if (taskExecutor != null) {
-				taskExecutor.execute(new Runnable() {
-					public void run() {
-						poll();
-					}
-				});
-			}
-			else {
-				poll();
-			}
-		}
-
-		private void poll() {
-			int count = 0;
-			while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
-				if (!innerPoll()) {
-					break;
-				}
-				count++;
-			}
-		}
-
-		private boolean innerPoll() {
-			return doPoll();
-		}
-	}
 }

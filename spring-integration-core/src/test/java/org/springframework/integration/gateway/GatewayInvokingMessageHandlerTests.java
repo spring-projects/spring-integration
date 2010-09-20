@@ -142,13 +142,6 @@ public class GatewayInvokingMessageHandlerTests {
 	@Test
 	public void validateGatewayWithErrorAsyncAndMaper() {	
 		try {
-			gatewayWithErrorAsync.sendRecieve("echoWithErrorAsyncChannel");
-			Assert.fail();
-		} catch (Exception e) {
-			Assert.assertTrue(e instanceof MessageHandlingException);
-		}
-		
-		try {
 			Object result = gatewayWithErrorAsyncAndMapper.sendRecieve("echoWithErrorAsyncChannel");
 			Assert.assertEquals("Error happened in message: echoWithErrorAsyncChannel", result);
 		} catch (Exception e) {

@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-import org.springframework.integration.endpoint.PollerCallbackDecorator;
+import org.springframework.integration.util.ObjectDecorator;
 import org.springframework.scheduling.Trigger;
 
 /**
@@ -39,14 +39,14 @@ public class PollerMetadata {
 
 	private volatile Executor taskExecutor;
 	
-	private PollerCallbackDecorator pollingDecorator;
+	private volatile ObjectDecorator transactionDecorator;
 
-	public PollerCallbackDecorator getPollingDecorator() {
-		return pollingDecorator;
+	public ObjectDecorator getTransactionDecorator() {
+		return transactionDecorator;
 	}
 
-	public void setPollingDecorator(PollerCallbackDecorator pollingDecorator) {
-		this.pollingDecorator = pollingDecorator;
+	public void setTransactionDecorator(ObjectDecorator transactionDecorator) {
+		this.transactionDecorator = transactionDecorator;
 	}
 
 	public void setTrigger(Trigger trigger) {

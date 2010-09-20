@@ -39,6 +39,8 @@ import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollerFactory;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -93,7 +95,9 @@ public class PollingConsumerEndpointTests {
 		expect(channelMock.receive()).andReturn(message);
 		expectLastCall();
 		replay(channelMock);
-		endpoint.setMaxMessagesPerPoll(1);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -105,7 +109,9 @@ public class PollingConsumerEndpointTests {
 	public void multipleMessages() {
 		expect(channelMock.receive()).andReturn(message).times(5);
 		replay(channelMock);
-		endpoint.setMaxMessagesPerPoll(5);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(5);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -118,7 +124,9 @@ public class PollingConsumerEndpointTests {
 		expect(channelMock.receive()).andReturn(message).times(5);
 		expect(channelMock.receive()).andReturn(null);
 		replay(channelMock);
-		endpoint.setMaxMessagesPerPoll(6);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(6);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -151,7 +159,9 @@ public class PollingConsumerEndpointTests {
 	public void droppedMessage_onePerPoll() throws Throwable {
 		expect(channelMock.receive()).andReturn(badMessage).times(1);
 		replay(channelMock);
-		endpoint.setMaxMessagesPerPoll(10);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(10);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -179,7 +189,9 @@ public class PollingConsumerEndpointTests {
 		expectLastCall();
 		replay(channelMock);
 		endpoint.setReceiveTimeout(1);
-		endpoint.setMaxMessagesPerPoll(1);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();

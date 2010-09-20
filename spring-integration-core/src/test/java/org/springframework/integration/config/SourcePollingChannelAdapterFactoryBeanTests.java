@@ -31,11 +31,11 @@ import org.junit.Test;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.endpoint.PollerCallbackDecorator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
+import org.springframework.integration.util.ObjectDecorator;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.ClassUtils;
 
@@ -96,7 +96,7 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollerMetadata.setTrigger(new PeriodicTrigger(5000));
 		pollerMetadata.setMaxMessagesPerPoll(1);
 		final AtomicInteger count = new AtomicInteger();
-		pollerMetadata.setPollingDecorator(new PollerCallbackDecorator() {
+		pollerMetadata.setTransactionDecorator(new ObjectDecorator() {
 			public Object decorate(Object poller) {
 				count.incrementAndGet();
 				return poller;

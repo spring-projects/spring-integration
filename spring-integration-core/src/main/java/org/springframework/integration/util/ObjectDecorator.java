@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.endpoint;
+package org.springframework.integration.util;
+
 /**
+ * Base decorator interface defining common behavior for basic decoration.
+ * 
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public interface PollerCallbackDecorator {
-	Object decorate(Object poller);
+public interface ObjectDecorator {
+	/**
+	 * @param object
+	 * @return
+	 */
+	Object decorate(Object object);
 }

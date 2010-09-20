@@ -95,6 +95,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		if (adviceChainElement != null) {
 			configureAdviceChain(adviceChainElement, metadataBuilder, parserContext);
 		}
+
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		if (txElement != null) {
 			configureTransactionAttributes(txElement, metadataBuilder);
@@ -211,10 +212,9 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		transactionalProperties.setProperty("readOnly", txElement.getAttribute("read-only"));
 		
 		BeanDefinitionBuilder pollingDecoratorBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.config.TransactionalCallbackDecorator");
+			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.scheduling.PollerTaskTransactionDecorator");
 		pollingDecoratorBuilder.addPropertyValue("transactionalProperties", transactionalProperties);
-		
-		targetBuilder.addPropertyValue("pollingDecorator", pollingDecoratorBuilder.getBeanDefinition());
+		targetBuilder.addPropertyValue("transactionDecorator", pollingDecoratorBuilder.getBeanDefinition());
 	}
 
 	/**

@@ -31,6 +31,8 @@ import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollerFactory;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -81,7 +83,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void twoStringsAndNoNewLinesByDefault() {
-		endpoint.setMaxMessagesPerPoll(1);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -98,8 +102,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 	@Test
 	public void twoStringsWithNewLines() {
 		handler.setShouldAppendNewLine(true);
-		endpoint.setMaxMessagesPerPoll(1);
-		channel.send(new GenericMessage<String>("foo"), 0);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
 		trigger.await();
@@ -115,7 +120,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
-		endpoint.setMaxMessagesPerPoll(2);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(2);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -126,7 +133,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void maxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
-		endpoint.setMaxMessagesPerPoll(10);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(10);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		endpoint.setReceiveTimeout(0);
 		handler.setShouldAppendNewLine(true);
 		channel.send(new GenericMessage<String>("foo"), 0);
@@ -140,7 +149,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	@Test
 	public void singleNonStringObject() {
-		endpoint.setMaxMessagesPerPoll(1);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(1);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		endpoint.start();
@@ -152,7 +163,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 	@Test
 	public void twoNonStringObjectWithOutNewLines() {
 		endpoint.setReceiveTimeout(0);
-		endpoint.setMaxMessagesPerPoll(2);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(2);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -167,7 +180,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void twoNonStringObjectWithNewLines() {
 		handler.setShouldAppendNewLine(true);
 		endpoint.setReceiveTimeout(0);
-		endpoint.setMaxMessagesPerPoll(2);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setMaxMessagesPerPoll(2);
+		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);

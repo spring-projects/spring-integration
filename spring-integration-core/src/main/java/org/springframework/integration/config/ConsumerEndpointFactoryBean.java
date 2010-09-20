@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.config;
 
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
@@ -32,6 +32,7 @@ import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.scheduling.PollerFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -42,7 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Josh Long
  */
 public class ConsumerEndpointFactoryBean
-		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, InitializingBean, SmartLifecycle {
+		implements FactoryBean<AbstractEndpoint>, BeanFactoryAware, BeanNameAware, BeanClassLoaderAware, InitializingBean, SmartLifecycle {
 
 	private volatile MessageHandler handler;
 
@@ -51,12 +52,14 @@ public class ConsumerEndpointFactoryBean
 	private volatile String inputChannelName;
 
 	private volatile PollerMetadata pollerMetadata;
-
+	
 	private volatile boolean autoStartup = true;
 
 	private volatile MessageChannel inputChannel;
 
 	private volatile ConfigurableBeanFactory beanFactory;
+	
+	private volatile ClassLoader beanClassLoader;
 
 	private volatile AbstractEndpoint endpoint;
 
@@ -85,6 +88,10 @@ public class ConsumerEndpointFactoryBean
 
 	public void setPollerMetadata(PollerMetadata pollerMetadata) {
 		this.pollerMetadata = pollerMetadata;
+	}
+	
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
@@ -153,11 +160,12 @@ public class ConsumerEndpointFactoryBean
 							+ "', and no default poller is available within the context.");
 				}
 				pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
-				pollingConsumer.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
-				pollingConsumer.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
-				pollingConsumer.setPollingDecorator(this.pollerMetadata.getPollingDecorator());
-				pollingConsumer.setAdviceChain(this.pollerMetadata.getAdviceChain());
+				
+				PollerFactory pollerFactory = new PollerFactory(pollerMetadata);
+				pollerFactory.setBeanFactory(this.beanFactory);
+				pollerFactory.setBeanClassLoader(this.beanClassLoader);
+				pollingConsumer.setPollerFactory(pollerFactory);
 				this.endpoint = pollingConsumer;
 			}
 			else {
@@ -205,5 +213,4 @@ public class ConsumerEndpointFactoryBean
 			this.endpoint.stop(callback);
 		}
 	}
-
 }

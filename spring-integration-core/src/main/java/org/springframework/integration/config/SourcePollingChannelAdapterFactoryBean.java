@@ -28,6 +28,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.scheduling.PollerFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 
@@ -126,14 +127,13 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 						+ this.beanName + "', and no default poller is available within the context.");
 			}
 			spca.setTrigger(this.pollerMetadata.getTrigger());
-			spca.setMaxMessagesPerPoll(this.pollerMetadata.getMaxMessagesPerPoll());
-			spca.setTaskExecutor(this.pollerMetadata.getTaskExecutor());
-			spca.setAdviceChain(this.pollerMetadata.getAdviceChain());
-			spca.setPollingDecorator(pollerMetadata.getPollingDecorator());
+			PollerFactory pollerFactory = new PollerFactory(pollerMetadata);
+			pollerFactory.setBeanFactory(this.beanFactory);
+			pollerFactory.setBeanClassLoader(this.beanClassLoader);
+			spca.setPollerFactory(pollerFactory);
 			spca.setAutoStartup(this.autoStartup);
 			spca.setBeanName(this.beanName);
 			spca.setBeanFactory(this.beanFactory);
-			spca.setBeanClassLoader(this.beanClassLoader);
 			spca.afterPropertiesSet();
 			this.adapter = spca;
 			this.initialized = true;
@@ -173,5 +173,4 @@ public class SourcePollingChannelAdapterFactoryBean implements FactoryBean<Sourc
 			this.adapter.stop(callback);
 		}
 	}
-
 }
