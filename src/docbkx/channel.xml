@@ -324,16 +324,16 @@
   </section>
 
   <section id="channel-template">
-    <title>MessageChannelTemplate</title>
+    <title>MessagingTemplate</title>
     <para>
       As you will see when the endpoints and their various configuration options are introduced, Spring Integration
       provides a foundation for messaging components that enables non-invasive invocation of your application code
       <emphasis>from the messaging system</emphasis>. However, sometimes it is necessary to invoke the messaging system
       <emphasis>from your application code</emphasis>. For convenience when implementing such use-cases, Spring
-      Integration provides a <classname>MessageChannelTemplate</classname> that supports a variety of operations across
+      Integration provides a <classname>MessagingTemplate</classname> that supports a variety of operations across
       the Message Channels, including request/reply scenarios. For example, it is possible to send a request
       and wait for a reply.
-      <programlisting language="java">MessageChannelTemplate template = new MessageChannelTemplate();
+      <programlisting language="java">MessagingTemplate template = new MessagingTemplate();
 
 Message reply = template.sendAndReceive(new StringMessage("test"), someChannel);</programlisting>
       In that example, a temporary anonymous channel would be created internally by the template. The
