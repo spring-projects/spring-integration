@@ -87,6 +87,15 @@ public class MessageHistory implements List<Properties> {
 	public boolean contains(Object o) {
 		return this.components.contains(o);
 	}
+	
+	public boolean containsEntryWithName(String name) {
+		for (Properties properties : components) {
+			if (properties.getProperty("name").equals(name)){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public boolean containsAll(Collection<?> c) {
 		return this.components.containsAll(c);

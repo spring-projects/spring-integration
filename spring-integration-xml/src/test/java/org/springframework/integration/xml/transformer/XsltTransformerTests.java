@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -54,7 +55,8 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		System.out.println("Result: " + resultMessage);
+		MessageHistory history = MessageHistory.read(resultMessage);
+		assertTrue(history.containsEntryWithName("paramHeadersWithStartWildCharacter"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertFalse(((String) resultMessage.getPayload()).contains("FOO"));
@@ -68,7 +70,8 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		System.out.println("Result: " + resultMessage);
+		MessageHistory history = MessageHistory.read(resultMessage);
+		assertTrue(history.containsEntryWithName("paramHeadersWithEndWildCharacter"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
@@ -82,7 +85,8 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		System.out.println("Result: " + resultMessage);
+		MessageHistory history = MessageHistory.read(resultMessage);
+		assertTrue(history.containsEntryWithName("paramHeadersWithIndividualParameters"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
@@ -98,7 +102,8 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		System.out.println("Result: " + resultMessage);
+		MessageHistory history = MessageHistory.read(resultMessage);
+		assertTrue(history.containsEntryWithName("paramHeadersComboChannel"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));

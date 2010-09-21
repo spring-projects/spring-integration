@@ -6,6 +6,8 @@
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
 
+	<int:message-history/>
+	
 	<int:channel id="output">
 		<int:queue />
 	</int:channel>
