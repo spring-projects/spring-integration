@@ -21,20 +21,19 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.twitter.*;
-import org.springframework.integration.twitter.oauth.OAuthConfigurationFactoryBean;
 import org.w3c.dom.Element;
 
 
 /**
  * @author Josh Long
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
-@SuppressWarnings("unused")
 public class TwitterNamespaceHandler extends org.springframework.beans.factory.xml.NamespaceHandlerSupport {
 	public static final String DIRECT_MESSAGES = "direct-messages";
 	public static final String MENTIONS = "mentions";
 	public static final String FRIENDS = "friends";
+	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
 
 	public void init() {
 		// twitter connections
@@ -66,8 +65,8 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 
 	private static class TwitterConnectionParser extends AbstractSingleBeanDefinitionParser {
 		@Override
-		protected Class getBeanClass(Element element) {
-			return OAuthConfigurationFactoryBean.class;
+		protected String getBeanClassName(Element element) {
+			return BASE_PACKAGE + "oauth.OAuthConfigurationFactoryBean";
 		}
 
 		@Override
@@ -86,7 +85,7 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 	private static class TwitterMentionInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 		@Override
 		protected String getBeanClassName(Element element) {
-			return InboundMentionStatusEndpoint.class.getName();
+			return BASE_PACKAGE + ".InboundMentionStatusEndpoint";
 		}
 
 		@Override
@@ -106,7 +105,7 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 	private static class TwitterDMInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 		@Override
 		protected String getBeanClassName(Element element) {
-			return InboundDMStatusEndpoint.class.getName();
+			return BASE_PACKAGE + ".InboundDMStatusEndpoint";
 		}
 
 		@Override
@@ -126,7 +125,7 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 	private static class TwitterUpdatedStatusInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
 		@Override
 		protected String getBeanClassName(Element element) {
-			return InboundUpdatedStatusEndpoint.class.getName();
+			return BASE_PACKAGE +  ".InboundUpdatedStatusEndpoint";
 		}
 
 		@Override
@@ -146,7 +145,7 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 	private static class TwitterUpdatedStatusOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(OutboundUpdatedStatusMessageHandler.class.getName());
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".OutboundUpdatedStatusMessageHandler");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
 			return builder.getBeanDefinition();
 		}
@@ -157,7 +156,7 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 	private static class TwitterDMOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
 		@Override
 		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(OutboundDMStatusMessageHandler.class.getName());
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".OutboundDMStatusMessageHandler");
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
 			return builder.getBeanDefinition();
 		}
