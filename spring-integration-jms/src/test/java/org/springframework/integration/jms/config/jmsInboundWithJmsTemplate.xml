@@ -10,7 +10,9 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
-	<jms:inbound-channel-adapter jms-template="jmsTemplate" channel="output"/>
+	<integration:message-history/>
+
+	<jms:inbound-channel-adapter id="inboundAdapter" jms-template="jmsTemplate" channel="output"/>
 
 	<integration:channel id="output">
 		<integration:queue capacity="1"/>

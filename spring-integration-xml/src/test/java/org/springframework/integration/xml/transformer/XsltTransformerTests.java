@@ -56,7 +56,7 @@ public class XsltTransformerTests {
 		input.send(message);
 		Message<?> resultMessage = output.receive();
 		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsEntryWithName("paramHeadersWithStartWildCharacter"));
+		assertTrue(history.containsComponent("paramHeadersWithStartWildCharacter"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertFalse(((String) resultMessage.getPayload()).contains("FOO"));
@@ -71,7 +71,7 @@ public class XsltTransformerTests {
 		input.send(message);
 		Message<?> resultMessage = output.receive();
 		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsEntryWithName("paramHeadersWithEndWildCharacter"));
+		assertTrue(history.containsComponent("paramHeadersWithEndWildCharacter"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
@@ -86,7 +86,7 @@ public class XsltTransformerTests {
 		input.send(message);
 		Message<?> resultMessage = output.receive();
 		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsEntryWithName("paramHeadersWithIndividualParameters"));
+		assertTrue(history.containsComponent("paramHeadersWithIndividualParameters"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
@@ -103,7 +103,7 @@ public class XsltTransformerTests {
 		input.send(message);
 		Message<?> resultMessage = output.receive();
 		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsEntryWithName("paramHeadersComboChannel"));
+		assertTrue(history.containsComponent("paramHeadersComboChannel"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));

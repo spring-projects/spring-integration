@@ -6,11 +6,16 @@
 		http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/jms/spring-integration-jms-2.0.xsd"
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-jms="http://www.springframework.org/schema/integration/jms">
+	
+	<int:message-history/>
 
 	<int:gateway id="gateway"
 	             service-interface="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$SampleGateway"
 		         default-request-channel="requests">
 		<int:method name="echo">
+			<int:header name="foo" value="bar"/>
+		</int:method>
+		<int:method name="echoAsMaessage">
 			<int:header name="foo" value="bar"/>
 		</int:method>
     </int:gateway>
@@ -19,8 +24,8 @@
 		<int-jms:outbound-gateway request-destination="requestQueueA" 
 	                              reply-destination="replyQueueB" 
 	                              connection-factory="connectionFactory"
-	                              receive-timeout="10000"
-	                              reply-timeout="20000"/>
+	                              receive-timeout="100000"
+	                              reply-timeout="200000"/>
 	</int:chain>
 	
 	
@@ -44,11 +49,11 @@
 		<property name="cacheProducers" value="false"/>
 	</bean>
 	
-	<int-jms:inbound-gateway request-channel="jmsInput" request-destination="requestQueueA"/>
+	<int-jms:inbound-gateway id="inboundGateway" request-channel="jmsInput" request-destination="requestQueueA"/>
 	
 	<int:channel id="jmsInput"/>
 	
-	<int:service-activator input-channel="jmsInput">
-		<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$SampleService"/>
-	</int:service-activator>
+<!--	<int:service-activator input-channel="jmsInput">-->
+<!--		<bean class="org.springframework.integration.jms.config.JmsOutboundGatewayParserTests$SampleService"/>-->
+<!--	</int:service-activator>-->
 </beans>

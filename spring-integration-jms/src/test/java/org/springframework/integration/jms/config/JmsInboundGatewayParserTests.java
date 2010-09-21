@@ -30,6 +30,8 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.history.HistoryWritingMessagePostProcessor;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -49,6 +51,8 @@ public class JmsInboundGatewayParserTests {
 		assertEquals(JmsMessageDrivenEndpoint.class, gateway.getClass());
 		context.start();
 		Message<?> message = channel.receive(3000);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("jmsGateway"));
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
 		context.stop();

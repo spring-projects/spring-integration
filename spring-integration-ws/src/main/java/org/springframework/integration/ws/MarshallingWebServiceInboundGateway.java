@@ -27,6 +27,7 @@ import org.springframework.expression.ExpressionException;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.gateway.MessagingGatewaySupport;
+import org.springframework.integration.history.TrackableComponent;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.scheduling.TaskScheduler;
@@ -37,13 +38,12 @@ import org.springframework.ws.server.endpoint.AbstractMarshallingPayloadEndpoint
  * @since 1.0.2
  */
 public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayloadEndpoint
-		implements BeanNameAware, BeanFactoryAware, InitializingBean, SmartLifecycle {
+		implements BeanNameAware, BeanFactoryAware, InitializingBean, SmartLifecycle, TrackableComponent {
 
 	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 	private final GatewayDelegate gatewayDelegate = new GatewayDelegate();
-
-
+	
 	/**
 	 * Creates a new <code>MarshallingWebServiceInboundGateway</code>.
 	 * The {@link Marshaller} and {@link Unmarshaller} must be injected using properties. 
@@ -196,4 +196,15 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		}
 	}
 
+	public String getComponentName() {
+		return this.gatewayDelegate.getComponentName();
+	}
+
+	public String getComponentType() {
+		return this.gatewayDelegate.getComponentType();
+	}
+
+	public void setShouldTrack(boolean shouldTrack) {
+		this.gatewayDelegate.setShouldTrack(shouldTrack);
+	}
 }

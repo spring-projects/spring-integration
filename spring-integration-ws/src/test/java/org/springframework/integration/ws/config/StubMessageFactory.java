@@ -16,8 +16,13 @@
 
 package org.springframework.integration.ws.config;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.io.InputStream;
+
+import javax.xml.transform.Source;
 
 import org.springframework.ws.WebServiceMessage;
 import org.springframework.ws.WebServiceMessageFactory;
@@ -28,7 +33,10 @@ import org.springframework.ws.WebServiceMessageFactory;
 public class StubMessageFactory implements WebServiceMessageFactory {
 
 	public WebServiceMessage createWebServiceMessage() {
-		return null;
+		WebServiceMessage message = mock(WebServiceMessage.class);
+		Source source = mock(Source.class);
+		when(message.getPayloadSource()).thenReturn(source);
+		return message;
 	}
 
 	public WebServiceMessage createWebServiceMessage(InputStream inputStream) throws IOException {

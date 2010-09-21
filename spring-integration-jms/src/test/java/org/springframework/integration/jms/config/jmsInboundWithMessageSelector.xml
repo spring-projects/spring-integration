@@ -10,6 +10,8 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms.xsd">
 
+	<si:message-history/>
+	
 	<si:channel id="output1">
 		<si:queue capacity="1"/>
 	</si:channel>

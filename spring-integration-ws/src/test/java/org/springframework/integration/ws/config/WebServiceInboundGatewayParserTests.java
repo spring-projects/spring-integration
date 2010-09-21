@@ -15,25 +15,39 @@
  */
 package org.springframework.integration.ws.config;
 
+import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import javax.xml.transform.Source;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 import org.springframework.oxm.AbstractMarshaller;
+import org.springframework.oxm.Unmarshaller;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.ws.context.DefaultMessageContext;
+import org.springframework.ws.context.MessageContext;
 
 /**
  * 
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -41,8 +55,16 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class WebServiceInboundGatewayParserTests {
 
 	@Autowired
-	@Qualifier("requests")
-	MessageChannel requestChannel;
+	@Qualifier("requestsMarshalling")
+	PollableChannel requestsMarshalling;
+	
+	@Autowired
+	@Qualifier("requestsSimple")
+	PollableChannel requestsSimple;
+	
+	@Autowired
+	@Qualifier("requestsVerySimple")
+	MessageChannel requestsVerySimple;
 
 	@Test
 	public void configOk() throws Exception {
@@ -59,7 +81,7 @@ public class WebServiceInboundGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(simpleGateway);
 		assertThat(
 				(MessageChannel) accessor.getPropertyValue("requestChannel"),
-				is(requestChannel));
+				is(requestsVerySimple));
 	}
 
 	//extractPayload = false
@@ -78,6 +100,7 @@ public class WebServiceInboundGatewayParserTests {
 	//marshalling
 	@Autowired
 	MarshallingWebServiceInboundGateway marshallingGateway;
+	
 	@Autowired
 	AbstractMarshaller marshaller;
 
@@ -89,5 +112,24 @@ public class WebServiceInboundGatewayParserTests {
 		assertThat((AbstractMarshaller) accessor.getPropertyValue("unmarshaller"),
 				is(marshaller));
 		assertTrue("messaging gateway is not running", marshallingGateway.isRunning());
+	}
+	@Test
+	public void testMessageHistoryWithMarshallingGateway() throws Exception {
+		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
+		Unmarshaller unmarshaller = mock(Unmarshaller.class);
+		when(unmarshaller.unmarshal((Source)Mockito.any())).thenReturn("hello");
+		marshallingGateway.setUnmarshaller(unmarshaller);
+		marshallingGateway.invoke(context);
+		Message<?> message = requestsMarshalling.receive(100);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("marshalling"));
+	}
+	@Test
+	public void testMessageHistoryWithSimpleGateway() throws Exception {
+		MessageContext context = new DefaultMessageContext(new StubMessageFactory());
+		payloadExtractingGateway.invoke(context);
+		Message<?> message = requestsSimple.receive(100);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("extractsPayload"));
 	}
 }

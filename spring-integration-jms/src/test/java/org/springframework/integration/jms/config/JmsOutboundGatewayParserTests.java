@@ -17,12 +17,23 @@ package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.MessagingException;
+import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessagingTemplate;
+import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -57,15 +68,25 @@ public class JmsOutboundGatewayParserTests {
 	}
 	
 	@Test
-	public void gatewayMaintainsReplyChannel() {
+	public void gatewayMaintainsReplyChannelAndInboundHistory() {
 		ActiveMqTestUtils.prepare();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"gatewayMaintainsReplyChannel.xml", this.getClass());
 		SampleGateway gateway = context.getBean("gateway", SampleGateway.class);
+		SubscribableChannel jmsInput = context.getBean("jmsInput", SubscribableChannel.class);
+		MessageHandler handler = new MessageHandler() {	
+			public void handleMessage(Message<?> message) throws MessagingException {
+				MessageHistory history = MessageHistory.read(message);
+				assertTrue(history.containsComponent("inboundGateway"));
+				new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
+			}
+		};
+		handler = spy(handler);
+		jmsInput.subscribe(handler);
 		String result = gateway.echo("hello");
-		assertEquals("HELLO", result);
+		verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+		assertEquals("hello", result);
 	}
-	
 	
 	public static interface SampleGateway{
 		public String echo(String value);
