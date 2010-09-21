@@ -23,12 +23,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.sql.DataSource;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,7 +34,6 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -55,22 +52,19 @@ public class JdbcPollingChannelAdapterParserTests {
 	
 	private MessagingTemplate messagingTemplate;
 	
-	private ClassPathXmlApplicationContext appCtx;
+	private ConfigurableApplicationContext appCtx;
 
 	private PlatformTransactionManager transactionManager;
 		
 	@Test
-	public void testSimpleInboundChannelAdapterWithHistory(){
+	public void testSimpleInboundChannelAdapter(){
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("jdbcAdapter"));
 		assertNotNull("No message found ", message);
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
-		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(history);
-		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0);
-		assertNotNull(componentHistoryRecord);
-		assertEquals("jdbc:inbound-channel-adapter", componentHistoryRecord.get("type"));
 	}
 	
 	
@@ -149,19 +143,13 @@ public class JdbcPollingChannelAdapterParserTests {
 			appCtx.close();
 		}
 	}
-
+	
 	public void setUp(String name, Class<?> cls){
 		appCtx = new ClassPathXmlApplicationContext(name, cls);
 		setupJdbcTemplate();
 		jdbcTemplate.update("delete from item");
 		setupTransactionManager();
 		setupMessagingTemplate();
-	}
-	@After
-	public void destroy(){
-		if (appCtx != null){
-			appCtx.destroy();
-		}
 	}
 	
 	
