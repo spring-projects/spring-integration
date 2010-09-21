@@ -44,6 +44,8 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 
 	private final MessageHandler handler;
 
+	private final AtomicInteger activeCount = new AtomicInteger();
+
 	private final AtomicInteger handleCount = new AtomicInteger();
 
 	private final AtomicInteger errorCount = new AtomicInteger();
@@ -94,6 +96,7 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 		try {
 			timer.start();
 			handleCount.incrementAndGet();
+			activeCount.incrementAndGet();
 
 			handler.handleMessage(message);
 
@@ -105,6 +108,8 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 		} catch (Error e) {
 			errorCount.incrementAndGet();
 			throw e;
+		} finally {
+			activeCount.decrementAndGet();
 		}
 	}
 
@@ -139,6 +144,11 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
 	public double getStandardDeviationDuration() {
 		return duration.getStandardDeviation();
+	}
+	
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Count")
+	public int getActiveCount() {
+		return activeCount.get();
 	}
 	
 	public Statistics getDuration() {

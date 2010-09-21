@@ -125,7 +125,7 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 			if (this.targetObject != null) {
 				Assert.state(this.expression == null,
 						"The 'targetObject' and 'expression' properties are mutually exclusive.");
-				if (this.targetObject instanceof MessageProcessor) {
+				if (this.targetObject instanceof MessageProcessor<?>) {
 					this.handler = this.createMessageProcessingHandler((MessageProcessor<?>) this.targetObject);
 				}
 				else {

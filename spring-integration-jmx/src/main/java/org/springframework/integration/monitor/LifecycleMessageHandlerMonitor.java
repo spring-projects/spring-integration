@@ -92,4 +92,8 @@ public class LifecycleMessageHandlerMonitor implements MessageHandlerMonitor, Li
 		return delegate.getSource();
 	}
 
+	public int getActiveCount() {
+		return delegate.getActiveCount();
+	}
+
 }

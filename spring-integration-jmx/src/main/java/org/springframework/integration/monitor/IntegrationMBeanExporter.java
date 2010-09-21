@@ -13,7 +13,6 @@
 package org.springframework.integration.monitor;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,10 +88,6 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public static final String DEFAULT_DOMAIN = "spring.application";
 
-	private Set<String> channelKeys = new HashSet<String>();
-
-	private Set<String> handlerKeys = new HashSet<String>();
-
 	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
 
 	private ListableBeanFactory beanFactory;
@@ -165,11 +160,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof MessageHandler) {
 			SimpleMessageHandlerMonitor monitor = null;
-			if (bean instanceof MessageProducer){ // we need to maintain semantics of the handler also being a producer see INT-1431
+			if (bean instanceof MessageProducer) { // we need to maintain semantics of the handler also being a producer
+													// see INT-1431
 				monitor = new SimpleMessageProducingHandlerMonitor((MessageHandler) bean);
-			} else {
+			}
+			else {
 				monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
-			}	
+			}
 			handlers.add(monitor);
 			return monitor;
 		}
@@ -285,23 +282,43 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Channel Count")
-	public double getChannelCount() {
-		return channelKeys.size();
+	public int getChannelCount() {
+		return channelsByName.size();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageHandler Handler Count")
-	public double getHandlerCount() {
-		return handlerKeys.size();
+	public int getHandlerCount() {
+		return handlersByName.size();
 	}
 
 	@ManagedAttribute
-	public Collection<String> getHandlerNames() {
-		return handlersByName.keySet();
+	public String[] getHandlerNames() {
+		return handlersByName.keySet().toArray(new String[0]);
+	}
+
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
+	public int getActiveHandlerCount() {
+		int count = 0;
+		for (MessageHandlerMonitor monitor : handlers) {
+			count += monitor.getActiveCount();
+		}
+		return count;
+	}
+
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
+	public int getQueuedMessageCount() {
+		int count = 0;
+		for (MessageChannelMonitor monitor : channels) {
+			if (monitor instanceof QueueChannelMonitor) {
+				count += ((QueueChannelMonitor) monitor).getQueueSize();
+			}
+		}
+		return count;
 	}
 
 	@ManagedAttribute
-	public Collection<String> getChannelNames() {
-		return channelsByName.keySet();
+	public String[] getChannelNames() {
+		return channelsByName.keySet().toArray(new String[0]);
 	}
 
 	@ManagedOperation(description = "Get the JMX object name (as a String) for the specified Spring bean name")

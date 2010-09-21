@@ -58,6 +58,9 @@ public interface MessageHandlerMonitor {
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
 	double getStandardDeviationDuration();
 	
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Status")
+	int getActiveCount();
+	
 	/**
 	 * @return summary statistics about the handler duration (milliseconds)
 	 */
