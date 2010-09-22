@@ -201,8 +201,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	 * Spring Integration request Message into a JMS Message and for converting
 	 * the JMS reply Messages back into Spring Integration Messages.
 	 * <p>
-	 * The default is a {@link DefaultMessageConverter} that delegates to
-	 * a {@link SimpleMessageConverter}.
+	 * The default is {@link SimpleMessageConverter}.
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
@@ -212,37 +211,34 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 	/**
 	 * Provide a {@link JmsHeaderMapper} implementation for mapping the
 	 * Spring Integration Message Headers to/from JMS Message properties.
-	 * 
-	 * <p>This property will be ignored if a {@link MessageConverter} is
-	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
-	 * However, you may provide your own implementation of the delegating
-	 * {@link DefaultMessageConverter} implementation.
 	 */
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
 	}
 
 	/**
-	 * This property will take effect if no custom {@link MessageConverter}
-	 * has been provided to the {@link #setMessageConverter(MessageConverter)}
-	 * method. In that case, a {@link DefaultMessageConverter} will be
-	 * used by default, and this value will be passed along to that converter's
-	 * 'extractIntegrationMessagePayload' property.
+	 * This property describes how JMS Message should be generated from 
+	 * Spring Integration (SI) Message. If set to 'true', the base for JMS Message will be 
+	 * SI Message's payload, if set to 'false', then the entire SI Message will serve as
+	 * a base for JMS Message creation.
 	 * 
-	 * @see DefaultMessageConverter#setExtractIntegrationMessagePayload(boolean)
+	 * Since JMS Message is created by the MessageConverter, this really manages what 
+	 * is sent to a {@link MessageConverter} - the entire SI Message or only its payload.
+	 * <br>
+	 * Default is 'true'
+	 * 
+	 * @param extractRequestPayload
 	 */
 	public void setExtractRequestPayload(boolean extractRequestPayload) {
 		this.extractRequestPayload = extractRequestPayload;
 	}
 
 	/**
-	 * This property will take effect if no custom {@link MessageConverter}
-	 * has been provided to the {@link #setMessageConverter(MessageConverter)}
-	 * method. In that case, a {@link DefaultMessageConverter} will be
-	 * used by default, and this value will be passed along to that converter's
-	 * 'extractJmsMessageBody' property.
+	 * This property describes what to do with JMS Message after reply was received.
+	 * If set to 'true', the base for SI Message will be JMS Reply Message's payload
+	 * otherwise the entire JMS Message will become a payload of SI Message.
 	 * 
-	 * @see DefaultMessageConverter#setExtractJmsMessageBody(boolean)
+	 * @param extractReplyPayload
 	 */
 	public void setExtractReplyPayload(boolean extractReplyPayload) {
 		this.extractReplyPayload = extractReplyPayload;
@@ -305,7 +301,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 						"failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
 			}
 			Object result = jmsReply;
-			if (this.extractRequestPayload) {
+			if (this.extractReplyPayload) {
 				result = this.messageConverter.fromMessage(jmsReply);
 				if (logger.isDebugEnabled()) {
 					logger.debug("converted JMS Message [" + jmsReply + "] to integration Message payload [" + result + "]");
@@ -328,7 +324,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler {
 			session = createSession(connection);
 			// convert to JMS Message
 			Object objectToSend = requestMessage;
-			if (this.extractReplyPayload){
+			if (this.extractRequestPayload){
 				objectToSend = requestMessage.getPayload();
 			}
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(objectToSend, session);

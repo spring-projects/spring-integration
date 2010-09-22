@@ -162,10 +162,10 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 	/**
 	 * Provide a {@link MessageConverter} implementation to use when
 	 * converting between JMS Messages and Spring Integration Messages.
-	 * If none is provided, a {@link DefaultMessageConverter} will
-	 * be used and the {@link JmsHeaderMapper} instance provided to the
-	 * {@link #setHeaderMapper(JmsHeaderMapper)} method will be included
-	 * in the conversion process.
+	 * If none is provided, a {@link SimpleMessageConverter} will
+	 * be used.
+	 * 
+	 * @param messageConverter
 	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		this.messageConverter = messageConverter;
@@ -175,11 +175,6 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 	 * Provide a {@link JmsHeaderMapper} implementation to use when
 	 * converting between JMS Messages and Spring Integration Messages.
 	 * If none is provided, a {@link DefaultJmsHeaderMapper} will be used.
-	 * 
-	 * <p>This property will be ignored if a {@link MessageConverter} is
-	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
-	 * However, you may provide your own implementation of the delegating
-	 * {@link DefaultMessageConverter} implementation.
 	 */
 	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
@@ -232,25 +227,34 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 					if (this.extractReplyPayload){
 						replyResult = replyMessage.getPayload();
 					}
-					javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
-					// map SI Message Headers to JMS Message Properties/Headers
-					headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
-					
-					if (jmsReply.getJMSCorrelationID() == null) {
-						jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
-					}
-					MessageProducer producer = session.createProducer(destination);
+			
 					try {
-						if (this.explicitQosEnabledForReplies) {
-							producer.send(jmsReply,
-									this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
+						javax.jms.Message jmsReply = this.messageConverter.toMessage(replyResult, session);
+						// map SI Message Headers to JMS Message Properties/Headers
+						headerMapper.fromHeaders(replyMessage.getHeaders(), jmsReply);
+						
+						if (jmsReply.getJMSCorrelationID() == null) {
+							jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
 						}
-						else {
-							producer.send(jmsReply);
+						MessageProducer producer = session.createProducer(destination);
+						try {
+							if (this.explicitQosEnabledForReplies) {
+								producer.send(jmsReply,
+										this.replyDeliveryMode, this.replyPriority, this.replyTimeToLive);
+							}
+							else {
+								producer.send(jmsReply);
+							}
 						}
-					}
-					finally {
-						producer.close();
+						finally {
+							producer.close();
+						}
+					} catch (RuntimeException e) {
+						//e.printStackTrace();
+						logger.error("Problems generating JMS Reply Message from the: " + replyResult + "\n" +
+								" Typical couses is that Object from which the JMS Message is created or some members of its " +
+								"hierarchy are not Serializable", e);
+						throw e;
 					}
 				}
 			}
