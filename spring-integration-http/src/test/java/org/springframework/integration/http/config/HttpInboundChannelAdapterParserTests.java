@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.http.HttpRequestHandlingController;
 import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.MockHttpServletRequest;
@@ -109,6 +110,8 @@ public class HttpInboundChannelAdapterParserTests {
 		postOnlyAdapter.handleRequest(request, response);
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
 		Message<?> message = requests.receive(0);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("postOnlyAdapter"));
 		assertNotNull(message);
 		assertEquals("test", message.getPayload());
 	}

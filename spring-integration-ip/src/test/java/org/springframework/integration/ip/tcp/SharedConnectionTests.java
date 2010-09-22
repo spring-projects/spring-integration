@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -29,6 +30,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -71,6 +73,8 @@ public class SharedConnectionTests {
 		input.send(MessageBuilder.withPayload("Test").build());
 		QueueChannel replies = ctx.getBean("replies", QueueChannel.class);
 		Message<?> message = replies.receive(10000);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("inboundClient"));
 		assertNotNull(message);
 		assertEquals("Test", message.getPayload());
 	}

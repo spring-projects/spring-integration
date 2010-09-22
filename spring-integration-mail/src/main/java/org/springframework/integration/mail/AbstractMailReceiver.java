@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import javax.mail.Authenticator;
@@ -36,7 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Base class for {@link MailReceiver} implementations.

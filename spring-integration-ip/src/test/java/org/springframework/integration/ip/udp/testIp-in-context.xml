@@ -12,7 +12,8 @@
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd
 			http://www.springframework.org/schema/integration/ip
 			http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd">
-
+	
+	<message-history/>
 	<!--  
 		Play with the buffer size to force errors. If the checkLength property is 
 		set and this buffer is too small, we'll throw an exception.

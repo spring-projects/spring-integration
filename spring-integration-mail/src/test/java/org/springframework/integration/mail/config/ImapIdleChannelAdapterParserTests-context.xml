@@ -15,9 +15,11 @@
 			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd">
+	
+	<integration:message-history/>
 
 	<context:property-placeholder properties-ref="configProperties"/>
 
@@ -25,7 +27,9 @@
 		<prop key="mail.delete">false</prop>
 	</util:properties>
 
-	<integration:channel id="channel"/>
+	<integration:channel id="channel">
+		<integration:queue/>
+	</integration:channel>
 
 	<mail:imap-idle-channel-adapter id="simpleAdapter"
 			store-uri="imap:foo"

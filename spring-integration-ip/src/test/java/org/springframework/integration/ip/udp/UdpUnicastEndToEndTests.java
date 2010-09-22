@@ -32,6 +32,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
@@ -137,6 +138,8 @@ public class UdpUnicastEndToEndTests implements Runnable {
 			}
 			QueueChannel channel = ctx.getBean("udpOutChannel", QueueChannel.class);
 			finalMessage = (Message<byte[]>) channel.receive();
+			MessageHistory history = MessageHistory.read(finalMessage);
+			assertTrue(history.containsComponent("udpReceiver"));
 			firstReceived.countDown();
 			try {
 				doneProcessing.await();

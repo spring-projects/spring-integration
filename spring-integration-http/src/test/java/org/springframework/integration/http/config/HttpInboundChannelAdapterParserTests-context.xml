@@ -10,6 +10,8 @@
 			http://www.springframework.org/schema/integration/http
 			http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
+	<si:message-history/>
+
 	<si:channel id="requests">
 		<si:queue capacity="1"/>
 	</si:channel>

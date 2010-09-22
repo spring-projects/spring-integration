@@ -16,6 +16,7 @@
 
 package org.springframework.integration.ip.tcp;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
@@ -66,6 +68,8 @@ public class ConnectionToConnectionTests {
 		TcpConnection connection = client.getConnection();
 		connection.send(MessageBuilder.withPayload("Test").build());
 		Message<?> message = serverSideChannel.receive(10000);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("looper"));
 		assertNotNull(message);
 		assertEquals("Test", new String((byte[]) message.getPayload()));
 	}
