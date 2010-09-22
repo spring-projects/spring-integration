@@ -251,9 +251,9 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 						}
 					} catch (RuntimeException e) {
 						//e.printStackTrace();
-						logger.error("Problems generating JMS Reply Message from the: " + replyResult + "\n" +
-								" Typical couses is that Object from which the JMS Message is created or some members of its " +
-								"hierarchy are not Serializable", e);
+						logger.error("Failed to generate JMS Reply Message from: " + replyResult + "\n" +
+								"A typical cause is that the Object from which the JMS Message is created or some member of its " +
+								"hierarchy is not Serializable.", e);
 						throw e;
 					}
 				}
