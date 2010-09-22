@@ -23,6 +23,10 @@ package org.springframework.integration;
  */
 @SuppressWarnings("serial")
 public class MessageDeliveryException extends MessagingException {
+	
+	public MessageDeliveryException(String description) {
+		super(description);
+	}
 
 	public MessageDeliveryException(Message<?> undeliveredMessage) {
 		super(undeliveredMessage);

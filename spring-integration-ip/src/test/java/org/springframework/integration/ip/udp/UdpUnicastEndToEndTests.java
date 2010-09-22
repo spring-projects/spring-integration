@@ -16,16 +16,17 @@
 
 package org.springframework.integration.ip.udp;
 
+import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,6 +37,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * Sends and receives a simple message through to the Udp channel adapters.
@@ -139,7 +141,9 @@ public class UdpUnicastEndToEndTests implements Runnable {
 			QueueChannel channel = ctx.getBean("udpOutChannel", QueueChannel.class);
 			finalMessage = (Message<byte[]>) channel.receive();
 			MessageHistory history = MessageHistory.read(finalMessage);
-			assertTrue(history.containsComponent("udpReceiver"));
+			Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "udpReceiver", 0);
+			assertNotNull(componentHistoryRecord);
+			assertEquals("ip:udp-inbound-channel-adapter", componentHistoryRecord.get("type"));
 			firstReceived.countDown();
 			try {
 				doneProcessing.await();

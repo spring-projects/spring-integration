@@ -25,6 +25,7 @@ import javax.sql.DataSource;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
@@ -45,7 +46,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
  * @author Dave Syer
  * @since 2.0
  */
-public class JdbcPollingChannelAdapter implements MessageSource<Object> {
+public class JdbcPollingChannelAdapter extends IntegrationObjectSupport implements MessageSource<Object> {
 
 	private final SimpleJdbcOperations jdbcOperations;
 
@@ -199,7 +200,9 @@ public class JdbcPollingChannelAdapter implements MessageSource<Object> {
 		}
 
 		return payload;
-
+	}
+	public String getComponentType(){
+		return "jdbc:inbound-channel-adapter";
 	}
 
 }

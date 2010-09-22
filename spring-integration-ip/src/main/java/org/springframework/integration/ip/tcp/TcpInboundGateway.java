@@ -85,5 +85,7 @@ public class TcpInboundGateway extends MessagingGatewaySupport implements TcpLis
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
-
+	public String getComponentType(){
+		return "ip:tcp-inbound-gateway";
+	}
 }

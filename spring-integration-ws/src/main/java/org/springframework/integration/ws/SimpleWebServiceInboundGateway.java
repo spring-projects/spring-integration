@@ -130,4 +130,7 @@ public class SimpleWebServiceInboundGateway extends MessagingGatewaySupport impl
 		}
 	}
 
+	public String getComponentType() {
+		return "ws:outbound-gateway";
+	}
 }

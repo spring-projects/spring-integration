@@ -24,6 +24,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
@@ -33,7 +34,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamReadingMessageSource implements MessageSource<String> {
+public class CharacterStreamReadingMessageSource extends IntegrationObjectSupport implements MessageSource<String> {
 
 	private final BufferedReader reader;
 
@@ -87,5 +88,8 @@ public class CharacterStreamReadingMessageSource implements MessageSource<String
 			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
 		}
 	}
-
+	
+	public String getComponentType(){
+		return "stream:stdin-channel-adapter";
+	}
 }

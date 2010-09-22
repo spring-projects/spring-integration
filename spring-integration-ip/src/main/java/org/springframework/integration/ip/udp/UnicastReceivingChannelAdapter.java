@@ -199,5 +199,8 @@ public class UnicastReceivingChannelAdapter extends AbstractInternetProtocolRece
 	public void setSoSendBufferSize(int soSendBufferSize) {
 		this.soSendBufferSize = soSendBufferSize;
 	}
-
+	
+	public String getComponentType(){
+		return "ip:udp-inbound-channel-adapter";
+	}
 }

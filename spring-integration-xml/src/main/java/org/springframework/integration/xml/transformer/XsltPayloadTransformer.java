@@ -16,7 +16,6 @@
 package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,8 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHeaders;
@@ -249,5 +246,8 @@ public class XsltPayloadTransformer extends AbstractTransformer {
 
 	public void setXsltParamHeaders(String[] xsltParamHeaders) {
 		this.xsltParamHeaders = xsltParamHeaders;
+	}
+	public String getComponentType(){
+		return "xml:xslt-transformer";
 	}
 }

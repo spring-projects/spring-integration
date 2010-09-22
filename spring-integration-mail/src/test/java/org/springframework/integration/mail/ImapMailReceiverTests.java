@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.mail;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -22,6 +24,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.Properties;
 
 import javax.mail.Flags;
 import javax.mail.Flags.Flag;
@@ -39,6 +43,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
+import org.springframework.integration.test.util.TestUtils;
 
 import com.sun.mail.imap.IMAPFolder;
 
@@ -237,6 +242,9 @@ public class ImapMailReceiverTests {
 		adapter.start();
 		org.springframework.integration.Message<?> replMessage = channel.receive(10000);
 		MessageHistory history = MessageHistory.read(replMessage);
-		assertTrue(history.containsComponent("simpleAdapter"));
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "simpleAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("mail:imap-idle-channel-adapter", componentHistoryRecord.get("type"));
 	}
 }

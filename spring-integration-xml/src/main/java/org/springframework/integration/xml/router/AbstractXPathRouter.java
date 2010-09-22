@@ -99,5 +99,8 @@ public abstract class AbstractXPathRouter extends AbstractChannelNameResolvingMe
 	protected XPathExpression getXPathExpression() {
 		return this.xPathExpression;
 	}
-
+	
+	public String getComponentType(){
+		return "xml:xpath-router";
+	}
 }

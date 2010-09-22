@@ -2,8 +2,10 @@ package org.springframework.integration.file;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.entries.*;
 
 import java.io.File;
@@ -27,7 +29,7 @@ import java.util.regex.Pattern;
  *
  * @author Josh Long
  */
-public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<Y, T extends AbstractInboundRemoteFileSystemSychronizer<Y>> extends AbstractEndpoint implements MessageSource<File> {
+public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<Y, T extends AbstractInboundRemoteFileSystemSychronizer<Y>> extends MessageProducerSupport implements MessageSource<File> {
     /**
      * Extension used when downloading files. We change it right after we know it's downloaded
      */
@@ -74,7 +76,8 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
         this.remotePredicate = remotePredicate;
     }
 
-    private EntryListFilter<File> buildFilter() {
+    @SuppressWarnings("unchecked")
+	private EntryListFilter<File> buildFilter() {
         FileEntryNamer fileEntryNamer = new FileEntryNamer();
         Pattern completePattern = Pattern.compile("^.*(?<!" + INCOMPLETE_EXTENSION + ")$");
         return new CompositeEntryListFilter<File>(
@@ -83,33 +86,42 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
     }
 
     @Override
-    protected void onInit() throws Exception {
-        if (this.remotePredicate != null) {
-            this.synchronizer.setFilter(this.remotePredicate);
-        }
+    protected void onInit() {
+    	try {
+    		if (this.remotePredicate != null) {
+                this.synchronizer.setFilter(this.remotePredicate);
+            }
 
-        if (this.autoCreateDirectories) {
-            if ((this.localDirectory != null) && !this.localDirectory.exists() && this.localDirectory.getFile().mkdirs())
-                logger.debug("the localDirectory " + this.localDirectory + " doesn't exist");
-        }
+            if (this.autoCreateDirectories) {
+                if ((this.localDirectory != null) && !this.localDirectory.exists() && this.localDirectory.getFile().mkdirs())
+                    logger.debug("the localDirectory " + this.localDirectory + " doesn't exist");
+            }
 
-        /**
-         * Handles making sure the remote files get here in one piece
-         */
-        this.synchronizer.setLocalDirectory(this.localDirectory);
-        this.synchronizer.setTaskScheduler(this.getTaskScheduler());
-        this.synchronizer.setBeanFactory(this.getBeanFactory());
-        this.synchronizer.setPhase(this.getPhase());
-        this.synchronizer.setBeanName(this.getComponentName());
+            /**
+             * Handles making sure the remote files get here in one piece
+             */
+            this.synchronizer.setLocalDirectory(this.localDirectory);
+            this.synchronizer.setTaskScheduler(this.getTaskScheduler());
+            this.synchronizer.setBeanFactory(this.getBeanFactory());
+            this.synchronizer.setPhase(this.getPhase());
+            this.synchronizer.setBeanName(this.getComponentName());
 
-        /**
-         * Handles forwarding files once they ultimately appear in the {@link #localDirectory}
-         */
-        this.fileSource = new FileReadingMessageSource();
-        this.fileSource.setFilter(buildFilter());
-        this.fileSource.setDirectory(this.localDirectory.getFile());
-        this.fileSource.afterPropertiesSet();
-        this.synchronizer.afterPropertiesSet();
+            /**
+             * Handles forwarding files once they ultimately appear in the {@link #localDirectory}
+             */
+            this.fileSource = new FileReadingMessageSource();
+            this.fileSource.setFilter(buildFilter());
+            this.fileSource.setDirectory(this.localDirectory.getFile());
+            this.fileSource.afterPropertiesSet();
+            this.synchronizer.afterPropertiesSet();
+		} catch (Exception e) {
+			if (e instanceof RuntimeException){
+				throw (RuntimeException)e;
+			} else {
+				throw new MessagingException("Failure during initialization of " + this.getComponentName(), e);
+			}
+		}
+        
     }
 
     public Message<File> receive() {

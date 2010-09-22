@@ -19,11 +19,7 @@ package org.springframework.integration.transformer;
 import java.util.Map;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.util.Assert;
@@ -41,15 +37,11 @@ import org.springframework.validation.DataBinder;
  * @author Oleg Zhurakousky
  * @since 2.0
  */
-public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>, Object> implements BeanFactoryAware{
+public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>, Object>{
 
 	private final Class<?> targetClass;
 
 	private final String targetBeanName;
-
-	private volatile ConfigurableBeanFactory beanFactory;
-
-
 	/**
 	 * @param targetClass
 	 */
@@ -73,25 +65,17 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 	protected Object transformPayload(Map<?,?> payload) throws Exception {
 		Object target = (this.targetClass != null)
 				? BeanUtils.instantiate(this.targetClass)
-				: this.beanFactory.getBean(this.targetBeanName);
+				: this.getBeanFactory().getBean(this.targetBeanName);
 		DataBinder binder = new DataBinder(target);	
-		binder.setConversionService(this.beanFactory.getConversionService());
+		binder.setConversionService(((ConfigurableListableBeanFactory)this.getBeanFactory()).getConversionService());
 		binder.bind(new MutablePropertyValues(payload));
 		return target;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
-	 */
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		Assert.isTrue(beanFactory instanceof ConfigurableListableBeanFactory,
-				"A ConfigurableListableBeanFactory is required.");
-		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
+	
+	protected void onInit(){
 		if (StringUtils.hasText(this.targetBeanName)) {
-			Assert.isTrue(this.beanFactory.isPrototype(this.targetBeanName),
+			Assert.isTrue(this.getBeanFactory().isPrototype(this.targetBeanName),
 					"target bean [" + targetBeanName + "] must have 'prototype' scope");
 		}
 	}
-
 }

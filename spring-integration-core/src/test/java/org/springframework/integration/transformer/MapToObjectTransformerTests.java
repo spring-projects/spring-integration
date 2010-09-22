@@ -64,25 +64,6 @@ public class MapToObjectTransformerTests {
 		assertNotNull(person.getAddress());
 		assertEquals("1123 Main st", person.getAddress().getStreet());
 	}
-
-	@SuppressWarnings("unchecked")
-	@Test(expected=IllegalArgumentException.class)
-	public void testMapToObjectTransformationNonPrototype(){
-		Map map = new HashMap();
-		map.put("fname", "Justin");
-		map.put("lname", "Case");
-		Address address = new Address();
-		address.setStreet("1123 Main st");
-		map.put("address", address);
-		
-		Message message = MessageBuilder.withPayload(map).build();
-		GenericApplicationContext context = new GenericApplicationContext();
-		RootBeanDefinition personDef = new RootBeanDefinition(Person.class);
-		context.registerBeanDefinition("person", personDef);
-		MapToObjectTransformer transformer = new MapToObjectTransformer("person");
-		transformer.setBeanFactory(context.getBeanFactory());
-		transformer.transform(message);
-	}
 	
 	@SuppressWarnings("unchecked")
 	@Test

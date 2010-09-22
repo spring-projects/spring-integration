@@ -194,6 +194,9 @@ public class MarshallingWebServiceInboundGateway extends AbstractMarshallingPayl
 		public Object sendAndReceive(Object request) {
 			return super.sendAndReceive(request);
 		}
+		public String getComponentType() {
+			return "ws:outbound-gateway";
+		}
 	}
 
 	public String getComponentName() {

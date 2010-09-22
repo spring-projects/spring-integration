@@ -15,20 +15,24 @@
  */
 package org.springframework.integration.file;
 
+import java.io.File;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.PriorityBlockingQueue;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.aggregator.ResequencingMessageGroupProcessor;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
-
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.PriorityBlockingQueue;
 
 
 /**
@@ -52,8 +56,9 @@ import java.util.concurrent.PriorityBlockingQueue;
  *
  * @author Iwein Fuld
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class FileReadingMessageSource implements MessageSource<File>, InitializingBean {
+public class FileReadingMessageSource extends IntegrationObjectSupport implements MessageSource<File>{
     private static final int DEFAULT_INTERNAL_QUEUE_CAPACITY = 5;
     private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
     private volatile File directory;
@@ -178,8 +183,7 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
         this.scanEachPoll = scanEachPoll;
     }
 
-    @SuppressWarnings({"ResultOfMethodCallIgnored"})
-    public final void afterPropertiesSet() {
+    protected void onInit() {
         Assert.notNull(directory, "'directory' must not be set before initialization");
 
         if (!this.directory.exists() && this.autoCreateDirectory) {
@@ -254,4 +258,8 @@ public class FileReadingMessageSource implements MessageSource<File>, Initializi
             logger.debug("Sent: " + sentMessage);
         }
     }
+
+	public String getComponentType() {
+		return "file:inbound-channel-adapter";
+	}
 }

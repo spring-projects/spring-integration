@@ -17,16 +17,17 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.Message;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.support.MessageBuilder;
 
 /**
  * A base class for {@link Transformer} implementations.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public abstract class AbstractTransformer implements Transformer {
+public abstract class AbstractTransformer extends IntegrationObjectSupport implements Transformer {
 
-	@SuppressWarnings("unchecked")
 	public final Message<?> transform(Message<?> message) {
 		try {
 			Object result = this.doTransform(message);

@@ -164,5 +164,9 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 			return this.documentBuilderFactory.newDocumentBuilder();
 		}
 	}
+	
+	public String getComponentType(){
+		return "xml:xpath-splitter";
+	}
 
 }

@@ -28,7 +28,7 @@ public class FtpInboundRemoteFileSystemSynchronizingMessageSource extends Abstra
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 		this.synchronizer.setClientPool(this.clientPool);
 	}

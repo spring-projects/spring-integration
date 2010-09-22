@@ -2,8 +2,10 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:task="http://www.springframework.org/schema/task"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
@@ -11,9 +13,24 @@
 			 default-request-channel="requestChannel"
 			 default-reply-timeout="3000"
 			 service-interface="org.springframework.integration.gateway.GatewayRequiresReplyTests$TestService" />
+	
 
 	<service-activator input-channel="requestChannel"
 					   expression="payload == 'foo' ? 'bar' : null"
 					   requires-reply="true"/>
 
+	<gateway id="timeoutGateway"
+			 default-request-channel="timeoutChannel"
+			 default-reply-timeout="1000"
+			 service-interface="org.springframework.integration.gateway.GatewayRequiresReplyTests$TestService" />
+			 
+	<channel id="timeoutChannel">
+		<dispatcher task-executor="executor"/>
+	</channel>
+			 
+	<service-activator input-channel="timeoutChannel">
+		<beans:bean class="org.springframework.integration.gateway.GatewayRequiresReplyTests.LongRunningService"/>
+	</service-activator>
+	
+	<task:executor id="executor" pool-size="5"/>
 </beans:beans>

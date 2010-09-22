@@ -18,6 +18,7 @@ package org.springframework.integration.transformer;
 
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.util.Assert;
@@ -48,7 +49,8 @@ public class MessageTransformingHandler extends AbstractReplyProducingMessageHan
 
 	@Override
 	public String getComponentType() {
-		return "transformer";
+		return (this.transformer instanceof NamedComponent) ?
+				((NamedComponent) this.transformer).getComponentType() : "transformer";
 	}
 
 	@Override

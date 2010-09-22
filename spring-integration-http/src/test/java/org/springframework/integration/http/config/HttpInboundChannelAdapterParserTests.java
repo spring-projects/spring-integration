@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +41,7 @@ import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.http.HttpRequestHandlingController;
 import org.springframework.integration.http.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.MockHttpServletRequest;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -111,6 +113,11 @@ public class HttpInboundChannelAdapterParserTests {
 		assertEquals(HttpServletResponse.SC_OK, response.getStatus());
 		Message<?> message = requests.receive(0);
 		MessageHistory history = MessageHistory.read(message);
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "postOnlyAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("http:inbound-channel-adapter", componentHistoryRecord.get("type"));
+		//System.out.println(componentHistoryRecord);
 		assertTrue(history.containsComponent("postOnlyAdapter"));
 		assertNotNull(message);
 		assertEquals("test", message.getPayload());

@@ -20,6 +20,8 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Properties;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,7 @@ import org.springframework.integration.ip.tcp.connection.AbstractClientConnectio
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.TcpConnection;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -69,7 +72,10 @@ public class ConnectionToConnectionTests {
 		connection.send(MessageBuilder.withPayload("Test").build());
 		Message<?> message = serverSideChannel.receive(10000);
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("looper"));
+		//org.springframework.integration.test.util.TestUtils
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "looper", 0);
+		assertNotNull(componentHistoryRecord);
+		assertTrue(componentHistoryRecord.get("type").equals("ip:tcp-inbound-gateway"));
 		assertNotNull(message);
 		assertEquals("Test", new String((byte[]) message.getPayload()));
 	}

@@ -8,9 +8,9 @@
         http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
        http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder
-			location="file://${user.home}/Desktop/ftp.properties"
-			ignore-unresolvable="true"/>
+<!--	<context:property-placeholder-->
+<!--			location="file://${user.home}/Desktop/ftp.properties"-->
+<!--			ignore-unresolvable="true"/>-->
 
 
 	<ftp:inbound-channel-adapter remote-directory="${ftp.remotedir}" channel="ftpIn" auto-create-directories="true"

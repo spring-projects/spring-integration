@@ -15,19 +15,21 @@
  */
 package org.springframework.integration.ws.config;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Properties;
+
 import javax.xml.transform.Source;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,6 +37,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.ws.MarshallingWebServiceInboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceInboundGateway;
 import org.springframework.oxm.AbstractMarshaller;
@@ -122,7 +125,10 @@ public class WebServiceInboundGatewayParserTests {
 		marshallingGateway.invoke(context);
 		Message<?> message = requestsMarshalling.receive(100);
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("marshalling"));
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "marshalling", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
 	}
 	@Test
 	public void testMessageHistoryWithSimpleGateway() throws Exception {
@@ -130,6 +136,10 @@ public class WebServiceInboundGatewayParserTests {
 		payloadExtractingGateway.invoke(context);
 		Message<?> message = requestsSimple.receive(100);
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("extractsPayload"));
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "extractsPayload", 0);
+		System.out.println(componentHistoryRecord);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("ws:outbound-gateway", componentHistoryRecord.get("type"));
 	}
 }

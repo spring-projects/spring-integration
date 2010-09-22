@@ -90,7 +90,7 @@ public class SftpInboundRemoteFileSystemSynchronizingMessageSource extends Abstr
 	}
 
 	@Override
-	protected void onInit() throws Exception {
+	protected void onInit() {
 		super.onInit();
 
 		this.checkThatRemotePathExists(this.remotePath);

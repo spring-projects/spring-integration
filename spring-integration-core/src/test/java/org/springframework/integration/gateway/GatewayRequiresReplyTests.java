@@ -51,10 +51,24 @@ public class GatewayRequiresReplyTests {
 		TestService gateway = (TestService) applicationContext.getBean("gateway");
 		gateway.test("bad");
 	}
+	
+	@Test
+	public void timedOutGateway() {
+		TestService gateway = (TestService) applicationContext.getBean("timeoutGateway");
+		String result = gateway.test("hello");
+		System.out.println("Result: " + result);
+	}
 
 
 	public static interface TestService {
 		public String test(String s);
+	}
+	
+	public static class LongRunningService{
+		public String echo(String value) throws Exception{
+			Thread.sleep(5000);
+			return value;
+		}
 	}
 
 }

@@ -35,6 +35,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.ApplicationEventInboundChannelAdapter;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -91,11 +92,13 @@ public class EventInboundChannelAdapterParserTests {
 	}
 
 	@Test
-	public void validateUsage() {
+	public void validateUsageWithHistory() {
 		PollableChannel channel = context.getBean("input", PollableChannel.class);
 		assertEquals(ContextRefreshedEvent.class, channel.receive(0).getPayload().getClass());
 		context.publishEvent(new SampleEvent("hello"));
 		Message<?> message = channel.receive(0);
+		MessageHistory history = MessageHistory.read(message);
+		assertTrue(history.containsComponent("eventAdapterSimple"));
 		assertNotNull(message);
 		assertEquals(SampleEvent.class, message.getPayload().getClass());
 	}

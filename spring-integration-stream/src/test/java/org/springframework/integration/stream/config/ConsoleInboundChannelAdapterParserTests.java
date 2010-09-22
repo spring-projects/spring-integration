@@ -16,6 +16,7 @@
 
 package org.springframework.integration.stream.config;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -33,6 +34,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 
@@ -54,6 +56,10 @@ public class ConsoleInboundChannelAdapterParserTests {
 		SourcePollingChannelAdapter adapter =
 				(SourcePollingChannelAdapter) context.getBean("adapterWithDefaultCharset.adapter");
 		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
+		assertTrue(source instanceof NamedComponent);
+		assertEquals("adapterWithDefaultCharset.adapter", adapter.getComponentName());
+		assertEquals("stream:stdin-channel-adapter", adapter.getComponentType());
+		assertEquals("stream:stdin-channel-adapter", ((NamedComponent)source).getComponentType());
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());
@@ -63,6 +69,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		Charset readerCharset = Charset.forName(((InputStreamReader) reader).getEncoding());
 		assertEquals(Charset.defaultCharset(), readerCharset);
 		Message<?> message = source.receive();
+		System.out.println(message);
 		assertNotNull(message);
 		assertEquals("foo", message.getPayload());
 	}

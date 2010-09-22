@@ -21,7 +21,11 @@ package org.springframework.integration;
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
-public class MessageTimeoutException extends MessageHandlingException {
+public class MessageTimeoutException extends MessageDeliveryException {
+	
+	public MessageTimeoutException(String description) {
+		super(description);
+	}
 
 	public MessageTimeoutException(Message<?> failedMessage, String description, Throwable cause) {
 		super(failedMessage, description, cause);
@@ -29,10 +33,6 @@ public class MessageTimeoutException extends MessageHandlingException {
 
 	public MessageTimeoutException(Message<?> failedMessage, String description) {
 		super(failedMessage, description);
-	}
-
-	public MessageTimeoutException(Message<?> failedMessage, Throwable cause) {
-		super(failedMessage, cause);
 	}
 
 	public MessageTimeoutException(Message<?> failedMessage) {

@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.file.DefaultDirectoryScanner;
@@ -47,7 +48,12 @@ public class FileInboundChannelAdapterParserTests {
     private ApplicationContext context;
 
     @Autowired
+   // @Qualifier("inputDirPoller")
     private FileReadingMessageSource source;
+    
+//    @Autowired
+//    @Qualifier("inputDirPollerWithChannel")
+//    private FileReadingMessageSource sourceWithChannel;
 
     private DirectFieldAccessor accessor;
 
@@ -59,6 +65,7 @@ public class FileInboundChannelAdapterParserTests {
 
     @Test
     public void channelName() throws Exception {
+    	Object adapter = context.getBean("inputDirPoller");
         AbstractMessageChannel channel = context.getBean("inputDirPoller", AbstractMessageChannel.class);
         assertEquals("Channel should be available under specified id", "inputDirPoller", channel.getComponentName());
     }

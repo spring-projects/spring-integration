@@ -140,5 +140,8 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport {
 			}
 		}
 	}
+	public String getComponentType(){
+		return "mail:imap-idle-channel-adapter";
+	}
 
 }

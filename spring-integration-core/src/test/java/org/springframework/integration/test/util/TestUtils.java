@@ -19,6 +19,7 @@ package org.springframework.integration.test.util;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.Properties;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.hamcrest.Matcher;
@@ -41,15 +42,18 @@ import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
+import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
  * @author Iwein Fuld
+ * @author Oleg Zhurakousky
  */
 public abstract class TestUtils {
 
@@ -158,5 +162,20 @@ public abstract class TestUtils {
                 assertThat(message, is(messageMatcher));
             }
         };
+    }
+    
+    public static Properties locateComponentInHistory(MessageHistory history, String componentName, int startingIndex){
+    	Assert.notNull(history, "'history' must not be null");
+    	Assert.isTrue(StringUtils.hasText(componentName), "'componentName' must be provided");
+    	Assert.isTrue(startingIndex < history.size(), "'startingIndex' can not be greater then size of history");
+    	Properties component = null;
+    	for (int i = startingIndex; i < history.size(); i++) {
+    		Properties properties = history.get(i);
+    		if (componentName.equals(properties.get("name"))){
+				component = properties;
+				break;
+			}
+    	}
+		return component;
     }
 }

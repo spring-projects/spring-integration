@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -34,6 +35,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -57,14 +59,17 @@ public class JdbcPollingChannelAdapterParserTests {
 	private PlatformTransactionManager transactionManager;
 		
 	@Test
-	public void testSimpleInboundChannelAdapter(){
+	public void testSimpleInboundChannelAdapterWithHistory(){
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("jdbcAdapter"));
 		assertNotNull("No message found ", message);
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
+		MessageHistory history = MessageHistory.read(message);
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("jdbc:inbound-channel-adapter", componentHistoryRecord.get("type"));
 	}
 	
 	

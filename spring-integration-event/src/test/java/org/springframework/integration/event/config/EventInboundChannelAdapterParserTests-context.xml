@@ -9,6 +9,8 @@
 	xmlns:int="http://www.springframework.org/schema/integration"
 	xmlns:int-event="http://www.springframework.org/schema/integration/event">
 
+	<int:message-history/>
+
 	<int-event:inbound-channel-adapter id="eventAdapterSimple" channel="input"/>
 
 	<int:channel id="input">
