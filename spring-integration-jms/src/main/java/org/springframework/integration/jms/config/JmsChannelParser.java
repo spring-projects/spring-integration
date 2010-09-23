@@ -21,8 +21,8 @@ import javax.jms.Session;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractChannelParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @since 2.0
  */
-public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
+public class JmsChannelParser extends AbstractChannelParser {
 
 	private final static String CONTAINER_TYPE_ATTRIBUTE = "container-type";
 
@@ -44,12 +44,9 @@ public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
 
 
 	@Override
-	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.jms.config.JmsChannelFactoryBean";
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				"org.springframework.integration.jms.config.JmsChannelFactoryBean");
 		builder.addConstructorArgValue(element.getAttribute("message-driven"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
@@ -123,6 +120,7 @@ public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
 				builder.addPropertyValue("maxMessagesPerTask", new Integer(prefetch));
 			}
 		}
+		return builder;
 	}
 
 	private void parseDestination(Element element, ParserContext parserContext, BeanDefinitionBuilder builder, String type) {

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.jms.config;
 
+import java.util.List;
 import java.util.concurrent.Executor;
 
 import javax.jms.ConnectionFactory;
@@ -26,6 +27,7 @@ import javax.jms.Session;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.jms.AbstractJmsChannel;
 import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
@@ -37,6 +39,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
 
 /**
@@ -46,6 +49,8 @@ import org.springframework.util.ErrorHandler;
 public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChannel> implements SmartLifecycle, DisposableBean {
 
 	private volatile AbstractJmsChannel channel;
+
+	private volatile List<ChannelInterceptor> interceptors;
 
 	private final boolean messageDriven;
 
@@ -124,6 +129,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		this.messageDriven = messageDriven;
 	}
 
+
+	public void setInterceptors(List<ChannelInterceptor> interceptors) {
+		this.interceptors = interceptors;
+	}
 
 	/*
 	 * Template properties
@@ -301,6 +310,9 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 		}
 		else {
 			this.channel = new PollableJmsChannel(this.jmsTemplate);
+		}
+		if (!CollectionUtils.isEmpty(this.interceptors)) {
+			this.channel.setInterceptors(this.interceptors);
 		}
 		this.channel.afterPropertiesSet();
 		return this.channel;
