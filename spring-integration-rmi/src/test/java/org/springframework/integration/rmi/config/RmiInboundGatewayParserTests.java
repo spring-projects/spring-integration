@@ -34,11 +34,13 @@ import org.springframework.integration.rmi.RmiInboundGateway;
 public class RmiInboundGatewayParserTests {
 
 	@Test
-	public void gatewayWithDefaults() {
+	public void gatewayWithDefaultsAndHistory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithDefaults");
+		assertEquals("gatewayWithDefaults", gateway.getComponentName());
+		assertEquals("rmi:inbound-gateway", gateway.getComponentType());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));

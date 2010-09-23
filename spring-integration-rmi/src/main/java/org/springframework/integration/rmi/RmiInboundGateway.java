@@ -99,5 +99,9 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 		}
 		super.onInit();
 	}
+	
+	public String getComponentType(){
+		return "rmi:inbound-gateway";
+	}
 
 }

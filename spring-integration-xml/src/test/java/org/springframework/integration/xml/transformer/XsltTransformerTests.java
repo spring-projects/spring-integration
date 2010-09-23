@@ -77,8 +77,6 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsComponent("paramHeadersWithEndWildCharacter"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
@@ -92,8 +90,6 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsComponent("paramHeadersWithIndividualParameters"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));
@@ -109,8 +105,6 @@ public class XsltTransformerTests {
 				build(); 
 		input.send(message);
 		Message<?> resultMessage = output.receive();
-		MessageHistory history = MessageHistory.read(resultMessage);
-		assertTrue(history.containsComponent("paramHeadersComboChannel"));
 		assertEquals("Wrong payload type",String.class, resultMessage.getPayload().getClass());
 		assertTrue(((String) resultMessage.getPayload()).contains("testParamValue"));
 		assertTrue(((String) resultMessage.getPayload()).contains("FOO"));

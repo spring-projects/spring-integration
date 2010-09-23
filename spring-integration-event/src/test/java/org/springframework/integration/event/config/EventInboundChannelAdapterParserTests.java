@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Properties;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -36,6 +37,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.ApplicationEventInboundChannelAdapter;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -98,7 +100,10 @@ public class EventInboundChannelAdapterParserTests {
 		context.publishEvent(new SampleEvent("hello"));
 		Message<?> message = channel.receive(0);
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("eventAdapterSimple"));
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "eventAdapterSimple", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("event:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull(message);
 		assertEquals(SampleEvent.class, message.getPayload().getClass());
 	}

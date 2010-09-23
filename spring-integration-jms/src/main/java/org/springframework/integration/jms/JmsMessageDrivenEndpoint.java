@@ -54,7 +54,6 @@ public class JmsMessageDrivenEndpoint extends AbstractEndpoint implements Dispos
 			this.listenerContainer.afterPropertiesSet();
 		}
 		listener.setComponentName(this.getComponentName());
-		listener.setComponentType("jms:message-driven-channel-adapter");
 	}
 
 	@Override

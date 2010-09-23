@@ -67,6 +67,10 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 	private void sendEventAsMessage(ApplicationEvent event) {
 		this.sendMessage(MessageBuilder.withPayload(event).build());
 	}
+	
+	public String getComponentType(){
+		return "event:inbound-channel-adapter";
+	}
 
 	@Override
 	protected void doStart() {
