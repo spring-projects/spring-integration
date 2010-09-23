@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail;
 
+import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.URLName;
@@ -79,7 +80,5 @@ public class Pop3MailReceiver extends AbstractMailReceiver {
 		for (int i = 0; i < messages.length; i++) {
 			new MimeMessage((MimeMessage) messages[i]);
 		}
-		MailTransportUtils.closeFolder(this.getFolder(), true);
 	}
-
 }

@@ -179,7 +179,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 */
 	protected void onInit() throws Exception {
 		if (this.shouldMarkMessagesAsRead){
-			this.setFolderOpenMode(Folder.READ_WRITE);
+			this.folderOpenMode = Folder.READ_WRITE;
 		}
 	}
 	/**

@@ -27,7 +27,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
-import javax.mail.Flags.Flag;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
@@ -63,7 +62,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	private volatile boolean shouldDeleteMessages = false;
 	
-	private volatile int folderOpenMode = Folder.READ_ONLY;
+	protected volatile int folderOpenMode = Folder.READ_ONLY;
 
 	private volatile Properties javaMailProperties = new Properties();
 
@@ -207,7 +206,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 		if (logger.isDebugEnabled()) {
 			logger.debug("opening folder [" + MailTransportUtils.toPasswordProtectedString(this.url) + "]");
 		}
-		this.folder.open(folderOpenMode);
+		this.folder.open(this.folderOpenMode);
 	}
 	
 	public synchronized Message[] receive() {
@@ -244,7 +243,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 					"failure occurred while receiving from folder", e);
 		}
 		finally {
-			MailTransportUtils.closeFolder(this.folder);
+			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 		}
 	}
 
@@ -278,7 +277,7 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 
 	public void destroy() throws Exception {
 		synchronized (this.initializationMonitor) {
-			MailTransportUtils.closeFolder(this.folder);
+			MailTransportUtils.closeFolder(this.folder, this.shouldDeleteMessages);
 			MailTransportUtils.closeService(this.store);
 			this.folder = null;
 			this.store = null;
@@ -290,14 +289,21 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	public String toString() {
 		return this.url.toString();
 	}
+	/**
+	 * Optional method allowing you to set additional flags. 
+	 * Currently only implemented in IMapMailReceiever.
+	 * 
+	 * @param message
+	 * @throws MessagingException
+	 */
+	protected void setAdditionalFlags(Message message) throws MessagingException {}
 	
-	protected void setAdditionalFlags(Message message) throws MessagingException {
-		if (this.shouldDeleteMessages) {
-			message.setFlag(Flag.DELETED, true);
+	/**
+	 * 
+	 */
+	protected void onInit() throws Exception {
+		if (this.shouldDeleteMessages){
+			this.folderOpenMode = Folder.READ_WRITE;
 		}
-	}
-	
-	void setFolderOpenMode(int folderOpenMode) {
-		this.folderOpenMode = folderOpenMode;
 	}
 }

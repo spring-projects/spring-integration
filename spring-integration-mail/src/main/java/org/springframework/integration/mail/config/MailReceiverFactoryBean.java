@@ -155,6 +155,7 @@ public class MailReceiverFactoryBean implements FactoryBean<MailReceiver>, Dispo
 				((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(this.shouldMarkMessagesAsRead);
 			}
 		}
+		receiver.afterPropertiesSet();
 		return receiver;
 	}
 
