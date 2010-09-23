@@ -36,16 +36,20 @@ import org.apache.activemq.command.ActiveMQTopic;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.jms.config.JmsChannelFactoryBean;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.jms.listener.AbstractMessageListenerContainer;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 /**
  * @author Mark Fisher
  */
-public class JmsDestinationBackedMessageChannelTests {
+public class SubscribableJmsChannelTests {
 
 	private static final int TIMEOUT = 30000;
 
@@ -82,8 +86,11 @@ public class JmsDestinationBackedMessageChannelTests {
 				latch.countDown();
 			}
 		};
-		JmsDestinationBackedMessageChannel channel =
-				new JmsDestinationBackedMessageChannel(this.connectionFactory, this.queue);
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestination(this.queue);
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
 		channel.subscribe(handler1);
@@ -117,13 +124,16 @@ public class JmsDestinationBackedMessageChannelTests {
 				latch.countDown();
 			}
 		};
-		JmsDestinationBackedMessageChannel channel =
-				new JmsDestinationBackedMessageChannel(this.connectionFactory, this.topic);
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestination(this.topic);
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.subscribe(handler1);
         channel.subscribe(handler2);
         channel.start();
-        if (!channel.waitRegisteredWithDestination(10000)) {
+        if (!waitUntilRegisteredWithDestination(channel, 10000)) {
         	fail("Listener failed to subscribe to topic");
         }
         channel.send(new GenericMessage<String>("foo"));
@@ -155,8 +165,12 @@ public class JmsDestinationBackedMessageChannelTests {
 				latch.countDown();
 			}
 		};
-		JmsDestinationBackedMessageChannel channel =
-				new JmsDestinationBackedMessageChannel(this.connectionFactory, "dynamicQueue", false);
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestinationName("dynamicQueue");
+		factoryBean.setPubSubDomain(false);
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
 		channel.subscribe(handler1);
@@ -190,11 +204,16 @@ public class JmsDestinationBackedMessageChannelTests {
 				latch.countDown();
 			}
 		};
-		JmsDestinationBackedMessageChannel channel =
-				new JmsDestinationBackedMessageChannel(this.connectionFactory, "dynamicTopic", true);
+		
+		JmsChannelFactoryBean factoryBean = new JmsChannelFactoryBean(true);
+		factoryBean.setConnectionFactory(this.connectionFactory);
+		factoryBean.setDestinationName("dynamicTopic");
+		factoryBean.setPubSubDomain(true);
+		factoryBean.afterPropertiesSet();
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) factoryBean.getObject();
 		channel.afterPropertiesSet();
 		channel.start();
-        if (!channel.waitRegisteredWithDestination(10000)) {
+        if (!waitUntilRegisteredWithDestination(channel, 10000)) {
         	fail("Listener failed to subscribe to topic");
         }
 		channel.subscribe(handler1);
@@ -211,20 +230,55 @@ public class JmsDestinationBackedMessageChannelTests {
 		channel.stop();
 	}
 
-	@Test
+	@Test //@Ignore
 	public void contextManagesLifecycle() {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsDestinationBackedMessageChannel.class);
-		builder.addConstructorArgValue(this.connectionFactory);
-		builder.addConstructorArgValue("dynamicQueue");
-		builder.addConstructorArgValue(false);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsChannelFactoryBean.class);
+		builder.addConstructorArgValue(true);
+		builder.addPropertyValue("connectionFactory", this.connectionFactory);
+		builder.addPropertyValue("destinationName", "dynamicQueue");
+		builder.addPropertyValue("pubSubDomain", false);
 		StaticApplicationContext context = new StaticApplicationContext();
 		context.registerBeanDefinition("channel", builder.getBeanDefinition());
-		JmsDestinationBackedMessageChannel channel = context.getBean("channel", JmsDestinationBackedMessageChannel.class);
+		SubscribableJmsChannel channel = context.getBean("channel", SubscribableJmsChannel.class);
 		assertFalse(channel.isRunning());
 		context.refresh();
 		assertTrue(channel.isRunning());
 		context.stop();
 		assertFalse(channel.isRunning());
+	}
+
+
+	/**
+	 * Blocks until the listener container has subscribed; if the container does not support
+	 * this test, or the caching mode is incompatible, true is returned. Otherwise blocks
+	 * until timeout milliseconds have passed, or the consumer has registered.
+	 * @see DefaultMessageListenerContainer#isRegisteredWithDestination()
+	 * @param timeout Timeout in milliseconds.
+	 * @return True if a subscriber has connected or the container/attributes does not support
+	 * the test. False if a valid container does not have a registered consumer within 
+	 * timeout milliseconds.
+	 */
+	private static boolean waitUntilRegisteredWithDestination(SubscribableJmsChannel channel, long timeout) {
+		AbstractMessageListenerContainer container =
+				(AbstractMessageListenerContainer) new DirectFieldAccessor(channel).getPropertyValue("container");
+		if (container instanceof DefaultMessageListenerContainer) {
+			DefaultMessageListenerContainer listenerContainer = 
+				(DefaultMessageListenerContainer) container;
+			if (listenerContainer.getCacheLevel() != DefaultMessageListenerContainer.CACHE_CONSUMER) {
+				return true;
+			}
+			while (timeout > 0) {
+				if (listenerContainer.isRegisteredWithDestination()) {
+					return true;
+				}
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) { }
+				timeout -= 100;
+			}
+			return false;
+		}
+		return true;
 	}
 
 }
