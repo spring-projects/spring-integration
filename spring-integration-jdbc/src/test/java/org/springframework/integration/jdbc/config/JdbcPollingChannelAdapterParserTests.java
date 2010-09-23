@@ -28,6 +28,7 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -54,7 +55,7 @@ public class JdbcPollingChannelAdapterParserTests {
 	
 	private MessagingTemplate messagingTemplate;
 	
-	private ConfigurableApplicationContext appCtx;
+	private ClassPathXmlApplicationContext appCtx;
 
 	private PlatformTransactionManager transactionManager;
 		
@@ -148,13 +149,19 @@ public class JdbcPollingChannelAdapterParserTests {
 			appCtx.close();
 		}
 	}
-	
+
 	public void setUp(String name, Class<?> cls){
 		appCtx = new ClassPathXmlApplicationContext(name, cls);
 		setupJdbcTemplate();
 		jdbcTemplate.update("delete from item");
 		setupTransactionManager();
 		setupMessagingTemplate();
+	}
+	@After
+	public void destroy(){
+		if (appCtx != null){
+			appCtx.destroy();
+		}
 	}
 	
 	

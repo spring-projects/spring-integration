@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:ftp="http://www.springframework.org/schema/integration/ftp"
+	   xmlns:int="http://www.springframework.org/schema/integration"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:ftps="http://www.springframework.org/schema/integration/ftps"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/integration/ftps http://www.springframework.org/schema/integration/ftp/spring-integration-ftps.xsd
+        http://www.springframework.org/schema/integration  http://www.springframework.org/schema/integration/spring-integration.xsd
+       http://www.springframework.org/schema/integration/ftp http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<int:message-history/>
+
+	<ftp:inbound-channel-adapter id="adapterFtp" remote-directory="ftp://localhost" channel="ftpIn" auto-create-directories="true"
+								 host="localhost" auto-delete-remote-files-on-sync="false"
+								 username="oleg" password="zhurakousky" port="21"
+							     file-type="binary-file-type"	 
+								 filename-pattern=".*?jpg">
+		<int:poller fixed-rate="1000"/>
+	</ftp:inbound-channel-adapter>
+	
+	<ftps:inbound-channel-adapter id="adapterFtps" remote-directory="ftp://localhost"
+								  channel="ftpIn"
+								  auto-create-directories="true"
+								  host="locahost"
+								  auto-delete-remote-files-on-sync="false"
+								  username="oleg"
+								  password="zhurakousky"
+								  port="21"
+								  file-type="binary-file-type"
+								  filename-pattern=".*?java"
+								  client-mode="passive-local-data-connection-mode">
+		<int:poller fixed-rate="1000"/>
+	</ftps:inbound-channel-adapter>
+	
+	<int:channel id="ftpIn">
+		<int:queue/>
+	</int:channel>
+
+</beans>
