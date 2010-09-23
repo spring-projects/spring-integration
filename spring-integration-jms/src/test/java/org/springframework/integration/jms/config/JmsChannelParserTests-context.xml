@@ -23,6 +23,19 @@
 
 	<jms:channel id="channelWithConcurrencySettings" queue-name="foo" concurrency="11-55"/>
 
+	<jms:channel id="queueChannelWithInterceptors" queue-name="foo">
+		<jms:interceptors>
+			<bean class="org.springframework.integration.jms.config.JmsChannelParserTests$TestInterceptor"/>
+		</jms:interceptors>
+	</jms:channel>
+
+	<jms:publish-subscribe-channel id="topicChannelWithInterceptors" topic-name="test.topic">
+		<jms:interceptors>
+			<bean class="org.springframework.integration.jms.config.JmsChannelParserTests$TestInterceptor"/>
+			<bean class="org.springframework.integration.jms.config.JmsChannelParserTests$TestInterceptor"/>
+		</jms:interceptors>
+	</jms:publish-subscribe-channel>
+
 	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<property name="physicalName" value="test.queue"/>
 	</bean>

@@ -18,18 +18,24 @@ package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.Topic;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -70,8 +76,22 @@ public class JmsChannelParserTests {
 	private MessageChannel channelWithConcurrencySettings;
 
 	@Autowired
+	private MessageChannel queueChannelWithInterceptors;
+
+	@Autowired
+	private MessageChannel topicChannelWithInterceptors;
+
+	@Autowired
 	private Topic topic;
 
+	@Autowired
+	private AbstractApplicationContext context;
+
+
+	@After
+	public void closeContext() {
+		this.context.close();
+	}
 
 	@Test
 	public void queueReferenceChannel() {
@@ -149,6 +169,31 @@ public class JmsChannelParserTests {
 		assertEquals(55, container.getMaxConcurrentConsumers());
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void queueChannelWithInterceptors() {
+		assertEquals(SubscribableJmsChannel.class, queueChannelWithInterceptors.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueChannelWithInterceptors;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		List<ChannelInterceptor> interceptors = (List<ChannelInterceptor>) new DirectFieldAccessor(
+				accessor.getPropertyValue("interceptors")).getPropertyValue("interceptors");
+		assertEquals(1, interceptors.size());
+		assertEquals(TestInterceptor.class, interceptors.get(0).getClass());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void topicChannelWithInterceptors() {
+		assertEquals(SubscribableJmsChannel.class, topicChannelWithInterceptors.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicChannelWithInterceptors;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		List<ChannelInterceptor> interceptors = (List<ChannelInterceptor>) new DirectFieldAccessor(
+				accessor.getPropertyValue("interceptors")).getPropertyValue("interceptors");
+		assertEquals(2, interceptors.size());
+		assertEquals(TestInterceptor.class, interceptors.get(0).getClass());
+		assertEquals(TestInterceptor.class, interceptors.get(1).getClass());
+	}
+
 
 	static class TestDestinationResolver implements DestinationResolver {
 
@@ -165,6 +210,10 @@ public class JmsChannelParserTests {
 			}
 			return pubSubDomain ? topic : queue;
 		}
+	}
+
+
+	static class TestInterceptor extends ChannelInterceptorAdapter {
 	}
 
 }

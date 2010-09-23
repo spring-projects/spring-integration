@@ -106,10 +106,19 @@
 			]]></xsd:documentation>
 			<xsd:appinfo>
 				<tool:annotation>
-					<tool:exports type="org.springframework.integration.jms.JmsDestinationBackedMessageChannel"/>
+					<tool:exports type="org.springframework.integration.jms.AbstractJmsChannel"/>
 				</tool:annotation>
 			</xsd:appinfo>
 		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="interceptors" type="integration:channelInterceptorsType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	A list of ChannelInterceptor instances to be applied to this channel.
+					]]></xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required">
 			<xsd:annotation>
 				<xsd:documentation>
