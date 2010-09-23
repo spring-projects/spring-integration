@@ -189,4 +189,7 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
 	}
+	public String getComponentType(){
+		return "ip:tcp-outbound-gateway";
+	}
 }

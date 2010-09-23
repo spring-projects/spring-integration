@@ -20,6 +20,8 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Properties;
+
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
@@ -28,6 +30,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsMessageDrivenEndpoint;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.support.destination.JmsDestinationAccessor;
 
 /**
@@ -35,7 +38,7 @@ import org.springframework.jms.support.destination.JmsDestinationAccessor;
  */
 public class JmsMessageDrivenChannelAdapterParserTests {
 
-	long timeoutOnReceive = 3000;
+	long timeoutOnReceive = 300000;
 
 	@Test
 	public void adapterWithMessageSelector() {
@@ -44,7 +47,12 @@ public class JmsMessageDrivenChannelAdapterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output2");
 		Message<?> message = output.receive(timeoutOnReceive);
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("messageDrivenAdapter"));
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "messageDrivenAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		JmsMessageDrivenEndpoint o =  context.getBean("messageDrivenAdapter", JmsMessageDrivenEndpoint.class);
+		System.out.println(o.getComponentType());
+		assertEquals("jms:message-driven-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("test [with selector: TestProperty = 'foo']", message.getPayload());
 	}

@@ -154,6 +154,8 @@ public class ParserUnitTests {
 		assertEquals(30, dfa.getPropertyValue("soReceiveBufferSize"));
 		assertEquals(31, dfa.getPropertyValue("soSendBufferSize"));
 		assertEquals(32, dfa.getPropertyValue("soTimeout"));
+		assertEquals("testInUdp",udpIn.getComponentName());
+		assertEquals("ip:udp-inbound-channel-adapter", udpIn.getComponentType());
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
 	}
@@ -176,6 +178,8 @@ public class ParserUnitTests {
 	public void testInTcp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpIn);
 		assertSame(cfS1, dfa.getPropertyValue("serverConnectionFactory"));
+		assertEquals("testInTcp",tcpIn.getComponentName());
+		assertEquals("ip:tcp-inbound-channel-adapter", tcpIn.getComponentType());
 	}
 	
 	@Test
@@ -197,6 +201,8 @@ public class ParserUnitTests {
 		assertEquals(54, dfa.getPropertyValue("soTimeout"));
 		assertEquals("127.0.0.1", dfa.getPropertyValue("localAddress"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
+		assertEquals("testOutUdp",udpOut.getComponentName());
+		assertEquals("ip:udp-outbound-channel-adapter", udpOut.getComponentType());
 	}
 	
 	@Test
@@ -223,6 +229,8 @@ public class ParserUnitTests {
 	public void testOutTcp() {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpOut);
 		assertSame(cfC1, dfa.getPropertyValue("clientConnectionFactory"));
+		assertEquals("testOutTcpNio",tcpOut.getComponentName());
+		assertEquals("ip:tcp-outbound-channel-adapter", tcpOut.getComponentType());
 	}
 
 	@Test
@@ -230,6 +238,8 @@ public class ParserUnitTests {
 		DirectFieldAccessor dfa = new DirectFieldAccessor(tcpInboundGateway);
 		assertSame(cfS2, dfa.getPropertyValue("connectionFactory"));
 		assertEquals(456L, dfa.getPropertyValue("replyTimeout"));
+		assertEquals("inGateway",tcpInboundGateway.getComponentName());
+		assertEquals("ip:tcp-inbound-gateway", tcpInboundGateway.getComponentType());
 	}
 
 	@Test
@@ -238,6 +248,8 @@ public class ParserUnitTests {
 		assertSame(cfC2, dfa.getPropertyValue("connectionFactory"));
 		assertEquals(234L, dfa.getPropertyValue("requestTimeout"));
 		assertEquals(567L, dfa.getPropertyValue("replyTimeout"));
+		assertEquals("outGateway",tcpOutboundGateway.getComponentName());
+		assertEquals("ip:tcp-outbound-gateway", tcpOutboundGateway.getComponentType());
 	}
 
 	@Test

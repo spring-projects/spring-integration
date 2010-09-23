@@ -16,10 +16,13 @@
 package org.springframework.integration.jms.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import java.util.Properties;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -36,6 +39,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jms.support.converter.MessageConverter;
 
 /**
@@ -77,7 +81,10 @@ public class JmsOutboundGatewayParserTests {
 		MessageHandler handler = new MessageHandler() {	
 			public void handleMessage(Message<?> message) throws MessagingException {
 				MessageHistory history = MessageHistory.read(message);
-				assertTrue(history.containsComponent("inboundGateway"));
+				assertNotNull(history);
+				Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundGateway", 0);
+				assertNotNull(componentHistoryRecord);
+				assertEquals("jms:inbound-gateway", componentHistoryRecord.get("type"));
 				new MessagingTemplate((MessageChannel) message.getHeaders().getReplyChannel()).send(message);
 			}
 		};

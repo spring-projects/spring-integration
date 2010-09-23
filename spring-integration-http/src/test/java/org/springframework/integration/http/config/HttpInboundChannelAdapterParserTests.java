@@ -117,8 +117,6 @@ public class HttpInboundChannelAdapterParserTests {
 		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "postOnlyAdapter", 0);
 		assertNotNull(componentHistoryRecord);
 		assertEquals("http:inbound-channel-adapter", componentHistoryRecord.get("type"));
-		//System.out.println(componentHistoryRecord);
-		assertTrue(history.containsComponent("postOnlyAdapter"));
 		assertNotNull(message);
 		assertEquals("test", message.getPayload());
 	}

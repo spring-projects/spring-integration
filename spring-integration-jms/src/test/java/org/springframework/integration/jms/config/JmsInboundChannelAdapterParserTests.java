@@ -20,6 +20,8 @@ import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Properties;
+
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -29,6 +31,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -44,7 +47,10 @@ public class JmsInboundChannelAdapterParserTests {
 		PollableChannel output = (PollableChannel) context.getBean("output");
 		Message<?> message = output.receive(timeoutOnReceive);
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("inboundAdapter"));
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "inboundAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("jms:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 	}

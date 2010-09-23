@@ -85,4 +85,7 @@ public class TcpReceivingChannelAdapter
 		return false;
 	}
 
+	public String getComponentType(){
+		return "ip:tcp-inbound-channel-adapter";
+	}
 }

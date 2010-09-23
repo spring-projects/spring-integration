@@ -161,4 +161,7 @@ public class TcpSendingMessageHandler extends AbstractMessageHandler implements 
 	public void removeDeadConnection(TcpConnection connection) {
 		connections.remove(connection.getConnectionId());
 	}
+	public String getComponentType(){
+		return "ip:tcp-outbound-channel-adapter";
+	}
 }

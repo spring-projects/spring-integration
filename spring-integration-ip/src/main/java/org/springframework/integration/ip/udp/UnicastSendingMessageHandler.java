@@ -342,4 +342,8 @@ public class UnicastSendingMessageHandler extends
 	public void setTaskExecutor(Executor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
+	
+	public String getComponentType(){
+		return "ip:udp-outbound-channel-adapter";
+	}
 }

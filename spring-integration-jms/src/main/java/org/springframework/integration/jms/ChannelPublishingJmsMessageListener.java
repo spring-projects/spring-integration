@@ -50,6 +50,7 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 		implements SessionAwareMessageListener<javax.jms.Message>, InitializingBean {
 	
 	private volatile boolean expectReply;
+	private volatile String componentType = "jms:inbound-gateway";
 
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
@@ -72,9 +73,11 @@ public class ChannelPublishingJmsMessageListener extends MessagingGatewaySupport
 	private volatile JmsHeaderMapper headerMapper = new DefaultJmsHeaderMapper();
 	
 	public String getComponentType(){
-		return "jms:inbound-gateway";
+		return componentType;
 	}
-
+	void setComponentType(String componentType){
+		this.componentType = componentType;
+	}
 	/**
 	 * Specify whether a JMS reply Message is expected.
 	 */
