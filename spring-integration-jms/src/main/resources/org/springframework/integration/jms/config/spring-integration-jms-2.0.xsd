@@ -196,6 +196,14 @@
 				</xsd:appinfo>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="receive-timeout" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+	Timeout for the container's consumers if messsage-driven is TRUE, or
+	timeout for receive calls on the template if message-driven is FALSE.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="task-executor" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[

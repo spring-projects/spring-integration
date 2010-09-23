@@ -78,6 +78,7 @@ public class JmsChannelParser extends AbstractChannelParser {
 				containerType = "default"; 
 			}
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");

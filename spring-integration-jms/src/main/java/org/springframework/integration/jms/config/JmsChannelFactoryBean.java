@@ -264,6 +264,7 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
+		this.jmsTemplate.setReceiveTimeout(receiveTimeout);
 	}
 
 	public void setRecoveryInterval(long recoveryInterval) {
