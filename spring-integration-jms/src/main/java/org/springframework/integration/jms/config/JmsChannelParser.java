@@ -47,7 +47,10 @@ public class JmsChannelParser extends AbstractChannelParser {
 	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
 				"org.springframework.integration.jms.config.JmsChannelFactoryBean");
-		builder.addConstructorArgValue(element.getAttribute("message-driven"));
+		String messageDriven = element.getAttribute("message-driven");
+		if (StringUtils.hasText(messageDriven)) {
+			builder.addConstructorArgValue(messageDriven);
+		}
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "connectionFactory";

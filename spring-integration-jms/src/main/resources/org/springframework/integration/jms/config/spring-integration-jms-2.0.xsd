@@ -36,6 +36,14 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:attribute>
+					<xsd:attribute name="message-driven" type="xsd:boolean" default="true">
+						<xsd:annotation>
+							<xsd:documentation>
+	Specifies whether this channel should be Message-Driven. The value is "true" by default.
+	Set to "false" if this channel should be pollable.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:attribute>
 					<xsd:attribute name="queue-name" type="xsd:string">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -123,14 +131,6 @@
 			<xsd:annotation>
 				<xsd:documentation>
 	ID for this channel. Required.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="message-driven" type="xsd:boolean" default="true">
-			<xsd:annotation>
-				<xsd:documentation>
-	Specifies whether this channel should be Message-Driven. The value is "true" by default.
-	Set to "false" if this channel should be pollable.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>		

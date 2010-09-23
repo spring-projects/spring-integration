@@ -125,6 +125,10 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 	private volatile Integer transactionTimeout;
 
 
+	public JmsChannelFactoryBean() {
+		this(true);
+	}
+
 	public JmsChannelFactoryBean(boolean messageDriven) {
 		this.messageDriven = messageDriven;
 	}
@@ -309,6 +313,8 @@ public class JmsChannelFactoryBean extends AbstractFactoryBean<AbstractJmsChanne
 			this.channel = new SubscribableJmsChannel(this.container, this.jmsTemplate);
 		}
 		else {
+			Assert.isTrue(!Boolean.TRUE.equals(this.pubSubDomain),
+					"A JMS Topic-backed 'publish-subscribe-channel' must be message-driven.");
 			this.channel = new PollableJmsChannel(this.jmsTemplate);
 		}
 		if (!CollectionUtils.isEmpty(this.interceptors)) {

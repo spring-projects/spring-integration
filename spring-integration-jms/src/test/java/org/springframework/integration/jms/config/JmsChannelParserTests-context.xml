@@ -36,6 +36,10 @@
 		</jms:interceptors>
 	</jms:publish-subscribe-channel>
 
+	<jms:channel id="pollableQueueReferenceChannel" queue="testQueue" message-driven="false"/>
+
+	<jms:channel id="pollableQueueNameChannel" queue-name="foo" message-driven="false"/>
+
 	<bean id="testQueue" class="org.apache.activemq.command.ActiveMQQueue">
 		<property name="physicalName" value="test.queue"/>
 	</bean>

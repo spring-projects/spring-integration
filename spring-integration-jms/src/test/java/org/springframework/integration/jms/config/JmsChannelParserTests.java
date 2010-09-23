@@ -36,6 +36,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
+import org.springframework.integration.jms.PollableJmsChannel;
 import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
@@ -80,6 +81,12 @@ public class JmsChannelParserTests {
 
 	@Autowired
 	private MessageChannel topicChannelWithInterceptors;
+
+	@Autowired
+	private MessageChannel pollableQueueReferenceChannel;
+
+	@Autowired
+	private MessageChannel pollableQueueNameChannel;
 
 	@Autowired
 	private Topic topic;
@@ -192,6 +199,24 @@ public class JmsChannelParserTests {
 		assertEquals(2, interceptors.size());
 		assertEquals(TestInterceptor.class, interceptors.get(0).getClass());
 		assertEquals(TestInterceptor.class, interceptors.get(1).getClass());
+	}
+
+	@Test
+	public void queueReferencePollableChannel() {
+		assertEquals(PollableJmsChannel.class, pollableQueueReferenceChannel.getClass());
+		PollableJmsChannel channel = (PollableJmsChannel) pollableQueueReferenceChannel;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
+		assertEquals(queue, jmsTemplate.getDefaultDestination());
+	}
+
+	@Test
+	public void queueNamePollableChannel() {
+		assertEquals(PollableJmsChannel.class, pollableQueueNameChannel.getClass());
+		PollableJmsChannel channel = (PollableJmsChannel) pollableQueueNameChannel;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
+		assertEquals("foo", jmsTemplate.getDefaultDestinationName());
 	}
 
 
