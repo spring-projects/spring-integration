@@ -164,6 +164,12 @@ public abstract class TestUtils {
         };
     }
     
+    /**
+     * @param history a message history
+     * @param componentName the name of a component to scan for
+     * @param startingIndex the index to start scanning
+     * @return the properties provided by the named component or null if none available
+     */
     public static Properties locateComponentInHistory(MessageHistory history, String componentName, int startingIndex){
     	Assert.notNull(history, "'history' must not be null");
     	Assert.isTrue(StringUtils.hasText(componentName), "'componentName' must be provided");

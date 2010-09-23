@@ -34,6 +34,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.history.MessageHistory;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.jdbc.core.namedparam.AbstractSqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -61,7 +62,7 @@ public class JdbcPollingChannelAdapterParserTests {
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
 		MessageHistory history = MessageHistory.read(message);
-		assertTrue(history.containsComponent("jdbcAdapter"));
+		assertNotNull(TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0));
 		assertNotNull("No message found ", message);
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
 	}
