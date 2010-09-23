@@ -20,8 +20,10 @@ import java.util.Map;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.DataBinder;
@@ -67,7 +69,14 @@ public class MapToObjectTransformer extends AbstractPayloadTransformer<Map<?,?>,
 				? BeanUtils.instantiate(this.targetClass)
 				: this.getBeanFactory().getBean(this.targetBeanName);
 		DataBinder binder = new DataBinder(target);	
-		binder.setConversionService(((ConfigurableListableBeanFactory)this.getBeanFactory()).getConversionService());
+		ConversionService conversionService = null;
+		if (this.getBeanFactory() instanceof ConfigurableBeanFactory){
+			conversionService = ((ConfigurableBeanFactory)this.getBeanFactory()).getConversionService();
+		}
+		if (conversionService == null){
+			conversionService = ConversionServiceFactory.createDefaultConversionService();
+		}
+		binder.setConversionService(conversionService);
 		binder.bind(new MutablePropertyValues(payload));
 		return target;
 	}
