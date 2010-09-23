@@ -72,10 +72,10 @@ public class MessageGroupQueue extends AbstractQueue<Message<?>> implements Bloc
 	}
 
 	public boolean offer(Message<?> e) {
-		if (messageGroupStore.getMessageGroup(groupId).size() >= capacity) {
-			return false;
-		}
 		synchronized (storeLock) {
+			if (messageGroupStore.getMessageGroup(groupId).size() >= capacity) {
+				return false;
+			}
 			messageGroupStore.addMessageToGroup(groupId, e);
 		}
 		synchronized (readLock) {
