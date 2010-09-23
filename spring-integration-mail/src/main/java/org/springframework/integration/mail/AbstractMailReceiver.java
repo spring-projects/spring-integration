@@ -27,6 +27,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.URLName;
+import javax.mail.Flags.Flag;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
@@ -291,7 +292,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	}
 	
 	protected void setAdditionalFlags(Message message) throws MessagingException {
-		// nothing at the base class
+		if (this.shouldDeleteMessages) {
+			message.setFlag(Flag.DELETED, true);
+		}
 	}
 	
 	void setFolderOpenMode(int folderOpenMode) {

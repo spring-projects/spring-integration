@@ -186,6 +186,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 	 * 
 	 */
 	protected void setAdditionalFlags(Message message) throws MessagingException{
+		super.setAdditionalFlags(message);
 		if (this.shouldMarkMessagesAsRead) {
 			message.setFlag(Flag.SEEN, true);
 		}
