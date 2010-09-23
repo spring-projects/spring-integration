@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.jms.JmsDestinationBackedMessageChannel;
+import org.springframework.integration.jms.SubscribableJmsChannel;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -75,8 +75,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void queueReferenceChannel() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, queueReferenceChannel.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) queueReferenceChannel;
+		assertEquals(SubscribableJmsChannel.class, queueReferenceChannel.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueReferenceChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
@@ -86,8 +86,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void queueNameChannel() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, queueNameChannel.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) queueNameChannel;
+		assertEquals(SubscribableJmsChannel.class, queueNameChannel.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueNameChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
@@ -97,8 +97,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void queueNameWithResolverChannel() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, queueNameWithResolverChannel.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) queueNameWithResolverChannel;
+		assertEquals(SubscribableJmsChannel.class, queueNameWithResolverChannel.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) queueNameWithResolverChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
@@ -108,8 +108,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void topicReferenceChannel() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, topicReferenceChannel.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) topicReferenceChannel;
+		assertEquals(SubscribableJmsChannel.class, topicReferenceChannel.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicReferenceChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
@@ -119,8 +119,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void topicNameChannel() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, topicNameChannel.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) topicNameChannel;
+		assertEquals(SubscribableJmsChannel.class, topicNameChannel.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicNameChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
@@ -130,8 +130,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void topicNameWithResolverChannel() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, topicNameWithResolverChannel.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) topicNameWithResolverChannel;
+		assertEquals(SubscribableJmsChannel.class, topicNameWithResolverChannel.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) topicNameWithResolverChannel;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		JmsTemplate jmsTemplate = (JmsTemplate) accessor.getPropertyValue("jmsTemplate");
 		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer) accessor.getPropertyValue("container");
@@ -141,8 +141,8 @@ public class JmsChannelParserTests {
 
 	@Test
 	public void channelWithConcurrencySettings() {
-		assertEquals(JmsDestinationBackedMessageChannel.class, channelWithConcurrencySettings.getClass());
-		JmsDestinationBackedMessageChannel channel = (JmsDestinationBackedMessageChannel) channelWithConcurrencySettings;
+		assertEquals(SubscribableJmsChannel.class, channelWithConcurrencySettings.getClass());
+		SubscribableJmsChannel channel = (SubscribableJmsChannel) channelWithConcurrencySettings;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) accessor.getPropertyValue("container");
 		assertEquals(11, container.getConcurrentConsumers());

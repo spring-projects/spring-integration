@@ -117,6 +117,14 @@
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="message-driven" type="xsd:boolean" default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+	Specifies whether this channel should be Message-Driven. The value is "true" by default.
+	Set to "false" if this channel should be pollable.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>		
 		<xsd:attribute name="connection-factory" type="xsd:string">
 			<xsd:annotation>
 				<xsd:documentation>

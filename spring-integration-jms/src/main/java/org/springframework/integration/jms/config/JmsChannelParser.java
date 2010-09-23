@@ -45,16 +45,17 @@ public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected String getBeanClassName(Element element) {
-		return "org.springframework.integration.jms.JmsDestinationBackedMessageChannel";
+		return "org.springframework.integration.jms.config.JmsChannelFactoryBean";
 	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		builder.addConstructorArgValue(element.getAttribute("message-driven"));
 		String connectionFactory = element.getAttribute("connection-factory");
 		if (!StringUtils.hasText(connectionFactory)) {
 			connectionFactory = "connectionFactory";
 		}
-		builder.addConstructorArgReference(connectionFactory);
+		builder.addPropertyReference("connectionFactory", connectionFactory);
 		if ("channel".equals(element.getLocalName())) {
 			this.parseDestination(element, parserContext, builder, "queue");
 		}
@@ -135,11 +136,11 @@ public class JmsChannelParser extends AbstractSingleBeanDefinitionParser {
 					"' or '" + type + "-name' attributes is required.", element);
 		}
 		if (isReference) {
-			builder.addConstructorArgReference(ref);
+			builder.addPropertyReference("destination", ref);
 		}
 		else if (isName) {
-			builder.addConstructorArgValue(name);
-			builder.addConstructorArgValue(isPubSub);
+			builder.addPropertyValue("destinationName", name);
+			builder.addPropertyValue("pubSubDomain", isPubSub);
 			String destinationResolver = element.getAttribute("destination-resolver");
 			if (StringUtils.hasText(destinationResolver)) {
 				builder.addPropertyReference("destinationResolver", destinationResolver);
