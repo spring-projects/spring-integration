@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -61,10 +62,14 @@ public class JdbcPollingChannelAdapterParserTests {
 		setUp("pollingForMapJdbcInboundChannelAdapterTest.xml", getClass());
 		this.jdbcTemplate.update("insert into item values(1,'',2)");
 		Message<?> message = messagingTemplate.receive();
-		MessageHistory history = MessageHistory.read(message);
-		assertNotNull(TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0));
 		assertNotNull("No message found ", message);
 		assertTrue("Wrong payload type expected instance of List", message.getPayload() instanceof List<?>);
+		MessageHistory history = MessageHistory.read(message);
+		assertNotNull(history);
+		Properties componentHistoryRecord = TestUtils.locateComponentInHistory(history, "jdbcAdapter", 0);
+		assertNotNull(componentHistoryRecord);
+		assertEquals("jdbc:inbound-channel-adapter", componentHistoryRecord.get("type"));
+
 	}
 
 	@Test
