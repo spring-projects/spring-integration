@@ -113,10 +113,15 @@ public class TcpNetConnection extends AbstractTcpConnection {
 					if (e instanceof SocketTimeoutException && this.singleUse) {
 						logger.debug("Closing single use socket after timeout");
 					} else {
-						logger.error("Read exception " +
-									 this.getConnectionId() + " " +
-									 e.getClass().getSimpleName() + 
-								     ":" + e.getCause() + ":" + e.getMessage());
+						if (logger.isTraceEnabled()) {
+							logger.error("Read exception " +
+									 this.getConnectionId(), e);
+						} else {
+							logger.error("Read exception " +
+										 this.getConnectionId() + " " +
+										 e.getClass().getSimpleName() + 
+									     ":" + e.getCause() + ":" + e.getMessage());
+						}
 					}
 				}
 				break;

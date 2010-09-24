@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ip.tcp.connection;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.commons.serializer.InputStreamingConverter;
@@ -53,6 +55,8 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	protected final boolean server;
 
 	protected String connectionId;
+	
+	private AtomicLong sequence = new AtomicLong();
 	
 	public AbstractTcpConnection(boolean server) {
 		this.server = server;
@@ -163,4 +167,9 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 		return server;
 	}
 
+	public long getConnectionSeq() {
+		return sequence.incrementAndGet();
+	}
+
+	
 }

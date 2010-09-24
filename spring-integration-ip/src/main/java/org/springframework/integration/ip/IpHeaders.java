@@ -46,4 +46,6 @@ public abstract class IpHeaders {
 
 	public static final String CONNECTION_ID = IP + "connection_id";
 
+	public static final String CONNECTION_SEQ = IP + "connection_seq";
+
 }

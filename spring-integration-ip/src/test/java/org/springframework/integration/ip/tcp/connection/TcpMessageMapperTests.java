@@ -61,6 +61,60 @@ public class TcpMessageMapperTests {
 	}
 
 	/**
+	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#toMessage(org.springframework.integration.ip.tcp.SocketReader)}.
+	 * Tests segmented reads into the payload and verifies reassembly.
+	 */
+	@Test
+	public void testToMessageSequence() throws Exception {
+		
+		TcpMessageMapper mapper = new TcpMessageMapper();
+		TcpConnection connection = new AbstractTcpConnection(false) {
+			public void run() {
+			}
+			public void send(Message<?> message) throws Exception {
+			}
+			public boolean isOpen() {
+				return false;
+			}
+			public int getPort() {
+				return 1234;
+			}
+			public Object getPayload() throws Exception {
+				return TEST_PAYLOAD.getBytes();
+			}
+			public String getHostName() {
+				return "MyHost";
+			}
+			public String getHostAddress() {
+				return "1.1.1.1";
+			}
+			public String getConnectionId() {
+				return "anId";
+			}
+		};
+		Message<Object> message = mapper.toMessage(connection);
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
+		assertEquals("MyHost", message
+				.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message
+				.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message
+				.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals(1L, message
+				.getHeaders().get(IpHeaders.CONNECTION_SEQ));
+		message = mapper.toMessage(connection);
+		assertEquals(TEST_PAYLOAD, new String((byte[]) message.getPayload()));
+		assertEquals("MyHost", message
+				.getHeaders().get(IpHeaders.HOSTNAME));
+		assertEquals("1.1.1.1", message
+				.getHeaders().get(IpHeaders.IP_ADDRESS));
+		assertEquals(1234, message
+				.getHeaders().get(IpHeaders.REMOTE_PORT));
+		assertEquals(2L, message
+				.getHeaders().get(IpHeaders.CONNECTION_SEQ));		
+	}
+
+	/**
 	 * Test method for {@link org.springframework.integration.ip.tcp.SocketMessageMapper#fromMessage(org.springframework.integration.Message)}.
 	 * @throws Exception 
 	 */

@@ -143,5 +143,10 @@ public interface TcpConnection extends Runnable {
 	 * @return this connection's listener
 	 */
 	public TcpListener getListener();
+
+	/**
+	 * @return the next sequence number for a message received on this socket
+	 */
+	public long getConnectionSeq();
 	
 }

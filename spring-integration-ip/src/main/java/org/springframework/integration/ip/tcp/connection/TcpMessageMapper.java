@@ -53,6 +53,7 @@ public class TcpMessageMapper implements
 					.setHeader(IpHeaders.IP_ADDRESS, connection.getHostAddress())
 					.setHeader(IpHeaders.REMOTE_PORT, connection.getPort())
 					.setHeader(IpHeaders.CONNECTION_ID, connection.getConnectionId())
+					.setHeader(IpHeaders.CONNECTION_SEQ, connection.getConnectionSeq())
 					.build();
 		}
 		return message;

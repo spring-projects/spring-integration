@@ -216,11 +216,15 @@ public class TcpNioConnection extends AbstractTcpConnection {
 				}
 			} else {
 				if (!(e instanceof SoftEndOfStreamException)) {
-					logger.error("Read exception " +
-							 	 this.getConnectionId() + " " +							
-							     e.getClass().getSimpleName() + 
-								 ":" + e.getCause() + ":" + e.getMessage());
-
+					if (logger.isTraceEnabled()) {
+						logger.error("Read exception " +
+								 this.getConnectionId(), e);
+					} else {
+						logger.error("Read exception " +
+									 this.getConnectionId() + " " +
+									 e.getClass().getSimpleName() + 
+								     ":" + e.getCause() + ":" + e.getMessage());
+					}
 				}
 			}
 			return null;

@@ -156,4 +156,9 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		}
 	}
 
+	public long getConnectionSeq() {
+		return this.theConnection.getConnectionSeq();
+	}
+
+	
 }
