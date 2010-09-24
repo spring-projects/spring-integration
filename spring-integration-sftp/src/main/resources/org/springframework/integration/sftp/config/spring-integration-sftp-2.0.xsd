@@ -97,7 +97,7 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.ftp.FtpFileListFilter"/>
+							<tool:expected-type type="org.springframework.integration.file.entries.EntryListFilter"/>
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>

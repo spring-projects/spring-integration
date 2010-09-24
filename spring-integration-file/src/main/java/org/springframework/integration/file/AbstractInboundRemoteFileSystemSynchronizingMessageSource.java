@@ -9,6 +9,7 @@ import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.file.entries.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
@@ -92,10 +93,14 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
                 this.synchronizer.setFilter(this.remotePredicate);
             }
 
-            if (this.autoCreateDirectories) {
-                if ((this.localDirectory != null) && !this.localDirectory.exists() && this.localDirectory.getFile().mkdirs())
-                    logger.debug("the localDirectory " + this.localDirectory + " doesn't exist");
-            }
+    		if (this.localDirectory != null && !this.localDirectory.exists()){
+    			if (this.autoCreateDirectories){
+    				logger.debug("The '" + localDirectory + "' directory doesn't exist. Creating " + this.localDirectory);
+    				this.localDirectory.getFile().mkdirs();
+    			} else {
+    				throw new FileNotFoundException(localDirectory.getFilename());
+    			}
+    		}
 
             /**
              * Handles making sure the remote files get here in one piece
@@ -118,7 +123,7 @@ public abstract class AbstractInboundRemoteFileSystemSynchronizingMessageSource<
 			if (e instanceof RuntimeException){
 				throw (RuntimeException)e;
 			} else {
-				throw new MessagingException("Failure during initialization of " + this.getComponentName(), e);
+				throw new MessagingException("Failure during initialization of MessageSource for: " + this.getComponentType(), e);
 			}
 		}
         

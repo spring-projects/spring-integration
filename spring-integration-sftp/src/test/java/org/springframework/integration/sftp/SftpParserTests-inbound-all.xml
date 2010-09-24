@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+		xmlns="http://www.springframework.org/schema/integration"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:p="http://www.springframework.org/schema/p"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:lang="http://www.springframework.org/schema/lang"
+		xmlns:sftp="http://www.springframework.org/schema/integration/sftp"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+					 	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+                        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+						http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool-3.0.xsd
+						http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd
+						http://www.springframework.org/schema/integration/sftp http://www.springframework.org/schema/integration/sftp/spring-integration-sftp-2.0.xsd">
+
+
+	<channel id="requestChannel"/>
+
+
+	<sftp:inbound-channel-adapter id="sftpAdapterAutoCreate"
+			channel="requestChannel"
+			filter="filter"
+			filename-pattern="foo*.txt"
+			username="oleg"
+			remote-directory="ftp://foo"
+			local-directory-path="file:target/foo"
+			host="localhost"
+			password="hello"
+			port="1234"
+			key-file="ker.txt"
+			key-file-password="hello"
+			auto-create-directories="true"
+			auto-delete-remote-files-on-sync="false">
+		<poller fixed-rate="1000"/>
+	</sftp:inbound-channel-adapter>
+	<sftp:inbound-channel-adapter id="sftpAdapter"
+			channel="requestChannel"
+			filter="filter"
+			filename-pattern="foo*.txt"
+			username="oleg"
+			remote-directory="ftp://foo"
+			local-directory-path="file:target"
+			host="localhost"
+			password="hello"
+			port="1234"
+			key-file="ker.txt"
+			key-file-password="hello"
+			auto-create-directories="true"
+			auto-delete-remote-files-on-sync="false">
+		<poller fixed-rate="1000"/>
+	</sftp:inbound-channel-adapter>
+	
+	
+	<beans:bean id="filter" class="org.mockito.Mockito" factory-method="mock">
+		<beans:constructor-arg value="org.springframework.integration.file.entries.EntryListFilter"/>
+	</beans:bean>
+
+</beans:beans>
