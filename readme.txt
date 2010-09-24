@@ -1,4 +1,4 @@
-TODO: complete  
+TODO:complete  
 
 project distribution zip file can be built by executing
 
@@ -8,3 +8,4 @@ project distribution zip file can be built by executing
 licensing, changelog and other project information can be found under
 
     src/main/resources
+
