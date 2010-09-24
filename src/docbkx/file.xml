@@ -74,11 +74,11 @@
 	xmlns:integration="http://www.springframework.org/schema/integration"
 	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
 			http://www.springframework.org/schema/integration/file
-			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
+			http://www.springframework.org/schema/integration/file/spring-integration-file-2.0.xsd">
 </beans>]]></programlisting>
 			Within this namespace you can reduce the FileReadingMessageSource and wrap
 			it in an inbound Channel Adapter like this:

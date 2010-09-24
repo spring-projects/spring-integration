@@ -122,18 +122,18 @@
        xmlns:integration="http://www.springframework.org/schema/integration"
        xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
            http://www.springframework.org/schema/integration
-           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+           http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
            http://www.springframework.org/schema/integration/xml
-           http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
+           http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
 </beans>]]></programlisting>
 		The namespace support for <classname>UnmarshallingTransformer</classname> is shown below.
 		Since the namespace is now creating an endpoint instance rather than a transformer,
 		a poller can also be nested within the element to control the polling of the input channel.  
 		<programlisting language="xml"><![CDATA[<si-xml:unmarshalling-transformer id="defaultUnmarshaller"
     input-channel="input"
-    output-channel="output"
+    output-channel="output"	
     unmarshaller="unmarshaller"/>
 
 <si-xml:unmarshalling-transformer id="unmarshallerWithPoller"

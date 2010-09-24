@@ -74,7 +74,7 @@
 		Spring Integration provides an "httpinvoker" namespace and schema definition. To include it in your
 		configuration, simply provide the following URI within a namespace declaration:
 		'http://www.springframework.org/schema/integration/httpinvoker'. The schema location should then map to
-		'http://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker-1.0.xsd'.
+		'http://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker-2.0.xsd'.
 	</para>
     <para>
 		To configure the inbound gateway you can choose to use the namespace support for it. The following code snippet shows the different configuration options that are supported.
