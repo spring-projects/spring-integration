@@ -15,18 +15,12 @@
  */
 package org.springframework.integration.mail;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import java.util.Properties;
-
-import javax.mail.Flags;
 import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -34,18 +28,9 @@ import javax.mail.internet.MimeMessage;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.history.MessageHistory;
-import org.springframework.integration.mail.config.ImapIdleChannelAdapterParserTests;
-import org.springframework.integration.test.util.TestUtils;
-
-import com.sun.mail.imap.IMAPFolder;
 
 /**
  * @author Oleg Zhurakousky
@@ -124,8 +109,8 @@ public class Pop3MailReceiverTests {
 		verify(msg1, times(0)).setFlag(Flag.DELETED, true);
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
-	@Test @Ignore
-	public void receieveAndDontSetDeleteFlagWithUrl() throws Exception{
+	@Test
+	public void receieveAndDontSetDeleteWithUrl() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
@@ -160,7 +145,7 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receieveAndDontSetDeleteFlagWithoutUrl() throws Exception{
+	public void receieveAndDontSetDeleteWithoutUrl() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
