@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.util;
+package org.springframework.integration.endpoint;
 
 import java.util.concurrent.Executor;
 
@@ -26,6 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.ErrorHandler;
 
 /**

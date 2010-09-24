@@ -20,8 +20,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.config.Poller;
-import org.springframework.integration.scheduling.PollerFactory;
 import org.springframework.scheduling.Trigger;
 import org.springframework.util.Assert;
 /**

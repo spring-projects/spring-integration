@@ -21,7 +21,7 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.config.Poller;
+import org.springframework.integration.endpoint.Poller;
 import org.springframework.integration.util.ObjectDecorator;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;

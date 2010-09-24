@@ -30,9 +30,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.PollerFactory;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.scheduling.PollerFactory;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;

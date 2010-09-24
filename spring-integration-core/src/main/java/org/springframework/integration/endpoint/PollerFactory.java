@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.scheduling;
+package org.springframework.integration.endpoint;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -28,8 +28,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.config.Poller;
-import org.springframework.integration.util.AsyncInvokerAdvice;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.util.ObjectDecorator;
 import org.springframework.util.CollectionUtils;
 /**

@@ -13,7 +13,7 @@
 
 	<bean id="testEndpoint" class="org.springframework.integration.endpoint.PollingEndpointStub">
 		<property name="pollerFactory">
-			<bean class="org.springframework.integration.scheduling.PollerFactory">
+			<bean class="org.springframework.integration.endpoint.PollerFactory">
 				<constructor-arg>
 					<bean class="org.springframework.integration.scheduling.PollerMetadata">
 						<property name="taskExecutor" ref="taskExecutor"/>
