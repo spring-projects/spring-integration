@@ -17,7 +17,6 @@ package org.springframework.integration.mail;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -165,8 +164,9 @@ public class ImapMailReceiverTests {
 	}
 	@Test
 	public void receiveAndDontMarkAsReadButDelete() throws Exception{
-		AbstractMailReceiver receiver = new Pop3MailReceiver();
-		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
+		AbstractMailReceiver receiver = new ImapMailReceiver();
+		((ImapMailReceiver)receiver).setShouldDeleteMessages(true);
+		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
 		Message msg1 = mock(MimeMessage.class);

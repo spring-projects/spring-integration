@@ -296,10 +296,9 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	 */
 	protected void setAdditionalFlags(Message message) throws MessagingException {}
 	
-	/**
-	 * 
-	 */
+	@Override
 	protected void onInit() throws Exception {
+		super.onInit();
 		if (this.shouldDeleteMessages){
 			this.folderOpenMode = Folder.READ_WRITE;
 		}
