@@ -65,7 +65,11 @@ public class TcpNioClientConnectionFactory extends
 	public TcpConnection getConnection() throws Exception {
 		int n = 0;
 		while (this.selector == null) {
-			Thread.sleep(100);
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 			if (n++ > 600) {
 				throw new Exception("Factory failed to start");
 			}

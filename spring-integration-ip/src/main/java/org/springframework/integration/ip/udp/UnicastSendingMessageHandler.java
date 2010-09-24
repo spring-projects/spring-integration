@@ -198,7 +198,9 @@ public class UnicastSendingMessageHandler extends
 						this.taskExecutor.execute(this);
 						try {
 							ackLatch.await(10000, TimeUnit.MILLISECONDS);
-						} catch (InterruptedException e) { }
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+						}
 					}
 				}
 			}
@@ -218,8 +220,12 @@ public class UnicastSendingMessageHandler extends
 			this.send(packet);
 			logger.debug("Sent packet for message " + message);
 			if (this.waitForAck) {
-				if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
-					throw new MessagingException(message, "Failed to receive UDP Ack in " + ackTimeout + " millis");
+				try {
+					if (!countdownLatch.await(this.ackTimeout, TimeUnit.MILLISECONDS)) {
+						throw new MessagingException(message, "Failed to receive UDP Ack in " + ackTimeout + " millis");
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		}

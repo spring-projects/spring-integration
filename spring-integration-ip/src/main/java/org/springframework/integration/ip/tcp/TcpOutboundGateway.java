@@ -171,8 +171,12 @@ public class TcpOutboundGateway extends AbstractReplyProducingMessageHandler
 		 * @throws Exception
 		 */
 		public Message<?> getReply() throws Exception {
-			if (!this.latch.await(replyTimeout, TimeUnit.MILLISECONDS)) {
-				return null;
+			try {
+				if (!this.latch.await(replyTimeout, TimeUnit.MILLISECONDS)) {
+					return null;
+				}
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 			return this.reply;
 		}
