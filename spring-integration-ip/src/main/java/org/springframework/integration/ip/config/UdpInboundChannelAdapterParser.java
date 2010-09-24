@@ -21,8 +21,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.udp.MulticastReceivingChannelAdapter;
-import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -33,6 +31,8 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.udp";
 
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
@@ -68,12 +68,12 @@ public class UdpInboundChannelAdapterParser extends AbstractChannelAdapterParser
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("false")) {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(UnicastReceivingChannelAdapter.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+					".UnicastReceivingChannelAdapter");
 		}
 		else {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(MulticastReceivingChannelAdapter.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+					".MulticastReceivingChannelAdapter");
 			String mcAddress = element
 					.getAttribute(IpAdapterParserUtils.MULTICAST_ADDRESS);
 			if (!StringUtils.hasText(mcAddress)) {

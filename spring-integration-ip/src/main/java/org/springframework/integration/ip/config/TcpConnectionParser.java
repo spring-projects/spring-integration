@@ -21,10 +21,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.connection.TcpNetClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNetServerConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNioClientConnectionFactory;
-import org.springframework.integration.ip.tcp.connection.TcpNioServerConnectionFactory;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -34,6 +30,8 @@ import org.w3c.dom.Element;
  *
  */
 public class TcpConnectionParser extends AbstractBeanDefinitionParser {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp.connection";
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element,
@@ -47,22 +45,22 @@ public class TcpConnectionParser extends AbstractBeanDefinitionParser {
 		}
 		if (type.equals("client")) {
 			if (useNio.equals("true")) {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(
-						TcpNioClientConnectionFactory.class);
+				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + 
+						".TcpNioClientConnectionFactory");
 				IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);				
 			} else {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(
-						TcpNetClientConnectionFactory.class);
+				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+						".TcpNetClientConnectionFactory");
 				IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);	
 			}
 		} else if (type.equals("server")) {
 			if (useNio.equals("true")) {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(
-						TcpNioServerConnectionFactory.class);
+				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+						".TcpNioServerConnectionFactory");
 				IpAdapterParserUtils.addPortToConstructor(element, builder, parserContext);
 			} else {
-				builder = BeanDefinitionBuilder.genericBeanDefinition(
-						TcpNetServerConnectionFactory.class);
+				builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+						".TcpNetServerConnectionFactory");
 				IpAdapterParserUtils.addPortToConstructor(element, builder, parserContext);
 			}
 		} else {

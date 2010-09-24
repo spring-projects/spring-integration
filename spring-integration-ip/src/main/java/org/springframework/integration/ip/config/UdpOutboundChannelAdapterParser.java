@@ -21,8 +21,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.udp.MulticastSendingMessageHandler;
-import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -31,6 +29,8 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.udp";
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = parseUdp(element, parserContext);
@@ -47,8 +47,8 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		BeanDefinitionBuilder builder;
 		String multicast = IpAdapterParserUtils.getMulticast(element);
 		if (multicast.equals("true")) {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(MulticastSendingMessageHandler.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + 
+					".MulticastSendingMessageHandler");
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
 					element, IpAdapterParserUtils.MIN_ACKS_SUCCESS,
 					"minAcksForSuccess");
@@ -57,8 +57,8 @@ public class UdpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 					"timeToLive");
 		}
 		else {
-			builder = BeanDefinitionBuilder
-					.genericBeanDefinition(UnicastSendingMessageHandler.class);
+			builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+					".UnicastSendingMessageHandler");
 		}
 		IpAdapterParserUtils.addHostAndPortToConstructor(element, builder, parserContext);
 		IpAdapterParserUtils.addConstuctorValueIfAttributeDefined(builder,

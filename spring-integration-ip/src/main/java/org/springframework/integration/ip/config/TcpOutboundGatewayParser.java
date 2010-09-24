@@ -29,6 +29,8 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
 
 	@Override
 	protected String getInputChannelAttributeName() {
@@ -37,8 +39,8 @@ public class TcpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.ip.tcp.TcpOutboundGateway");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+				".TcpOutboundGateway");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 

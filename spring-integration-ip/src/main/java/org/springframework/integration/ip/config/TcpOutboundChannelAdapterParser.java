@@ -21,7 +21,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.TcpSendingMessageHandler;
 import org.w3c.dom.Element;
 
 /**
@@ -29,10 +28,12 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class TcpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
 
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
-				TcpSendingMessageHandler.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE +
+				".TcpSendingMessageHandler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, 
 				IpAdapterParserUtils.TCP_CONNECTION_FACTORY);
 		return builder.getBeanDefinition();

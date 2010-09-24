@@ -19,7 +19,6 @@ package org.springframework.integration.ip.config;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.config.xml.AbstractInboundGatewayParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ip.tcp.TcpInboundGateway;
 import org.w3c.dom.Element;
 
 /**
@@ -27,10 +26,12 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class TcpInboundGatewayParser extends AbstractInboundGatewayParser {
+	
+	private static final String BASE_PACKAGE = "org.springframework.integration.ip.tcp";
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return TcpInboundGateway.class;
+	protected String getBeanClassName(Element element) {
+		return BASE_PACKAGE + ".TcpInboundGateway";
 	}
 
 	@Override
