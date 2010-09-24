@@ -80,13 +80,11 @@ public abstract class AbstractMailReceiver extends IntegrationObjectSupport impl
 	public AbstractMailReceiver(URLName urlName) {
 		Assert.notNull(urlName, "urlName must not be null");
 		this.url = urlName;
-		//this.shouldDeleteMessages = urlName.getProtocol().startsWith("pop3");
 	}
 
 	public AbstractMailReceiver(String url) {
 		if (url != null) {
 			this.url = new URLName(url);
-			//this.shouldDeleteMessages = this.url.getProtocol().startsWith("pop3");
 		}
 		else {
 			this.url = null;

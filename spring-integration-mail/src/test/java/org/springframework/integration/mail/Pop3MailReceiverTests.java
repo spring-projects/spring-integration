@@ -38,7 +38,7 @@ import org.springframework.beans.DirectFieldAccessor;
  */
 public class Pop3MailReceiverTests {
 	@Test
-	public void receieveAndDelete() throws Exception{
+	public void receiveAndDelete() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
 		receiver = spy(receiver);
@@ -74,7 +74,7 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receieveAndDontDelete() throws Exception{
+	public void receiveAndDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(false);
 		receiver = spy(receiver);
@@ -110,7 +110,7 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receieveAndDontSetDeleteWithUrl() throws Exception{
+	public void receiveAndDontSetDeleteWithUrl() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver("pop3://some.host");
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();
@@ -145,7 +145,7 @@ public class Pop3MailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receieveAndDontSetDeleteWithoutUrl() throws Exception{
+	public void receiveAndDontSetDeleteWithoutUrl() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();

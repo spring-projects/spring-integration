@@ -53,10 +53,8 @@ import com.sun.mail.imap.IMAPFolder;
  */
 public class ImapMailReceiverTests {
 	
-	
-	
 	@Test
-	public void receieveAndMarkAsReadDontDelete() throws Exception{
+	public void receiveAndMarkAsReadDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
 		receiver = spy(receiver);
@@ -93,7 +91,7 @@ public class ImapMailReceiverTests {
 		verify(receiver, times(0)).deleteMessages((Message[]) Mockito.any());
 	}
 	@Test
-	public void receieveMarkAsReadAndDelete() throws Exception{
+	public void receiveMarkAsReadAndDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(true);
 		receiver.setShouldDeleteMessages(true);
@@ -130,7 +128,7 @@ public class ImapMailReceiverTests {
 		verify(receiver, times(1)).deleteMessages((Message[]) Mockito.any());
 	}
 	@Test
-	public void receieveAndDontMarkAsRead() throws Exception{
+	public void receiveAndDontMarkAsRead() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		((ImapMailReceiver)receiver).setShouldMarkMessagesAsRead(false);
 		receiver = spy(receiver);
@@ -166,7 +164,7 @@ public class ImapMailReceiverTests {
 		verify(msg2, times(0)).setFlag(Flag.SEEN, true);
 	}
 	@Test
-	public void receieveAndDontMarkAsReadButDelete() throws Exception{
+	public void receiveAndDontMarkAsReadButDelete() throws Exception{
 		AbstractMailReceiver receiver = new Pop3MailReceiver();
 		((Pop3MailReceiver)receiver).setShouldDeleteMessages(true);
 		receiver = spy(receiver);
@@ -204,7 +202,7 @@ public class ImapMailReceiverTests {
 		verify(msg2, times(1)).setFlag(Flag.DELETED, true);
 	}
 	@Test
-	public void receieveAndIgnoreMarkAsReadDontDelete() throws Exception{
+	public void receiveAndIgnoreMarkAsReadDontDelete() throws Exception{
 		AbstractMailReceiver receiver = new ImapMailReceiver();
 		receiver = spy(receiver);
 		receiver.afterPropertiesSet();

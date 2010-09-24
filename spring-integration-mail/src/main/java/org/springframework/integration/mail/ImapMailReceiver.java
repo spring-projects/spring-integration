@@ -174,9 +174,8 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 			}
 		}
 	}
-	/**
-	 * 
-	 */
+	
+	@Override
 	protected void onInit() throws Exception {
 		if (this.shouldMarkMessagesAsRead){
 			this.folderOpenMode = Folder.READ_WRITE;
