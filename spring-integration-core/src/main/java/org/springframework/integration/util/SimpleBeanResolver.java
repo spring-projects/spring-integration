@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.context;
+package org.springframework.integration.util;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.expression.AccessException;

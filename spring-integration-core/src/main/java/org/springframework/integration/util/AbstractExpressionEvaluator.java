@@ -27,7 +27,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.context.SimpleBeanResolver;
 
 /**
  * @author Mark Fisher
