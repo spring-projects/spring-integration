@@ -172,8 +172,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					int count = 0;
 					while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
 						try {
-							boolean b = pollingTask.call();
-							if (!b){
+							boolean computed = pollingTask.call();
+							if (!computed){
 								break;
 							}
 							count++;
