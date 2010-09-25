@@ -27,6 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.oxm.Marshaller;
@@ -228,9 +229,11 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithPoller");
 		assertEquals(PollingConsumer.class, endpoint.getClass());
-		Object obj = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
-		assertEquals(PeriodicTrigger.class, obj.getClass());
-		PeriodicTrigger trigger = (PeriodicTrigger) obj;
+		Object pollerMetadata = new DirectFieldAccessor(endpoint).getPropertyValue("pollerMetadata");
+		assertEquals(PollerMetadata.class, pollerMetadata.getClass());
+		Object triggerObject = new DirectFieldAccessor(pollerMetadata).getPropertyValue("trigger");
+		assertEquals(PeriodicTrigger.class, triggerObject.getClass());
+		PeriodicTrigger trigger = (PeriodicTrigger) triggerObject;
 		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
 		accessor = new DirectFieldAccessor(trigger);
 		assertEquals("PeriodicTrigger had wrong period",

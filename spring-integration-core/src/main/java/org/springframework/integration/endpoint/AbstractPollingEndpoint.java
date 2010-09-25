@@ -97,23 +97,27 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception{
-		ProxyFactory proxyFactory = new ProxyFactory(this);
-		
-		// Add Transaction advice first
+		Callable<Boolean> pollingTask = this;
 		Advisor transactionAdvice = this.pollerMetadata.getTransactionAdvisor();
-		if (transactionAdvice != null){
-			proxyFactory.addAdvisor(transactionAdvice);
-		}
-		
-		// . . .then add the rest of the advises
 		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
-		if (!CollectionUtils.isEmpty(adviceChain)){
-			for (Advice advice : adviceChain) {
-				proxyFactory.addAdvice(advice);
+		if (transactionAdvice != null || !CollectionUtils.isEmpty(adviceChain)){
+			ProxyFactory proxyFactory = new ProxyFactory(this);
+			
+			// Add Transaction advice first
+			if (transactionAdvice != null){
+				proxyFactory.addAdvisor(transactionAdvice);
 			}
+			
+			// . . .then add the rest of the advises
+			if (!CollectionUtils.isEmpty(adviceChain)){
+				for (Advice advice : adviceChain) {
+					proxyFactory.addAdvice(advice);
+				}
+			}
+			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
 		}
 		
-		return new Poller((Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader));
+		return new Poller(pollingTask);
 	}
 
 	// LifecycleSupport implementation
@@ -134,6 +138,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			this.runningTask.cancel(true);
 		}
 		this.runningTask = null;
+		this.initialized = false;
 	}
 	
 	public void setPollerMetadata(PollerMetadata pollerMetadata) {
@@ -167,7 +172,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 					int count = 0;
 					while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
 						try {
-							if (!pollingTask.call()){
+							boolean b = pollingTask.call();
+							if (!b){
 								break;
 							}
 							count++;

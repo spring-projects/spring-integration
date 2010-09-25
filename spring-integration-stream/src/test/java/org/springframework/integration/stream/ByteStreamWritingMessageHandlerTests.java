@@ -17,6 +17,7 @@
 package org.springframework.integration.stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
@@ -67,6 +69,7 @@ public class ByteStreamWritingMessageHandlerTests {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setTrigger(trigger);
 		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 	}
 
 	@After
@@ -96,6 +99,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
 		pollerMetadata.setMaxMessagesPerPoll(3);
 		endpoint.setPollerMetadata(pollerMetadata);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -113,6 +117,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	@Test
 	public void maxMessagesPerTaskLessThanMessageCount() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
 		pollerMetadata.setMaxMessagesPerPoll(2);
 		endpoint.setPollerMetadata(pollerMetadata);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -129,6 +134,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	@Test
 	public void maxMessagesPerTaskExceedsMessageCount() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
 		pollerMetadata.setMaxMessagesPerPoll(5);
 		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.setReceiveTimeout(0);
@@ -146,6 +152,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	@Test
 	public void testMaxMessagesLessThanMessageCountWithMultipleDispatches() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
 		pollerMetadata.setMaxMessagesPerPoll(2);
 		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.setReceiveTimeout(0);
@@ -171,6 +178,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	@Test
 	public void testMaxMessagesExceedsMessageCountWithMultipleDispatches() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
 		pollerMetadata.setMaxMessagesPerPoll(5);
 		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.setReceiveTimeout(0);
@@ -196,6 +204,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	public void testStreamResetBetweenDispatches() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(2);
+		pollerMetadata.setTrigger(trigger);
 		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.setReceiveTimeout(0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -219,6 +228,7 @@ public class ByteStreamWritingMessageHandlerTests {
 	@Test
 	public void testStreamWriteBetweenDispatches() throws IOException {
 		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
 		pollerMetadata.setMaxMessagesPerPoll(2);
 		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.setReceiveTimeout(0);
