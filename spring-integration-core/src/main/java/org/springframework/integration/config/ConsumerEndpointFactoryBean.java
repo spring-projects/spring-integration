@@ -31,7 +31,6 @@ import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.core.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.endpoint.PollerFactory;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
@@ -159,13 +158,10 @@ public class ConsumerEndpointFactoryBean
 					Assert.notNull(this.pollerMetadata, "No poller has been defined for endpoint '" + this.beanName
 							+ "', and no default poller is available within the context.");
 				}
-				pollingConsumer.setTrigger(this.pollerMetadata.getTrigger());
+				pollingConsumer.setPollerMetadata(this.pollerMetadata);
 				pollingConsumer.setReceiveTimeout(this.pollerMetadata.getReceiveTimeout());
-				
-				PollerFactory pollerFactory = new PollerFactory(pollerMetadata);
-				pollerFactory.setBeanFactory(this.beanFactory);
-				pollerFactory.setBeanClassLoader(this.beanClassLoader);
-				pollingConsumer.setPollerFactory(pollerFactory);
+				pollingConsumer.setBeanClassLoader(beanClassLoader);
+				pollingConsumer.setBeanFactory(beanFactory);
 				this.endpoint = pollingConsumer;
 			}
 			else {

@@ -34,7 +34,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
-import org.springframework.integration.endpoint.PollerFactory;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -73,9 +72,8 @@ public class PollingTransactionTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionTests.xml", this.getClass());
 		PollingConsumer advicedPoller = context.getBean("advicedSa", PollingConsumer.class);
-		
-		PollerFactory pollerFactory = TestUtils.getPropertyValue(advicedPoller, "pollerFactory",PollerFactory.class);
-		PollerMetadata pollerMetedata = TestUtils.getPropertyValue(pollerFactory, "pollerMetadata",PollerMetadata.class);
+	
+		PollerMetadata pollerMetedata = TestUtils.getPropertyValue(advicedPoller, "pollerMetadata",PollerMetadata.class);
 		List<Advice> adviceChain = TestUtils.getPropertyValue(pollerMetedata, "adviceChain",List.class);
 		assertEquals(2, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);

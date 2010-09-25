@@ -29,10 +29,10 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.support.ManagedProperties;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -98,7 +98,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		if (txElement != null) {
-			configureTransactionAttributes(txElement, metadataBuilder);
+			configureTransactionAttributes(txElement, metadataBuilder, parserContext);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
 		return metadataBuilder.getBeanDefinition();
@@ -199,22 +199,32 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	}
 
 	/**
-	 * Parse a "transactional" element and configure the "transactionManager"
-	 * and "transactionDefinition" properties for the target builder.
+	 * Parse a "transactional" element and configure {@link TransactionAttributeSourceAdvisor} with "transactionManager"
+	 * and other "transactionDefinition" properties. This advisor will be applied on Polling Task proxy
+	 * (see {@link AbstractPollingEndpoint}).
 	 */
-	private void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder) {
-		ManagedProperties transactionalProperties = new ManagedProperties();
-		transactionalProperties.setProperty("transactionManager", txElement.getAttribute("transaction-manager"));
+	private void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+		String TX_PKG_PREFIX = "org.springframework.transaction.interceptor";
+		BeanDefinitionBuilder txDefinitionBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".DefaultTransactionAttribute");
+		txDefinitionBuilder.addPropertyValue("propagationBehaviorName", "PROPAGATION_" + txElement.getAttribute("propagation"));
+		txDefinitionBuilder.addPropertyValue("isolationLevelName", "ISOLATION_" + txElement.getAttribute("isolation"));
+		txDefinitionBuilder.addPropertyValue("timeout", txElement.getAttribute("timeout"));
+		txDefinitionBuilder.addPropertyValue("readOnly", txElement.getAttribute("read-only"));
+		BeanDefinitionBuilder attributeSourceBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".MatchAlwaysTransactionAttributeSource");
+		attributeSourceBuilder.addPropertyValue("transactionAttribute", txDefinitionBuilder.getBeanDefinition());
 		
-		transactionalProperties.setProperty("PROPAGATION", "PROPAGATION_" + txElement.getAttribute("propagation"));
-		transactionalProperties.setProperty("ISOLATION", "ISOLATION_" + txElement.getAttribute("isolation"));
-		transactionalProperties.setProperty("timeout", txElement.getAttribute("timeout"));
-		transactionalProperties.setProperty("readOnly", txElement.getAttribute("read-only"));
-		
-		BeanDefinitionBuilder pollingDecoratorBuilder = 
-			BeanDefinitionBuilder.genericBeanDefinition("org.springframework.integration.scheduling.PollerTaskTransactionDecorator");
-		pollingDecoratorBuilder.addPropertyValue("transactionalProperties", transactionalProperties);
-		targetBuilder.addPropertyValue("transactionDecorator", pollingDecoratorBuilder.getBeanDefinition());
+		BeanDefinitionBuilder txInterceptorBuilder = 
+			BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".TransactionInterceptor");
+		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
+		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
+		BeanDefinitionBuilder txAdvisorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".TransactionAttributeSourceAdvisor");
+		txAdvisorBuilder.addConstructorArgValue(txInterceptorBuilder.getBeanDefinition());
+		String txInterceptorName = 
+			BeanDefinitionReaderUtils.registerWithGeneratedName(txAdvisorBuilder.getBeanDefinition(), parserContext.getRegistry());
+	
+		targetBuilder.addPropertyReference("transactionAdvisor", txInterceptorName);
 	}
 
 	/**

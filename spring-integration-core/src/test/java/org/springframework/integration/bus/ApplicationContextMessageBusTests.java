@@ -20,12 +20,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -39,6 +40,7 @@ import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
@@ -67,6 +69,8 @@ public class ApplicationContextMessageBusTests {
 		handler.setBeanFactory(context);
 		handler.afterPropertiesSet();
 		PollingConsumer endpoint = new PollingConsumer(sourceChannel, handler);
+		endpoint.setPollerMetadata(new PollerMetadata());
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		Message<?> result = targetChannel.receive(3000);
@@ -123,7 +127,11 @@ public class ApplicationContextMessageBusTests {
 		handler1.setOutputChannel(outputChannel1);
 		handler2.setOutputChannel(outputChannel2);
 		PollingConsumer endpoint1 = new PollingConsumer(inputChannel, handler1);
+		endpoint1.setPollerMetadata(new PollerMetadata());
+		endpoint1.setBeanFactory(mock(BeanFactory.class));
 		PollingConsumer endpoint2 = new PollingConsumer(inputChannel, handler2);
+		endpoint2.setPollerMetadata(new PollerMetadata());
+		endpoint2.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint1", endpoint1);
 		context.registerEndpoint("testEndpoint2", endpoint2);
 		context.refresh();
@@ -184,7 +192,9 @@ public class ApplicationContextMessageBusTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		SourcePollingChannelAdapter channelAdapter = new SourcePollingChannelAdapter();
 		channelAdapter.setSource(new FailingSource(latch));
-		channelAdapter.setTrigger(new PeriodicTrigger(1000));
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(new PeriodicTrigger(1000));
+		channelAdapter.setPollerMetadata(pollerMetadata);
 		channelAdapter.setOutputChannel(outputChannel);
 		context.registerEndpoint("testChannel", channelAdapter);
 		context.refresh();
@@ -212,6 +222,8 @@ public class ApplicationContextMessageBusTests {
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(errorChannel, handler);
+		endpoint.setPollerMetadata(new PollerMetadata());
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));

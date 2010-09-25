@@ -146,12 +146,6 @@ public abstract class TestUtils {
         }
 
         public void registerEndpoint(String endpointName, AbstractEndpoint endpoint) {
-            if (endpoint instanceof AbstractPollingEndpoint) {
-                DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
-                if (accessor.getPropertyValue("trigger") == null) {
-                    ((AbstractPollingEndpoint) endpoint).setTrigger(new PeriodicTrigger(10));
-                }
-            }
             registerBean(endpointName, endpoint, this);
         }
     }

@@ -5,29 +5,36 @@
 			http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="taskScheduler" class="org.springframework.integration.test.util.TestUtils"
-		  factory-method="createTaskScheduler">
-		<constructor-arg value="10"/>
+		factory-method="createTaskScheduler">
+		<constructor-arg value="10" />
 	</bean>
 
-	<bean id="sourceChannel" class="org.springframework.integration.channel.QueueChannel"/>
+	<bean id="sourceChannel" class="org.springframework.integration.channel.QueueChannel" />
 
-	<bean id="targetChannel" class="org.springframework.integration.channel.QueueChannel"/>
+	<bean id="targetChannel" class="org.springframework.integration.channel.QueueChannel" />
 
-	<bean id="endpoint" class="org.springframework.integration.endpoint.PollingConsumer">
-		<constructor-arg ref="sourceChannel"/>
-		<constructor-arg ref="serviceActivator"/>
-		<property name="trigger">
-			<bean class="org.springframework.scheduling.support.PeriodicTrigger">
-				<constructor-arg value="100"/>
+	<bean id="endpoint"
+		class="org.springframework.integration.endpoint.PollingConsumer">
+		<constructor-arg ref="sourceChannel" />
+		<constructor-arg ref="serviceActivator" />
+		<property name="pollerMetadata">
+			<bean class="org.springframework.integration.scheduling.PollerMetadata">
+				<property name="trigger">
+					<bean class="org.springframework.scheduling.support.PeriodicTrigger">
+						<constructor-arg value="100" />
+					</bean>
+				</property>
 			</bean>
 		</property>
 	</bean>
 
-	<bean id="serviceActivator" class="org.springframework.integration.handler.ServiceActivatingHandler">
-		<constructor-arg ref="handler"/>
-		<property name="outputChannel" ref="targetChannel"/>
+	<bean id="serviceActivator"
+		class="org.springframework.integration.handler.ServiceActivatingHandler">
+		<constructor-arg ref="handler" />
+		<property name="outputChannel" ref="targetChannel" />
 	</bean>
 
-	<bean id="handler" class="org.springframework.integration.message.TestHandlers" factory-method="echoHandler"/>
+	<bean id="handler" class="org.springframework.integration.message.TestHandlers"
+		factory-method="echoHandler" />
 
 </beans>

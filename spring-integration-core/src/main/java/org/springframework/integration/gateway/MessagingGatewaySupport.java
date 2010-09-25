@@ -32,9 +32,9 @@ import org.springframework.integration.history.TrackableComponent;
 import org.springframework.integration.mapping.InboundMessageMapper;
 import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 
 /**
@@ -281,7 +281,7 @@ public abstract class MessagingGatewaySupport extends AbstractEndpoint implement
 			else if (this.replyChannel instanceof PollableChannel) {
 				PollingConsumer endpoint = new PollingConsumer(
 						(PollableChannel) this.replyChannel, handler);
-				endpoint.setTrigger(new PeriodicTrigger(10));
+				endpoint.setPollerMetadata(new PollerMetadata());
 				endpoint.setBeanFactory(this.getBeanFactory());
 				endpoint.setReceiveTimeout(this.replyTimeout);
 				endpoint.afterPropertiesSet();

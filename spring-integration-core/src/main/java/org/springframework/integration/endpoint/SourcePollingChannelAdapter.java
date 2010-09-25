@@ -42,7 +42,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
 
-
 	/**
 	 * Specify the source to be polled for Messages.
 	 */
@@ -85,8 +84,7 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		super.onInit();
 	}
 
-	@Override
-	protected boolean doPoll() {
+	public Boolean call() throws Exception {
 		Message<?> message = this.source.receive();
 		if (message != null) {
 			if (this.shouldTrack) {
@@ -97,5 +95,4 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		}
 		return false;
 	}
-
 }

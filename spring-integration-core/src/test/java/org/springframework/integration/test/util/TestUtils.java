@@ -41,11 +41,9 @@ import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.NamedComponent;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.history.MessageHistory;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
 import org.springframework.util.StringUtils;
@@ -145,12 +143,6 @@ public abstract class TestUtils {
         }
 
         public void registerEndpoint(String endpointName, AbstractEndpoint endpoint) {
-            if (endpoint instanceof AbstractPollingEndpoint) {
-                DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
-                if (accessor.getPropertyValue("trigger") == null) {
-                    ((AbstractPollingEndpoint) endpoint).setTrigger(new PeriodicTrigger(10));
-                }
-            }
             registerBean(endpointName, endpoint, this);
         }
     }

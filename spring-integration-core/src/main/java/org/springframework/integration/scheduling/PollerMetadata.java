@@ -17,11 +17,12 @@
 package org.springframework.integration.scheduling;
 
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import org.aopalliance.aop.Advice;
-import org.springframework.integration.util.ObjectDecorator;
+import org.springframework.aop.Advisor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.Trigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
  * @author Mark Fisher
@@ -29,24 +30,26 @@ import org.springframework.scheduling.Trigger;
  */
 public class PollerMetadata {
 
-	private volatile Trigger trigger;
+	public static final int MAX_MESSAGES_UNBOUNDED = -1;
+	
+	private volatile Trigger trigger = new PeriodicTrigger(10);
 
-	private volatile int maxMessagesPerPoll;
+	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED;
 
 	private volatile long receiveTimeout = 1000;
 
 	private List<Advice> adviceChain;
 
-	private volatile Executor taskExecutor;
+	private volatile TaskExecutor taskExecutor;
 	
-	private volatile ObjectDecorator transactionDecorator;
-
-	public ObjectDecorator getTransactionDecorator() {
-		return transactionDecorator;
+	private volatile Advisor transactionAdvice;
+	
+	public Advisor getTransactionAdvisor() {
+		return transactionAdvice;
 	}
 
-	public void setTransactionDecorator(ObjectDecorator transactionDecorator) {
-		this.transactionDecorator = transactionDecorator;
+	public void setTransactionAdvisor(Advisor transactionAdvice) {
+		this.transactionAdvice = transactionAdvice;
 	}
 
 	public void setTrigger(Trigger trigger) {
@@ -57,11 +60,20 @@ public class PollerMetadata {
 		return this.trigger;
 	}
 
-	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
+	/**
+	 * Set the maximum number of messages to receive for each poll.
+	 * A non-positive value indicates that polling should repeat as long
+	 * as non-null messages are being received and successfully sent.
+	 * 
+	 * <p>The default is unbounded.
+	 * 
+	 * @see #MAX_MESSAGES_UNBOUNDED
+	 */
+	public void setMaxMessagesPerPoll(long maxMessagesPerPoll) {
 		this.maxMessagesPerPoll = maxMessagesPerPoll;
 	}
 
-	public int getMaxMessagesPerPoll() {
+	public long getMaxMessagesPerPoll() {
 		return this.maxMessagesPerPoll;
 	}
 
@@ -81,11 +93,11 @@ public class PollerMetadata {
 		return this.adviceChain;
 	}
 
-	public void setTaskExecutor(Executor taskExecutor) {
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
-	public Executor getTaskExecutor() {
+	public TaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 }

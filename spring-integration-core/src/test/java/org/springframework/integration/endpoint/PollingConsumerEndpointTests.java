@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -34,6 +35,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
@@ -75,10 +77,14 @@ public class PollingConsumerEndpointTests {
 		trigger.reset();
 		endpoint = new PollingConsumer(channelMock, consumer);
 		taskScheduler.setPoolSize(5);
-		taskScheduler.setErrorHandler(errorHandler);
+		endpoint.setErrorHandler(errorHandler);
 		endpoint.setTaskScheduler(taskScheduler);
-		endpoint.setTrigger(trigger);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
+		endpoint.setBeanFactory(mock(BeanFactory.class));
 		endpoint.setReceiveTimeout(-1);
+		endpoint.afterPropertiesSet();
 		taskScheduler.afterPropertiesSet();
 		reset(channelMock);
 	}
@@ -96,7 +102,8 @@ public class PollingConsumerEndpointTests {
 		replay(channelMock);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -110,7 +117,8 @@ public class PollingConsumerEndpointTests {
 		replay(channelMock);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(5);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -125,7 +133,8 @@ public class PollingConsumerEndpointTests {
 		replay(channelMock);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(6);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -160,7 +169,9 @@ public class PollingConsumerEndpointTests {
 		replay(channelMock);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(10);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
+		//endpoint.setErrorHandler(null);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();
@@ -190,7 +201,8 @@ public class PollingConsumerEndpointTests {
 		endpoint.setReceiveTimeout(1);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.start();
 		trigger.await();
 		endpoint.stop();

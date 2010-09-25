@@ -8,9 +8,7 @@
 			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd">
 
 	<si:inbound-channel-adapter id="inboundEndpoint" ref="counter" method="next" channel="producerAndConsumerAutoStartupTestChannel">
-		<si:poller max-messages-per-poll="1">
-			<si:interval-trigger interval="50"/>
-		</si:poller>
+		<si:poller max-messages-per-poll="1" fixed-rate="50"/>
 	</si:inbound-channel-adapter>
 
 	<si:channel id="producerAndConsumerAutoStartupTestChannel"/>

@@ -15,23 +15,42 @@
  */
 package org.springframework.integration.endpoint;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
+import org.aopalliance.aop.Advice;
+import org.springframework.aop.Advisor;
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
-import org.springframework.scheduling.Trigger;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.scheduling.PollerMetadata;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ErrorHandler;
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean{
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware, Callable<Boolean>{
+	
+	private volatile TaskExecutor taskExecutor = new SyncTaskExecutor();
+	
+	private ErrorHandler errorHandler;
 
-	private volatile Trigger trigger;
+	private volatile PollerMetadata pollerMetadata;
 
-	private  PollerFactory pollerFactory;
-
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+	
 	private volatile ScheduledFuture<?> runningTask;
 
 	private volatile Runnable poller;
@@ -45,46 +64,56 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
 	}
-	/**
-	 * @param trigger
-	 */
-	public void setTrigger(Trigger trigger) {
-		this.trigger = trigger;
-	}
-	/**
-	 * @param pollerFactory
-	 */
-	public void setPollerFactory(PollerFactory pollerFactory) {
-		this.pollerFactory = pollerFactory;
-	}
+	
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
-			Assert.notNull(this.trigger, "trigger is required");
+			Assert.notNull(this.pollerMetadata.getTrigger(), "trigger is required");
+			Assert.notNull(this.getBeanFactory(), "BeanFactory must be provided");
+			TaskExecutor executor = pollerMetadata.getTaskExecutor();
+			if (executor != null){
+				taskExecutor = executor;
+			}
+			if (taskExecutor != null){
+				if (!(taskExecutor instanceof ErrorHandlingTaskExecutor)) {				
+					if (errorHandler == null) {
+						errorHandler = new MessagePublishingErrorHandler(
+								new BeanFactoryChannelResolver(getBeanFactory()));
+					}
+					taskExecutor = new ErrorHandlingTaskExecutor(taskExecutor, errorHandler);
+				}
+			}
 			try {
 				this.poller = this.createPoller();
 				this.initialized = true;
 			} catch (Exception e) {
-				throw new MessagingException("Problems creating a poller", e);
+				throw new MessagingException("Failed to create Poller", e);
 			}
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception{
-		Callable<Boolean> pollingTask = new Callable<Boolean>() {
-			public Boolean call() throws Exception {
-				return doPoll();
-			}
-		};
-		if (pollerFactory == null){
-			poller = new Poller(pollingTask);
-		} else {
-			poller = pollerFactory.createPoller(pollingTask);
+		ProxyFactory proxyFactory = new ProxyFactory(this);
+		
+		// Add Transaction advice first
+		Advisor transactionAdvice = this.pollerMetadata.getTransactionAdvisor();
+		if (transactionAdvice != null){
+			proxyFactory.addAdvisor(transactionAdvice);
 		}
-		return poller;
+		
+		// . . .then add the rest of the advises
+		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
+		if (!CollectionUtils.isEmpty(adviceChain)){
+			for (Advice advice : adviceChain) {
+				proxyFactory.addAdvice(advice);
+			}
+		}
+		
+		return new Poller((Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader));
 	}
 
 	// LifecycleSupport implementation
@@ -96,7 +125,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		Assert.state(this.getTaskScheduler() != null,
 				"unable to start polling, no taskScheduler available");
-		this.runningTask = this.getTaskScheduler().schedule(this.poller, this.trigger);
+		this.runningTask = this.getTaskScheduler().schedule(this.poller, this.pollerMetadata.getTrigger());
 	}
 
 	@Override // guarded by super#lifecycleLock
@@ -106,6 +135,52 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		}
 		this.runningTask = null;
 	}
+	
+	public void setPollerMetadata(PollerMetadata pollerMetadata) {
+		this.pollerMetadata = pollerMetadata;
+	}
+	
+	public void setBeanClassLoader(ClassLoader classLoader){
+		this.beanClassLoader = classLoader;
+	}
+	
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+	
+	/**
+	 * Default Poller implementation
+	 */
+	private class Poller implements Runnable {
+		private final long maxMessagesPerPoll = pollerMetadata.getMaxMessagesPerPoll();
+		private final Callable<Boolean> pollingTask;
+		
+		public Poller(Callable<Boolean> pollingTask){
+			this.pollingTask = pollingTask;
+		}
 
-	protected abstract boolean doPoll();
+		public void run() {
+			
+			taskExecutor.execute(new Runnable() {
+				
+				public void run() {
+					int count = 0;
+					while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
+						try {
+							if (!pollingTask.call()){
+								break;
+							}
+							count++;
+						} catch (Exception e) {
+							if (e instanceof RuntimeException) {
+								throw (RuntimeException)e;
+							} else {
+								throw new MessageHandlingException(new ErrorMessage(e));
+							}
+						}
+					}
+				}
+			});
+		}
+	}
 }

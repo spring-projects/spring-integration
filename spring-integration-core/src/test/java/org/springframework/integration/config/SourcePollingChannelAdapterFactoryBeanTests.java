@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,10 @@ import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.springframework.aop.Advisor;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
@@ -35,7 +41,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
-import org.springframework.integration.util.ObjectDecorator;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.util.ClassUtils;
 
@@ -70,13 +75,13 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		factoryBean.afterPropertiesSet();
 		context.registerEndpoint("testPollingEndpoint", factoryBean.getObject());
 		context.refresh();
-		Message<?> message = outputChannel.receive(30000);
+		Message<?> message = outputChannel.receive(5000);
 		assertEquals("test", message.getPayload());
 		assertTrue("adviceChain was not applied", adviceApplied.get());
 	}
 
 	@Test
-	public void testTransactionalAdviceChain() throws Exception {
+	public void testTransactionalAdviceChain() throws Throwable {
 		SourcePollingChannelAdapterFactoryBean factoryBean = new SourcePollingChannelAdapterFactoryBean();
 		QueueChannel outputChannel = new QueueChannel();
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
@@ -96,19 +101,29 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollerMetadata.setTrigger(new PeriodicTrigger(5000));
 		pollerMetadata.setMaxMessagesPerPoll(1);
 		final AtomicInteger count = new AtomicInteger();
-		pollerMetadata.setTransactionDecorator(new ObjectDecorator() {
-			public Object decorate(Object poller) {
-				count.incrementAndGet();
-				return poller;
+		final MethodInterceptor txAdvice = mock(MethodInterceptor.class);
+		pollerMetadata.setTransactionAdvisor(new Advisor() {	
+			public boolean isPerInstance() {
+				return false;
+			}	
+			public Advice getAdvice() {
+				return txAdvice;
 			}
 		});
+		when(txAdvice.invoke(Mockito.any(MethodInvocation.class))).thenAnswer(new Answer() {
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				count.incrementAndGet();
+				return ((MethodInvocation)invocation.getArguments()[0]).proceed();
+			}
+		});
+	
 		pollerMetadata.setAdviceChain(adviceChain);
 		factoryBean.setPollerMetadata(pollerMetadata);
 		factoryBean.setAutoStartup(true);
 		factoryBean.afterPropertiesSet();
 		context.registerEndpoint("testPollingEndpoint", factoryBean.getObject());
 		context.refresh();
-		Message<?> message = outputChannel.receive(30000);
+		Message<?> message = outputChannel.receive(5000);
 		assertEquals("test", message.getPayload());
 		assertEquals(1, count.get());
 		assertTrue("adviceChain was not applied", adviceApplied.get());

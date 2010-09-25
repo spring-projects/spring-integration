@@ -47,8 +47,9 @@ public class PollingConsumer extends AbstractPollingEndpoint {
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
 	}
-	@Override
-	protected boolean doPoll() {
+
+	
+	public Boolean call() {
 		Message<?> message = (this.receiveTimeout >= 0)
 				? this.inputChannel.receive(this.receiveTimeout)
 				: this.inputChannel.receive();

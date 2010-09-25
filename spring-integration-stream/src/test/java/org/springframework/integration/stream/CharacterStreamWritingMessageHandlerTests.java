@@ -27,9 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.PollerFactory;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
@@ -66,7 +64,9 @@ public class CharacterStreamWritingMessageHandlerTests {
 		this.endpoint.setTaskScheduler(scheduler);
 		scheduler.afterPropertiesSet();
 		trigger.reset();
-		endpoint.setTrigger(trigger);
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(trigger);
+		endpoint.setPollerMetadata(pollerMetadata);
 	}
 
 	@After
@@ -85,7 +85,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void twoStringsAndNoNewLinesByDefault() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		endpoint.setPollerMetadata(pollerMetadata);
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -104,7 +104,8 @@ public class CharacterStreamWritingMessageHandlerTests {
 		handler.setShouldAppendNewLine(true);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));		channel.send(new GenericMessage<String>("foo"), 0);
+		endpoint.setPollerMetadata(pollerMetadata);	
+		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
 		trigger.await();
@@ -122,7 +123,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskSameAsMessageCount() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(2);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		endpoint.setPollerMetadata(pollerMetadata);
 		channel.send(new GenericMessage<String>("foo"), 0);
 		channel.send(new GenericMessage<String>("bar"), 0);
 		endpoint.start();
@@ -135,7 +136,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void maxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(10);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		endpoint.setPollerMetadata(pollerMetadata);
 		endpoint.setReceiveTimeout(0);
 		handler.setShouldAppendNewLine(true);
 		channel.send(new GenericMessage<String>("foo"), 0);
@@ -151,7 +152,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 	public void singleNonStringObject() {
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(1);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		endpoint.setPollerMetadata(pollerMetadata);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		endpoint.start();
@@ -165,7 +166,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setReceiveTimeout(0);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(2);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		endpoint.setPollerMetadata(pollerMetadata);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -182,7 +183,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		endpoint.setReceiveTimeout(0);
 		PollerMetadata pollerMetadata = new PollerMetadata();
 		pollerMetadata.setMaxMessagesPerPoll(2);
-		endpoint.setPollerFactory(new PollerFactory(pollerMetadata));
+		endpoint.setPollerMetadata(pollerMetadata);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);

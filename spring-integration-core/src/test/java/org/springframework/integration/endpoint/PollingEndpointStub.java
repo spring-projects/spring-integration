@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.scheduling.support.PeriodicTrigger;
 
 /**
@@ -24,11 +25,13 @@ import org.springframework.scheduling.support.PeriodicTrigger;
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	public PollingEndpointStub() {
-		this.setTrigger(new PeriodicTrigger(500));
+		PollerMetadata pollerMetadata = new PollerMetadata();
+		pollerMetadata.setTrigger(new PeriodicTrigger(500));
+		this.setPollerMetadata(pollerMetadata);
 	}
 
-	@Override
-	protected boolean doPoll() {
+	//@Override
+	public Boolean call() {
 		throw new RuntimeException("intentional test failure");
 	}
 
