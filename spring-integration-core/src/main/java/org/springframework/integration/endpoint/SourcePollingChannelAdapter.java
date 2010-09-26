@@ -83,8 +83,9 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
 		super.onInit();
 	}
-
-	public Boolean call() throws Exception {
+	
+	@Override
+	protected boolean doPoll() {
 		Message<?> message = this.source.receive();
 		if (message != null) {
 			if (this.shouldTrack) {

@@ -41,7 +41,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware, Callable<Boolean>{
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware{
 	
 	private volatile TaskExecutor taskExecutor = new SyncTaskExecutor();
 	
@@ -97,11 +97,15 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception{
-		Callable<Boolean> pollingTask = this;
+		Callable<Boolean> pollingTask = new Callable<Boolean>() {
+			public Boolean call() throws Exception {
+				return doPoll();
+			}
+		};
 		Advisor transactionAdvice = this.pollerMetadata.getTransactionAdvisor();
 		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
 		if (transactionAdvice != null || !CollectionUtils.isEmpty(adviceChain)){
-			ProxyFactory proxyFactory = new ProxyFactory(this);
+			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
 			
 			// Add Transaction advice first
 			if (transactionAdvice != null){
@@ -153,6 +157,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.errorHandler = errorHandler;
 	}
 	
+	protected abstract boolean doPoll();
 	/**
 	 * Default Poller implementation
 	 */

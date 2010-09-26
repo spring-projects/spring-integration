@@ -30,8 +30,8 @@ public class PollingEndpointStub extends AbstractPollingEndpoint {
 		this.setPollerMetadata(pollerMetadata);
 	}
 
-	//@Override
-	public Boolean call() {
+	@Override
+	protected boolean doPoll() {
 		throw new RuntimeException("intentional test failure");
 	}
 
