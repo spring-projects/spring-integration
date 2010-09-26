@@ -41,7 +41,7 @@ import org.springframework.util.ErrorHandler;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware{
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware{
 	
 	private volatile TaskExecutor taskExecutor = new SyncTaskExecutor();
 	
