@@ -23,7 +23,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageHandlingException;
@@ -71,12 +70,15 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (this.initialized) {
 				return;
 			}
+			
 			Assert.notNull(this.pollerMetadata.getTrigger(), "trigger is required");
 			Assert.notNull(this.getBeanFactory(), "BeanFactory must be provided");
+			
 			TaskExecutor executor = pollerMetadata.getTaskExecutor();
 			if (executor != null){
 				taskExecutor = executor;
 			}
+			
 			if (taskExecutor != null){
 				if (!(taskExecutor instanceof ErrorHandlingTaskExecutor)) {				
 					if (errorHandler == null) {
@@ -89,7 +91,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			try {
 				this.poller = this.createPoller();
 				this.initialized = true;
-			} catch (Exception e) {
+			} 
+			catch (Exception e) {
 				throw new MessagingException("Failed to create Poller", e);
 			}
 		}
@@ -97,11 +100,13 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	@SuppressWarnings("unchecked")
 	private Runnable createPoller() throws Exception{
+		
 		Callable<Boolean> pollingTask = new Callable<Boolean>() {
 			public Boolean call() throws Exception {
 				return doPoll();
 			}
 		};
+		
 		Advisor transactionAdvice = this.pollerMetadata.getTransactionAdvisor();
 		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
 		if (transactionAdvice != null || !CollectionUtils.isEmpty(adviceChain)){
@@ -182,10 +187,12 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 								break;
 							}
 							count++;
-						} catch (Exception e) {
+						} 
+						catch (Exception e) {
 							if (e instanceof RuntimeException) {
 								throw (RuntimeException)e;
-							} else {
+							} 
+							else {
 								throw new MessageHandlingException(new ErrorMessage(e));
 							}
 						}
