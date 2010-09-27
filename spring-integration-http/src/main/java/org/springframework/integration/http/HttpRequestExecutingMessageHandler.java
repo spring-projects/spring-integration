@@ -261,7 +261,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				: this.resolveContentType(payload);
 		if (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED) || contentType.equals(MediaType.MULTIPART_FORM_DATA)){
 			if (!(payload instanceof MultiValueMap)){
-				payload = this.convertToMultipartValueMap((Map) payload);
+				payload = this.convertToMultiValueMap((Map) payload);
 			}
 		}
 		httpHeaders.setContentType(contentType);
@@ -277,7 +277,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return new HttpEntity<Object>(requestMessage, headers);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes"})
+	@SuppressWarnings("unchecked")
 	private MediaType resolveContentType(Object content) {
 		MediaType contentType = null;
 		if (content instanceof byte[]) {
@@ -312,7 +312,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	
 	
 	@SuppressWarnings("unchecked")
-	private MultiValueMap<Object, Object> convertToMultipartValueMap(Map<Object, Object> simpleContentMap){
+	private MultiValueMap<Object, Object> convertToMultiValueMap(Map<Object, Object> simpleContentMap){
 		
 		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
 		for (Object key : simpleContentMap.keySet()) {
