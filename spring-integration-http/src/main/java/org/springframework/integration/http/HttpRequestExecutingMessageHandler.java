@@ -19,6 +19,7 @@ package org.springframework.integration.http;
 import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +47,12 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.converter.MessageConversionException;
 import org.springframework.integration.util.SimpleBeanResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -266,6 +270,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return new HttpEntity<Object>(requestMessage, headers);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes"})
 	private MediaType resolveContentType(Object content) {
 		MediaType contentType = null;
 		if (content instanceof byte[]) {
@@ -275,11 +280,17 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			contentType = MediaType.TEXT_XML;
 		}
 		else {
-			if (content instanceof Map && isFormData((Map<?, ?>) content)) {
-				contentType = MediaType.APPLICATION_FORM_URLENCODED;
-			}
-			if (contentType == null && content instanceof Serializable) {
-				contentType = new MediaType("application", "x-java-serialized-object");
+			if (content instanceof Map){
+				Map multiValueMap = (Map) content;
+				if (!(content instanceof MultiValueMap)){
+					multiValueMap = this.convertToMultipartValueMap((Map) content);
+				} 
+				if (this.isMultipart((MultiValueMap)multiValueMap)){
+					contentType = MediaType.MULTIPART_FORM_DATA;
+				} else {
+					contentType = MediaType.APPLICATION_FORM_URLENCODED;
+					//contentType = new MediaType("application", "x-java-serialized-object");
+				}
 			}
 		}
 		if (contentType == null) {
@@ -292,17 +303,52 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	private MediaType resolveContentType(String content, String charset) {
 		return new MediaType("text", "plain", Charset.forName(charset));
 	}
-
+	
+	@SuppressWarnings("unchecked")
+	private MultiValueMap<String, Object> convertToMultipartValueMap(Map<String, Object> simpleContentMap){
+		MultiValueMap<String, Object> multipartValueMap = new LinkedMultiValueMap<String, Object>();
+		try {
+			for (String key : simpleContentMap.keySet()) {
+				Object value = simpleContentMap.get(key);
+				if (value != null){
+					if (value instanceof Object[]){
+						Object[] valueArray = (Object[]) value;
+						for (Object objectValue : valueArray) {
+							if (objectValue != null){
+								multipartValueMap.add(key, objectValue);
+							}				
+						}
+					} 
+					else if (value instanceof Collection){
+						Collection<Object> stringCollection = (Collection<Object>) value;
+						for (Object objectValue : stringCollection) {
+							if (objectValue != null){
+								multipartValueMap.add(key, objectValue);
+							}
+						}
+					} 
+					else {
+						multipartValueMap.add(key, value);
+					}
+				}
+			}
+		} catch (ClassCastException cce) {
+			throw new MessageConversionException("Content map contains unsupported type for 'key'.", cce);
+		}
+		
+		return multipartValueMap;
+	}
 	/**
 	 * If all keys are Strings, we'll consider the Map to be form data.
 	 */
-	private boolean isFormData(Map<?, ?> map) {
-		for (Object key : map.keySet()) {
-			if (!(key instanceof String)) {
-				return false;
+	private boolean isMultipart(MultiValueMap<String, List<?>> map) {
+		for (List<?> listValues : map.values()) {
+			for (Object listValue : listValues) {
+				if (!(listValue instanceof String)) {
+					return true;
+				}
 			}
 		}
-		return true;
+		return false;
 	}
-
 }
