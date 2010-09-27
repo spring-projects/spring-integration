@@ -288,13 +288,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 			contentType = MediaType.TEXT_XML;
 		}
 		else if (content instanceof Map){
-			Map multiValueMap = (Map) content;
 			/*
 			 * We need to check separately for MULTIPART as well as URLENCODED simply because
 			 * MultiValueMap<Object, Object> is actually valid content for serialization
 			 */
-			if (this.isFormData(multiValueMap)){
-				if (this.isMultipart(multiValueMap)){
+			if (this.isFormData((Map<Object, ?>) content)){
+				if (this.isMultipart((Map<String, ?>)content)){
 					contentType = MediaType.MULTIPART_FORM_DATA;
 				} 
 				else {
@@ -340,7 +339,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		for (String key : map.keySet()) {
 			Object value = map.get(key);
 			if (value != null){
-				if (value instanceof Object[]){
+				if (value.getClass().isArray()){
 					value = CollectionUtils.arrayToList(value);	
 				}
 				if (value instanceof Collection){
