@@ -47,12 +47,12 @@ import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.mapping.HeaderMapper;
 import org.springframework.integration.support.MessageBuilder;
-import org.springframework.integration.support.converter.MessageConversionException;
 import org.springframework.integration.util.SimpleBeanResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestTemplate;
 
@@ -61,6 +61,7 @@ import org.springframework.web.client.RestTemplate;
  * to a {@link RestTemplate} instance.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  * @since 2.0
  */
 public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMessageHandler {
@@ -248,7 +249,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				: this.createHttpEntityWithMessageAsBody(message);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes"})
 	private HttpEntity<?> createHttpEntityWithPayloadAsBody(Message<?> requestMessage) {
 		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
 			return (HttpEntity<?>) requestMessage.getPayload();
@@ -256,11 +257,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		HttpHeaders httpHeaders = new HttpHeaders();
 		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
 		Object payload = requestMessage.getPayload();
-		if (payload instanceof Map && !(payload instanceof MultiValueMap)){
-			payload = this.convertToMultipartValueMap((Map) payload);
-		}
+		
 		MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
 				: this.resolveContentType(payload);
+		if (contentType.equals(MediaType.APPLICATION_FORM_URLENCODED) || contentType.equals(MediaType.MULTIPART_FORM_DATA)){
+			if (!(payload instanceof MultiValueMap)){
+				payload = this.convertToMultipartValueMap((Map) payload);
+			}
+		}
 		httpHeaders.setContentType(contentType);
 		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
 			return new HttpEntity<Object>(payload, httpHeaders);
@@ -285,15 +289,12 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		}
 		else if (content instanceof Map){
 			Map multiValueMap = (Map) content;
-			if (!(content instanceof MultiValueMap)){
-				multiValueMap = this.convertToMultipartValueMap((Map) content);
-			} 
 			/*
 			 * We need to check separately for MULTIPART as well as URLENCODED simply because
 			 * MultiValueMap<Object, Object> is actually valid content for serialization
 			 */
-			if (this.isFormData((MultiValueMap)multiValueMap)){
-				if (this.isMultipart((MultiValueMap)multiValueMap)){
+			if (this.isFormData(multiValueMap)){
+				if (this.isMultipart(multiValueMap)){
 					contentType = MediaType.MULTIPART_FORM_DATA;
 				} 
 				else {
@@ -335,21 +336,32 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 	 * If all keys are Strings, and some values are not Strings we'll consider 
 	 * the Map to be multipart/form-data
 	 */
-	private boolean isMultipart(MultiValueMap<String, List<?>> map) {
+	private boolean isMultipart(Map<String, ?> map) {
 		for (String key : map.keySet()) {
-			List<?> values = map.get(key);
-			for (Object value : values) {
-				if (value != null && !(value instanceof String)) {
+			Object value = map.get(key);
+			if (value != null){
+				if (value instanceof Object[]){
+					value = CollectionUtils.arrayToList(value);	
+				}
+				if (value instanceof Collection){
+					Collection<?> cValues = (Collection<?>) value;
+					for (Object cValue : cValues) {
+						if (cValue != null && !(cValue instanceof String)) {
+							return true;
+						}
+					}
+				} 
+				else if (!(value instanceof String)) {
 					return true;
 				}
-			}	
+			}
 		}
 		return false;
 	}
 	/**
 	 * If all keys and values are Strings, we'll consider the Map to be form data.
 	 */
-	private boolean isFormData(MultiValueMap<Object, List<?>> map) {
+	private boolean isFormData(Map<Object, ?> map) {
 		for (Object	 key : map.keySet()) {
 			if (!(key instanceof String)){
 				return false;

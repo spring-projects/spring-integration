@@ -23,14 +23,12 @@ import static org.junit.Assert.assertTrue;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -245,10 +243,10 @@ public class DefaultOutboundRequestMapperTests {
 		}
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
-		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) request.getBody();
+		Map<?, ?> map = (Map<?, ?>) request.getBody();
 		assertEquals(2, map.size());
-		assertEquals(TestBean.class, map.get(1).get(0).getClass());
-		assertEquals(TestBean.class, map.get(2).get(0).getClass());
+		assertEquals(TestBean.class, map.get(1).getClass());
+		assertEquals(TestBean.class, map.get(2).getClass());
 		System.out.println(request.getHeaders().getContentType());
 		assertEquals("application", request.getHeaders().getContentType().getType());
 		assertEquals("x-java-serialized-object", request.getHeaders().getContentType().getSubtype());
