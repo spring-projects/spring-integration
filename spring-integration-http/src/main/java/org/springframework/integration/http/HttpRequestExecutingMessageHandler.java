@@ -16,9 +16,9 @@
 
 package org.springframework.integration.http;
 
-import java.io.Serializable;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -248,6 +248,7 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 				: this.createHttpEntityWithMessageAsBody(message);
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private HttpEntity<?> createHttpEntityWithPayloadAsBody(Message<?> requestMessage) {
 		if (requestMessage.getPayload() instanceof HttpEntity<?>) {
 			return (HttpEntity<?>) requestMessage.getPayload();
@@ -255,11 +256,14 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		HttpHeaders httpHeaders = new HttpHeaders();
 		this.headerMapper.fromHeaders(requestMessage.getHeaders(), httpHeaders);
 		Object payload = requestMessage.getPayload();
+		if (payload instanceof Map && !(payload instanceof MultiValueMap)){
+			payload = this.convertToMultipartValueMap((Map) payload);
+		}
 		MediaType contentType = (payload instanceof String) ? this.resolveContentType((String) payload, this.charset)
 				: this.resolveContentType(payload);
 		httpHeaders.setContentType(contentType);
 		if (HttpMethod.POST.equals(this.httpMethod) || HttpMethod.PUT.equals(this.httpMethod)) {
-			return new HttpEntity<Object>(requestMessage.getPayload(), httpHeaders);
+			return new HttpEntity<Object>(payload, httpHeaders);
 		}
 		return new HttpEntity<Object>(httpHeaders);
 	}
@@ -279,23 +283,26 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		else if (content instanceof Source) {
 			contentType = MediaType.TEXT_XML;
 		}
-		else {
-			if (content instanceof Map){
-				Map multiValueMap = (Map) content;
-				if (!(content instanceof MultiValueMap)){
-					multiValueMap = this.convertToMultipartValueMap((Map) content);
-				} 
+		else if (content instanceof Map){
+			Map multiValueMap = (Map) content;
+			if (!(content instanceof MultiValueMap)){
+				multiValueMap = this.convertToMultipartValueMap((Map) content);
+			} 
+			/*
+			 * We need to check separately for MULTIPART as well as URLENCODED simply because
+			 * MultiValueMap<Object, Object> is actually valid content for serialization
+			 */
+			if (this.isFormData((MultiValueMap)multiValueMap)){
 				if (this.isMultipart((MultiValueMap)multiValueMap)){
 					contentType = MediaType.MULTIPART_FORM_DATA;
-				} else {
+				} 
+				else {
 					contentType = MediaType.APPLICATION_FORM_URLENCODED;
-					//contentType = new MediaType("application", "x-java-serialized-object");
 				}
 			}
 		}
 		if (contentType == null) {
-			throw new IllegalArgumentException("payload must be a byte array, " +
-					"String, Map, Source, or Serializable object, received: " + content.getClass());
+			contentType = new MediaType("application", "x-java-serialized-object");
 		}
 		return contentType;
 	}
@@ -304,51 +311,50 @@ public class HttpRequestExecutingMessageHandler extends AbstractReplyProducingMe
 		return new MediaType("text", "plain", Charset.forName(charset));
 	}
 	
+	
 	@SuppressWarnings("unchecked")
-	private MultiValueMap<String, Object> convertToMultipartValueMap(Map<String, Object> simpleContentMap){
-		MultiValueMap<String, Object> multipartValueMap = new LinkedMultiValueMap<String, Object>();
-		try {
-			for (String key : simpleContentMap.keySet()) {
-				Object value = simpleContentMap.get(key);
-				if (value != null){
-					if (value instanceof Object[]){
-						Object[] valueArray = (Object[]) value;
-						for (Object objectValue : valueArray) {
-							if (objectValue != null){
-								multipartValueMap.add(key, objectValue);
-							}				
-						}
-					} 
-					else if (value instanceof Collection){
-						Collection<Object> stringCollection = (Collection<Object>) value;
-						for (Object objectValue : stringCollection) {
-							if (objectValue != null){
-								multipartValueMap.add(key, objectValue);
-							}
-						}
-					} 
-					else {
-						multipartValueMap.add(key, value);
-					}
-				}
-			}
-		} catch (ClassCastException cce) {
-			throw new MessageConversionException("Content map contains unsupported type for 'key'.", cce);
-		}
+	private MultiValueMap<Object, Object> convertToMultipartValueMap(Map<Object, Object> simpleContentMap){
 		
+		LinkedMultiValueMap<Object, Object> multipartValueMap = new LinkedMultiValueMap<Object, Object>();
+		for (Object key : simpleContentMap.keySet()) {
+			Object value = simpleContentMap.get(key);
+			if (value instanceof Object[]){
+				Object[] valueArray = (Object[]) value;
+				value = Arrays.asList(valueArray);	
+			} 
+			if (value instanceof Collection){
+				multipartValueMap.put(key, (List<Object>) value);
+			} 
+			else {
+				multipartValueMap.add(key, value);
+			}
+		}
 		return multipartValueMap;
 	}
 	/**
-	 * If all keys are Strings, we'll consider the Map to be form data.
+	 * If all keys are Strings, and some values are not Strings we'll consider 
+	 * the Map to be multipart/form-data
 	 */
 	private boolean isMultipart(MultiValueMap<String, List<?>> map) {
-		for (List<?> listValues : map.values()) {
-			for (Object listValue : listValues) {
-				if (!(listValue instanceof String)) {
+		for (String key : map.keySet()) {
+			List<?> values = map.get(key);
+			for (Object value : values) {
+				if (value != null && !(value instanceof String)) {
 					return true;
 				}
-			}
+			}	
 		}
 		return false;
+	}
+	/**
+	 * If all keys and values are Strings, we'll consider the Map to be form data.
+	 */
+	private boolean isFormData(MultiValueMap<Object, List<?>> map) {
+		for (Object	 key : map.keySet()) {
+			if (!(key instanceof String)){
+				return false;
+			} 	
+		}
+		return true;
 	}
 }

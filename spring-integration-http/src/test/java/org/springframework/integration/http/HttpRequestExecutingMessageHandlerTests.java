@@ -114,8 +114,9 @@ public class HttpRequestExecutingMessageHandlerTests {
 		simpleMap.put("city", cities);
 		simpleMap.put("state", "PA");
 		MultiValueMap<String, String> multiValueMap = (MultiValueMap<String, String>) convertToMultipartValueMap.invoke(handler, simpleMap);
-		assertEquals(1, multiValueMap.get("city").size());
+		assertEquals(2, multiValueMap.get("city").size());
 		assertEquals(philadelphia, multiValueMap.get("city").get(0));
+		assertNull(multiValueMap.get("city").get(1));
 		assertEquals("PA", multiValueMap.get("state").iterator().next());
 	}
 	@Test
@@ -130,12 +131,13 @@ public class HttpRequestExecutingMessageHandlerTests {
 		simpleMap.put("city", cities);
 		simpleMap.put("state", "PA");
 		MultiValueMap<String, String> multiValueMap = (MultiValueMap<String, String>) convertToMultipartValueMap.invoke(handler, simpleMap);
-		assertEquals(1, multiValueMap.get("city").size());
+		assertEquals(2, multiValueMap.get("city").size());
 		assertEquals(philadelphia, multiValueMap.get("city").get(0));
+		assertNull(multiValueMap.get("city").get(1));
 		assertEquals("PA", multiValueMap.get("state").iterator().next());
 	}
 
-	@Test(expected=InvocationTargetException.class)
+	@Test
 	public void validateMapWithNonStrigKeysConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
 		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);

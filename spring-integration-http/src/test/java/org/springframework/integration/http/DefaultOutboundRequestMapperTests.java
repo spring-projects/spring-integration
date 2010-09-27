@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -69,11 +71,11 @@ public class DefaultOutboundRequestMapperTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof Map<?, ?>);
-		Map<?, ?> map = (Map <?, ?>) body;
-		assertEquals("1", map.get("a"));
-		assertEquals("2", map.get("b"));
-		assertEquals("3", map.get("c"));
+		assertTrue(body instanceof MultiValueMap<?, ?>);
+		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
+		assertEquals("1", map.get("a").iterator().next());
+		assertEquals("2", map.get("b").iterator().next());
+		assertEquals("3", map.get("c").iterator().next());
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
@@ -99,26 +101,26 @@ public class DefaultOutboundRequestMapperTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof Map<?, ?>);
-		Map<?, ?> map = (Map <?, ?>) body;
-		Object entryA = map.get("a");
-		assertEquals(String[].class, entryA.getClass());
-		String[] resultA = (String[]) entryA;
-		assertEquals(3, resultA.length);
-		assertEquals("1", resultA[0]);
-		assertEquals("2", resultA[1]);
-		assertEquals("3", resultA[2]);
-		Object entryB = map.get("b");
-		assertEquals(String.class, entryB.getClass());
-		assertEquals("4", entryB);
-		Object entryC = map.get("c");
-		assertEquals(String[].class, entryC.getClass());
-		String[] resultC = (String[]) entryC;
-		assertEquals(1, resultC.length);		
-		assertEquals("5", resultC[0]);
-		Object entryD = map.get("d");
-		assertEquals(String.class, entryD.getClass());
-		assertEquals("6", entryD);
+		assertTrue(body instanceof MultiValueMap<?, ?>);
+		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
+		
+		List<?> aValue = map.get("a");
+		assertEquals(3, aValue.size());
+		assertEquals("1", aValue.get(0));
+		assertEquals("2", aValue.get(1));
+		assertEquals("3", aValue.get(2));
+		
+		List<?> bValue = map.get("b");
+		assertEquals(1, bValue.size());
+		assertEquals("4", bValue.get(0));
+
+		List<?> cValue = map.get("c");
+		assertEquals(1, cValue.size());
+		assertEquals("5", cValue.get(0));
+		
+		List<?> dValue = map.get("d");
+		assertEquals(1, dValue.size());
+		assertEquals("6", dValue.get(0));
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
@@ -146,23 +148,22 @@ public class DefaultOutboundRequestMapperTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof Map<?, ?>);
-		Map<?, ?> map = (Map <?, ?>) body;
-		Object entryA = map.get("a");
-		assertTrue(entryA instanceof List<?>);
-		List<?> resultA = (List<?>) entryA;
-		assertEquals(2, resultA.size());
-		assertEquals("1", resultA.get(0));
-		assertEquals("2", resultA.get(1));
-		Object entryB = map.get("b");
-		assertTrue(entryB instanceof List<?>);
-		List<?> resultB = (List<?>) entryB;
-		assertEquals(0, resultB.size());
-		Object entryC = map.get("c");
-		assertTrue(entryC instanceof List<?>);
-		List<?> resultC = (List<?>) entryC;
-		assertEquals(1, resultC.size());		
-		assertEquals("3", resultC.get(0));
+		assertTrue(body instanceof MultiValueMap<?, ?>);
+		MultiValueMap<?, ?> map = (MultiValueMap <?, ?>) body;
+		
+		
+		List<?> aValue = map.get("a");
+		assertEquals(2, aValue.size());
+		assertEquals("1", aValue.get(0));
+		assertEquals("2", aValue.get(1));
+		
+		List<?> bValue = map.get("b");
+		assertEquals(0, bValue.size());
+		
+		List<?> cValue = map.get("c");
+		assertEquals(1, cValue.size());
+		assertEquals("3", cValue.get(0));
+		
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
@@ -187,14 +188,16 @@ public class DefaultOutboundRequestMapperTests {
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
 		Object body = request.getBody();
-		assertTrue(body instanceof Map<?, ?>);
-		Map<?, ?> map = (Map<?, ?>) body;
+		assertTrue(body instanceof MultiValueMap<?, ?>);
+		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) body;
 		assertTrue(map.containsKey("a"));
-		assertNull(map.get("a"));
-		Object entryB = map.get("b");
-		assertEquals("foo", entryB);
+		assertTrue(map.get("a").size() == 1);
+		assertNull(map.get("a").get(0));
+		List<?> entryB = map.get("b");
+		assertEquals("foo", entryB.get(0));
 		assertTrue(map.containsKey("c"));
-		assertNull(map.get("c"));
+		assertTrue(map.get("c").size() == 1);
+		assertNull(map.get("c").get(0));
 		assertEquals(MediaType.APPLICATION_FORM_URLENCODED, request.getHeaders().getContentType());
 	}
 
@@ -217,10 +220,38 @@ public class DefaultOutboundRequestMapperTests {
 		}
 		assertEquals("intentional", exception.getCause().getMessage());
 		HttpEntity<?> request = template.lastRequestEntity.get();
-		Map<?, ?> map = (Map<?, ?>) request.getBody();
+		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) request.getBody();
 		assertEquals(2, map.size());
-		assertEquals(TestBean.class, map.get("A").getClass());
-		assertEquals(TestBean.class, map.get("B").getClass());
+		assertEquals(TestBean.class, map.get("A").get(0).getClass());
+		assertEquals(TestBean.class, map.get("B").get(0).getClass());
+		assertEquals(MediaType.MULTIPART_FORM_DATA, request.getHeaders().getContentType());
+	}
+	@Test
+	public void nonFormAndNonMultipartDataInMap() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("http://www.springsource.org/spring-integration");
+		MockRestTemplate template = new MockRestTemplate();
+		new DirectFieldAccessor(handler).setPropertyValue("restTemplate", template);
+		handler.setHttpMethod(HttpMethod.POST);
+		Map<Object, TestBean> form = new LinkedHashMap<Object, TestBean>();
+		form.put(1, new TestBean());
+		form.put(2, new TestBean());
+		Message<?> message = MessageBuilder.withPayload(form).build();
+		Exception exception = null;
+		try {
+			handler.handleMessage(message);
+		}
+		catch (Exception e) {
+			exception = e;
+		}
+		assertEquals("intentional", exception.getCause().getMessage());
+		HttpEntity<?> request = template.lastRequestEntity.get();
+		MultiValueMap<?, ?> map = (MultiValueMap<?, ?>) request.getBody();
+		assertEquals(2, map.size());
+		assertEquals(TestBean.class, map.get(1).get(0).getClass());
+		assertEquals(TestBean.class, map.get(2).get(0).getClass());
+		System.out.println(request.getHeaders().getContentType());
+		assertEquals("application", request.getHeaders().getContentType().getType());
+		assertEquals("x-java-serialized-object", request.getHeaders().getContentType().getSubtype());
 	}
 
 
