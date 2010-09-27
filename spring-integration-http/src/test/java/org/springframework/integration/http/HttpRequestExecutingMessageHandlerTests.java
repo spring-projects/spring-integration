@@ -18,9 +18,7 @@ package org.springframework.integration.http;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNull;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -40,7 +38,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void validateMapWithObjectsConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<String, Object> simpleMap = new HashMap<String, Object>();
 		simpleMap.put("city", "Philadelphia");
@@ -54,7 +52,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void validateMapWithArraysConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<String, Object> simpleMap = new HashMap<String, Object>();
 		simpleMap.put("city", new String[]{"Philadelphia", "Ambler"});
@@ -69,7 +67,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void validateMapWithObjectArraysConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<String, Object> simpleMap = new HashMap<String, Object>();
 		City philadelphia = new City();
@@ -85,7 +83,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void validateMapWithObjectCollectionConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<String, Object> simpleMap = new HashMap<String, Object>();
 		City philadelphia = new City();
@@ -104,7 +102,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void validateMapWithNullValuesInCollectionConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<String, Object> simpleMap = new HashMap<String, Object>();
 		City philadelphia = new City();
@@ -122,7 +120,7 @@ public class HttpRequestExecutingMessageHandlerTests {
 	@Test
 	public void validateMapWithNullValuesInArrayConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<String, Object> simpleMap = new HashMap<String, Object>();
 		
@@ -136,11 +134,25 @@ public class HttpRequestExecutingMessageHandlerTests {
 		assertNull(multiValueMap.get("city").get(1));
 		assertEquals("PA", multiValueMap.get("state").iterator().next());
 	}
+	@Test
+	public void validateMapWithPrimitiveArrayConversionToMvp() throws Exception {
+		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
+		convertToMultipartValueMap.setAccessible(true);
+		Map<String, Object> simpleMap = new HashMap<String, Object>();
+		
+		int[] i = {1, 2, 3};
+		
+		simpleMap.put("numbers", i);
+		MultiValueMap<String, String> multiValueMap = (MultiValueMap<String, String>) convertToMultipartValueMap.invoke(handler, simpleMap);
+		assertEquals(1, multiValueMap.get("numbers").size());
+		assertEquals(i, multiValueMap.get("numbers").get(0));
+	}
 
 	@Test
 	public void validateMapWithNonStrigKeysConversionToMvp() throws Exception {
 		HttpRequestExecutingMessageHandler handler = new HttpRequestExecutingMessageHandler("localhost");
-		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultipartValueMap", Map.class);
+		Method convertToMultipartValueMap = ReflectionUtils.findMethod(handler.getClass(), "convertToMultiValueMap", Map.class);
 		convertToMultipartValueMap.setAccessible(true);
 		Map<Object, Object> simpleMap = new HashMap<Object, Object>();
 		City philadelphia = new City();
