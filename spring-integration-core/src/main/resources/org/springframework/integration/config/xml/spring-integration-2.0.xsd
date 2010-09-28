@@ -1051,12 +1051,24 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<!-- Poller sub-elements are deprecated since Spring Integration 2.0 -->
 			<xsd:choice minOccurs="0" maxOccurs="1">
-				<xsd:element name="interval-trigger" type="intervalTriggerType" />
-				<xsd:element name="cron-trigger" type="cronTriggerType" />
+				<xsd:element name="interval-trigger" type="intervalTriggerType">
+					<xsd:annotation>
+						<xsd:documentation>
+	NOTE: The 'interval-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be removed in version 2.1.
+	Use one of the interval trigger attributes instead ('fixed-delay' or 'fixed-rate').			
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="cron-trigger" type="cronTriggerType">
+					<xsd:annotation>
+						<xsd:documentation>
+	NOTE: The 'cron-trigger' sub-element is deprecated as of Spring Integration 2.0 and will be removed in version 2.1.
+	Use the 'cron' attribute instead.
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
 			</xsd:choice>
-			<!-- Poller sub-elements are deprecated since Spring Integration 2.0 -->
 			<xsd:choice>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
 				<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
