@@ -131,8 +131,8 @@
 		type="client"
 		host="localhost"
 		port="#{tcpIpUtils.findAvailableServerSocket(6000)}"
-		input-converter="serial"
-		output-converter="serial"
+		serializer="defaultSerializer"
+		deserializer="defaultDeserializer"
 		so-keep-alive="true"
 		so-linger="54"
 		so-receive-buffer-size="1234"
@@ -153,8 +153,8 @@
 		type="server"
 		port="#{client1.port}"
 		local-address="127.0.0.1"
-		input-converter="serial"
-		output-converter="serial"
+		serializer="defaultSerializer"
+		deserializer="defaultDeserializer"
 		so-keep-alive="true"
 		so-linger="55"
 		so-receive-buffer-size="1234"
@@ -175,8 +175,8 @@
 		type="client"
 		host="localhost"
 		port="#{tcpIpUtils.findAvailableServerSocket(6100)}"
-		input-converter="serial"
-		output-converter="serial"
+		serializer="defaultSerializer"
+		deserializer="defaultDeserializer"
 		so-keep-alive="true"
 		so-linger="54"
 		so-receive-buffer-size="1234"
@@ -196,8 +196,8 @@
 		type="server"
 		port="#{client1.port}"
 		local-address="127.0.0.1"
-		input-converter="serial"
-		output-converter="serial"
+		serializer="defaultSerializer"
+		deserializer="defaultDeserializer"
 		so-keep-alive="true"
 		so-linger="55"
 		so-receive-buffer-size="1234"
@@ -214,8 +214,10 @@
 	
 	<bean id="interceptors" class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain" />
 	
-	<bean id="serial" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
+	<bean id="defaultSerializer" class="org.springframework.commons.serializer.DefaultSerializer" />
 	
+	<bean id="defaultDeserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
+
 	<ip:tcp-outbound-channel-adapter id="tcpNewOut1"
 		channel="tcpChannel"
 		connection-factory="client1" />

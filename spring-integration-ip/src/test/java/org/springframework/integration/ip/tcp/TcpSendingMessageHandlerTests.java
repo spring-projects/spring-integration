@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp;
 
 import static org.junit.Assert.assertEquals;
@@ -38,7 +39,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
+
+import org.springframework.commons.serializer.DefaultDeserializer;
+import org.springframework.commons.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.ip.tcp.connection.AbstractConnectionFactory;
@@ -53,11 +56,9 @@ import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter
 import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.support.MessageBuilder;
 
-
 /**
  * @author Gary Russell
  * @since 2.0
- *
  */
 public class TcpSendingMessageHandlerTests {
 
@@ -94,8 +95,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);		
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
 		handler.setConnectionFactory(ccf);
@@ -142,8 +143,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -194,8 +195,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -243,8 +244,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -298,8 +299,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -350,8 +351,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -401,9 +402,8 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -450,9 +450,8 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		TcpSendingMessageHandler handler = new TcpSendingMessageHandler();
@@ -503,8 +502,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		ccf.setSingleUse(true);
@@ -544,8 +543,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		ccf.setSingleUse(true);
@@ -587,8 +586,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		ccf.setSingleUse(true);
@@ -642,8 +641,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.start();
 		ccf.setSingleUse(true);
@@ -697,8 +696,8 @@ public class TcpSendingMessageHandlerTests {
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
 		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
 		ccf.setTaskExecutor(Executors.newFixedThreadPool(100));
@@ -771,9 +770,8 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);		
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
@@ -834,9 +832,8 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);		
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptors(new TcpConnectionInterceptorFactory[] {new HelloWorldInterceptorFactory()});
@@ -904,9 +901,8 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);		
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 
@@ -961,9 +957,8 @@ public class TcpSendingMessageHandlerTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);		
 		TcpConnectionInterceptorFactoryChain fc = new TcpConnectionInterceptorFactoryChain();
 		fc.setInterceptors(new TcpConnectionInterceptorFactory[] 

@@ -11,13 +11,15 @@
 	
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 	
-	<bean id="serializer" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
+	<bean id="serializer" class="org.springframework.commons.serializer.DefaultSerializer" />
+
+	<bean id="deserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
 
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(10200)}"
-		input-converter="serializer"
-		output-converter="serializer"
+		serializer="serializer"
+		deserializer="deserializer"
 		using-nio="true"
 		single-use="true"
 	/>
@@ -28,8 +30,8 @@
 		port="#{server.port}"
 		single-use="true"
 		so-timeout="10000"
-		input-converter="serializer"
-		output-converter="serializer"
+		serializer="serializer"
+		deserializer="deserializer"
 	/>
 	
 	<int:channel id="input" />

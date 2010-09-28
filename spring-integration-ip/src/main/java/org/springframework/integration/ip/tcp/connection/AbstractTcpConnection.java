@@ -20,8 +20,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
 import org.springframework.util.Assert;
 
@@ -39,10 +40,10 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	protected Log logger = LogFactory.getLog(this.getClass());
 	
 	@SuppressWarnings("rawtypes")
-	protected InputStreamingConverter inputConverter;
+	protected Deserializer deserializer;
 	
 	@SuppressWarnings("rawtypes")
-	protected OutputStreamingConverter outputConverter;
+	protected Serializer serializer;
 	
 	protected TcpMessageMapper mapper;
 	
@@ -84,42 +85,42 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	public void setMapper(TcpMessageMapper mapper) {
 		Assert.notNull(mapper, this.getClass().getName() + " Mapper may not be null");
 		this.mapper = mapper;
-		if (this.outputConverter != null && 
-			 !(this.outputConverter instanceof AbstractByteArrayStreamingConverter)) {
+		if (this.serializer != null && 
+			 !(this.serializer instanceof AbstractByteArrayStreamingConverter)) {
 			mapper.setStringToBytes(false);
 		}
 	}
 
 	/**
 	 * 
-	 * @return the input converter
+	 * @return the deserializer
 	 */
-	public InputStreamingConverter<?> getInputConverter() {
-		return inputConverter;
+	public Deserializer<?> getDeserializer() {
+		return this.deserializer;
 	}
 
 	/**
-	 * @param inputConverter the input converter to set
+	 * @param deserializer the deserializer to set
 	 */
-	public void setInputConverter(InputStreamingConverter<?> inputConverter) {
-		this.inputConverter = inputConverter;
+	public void setDeserializer(Deserializer<?> deserializer) {
+		this.deserializer = deserializer;
 	}
 
 	/**
 	 * 
-	 * @return the output converter
+	 * @return the serializer
 	 */
-	public OutputStreamingConverter<?> getOutputConverter() {
-		return outputConverter;
+	public Serializer<?> getSerializer() {
+		return this.serializer;
 	}
 
 	/**
-	 * @param outputConverter the output converter to set 
+	 * @param serializer the serializer to set 
 	 */
-	public void setOutputConverter(OutputStreamingConverter<?> outputConverter) {
-		this.outputConverter = outputConverter;
-		if (!(outputConverter instanceof AbstractByteArrayStreamingConverter)) {
-			mapper.setStringToBytes(false);
+	public void setSerializer(Serializer<?> serializer) {
+		this.serializer = serializer;
+		if (!(serializer instanceof AbstractByteArrayStreamingConverter)) {
+			this.mapper.setStringToBytes(false);
 		}
 	}
 

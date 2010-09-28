@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.converter;
 
 import static org.junit.Assert.assertEquals;
@@ -28,14 +29,15 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
+
+import org.springframework.commons.serializer.DefaultSerializer;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
- *
+ * @since 2.0
  */
-public class OutputConverterTests {
+public class SerializationTests {
 
 	@Test
 	public void testWriteLengthHeader() throws Exception {
@@ -50,7 +52,7 @@ public class OutputConverterTests {
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
 					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-					converter.convert(buffer.array(), socket.getOutputStream());
+					converter.serialize(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -83,7 +85,7 @@ public class OutputConverterTests {
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
 					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-					converter.convert(buffer.array(), socket.getOutputStream());
+					converter.serialize(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -116,7 +118,7 @@ public class OutputConverterTests {
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
 					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-					converter.convert(buffer.array(), socket.getOutputStream());
+					converter.serialize(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -146,9 +148,9 @@ public class OutputConverterTests {
 			public void run() {
 				try {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
-					JavaStreamingConverter converter = new JavaStreamingConverter();
-					converter.convert(testString, socket.getOutputStream());
-					converter.convert(testString, socket.getOutputStream());
+					DefaultSerializer serializer = new DefaultSerializer();
+					serializer.serialize(testString, socket.getOutputStream());
+					serializer.serialize(testString, socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -20,8 +20,9 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 
 /**
  * Base class for streaming converters that convert to/from a byte array.
@@ -31,8 +32,8 @@ import org.springframework.commons.serializer.OutputStreamingConverter;
  *
  */
 public abstract class AbstractByteArrayStreamingConverter implements
-		InputStreamingConverter<byte[]>, 
-		OutputStreamingConverter<byte[]> {
+		Serializer<byte[]>, 
+		Deserializer<byte[]> {
 
 	protected int maxMessageSize = 2048;
 	

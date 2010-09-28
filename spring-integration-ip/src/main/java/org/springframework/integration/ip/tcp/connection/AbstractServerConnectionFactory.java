@@ -19,21 +19,21 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.net.SocketException;
 
-
-
 /** 
  * Base class for all server connection factories. Server connection factories
  * listen on a port for incoming connections and create new TcpConnection objects
- * for each new connection. 
+ * for each new connection.
+ *  
  * @author Gary Russell
- *
+ * @since 2.0
  */
 public abstract class AbstractServerConnectionFactory extends AbstractConnectionFactory {
 
 	protected boolean listening;
 	
 	protected String localAddress;
-	
+
+
 	/**
 	 * The port on which the factory will listen.
 	 * @param port
@@ -41,7 +41,8 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	public AbstractServerConnectionFactory(int port) {
 		this.port = port;
 	}
-	
+
+
 	/**
 	 * Not supported because the factory manages multiple connections and this
 	 * method cannot discriminate.
@@ -70,8 +71,8 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 		}
 		connection.registerSender(this.sender);
 		connection.setMapper(this.mapper);
-		connection.setInputConverter(this.inputConverter);
-		connection.setOutputConverter(this.outputConverter);
+		connection.setDeserializer(this.deserializer);
+		connection.setSerializer(this.serializer);
 		connection.setSingleUse(this.singleUse);
 		/*
 		 * If we have a collaborating outbound channel adapter and we are configured

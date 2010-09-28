@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.SocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
@@ -40,7 +42,7 @@ import org.springframework.integration.ip.util.SocketUtils;
 
 /**
  * @author Gary Russell
- *
+ * @since 2.0
  */
 public class TcpNioConnectionReadTests {
 
@@ -54,8 +56,8 @@ public class TcpNioConnectionReadTests {
 	private AbstractServerConnectionFactory getConnectionFactory(int port,
 			AbstractByteArrayStreamingConverter converter, TcpListener listener, TcpSender sender) throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
-		scf.setInputConverter(converter);
-		scf.setOutputConverter(converter);
+		scf.setSerializer(converter);
+		scf.setDeserializer(converter);
 		scf.registerListener(listener);
 		if (sender != null) {
 			scf.registerSender(sender);

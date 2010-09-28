@@ -32,8 +32,9 @@ import org.apache.commons.logging.LogFactory;
  * The length field contains the length of data following the length
  * field.
  * (network byte order).
+ * 
  * @author Gary Russell
- *
+ * @since 2.0
  */
 public class ByteArrayLengthHeaderConverter extends AbstractByteArrayStreamingConverter {
 
@@ -46,7 +47,7 @@ public class ByteArrayLengthHeaderConverter extends AbstractByteArrayStreamingCo
 	 * Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed between messages.  
 	 */
-	public byte[] convert(InputStream inputStream) throws IOException {
+	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] lengthPart = new byte[4];
 		int status = read(inputStream, lengthPart, true);
 		if (status < 0) {
@@ -69,8 +70,7 @@ public class ByteArrayLengthHeaderConverter extends AbstractByteArrayStreamingCo
 	 * Writes the byte[] to the output stream, preceded by a 4 byte
 	 * length in network byte order (big endian).
 	 */
-	public void convert(byte[] bytes, OutputStream outputStream) 
-			throws IOException {
+	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		ByteBuffer lengthPart = ByteBuffer.allocate(4);
 		lengthPart.putInt(bytes.length);
 		outputStream.write(lengthPart.array());

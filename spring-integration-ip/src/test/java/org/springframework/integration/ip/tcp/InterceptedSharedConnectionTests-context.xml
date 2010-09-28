@@ -7,10 +7,11 @@
 		http://www.springframework.org/schema/integration/ip http://www.springframework.org/schema/integration/ip/spring-integration-ip.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-
 	<bean id="tcpIpUtils" class="org.springframework.integration.ip.util.SocketUtils" />
 	
-	<bean id="serializer" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
+	<bean id="serializer" class="org.springframework.commons.serializer.DefaultSerializer" />
+
+	<bean id="deserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
 	
 	<bean id="helloWorldInterceptors" class="org.springframework.integration.ip.tcp.connection.TcpConnectionInterceptorFactoryChain">
 		<property name="interceptors">
@@ -27,8 +28,8 @@
 	<int-ip:tcp-connection-factory id="server"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(10100)}"
-		input-converter="serializer"
-		output-converter="serializer"
+		serializer="serializer"
+		deserializer="deserializer"
 		using-nio="true"
 		single-use="true"
 		interceptor-factory-chain="helloWorldInterceptors"
@@ -41,8 +42,8 @@
 		single-use="true"
 		so-timeout="100000"
 		using-nio="true"
-		input-converter="serializer"
-		output-converter="serializer"
+		serializer="serializer"
+		deserializer="deserializer"
 		interceptor-factory-chain="helloWorldInterceptors"
 	/>
 	

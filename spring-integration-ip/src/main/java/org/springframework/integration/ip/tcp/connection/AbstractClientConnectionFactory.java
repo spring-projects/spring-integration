@@ -70,8 +70,9 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 			}
 		}
 		connection.setMapper(this.mapper);
-		connection.setInputConverter(this.inputConverter);
-		connection.setOutputConverter(this.outputConverter);
+		connection.setDeserializer(this.deserializer);
+		connection.setSerializer(this.serializer);
 		connection.setSingleUse(this.singleUse);
 	}
+
 }

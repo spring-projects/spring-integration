@@ -290,31 +290,31 @@ the factory, the connection will be closed after a response is received.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="input-converter" type="xsd:string" >
+			<xsd:attribute name="serializer" type="xsd:string" >
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.commons.serializer.InputStreamingConverter"/>
+							<tool:expected-type type="org.springframework.commons.serializer.Serializer"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-An InputStreamingConverter that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfConverter. Input and output converters
-would normally be the same but this is not required.					
+A Serializer that converts message payloads to/from output streams/input streams
+associated with the connection. Default is ByteArrayCrLfConverter. Serializer and Deserializer
+would normally be the same but this is not required.									
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="output-converter" type="xsd:string" >
+			<xsd:attribute name="deserializer" type="xsd:string" >
 				<xsd:annotation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.commons.serializer.OutputStreamingConverter"/>
+							<tool:expected-type type="org.springframework.commons.serializer.Deserializer"/>
 						</tool:annotation>
 					</xsd:appinfo>
 					<xsd:documentation>
-An OutputStreamingConverter that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfConverter. Input and output converters
-would normally be the same but this is not required.									
+A Deserializer that converts message payloads to/from output streams/input streams
+associated with the connection. Default is ByteArrayCrLfConverter. Serializer and Deserializer
+would normally be the same but this is not required.					
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:attribute>

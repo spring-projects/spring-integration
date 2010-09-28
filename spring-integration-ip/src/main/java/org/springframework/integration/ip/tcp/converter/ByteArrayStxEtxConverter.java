@@ -29,7 +29,6 @@ import org.springframework.integration.mapping.MessageMappingException;
  * 
  * @author Gary Russell
  * @since 2.0
- *
  */
 public class ByteArrayStxEtxConverter extends AbstractByteArrayStreamingConverter {
 
@@ -45,7 +44,7 @@ public class ByteArrayStxEtxConverter extends AbstractByteArrayStreamingConverte
 	 * being read). 
 	 *  
 	 */
-	public byte[] convert(InputStream inputStream) throws IOException {
+	public byte[] deserialize(InputStream inputStream) throws IOException {
 		int bite = inputStream.read();
 		if (bite < 0) {
 			throw new SoftEndOfStreamException("Stream closed between payloads");
@@ -71,7 +70,7 @@ public class ByteArrayStxEtxConverter extends AbstractByteArrayStreamingConverte
 	 * Writes the byte[] to the stream, prefixed by an ASCII STX character and
 	 * terminated with an ASCII ETX character.
 	 */
-	public void convert(byte[] bytes, OutputStream outputStream) throws IOException {
+	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(STX);
 		outputStream.write(bytes);
 		outputStream.write(ETX);
