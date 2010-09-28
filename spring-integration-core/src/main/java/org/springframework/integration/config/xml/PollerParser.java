@@ -33,6 +33,7 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
+import org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -91,15 +92,13 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		configureTrigger(element, metadataBuilder, parserContext);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "max-messages-per-poll");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(metadataBuilder, element, "receive-timeout");
-		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
-		if (adviceChainElement != null) {
-			configureAdviceChain(adviceChainElement, metadataBuilder, parserContext);
-		}
-
+		
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
-		if (txElement != null) {
-			configureTransactionAttributes(txElement, metadataBuilder, parserContext);
-		}
+		
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
+		
+		configureAdviceChain(adviceChainElement, txElement, metadataBuilder, parserContext);
+		
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(metadataBuilder, element, "task-executor");
 		return metadataBuilder.getBeanDefinition();
 	}
@@ -203,7 +202,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	 * and other "transactionDefinition" properties. This advisor will be applied on Polling Task proxy
 	 * (see {@link AbstractPollingEndpoint}).
 	 */
-	private void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+	private BeanDefinition configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		String TX_PKG_PREFIX = "org.springframework.transaction.interceptor";
 		BeanDefinitionBuilder txDefinitionBuilder = 
 			BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".DefaultTransactionAttribute");
@@ -219,40 +218,43 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 			BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".TransactionInterceptor");
 		txInterceptorBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
 		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
-		BeanDefinitionBuilder txAdvisorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".TransactionAttributeSourceAdvisor");
-		txAdvisorBuilder.addConstructorArgValue(txInterceptorBuilder.getBeanDefinition());
-
-		targetBuilder.addPropertyValue("transactionAdvisor", txAdvisorBuilder.getBeanDefinition());
+		
+		return txInterceptorBuilder.getBeanDefinition();
 	}
 
 	/**
 	 * Parses the 'advice-chain' element's sub-elements.
 	 */
-	@SuppressWarnings("unchecked")
-	private void configureAdviceChain(Element adviceChainElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void configureAdviceChain(Element adviceChainElement, Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		ManagedList adviceChain = new ManagedList();
-		NodeList childNodes = adviceChainElement.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); i++) {
-			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				Element childElement = (Element) child;
-				String localName = child.getLocalName();
-				if ("bean".equals(localName)) {
-					BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
-							childElement, targetBuilder.getBeanDefinition());
-					parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
-					adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
-				}
-				else if ("ref".equals(localName)) {
-					String ref = childElement.getAttribute("bean");
-					adviceChain.add(new RuntimeBeanReference(ref));
-				}
-				else {
-					BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
-							childElement, targetBuilder.getBeanDefinition());
-					if (customBeanDefinition == null) {
-						parserContext.getReaderContext().error(
-								"failed to parse custom element '" + localName + "'", childElement);
+		if (txElement != null){
+			adviceChain.add(this.configureTransactionAttributes(txElement, targetBuilder, parserContext));
+		}
+		if (adviceChainElement != null){
+			NodeList childNodes = adviceChainElement.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); i++) {
+				Node child = childNodes.item(i);
+				if (child.getNodeType() == Node.ELEMENT_NODE) {
+					Element childElement = (Element) child;
+					String localName = child.getLocalName();
+					if ("bean".equals(localName)) {
+						BeanDefinitionHolder holder = parserContext.getDelegate().parseBeanDefinitionElement(
+								childElement, targetBuilder.getBeanDefinition());
+						parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
+						adviceChain.add(new RuntimeBeanReference(holder.getBeanName()));
+					}
+					else if ("ref".equals(localName)) {
+						String ref = childElement.getAttribute("bean");
+						adviceChain.add(new RuntimeBeanReference(ref));
+					}
+					else {
+						BeanDefinition customBeanDefinition = parserContext.getDelegate().parseCustomElement(
+								childElement, targetBuilder.getBeanDefinition());
+						if (customBeanDefinition == null) {
+							parserContext.getReaderContext().error(
+									"failed to parse custom element '" + localName + "'", childElement);
+						}
 					}
 				}
 			}

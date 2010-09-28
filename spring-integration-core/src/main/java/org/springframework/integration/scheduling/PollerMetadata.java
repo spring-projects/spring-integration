@@ -19,7 +19,6 @@ package org.springframework.integration.scheduling;
 import java.util.List;
 
 import org.aopalliance.aop.Advice;
-import org.springframework.aop.Advisor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
@@ -41,16 +40,6 @@ public class PollerMetadata {
 	private List<Advice> adviceChain;
 
 	private volatile TaskExecutor taskExecutor;
-	
-	private volatile Advisor transactionAdvice;
-	
-	public Advisor getTransactionAdvisor() {
-		return transactionAdvice;
-	}
-
-	public void setTransactionAdvisor(Advisor transactionAdvice) {
-		this.transactionAdvice = transactionAdvice;
-	}
 
 	public void setTrigger(Trigger trigger) {
 		this.trigger = trigger;

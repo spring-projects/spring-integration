@@ -39,13 +39,24 @@
 	<service-activator id="advicedSa" input-channel="goodInputWithAdvice" ref="testBean"
 		method="good" output-channel="output">
 		<poller max-messages-per-poll="1" fixed-rate="10000">
-			<transactional transaction-manager="txManager" />
 			<advice-chain>
+				<ref bean="txAdvise"/>
 				<ref bean="adviceA" />
 				<beans:bean class="org.springframework.integration.dispatcher.PollingTransactionTests.SampleAdvice"/>
 			</advice-chain>
 		</poller>
 	</service-activator>
+	
+	<beans:bean id="txAdvise" class="org.springframework.transaction.interceptor.TransactionInterceptor">
+		<beans:property name="transactionManager" ref="txManager"/>
+		<beans:property name="transactionAttributeSource">
+			<beans:bean class="org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource">
+				<beans:property name="transactionAttribute">
+					<beans:bean class="org.springframework.transaction.interceptor.DefaultTransactionAttribute"/>
+				</beans:property>
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
 	
 	<beans:bean id="adviceA" class="org.springframework.integration.dispatcher.PollingTransactionTests.SampleAdvice"/>
 

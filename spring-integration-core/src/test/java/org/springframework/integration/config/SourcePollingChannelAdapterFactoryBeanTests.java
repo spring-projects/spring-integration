@@ -33,7 +33,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.springframework.aop.Advisor;
 import org.springframework.integration.Message;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageSource;
@@ -102,12 +101,10 @@ public class SourcePollingChannelAdapterFactoryBeanTests {
 		pollerMetadata.setMaxMessagesPerPoll(1);
 		final AtomicInteger count = new AtomicInteger();
 		final MethodInterceptor txAdvice = mock(MethodInterceptor.class);
-		pollerMetadata.setTransactionAdvisor(new Advisor() {	
-			public boolean isPerInstance() {
-				return false;
-			}	
-			public Advice getAdvice() {
-				return txAdvice;
+		adviceChain.add(new MethodInterceptor() {	
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				count.incrementAndGet();
+				return invocation.proceed();
 			}
 		});
 		when(txAdvice.invoke(Mockito.any(MethodInvocation.class))).thenAnswer(new Answer() {

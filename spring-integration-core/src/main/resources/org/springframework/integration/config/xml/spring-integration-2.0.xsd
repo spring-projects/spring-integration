@@ -1057,29 +1057,31 @@
 				<xsd:element name="cron-trigger" type="cronTriggerType" />
 			</xsd:choice>
 			<!-- Poller sub-elements are deprecated since Spring Integration 2.0 -->
-			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
-				<xsd:complexType>
-					<xsd:sequence>
-						<xsd:choice minOccurs="0" maxOccurs="unbounded">
-							<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
-								<xsd:complexType>
-									<xsd:attribute name="bean" type="xsd:string" use="required">
-										<xsd:annotation>
-											<xsd:appinfo>
-												<tool:annotation kind="ref">
-													<tool:expected-type type="java.lang.Object" />
-												</tool:annotation>
-											</xsd:appinfo>
-										</xsd:annotation>
-									</xsd:attribute>
-								</xsd:complexType>
-							</xsd:element>
-							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
-						</xsd:choice>
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:element>
+			<xsd:choice>
+				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1" />
+				<xsd:element name="advice-chain" minOccurs="0" maxOccurs="1">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:choice minOccurs="0" maxOccurs="unbounded">
+								<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+									<xsd:complexType>
+										<xsd:attribute name="bean" type="xsd:string" use="required">
+											<xsd:annotation>
+												<xsd:appinfo>
+													<tool:annotation kind="ref">
+														<tool:expected-type type="java.lang.Object" />
+													</tool:annotation>
+												</xsd:appinfo>
+											</xsd:annotation>
+										</xsd:attribute>
+									</xsd:complexType>
+								</xsd:element>
+								<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded" />
+							</xsd:choice>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:choice>
 		</xsd:sequence>
 		<xsd:attribute name="fixed-delay" type="xsd:string">
 			<xsd:annotation>

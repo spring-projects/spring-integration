@@ -20,7 +20,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledFuture;
 
 import org.aopalliance.aop.Advice;
-import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
@@ -107,17 +106,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			}
 		};
 		
-		Advisor transactionAdvice = this.pollerMetadata.getTransactionAdvisor();
 		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
-		if (transactionAdvice != null || !CollectionUtils.isEmpty(adviceChain)){
+		if (!CollectionUtils.isEmpty(adviceChain)){
 			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
-			
-			// Add Transaction advice first
-			if (transactionAdvice != null){
-				proxyFactory.addAdvisor(transactionAdvice);
-			}
-			
-			// . . .then add the rest of the advises
+
 			if (!CollectionUtils.isEmpty(adviceChain)){
 				for (Advice advice : adviceChain) {
 					proxyFactory.addAdvice(advice);

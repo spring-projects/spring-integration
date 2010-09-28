@@ -19,7 +19,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  * in the BeanFactory while having <aop:config> resent resulted in 
  * TX Advisor being applied on all beans in AC
  */
-public class TransactionalPollerWithMixedAopConfig {
+public class TransactionalPollerWithMixedAopConfigTests {
 
 	@Test
 	public void validateTransactionalProxyIsolationToThePollerOnly(){
@@ -38,9 +38,9 @@ public class TransactionalPollerWithMixedAopConfig {
 		public Foo(String value){}
 	}
 	
-	public static class SampleAdvice implements MethodInterceptor{
-		public Object invoke(MethodInvocation invocation) throws Throwable {
-			return invocation.proceed();
-		}	
-	}
+//	public static class SampleAdvice implements MethodInterceptor{
+//		public Object invoke(MethodInvocation invocation) throws Throwable {
+//			return invocation.proceed();
+//		}	
+//	}
 }

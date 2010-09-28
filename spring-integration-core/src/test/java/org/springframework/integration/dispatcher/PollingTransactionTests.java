@@ -30,6 +30,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -41,10 +42,11 @@ import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.util.TestTransactionManager;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class PollingTransactionTests {
 
@@ -75,14 +77,14 @@ public class PollingTransactionTests {
 	
 		PollerMetadata pollerMetedata = TestUtils.getPropertyValue(advicedPoller, "pollerMetadata",PollerMetadata.class);
 		List<Advice> adviceChain = TestUtils.getPropertyValue(pollerMetedata, "adviceChain",List.class);
-		assertEquals(2, adviceChain.size());
+		assertEquals(3, adviceChain.size());
 		Runnable poller = TestUtils.getPropertyValue(advicedPoller, "poller", Runnable.class);
 		Callable<?> pollingTask = TestUtils.getPropertyValue(poller, "pollingTask", Callable.class);
 		assertTrue("Poller is not Advised", pollingTask instanceof Advised);
 		Advisor[] advisors = ((Advised)pollingTask).getAdvisors();
 		assertEquals(3, advisors.length);
 
-		assertTrue("First advisor is not TX", advisors[0] instanceof TransactionAttributeSourceAdvisor);
+		assertTrue("First advisor is not TX", ((DefaultPointcutAdvisor)advisors[0]).getAdvice() instanceof TransactionInterceptor);
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInputWithAdvice");
 		PollableChannel output = (PollableChannel) context.getBean("output");
@@ -92,7 +94,6 @@ public class PollingTransactionTests {
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
 		assertNotNull(message);		
-		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
 		context.stop();
 	}

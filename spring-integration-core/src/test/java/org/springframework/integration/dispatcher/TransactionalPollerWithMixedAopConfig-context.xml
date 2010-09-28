@@ -15,17 +15,13 @@
 	<int:service-activator input-channel="inputChannel" ref="sampleService">
 		<int:poller max-messages-per-poll="1" fixed-rate="10000">
 			<int:transactional transaction-manager="txManager" />
-			<int:advice-chain>
-				<bean
-					class="org.springframework.integration.dispatcher.TransactionalPollerWithMixedAopConfig.SampleAdvice" />
-			</int:advice-chain>
 		</int:poller>
 	</int:service-activator>
 	
 	<bean id="sampleService" 
-		class="org.springframework.integration.dispatcher.TransactionalPollerWithMixedAopConfig.SampleService"/>
+		class="org.springframework.integration.dispatcher.TransactionalPollerWithMixedAopConfigTests.SampleService"/>
 		
-	<bean id="foo" class="org.springframework.integration.dispatcher.TransactionalPollerWithMixedAopConfig.Foo">
+	<bean id="foo" class="org.springframework.integration.dispatcher.TransactionalPollerWithMixedAopConfigTests.Foo">
 		<constructor-arg value="hello"/>
 	</bean>
 	
