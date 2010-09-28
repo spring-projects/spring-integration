@@ -37,9 +37,10 @@ import javax.sql.DataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.store.MessageGroup;
@@ -88,14 +89,14 @@ public class JdbcMessageStoreTests {
 	@Transactional
 	public void testSerializer() throws Exception {
 		// N.B. these serializers are not realistic (just for test purposes)
-		messageStore.setSerializer(new OutputStreamingConverter<Message<?>>() {
-			public void convert(Message<?> object, OutputStream outputStream) throws IOException {
-				outputStream.write(object.getPayload().toString().getBytes());
+		messageStore.setSerializer(new Serializer/*<Message<?>><Message<?>>*/() {
+			public void serialize(/*Message<?>*/ Object object, OutputStream outputStream) throws IOException {
+				outputStream.write(((Message<?>) object).getPayload().toString().getBytes());
 				outputStream.flush();
 			}
 		});
-		messageStore.setDeserializer(new InputStreamingConverter<Message<?>>() {
-			public Message<?> convert(InputStream inputStream) throws IOException {
+		messageStore.setDeserializer(new Deserializer/*<Message<?>>*/() {
+			public Message<?> deserialize(InputStream inputStream) throws IOException {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 				return new GenericMessage<String>(reader.readLine());
 			}
