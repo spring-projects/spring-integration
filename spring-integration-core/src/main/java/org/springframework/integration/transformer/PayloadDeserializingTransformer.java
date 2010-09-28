@@ -16,9 +16,8 @@
 
 package org.springframework.integration.transformer;
 
+import org.springframework.commons.serializer.Deserializer;
 import org.springframework.commons.serializer.DeserializingConverter;
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
-import org.springframework.core.convert.converter.Converter;
 
 /**
  * Transformer that deserializes the inbound byte array payload to an object by delegating to a
@@ -33,15 +32,14 @@ import org.springframework.core.convert.converter.Converter;
  */
 public class PayloadDeserializingTransformer extends PayloadTypeConvertingTransformer<byte[], Object> {
 
-	@Override
-	public void setConverter(Converter<byte[], Object> converter) {
-		this.converter = converter;
+	public void setDeserializer(Deserializer<Object> deserializer) {
+		this.setConverter(new DeserializingConverter(deserializer));
 	}
 
 	@Override
 	protected Object transformPayload(byte[] payload) throws Exception {
 		if (this.converter == null) {
-			this.converter = new DeserializingConverter(new JavaStreamingConverter());
+			this.setConverter(new DeserializingConverter());
 		}
 		return this.converter.convert(payload);
 	}

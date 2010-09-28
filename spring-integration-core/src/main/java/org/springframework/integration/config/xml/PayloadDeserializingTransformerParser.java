@@ -35,7 +35,7 @@ public class PayloadDeserializingTransformerParser extends AbstractTransformerPa
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "converter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "deserializer");
 	}
 
 }
