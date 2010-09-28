@@ -93,7 +93,8 @@ public class PollingTransactionTests {
 		input.send(new GenericMessage<String>("test"));
 		txManager.waitForCompletion(10000);
 		Message<?> message = output.receive(0);
-		assertNotNull(message);		
+		assertNotNull(message);
+		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
 		context.stop();
 	}
