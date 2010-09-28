@@ -31,6 +31,7 @@
      void placeOrder(Order order);
 
  }]]></programlisting>
+ 	... as well as <code>method</code> sub element if yuo prefer XML configuration (see next paragraph)
     </para>
     <para>
       It is also possible to pass values to be interpreted as Message headers on the Message
@@ -82,6 +83,7 @@
     by mapping it to a Message. To accomplish this our Gateway provides support for Exception mappers via the
     <emphasis>exception-mapper</emphasis> attribute. 
     </para>
+    <para>
 <programlisting language="xml"><![CDATA[<si:gateway id="sampleGateway"
 		default-request-channel="gatewayChannel" 
 		service-interface="foo.bar.SimpleGateway"
@@ -103,7 +105,26 @@
 }
 				]]></programlisting>	
  
- 
+ 		</para>
+ 		<para>
+ 			<important>
+ 			Exposing messaging system via POJO Gateway is obviously a great benefit, but it does come at the price so there 
+ 			are certain things you must be aware of.
+
+            We want our Java method to return as quick as possible and not hang for infinite amount of time until they can 
+            return (void , exception or return value). When regular methods are used as a proxies in front of the Messaging 
+            system we have to take into account the asynchronous nature of the Messaging Systems. This means that there might 
+            be a chance that a Message hat was initiated by a Gateway could be dropped by a Filter, thus never reaching a 
+            component that is responsible to produce a reply. Some Service Activator method might result in the Exception, 
+            thus resulting in no-reply (as we don't generate Null messages).So as you can see there are multiple scenarios 
+            where reply message might not be coming which is perfectly natural in messaging systems. However think about the 
+            implication on the gateway method.  The Gateway's method input arguments  were incorporated into a Message and 
+            sent downstream. The reply Message would be converted to a return value of the Gateway's method. So you can see 
+            how ugly it could get if you can not guarantee that for each Gateway call there will alway be a reply Message. 
+            Basically your Gateway method will never return and will hang infinitely. (work in progress!!!!)
+One of the ways of handling this situation is via AsyncGateway (explained later in this section). Another way of handling it is to explicitly set the reply-timeout attribute. This way gateway will not hang for more then the time that was specified by the reply-timout and will return 'null'. 
+ 			</important>
+ 		</para>
   </section>
   <section id="async-gateway">
     <title>Asynchronous Gateway</title>
