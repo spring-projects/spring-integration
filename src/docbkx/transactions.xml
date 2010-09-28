@@ -92,7 +92,15 @@
     </para>
     
     <para>
-    Spring Integration provides several hooks to accomplish this.
+    Spring Integration provides transactional support for Pollers. Pollers are a special case comoponents becouse 
+    we can call receive() within that poller task against a resource that is itself transactional thus including <emphasis>receive()</emphasis> 
+    call in the the boundaries of the Transaction allowing it to be rolled back in case of a task failure. If we were to add the same support 
+    for channels, the added transactions would affect all downstream components starting with that <emphasis>send()</emphasis> call. That is 
+    providing a rather wide scope for transaction demarcation without any strong reason especially when Spring already provides several way to 
+    address transactional needs of any component downstream. However the <emphasis>receive()</emphasis> method being included in a transaction 
+    boundary is the "strong reason" for pollers. 
+    
+    
     </para>
     
      <section id="transaction-poller">
@@ -115,6 +123,39 @@
    		 <para>
    		 With the above configuration all Message flows initiated by this poller will be transactional. For more information and details on 
    		 Poller's transactional configuration please refer to section - <emphasis>21.1.1. Polling and Transactions</emphasis>.
+   		 </para>
+   		 
+   		 <para>
+   		 There times when besides transaction several more cross cutting concerns needs to be addressed when running Poller. To help with that, 
+   		 Poller element defines <emphasis>&lt;advice-chain&gt; </emphasis> sub-element which allows you to define a custom chain of Advices 
+   		 to be applied on the Poller. (see section 4.4 for more details)
+         In Spring Integration 2.0 Poller went through the major  refactoring effort and is now using proxy mechanism to address transactional 
+         concerns as well as other cross cutting concerns, one of the significant changes evolving from this effort is that we 
+         made <emphasis>&lt;transactional&gt;</emphasis>  and <emphasis>&lt;advice-chain&gt;</emphasis>  elements mutually exclusive.
+		The rational behind this is; If you need more then one advice, and one of them is Transaction advice, then you can simply 
+		include it in the <emphasis>&lt;advice-chain&gt;</emphasis> with the same convenience as before but with much more control 
+		since you now have an option to position any advice in the desired order. 
+ <programlisting language="xml"><![CDATA[<poller max-messages-per-poll="1" fixed-rate="10000">
+	<advice-chain>
+		<ref bean="txAdvise"/>
+		<ref bean="someAotherAdviceBean" />
+		<beans:bean class="foo.bar.SampleAdvice"/>
+	</advice-chain>
+</poller>
+
+<tx:advice id="txAdvice" transaction-manager="txManager">
+	<tx:attributes>
+		<tx:method name="get*" read-only="true"/>
+		<tx:method name="*"/>
+	</tx:attributes>
+</tx:advice>
+]]></programlisting>	
+
+As yo can see from the example above, we have provided a very basic XML-based configuration of Spring Transaction advice  - "txAdvice" and 
+included it within the <emphasis>&lt;advice-chain&gt;</emphasis> defined by the Poller.
+
+And if you only need to address transactional concerns of the Poller, then you can still use <emphasis>&lt;transactional&gt;</emphasis> element 
+as a convinience. 
    		 </para>
     </section>
   </section>

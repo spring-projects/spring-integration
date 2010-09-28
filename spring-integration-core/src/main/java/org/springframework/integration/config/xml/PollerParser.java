@@ -33,7 +33,6 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
-import org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
@@ -198,7 +197,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	}
 
 	/**
-	 * Parse a "transactional" element and configure {@link TransactionAttributeSourceAdvisor} with "transactionManager"
+	 * Parse a "transactional" element and configure TransactionInterceptor with "transactionManager"
 	 * and other "transactionDefinition" properties. This advisor will be applied on Polling Task proxy
 	 * (see {@link AbstractPollingEndpoint}).
 	 */
