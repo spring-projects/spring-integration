@@ -20,6 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -32,12 +36,8 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.context.IntegrationContextUtils;
-import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Parser for the &lt;poller&gt; element.
@@ -199,7 +199,7 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 	/**
 	 * Parse a "transactional" element and configure TransactionInterceptor with "transactionManager"
 	 * and other "transactionDefinition" properties. This advisor will be applied on Polling Task proxy
-	 * (see {@link AbstractPollingEndpoint}).
+	 * (see {@link org.springframework.integration.endpoint.AbstractPollingEndpoint}).
 	 */
 	private BeanDefinition configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
 		String TX_PKG_PREFIX = "org.springframework.transaction.interceptor";
