@@ -23,8 +23,9 @@ import java.util.concurrent.Executors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.util.Assert;
@@ -67,9 +68,9 @@ public abstract class AbstractConnectionFactory
 	
 	protected Executor taskExecutor;
 	
-	protected InputStreamingConverter<?> inputConverter = new ByteArrayCrLfConverter();
+	protected Deserializer<?> deserializer = new ByteArrayCrLfConverter();
 	
-	protected OutputStreamingConverter<?> outputConverter = new ByteArrayCrLfConverter();
+	protected Serializer<?> serializer = new ByteArrayCrLfConverter();
 	
 	protected TcpMessageMapper mapper = new TcpMessageMapper();
 
@@ -250,18 +251,18 @@ public abstract class AbstractConnectionFactory
 
 	/**
 	 * 
-	 * @param converter the inputConverter to set
+	 * @param deserializer the deserializer to set
 	 */
-	public void setInputConverter(InputStreamingConverter<?> converter) {
-		this.inputConverter = converter;
+	public void setDeserializer(Deserializer<?> deserializer) {
+		this.deserializer = deserializer;
 	}
 
 	/**
 	 * 
-	 * @param outputConverter the outputConverter to set
+	 * @param serializer the serializer to set
 	 */
-	public void setOutputConverter(OutputStreamingConverter<?> outputConverter) {
-		this.outputConverter = outputConverter;
+	public void setSerializer(Serializer<?> serializer) {
+		this.serializer = serializer;
 	}
 
 	/**

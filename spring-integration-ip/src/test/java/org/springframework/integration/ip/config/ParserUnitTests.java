@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.config;
 
 import static org.junit.Assert.assertEquals;
@@ -23,10 +24,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.commons.serializer.InputStreamingConverter;
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ip.tcp.TcpInboundGateway;
@@ -45,7 +48,6 @@ import org.springframework.integration.ip.udp.UnicastReceivingChannelAdapter;
 import org.springframework.integration.ip.udp.UnicastSendingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 
 /**
  * @author Gary Russell
@@ -111,8 +113,11 @@ public class ParserUnitTests {
 	AbstractConnectionFactory cfC2;
 
 	@Autowired
-	InputStreamingConverter<byte[]> converter;
-	
+	Serializer<?> serializer;
+
+	@Autowired
+	Deserializer<?> deserializer;
+
 	@Autowired
 	@Qualifier(value="server1")
 	AbstractConnectionFactory server1;
@@ -263,8 +268,8 @@ public class ParserUnitTests {
 		assertEquals(1236, client1.getSoTimeout());
 		assertEquals(12, client1.getSoTrafficClass());
 		DirectFieldAccessor dfa = new DirectFieldAccessor(client1);
-		assertSame(converter, dfa.getPropertyValue("inputConverter"));
-		assertSame(converter, dfa.getPropertyValue("outputConverter"));
+		assertSame(serializer, dfa.getPropertyValue("serializer"));
+		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
 		assertEquals(true, dfa.getPropertyValue("singleUse"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
@@ -283,8 +288,8 @@ public class ParserUnitTests {
 		assertEquals(1236, server1.getSoTimeout());
 		assertEquals(12, server1.getSoTrafficClass());
 		DirectFieldAccessor dfa = new DirectFieldAccessor(server1);
-		assertSame(converter, dfa.getPropertyValue("inputConverter"));
-		assertSame(converter, dfa.getPropertyValue("outputConverter"));
+		assertSame(serializer, dfa.getPropertyValue("serializer"));
+		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
 		assertEquals(true, dfa.getPropertyValue("singleUse"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
@@ -304,8 +309,8 @@ public class ParserUnitTests {
 		assertEquals(1236, client1.getSoTimeout());
 		assertEquals(12, client1.getSoTrafficClass());
 		DirectFieldAccessor dfa = new DirectFieldAccessor(client1);
-		assertSame(converter, dfa.getPropertyValue("inputConverter"));
-		assertSame(converter, dfa.getPropertyValue("outputConverter"));
+		assertSame(serializer, dfa.getPropertyValue("serializer"));
+		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
 		assertEquals(true, dfa.getPropertyValue("singleUse"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));
@@ -323,8 +328,8 @@ public class ParserUnitTests {
 		assertEquals(1236, server1.getSoTimeout());
 		assertEquals(12, server1.getSoTrafficClass());
 		DirectFieldAccessor dfa = new DirectFieldAccessor(server1);
-		assertSame(converter, dfa.getPropertyValue("inputConverter"));
-		assertSame(converter, dfa.getPropertyValue("outputConverter"));
+		assertSame(serializer, dfa.getPropertyValue("serializer"));
+		assertSame(deserializer, dfa.getPropertyValue("deserializer"));
 		assertEquals(true, dfa.getPropertyValue("soTcpNoDelay"));
 		assertEquals(true, dfa.getPropertyValue("singleUse"));
 		assertSame(taskExecutor, dfa.getPropertyValue("taskExecutor"));

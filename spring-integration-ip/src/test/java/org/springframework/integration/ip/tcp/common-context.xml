@@ -15,119 +15,119 @@
 	<bean id="crLfConverter" class="org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter" />
 	<bean id="stxEtxConverter" class="org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter" />
 	<bean id="lengthHeaderConverter" class="org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter" />
-	<bean id="javaConverter" class="org.springframework.commons.serializer.java.JavaStreamingConverter" />
+	<bean id="javaSerializer" class="org.springframework.commons.serializer.DefaultSerializer" />
+	<bean id="javaDeserializer" class="org.springframework.commons.serializer.DefaultDeserializer" />
 
 	<ip:tcp-connection-factory id="crLfServer"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7000)}"
-		input-converter="crLfConverter"
-		output-converter="crLfConverter"/>
+		serializer="crLfConverter"
+		deserializer="crLfConverter"/>
 
 	<ip:tcp-connection-factory id="stxEtxServer"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7100)}"
-		input-converter="stxEtxConverter"
-		output-converter="stxEtxConverter"/>
+		serializer="stxEtxConverter"
+		deserializer="stxEtxConverter"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderServer"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7200)}"
-		input-converter="lengthHeaderConverter"
-		output-converter="lengthHeaderConverter"/>
+		serializer="lengthHeaderConverter"
+		deserializer="lengthHeaderConverter"/>
 
 	<ip:tcp-connection-factory id="javaSerialServer"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7300)}"
-		input-converter="javaConverter"
-		output-converter="javaConverter"/>
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"/>
 
 	<ip:tcp-connection-factory id="crLfClient"
 		type="client"
 		host="localhost"
 		port="#{crLfServer.port}"
-		input-converter="crLfConverter"
-		output-converter="crLfConverter"/>
+		serializer="crLfConverter"
+		deserializer="crLfConverter"/>
 
 	<ip:tcp-connection-factory id="stxEtxClient"
 		type="client"
 		host="localhost"
 		port="#{stxEtxServer.port}"
-		input-converter="stxEtxConverter"
-		output-converter="stxEtxConverter"/>
+		serializer="stxEtxConverter"
+		deserializer="stxEtxConverter"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderClient"
 		type="client"
 		host="localhost"
 		port="#{lengthHeaderServer.port}"
-		input-converter="lengthHeaderConverter"
-		output-converter="lengthHeaderConverter"/>
+		serializer="lengthHeaderConverter"
+		deserializer="lengthHeaderConverter"/>
 
 	<ip:tcp-connection-factory id="javaSerialClient"
 		type="client"
 		host="localhost"
 		port="#{javaSerialServer.port}"
-		input-converter="javaConverter"
-		output-converter="javaConverter"/>
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"/>
 
 	<ip:tcp-connection-factory id="crLfServerNio"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7400)}"
-		input-converter="crLfConverter"
-		output-converter="crLfConverter"
+		serializer="crLfConverter"
+		deserializer="crLfConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="stxEtxServerNio"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7500)}"
-		input-converter="stxEtxConverter"
-		output-converter="stxEtxConverter"
+		serializer="stxEtxConverter"
+		deserializer="stxEtxConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderServerNio"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7600)}"
-		input-converter="lengthHeaderConverter"
-		output-converter="lengthHeaderConverter"
+		serializer="lengthHeaderConverter"
+		deserializer="lengthHeaderConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="javaSerialServerNio"
 		type="server"
 		port="#{tcpIpUtils.findAvailableServerSocket(7700)}"
-		input-converter="javaConverter"
-		output-converter="javaConverter"
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="crLfClientNio"
 		type="client"
 		host="localhost"
 		port="#{crLfServer.port}"
-		input-converter="crLfConverter"
-		output-converter="crLfConverter"
+		serializer="crLfConverter"
+		deserializer="crLfConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="stxEtxClientNio"
 		type="client"
 		host="localhost"
 		port="#{stxEtxServer.port}"
-		input-converter="stxEtxConverter"
-		output-converter="stxEtxConverter"
+		serializer="stxEtxConverter"
+		deserializer="stxEtxConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="lengthHeaderClientNio"
 		type="client"
 		host="localhost"
 		port="#{lengthHeaderServer.port}"
-		input-converter="lengthHeaderConverter"
-		output-converter="lengthHeaderConverter"
+		serializer="lengthHeaderConverter"
+		deserializer="lengthHeaderConverter"
 		using-nio="true"/>
 
 	<ip:tcp-connection-factory id="javaSerialClientNio"
 		type="client"
 		host="localhost"
 		port="#{javaSerialServer.port}"
-		input-converter="javaConverter"
-		output-converter="javaConverter"
+		serializer="javaSerializer"
+		deserializer="javaDeserializer"
 		using-nio="true"/>
-
 
 </beans>

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
 import static org.junit.Assert.assertEquals;
@@ -26,6 +27,7 @@ import java.nio.ByteBuffer;
 import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
+
 import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
 import org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter;
@@ -35,15 +37,15 @@ import org.springframework.integration.support.MessageBuilder;
 
 /**
  * @author Gary Russell
- * 
+ * @since 2.0 
  */
 public class TcpNioConnectionWriteTests {
 
 	private AbstractConnectionFactory getClientConnectionFactory(boolean direct,
 			final int port, AbstractByteArrayStreamingConverter converter) {
 		TcpNioClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(converter);
+		ccf.setDeserializer(converter);
 		ccf.setSoTimeout(10000);
 		ccf.setUsingDirectBuffers(direct);
 		ccf.start();

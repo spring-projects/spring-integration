@@ -9,7 +9,11 @@ import java.io.OutputStream;
 
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
+
+import org.springframework.commons.serializer.DefaultDeserializer;
+import org.springframework.commons.serializer.DefaultSerializer;
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.jdbc.JdbcMessageStore;
@@ -41,9 +45,9 @@ public class JdbcMessageStoreParserTests {
 	public void testSimpleMessageStoreWithSerializer() {
 		setUp("serializerJdbcMessageStore.xml", getClass());
 		MessageStore store = context.getBean("messageStore", MessageStore.class);
-		Object serializer = TestUtils.getPropertyValue(store, "serializer.streamingConverter");
+		Object serializer = TestUtils.getPropertyValue(store, "serializer.serializer");
 		assertTrue(serializer instanceof EnhancedSerializer);
-		Object deserializer = TestUtils.getPropertyValue(store, "deserializer.streamingConverter");
+		Object deserializer = TestUtils.getPropertyValue(store, "deserializer.deserializer");
 		assertTrue(deserializer instanceof EnhancedSerializer);
 	}
 
@@ -67,17 +71,22 @@ public class JdbcMessageStoreParserTests {
 		context = new ClassPathXmlApplicationContext(name, cls);
 	}
 
-	public static class EnhancedSerializer extends JavaStreamingConverter {
-		@Override
-		public Object convert(InputStream inputStream) throws IOException {
-			Message<?> message = (Message<?>) super.convert(inputStream);
+
+	public static class EnhancedSerializer implements Serializer<Object>, Deserializer<Object> {
+
+		private final Serializer<Object> targetSerializer = new DefaultSerializer();
+
+		private final Deserializer<Object> targetDeserializer = new DefaultDeserializer();
+
+		public Object deserialize(InputStream inputStream) throws IOException {
+			Message<?> message = (Message<?>) targetDeserializer.deserialize(inputStream);
 			return message;
 		}
 
-		@Override
-		public void convert(Object object, OutputStream outputStream) throws IOException {
+		public void serialize(Object object, OutputStream outputStream) throws IOException {
 			Message<?> message = (Message<?>) object;
-			super.convert(MessageBuilder.fromMessage(message).setHeader("serializer", "CUSTOM").build(), outputStream);
+			message = MessageBuilder.fromMessage(message).setHeader("serializer", "CUSTOM").build();
+			targetSerializer.serialize(message, outputStream);
 		}
 	}
 

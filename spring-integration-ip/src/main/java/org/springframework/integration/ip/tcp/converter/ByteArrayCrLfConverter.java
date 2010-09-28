@@ -27,7 +27,6 @@ import java.io.OutputStream;
  * 
  * @author Gary Russell
  * @since 2.0
- *
  */
 public class ByteArrayCrLfConverter extends AbstractByteArrayStreamingConverter {
 
@@ -37,7 +36,7 @@ public class ByteArrayCrLfConverter extends AbstractByteArrayStreamingConverter 
 	 * is closed immediately after the \r\n (i.e. no data is in the process of
 	 * being read). 
 	 */
-	public byte[] convert(InputStream inputStream) throws IOException {
+	public byte[] deserialize(InputStream inputStream) throws IOException {
 		byte[] buffer = new byte[this.maxMessageSize];
 		int n = 0;
 		int bite;
@@ -66,7 +65,7 @@ public class ByteArrayCrLfConverter extends AbstractByteArrayStreamingConverter 
 	/**
 	 * Writes the byte[] to the stream and appends \r\n.
 	 */
-	public void convert(byte[] bytes, OutputStream outputStream) throws IOException {
+	public void serialize(byte[] bytes, OutputStream outputStream) throws IOException {
 		outputStream.write(bytes);
 		outputStream.write('\r');
 		outputStream.write('\n');

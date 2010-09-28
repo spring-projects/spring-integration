@@ -89,9 +89,9 @@ public abstract class IpAdapterParserUtils {
 
 	static final String TCP_CONNECTION_TYPE = "type";
 	
-	static final String INPUT_CONVERTER = "input-converter";
+	static final String SERIALIZER = "serializer";
 	
-	static final String OUTPUT_CONVERTER = "output-converter";
+	static final String DESERIALIZER = "deserializer";
 
 	static final String SINGLE_USE = "single-use";
 

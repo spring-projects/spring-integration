@@ -13,13 +13,24 @@
 
 package org.springframework.integration.jdbc;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
+import javax.sql.DataSource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.commons.serializer.Deserializer;
 import org.springframework.commons.serializer.DeserializingConverter;
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.commons.serializer.SerializingConverter;
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.store.AbstractMessageGroupStore;
 import org.springframework.integration.store.MessageGroup;
@@ -27,17 +38,15 @@ import org.springframework.integration.store.MessageStore;
 import org.springframework.integration.store.SimpleMessageGroup;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.util.UUIDConverter;
-import org.springframework.jdbc.core.*;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.jdbc.support.lob.LobHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import javax.sql.DataSource;
-import java.sql.*;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Implementation of {@link MessageStore} using a relational database via JDBC. SQL scripts to create the necessary
@@ -113,9 +122,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * Convenient constructor for configuration use.
 	 */
 	public JdbcMessageStore() {
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		deserializer = new DeserializingConverter(converter);
-		serializer = new SerializingConverter(converter);
+		deserializer = new DeserializingConverter();
+		serializer = new SerializingConverter();
 	}
 
 	/**
@@ -194,8 +202,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param serializer the serializer to set
 	 */
 	@SuppressWarnings("unchecked")
-	public void setSerializer(OutputStreamingConverter<? super Message<?>> serializer) {
-		this.serializer = new SerializingConverter((OutputStreamingConverter<Object>) serializer);
+	public void setSerializer(Serializer/*<? super Message<?>>*/ serializer) {
+		this.serializer = new SerializingConverter(serializer);
 	}
 	
 	/**
@@ -204,8 +212,8 @@ public class JdbcMessageStore extends AbstractMessageGroupStore implements Messa
 	 * @param deserializer the deserializer to set
 	 */
 	@SuppressWarnings("unchecked")
-	public void setDeserializer(InputStreamingConverter<? super Message<?>> deserializer) {
-		this.deserializer = new DeserializingConverter((InputStreamingConverter<Object>) deserializer);
+	public void setDeserializer(Deserializer/*<? super Message<?>>*/ deserializer) {
+		this.deserializer = new DeserializingConverter(deserializer);
 	}
 
 	/**

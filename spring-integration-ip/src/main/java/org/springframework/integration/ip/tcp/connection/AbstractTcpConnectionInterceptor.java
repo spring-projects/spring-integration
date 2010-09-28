@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.ip.tcp.connection;
 
-
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.integration.Message;
 
 /**
@@ -26,7 +26,6 @@ import org.springframework.integration.Message;
  * 
  * @author Gary Russell
  * @since 2.0
- *
  */
 public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionInterceptor {
 
@@ -35,6 +34,7 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 	private TcpListener tcpListener;
 
 	private TcpSender tcpSender;
+
 
 	public void close() {
 		this.theConnection.close();
@@ -90,20 +90,20 @@ public abstract class AbstractTcpConnectionInterceptor implements TcpConnectionI
 		this.theConnection.setMapper(mapper);
 	}
 
-	public InputStreamingConverter<?> getInputConverter() {
-		return this.theConnection.getInputConverter();
+	public Deserializer<?> getDeserializer() {
+		return this.theConnection.getDeserializer();
 	}
 
-	public void setInputConverter(InputStreamingConverter<?> inputConverter) {
-		this.theConnection.setInputConverter(inputConverter);
+	public void setDeserializer(Deserializer<?> deserializer) {
+		this.theConnection.setDeserializer(deserializer);
 	}
 
-	public OutputStreamingConverter<?> getOutputConverter() {
-		return this.theConnection.getOutputConverter();
+	public Serializer<?> getSerializer() {
+		return this.theConnection.getSerializer();
 	}
 
-	public void setOutputConverter(OutputStreamingConverter<?> outputConverter) {
-		this.theConnection.setOutputConverter(outputConverter);
+	public void setSerializer(Serializer<?> serializer) {
+		this.theConnection.setSerializer(serializer);
 	}
 
 	public boolean isServer() {

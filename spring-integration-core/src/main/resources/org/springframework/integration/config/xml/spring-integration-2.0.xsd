@@ -1650,15 +1650,15 @@
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:element ref="poller" />
 		</xsd:choice>
-		<xsd:attribute name="converter" use="optional">
+		<xsd:attribute name="serializer" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Reference to a Converter instance that converts from an object to a byte array.
-					This is optional. The default Converter will use standard Java serialization.
+					Reference to a Serializer instance to convert from an object to a byte array.
+					This is optional. The default will use standard Java serialization.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.core.convert.converter.Converter" />
+						<tool:expected-type type="org.springframework.commons.serializer.Serializer" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>
@@ -1684,15 +1684,15 @@
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:element ref="poller" />
 		</xsd:choice>
-		<xsd:attribute name="converter" use="optional">
+		<xsd:attribute name="deserializer" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					Reference to a Converter instance that converts from a byte array to an object.
-					This is optional. The default Converter will use standard Java deserialization.
+					Reference to a Deserializer instance to convert from a byte array to an object.
+					This is optional. The default will use standard Java deserialization.
 				</xsd:documentation>
 				<xsd:appinfo>
 					<tool:annotation kind="ref">
-						<tool:expected-type type="org.springframework.core.convert.converter.Converter" />
+						<tool:expected-type type="org.springframework.commons.serializer.Deserializer" />
 					</tool:annotation>
 				</xsd:appinfo>
 			</xsd:annotation>

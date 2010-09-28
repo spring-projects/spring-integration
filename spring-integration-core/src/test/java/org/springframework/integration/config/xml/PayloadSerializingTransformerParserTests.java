@@ -21,15 +21,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -52,7 +53,7 @@ public class PayloadSerializingTransformerParserTests {
 	private MessageChannel queueInput;
 
 	@Autowired
-	private MessageChannel customConverterInput;
+	private MessageChannel customSerializerInput;
 
 	@Autowired
 	private PollableChannel output;
@@ -103,8 +104,8 @@ public class PayloadSerializingTransformerParserTests {
 	}
 
 	@Test
-	public void customConverter() throws Exception {
-		customConverterInput.send(new GenericMessage<String>("test"));
+	public void customSerializer() throws Exception {
+		customSerializerInput.send(new GenericMessage<String>("test"));
 		Message<?> result = output.receive(3000);
 		assertNotNull(result);
 		assertEquals(byte[].class, result.getPayload().getClass());
@@ -127,15 +128,12 @@ public class PayloadSerializingTransformerParserTests {
 	}
 
 
-	public static class TestSerializingConverter implements Converter<Object, byte[]> {
+	public static class TestSerializer implements Serializer<Object> {
 
-		public byte[] convert(Object source) {
-			try {
-				return source.toString().toUpperCase().getBytes("UTF-8");
-			}
-			catch (UnsupportedEncodingException e) {
-				throw new MessageTransformationException("failed to convert payload", e);
-			}
+		public void serialize(Object source, OutputStream outputStream) throws IOException {
+			outputStream.write(source.toString().toUpperCase().getBytes("UTF-8"));
+			outputStream.flush();
+			outputStream.close();
 		}
 	}
 

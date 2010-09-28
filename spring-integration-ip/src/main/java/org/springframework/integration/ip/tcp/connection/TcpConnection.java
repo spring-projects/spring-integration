@@ -19,8 +19,8 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
-import org.springframework.commons.serializer.InputStreamingConverter;
-import org.springframework.commons.serializer.OutputStreamingConverter;
+import org.springframework.commons.serializer.Deserializer;
+import org.springframework.commons.serializer.Serializer;
 import org.springframework.integration.Message;
 
 /**
@@ -119,25 +119,25 @@ public interface TcpConnection extends Runnable {
 
 	/**
 	 * 
-	 * @return the input converter
+	 * @return the deserializer
 	 */
-	public InputStreamingConverter<?> getInputConverter();
+	public Deserializer<?> getDeserializer();
 
 	/**
-	 * @param inputConverter the inputConverter to set
+	 * @param deserializer the deserializer to set
 	 */
-	public void setInputConverter(InputStreamingConverter<?> inputConverter);
+	public void setDeserializer(Deserializer<?> deserializer);
 
 	/**
 	 * 
-	 * @return the output converter
+	 * @return the serializer
 	 */
-	public OutputStreamingConverter<?> getOutputConverter();
+	public Serializer<?> getSerializer();
 	
 	/**
-	 * @param outputConverter the outputConverter to set
+	 * @param serializer the serializer to set
 	 */
-	public void setOutputConverter(OutputStreamingConverter<?> outputConverter);
+	public void setSerializer(Serializer<?> serializer);
 	
 	/**
 	 * @return this connection's listener

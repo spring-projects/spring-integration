@@ -19,7 +19,6 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import org.springframework.commons.serializer.InputStreamingConverter;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.SocketIoUtils;
 import org.springframework.integration.ip.tcp.converter.SoftEndOfStreamException;
@@ -64,7 +63,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	@SuppressWarnings("unchecked")
 	public synchronized void send(Message<?> message) throws Exception {
 		Object object = mapper.fromMessage(message);
-		this.outputConverter.convert(object, this.socket.getOutputStream());
+		this.serializer.serialize(object, this.socket.getOutputStream());
 		if (logger.isDebugEnabled())
 			logger.debug("Message sent " + message);
 	}
@@ -78,7 +77,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	}
 
 	public Object getPayload() throws Exception {
-		return this.inputConverter.convert(this.socket.getInputStream());
+		return this.deserializer.deserialize(this.socket.getInputStream());
 	}
 
 	public int getPort() {

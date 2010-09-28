@@ -25,20 +25,13 @@ import org.springframework.util.Assert;
  * 
  * @author Gary Russell
  * @since 2.0
- * 
  */
 public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTransformer<T, U> {
-	
+
 	protected Converter<T, U> converter;
 
-	@Override
-	protected U transformPayload(T payload) throws Exception {
-		Assert.notNull(this.converter, this.getClass().getName() + " needs a Converter<Object, Object>");
-		return converter.convert(payload);
-	}
-
 	/**
-	 * Sets the converter to be used for Serialization.
+	 * Specify the converter to use.
 	 * 
 	 * @param converter The Converter.
 	 */
@@ -46,5 +39,10 @@ public class PayloadTypeConvertingTransformer<T, U> extends AbstractPayloadTrans
 		this.converter = converter;
 	}
 
-	
+	@Override
+	protected U transformPayload(T payload) throws Exception {
+		Assert.notNull(this.converter, this.getClass().getName() + " requires a Converter<Object, Object>");
+		return this.converter.convert(payload);
+	}
+
 }

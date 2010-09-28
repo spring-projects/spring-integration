@@ -38,7 +38,8 @@ import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
 
-import org.springframework.commons.serializer.java.JavaStreamingConverter;
+import org.springframework.commons.serializer.DefaultDeserializer;
+import org.springframework.commons.serializer.DefaultSerializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageTimeoutException;
 import org.springframework.integration.channel.QueueChannel;
@@ -50,7 +51,6 @@ import org.springframework.integration.support.MessageBuilder;
 /**
  * @author Gary Russell
  * @since 2.0
- *
  */
 public class TcpOutboundGatewayTests {
 
@@ -69,7 +69,7 @@ public class TcpOutboundGatewayTests {
 					while (true) {
 						Socket socket = server.accept();
 						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-						Object in = ois.readObject();
+						ois.readObject();
 						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 						oos.writeObject("Reply" + (i++));
 					}
@@ -80,9 +80,8 @@ public class TcpOutboundGatewayTests {
 				}
 			}
 		});
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(true);
 		ccf.setPoolSize(10);
@@ -135,9 +134,8 @@ public class TcpOutboundGatewayTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();
@@ -188,9 +186,8 @@ public class TcpOutboundGatewayTests {
 			}
 		});
 		AbstractConnectionFactory ccf = new TcpNetClientConnectionFactory("localhost", port);
-		JavaStreamingConverter converter = new JavaStreamingConverter();
-		ccf.setInputConverter(converter);
-		ccf.setOutputConverter(converter);
+		ccf.setSerializer(new DefaultSerializer());
+		ccf.setDeserializer(new DefaultDeserializer());
 		ccf.setSoTimeout(10000);
 		ccf.setSingleUse(false);
 		ccf.start();

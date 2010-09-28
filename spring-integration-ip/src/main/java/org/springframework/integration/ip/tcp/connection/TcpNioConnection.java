@@ -106,7 +106,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	public void send(Message<?> message) throws Exception {
 		synchronized(mapper) {
 			Object object = mapper.fromMessage(message);
-			this.outputConverter.convert(object, this.channelOutputStream);
+			this.serializer.serialize(object, this.channelOutputStream);
 		}
 	}
 
@@ -119,7 +119,7 @@ public class TcpNioConnection extends AbstractTcpConnection {
 	}
 
 	public Object getPayload() throws Exception {
-		return this.inputConverter.convert(pipedInputStream);
+		return this.deserializer.deserialize(pipedInputStream);
 	}
 
 	public int getPort() {

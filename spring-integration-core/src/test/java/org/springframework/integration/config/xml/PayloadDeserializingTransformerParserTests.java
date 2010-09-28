@@ -21,15 +21,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.commons.serializer.Deserializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.PollableChannel;
@@ -37,6 +39,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.transformer.MessageTransformationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.FileCopyUtils;
 
 /**
  * @author Mark Fisher
@@ -52,7 +55,7 @@ public class PayloadDeserializingTransformerParserTests {
 	private MessageChannel queueInput;
 
 	@Autowired
-	private MessageChannel customConverterInput;
+	private MessageChannel customDeserializerInput;
 
 	@Autowired
 	private PollableChannel output;
@@ -105,8 +108,8 @@ public class PayloadDeserializingTransformerParserTests {
 	}
 
 	@Test
-	public void customConverter() throws Exception {
-		customConverterInput.send(new GenericMessage<byte[]>("test".getBytes("UTF-8")));
+	public void customDeserializer() throws Exception {
+		customDeserializerInput.send(new GenericMessage<byte[]>("test".getBytes("UTF-8")));
 		Message<?> result = output.receive(3000);
 		assertNotNull(result);
 		assertEquals(String.class, result.getPayload().getClass());
@@ -130,15 +133,10 @@ public class PayloadDeserializingTransformerParserTests {
 	}
 
 
-	public static class TestDeserializingConverter implements Converter<byte[], Object> {
+	public static class TestDeserializer implements Deserializer<Object> {
 
-		public Object convert(byte[] source) {
-			try {
-				return new String(source, "UTF-8").toUpperCase();
-			}
-			catch (UnsupportedEncodingException e) {
-				throw new MessageTransformationException("failed to convert payload", e);
-			}
+		public Object deserialize(InputStream source) throws IOException {
+			return FileCopyUtils.copyToString(new InputStreamReader(source, "UTF-8")).toUpperCase();
 		}
 	}
 
