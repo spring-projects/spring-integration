@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.endpoint;
 
 import java.util.List;
@@ -35,20 +36,21 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ErrorHandler;
+
 /**
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware{
-	
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
+
 	private volatile TaskExecutor taskExecutor = new SyncTaskExecutor();
-	
-	private ErrorHandler errorHandler;
+
+	private volatile ErrorHandler errorHandler;
 
 	private volatile PollerMetadata pollerMetadata;
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
-	
+
 	private volatile ScheduledFuture<?> runningTask;
 
 	private volatile Runnable poller;
@@ -56,35 +58,44 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile boolean initialized;
 
 	private final Object initializationMonitor = new Object();
-	/**
-	 * 
-	 */
+
+
 	public AbstractPollingEndpoint() {
 		this.setPhase(Integer.MAX_VALUE);
 	}
-	
+
+
+	public void setPollerMetadata(PollerMetadata pollerMetadata) {
+		this.pollerMetadata = pollerMetadata;
+	}
+
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		this.beanClassLoader = classLoader;
+	}
+
 	@Override
 	protected void onInit() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
-			
-			Assert.notNull(this.pollerMetadata.getTrigger(), "trigger is required");
-			Assert.notNull(this.getBeanFactory(), "BeanFactory must be provided");
-			
-			TaskExecutor executor = pollerMetadata.getTaskExecutor();
-			if (executor != null){
-				taskExecutor = executor;
+			Assert.notNull(this.pollerMetadata.getTrigger(), "Trigger is required");
+			Assert.notNull(this.getBeanFactory(), "BeanFactory is required");
+			TaskExecutor providedExecutor = this.pollerMetadata.getTaskExecutor();
+			if (providedExecutor != null) {
+				this.taskExecutor = providedExecutor;
 			}
-			
-			if (taskExecutor != null){
-				if (!(taskExecutor instanceof ErrorHandlingTaskExecutor)) {				
-					if (errorHandler == null) {
-						errorHandler = new MessagePublishingErrorHandler(
+			if (this.taskExecutor != null) {
+				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {				
+					if (this.errorHandler == null) {
+						this.errorHandler = new MessagePublishingErrorHandler(
 								new BeanFactoryChannelResolver(getBeanFactory()));
 					}
-					taskExecutor = new ErrorHandlingTaskExecutor(taskExecutor, errorHandler);
+					this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 				}
 			}
 			try {
@@ -98,7 +109,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	}
 
 	@SuppressWarnings("unchecked")
-	private Runnable createPoller() throws Exception{
+	private Runnable createPoller() throws Exception {
 		
 		Callable<Boolean> pollingTask = new Callable<Boolean>() {
 			public Boolean call() throws Exception {
@@ -107,19 +118,18 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		};
 		
 		List<Advice> adviceChain = this.pollerMetadata.getAdviceChain();
-		if (!CollectionUtils.isEmpty(adviceChain)){
+		if (!CollectionUtils.isEmpty(adviceChain)) {
 			ProxyFactory proxyFactory = new ProxyFactory(pollingTask);
-
-			if (!CollectionUtils.isEmpty(adviceChain)){
+			if (!CollectionUtils.isEmpty(adviceChain)) {
 				for (Advice advice : adviceChain) {
 					proxyFactory.addAdvice(advice);
 				}
 			}
 			pollingTask = (Callable<Boolean>) proxyFactory.getProxy(this.beanClassLoader);
 		}
-		
 		return new Poller(pollingTask);
 	}
+
 
 	// LifecycleSupport implementation
 
@@ -141,48 +151,39 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 		this.runningTask = null;
 		this.initialized = false;
 	}
-	
-	public void setPollerMetadata(PollerMetadata pollerMetadata) {
-		this.pollerMetadata = pollerMetadata;
-	}
-	
-	public void setBeanClassLoader(ClassLoader classLoader){
-		this.beanClassLoader = classLoader;
-	}
-	
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
+
 	
 	protected abstract boolean doPoll();
+
+
 	/**
 	 * Default Poller implementation
 	 */
 	private class Poller implements Runnable {
+
 		private final long maxMessagesPerPoll = pollerMetadata.getMaxMessagesPerPoll();
+
 		private final Callable<Boolean> pollingTask;
-		
-		public Poller(Callable<Boolean> pollingTask){
+
+
+		public Poller(Callable<Boolean> pollingTask) {
 			this.pollingTask = pollingTask;
 		}
 
 		public void run() {
-			
 			taskExecutor.execute(new Runnable() {
-				
 				public void run() {
 					int count = 0;
 					while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
 						try {
-							boolean computed = pollingTask.call();
-							if (!computed){
+							if (!pollingTask.call()) {
 								break;
 							}
 							count++;
 						} 
 						catch (Exception e) {
 							if (e instanceof RuntimeException) {
-								throw (RuntimeException)e;
+								throw (RuntimeException) e;
 							} 
 							else {
 								throw new MessageHandlingException(new ErrorMessage(e));
@@ -193,4 +194,5 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			});
 		}
 	}
+
 }
