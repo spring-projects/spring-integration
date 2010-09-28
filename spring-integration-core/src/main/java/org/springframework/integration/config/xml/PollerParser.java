@@ -221,10 +221,8 @@ public class PollerParser extends AbstractBeanDefinitionParser {
 		txInterceptorBuilder.addPropertyValue("transactionAttributeSource", attributeSourceBuilder.getBeanDefinition());
 		BeanDefinitionBuilder txAdvisorBuilder = BeanDefinitionBuilder.genericBeanDefinition(TX_PKG_PREFIX + ".TransactionAttributeSourceAdvisor");
 		txAdvisorBuilder.addConstructorArgValue(txInterceptorBuilder.getBeanDefinition());
-		String txInterceptorName = 
-			BeanDefinitionReaderUtils.registerWithGeneratedName(txAdvisorBuilder.getBeanDefinition(), parserContext.getRegistry());
-	
-		targetBuilder.addPropertyReference("transactionAdvisor", txInterceptorName);
+
+		targetBuilder.addPropertyValue("transactionAdvisor", txAdvisorBuilder.getBeanDefinition());
 	}
 
 	/**
