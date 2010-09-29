@@ -45,7 +45,7 @@ public abstract class AbstractClientConnectionFactory extends AbstractConnection
 	}
 	
 	/**
-	 * Transfers attributes such as converters, singleUse etc to a new connection.
+	 * Transfers attributes such as (de)serializers, singleUse etc to a new connection.
 	 * When the connection factory has a reference to a TCPListener (to read 
 	 * responses), or for single use connections, the connection is executed.
 	 * Single use connections need to read from the connection in order to 

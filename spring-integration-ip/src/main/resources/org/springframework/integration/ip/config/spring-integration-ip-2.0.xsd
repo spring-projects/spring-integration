@@ -299,7 +299,7 @@ the factory, the connection will be closed after a response is received.
 					</xsd:appinfo>
 					<xsd:documentation>
 A Serializer that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfConverter. Serializer and Deserializer
+associated with the connection. Default is ByteArrayCrLfSerializer. Serializer and Deserializer
 would normally be the same but this is not required.									
 					</xsd:documentation>
 				</xsd:annotation>
@@ -313,7 +313,7 @@ would normally be the same but this is not required.
 					</xsd:appinfo>
 					<xsd:documentation>
 A Deserializer that converts message payloads to/from output streams/input streams
-associated with the connection. Default is ByteArrayCrLfConverter. Serializer and Deserializer
+associated with the connection. Default is ByteArrayCrLfSerializer. Serializer and Deserializer
 would normally be the same but this is not required.					
 					</xsd:documentation>
 				</xsd:annotation>

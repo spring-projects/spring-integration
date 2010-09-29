@@ -28,10 +28,10 @@ import javax.net.ServerSocketFactory;
 
 import org.junit.Test;
 
-import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
-import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
-import org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter;
-import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter;
+import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketUtils;
 import org.springframework.integration.support.MessageBuilder;
 
@@ -42,10 +42,10 @@ import org.springframework.integration.support.MessageBuilder;
 public class TcpNioConnectionWriteTests {
 
 	private AbstractConnectionFactory getClientConnectionFactory(boolean direct,
-			final int port, AbstractByteArrayStreamingConverter converter) {
+			final int port, AbstractByteArraySerializer serializer) {
 		TcpNioClientConnectionFactory ccf = new TcpNioClientConnectionFactory("localhost", port);
-		ccf.setSerializer(converter);
-		ccf.setDeserializer(converter);
+		ccf.setSerializer(serializer);
+		ccf.setDeserializer(serializer);
 		ccf.setSoTimeout(10000);
 		ccf.setUsingDirectBuffers(direct);
 		ccf.start();
@@ -62,8 +62,8 @@ public class TcpNioConnectionWriteTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, converter);
+					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
@@ -95,8 +95,8 @@ public class TcpNioConnectionWriteTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, converter);
+					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
@@ -112,9 +112,9 @@ public class TcpNioConnectionWriteTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(ByteArrayStxEtxConverter.STX, buff[0]);
+		assertEquals(ByteArrayStxEtxSerializer.STX, buff[0]);
 		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(ByteArrayStxEtxConverter.ETX, buff[testString.length() + 1]);
+		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
 		server.close();
 	}
 
@@ -128,8 +128,8 @@ public class TcpNioConnectionWriteTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, converter);
+					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(false, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
@@ -161,8 +161,8 @@ public class TcpNioConnectionWriteTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, converter);
+					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
@@ -194,8 +194,8 @@ public class TcpNioConnectionWriteTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, converter);
+					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);
@@ -212,9 +212,9 @@ public class TcpNioConnectionWriteTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(ByteArrayStxEtxConverter.STX, buff[0]);
+		assertEquals(ByteArrayStxEtxSerializer.STX, buff[0]);
 		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(ByteArrayStxEtxConverter.ETX, buff[testString.length() + 1]);
+		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
 		server.close();
 	}
 
@@ -228,8 +228,8 @@ public class TcpNioConnectionWriteTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				try {
-					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, converter);
+					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+					AbstractConnectionFactory ccf = getClientConnectionFactory(true, port, serializer);
 					TcpConnection connection = ccf.getConnection();
 					connection.send(MessageBuilder.withPayload(testString.getBytes()).build());
 					Thread.sleep(1000000000L);

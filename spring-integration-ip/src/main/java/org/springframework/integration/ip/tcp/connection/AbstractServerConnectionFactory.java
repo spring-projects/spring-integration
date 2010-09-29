@@ -60,7 +60,7 @@ public abstract class AbstractServerConnectionFactory extends AbstractConnection
 	}
 	
 	/**
-	 * Transfers attributes such as converters, singleUse etc to a new connection.
+	 * Transfers attributes such as (de)serializer, singleUse etc to a new connection.
 	 * For single use sockets, enforces a socket timeout (default 10 seconds).
 	 * @param connection The new connection.
 	 * @param socket The new socket. 

@@ -27,7 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.commons.serializer.Deserializer;
 import org.springframework.commons.serializer.Serializer;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
 import org.springframework.util.Assert;
 
 /**
@@ -68,9 +68,9 @@ public abstract class AbstractConnectionFactory
 	
 	protected Executor taskExecutor;
 	
-	protected Deserializer<?> deserializer = new ByteArrayCrLfConverter();
+	protected Deserializer<?> deserializer = new ByteArrayCrLfSerializer();
 	
-	protected Serializer<?> serializer = new ByteArrayCrLfConverter();
+	protected Serializer<?> serializer = new ByteArrayCrLfSerializer();
 	
 	protected TcpMessageMapper mapper = new TcpMessageMapper();
 

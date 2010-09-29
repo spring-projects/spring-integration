@@ -34,10 +34,10 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.integration.Message;
-import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
-import org.springframework.integration.ip.tcp.converter.ByteArrayCrLfConverter;
-import org.springframework.integration.ip.tcp.converter.ByteArrayLengthHeaderConverter;
-import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter;
+import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**
@@ -49,15 +49,15 @@ public class TcpNioConnectionReadTests {
 	private CountDownLatch latch = new CountDownLatch(1);
 	
 	private AbstractServerConnectionFactory getConnectionFactory(int port,
-			AbstractByteArrayStreamingConverter converter, TcpListener listener) throws Exception {
-		return getConnectionFactory(port, converter, listener, null);
+			AbstractByteArraySerializer serializer, TcpListener listener) throws Exception {
+		return getConnectionFactory(port, serializer, listener, null);
 	}
 	
 	private AbstractServerConnectionFactory getConnectionFactory(int port,
-			AbstractByteArrayStreamingConverter converter, TcpListener listener, TcpSender sender) throws Exception {
+			AbstractByteArraySerializer serializer, TcpListener listener, TcpSender sender) throws Exception {
 		AbstractServerConnectionFactory scf = new TcpNioServerConnectionFactory(port);
-		scf.setSerializer(converter);
-		scf.setDeserializer(converter);
+		scf.setSerializer(serializer);
+		scf.setDeserializer(serializer);
 		scf.registerListener(listener);
 		if (sender != null) {
 			scf.registerSender(sender);
@@ -80,10 +80,10 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadLength() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -111,10 +111,10 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testFragmented() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				try {
@@ -145,10 +145,10 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadStxEtx() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
+		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -177,10 +177,10 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadCrLf() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -208,12 +208,12 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadLengthOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -245,13 +245,13 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadStxEtxOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-		converter.setMaxMessageSize(1024);
+		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -283,13 +283,13 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testReadCrLfOverflow() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		converter.setMaxMessageSize(1024);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -323,13 +323,13 @@ public class TcpNioConnectionReadTests {
 	@Test
 	public void testCloseCleanupNoData() throws Exception {
 		int port = SocketUtils.findAvailableServerSocket();
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		converter.setMaxMessageSize(1024);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		serializer.setMaxMessageSize(1024);
 		final List<Message<?>> responses = new ArrayList<Message<?>>();
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				semaphore.release();
@@ -360,8 +360,8 @@ public class TcpNioConnectionReadTests {
 	 */
 	@Test
 	public void testCloseCleanupCrLf() throws Exception {
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		testClosureMidMessageGuts(converter, "xx");
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		testClosureMidMessageGuts(serializer, "xx");
 	}
 	
 	/**
@@ -372,8 +372,8 @@ public class TcpNioConnectionReadTests {
 
 	@Test
 	public void testCloseCleanupStxEtx() throws Exception {
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		testClosureMidMessageGuts(converter, ByteArrayStxEtxConverter.STX + "xx");
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		testClosureMidMessageGuts(serializer, ByteArrayStxEtxSerializer.STX + "xx");
 	}
 
 	/**
@@ -384,11 +384,11 @@ public class TcpNioConnectionReadTests {
 
 	@Test
 	public void testCloseCleanupLengthHeader() throws Exception {
-		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-		testClosureMidMessageGuts(converter, "\u0000\u0000\u0000\u0003xx");
+		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
+		testClosureMidMessageGuts(serializer, "\u0000\u0000\u0000\u0003xx");
 	}
 
-	private void testClosureMidMessageGuts(AbstractByteArrayStreamingConverter converter, String shortMessage)
+	private void testClosureMidMessageGuts(AbstractByteArraySerializer serializer, String shortMessage)
 			throws Exception, IOException, UnknownHostException,
 			InterruptedException {
 		final int port = SocketUtils.findAvailableServerSocket();
@@ -396,7 +396,7 @@ public class TcpNioConnectionReadTests {
 		final Semaphore semaphore = new Semaphore(0);
 		final List<TcpConnection> added = new ArrayList<TcpConnection>();
 		final List<TcpConnection> removed = new ArrayList<TcpConnection>();
-		AbstractServerConnectionFactory scf = getConnectionFactory(port, converter,new TcpListener() {
+		AbstractServerConnectionFactory scf = getConnectionFactory(port, serializer,new TcpListener() {
 			public boolean onMessage(Message<?> message) {
 				responses.add(message);
 				return false;
