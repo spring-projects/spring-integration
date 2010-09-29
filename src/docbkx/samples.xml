@@ -4,445 +4,422 @@
 
   <title>Spring Integration Samples</title>
 
-	<note>
-		Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are distributed as independent
-		Maven-based projects (<ulink url="http://maven.apache.org/">http://maven.apache.org/</ulink>) to minimize the setup time.
-		Since each project is also an Eclipse-based project, they can be imported as is using the Eclipse Import wizard. 
-		If you prefer another IDE, configuration should be very trivial, since a special Maven profile was setup to download all
-		of the required dependencies for all samples. Detailed instructions on how to build and run the samples are provided in
-		the <code>README.txt</code> file located in the <emphasis>samples</emphasis> directory of the main distribution.
-	</note>
-
-  <section id="samples-cafe">
-    <title>The Cafe Sample</title>
-    <para>
-      In this section, we will review a sample application that is included in the Spring Integration
-      distribution. This sample is inspired by one of the samples featured in Gregor Hohpe's
-      <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
-    </para>
-    <para>
-      The domain is that of a Cafe, and the basic flow is depicted in the following diagram:
-    </para>
-    <para>
-      <mediaobject>
-        <imageobject role="fo">
-            <imagedata fileref="src/docbkx/resources/images/cafe-demo.png"
-              format="PNG" align="center"/>
-        </imageobject>
-        <imageobject role="html">
-            <imagedata fileref="images/cafe-demo.png" format="PNG" align="center"/>
-        </imageobject>
-      </mediaobject>
-    </para>
-    <para>
-      The <classname>Order</classname> object may contain multiple <classname>OrderItems</classname>. Once the order
-      is placed, a <emphasis>Splitter</emphasis> will break the composite order message into a single message per
-      drink. Each of these is then processed by a <emphasis>Router</emphasis> that determines whether the drink is hot
-      or cold (checking the <classname>OrderItem</classname> object's 'isIced' property). The
-      <classname>Barista</classname> prepares each drink, but hot and cold drink preparation are handled by two
-      distinct methods: 'prepareHotDrink' and 'prepareColdDrink'. The prepared drinks are then sent to the Waiter where
-      they are aggregated into a <classname>Delivery</classname> object.
-    </para>
-    <para>
-      Here is the XML configuration:
-      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:beans="http://www.springframework.org/schema/beans"
-    xmlns:stream="http://www.springframework.org/schema/integration/stream"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-            http://www.springframework.org/schema/integration
-            http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
-            http://www.springframework.org/schema/integration/stream
-            http://www.springframework.org/schema/integration/stream/spring-integration-stream-2.0.xsd">
-
-    <gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
-
-    <channel id="orders"/>
-    <splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
-
-    <channel id="drinks"/>
-    <router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
-
-    <channel id="coldDrinks">
-        <queue capacity="10"/>
-    </channel>
-    <service-activator input-channel="coldDrinks" ref="barista"
-                       method="prepareColdDrink" output-channel="preparedDrinks"/>
-
-    <channel id="hotDrinks">
-        <queue capacity="10"/>
-    </channel>
-    <service-activator input-channel="hotDrinks" ref="barista"
-                       method="prepareHotDrink" output-channel="preparedDrinks"/>
-
-    <channel id="preparedDrinks"/>
-    <aggregator input-channel="preparedDrinks" ref="waiter"
-                method="prepareDelivery" output-channel="deliveries"/>
-
-    <stream:stdout-channel-adapter id="deliveries"/>
-
-    <beans:bean id="orderSplitter"
-                class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
-
-    <beans:bean id="drinkRouter"
-                class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
-
-    <beans:bean id="barista" class="org.springframework.integration.samples.cafe.xml.Barista"/>
-
-    <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
-
-    <poller id="poller" default="true" fixed-rate="1000"/>
-
-</beans:beans>]]></programlisting>
-      As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
-      its own Lifecycle (by default endpoints start automatically upon initialization - to prevent that add the
-      "auto-startup" attribute with a value of "false"). Most importantly, notice that the objects are simple POJOs
-      with strongly typed method arguments. For example, here is the Splitter:
-      <programlisting language="java"><![CDATA[public class OrderSplitter {
-
-    public List<OrderItem> split(Order order) {
-        return order.getItems();
-    }
-}]]></programlisting>
-    In the case of the Router, the return value does not have to be a <interfacename>MessageChannel</interfacename>
-    instance (although it can be). As you see in this example, a String-value representing the channel name is
-    returned instead.
-    <programlisting language="java"><![CDATA[public class DrinkRouter {
-
-    public String resolveOrderItemChannel(OrderItem orderItem) {
-        return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
-    }
-}]]></programlisting>
-    </para>
-    <para>
-      Now turning back to the XML, you see that there are two &lt;service-activator&gt; elements. Each of these
-      is delegating to the same <classname>Barista</classname> instance but different methods: 'prepareHotDrink'
-      or 'prepareColdDrink' corresponding to the two channels where order items have been routed.
-      <programlisting language="java"><![CDATA[public class Barista {
-
-    private long hotDrinkDelay = 5000;
-    private long coldDrinkDelay = 1000;
-
-    private AtomicInteger hotDrinkCounter = new AtomicInteger();
-    private AtomicInteger coldDrinkCounter = new AtomicInteger();
-
-    public void setHotDrinkDelay(long hotDrinkDelay) {
-        this.hotDrinkDelay = hotDrinkDelay;
-    }
-
-    public void setColdDrinkDelay(long coldDrinkDelay) {
-        this.coldDrinkDelay = coldDrinkDelay;
-    }
-
-    public Drink prepareHotDrink(OrderItem orderItem) {
-        try {
-            Thread.sleep(this.hotDrinkDelay);
-            System.out.println(Thread.currentThread().getName()
-                    + " prepared hot drink #" + hotDrinkCounter.incrementAndGet()
-                    + " for order #" + orderItem.getOrder().getNumber() + ": " + orderItem);
-            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
-                    orderItem.isIced(), orderItem.getShots());
-        }
-        catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        }
-    }
-
-    public Drink prepareColdDrink(OrderItem orderItem) {
-        try {
-            Thread.sleep(this.coldDrinkDelay);
-            System.out.println(Thread.currentThread().getName()
-                    + " prepared cold drink #" + coldDrinkCounter.incrementAndGet()
-                    + " for order #" + orderItem.getOrder().getNumber() + ": " + orderItem);
-            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
-                    orderItem.isIced(), orderItem.getShots());
-        }
-        catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return null;
-        }
-    }
-
-}]]></programlisting>
-    </para>
-    <para>
-      As you can see from the code excerpt above, the barista methods have different delays (the hot drinks take 5
-      times as long to prepare). This simulates work being completed at different rates. When the
-      <classname>CafeDemo</classname> 'main' method runs, it will loop 100 times sending a single hot drink and a
-      single cold drink each time. It actually sends the messages by invoking the 'placeOrder' method on the Cafe
-      interface. Above, you will see that the &lt;gateway&gt; element is specified in the configuration file. This
-      triggers the creation of a proxy that implements the given 'service-interface' and connects it to a channel.
-      The channel name is provided on the @Gateway annotation of the <interfacename>Cafe</interfacename> interface.
-      <programlisting language="java">public interface Cafe {
-
-    @Gateway(requestChannel="orders")
-    void placeOrder(Order order);
-
-}</programlisting>
-      Finally, have a look at the <methodname>main()</methodname> method of the <classname>CafeDemo</classname> itself.
-      <programlisting language="java"><![CDATA[public static void main(String[] args) {
-    AbstractApplicationContext context = null;
-    if (args.length > 0) {
-        context = new FileSystemXmlApplicationContext(args);
-    }
-    else {
-        context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
-    }
-    Cafe cafe = (Cafe) context.getBean("cafe");
-    for (int i = 1; i <= 100; i++) {
-        Order order = new Order(i);
-        order.addItem(DrinkType.LATTE, 2, false);
-        order.addItem(DrinkType.MOCHA, 3, true);
-        cafe.placeOrder(order);
-    }
-}]]></programlisting>
-    </para>
-    <tip>
-      To run this sample as well as 8 others, refer to the <code>README.txt</code> within the "samples" directory
-      of the main distribution as described at the beginning of this chapter.
-    </tip>
-    <para>
-      When you run cafeDemo, you will see that the cold drinks are initially prepared more quickly than the hot drinks.
-      Because there is an aggregator, the cold drinks are effectively limited by the rate of the hot drink preparation.
-      This is to be expected based on their respective delays of 1000 and 5000 milliseconds. However, by configuring a
-      poller with a concurrent task executor, you can dramatically change the results. For example, you could use a
-      thread pool executor with 5 workers for the hot drink barista while keeping the cold drink barista as it is:
-      <programlisting language="xml"><![CDATA[<service-activator input-channel="hotDrinks"
-                   ref="barista"
-                   method="prepareHotDrink"
-                   output-channel="preparedDrinks"/>
-
-<service-activator input-channel="hotDrinks"
-                   ref="barista"
-                   method="prepareHotDrink"
-                   output-channel="preparedDrinks">
-    ]]><emphasis><![CDATA[<poller task-executor="pool" fixed-rate="1000"/>
-        ]]></emphasis><![CDATA[
-</service-activator>
-
-]]><emphasis><![CDATA[<task:executor id="pool" pool-size="5"/>]]></emphasis></programlisting>
-    </para>
-    <para>
-      Also, notice that the worker thread name is displayed with each invocation. You will see that the hot drinks are
-      prepared by the task-executor threads. If you provide a much shorter poller interval (such as 100 milliseconds),
-      then you will notice that occasionally it throttles the input by forcing the task-scheduler (the caller) to invoke
-      the operation.
-    </para>
-    <note>
-      In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
-      sub-element and then refer to any PlatformTransactionManager instance within the context.
-    </note>
-  </section>
-
-  <section id="samples-xml-messaging">
-    <title>The XML Messaging Sample</title>
-    <para>
-    	The xml messaging sample in the <package>org.springframework.integration.samples.xml</package> illustrates how to use 
-    	some of the provided components which deal with xml payloads.  The sample uses the idea of processing an order for books
-    	represented as xml.   
-    </para>
-    <para>
-    First the order is split into a number of messages, each one representing a single order item using
-    	the XPath splitter component.
-    	  <programlisting language="xml"><![CDATA[<si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel" 
-            output-channel="stockCheckerChannel" create-documents="true">
-    <si-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem" namespace-map="orderNamespaceMap" />
-</si-xml:xpath-splitter>
-]]></programlisting>
-    </para>
-    <para>
-    	A service activator is then used to pass the message into a stock checker POJO.  The order item document is enriched with information 
-    	from the stock checker about order item stock level.  This enriched order item message is then used to route the message.  In the 
-    	case where the order item is in stock the message is routed to the warehouse.  The XPath router makes use of a 
-    	<classname>MapBasedChannelResolver</classname> which maps the XPath evaluation result to a channel reference.
-    	<programlisting language="xml"><![CDATA[<si-xml:xpath-router id="instockRouter" channel-resolver="mapChannelResolver" 
-        input-channel="orderRoutingChannel" resolution-required="true">
-    <si-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" namespace-map="orderNamespaceMap"  />
-</si-xml:xpath-router>
-	
-<bean id="mapChannelResolver"
-    class="org.springframework.integration.channel.MapBasedChannelResolver">
-    <property name="channelMap">
-        <map>
-            <entry key="true" value-ref="warehouseDispatchChannel" />
-            <entry key="false" value-ref="outOfStockChannel" />
-        </map>
-    </property>
-</bean>
-]]></programlisting>    	 
-    </para>
-    <para>
-    	Where the order item is not in stock the message is transformed using 
-    	xslt into a format suitable for sending to the supplier.
-    		<programlisting language="xml"><![CDATA[<si-xml:xslt-transformer input-channel="outOfStockChannel" output-channel="resupplyOrderChannel" 
-     xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
-]]></programlisting>    	 
-    </para>
-  </section> 
+ <section id="samples-introduction">
+ 	<title>Introduction</title>
+ 	<para>
+ 	Starting with the current release of Spring Integration the <emphasis>samples</emphasis> are no longer included with 
+ 	Spring Integration distribution. Instead we've switched to a much simpler collaborative model that should promote 
+ 	better community participation and community contributions. Samples now have a dedicated Git SCM repository and a 
+ 	dedicated JIRA Issue Tracking system. Sample development will also have its own lifecycle which is not dependent on the 
+ 	lifecycle of the framework releases although the repository will still be tagged with each major release for compatibility 
+ 	reasons. 
+ 	</para>
+ 	<para>
+ 	The great benefit to the community is that we can now add more samples and make them available to you right away 
+ 	without waiting for the release to get them out to you. Having its own JIRA that is not tied up to the the actual 
+ 	framework is also a great benefit. You now have a dedicated place to suggest samples as well as report issues with existing 
+ 	samples. <emphasis>Or you may want to submit a sample to us</emphasis>  as an attachment through the JIRA and if we believe your sample adds value we 
+ 	would be more then glad to add it to a samples repository properly crediting the author.
+ 	</para>
+ </section>
  
-  <section id="samples-osgi">
-	<title>The OSGi Samples</title>
-	<para>
-		This release of Spring Integration includes several samples that are OSGi enabled as well as samples that were
-		specifically designed to show some of the other benefits of OSGi and Spring Integration when used together.
-		First lets look at the two familiar examples that are also configured to be valid OSGi bundles. These are
-		<emphasis>Hello World</emphasis> and <emphasis>Cafe</emphasis>. All you need to do to see these samples work in
-		an OSGi environment is deploy the generated JAR into such an environment.
-	</para>
-	<para>
-		Use Maven to generate the JAR by executing the 'mvn install' command on either of these projects. This will
-		generate the JAR file in the target directory. Now you can simply drop that JAR file into the deployment
-		directory of your OSGi platform. For example, if you are using
-		<ulink url="http://www.springsource.com/products/dmserver">SpringSource dm Server</ulink>,
-		drop the files into the 'pickup' directory within the dm Server home directory.
-	</para>
-	<note>
-		Prior to deploying and testing Spring Integration samples in the dm Server or any other OSGi server platform,
-		you must have the Spring Integration and Spring bundles installed on that platform. For example, to install
-		Spring Integration into SpringSource dm Server, copy all JAR files that are located in the 'dist' directory of
-		your Spring Integration distribution into the 'repository/bundles/usr' directory of your dm Server instance
-		(see the
-		<ulink url="http://static.springsource.com/projects/dm-server/1.0.x/user-guide/htmlsingle/user-guide.html">dm Server User Guide</ulink>
-		for more detail on how to install bundles).
-	</note>
-	<para>
-		The Spring Integration samples require a few other bundles to be installed. For the 1.0.3 release, the full
-		list including transitive dependencies is:
-		<itemizedlist>
-			<listitem>org.apache.commons.codec-1.3.0.jar</listitem>
-			<listitem>org.apache.commons.collections-3.2.0.jar</listitem>
-			<listitem>org.apache.commons.httpclient-3.1.0.jar</listitem>
-			<listitem>org.apache.ws.commons.schema-1.3.2.jar</listitem>
-			<listitem>org.springframework.oxm-1.5.5.A.jar</listitem>
-			<listitem>org.springframework.security-2.0.4.A.jar</listitem>
-			<listitem>org.springframework.ws-1.5.5.A.jar</listitem>
-			<listitem>org.springframework.xml-1.5.5.A.jar</listitem>
-		</itemizedlist>
-		These are all located within the 'lib' directory of the Spring Integration distribution. So, you can simply
-		copy those JARs into the dm Server 'repository/bundles/usr' directory as well.
-		<note>
-			The Spring Framework bundles (aop, beans, context, etc.) are also included in the 'lib' directory of the
-			Spring Integration distribution, but they do not need to be installed since they are already part of the
-			dm Server infrastructure. Also, note that the versions listed above are those included with the Spring
-			Integration 1.0.3 release. Newer versions of individual JARs may be used as long as they are within the
-			range specified in the MANIFEST.MF files of those bundles that depend upon them.
-		</note>
-		<tip>
-			The bundles listed above are appropriate for a SpringSource dm Server 1.0.x deployment environment
-			with a Spring Framework 2.5.x foundation. That is the version against which Spring Integration 1.0.3
-			has been developed and tested. However, as of the time of the Spring Integration 1.0.3 release, the
-			Spring Framework 3.0 release candidates are about to be available, and the dm Server 2.0.x milestones
-			are available. If you want to try running these samples in that environment, then you will need to
-			replace the Spring Security and Spring Web Services bundles with versions that support Spring 3.0.
-			The OXM functionality is moving into the Spring Framework itself for the 3.0 release. Otherwise,
-			Spring Integration 1.0.3 has been superficially tested against the Spring 3.0 snapshots available
-			at the time of its release. In fact, some internal changes were made in the 1.0.3 release
-			specifically to support Spring 3.0 (whereas 1.0.2 does not). Spring Integration 2.0 will be built
-			upon a Spring 3.0 foundation.
-		</tip>
-	</para>
-	<para>
-		To demonstrate some of the benefits of running Spring Integration projects in an OSGi environment (e.g.
-		modularity, OSGi service dynamics, etc.), we have included a couple new samples that are dedicated to
-		highlighting those benefits. In the 'samples' directory, you will find the following two projects:
-		<itemizedlist>
-			<listitem>osgi-inbound (producer bundle)</listitem>
-			<listitem>osgi-outbound (consumer bundle)</listitem>
-		</itemizedlist>
-		Unlike the other samples in the distribution, these are not Maven enabled. Instead, we have simply configured
-		them as valid dm Server Bundle projects. That means you can import these projects directly into an STS
-		workspace using the "Existing Projects into Workspace" option from the Eclipse Import wizard. Then, you can
-		take advantage of the STS dm Server tools to deploy them into a SpringSource dm Server instance.
-		<note>
-			A simple Ant 'build.xml' file has been included within each of these projects as well. The build
-			files contain a single 'jar' target. Therefore, after these projects have been built within
-			Eclipse/STS, you can generate the bundle (JAR) directly and deploy it manually.
-		</note>
-	</para>
-	<para>
-		The structure of these projects is very simple, yet the concepts they showcase are quite powerful. The
-		'osgi-inbound' module enables sending a Message to a Publish-Subscribe Channel using a Spring Integration
-		Gateway proxy. The interesting part, however, is that the Publish-Subscribe Channel is exported as an OSGi
-		service via the &lt;osgi:service/&gt; element. As a result, any other bundles can be developed, deployed, and
-		maintained independently yet still subscribe to that channel.
-	</para>
-	<para>
-		The 'osgi-outbound' module is an example of such a subscribing consumer bundle. It uses the corresponding
-		&lt;osgi:reference/&gt; element to locate the channel exported by the 'osgi-inbound' bundle. It also contains
-		configuration for a &lt;file:outbound-gateway/&gt; which is a subscriber to that channel and will write the
-		Message content to a file once it arrives. It then sends a response Message with the name of the file and its
-		location.
-	</para>
-	<para>
-		To make it easy to run, we've exposed a command-line interface where you can type in the command, the message,
-		and the file name to execute the demo. This is exposed through the OSGi console. Likewise, the response that
-		provides the name and location of the resulting file will also be visible within the OSGi console.
-	</para>
-	<para>
-		To run these samples, make sure your OSGi environment is properly configured to host Spring Integration bundles
-		(as described in the note above). Deploy the producer bundle (osgi-inbound) first, and then deploy the consumer
-		bundle (osgi-outbound). After you have deployed these bundles, open the OSGi console and type the following
-		command:
-		<programlisting><![CDATA[ osgi> help ]]></programlisting>
-		You will see the following amidst the output:
-		<programlisting><![CDATA[ ---Spring Integration CLI-based OSGi Demo---
-         siSend <message> <filename> - send text to be written to a file]]></programlisting>
-		As you can see, that describes the command that you will be able to use to send messages. If you are interested
-		in how it is implemented or want to customize message sending logic or even create a new command look at
-		<classname>InboundDemoBundleActivator.java</classname> in the consumer bundle.
-		<tip>
-			When using the SpringSource Tool Suite, you can open the OSGi console by first opening the dm Server
-			view and then choosing the 'Server Console' tab at the bottom (to open the dm Server view, navigate to
-			the dm Server instance listed in the 'Servers' view and either double-click or hit F3).  Alternatively,
-			you can open the OSGi console by connecting to port 2401 via telnet (as long as that is enabled, and
-			for dm Server, it is enabled by default):
-			<programlisting> telnet localhost 2401</programlisting>
-		</tip>
-	</para>
-	<para>
-		Now send a message by typing: <programlisting><![CDATA[ osgi> siSend "Hello World" hello.txt]]></programlisting>
-		You will see something similar to the following in the OSGi console:
-		<programlisting><![CDATA[ Sending message: 'Hello World'
- Message sent and its contents were written to:   
- /usr/local/dm-server/work/tmp/spring-integration-samples/output/hello.txt]]></programlisting>
-		<note>
-			It is not necessary to wrap the message in quotes if it does not contain spaces.
-			Go ahead and open up the file and verify that the message content was written to it.
-		</note>
-	</para>
-	<para>
-		Let's assume you wanted to change the directory to which the files are written or make any other change to the
-		consumer bundle (osgi-outboud). You only need to update the consumer bundle and not the producer bundle. So, go
-		ahead and change the directory in the 'osgi-outbound.xml' file located within 'src/META-INF/spring' and refresh
-		the consumer bundle.
-		<tip>
-			If using STS to deploy to dm Server, the refresh will happen automatically. If replacing bundles manually,
-			you can issue the command 'refresh n' in the OSGi console (where n would be the ID of the bundle as
-			displayed at any point after issuing the 'ss' command to see the short status output).
-		</tip>
-		You will see that the change takes affect immediately. Not only that, you could even start developing and
-		deploying new bundles that subscribe to the messages produced by the producer bundle the same way as the existing
-		consumer bundle (osgi-outbound) does. With a publish-subscribe-channel any newly deployed bundles would start
-		receiving each Message as well.
-		<note>
-			If you also want to modify and refresh the producer bundle, be sure to refresh the consumer bundle
-			afterwards as well. This is necessary because the consumer's subscription must be explicitly re-enabled
-			after the producer's channel disappears. You could alternatively deploy a relatively static bundle that
-			defines channels so that producers and consumers can be completely dynamic without affecting each other
-			at all. In Spring Integration 2.0, we plan to support automatic re-subscription and more through the use
-			of a <emphasis>Control Bus</emphasis>.
-		</note>
-	</para>
-	<para>
-		That pretty much wraps up this very simple example. Hopefully it has successfully demonstrated the benefits of
-		modularity and OSGi service dynamics while working with Spring Integration. Feel free to experiment by following
-		some of the suggestions mentioned above. For deeper coverage of the applicability of OSGi when used with Spring
-		Integration, read <ulink url="http://blog.springsource.com/2009/02/27/spring-integration-on-dm-server/">this blog</ulink>
-		by Spring Integration team member Iwein Fuld.
-	</para>
+ <section id="samples-get">
+ 	<title>Where to get Samples</title>
+ 	<para>
+ 	To monitor samples development and to get more information on the repository you can visit the following 
+ 	URL: <link linkend="http://git.springsource.org/spring-integration/samples">http://git.springsource.org/spring-integration/samples</link> 
+    Since we are using Git SCM we should use the proper terminology as well when it comes to the tasks you need to perform to make 
+    <emphasis>samples</emphasis> available locally on your machine. For more information on Git SCM please visit their 
+    website: <link linkend="http://git-scm.com/">http://git-scm.com/</link> 
+ 	</para>
+ 	<para>
+ 	CLONE <emphasis>samples</emphasis> repository. (For those unfamiliar with Git, this is somewhat the equivalent of a checkout.)
+ 	</para>
+ 	<para>
+ 	This is the first step you should go through. You must have Git installed on your machine. There are many GUI-based products 
+ 	available for many platforms. Simple Google search will let you find them.
+    To clone samples repository from command line:
+    <programlisting language="xml"><![CDATA[> mkdir spring-itegration-samples
+> cd spring-itegration-samples
+> git clone git://git.springsource.org/spring-integration/samples.git]]></programlisting>	
+ 	</para>
+ 	<para>
+ 	That is all you need to do. Now you have cloned the entire samples repository. Since samples repository is a live 
+ 	repository, you might want to perform periodic updates to get new samples as well as updates to the existing samples. 
+ 	To get the updates use git PULL command:
+ 	<programlisting language="xml"><![CDATA[> git pull]]></programlisting>	
+ 	</para>
+ 	<para>
+ 	Submit samples or sample requests
+ 	</para>
+ 	<para>
+ 	As mentioned earlier, Spring Integration <emphasis>samples</emphasis> have a dedicated JIRA Issue tracking system. 
+ 	To submit new sample request or to submit the actual sample (as an attachment) please visit our JIRA Issue Tracking system: 
+ 	<link linkend="https://jira.springframework.org/browse/INTSAMPLES">https://jira.springframework.org/browse/INTSAMPLES</link> 
+ 	</para>
+ </section>
+ <section id="samples-structure">
+ 	<title>Samples structure</title>
+ 	<para>
+ 	The structure of the <emphasis>samples</emphasis> changed as well. With plans for more samples we realized that some 
+ 	samples have different goals then others. While they all share the common  goal of showing you how to apply and work with 
+ 	Spring Integration framework, they also defer in areas where some samples were meant to concentrate on a technical 
+ 	use case while others on the business use case and some samples are all about showcasing various techniques that 
+ 	could be applied to address certain scenarios (both technical and business). Categorization of samples will allow us 
+ 	better organize them based on the problem each sample addresses while giving you a simpler way of finding the right sample
+ 	</para>
+ 	<para>
+ 	Currently there are 4 categories. Within the samples repository each category has its own directory which is named after the 
+ 	category name:	
+ 	</para>
+ 	
+ 	<para>
+ 	<emphasis>BASIC (samples/basic)</emphasis>
+ 	</para>
+ 	<para>
+ 	This is a good place to get started. The samples here are technically motivated and demonstrate the bare 
+   	minimum with regard to configuration and code, to help you to get started quickly by introducing you to the basic concepts, 
+   	API and configuration of Spring Integration as well as Enterprise Integration Patterns (EIP). For example; If your are 
+   	looking for an answer on how to implement and wire <emphasis>Service Activator</emphasis> to a <emphasis>Channel</emphasis> 
+   	or how to use <emphasis>Messaging Gateway</emphasis> to your message exchange or how to get started with using MAIL or 
+   	TCP/UDP modules etc., this would be the right place to find a good sample. The bottom line is this is a good place 
+   	to get started.
+ 	</para>
+ 	
+ 	<para>
+ 	<emphasis>INTERMEDIATE (samples/intermediate)</emphasis>
+ 	</para>
+ 	<para>
+ 	This category targets developers who are already familiar with Spring Integration framework (past getting started), 
+	but need some more guidance while resolving a more advanced technical problems one might deal with 
+	once switch to a Messaging architecture. 
+	For example; If you are looking for an answer on how to handle errors in various message exchange
+	scenarios or how to properly configure the <emphasis>Aggregator</emphasis> for the situations where some messages 
+	might not ever arrive for aggregation etc,. and any other issue that goes beyond a basic implementation and configuration 
+	of a particular component and addresses <emphasis>"what else you can do with it"</emphasis> type of problem this 
+	would be the right place to find these type of samples.
+ 	</para>
+ 	
+ 	<para>
+ 	<emphasis>ADVANCED (samples/advanced)</emphasis>
+ 	</para>
+ 	<para>
+ 	This category targets develoopers who are very familiar with Spring Integration framework but looking to 
+	extend it to address a specific custom need by using Spring Integration public API. 
+	For example; if you are looking for samples showing you how to implement a custom <emphasis>Channel</emphasis> or 
+	<emphasis>Consumer</emphasis> (event-based or polling-based), or you trying to figure out what is the most appropriate
+	way to implement custom Bean parser on top of Spring Integration Bean parsers hierarchy when implementing custom name space
+	for a custom component, this would be the right place to look.
+	Here you can also find samples that will help you with <emphasis>Adapter</emphasis> development. Spring Integration comes 
+	with an extensive library of adapters to allow you to connect remote systems with Spring Integration messaging framework. 
+	However you might have a need to integrate with system for which the core framework does not provide an adapter. 
+	So you have to implement your own. This category would include samples showing you how to do it.
+ 	</para>
+ 	
+ 	
+ 	<para>
+ 	<emphasis>APPLICATIONS (samples/applications)</emphasis>
+ 	</para>
+ 	<para>
+ 	This category targets developers and architects who have a good understanding of the Messaging architecture, 
+	EIP and above average understanding of Spring and Spring Integration frameworks and are looking for samples that 
+	address a particular <emphasis>business problem</emphasis>. In other words the emphasis of samples in this category 
+	is <emphasis>business use cases</emphasis> and how it could be solved via Messaging Architecture and Spring Integration 
+	in particular. 
+	For example; If you are interested to see how a <emphasis>Loan Broker</emphasis> or <emphasis>Travel Agent</emphasis> 
+	process could be implemented and automated via Spring Integration this would be the right place to find these types of samples.
+ 	</para>
+ 	
+ 	<important>
+ 	<remark>
+ 	Remember! Spring Integration is a community driven framework, therefore community participation is IMPORTANT.
+That includes Samples, so if you can't find what you are looking for let us know.
+ 	</remark>
+ 	</important>
+ </section>
+ 
+  <section id="samples-impl">
+  	<title>Samples</title>
+  	 <para>
+  	 Currently Spring Integration comes with quite a few samples and you can only expect more. 
+  	 To help you better navigate through them, each sample comes with its own <code>readme.txt</code> file which coveres 
+  	 sevaral details about the sample (e.g., what EIP patterns it addresses, what problem it is trying to solve, how to run sample etc.). 
+  	 However, certain samples require a more detailed and some times graphical explanation. In these section you'll 
+  	 find details on samples that we believe require special attention.
+  	 </para>
+  	  <section id="samples-loan-broker">
+	  		<title>Loan Broker</title>
+	  </section>
+	  <section id="samples-cafe">
+	    <title>The Cafe Sample</title>
+	    <para>
+	      In this section, we will review a sample application that is included in the Spring Integration
+	      distribution. This sample is inspired by one of the samples featured in Gregor Hohpe's
+	      <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
+	    </para>
+	    <para>
+	      The domain is that of a Cafe, and the basic flow is depicted in the following diagram:
+	    </para>
+	    <para>
+	      <mediaobject>
+	        <imageobject role="fo">
+	            <imagedata fileref="src/docbkx/resources/images/cafe-demo.png"
+	              format="PNG" align="center"/>
+	        </imageobject>
+	        <imageobject role="html">
+	            <imagedata fileref="images/cafe-demo.png" format="PNG" align="center"/>
+	        </imageobject>
+	      </mediaobject>
+	    </para>
+	    <para>
+	      The <classname>Order</classname> object may contain multiple <classname>OrderItems</classname>. Once the order
+	      is placed, a <emphasis>Splitter</emphasis> will break the composite order message into a single message per
+	      drink. Each of these is then processed by a <emphasis>Router</emphasis> that determines whether the drink is hot
+	      or cold (checking the <classname>OrderItem</classname> object's 'isIced' property). The
+	      <classname>Barista</classname> prepares each drink, but hot and cold drink preparation are handled by two
+	      distinct methods: 'prepareHotDrink' and 'prepareColdDrink'. The prepared drinks are then sent to the Waiter where
+	      they are aggregated into a <classname>Delivery</classname> object.
+	    </para>
+	    <para>
+	      Here is the XML configuration:
+	      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+	<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	    xmlns:beans="http://www.springframework.org/schema/beans"
+	    xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	    xsi:schemaLocation="http://www.springframework.org/schema/beans
+	            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	            http://www.springframework.org/schema/integration
+	            http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+	            http://www.springframework.org/schema/integration/stream
+	            http://www.springframework.org/schema/integration/stream/spring-integration-stream-2.0.xsd">
+	
+	    <gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
+	
+	    <channel id="orders"/>
+	    <splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
+	
+	    <channel id="drinks"/>
+	    <router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
+	
+	    <channel id="coldDrinks">
+	        <queue capacity="10"/>
+	    </channel>
+	    <service-activator input-channel="coldDrinks" ref="barista"
+	                       method="prepareColdDrink" output-channel="preparedDrinks"/>
+	
+	    <channel id="hotDrinks">
+	        <queue capacity="10"/>
+	    </channel>
+	    <service-activator input-channel="hotDrinks" ref="barista"
+	                       method="prepareHotDrink" output-channel="preparedDrinks"/>
+	
+	    <channel id="preparedDrinks"/>
+	    <aggregator input-channel="preparedDrinks" ref="waiter"
+	                method="prepareDelivery" output-channel="deliveries"/>
+	
+	    <stream:stdout-channel-adapter id="deliveries"/>
+	
+	    <beans:bean id="orderSplitter"
+	                class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
+	
+	    <beans:bean id="drinkRouter"
+	                class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
+	
+	    <beans:bean id="barista" class="org.springframework.integration.samples.cafe.xml.Barista"/>
+	
+	    <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
+	
+	    <poller id="poller" default="true" fixed-rate="1000"/>
+	
+	</beans:beans>]]></programlisting>
+	      As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
+	      its own Lifecycle (by default endpoints start automatically upon initialization - to prevent that add the
+	      "auto-startup" attribute with a value of "false"). Most importantly, notice that the objects are simple POJOs
+	      with strongly typed method arguments. For example, here is the Splitter:
+	      <programlisting language="java"><![CDATA[public class OrderSplitter {
+	
+	    public List<OrderItem> split(Order order) {
+	        return order.getItems();
+	    }
+	}]]></programlisting>
+	    In the case of the Router, the return value does not have to be a <interfacename>MessageChannel</interfacename>
+	    instance (although it can be). As you see in this example, a String-value representing the channel name is
+	    returned instead.
+	    <programlisting language="java"><![CDATA[public class DrinkRouter {
+	
+	    public String resolveOrderItemChannel(OrderItem orderItem) {
+	        return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
+	    }
+	}]]></programlisting>
+	    </para>
+	    <para>
+	      Now turning back to the XML, you see that there are two &lt;service-activator&gt; elements. Each of these
+	      is delegating to the same <classname>Barista</classname> instance but different methods: 'prepareHotDrink'
+	      or 'prepareColdDrink' corresponding to the two channels where order items have been routed.
+	      <programlisting language="java"><![CDATA[public class Barista {
+	
+	    private long hotDrinkDelay = 5000;
+	    private long coldDrinkDelay = 1000;
+	
+	    private AtomicInteger hotDrinkCounter = new AtomicInteger();
+	    private AtomicInteger coldDrinkCounter = new AtomicInteger();
+	
+	    public void setHotDrinkDelay(long hotDrinkDelay) {
+	        this.hotDrinkDelay = hotDrinkDelay;
+	    }
+	
+	    public void setColdDrinkDelay(long coldDrinkDelay) {
+	        this.coldDrinkDelay = coldDrinkDelay;
+	    }
+	
+	    public Drink prepareHotDrink(OrderItem orderItem) {
+	        try {
+	            Thread.sleep(this.hotDrinkDelay);
+	            System.out.println(Thread.currentThread().getName()
+	                    + " prepared hot drink #" + hotDrinkCounter.incrementAndGet()
+	                    + " for order #" + orderItem.getOrder().getNumber() + ": " + orderItem);
+	            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
+	                    orderItem.isIced(), orderItem.getShots());
+	        }
+	        catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	            return null;
+	        }
+	    }
+	
+	    public Drink prepareColdDrink(OrderItem orderItem) {
+	        try {
+	            Thread.sleep(this.coldDrinkDelay);
+	            System.out.println(Thread.currentThread().getName()
+	                    + " prepared cold drink #" + coldDrinkCounter.incrementAndGet()
+	                    + " for order #" + orderItem.getOrder().getNumber() + ": " + orderItem);
+	            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(),
+	                    orderItem.isIced(), orderItem.getShots());
+	        }
+	        catch (InterruptedException e) {
+	            Thread.currentThread().interrupt();
+	            return null;
+	        }
+	    }
+	
+	}]]></programlisting>
+	    </para>
+	    <para>
+	      As you can see from the code excerpt above, the barista methods have different delays (the hot drinks take 5
+	      times as long to prepare). This simulates work being completed at different rates. When the
+	      <classname>CafeDemo</classname> 'main' method runs, it will loop 100 times sending a single hot drink and a
+	      single cold drink each time. It actually sends the messages by invoking the 'placeOrder' method on the Cafe
+	      interface. Above, you will see that the &lt;gateway&gt; element is specified in the configuration file. This
+	      triggers the creation of a proxy that implements the given 'service-interface' and connects it to a channel.
+	      The channel name is provided on the @Gateway annotation of the <interfacename>Cafe</interfacename> interface.
+	      <programlisting language="java">public interface Cafe {
+	
+	    @Gateway(requestChannel="orders")
+	    void placeOrder(Order order);
+	
+	}</programlisting>
+	      Finally, have a look at the <methodname>main()</methodname> method of the <classname>CafeDemo</classname> itself.
+	      <programlisting language="java"><![CDATA[public static void main(String[] args) {
+	    AbstractApplicationContext context = null;
+	    if (args.length > 0) {
+	        context = new FileSystemXmlApplicationContext(args);
+	    }
+	    else {
+	        context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+	    }
+	    Cafe cafe = (Cafe) context.getBean("cafe");
+	    for (int i = 1; i <= 100; i++) {
+	        Order order = new Order(i);
+	        order.addItem(DrinkType.LATTE, 2, false);
+	        order.addItem(DrinkType.MOCHA, 3, true);
+	        cafe.placeOrder(order);
+	    }
+	}]]></programlisting>
+	    </para>
+	    <tip>
+	      To run this sample as well as 8 others, refer to the <code>README.txt</code> within the "samples" directory
+	      of the main distribution as described at the beginning of this chapter.
+	    </tip>
+	    <para>
+	      When you run cafeDemo, you will see that the cold drinks are initially prepared more quickly than the hot drinks.
+	      Because there is an aggregator, the cold drinks are effectively limited by the rate of the hot drink preparation.
+	      This is to be expected based on their respective delays of 1000 and 5000 milliseconds. However, by configuring a
+	      poller with a concurrent task executor, you can dramatically change the results. For example, you could use a
+	      thread pool executor with 5 workers for the hot drink barista while keeping the cold drink barista as it is:
+	      <programlisting language="xml"><![CDATA[<service-activator input-channel="hotDrinks"
+	                   ref="barista"
+	                   method="prepareHotDrink"
+	                   output-channel="preparedDrinks"/>
+	
+	<service-activator input-channel="hotDrinks"
+	                   ref="barista"
+	                   method="prepareHotDrink"
+	                   output-channel="preparedDrinks">
+	    ]]><emphasis><![CDATA[<poller task-executor="pool" fixed-rate="1000"/>
+	        ]]></emphasis><![CDATA[
+	</service-activator>
+	
+	]]><emphasis><![CDATA[<task:executor id="pool" pool-size="5"/>]]></emphasis></programlisting>
+	    </para>
+	    <para>
+	      Also, notice that the worker thread name is displayed with each invocation. You will see that the hot drinks are
+	      prepared by the task-executor threads. If you provide a much shorter poller interval (such as 100 milliseconds),
+	      then you will notice that occasionally it throttles the input by forcing the task-scheduler (the caller) to invoke
+	      the operation.
+	    </para>
+	    <note>
+	      In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
+	      sub-element and then refer to any PlatformTransactionManager instance within the context.
+	    </note>
+	  </section>
+	
+	  <section id="samples-xml-messaging">
+	    <title>The XML Messaging Sample</title>
+	    <para>
+	    	The xml messaging sample in the <package>org.springframework.integration.samples.xml</package> illustrates how to use 
+	    	some of the provided components which deal with xml payloads.  The sample uses the idea of processing an order for books
+	    	represented as xml.   
+	    </para>
+	    <para>
+	    First the order is split into a number of messages, each one representing a single order item using
+	    	the XPath splitter component.
+	    	  <programlisting language="xml"><![CDATA[<si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel" 
+	            output-channel="stockCheckerChannel" create-documents="true">
+	    <si-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem" namespace-map="orderNamespaceMap" />
+	</si-xml:xpath-splitter>
+	]]></programlisting>
+	    </para>
+	    <para>
+	    	A service activator is then used to pass the message into a stock checker POJO.  The order item document is enriched with information 
+	    	from the stock checker about order item stock level.  This enriched order item message is then used to route the message.  In the 
+	    	case where the order item is in stock the message is routed to the warehouse.  The XPath router makes use of a 
+	    	<classname>MapBasedChannelResolver</classname> which maps the XPath evaluation result to a channel reference.
+	    	<programlisting language="xml"><![CDATA[<si-xml:xpath-router id="instockRouter" channel-resolver="mapChannelResolver" 
+	        input-channel="orderRoutingChannel" resolution-required="true">
+	    <si-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" namespace-map="orderNamespaceMap"  />
+	</si-xml:xpath-router>
+		
+	<bean id="mapChannelResolver"
+	    class="org.springframework.integration.channel.MapBasedChannelResolver">
+	    <property name="channelMap">
+	        <map>
+	            <entry key="true" value-ref="warehouseDispatchChannel" />
+	            <entry key="false" value-ref="outOfStockChannel" />
+	        </map>
+	    </property>
+	</bean>
+	]]></programlisting>    	 
+	    </para>
+	    <para>
+	    	Where the order item is not in stock the message is transformed using 
+	    	xslt into a format suitable for sending to the supplier.
+	    		<programlisting language="xml"><![CDATA[<si-xml:xslt-transformer input-channel="outOfStockChannel" output-channel="resupplyOrderChannel" 
+	     xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
+	]]></programlisting>    	 
+	    </para>
+	  </section> 
   </section>
+ 
 
 </appendix>
