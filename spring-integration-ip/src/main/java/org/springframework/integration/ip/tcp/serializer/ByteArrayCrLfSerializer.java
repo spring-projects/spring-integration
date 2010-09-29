@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * Converts data in an InputStream to a byte[]; data is terminated by \r\n
+ * Reads data in an InputStream to a byte[]; data must be terminated by \r\n
  * (not included in resulting byte[]). 
  * Writes a byte[] to an OutputStream and adds \r\n.
  * 
  * @author Gary Russell
  * @since 2.0
  */
-public class ByteArrayCrLfConverter extends AbstractByteArrayStreamingConverter {
+public class ByteArrayCrLfSerializer extends AbstractByteArraySerializer {
 
 	/**
-	 * Converts the data in the inputstream to a byte[]. Data must be terminated
+	 * Reads the data in the inputstream to a byte[]. Data must be terminated
 	 * by CRLF (\r\n). Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately after the \r\n (i.e. no data is in the process of
 	 * being read). 

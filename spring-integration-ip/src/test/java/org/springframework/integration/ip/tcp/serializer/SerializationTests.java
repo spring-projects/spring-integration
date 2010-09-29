@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,6 +31,9 @@ import javax.net.SocketFactory;
 import org.junit.Test;
 
 import org.springframework.commons.serializer.DefaultSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**
@@ -51,8 +54,8 @@ public class SerializationTests {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
-					ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-					converter.serialize(buffer.array(), socket.getOutputStream());
+					ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
+					serializer.serialize(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -84,8 +87,8 @@ public class SerializationTests {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
-					ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-					converter.serialize(buffer.array(), socket.getOutputStream());
+					ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+					serializer.serialize(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -99,9 +102,9 @@ public class SerializationTests {
 		InputStream is = socket.getInputStream();
 		byte[] buff = new byte[testString.length() + 2];
 		readFully(is, buff);
-		assertEquals(ByteArrayStxEtxConverter.STX, buff[0]);
+		assertEquals(ByteArrayStxEtxSerializer.STX, buff[0]);
 		assertEquals(testString, new String(buff, 1, testString.length()));
-		assertEquals(ByteArrayStxEtxConverter.ETX, buff[testString.length() + 1]);
+		assertEquals(ByteArrayStxEtxSerializer.ETX, buff[testString.length() + 1]);
 		server.close();
 	}
 
@@ -117,8 +120,8 @@ public class SerializationTests {
 					Socket socket = SocketFactory.getDefault().createSocket("localhost", port);
 					ByteBuffer buffer = ByteBuffer.allocate(testString.length());
 					buffer.put(testString.getBytes());
-					ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-					converter.serialize(buffer.array(), socket.getOutputStream());
+					ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+					serializer.serialize(buffer.array(), socket.getOutputStream());
 					Thread.sleep(1000000000L);
 				} catch (Exception e) {
 					e.printStackTrace();

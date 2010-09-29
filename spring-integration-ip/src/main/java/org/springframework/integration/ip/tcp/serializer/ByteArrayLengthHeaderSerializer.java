@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,10 +25,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Converts data in an InputStream to a byte[]; data is preceded by
+ * Reads data in an InputStream to a byte[]; data must be preceded by
  * a 4 byte binary length (network byte order, 
  * not included in resulting byte[]). 
- * Writes a byte[] to an OutputStream after a 4 byte binary length.\
+ * Writes a byte[] to an OutputStream after a 4 byte binary length.
  * The length field contains the length of data following the length
  * field.
  * (network byte order).
@@ -36,7 +36,7 @@ import org.apache.commons.logging.LogFactory;
  * @author Gary Russell
  * @since 2.0
  */
-public class ByteArrayLengthHeaderConverter extends AbstractByteArrayStreamingConverter {
+public class ByteArrayLengthHeaderSerializer extends AbstractByteArraySerializer {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 	

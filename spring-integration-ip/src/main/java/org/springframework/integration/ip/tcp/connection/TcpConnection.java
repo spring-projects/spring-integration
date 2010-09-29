@@ -25,7 +25,7 @@ import org.springframework.integration.Message;
 
 /**
  * An abstraction over {@link Socket} and {@link SocketChannel} that
- * sends {@link Message} objects by converting the payload
+ * sends {@link Message} objects by serializing the payload
  * and streaming it to the destination. Requires a {@link TcpListener} 
  * to receive incoming messages.
  *   
@@ -53,7 +53,7 @@ public interface TcpConnection extends Runnable {
 	public void send(Message<?> message) throws Exception;
 
 	/**
-	 * Uses the input converter to obtain the message payload
+	 * Uses the deserializer to obtain the message payload
 	 * from the connection's input stream.
 	 * @return The payload
 	 * @throws Exception 

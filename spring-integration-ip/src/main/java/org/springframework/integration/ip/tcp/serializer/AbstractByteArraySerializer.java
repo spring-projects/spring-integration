@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 
@@ -25,13 +25,14 @@ import org.springframework.commons.serializer.Deserializer;
 import org.springframework.commons.serializer.Serializer;
 
 /**
- * Base class for streaming converters that convert to/from a byte array.
+ * Base class for (de)serializers that provide a mechanism to 
+ * reconstruct a byte array from an arbitrary stream.
  * 
  * @author Gary Russell
  * @since 2.0
  *
  */
-public abstract class AbstractByteArrayStreamingConverter implements
+public abstract class AbstractByteArraySerializer implements
 		Serializer<byte[]>, 
 		Deserializer<byte[]> {
 
@@ -40,7 +41,7 @@ public abstract class AbstractByteArrayStreamingConverter implements
 	protected Log logger = LogFactory.getLog(this.getClass());
 
 	/**
-	 * The maximum supported message size for this converter.
+	 * The maximum supported message size for this serializer.
 	 * Default 2048.
 	 * @return The max message size.
 	 */
@@ -49,7 +50,7 @@ public abstract class AbstractByteArrayStreamingConverter implements
 	}
 
 	/**
-	 * The maximum supported message size for this converter.
+	 * The maximum supported message size for this serializer.
 	 * Default 2048.
 	 * @param maxMessageSize The max message size.
 	 */

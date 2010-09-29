@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 

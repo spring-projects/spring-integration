@@ -19,9 +19,10 @@ package org.springframework.integration.ip.tcp.connection;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
+import org.springframework.commons.serializer.Deserializer;
 import org.springframework.integration.Message;
 import org.springframework.integration.ip.tcp.SocketIoUtils;
-import org.springframework.integration.ip.tcp.converter.SoftEndOfStreamException;
+import org.springframework.integration.ip.tcp.serializer.SoftEndOfStreamException;
 
 /**
  * A TcpConnection that uses and underlying {@link Socket}.
@@ -88,7 +89,7 @@ public class TcpNetConnection extends AbstractTcpConnection {
 	 * If there is no listener, and this connection is not for single use, 
 	 * this method exits. When there is a listener, the method runs in a
 	 * loop reading input from the connections's stream, data is converted
-	 * to an object using the {@link InputStreamingConverter} and the listener's
+	 * to an object using the {@link Deserializer} and the listener's
 	 * {@link TcpListener#onMessage(Message)} method is called. For single use
 	 * connections with no listener, the socket is closed after its timeout
 	 * expires. If data is received on a single use socket with no listener, 

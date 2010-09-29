@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -28,6 +28,9 @@ import javax.net.ServerSocketFactory;
 import org.junit.Test;
 
 import org.springframework.commons.serializer.DefaultDeserializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayCrLfSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayLengthHeaderSerializer;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.integration.ip.util.SocketUtils;
 
 /**
@@ -44,11 +47,11 @@ public class DeserializationTests {
 		SocketUtils.testSendLength(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
-		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
-		byte[] out = converter.deserialize(socket.getInputStream());
+		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
+		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(out));
-		out = converter.deserialize(socket.getInputStream());
+		out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				 new String(out));
 		server.close();
@@ -62,11 +65,11 @@ public class DeserializationTests {
 		SocketUtils.testSendStxEtx(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
-		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-		byte[] out = converter.deserialize(socket.getInputStream());
+		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(out));
-		out = converter.deserialize(socket.getInputStream());
+		out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				 new String(out));
 		server.close();
@@ -80,11 +83,11 @@ public class DeserializationTests {
 		SocketUtils.testSendCrLf(port, null);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		byte[] out = converter.deserialize(socket.getInputStream());
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		byte[] out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 								 new String(out));
-		out = converter.deserialize(socket.getInputStream());
+		out = serializer.deserialize(socket.getInputStream());
 		assertEquals("Data", SocketUtils.TEST_STRING + SocketUtils.TEST_STRING, 
 				 new String(out));
 		server.close();
@@ -114,9 +117,9 @@ public class DeserializationTests {
 		SocketUtils.testSendLengthOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
-		ByteArrayLengthHeaderConverter converter = new ByteArrayLengthHeaderConverter();
+		ByteArrayLengthHeaderSerializer serializer = new ByteArrayLengthHeaderSerializer();
 		try {
-			converter.deserialize(socket.getInputStream());
+			serializer.deserialize(socket.getInputStream());
 	    	fail("Expected message length exceeded exception");
 		} catch (IOException e) {
 			if (!e.getMessage().startsWith("Message length")) {
@@ -135,9 +138,9 @@ public class DeserializationTests {
 		SocketUtils.testSendStxEtxOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(500);
-		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
+		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
 		try {
-			converter.deserialize(socket.getInputStream());
+			serializer.deserialize(socket.getInputStream());
 	    	fail("Expected timeout exception");
 		} catch (IOException e) {
 			if (!e.getMessage().startsWith("Read timed out")) {
@@ -156,10 +159,10 @@ public class DeserializationTests {
 		SocketUtils.testSendStxEtxOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
-		ByteArrayStxEtxConverter converter = new ByteArrayStxEtxConverter();
-		converter.setMaxMessageSize(1024);
+		ByteArrayStxEtxSerializer serializer = new ByteArrayStxEtxSerializer();
+		serializer.setMaxMessageSize(1024);
 		try {
-			converter.deserialize(socket.getInputStream());
+			serializer.deserialize(socket.getInputStream());
 	    	fail("Expected message length exceeded exception");
 		} catch (IOException e) {
 			if (!e.getMessage().startsWith("ETX not found")) {
@@ -178,9 +181,9 @@ public class DeserializationTests {
 		SocketUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(500);
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
 		try {
-			converter.deserialize(socket.getInputStream());
+			serializer.deserialize(socket.getInputStream());
 	    	fail("Expected timout exception");
 		} catch (IOException e) {
 			if (!e.getMessage().startsWith("Read timed out")) {
@@ -199,10 +202,10 @@ public class DeserializationTests {
 		SocketUtils.testSendCrLfOverflow(port);
 		Socket socket = server.accept();
 		socket.setSoTimeout(5000);
-		ByteArrayCrLfConverter converter = new ByteArrayCrLfConverter();
-		converter.setMaxMessageSize(1024);
+		ByteArrayCrLfSerializer serializer = new ByteArrayCrLfSerializer();
+		serializer.setMaxMessageSize(1024);
 		try {
-			converter.deserialize(socket.getInputStream());
+			serializer.deserialize(socket.getInputStream());
 	    	fail("Expected message length exceeded exception");
 		} catch (IOException e) {
 			if (!e.getMessage().startsWith("CRLF not found")) {

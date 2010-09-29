@@ -88,7 +88,7 @@ public class TcpMessageMapper implements
 		}
 		else {
 			throw new MessageHandlingException(message, 
-					"When using a byte array streaming converter, the socket mapper expects " +
+					"When using a byte array serializer, the socket mapper expects " +
 					"either a byte array or String payload, but received: " + payload.getClass());
 		}
 		return bytes;

@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.ip.tcp.connection.AbstractClientConnectionFactory;
 import org.springframework.integration.ip.tcp.connection.AbstractServerConnectionFactory;
-import org.springframework.integration.ip.tcp.converter.ByteArrayStxEtxConverter;
+import org.springframework.integration.ip.tcp.serializer.ByteArrayStxEtxSerializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -194,17 +194,17 @@ public class TcpConfigInboundGatewayTests {
 	private void stxEtxGuts(Socket socket) throws SocketException, IOException {
 		socket.setSoTimeout(5000);
 		String greetings = "Hello World!";
-		socket.getOutputStream().write(ByteArrayStxEtxConverter.STX);
+		socket.getOutputStream().write(ByteArrayStxEtxSerializer.STX);
 		socket.getOutputStream().write((greetings).getBytes());
-		socket.getOutputStream().write(ByteArrayStxEtxConverter.ETX);
+		socket.getOutputStream().write(ByteArrayStxEtxSerializer.ETX);
 		StringBuilder sb = new StringBuilder();
 		int c;
 		while (true) {
 			c = socket.getInputStream().read();
-			if (c == ByteArrayStxEtxConverter.STX) {
+			if (c == ByteArrayStxEtxSerializer.STX) {
 				continue;
 			}
-			if (c == ByteArrayStxEtxConverter.ETX) {
+			if (c == ByteArrayStxEtxSerializer.ETX) {
 				break;
 			}
 			sb.append((char) c);

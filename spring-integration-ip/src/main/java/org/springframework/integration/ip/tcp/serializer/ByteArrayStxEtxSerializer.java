@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ip.tcp.converter;
+package org.springframework.integration.ip.tcp.serializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,21 +23,21 @@ import java.io.OutputStream;
 import org.springframework.integration.mapping.MessageMappingException;
 
 /**
- * Converts data in an InputStream to a byte[]; data is prefixed by &lt;stx&gt; and
+ * Reads data in an InputStream to a byte[]; data must be prefixed by &lt;stx&gt; and
  * terminated by &lt;etx&gt; (not included in resulting byte[]). 
- * Writes a byte[] to an OutputStream and prefixed by &lt;stx&gt; terminated by &lt;etx&gt;
+ * Writes a byte[] to an OutputStream prefixed by &lt;stx&gt; terminated by &lt;etx&gt;
  * 
  * @author Gary Russell
  * @since 2.0
  */
-public class ByteArrayStxEtxConverter extends AbstractByteArrayStreamingConverter {
+public class ByteArrayStxEtxSerializer extends AbstractByteArraySerializer {
 
 	public static final int STX = 0x02;
 	
 	public static final int ETX = 0x03;
 
 	/**
-	 * Converts the data in the inputstream to a byte[]. Data must be prefixed 
+	 * Reads the data in the inputstream to a byte[]. Data must be prefixed 
 	 * with an ASCII STX character, and terminated with an ASCII ETX character.
 	 * Throws a {@link SoftEndOfStreamException} if the stream
 	 * is closed immediately before the STX (i.e. no data is in the process of

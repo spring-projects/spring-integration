@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.commons.serializer.Deserializer;
 import org.springframework.commons.serializer.Serializer;
-import org.springframework.integration.ip.tcp.converter.AbstractByteArrayStreamingConverter;
+import org.springframework.integration.ip.tcp.serializer.AbstractByteArraySerializer;
 import org.springframework.util.Assert;
 
 /**
@@ -86,7 +86,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 		Assert.notNull(mapper, this.getClass().getName() + " Mapper may not be null");
 		this.mapper = mapper;
 		if (this.serializer != null && 
-			 !(this.serializer instanceof AbstractByteArrayStreamingConverter)) {
+			 !(this.serializer instanceof AbstractByteArraySerializer)) {
 			mapper.setStringToBytes(false);
 		}
 	}
@@ -119,7 +119,7 @@ public abstract class AbstractTcpConnection implements TcpConnection {
 	 */
 	public void setSerializer(Serializer<?> serializer) {
 		this.serializer = serializer;
-		if (!(serializer instanceof AbstractByteArrayStreamingConverter)) {
+		if (!(serializer instanceof AbstractByteArraySerializer)) {
 			this.mapper.setStringToBytes(false);
 		}
 	}
