@@ -136,7 +136,17 @@
 				<artifactId>spring-aspects</artifactId>
 				<version>${org.springframework.version}</version>
 			</dependency>
-			<dependency>
+               <!--   <dependency>
+            <groupId>rome</groupId>
+            <artifactId>rome</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>rome</groupId>
+            <artifactId>rome-fetcher</artifactId>
+            <version></version>
+        </dependency>
+-->
+            <dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-core</artifactId>
 				<version>${org.springframework.version}</version>

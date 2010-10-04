@@ -125,6 +125,7 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, NamedCo
 		}
 		if (this.metadataPersister == null) {
 			PropertiesBasedMetadataPersister mp = new PropertiesBasedMetadataPersister();
+
 			try {
 				mp.afterPropertiesSet();
 			}

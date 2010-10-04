@@ -1,0 +1,4 @@
+# Tooling related information for the integration feed namespace
+http\://www.springframework.org/schema/integration/feed@name=integration feed Namespace
+http\://www.springframework.org/schema/integration/feed@prefix=int-feed
+http\://www.springframework.org/schema/integration/feed@icon=org/springframework/integration/feed/config/spring-integration-feed.gif

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/feed"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            xmlns:integration="http://www.springframework.org/schema/integration"
+            targetNamespace="http://www.springframework.org/schema/integration/feed"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+    <xsd:import namespace="http://www.springframework.org/schema/integration"
+                schemaLocation="http://www.springframework.org/schema/integration/spring-integration-2.0.xsd"/>
+
+    <xsd:element name="inbound-channel-adapter">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[
+              This adapter takes a feed URL (either RSS or ATOM) and responds to updates.
+
+              Depending on whether you've set the prefer-updated-feeds-to-entries attribute
+              or not, you will recieve <code>SyndFeed</code> or <code>SyndEntry</code> objects.
+
+            ]]></xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:string"/>
+            <xsd:attribute name="channel" use="required" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <tool:annotation kind="ref">
+                            <tool:expected-type type="org.springframework.integration.MessageChannel"/>
+                        </tool:annotation>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:attribute>
+
+
+            <xsd:attribute name="backlog-cache-size" type="xsd:int"/>
+
+            <xsd:attribute name="feed" type="xsd:string" use="required"/>
+<!--
+
+            <xsd:attribute name="prefer-updated-feed-to-entries" type="xsd:boolean"/>
+-->
+
+
+        </xsd:complexType>
+    </xsd:element>
+
+
+</xsd:schema>

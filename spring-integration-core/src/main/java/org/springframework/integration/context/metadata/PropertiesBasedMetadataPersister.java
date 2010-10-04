@@ -16,12 +16,6 @@ import java.util.concurrent.Executor;
  * Implementation of {@link org.springframework.integration.context.metadata.MetadataPersister} that knows how to write metadata
  * to a {@link java.util.Properties} instance.
  *
- *
- *
- * TODO could this perhaps participate or at least be aware of our transaction synchronization mechanism? IE: no guarantees, but we at least try to write on commit()s?
- *
- *
- *
  * @author Josh Long
  */
 public class PropertiesBasedMetadataPersister implements MetadataPersister<String>, InitializingBean {
@@ -87,10 +81,6 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
     private File buildFileFromUniqueName() {
         File tmpDir = new File(System.getProperty("java.io.tmpdir"));
 
-        if ((this.uniqueName == null) || this.uniqueName.trim().equals("")) {
-            this.uniqueName = UUID.randomUUID().toString();
-        }
-
         String un = this.uniqueName + ".properties";
 
         return new File(tmpDir, un);
@@ -137,7 +127,7 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
 
             try {
                 fileOutputStream = new FileOutputStream (cachedLocationOfPropertiesFile);
-                pro.store(fileOutputStream, (this.uniqueName == null) ? "" : this.uniqueName);
+                pro.store(fileOutputStream,   this.uniqueName);
             } finally {
                 if (fileOutputStream != null) {
                     fileOutputStream.close();
@@ -158,6 +148,12 @@ public class PropertiesBasedMetadataPersister implements MetadataPersister<Strin
 
     public void afterPropertiesSet() throws Exception {
         synchronized (this.monitor) {
+
+
+            if ((this.uniqueName == null) || this.uniqueName.trim().equals("")) {
+                this.uniqueName = UUID.randomUUID().toString();
+            }
+
             if ((this.locationOfPropertiesOnDisk == null) && (this.uniqueName == null)) {
                 throw new RuntimeException("you must either specify a property file Resource or a uniqueName that can be used in generated a path that will be input into creating a Resource");
             }
