@@ -55,6 +55,7 @@
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
 			<xsd:attribute name="password" type="xsd:string"/>
+            <xsd:attribute name="charset" type="xsd:string" default="UTF-8"/>
 			<xsd:attribute name="port" type="xsd:int" default="22"/>
 			<xsd:attribute use="optional" name="client-mode" default="active-local-data-connection-mode">
 				<xsd:annotation>

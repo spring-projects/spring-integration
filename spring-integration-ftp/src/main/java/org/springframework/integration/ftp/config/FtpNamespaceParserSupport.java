@@ -10,7 +10,7 @@ import org.w3c.dom.Element;
  * A lot of parsers need to support the same set of core attributes, so I'm hiding that logic here
  *
  * @author Josh Long
- * 
+ *
  */
 public class FtpNamespaceParserSupport {
     /**
