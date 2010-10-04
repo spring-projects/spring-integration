@@ -1,11 +1,18 @@
 package org.springframework.integration.ftp;
 
+import org.apache.commons.net.ftp.FTPClient;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
 
-public class FtpsSendingMessageHandlerFactoryBean
-		extends FtpSendingMessageHandlerFactoryBean {
+/**
+ * Factory to make building the namespace easier
+ *
+ * @author Josh Long
+ */
+public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean
+		extends FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean {
 	/**
 	 * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
 	 */
@@ -28,7 +35,19 @@ public class FtpsSendingMessageHandlerFactoryBean
 	private Boolean needClientAuth;
 	private Boolean wantsClientAuth;
 	private String[] cipherSuites;
-	private int fileType;
+
+	public FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean() {
+		this.defaultFtpInboundFolderName = "ftpsInbound";
+		this.clientMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
+	}
+
+	public void setKeyManager(KeyManager keyManager) {
+		this.keyManager = keyManager;
+	}
+
+	public void setTrustManager(TrustManager trustManager) {
+		this.trustManager = trustManager;
+	}
 
 	public void setImplicit(Boolean implicit) {
 		this.implicit = implicit;
@@ -40,14 +59,6 @@ public class FtpsSendingMessageHandlerFactoryBean
 
 	public void setProt(String prot) {
 		this.prot = prot;
-	}
-
-	public void setKeyManager(KeyManager keyManager) {
-		this.keyManager = keyManager;
-	}
-
-	public void setTrustManager(TrustManager trustManager) {
-		this.trustManager = trustManager;
 	}
 
 	public void setAuthValue(String authValue) {
@@ -70,24 +81,20 @@ public class FtpsSendingMessageHandlerFactoryBean
 		this.wantsClientAuth = wantsClientAuth;
 	}
 
-	public void setCipherSuites(String[] cipherSuites) {
-		this.cipherSuites = cipherSuites;
-	}
-
-	public void setFileType(int fileType) {
-		this.fileType = fileType;
-	}
-
-	@Override
-	protected AbstractFtpClientFactory clientFactory() {
+	protected AbstractFtpClientFactory defaultClientFactory()
+			throws Exception {
 		DefaultFtpsClientFactory factory = ClientFactorySupport.ftpsClientFactory(this.host,
-				(this.port), this.remoteDirectory, this.username,
-				this.password, this.fileType, this.clientMode, this.prot,
-				this.protocol, this.authValue, this.implicit,
+				Integer.parseInt(this.port), this.remoteDirectory,
+				this.username, this.password, this.fileType, this.clientMode,
+				this.prot, this.protocol, this.authValue, this.implicit,
 				this.trustManager, this.keyManager, this.sessionCreation,
 				this.useClientMode, this.wantsClientAuth, this.needClientAuth,
 				this.cipherSuites);
 
 		return factory;
+	}
+
+	public void setCipherSuites(String[] cipherSuites) {
+		this.cipherSuites = cipherSuites;
 	}
 }

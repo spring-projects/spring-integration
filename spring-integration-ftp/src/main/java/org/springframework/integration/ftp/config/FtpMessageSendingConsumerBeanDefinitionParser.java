@@ -4,6 +4,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.ftp.FtpSendingMessageHandlerFactoryBean;
 import org.w3c.dom.Element;
 
@@ -13,13 +14,18 @@ import org.w3c.dom.Element;
  *
  * @author Josh Long
  */
-public class FtpMessageSendingConsumerBeanDefinitionParser extends AbstractOutboundChannelAdapterParser {
-    @Override
-    protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpSendingMessageHandlerFactoryBean.class.getName());
+public class FtpMessageSendingConsumerBeanDefinitionParser
+		extends AbstractOutboundChannelAdapterParser {
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element,
+												   ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(
+				FtpSendingMessageHandlerFactoryBean.class.getName());
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,element,"charset");
 
-        FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
+		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element,
+				parserContext);
 
-        return builder.getBeanDefinition();
-    }
+		return builder.getBeanDefinition();
+	}
 }

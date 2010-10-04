@@ -15,22 +15,23 @@
  */
 package org.springframework.integration.ftp.config;
 
+
 /**
  * Provides namespace support for using FTP
  * <p/>
  * This is *heavily* influenced by the good work done by Iwein before.
- * 
  *
  * @author Josh Long
  */
 @SuppressWarnings("unused")
 public class FtpsNamespaceHandler extends FtpNamespaceHandler {
-
 	@Override
 	public void init() {
-		this.registerBeanDefinitionParser( "inbound-channel-adapter", new FtpsMessageSourceBeanDefinitionParser());
+		this.registerBeanDefinitionParser("inbound-channel-adapter",
+				new FtpsMessageSourceBeanDefinitionParser());
 
 		// todo test this
-		this.registerBeanDefinitionParser( "outbound-channel-adapter", new FtpsMessageSendingConsumerBeanDefinitionParser());
+		this.registerBeanDefinitionParser("outbound-channel-adapter",
+				new FtpsMessageSendingConsumerBeanDefinitionParser());
 	}
 }

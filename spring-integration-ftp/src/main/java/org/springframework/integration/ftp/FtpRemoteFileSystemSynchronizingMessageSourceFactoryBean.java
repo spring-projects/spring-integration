@@ -1,4 +1,4 @@
-package org.springframework.integration.ftp.impl;
+package org.springframework.integration.ftp;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.net.ftp.FTP;
@@ -12,7 +12,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.file.entries.CompositeEntryListFilter;
 import org.springframework.integration.file.entries.EntryListFilter;
 import org.springframework.integration.file.entries.PatternMatchingEntryListFilter;
-import org.springframework.integration.ftp.*;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -23,7 +22,9 @@ import java.io.File;
  *
  * @author Josh Long
  */
-public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {
+public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean
+		extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource>
+		implements ResourceLoaderAware {
 	protected volatile String port;
 	protected volatile String autoCreateDirectories;
 	protected volatile String filenamePattern;
@@ -37,16 +38,17 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 	protected volatile EntryListFilter<FTPFile> filter;
 	protected volatile int clientMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
 	protected volatile int fileType = FTP.BINARY_FILE_TYPE;
+	private volatile String autoDeleteRemoteFilesOnSync;
+	protected String defaultFtpInboundFolderName = "ftpInbound";
 
 	@SuppressWarnings("unused")
 	public void setFileType(int fileType) {
 		this.fileType = fileType;
 	}
 
-	private volatile String autoDeleteRemoteFilesOnSync;
-
 	@SuppressWarnings("unused")
-	public void setAutoDeleteRemoteFilesOnSync(String autoDeleteRemoteFilesOnSync) {
+	public void setAutoDeleteRemoteFilesOnSync(
+			String autoDeleteRemoteFilesOnSync) {
 		this.autoDeleteRemoteFilesOnSync = autoDeleteRemoteFilesOnSync;
 	}
 
@@ -58,15 +60,16 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 	private Resource fromText(String path) {
 		ResourceEditor resourceEditor = new ResourceEditor(this.resourceLoader);
 		resourceEditor.setAsText(path);
+
 		return (Resource) resourceEditor.getValue();
 	}
 
-	protected AbstractFtpClientFactory defaultClientFactory() throws Exception {
-		 return ClientFactorySupport.ftpClientFactory( this.host ,  Integer.parseInt(this.port) , this.remoteDirectory ,
-				 this.username ,this.password, this.clientMode , this.fileType);
+	protected AbstractFtpClientFactory defaultClientFactory()
+			throws Exception {
+		return ClientFactorySupport.ftpClientFactory(this.host,
+				Integer.parseInt(this.port), this.remoteDirectory, this.username,
+				this.password, this.clientMode, this.fileType);
 	}
-
-	protected String defaultFtpInboundFolderName = "ftpInbound";
 
 	@Override
 	protected FtpInboundRemoteFileSystemSynchronizingMessageSource createInstance()
@@ -74,7 +77,8 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 		boolean autoCreatDirs = Boolean.parseBoolean(this.autoCreateDirectories);
 		boolean ackRemoteDir = Boolean.parseBoolean(this.autoDeleteRemoteFilesOnSync);
 
-		FtpInboundRemoteFileSystemSynchronizingMessageSource ftpRemoteFileSystemSynchronizingMessageSource = new FtpInboundRemoteFileSystemSynchronizingMessageSource();
+		FtpInboundRemoteFileSystemSynchronizingMessageSource ftpRemoteFileSystemSynchronizingMessageSource =
+				new FtpInboundRemoteFileSystemSynchronizingMessageSource();
 		ftpRemoteFileSystemSynchronizingMessageSource.setAutoCreateDirectories(autoCreatDirs);
 
 		if (!StringUtils.hasText(this.localWorkingDirectory)) {
@@ -88,7 +92,8 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 		CompositeEntryListFilter<FTPFile> compositeFtpFileListFilter = new CompositeEntryListFilter<FTPFile>();
 
 		if (StringUtils.hasText(this.filenamePattern)) {
-			PatternMatchingEntryListFilter<FTPFile> ftpFilePatternMatchingEntryListFilter = new PatternMatchingEntryListFilter<FTPFile>(ftpFileEntryNamer, filenamePattern);
+			PatternMatchingEntryListFilter<FTPFile> ftpFilePatternMatchingEntryListFilter =
+					new PatternMatchingEntryListFilter<FTPFile>(ftpFileEntryNamer, filenamePattern);
 			compositeFtpFileListFilter.addFilter(ftpFilePatternMatchingEntryListFilter);
 		}
 
@@ -96,7 +101,8 @@ public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends Ab
 			compositeFtpFileListFilter.addFilter(this.filter);
 		}
 
-		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15, defaultClientFactory());
+		QueuedFtpClientPool queuedFtpClientPool = new QueuedFtpClientPool(15,
+				defaultClientFactory());
 
 		FtpInboundRemoteFileSystemSynchronizer ftpRemoteFileSystemSynchronizer = new FtpInboundRemoteFileSystemSynchronizer();
 		ftpRemoteFileSystemSynchronizer.setClientPool(queuedFtpClientPool);

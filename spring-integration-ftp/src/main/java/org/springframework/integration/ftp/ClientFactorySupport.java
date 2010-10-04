@@ -12,75 +12,84 @@ import javax.net.ssl.TrustManager;
  * @author Josh Long
  */
 public class ClientFactorySupport {
-    public static DefaultFtpsClientFactory ftpsClientFactory(String host, int port, String remoteDir, String user, String pw, int fileType, int clientMode, String prot, String protocol,
-        String authValue, Boolean implicit, TrustManager trustManager, KeyManager keyManager, Boolean sessionCreation, Boolean useClientMode, Boolean wantsClientAuth, Boolean needClientAuth , String [] cipherSuites) {
-        DefaultFtpsClientFactory defaultFtpClientFactory = new DefaultFtpsClientFactory();
-        defaultFtpClientFactory.setHost(host);
-        defaultFtpClientFactory.setPassword(pw);
-        defaultFtpClientFactory.setPort((port));
-        defaultFtpClientFactory.setRemoteWorkingDirectory(remoteDir);
-        defaultFtpClientFactory.setUsername(user);
-        defaultFtpClientFactory.setFileType(fileType);
-        defaultFtpClientFactory.setClientMode(clientMode);
+	public static DefaultFtpsClientFactory ftpsClientFactory(String host,
+															 int port, String remoteDir, String user, String pw, int fileType,
+															 int clientMode, String prot, String protocol, String authValue,
+															 Boolean implicit, TrustManager trustManager, KeyManager keyManager,
+															 Boolean sessionCreation, Boolean useClientMode,
+															 Boolean wantsClientAuth, Boolean needClientAuth, String[] cipherSuites) {
+		DefaultFtpsClientFactory defaultFtpClientFactory = new DefaultFtpsClientFactory();
+		defaultFtpClientFactory.setHost(host);
+		defaultFtpClientFactory.setPassword(pw);
+		defaultFtpClientFactory.setPort((port));
+		defaultFtpClientFactory.setRemoteWorkingDirectory(remoteDir);
+		defaultFtpClientFactory.setUsername(user);
+		defaultFtpClientFactory.setFileType(fileType);
+		defaultFtpClientFactory.setClientMode(clientMode);
 
-	    if(cipherSuites !=null)
-	    defaultFtpClientFactory.setCipherSuites( cipherSuites );
+		if (cipherSuites != null) {
+			defaultFtpClientFactory.setCipherSuites(cipherSuites);
+		}
 
+		if (StringUtils.hasText(prot)) {
+			defaultFtpClientFactory.setProt(prot);
+		}
 
+		if (StringUtils.hasText(protocol)) {
+			defaultFtpClientFactory.setProtocol(protocol);
+		}
 
-        if (StringUtils.hasText(prot)) {
-            defaultFtpClientFactory.setProt(prot);
-        }
+		if (StringUtils.hasText(authValue)) {
+			defaultFtpClientFactory.setAuthValue(authValue);
+		}
 
-        if (StringUtils.hasText(protocol)) {
-            defaultFtpClientFactory.setProtocol(protocol);
-        }
+		if (null != implicit) {
+			defaultFtpClientFactory.setImplicit(implicit);
+		}
 
-        if (StringUtils.hasText(authValue)) {
-            defaultFtpClientFactory.setAuthValue(authValue);
-        }
+		if (trustManager != null) {
+			defaultFtpClientFactory.setTrustManager(trustManager);
+		}
 
-        if (null != implicit) {
-            defaultFtpClientFactory.setImplicit(implicit);
-        }
+		if (keyManager != null) {
+			defaultFtpClientFactory.setKeyManager(keyManager);
+		}
 
-        if (trustManager != null) {
-            defaultFtpClientFactory.setTrustManager(trustManager);
-        }
+		if (needClientAuth != null) {
+			defaultFtpClientFactory.setNeedClientAuth(needClientAuth);
+		}
 
-        if (keyManager != null) {
-            defaultFtpClientFactory.setKeyManager(keyManager);
-        }
+		if (wantsClientAuth != null) {
+			defaultFtpClientFactory.setWantsClientAuth(wantsClientAuth);
+		}
 
-        if (needClientAuth != null) {
-            defaultFtpClientFactory.setNeedClientAuth(needClientAuth);
-        }
+		if (sessionCreation != null) {
+			defaultFtpClientFactory.setSessionCreation(sessionCreation);
+		}
 
-        if (wantsClientAuth != null) {
-            defaultFtpClientFactory.setWantsClientAuth(wantsClientAuth);
-        }
+		if (useClientMode != null) {
+			defaultFtpClientFactory.setUseClientMode(useClientMode);
+		}
 
-        if (sessionCreation != null) {
-            defaultFtpClientFactory.setSessionCreation(sessionCreation);
-        }
+		return defaultFtpClientFactory;
+	}
 
-        if (useClientMode != null) {
-            defaultFtpClientFactory.setUseClientMode(useClientMode);
-        }
+	public static DefaultFtpClientFactory ftpClientFactory(String host,
+														   int port,
+														   String remoteDir,
+														   String user,
+														   String pw,
+														   int clientMode,
+														   int fileType) {
+		DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
+		defaultFtpClientFactory.setHost(host);
+		defaultFtpClientFactory.setPassword(pw);
+		defaultFtpClientFactory.setPort(port);
+		defaultFtpClientFactory.setRemoteWorkingDirectory(remoteDir);
+		defaultFtpClientFactory.setUsername(user);
+		defaultFtpClientFactory.setClientMode(clientMode);
+		defaultFtpClientFactory.setFileType(fileType);
 
-        return defaultFtpClientFactory;
-    }
-
-    public static DefaultFtpClientFactory ftpClientFactory(String host, int port, String remoteDir, String user, String pw, int clientMode, int fileType) {
-        DefaultFtpClientFactory defaultFtpClientFactory = new DefaultFtpClientFactory();
-        defaultFtpClientFactory.setHost(host);
-        defaultFtpClientFactory.setPassword(pw);
-        defaultFtpClientFactory.setPort(port);
-        defaultFtpClientFactory.setRemoteWorkingDirectory(remoteDir);
-        defaultFtpClientFactory.setUsername(user);
-        defaultFtpClientFactory.setClientMode(clientMode);
-	    defaultFtpClientFactory.setFileType( fileType );
-
-        return defaultFtpClientFactory;
-    }
+		return defaultFtpClientFactory;
+	}
 }

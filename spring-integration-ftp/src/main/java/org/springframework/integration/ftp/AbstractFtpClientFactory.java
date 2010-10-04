@@ -14,7 +14,8 @@ import java.io.IOException;
 import java.net.SocketException;
 
 
-abstract public class AbstractFtpClientFactory<T extends FTPClient> implements FtpClientFactory<T> {
+abstract public class AbstractFtpClientFactory<T extends FTPClient>
+		implements FtpClientFactory<T> {
 	private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
 	private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 	protected FTPClientConfig config;
@@ -95,7 +96,8 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 		onAfterConnect(client);
 
 		if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
-			throw new MessagingException("Connecting to server [" + host + ":" + port + "] failed, please check the connection");
+			throw new MessagingException("Connecting to server [" + host + ":" +
+					port + "] failed, please check the connection");
 		}
 
 		if (logger.isDebugEnabled()) {
@@ -103,7 +105,8 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 		}
 
 		if (!client.login(username, password)) {
-			throw new MessagingException("Login failed. Please check the username and password.");
+			throw new MessagingException(
+					"Login failed. Please check the username and password.");
 		}
 
 		setClientMode(client);
@@ -114,12 +117,15 @@ abstract public class AbstractFtpClientFactory<T extends FTPClient> implements F
 			logger.debug("login successful");
 		}
 
-		if (!remoteWorkingDirectory.equals(client.printWorkingDirectory()) && !client.changeWorkingDirectory(remoteWorkingDirectory)) {
-			throw new MessagingException("Could not change directory to '" + remoteWorkingDirectory + "'. Please check the path.");
+		if (!remoteWorkingDirectory.equals(client.printWorkingDirectory()) &&
+				!client.changeWorkingDirectory(remoteWorkingDirectory)) {
+			throw new MessagingException("Could not change directory to '" +
+					remoteWorkingDirectory + "'. Please check the path.");
 		}
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("working directory is: " + client.printWorkingDirectory());
+			logger.debug("working directory is: " +
+					client.printWorkingDirectory());
 		}
 
 		return client;

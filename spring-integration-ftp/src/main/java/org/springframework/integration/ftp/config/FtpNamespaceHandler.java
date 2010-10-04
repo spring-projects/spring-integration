@@ -36,9 +36,9 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
 
 	static {
 		// file types
-		FILE_TYPES.put("ebcdic-file-type" , FTP.EBCDIC_FILE_TYPE);
-		FILE_TYPES.put("ascii-file-type" , FTP.ASCII_FILE_TYPE);
-		FILE_TYPES.put("binary-file-type" , FTP.BINARY_FILE_TYPE);
+		FILE_TYPES.put("ebcdic-file-type", FTP.EBCDIC_FILE_TYPE);
+		FILE_TYPES.put("ascii-file-type", FTP.ASCII_FILE_TYPE);
+		FILE_TYPES.put("binary-file-type", FTP.BINARY_FILE_TYPE);
 
 		// client modes
 		CLIENT_MODES.put("active-local-data-connection-mode", 0);
@@ -48,7 +48,9 @@ public class FtpNamespaceHandler extends NamespaceHandlerSupport {
 	}
 
 	public void init() {
-		registerBeanDefinitionParser("inbound-channel-adapter", new FtpMessageSourceBeanDefinitionParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new FtpMessageSendingConsumerBeanDefinitionParser());
+		registerBeanDefinitionParser("inbound-channel-adapter",
+				new FtpMessageSourceBeanDefinitionParser());
+		registerBeanDefinitionParser("outbound-channel-adapter",
+				new FtpMessageSendingConsumerBeanDefinitionParser());
 	}
 }

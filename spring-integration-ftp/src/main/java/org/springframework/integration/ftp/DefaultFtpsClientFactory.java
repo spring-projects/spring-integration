@@ -3,26 +3,19 @@ package org.springframework.integration.ftp;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPSClient;
-
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
-
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-
 import org.springframework.util.StringUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import java.net.SocketException;
-
-import java.security.NoSuchAlgorithmException;
-
-import java.util.Properties;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
 
 
 /**
@@ -31,163 +24,131 @@ import javax.net.ssl.TrustManager;
  * @author Josh Long
  */
 public class DefaultFtpsClientFactory extends AbstractFtpClientFactory<FTPSClient> {
-    private Boolean useClientMode;
-    private Boolean sessionCreation;
-    private String authValue;
-    private TrustManager trustManager;
-    private String[] cipherSuites;
-    private String[] protocols;
-    private KeyManager keyManager;
-    private Boolean needClientAuth;
-    private Boolean wantsClientAuth;
-    private boolean implicit = false;
-    private String prot = "P";
-    private String protocol;
+	private Boolean useClientMode;
+	private Boolean sessionCreation;
+	private String authValue;
+	private TrustManager trustManager;
+	private String[] cipherSuites;
+	private String[] protocols;
+	private KeyManager keyManager;
+	private Boolean needClientAuth;
+	private Boolean wantsClientAuth;
+	private boolean implicit = false;
+	private String prot = "P";
+	private String protocol;
 
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
 
-    public static void main(String[] args) throws Throwable {
-        File file = new File(SystemUtils.getUserHome(), "Desktop/ftp.properties");
-        Resource r = new FileSystemResource(file);
-        PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-        propertiesFactoryBean.setLocation(r);
-        propertiesFactoryBean.afterPropertiesSet();
+	public void setUseClientMode(Boolean useClientMode) {
+		this.useClientMode = useClientMode;
+	}
 
-        Properties props = propertiesFactoryBean.getObject();
+	public void setSessionCreation(Boolean sessionCreation) {
+		this.sessionCreation = sessionCreation;
+	}
 
-        String user = props.getProperty("ftp.username");
-        String pw = props.getProperty("ftp.password");
-        String host = props.getProperty("ftp.host");
+	public void setAuthValue(String authValue) {
+		this.authValue = authValue;
+	}
 
-        if (!file.exists()) {
-            throw new RuntimeException("doesn't exist");
-        }
+	public void setTrustManager(TrustManager trustManager) {
+		this.trustManager = trustManager;
+	}
 
-        DefaultFtpsClientFactory defaultFtpsClientFactory = new DefaultFtpsClientFactory();
-        defaultFtpsClientFactory.setUsername(user);
-        defaultFtpsClientFactory.setImplicit(false);
-        defaultFtpsClientFactory.setPassword(pw);
-        defaultFtpsClientFactory.setClientMode(FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE);
-        defaultFtpsClientFactory.setHost(host);
+	public void setCipherSuites(String[] cipherSuites) {
+		this.cipherSuites = cipherSuites;
+	}
 
-        FTPSClient ftpClient = defaultFtpsClientFactory.getClient();
+	public void setProtocols(String[] protocols) {
+		this.protocols = protocols;
+	}
 
-        InputStream fileStream = r.getInputStream();
-        ftpClient.storeFile("pushed.java", fileStream);
-        fileStream.close();
-        ftpClient.disconnect();
-    }
+	public void setKeyManager(KeyManager keyManager) {
+		this.keyManager = keyManager;
+	}
 
-    public void setUseClientMode(Boolean useClientMode) {
-        this.useClientMode = useClientMode;
-    }
+	public void setNeedClientAuth(Boolean needClientAuth) {
+		this.needClientAuth = needClientAuth;
+	}
 
-    public void setSessionCreation(Boolean sessionCreation) {
-        this.sessionCreation = sessionCreation;
-    }
+	public void setWantsClientAuth(Boolean wantsClientAuth) {
+		this.wantsClientAuth = wantsClientAuth;
+	}
 
-    public void setAuthValue(String authValue) {
-        this.authValue = authValue;
-    }
+	public void setProt(String prot) {
+		this.prot = prot;
+	}
 
-    public void setTrustManager(TrustManager trustManager) {
-        this.trustManager = trustManager;
-    }
+	@Override
+	protected void onAfterConnect(FTPSClient ftpsClient)
+			throws IOException {
+		ftpsClient.execPBSZ(0);
+		ftpsClient.execPROT(this.prot);
+	}
 
-    public void setCipherSuites(String[] cipherSuites) {
-        this.cipherSuites = cipherSuites;
-    }
+	@Override
+	public FTPSClient getClient() throws SocketException, IOException {
+		FTPSClient ftpsClient = super.getClient();
 
-    public void setProtocols(String[] protocols) {
-        this.protocols = protocols;
-    }
+		if (StringUtils.hasText(this.authValue)) {
+			ftpsClient.setAuthValue(authValue);
+		}
 
-    public void setKeyManager(KeyManager keyManager) {
-        this.keyManager = keyManager;
-    }
+		if (this.trustManager != null) {
+			ftpsClient.setTrustManager(this.trustManager);
+		}
 
-    public void setNeedClientAuth(Boolean needClientAuth) {
-        this.needClientAuth = needClientAuth;
-    }
+		if (this.cipherSuites != null) {
+			ftpsClient.setEnabledCipherSuites(this.cipherSuites);
+		}
 
-    public void setWantsClientAuth(Boolean wantsClientAuth) {
-        this.wantsClientAuth = wantsClientAuth;
-    }
+		if (this.protocols != null) {
+			ftpsClient.setEnabledProtocols(this.protocols);
+		}
 
-    public void setProt(String prot) {
-        this.prot = prot;
-    }
+		if (this.sessionCreation != null) {
+			ftpsClient.setEnabledSessionCreation(this.sessionCreation);
+		}
 
-    @Override
-    protected void onAfterConnect(FTPSClient ftpsClient)
-        throws IOException {
-        ftpsClient.execPBSZ(0);
-        ftpsClient.execPROT(this.prot);
-    }
+		if (this.useClientMode != null) {
+			ftpsClient.setUseClientMode(this.useClientMode);
+		}
 
-    @Override
-    public FTPSClient getClient() throws SocketException, IOException {
-        FTPSClient ftpsClient = super.getClient();
+		if (this.sessionCreation != null) {
+			ftpsClient.setEnabledSessionCreation(this.sessionCreation);
+		}
 
-        if (StringUtils.hasText(this.authValue)) {
-            ftpsClient.setAuthValue(authValue);
-        }
+		if (this.keyManager != null) {
+			ftpsClient.setKeyManager(keyManager);
+		}
 
-        if (this.trustManager != null) {
-            ftpsClient.setTrustManager(this.trustManager);
-        }
+		if (this.needClientAuth != null) {
+			ftpsClient.setNeedClientAuth(this.needClientAuth);
+		}
 
-        if (this.cipherSuites != null) {
-            ftpsClient.setEnabledCipherSuites(this.cipherSuites);
-        }
+		if (this.wantsClientAuth != null) {
+			ftpsClient.setWantClientAuth(this.wantsClientAuth);
+		}
 
-        if (this.protocols != null) {
-            ftpsClient.setEnabledProtocols(this.protocols);
-        }
+		return ftpsClient;
+	}
 
-        if (this.sessionCreation != null) {
-            ftpsClient.setEnabledSessionCreation(this.sessionCreation);
-        }
+	public void setImplicit(boolean implicit) {
+		this.implicit = implicit;
+	}
 
-        if (this.useClientMode != null) {
-            ftpsClient.setUseClientMode(this.useClientMode);
-        }
+	@Override
+	protected FTPSClient createSingleInstanceOfClient() {
+		try {
+			if (StringUtils.hasText(this.protocol)) {
+				return new FTPSClient(this.protocol, this.implicit);
+			}
 
-        if (this.sessionCreation != null) {
-            ftpsClient.setEnabledSessionCreation(this.sessionCreation);
-        }
-
-        if (this.keyManager != null) {
-            ftpsClient.setKeyManager(keyManager);
-        }
-
-        if (this.needClientAuth != null) {
-            ftpsClient.setNeedClientAuth(this.needClientAuth);
-        }
-
-        if (this.wantsClientAuth != null) {
-            ftpsClient.setWantClientAuth(this.wantsClientAuth);
-        }
-
-        return ftpsClient;
-    }
-
-    public void setImplicit(boolean implicit) {
-        this.implicit = implicit;
-    }
-
-    @Override
-    protected FTPSClient createSingleInstanceOfClient() {
-        try {
-            if (StringUtils.hasText(this.protocol)) {
-                return new FTPSClient(this.protocol, this.implicit);
-            }
-
-            return new FTPSClient(this.implicit);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
+			return new FTPSClient(this.implicit);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

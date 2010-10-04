@@ -5,8 +5,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.ftp.impl.FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean;
-import org.springframework.integration.ftp.impl.FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean;
+import org.springframework.integration.ftp.FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean;
 import org.w3c.dom.Element;
 
 import java.util.Arrays;
@@ -19,21 +18,28 @@ import java.util.Set;
  *
  * @author Josh Long
  */
-public class FtpsMessageSourceBeanDefinitionParser extends AbstractPollingInboundChannelAdapterParser {
-    private Set<String> receiveAttrs = new HashSet<String>(Arrays.asList("auto-delete-remote-files-on-sync,filename-pattern,local-working-directory".split(",")));
+public class FtpsMessageSourceBeanDefinitionParser
+		extends AbstractPollingInboundChannelAdapterParser {
+	private Set<String> receiveAttrs = new HashSet<String>(Arrays.asList(
+			"auto-delete-remote-files-on-sync,filename-pattern,local-working-directory".split(
+					",")));
 
-    @Override
-    @SuppressWarnings("unused")
-    protected String parseSource(Element element, ParserContext parserContext) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
+	@Override
+	@SuppressWarnings("unused")
+	protected String parseSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean.class.getName());
 
-        IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "filter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder,
+				element, "filter");
 
-        for (String a : receiveAttrs)
-            IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, a);
+		for (String a : receiveAttrs)
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder,
+					element, a);
 
-        FtpNamespaceParserSupport.configureCoreFtpClient(builder, element, parserContext);
+		FtpNamespaceParserSupport.configureCoreFtpClient(builder, element,
+				parserContext);
 
-        return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-    }
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(),
+				parserContext.getRegistry());
+	}
 }

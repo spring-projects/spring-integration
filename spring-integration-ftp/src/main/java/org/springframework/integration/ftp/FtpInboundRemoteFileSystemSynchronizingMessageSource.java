@@ -1,8 +1,7 @@
-package org.springframework.integration.ftp.impl;
+package org.springframework.integration.ftp;
 
 import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynchronizingMessageSource;
-import org.springframework.integration.ftp.FtpClientPool;
 
 
 /**
@@ -10,15 +9,15 @@ import org.springframework.integration.ftp.FtpClientPool;
  *
  * @author Josh Long
  */
-public class FtpInboundRemoteFileSystemSynchronizingMessageSource 
-      extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<FTPFile, FtpInboundRemoteFileSystemSynchronizer> {
+public class FtpInboundRemoteFileSystemSynchronizingMessageSource
+		extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<FTPFile, FtpInboundRemoteFileSystemSynchronizer> {
 	private volatile FtpClientPool clientPool;
 
 	public void setClientPool(FtpClientPool clientPool) {
 		this.clientPool = clientPool;
 	}
 
-	@Override	
+	@Override
 	protected void doStart() {
 		this.synchronizer.start();
 	}
@@ -33,8 +32,8 @@ public class FtpInboundRemoteFileSystemSynchronizingMessageSource
 		super.onInit();
 		this.synchronizer.setClientPool(this.clientPool);
 	}
-	
-	public String getComponentType(){
+
+	public String getComponentType() {
 		return "ftp:inbound-channel-adapter";
 	}
 }

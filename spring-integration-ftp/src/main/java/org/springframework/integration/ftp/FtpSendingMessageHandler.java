@@ -39,11 +39,16 @@ import java.net.SocketException;
  *
  * @author Iwein Fuld
  * @author Mark Fisher
- * @author Josh Long 
+ * @author Josh Long
  */
-public class FtpSendingMessageHandler implements MessageHandler, InitializingBean {
-
+public class FtpSendingMessageHandler implements MessageHandler,
+		InitializingBean {
+	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
 	private FtpClientPool ftpClientPool;
+	private FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
+	private File temporaryBufferFolderFile;
+	private Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
+	private String charset;
 
 	public FtpSendingMessageHandler() {
 	}
@@ -58,14 +63,15 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(ftpClientPool, "'ftpClientPool' must not be null");
-		Assert.notNull(temporaryBufferFolder, "'temporaryBufferFolder' must not be null");
+		Assert.notNull(temporaryBufferFolder,
+				"'temporaryBufferFolder' must not be null");
 		temporaryBufferFolderFile = this.temporaryBufferFolder.getFile();
 	}
 
 	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
 
-	private File handleFileMessage(File sourceFile, File tempFile, File resultFile)
-			throws IOException {
+	private File handleFileMessage(File sourceFile, File tempFile,
+								   File resultFile) throws IOException {
 		if (sourceFile.renameTo(resultFile)) {
 			return resultFile;
 		}
@@ -76,27 +82,23 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 		return resultFile;
 	}
 
-	private File handleByteArrayMessage(byte[] bytes, File tempFile, File resultFile)
-			throws IOException {
+	private File handleByteArrayMessage(byte[] bytes, File tempFile,
+										File resultFile) throws IOException {
 		FileCopyUtils.copy(bytes, tempFile);
 		tempFile.renameTo(resultFile);
 
 		return resultFile;
 	}
 
-	private File handleStringMessage(String content, File tempFile, File resultFile, String charset)
-			throws IOException {
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(tempFile), charset);
+	private File handleStringMessage(String content, File tempFile,
+									 File resultFile, String charset) throws IOException {
+		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(
+				tempFile), charset);
 		FileCopyUtils.copy(content, writer);
 		tempFile.renameTo(resultFile);
 
 		return resultFile;
 	}
-
-	private static final String TEMPORARY_FILE_SUFFIX = ".writing";
-	private FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
-	private File temporaryBufferFolderFile;
-	private Resource temporaryBufferFolder = new FileSystemResource(SystemUtils.getJavaIoTmpDir());
 
 	public void setTemporaryBufferFolder(Resource temporaryBufferFolder) {
 		this.temporaryBufferFolder = temporaryBufferFolder;
@@ -106,39 +108,45 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
-	private File redeemForStorableFile(Message<?> msg) throws MessageDeliveryException {
+	private File redeemForStorableFile(Message<?> msg)
+			throws MessageDeliveryException {
 		try {
 			Object payload = msg.getPayload();
 			String generateFileName = this.fileNameGenerator.generateFileName(msg);
-			File tempFile = new File(temporaryBufferFolderFile, generateFileName + TEMPORARY_FILE_SUFFIX);
-			File resultFile = new File(temporaryBufferFolderFile, generateFileName);
+			File tempFile = new File(temporaryBufferFolderFile,
+					generateFileName + TEMPORARY_FILE_SUFFIX);
+			File resultFile = new File(temporaryBufferFolderFile,
+					generateFileName);
 			File sendableFile;
-			if (payload instanceof String)
-				sendableFile = this.handleStringMessage((String) payload, tempFile, resultFile, this.charset);
-			else if (payload instanceof File)
-				sendableFile = this.handleFileMessage((File) payload, tempFile, resultFile);
-			else if (payload instanceof byte[])
-				sendableFile = this.handleByteArrayMessage((byte[]) payload, tempFile, resultFile);
-			else sendableFile = null;
+
+			if (payload instanceof String) {
+				sendableFile = this.handleStringMessage((String) payload,
+						tempFile, resultFile, this.charset);
+			} else if (payload instanceof File) {
+				sendableFile = this.handleFileMessage((File) payload, tempFile,
+						resultFile);
+			} else if (payload instanceof byte[]) {
+				sendableFile = this.handleByteArrayMessage((byte[]) payload,
+						tempFile, resultFile);
+			} else {
+				sendableFile = null;
+			}
+
 			return sendableFile;
 		} catch (Throwable th) {
 			throw new MessageDeliveryException(msg);
 		}
-
 	}
-
-	private String charset;
 
 	public void setCharset(String charset) {
 		this.charset = charset;
 	}
+
 	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
 
-
-	public void handleMessage(Message<?> message) throws MessageRejectedException,
-			MessageHandlingException, MessageDeliveryException {
-
-
+	public void handleMessage(Message<?> message)
+			throws MessageRejectedException, MessageHandlingException,
+			MessageDeliveryException {
 		Assert.notNull(message, "'message' must not be null");
 
 		Object payload = message.getPayload();
@@ -155,29 +163,36 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 				client = getFtpClient();
 				sentSuccesfully = sendFile(file, client);
 			} catch (FileNotFoundException e) {
-				throw new MessageDeliveryException(message, "File [" + file + "] not found in local working directory; it was moved or deleted unexpectedly", e);
+				throw new MessageDeliveryException(message,
+						"File [" + file +
+								"] not found in local working directory; it was moved or deleted unexpectedly",
+						e);
 			} catch (IOException e) {
-				throw new MessageDeliveryException(message, "Error transferring file [" + file + "] from local working directory to remote FTP directory", e);
+				throw new MessageDeliveryException(message,
+						"Error transferring file [" + file +
+								"] from local working directory to remote FTP directory", e);
 			} catch (Exception e) {
-				throw new MessageDeliveryException(message, "Error handling message for file [" + file + "]", e);
+				throw new MessageDeliveryException(message,
+						"Error handling message for file [" + file + "]", e);
 			} finally {
-				if (file.exists())
+				if (file.exists()) {
 					try {
 						file.delete();
 					} catch (Throwable th) {
 						/// noop
 					}
+				}
+
 				if (client != null) {
 					ftpClientPool.releaseClient(client);
 				}
 			}
 
 			if (!sentSuccesfully) {
-				throw new MessageDeliveryException(message, "Failed to store file '" + file + "'");
+				throw new MessageDeliveryException(message,
+						"Failed to store file '" + file + "'");
 			}
-
 		}
-
 	}
 
 	private boolean sendFile(File file, FTPClient client)
@@ -192,7 +207,9 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 	private FTPClient getFtpClient() throws SocketException, IOException {
 		FTPClient client;
 		client = this.ftpClientPool.getClient();
-		Assert.state(client != null, FtpClientPool.class.getSimpleName() + " returned 'null' client this most likely a bug in the pool implementation.");
+		Assert.state(client != null,
+				FtpClientPool.class.getSimpleName() +
+						" returned 'null' client this most likely a bug in the pool implementation.");
 
 		return client;
 	}

@@ -1,4 +1,4 @@
-package org.springframework.integration.ftp.impl;
+package org.springframework.integration.ftp;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
@@ -23,7 +23,8 @@ import java.util.Collection;
  *
  * @author Josh Long
  */
-public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
+public class FtpInboundRemoteFileSystemSynchronizer
+		extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {
 	protected FtpClientPool clientPool;
 
 	@Override
@@ -44,14 +45,17 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		this.clientPool = clientPool;
 	}
 
-	protected boolean copyFileToLocalDirectory(FTPClient client, FTPFile ftpFile, Resource localDirectory)
+	protected boolean copyFileToLocalDirectory(FTPClient client,
+											   FTPFile ftpFile, Resource localDirectory)
 			throws IOException, FileNotFoundException {
 		String remoteFileName = ftpFile.getName();
-		String localFileName = localDirectory.getFile().getPath() + "/" + remoteFileName;
+		String localFileName = localDirectory.getFile().getPath() + "/" +
+				remoteFileName;
 		File localFile = new File(localFileName);
 
 		if (!localFile.exists()) {
-			String tempFileName = localFileName + AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION;
+			String tempFileName = localFileName +
+					AbstractInboundRemoteFileSystemSynchronizingMessageSource.INCOMPLETE_EXTENSION;
 			File file = new File(tempFileName);
 			FileOutputStream fos = new FileOutputStream(file);
 
@@ -78,21 +82,26 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 	protected void syncRemoteToLocalFileSystem() {
 		try {
 			FTPClient client = this.clientPool.getClient();
-			Assert.state(client != null, FtpClientPool.class.getSimpleName() + " returned a 'null' client. " + "This most likely a bug in the pool implementation.");
+			Assert.state(client != null,
+					FtpClientPool.class.getSimpleName() +
+							" returned a 'null' client. " +
+							"This most likely a bug in the pool implementation.");
 
 			Collection<FTPFile> fileList = this.filter.filterEntries(client.listFiles());
 
 			try {
 				for (FTPFile ftpFile : fileList) {
 					if ((ftpFile != null) && ftpFile.isFile()) {
-						copyFileToLocalDirectory(client, ftpFile, this.localDirectory);
+						copyFileToLocalDirectory(client, ftpFile,
+								this.localDirectory);
 					}
 				}
 			} finally {
 				this.clientPool.releaseClient(client);
 			}
 		} catch (IOException e) {
-			throw new MessagingException("Problem occurred while synchronizing remote to local directory", e);
+			throw new MessagingException("Problem occurred while synchronizing remote to local directory",
+					e);
 		}
 	}
 
@@ -108,6 +117,7 @@ public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemot
 		public void acknowledge(Object useful, FTPFile msg)
 				throws Exception {
 			FTPClient ftpClient = (FTPClient) useful;
+
 			if ((msg != null) && ftpClient.deleteFile(msg.getName())) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("deleted " + msg.getName());
