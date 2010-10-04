@@ -62,7 +62,7 @@
 					<xsd:documentation><![CDATA[
                            the FTP Client-Mode.
 
-                             /***
+    /***
      * A constant indicating the FTP session is expecting all transfers
      * to occur between the client (local) and server and that the server
      * should connect to the client's data port to initiate a data transfer.
