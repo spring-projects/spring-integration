@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 public class TwitterNamespaceHandler extends org.springframework.beans.factory.xml.NamespaceHandlerSupport {
 
 
+    public static String BASE_PACKAGE = "org.springframework.integration.twitter";
 
 	public void init() {
 		// twitter connections

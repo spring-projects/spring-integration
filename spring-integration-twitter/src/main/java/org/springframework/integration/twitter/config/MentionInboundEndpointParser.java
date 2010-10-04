@@ -4,14 +4,14 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.twitter.InboundMentionStatusEndpoint;
-import org.springframework.integration.twitter.config.TwitterNamespaceHandler;
 import org.w3c.dom.Element;
+
+import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 public class MentionInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {
-        return InboundMentionStatusEndpoint.class.getName();
+        return BASE_PACKAGE + ".InboundMentionStatusEndpoint";
     }
 
     @Override

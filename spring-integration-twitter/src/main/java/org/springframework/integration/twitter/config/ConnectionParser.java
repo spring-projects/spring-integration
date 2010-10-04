@@ -3,13 +3,14 @@ package org.springframework.integration.twitter.config;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.twitter.oauth.OAuthConfigurationFactoryBean;
 import org.w3c.dom.Element;
+
+import static org.springframework.integration.twitter.config.TwitterNamespaceHandler.BASE_PACKAGE;
 
 public class ConnectionParser extends AbstractSingleBeanDefinitionParser {
     @Override
     protected String getBeanClassName(Element element) {
-        return OAuthConfigurationFactoryBean.class.getName();
+        return BASE_PACKAGE + ".oauth.OAuthConfigurationFactoryBean"; 
     }
 
     @Override
