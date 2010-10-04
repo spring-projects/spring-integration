@@ -58,8 +58,8 @@ abstract public class AbstractOAuthAccessTokenBasedFactoryBean<T> implements Ini
 	}
 
 	/**
-	 * This probably doesn't belong here. It's more for support for running the {@link OAuthAccessTokenBasedTwitterFactoryBean#main(String[])}  or
-	 * {@link OAuthAccessTokenBasedTwitterFactoryBean#main(String[])} methods that run the user through a command line tool to approve a user for the first
+	 * This probably doesn't belong here. It's more for support for running the {@link OAuthAccessTokenBasedTwitterFactoryBean}  or
+	 * {@link OAuthAccessTokenBasedTwitterFactoryBean} methods that run the user through a command line tool to approve a user for the first
 	 * time if the user hasn't obtained her {@code accessToken } yet
 	 *
 	 * @param resource the resource where properties file lives
