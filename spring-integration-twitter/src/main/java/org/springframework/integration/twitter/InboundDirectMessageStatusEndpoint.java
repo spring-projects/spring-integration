@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author Josh Long
  */
-public class InboundDMStatusEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
+public class InboundDirectMessageStatusEndpoint extends AbstractInboundTwitterEndpointSupport<DirectMessage> {
 	private Comparator<DirectMessage> dmComparator = new Comparator<DirectMessage>() {
 		public int compare(DirectMessage directMessage, DirectMessage directMessage1) {
 			return directMessage.getCreatedAt().compareTo(directMessage1.getCreatedAt());
@@ -53,8 +53,8 @@ public class InboundDMStatusEndpoint extends AbstractInboundTwitterEndpointSuppo
 
 	@Override
 	protected void refresh() throws Exception {
-		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDMStatusEndpoint>() {
-			public void run(InboundDMStatusEndpoint t, Twitter twitter)
+		this.runAsAPIRateLimitsPermit(new ApiCallback<InboundDirectMessageStatusEndpoint>() {
+			public void run(InboundDirectMessageStatusEndpoint t, Twitter twitter)
 					throws Exception {
 				forwardAll((!hasMarkedStatus()) ? t.twitter.getDirectMessages() : t.twitter.getDirectMessages(new Paging(t.getMarkerId())));
 			}

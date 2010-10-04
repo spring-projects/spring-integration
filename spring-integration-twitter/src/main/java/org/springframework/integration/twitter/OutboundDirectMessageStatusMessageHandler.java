@@ -30,7 +30,7 @@ import twitter4j.TwitterException;
  * @see org.springframework.integration.twitter.TwitterHeaders
  * @see twitter4j.Twitter
  */
-public class OutboundDMStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
+public class OutboundDirectMessageStatusMessageHandler extends AbstractOutboundTwitterEndpointSupport {
 	public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException, MessageDeliveryException {
 		try {
 			String txt = (String) message.getPayload();

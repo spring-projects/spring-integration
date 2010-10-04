@@ -34,7 +34,7 @@ import twitter4j.GeoLocation;
  * @author Josh Long
  */
 @ContextConfiguration(locations = {
-		"/sending_dms_using_ns.xml"}
+        "/org/springframework/integration/twitter/sending_dms_using_ns.xml"}
 )
 public class TestSendingDMsUsingNamespace extends AbstractJUnit4SpringContextTests {
 	private volatile MessagingTemplate messagingTemplate = new MessagingTemplate();

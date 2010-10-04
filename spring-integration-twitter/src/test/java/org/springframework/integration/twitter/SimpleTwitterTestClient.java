@@ -18,7 +18,7 @@ import java.util.Collection;
  *
  * @author Josh Long
  */
-@ContextConfiguration(locations = "twitter_connection_using_ns.xml")
+@ContextConfiguration(locations = "org/springframework/integration/twitter/twitter_connection_using_ns.xml")
 public class SimpleTwitterTestClient {
 	private Twitter twitter;
 	@Autowired

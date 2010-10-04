@@ -15,11 +15,8 @@
  */
 package org.springframework.integration.twitter.config;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.w3c.dom.Element;
 
@@ -30,26 +27,24 @@ import org.w3c.dom.Element;
  * @since 2.0
  */
 public class TwitterNamespaceHandler extends org.springframework.beans.factory.xml.NamespaceHandlerSupport {
-	public static final String DIRECT_MESSAGES = "direct-messages";
-	public static final String MENTIONS = "mentions";
-	public static final String FRIENDS = "friends";
-	private static final String BASE_PACKAGE = "org.springframework.integration.twitter";
+
+
 
 	public void init() {
 		// twitter connections
-		registerBeanDefinitionParser("twitter-connection", new TwitterConnectionParser());
+		registerBeanDefinitionParser("twitter-connection", new ConnectionParser());
 
 		// inbound
-		registerBeanDefinitionParser("inbound-update-channel-adapter", new TwitterUpdatedStatusInboundEndpointParser());
-		registerBeanDefinitionParser("inbound-dm-channel-adapter", new TwitterDMInboundEndpointParser());
-		registerBeanDefinitionParser("inbound-mention-channel-adapter", new TwitterMentionInboundEndpointParser());
+		registerBeanDefinitionParser("inbound-update-channel-adapter", new UpdatedStatusInboundEndpointParser());
+		registerBeanDefinitionParser("inbound-dm-channel-adapter", new DirectMessageInboundEndpointParser());
+		registerBeanDefinitionParser("inbound-mention-channel-adapter", new MentionInboundEndpointParser());
 
 		// outbound
-		registerBeanDefinitionParser("outbound-update-channel-adapter", new TwitterUpdatedStatusOutboundEndpointParser());
-		registerBeanDefinitionParser("outbound-dm-channel-adapter", new TwitterDMOutboundEndpointParser());
+		registerBeanDefinitionParser("outbound-update-channel-adapter", new UpdatedStatusOutboundEndpointParser());
+		registerBeanDefinitionParser("outbound-dm-channel-adapter", new DirectMessageOutboundEndpointParser());
 	}
 
-	private static void configureTwitterConnection(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	public static void configureTwitterConnection(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String ref = element.getAttribute("twitter-connection");
 
 		if (org.springframework.util.StringUtils.hasText(ref)) {
@@ -61,104 +56,7 @@ public class TwitterNamespaceHandler extends org.springframework.beans.factory.x
 		}
 	}
 
-	// twitter:twitter-connection
-
-	private static class TwitterConnectionParser extends AbstractSingleBeanDefinitionParser {
-		@Override
-		protected String getBeanClassName(Element element) {
-			return BASE_PACKAGE + "oauth.OAuthConfigurationFactoryBean";
-		}
-
-		@Override
-		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			configureTwitterConnection(element, parserContext, builder);
-		}
-
-		@Override
-		protected boolean shouldGenerateIdAsFallback() {
-			return true;
-		}
-	}
-
-	// twitter:inbound-mention-channel-adapter
-
-	private static class TwitterMentionInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
-		@Override
-		protected String getBeanClassName(Element element) {
-			return BASE_PACKAGE + ".InboundMentionStatusEndpoint";
-		}
-
-		@Override
-		protected boolean shouldGenerateIdAsFallback() {
-			return true;
-		}
-
-		@Override
-		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-		}
-	}
-
-	// twitter:inbound-dm-channel-adapter
-
-	private static class TwitterDMInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
-		@Override
-		protected String getBeanClassName(Element element) {
-			return BASE_PACKAGE + ".InboundDMStatusEndpoint";
-		}
-
-		@Override
-		protected boolean shouldGenerateIdAsFallback() {
-			return true;
-		}
-
-		@Override
-		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-		}
-	}
-
-	// twitter:inbound-update-channel-adapter
-
-	private static class TwitterUpdatedStatusInboundEndpointParser extends AbstractSingleBeanDefinitionParser {
-		@Override
-		protected String getBeanClassName(Element element) {
-			return BASE_PACKAGE +  ".InboundUpdatedStatusEndpoint";
-		}
-
-		@Override
-		protected boolean shouldGenerateIdAsFallback() {
-			return true;
-		}
-
-		@Override
-		protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-		}
-	}
-
-	// twitter:outbound-update-channel-adapter
-
-	private static class TwitterUpdatedStatusOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
-		@Override
-		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".OutboundUpdatedStatusMessageHandler");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-			return builder.getBeanDefinition();
-		}
-	}
-
-	// twitter:outbound-dm-channel-adapter
-
-	private static class TwitterDMOutboundEndpointParser extends AbstractOutboundChannelAdapterParser {
-		@Override
-		protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(BASE_PACKAGE + ".OutboundDMStatusMessageHandler");
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "twitter-connection", "configuration");
-			return builder.getBeanDefinition();
-		}
-	}
 }
+
+
+	  

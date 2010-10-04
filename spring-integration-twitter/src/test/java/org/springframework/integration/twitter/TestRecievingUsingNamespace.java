@@ -26,7 +26,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
  * @author Josh Long
  */
 @ContextConfiguration(locations = {
-		"/receiving_dms_using_ns.xml"}
+        "/org/springframework/integration/twitter/receiving_dms_using_ns.xml"}
 )
 public class TestRecievingUsingNamespace extends AbstractJUnit4SpringContextTests {
 	@Autowired
