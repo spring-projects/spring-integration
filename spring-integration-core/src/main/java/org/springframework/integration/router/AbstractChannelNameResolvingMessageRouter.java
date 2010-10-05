@@ -119,7 +119,6 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		return channels;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
 		if (channelIndicators == null) {
 			return;
