@@ -41,6 +41,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jmx.export.MBeanExporter;
@@ -92,15 +93,21 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private ListableBeanFactory beanFactory;
 
-	private Map<Object, AtomicLong> anonymousCounters = new HashMap<Object, AtomicLong>();
+	private Map<Object, AtomicLong> anonymousHandlerCounters = new HashMap<Object, AtomicLong>();
+
+	private Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<Object, AtomicLong>();
 
 	private Set<SimpleMessageHandlerMonitor> handlers = new HashSet<SimpleMessageHandlerMonitor>();
+
+	private Set<SimpleMessageSourceMonitor> sources = new HashSet<SimpleMessageSourceMonitor>();
 
 	private Set<DirectChannelMonitor> channels = new HashSet<DirectChannelMonitor>();
 
 	private Map<String, DirectChannelMonitor> channelsByName = new HashMap<String, DirectChannelMonitor>();
 
 	private Map<String, MessageHandlerMonitor> handlersByName = new HashMap<String, MessageHandlerMonitor>();
+
+	private Map<String, MessageSourceMonitor> sourcesByName = new HashMap<String, MessageSourceMonitor>();
 
 	private Map<String, String> objectNamesByName = new HashMap<String, String>();
 
@@ -169,6 +176,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
+			return advised;
+		} else if (bean instanceof MessageSource<?>) {
+			SimpleMessageSourceMonitor monitor = new SimpleMessageSourceMonitor((MessageSource<?>) bean);
+			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
+			sources.add(monitor);
 			return advised;
 		}
 		if (bean instanceof MessageChannel) {
@@ -268,6 +280,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	protected void doStart() {
 		registerChannels();
 		registerHandlers();
+		registerSources();
 		logger.info("Summary on start: " + objectNamesByName);
 	}
 
@@ -384,13 +397,29 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private void registerHandlers() {
 		for (SimpleMessageHandlerMonitor source : handlers) {
-			MessageHandlerMonitor monitor = enhanceMonitor(source);
+			MessageHandlerMonitor monitor = enhanceHandlerMonitor(source);
 			String name = monitor.getName();
 			// Only register once...
 			if (!handlersByName.containsKey(name)) {
 				String beanKey = getHandlerBeanKey(monitor);
 				if (name != null) {
 					handlersByName.put(name, monitor);
+					objectNamesByName.put(name, beanKey);
+				}
+				registerBeanNameOrInstance(monitor, beanKey);
+			}
+		}
+	}
+
+	private void registerSources() {
+		for (SimpleMessageSourceMonitor source : sources) {
+			MessageSourceMonitor monitor = enhanceSourceMonitor(source);
+			String name = monitor.getName();
+			// Only register once...
+			if (!sourcesByName.containsKey(name)) {
+				String beanKey = getSourceBeanKey(monitor);
+				if (name != null) {
+					sourcesByName.put(name, monitor);
 					objectNamesByName.put(name, beanKey);
 				}
 				registerBeanNameOrInstance(monitor, beanKey);
@@ -409,6 +438,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		handlerAdvice.addMethodName("handleMessage");
 		return applyAdvice(bean, handlerAdvice, beanClassLoader);
+	}
+
+	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMonitor interceptor, ClassLoader beanClassLoader) {
+		NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
+		sourceAdvice.addMethodName("receive");
+		return applyAdvice(bean, sourceAdvice, beanClassLoader);
 	}
 
 	private Object extractTarget(Object bean) {
@@ -458,6 +493,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				handler.getSource());
 	}
 
+	private String getSourceBeanKey(MessageSourceMonitor handler) {
+		// This ordering of keys seems to work with default settings of JConsole
+		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(), handler.getName(),
+				handler.getSource());
+	}
+
 	private String getStaticNames() {
 		if (objectNameStaticProperties.isEmpty()) {
 			return "";
@@ -469,7 +510,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return builder.toString();
 	}
 
-	private MessageHandlerMonitor enhanceMonitor(SimpleMessageHandlerMonitor monitor) {
+	private MessageHandlerMonitor enhanceHandlerMonitor(SimpleMessageHandlerMonitor monitor) {
 
 		MessageHandlerMonitor result = monitor;
 
@@ -488,12 +529,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			endpoint = beanFactory.getBean(beanName);
 			Object field = null;
 			try {
-				field = getField(endpoint, "handler");
+				field = extractTarget(getField(endpoint, "handler"));
 			}
 			catch (Exception e) {
 				logger.debug("Could not get handler from bean = " + beanName);
 			}
-			if (field == monitor) {
+			if (field == monitor.getMessageHandler()) {
 				name = beanName;
 				break;
 			}
@@ -517,10 +558,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			}
 			Object field = getField(target, "inputChannel");
 			if (field != null) {
-				if (!anonymousCounters.containsKey(field)) {
-					anonymousCounters.put(field, new AtomicLong());
+				if (!anonymousHandlerCounters.containsKey(field)) {
+					anonymousHandlerCounters.put(field, new AtomicLong());
 				}
-				AtomicLong count = anonymousCounters.get(field);
+				AtomicLong count = anonymousHandlerCounters.get(field);
 				long total = count.incrementAndGet();
 				String suffix = "";
 				/*
@@ -541,6 +582,88 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (name == null) {
 			name = monitor.getMessageHandler().toString();
+			source = "handler";
+		}
+
+		monitor.setSource(source);
+		monitor.setName(name);
+
+		return result;
+
+	}
+
+	private MessageSourceMonitor enhanceSourceMonitor(SimpleMessageSourceMonitor monitor) {
+
+		MessageSourceMonitor result = monitor;
+
+		if (monitor.getName() != null && monitor.getSource() != null) {
+			return monitor;
+		}
+
+		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
+		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+
+		String name = null;
+		String source = "endpoint";
+		Object endpoint = null;
+
+		for (String beanName : names) {
+			endpoint = beanFactory.getBean(beanName);
+			Object field = null;
+			try {
+				field = extractTarget(getField(endpoint, "source"));
+			}
+			catch (Exception e) {
+				logger.debug("Could not get source from bean = " + beanName);
+			}
+			if (field == monitor.getMessageSource()) {
+				name = beanName;
+				break;
+			}
+		}
+		if (name != null && endpoint != null && name.startsWith("_org.springframework.integration")) {
+			name = name.substring("_org.springframework.integration".length() + 1);
+			source = "internal";
+		}
+		if (name != null && endpoint != null && name.startsWith("org.springframework.integration")) {
+			Object target = endpoint;
+			if (endpoint instanceof Advised) {
+				TargetSource targetSource = ((Advised) endpoint).getTargetSource();
+				if (targetSource != null) {
+					try {
+						target = targetSource.getTarget();
+					}
+					catch (Exception e) {
+						logger.debug("Could not get handler from bean = " + name);
+					}
+				}
+			}
+			Object field = getField(target, "outputChannel");
+			if (field != null) {
+				if (!anonymousSourceCounters.containsKey(field)) {
+					anonymousSourceCounters.put(field, new AtomicLong());
+				}
+				AtomicLong count = anonymousSourceCounters.get(field);
+				long total = count.incrementAndGet();
+				String suffix = "";
+				/*
+				 * Short hack to makes sure object names are unique if more than one endpoint has the same input channel
+				 */
+				if (total > 1) {
+					suffix = "#" + total;
+				}
+				name = field + suffix;
+				source = "anonymous";
+			}
+		}
+
+		if (endpoint instanceof Lifecycle) {
+			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
+			result = new LifecycleMessageSourceMonitor((Lifecycle) endpoint, monitor);
+		}
+
+		if (name == null) {
+			name = monitor.getMessageSource().toString();
 			source = "handler";
 		}
 
