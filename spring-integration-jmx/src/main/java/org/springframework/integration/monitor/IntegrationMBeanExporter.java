@@ -167,8 +167,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			else {
 				monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
 			}
+			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
-			return monitor;
+			return advised;
 		}
 		if (bean instanceof MessageChannel) {
 			DirectChannelMonitor monitor;
@@ -402,6 +403,12 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		channelsAdvice.addMethodName("send");
 		channelsAdvice.addMethodName("receive");
 		return applyAdvice(bean, channelsAdvice, beanClassLoader);
+	}
+
+	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMonitor interceptor, ClassLoader beanClassLoader) {
+		NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
+		handlerAdvice.addMethodName("handleMessage");
+		return applyAdvice(bean, handlerAdvice, beanClassLoader);
 	}
 
 	private Object extractTarget(Object bean) {

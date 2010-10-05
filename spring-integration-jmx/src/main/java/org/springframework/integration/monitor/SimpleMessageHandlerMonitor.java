@@ -17,6 +17,8 @@ package org.springframework.integration.monitor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
@@ -36,7 +38,7 @@ import org.springframework.util.StopWatch;
  *
  */
 @ManagedResource
-public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandlerMonitor {
+public class SimpleMessageHandlerMonitor implements MethodInterceptor, MessageHandlerMonitor {
 
 	private static final Log logger = LogFactory.getLog(SimpleMessageHandlerMonitor.class);
 
@@ -81,7 +83,17 @@ public class SimpleMessageHandlerMonitor implements MessageHandler, MessageHandl
 		return handler;
 	}
 
-	public void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		String method = invocation.getMethod().getName();
+		if ("handleMessage".equals(method)) {
+			Message<?> message = (Message<?>) invocation.getArguments()[0];
+			handleMessage(message);
+			return null;
+		}
+		return invocation.proceed();
+	}
+
+	private void handleMessage(Message<?> message) throws MessageRejectedException, MessageHandlingException,
 			MessageDeliveryException {
 		if (logger.isTraceEnabled()) {
 			logger.trace("messageHandler(" + handler + ") message(" + message + ") :");

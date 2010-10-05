@@ -1,21 +1,20 @@
 /*
  * Copyright 2002-2010 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
 package org.springframework.integration.config;
 
+import org.springframework.aop.TargetSource;
+import org.springframework.aop.framework.Advised;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
@@ -48,7 +47,6 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile Boolean ignoreSendFailures;
 
-
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
 	}
@@ -79,9 +77,49 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
 	MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName) {
+
 		Assert.notNull(targetObject, "target object must not be null");
-		AbstractMessageRouter router = this.createRouter(targetObject, targetMethodName);
-		return this.configureRouter(router);
+		AbstractMessageRouter router = extractRouter(targetObject);
+
+		if (router == null) {
+			router = this.createRouter(targetObject, targetMethodName);
+			this.configureRouter(router);
+			return router;
+		}
+
+		Assert.isTrue(!StringUtils.hasText(targetMethodName), "target method should not be provided when the target "
+				+ "object is an implementation of AbstractMessageRouter");
+		this.configureRouter(router);
+
+		if (targetObject instanceof MessageHandler) {
+			return (MessageHandler) targetObject;
+		}
+		return router;
+
+	}
+
+	private AbstractMessageRouter extractRouter(Object targetObject) {
+		if (targetObject instanceof AbstractMessageRouter) {
+			return (AbstractMessageRouter) targetObject;
+		}
+		if (targetObject instanceof Advised) {
+			return extractAopTarget((Advised) targetObject);
+		}
+		return null;
+	}
+
+	private AbstractMessageRouter extractAopTarget(Advised advised) {
+		TargetSource targetSource = advised.getTargetSource();
+		if (targetSource == null) {
+			return null;
+		}
+		Object target;
+		try {
+			target = targetSource.getTarget();
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+		return extractRouter(target);
 	}
 
 	@Override
@@ -90,21 +128,13 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	private AbstractMessageRouter createRouter(Object targetObject, String targetMethodName) {
-		if (targetObject instanceof AbstractMessageRouter) {
-			Assert.isTrue(!StringUtils.hasText(targetMethodName),
-					"target method should not be provided when the target " +
-					"object is an implementation of AbstractMessageRouter");
-			return (AbstractMessageRouter) targetObject;
-		}
-		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName))
-				? new MethodInvokingRouter(targetObject, targetMethodName)
-				: new MethodInvokingRouter(targetObject);
+		MethodInvokingRouter router = (StringUtils.hasText(targetMethodName)) ? new MethodInvokingRouter(targetObject,
+				targetMethodName) : new MethodInvokingRouter(targetObject);
 		return router;
 	}
 
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
-		if (this.channelResolver != null &&
-				router instanceof AbstractChannelNameResolvingMessageRouter) {
+		if (this.channelResolver != null && router instanceof AbstractChannelNameResolvingMessageRouter) {
 			((AbstractChannelNameResolvingMessageRouter) router).setChannelResolver(this.channelResolver);
 		}
 		if (this.defaultOutputChannel != null) {
@@ -114,10 +144,11 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 			router.setTimeout(timeout.longValue());
 		}
 		if (this.ignoreChannelNameResolutionFailures != null) {
-			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter, 
+			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter,
 					"The 'ignoreChannelNameResolutionFailures' property can only be set on routers that extend "
-					+ AbstractChannelNameResolvingMessageRouter.class.getName());
-			((AbstractChannelNameResolvingMessageRouter) router).setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
+							+ AbstractChannelNameResolvingMessageRouter.class.getName());
+			((AbstractChannelNameResolvingMessageRouter) router)
+					.setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
 		}
 		if (this.applySequence != null) {
 			router.setApplySequence(this.applySequence);

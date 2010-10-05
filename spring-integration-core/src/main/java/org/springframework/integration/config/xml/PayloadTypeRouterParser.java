@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.BeanMetadataElement;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -39,14 +40,13 @@ import org.springframework.util.xml.DomUtils;
 public class PayloadTypeRouterParser extends AbstractRouterParser {
 
 	@Override
-	@SuppressWarnings("unchecked")
 	protected BeanDefinition parseRouter(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder payloadTypeRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
 		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
 		Assert.notEmpty(childElements,
 				"Type mapping must be provided (e.g., <mapping type=\"X\" channel=\"channel1\"/>)");
-		ManagedMap channelMap = new ManagedMap();
+		ManagedMap<String, BeanMetadataElement> channelMap = new ManagedMap<String, BeanMetadataElement>();
 		for (Element childElement : childElements) {
 			String typeName = childElement.getAttribute("type");
 			ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
