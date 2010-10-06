@@ -23,8 +23,6 @@ import javax.management.ObjectName;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -37,16 +35,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class PollingAdapterMBeanTests {
 
 	@Autowired
-	private ApplicationContext context;
-
+	private MBeanServer server;
+	
 	@Test
-	public void testMBeanExporterExists() throws Exception {
-		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
-		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
-		assertEquals(server, exporter.getServer());
+	public void testMessageSourceMBeanExists() throws Exception {
+		// System.err.println(server.queryNames(new ObjectName("*:type=MessageSource,*"), null));
 		Set<ObjectName> names = server.queryNames(new ObjectName("spring.application:type=MessageSource,*"), null);
 		assertEquals(1, names.size());
-		exporter.destroy();
 	}
 
 	public static class Source {

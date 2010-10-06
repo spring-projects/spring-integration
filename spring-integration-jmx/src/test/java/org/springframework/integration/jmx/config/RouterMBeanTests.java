@@ -15,13 +15,14 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Set;
+
 import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.integration.monitor.IntegrationMBeanExporter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -34,14 +35,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class RouterMBeanTests {
 
 	@Autowired
-	private ApplicationContext context;
+	private MBeanServer server;
+	
+	@Test
+	public void testRouterMBeanExists() throws Exception {
+		Set<ObjectName> names = server.queryNames(new ObjectName("*:type=MessageHandler,name=ptRouter,*"), null);
+		assertEquals(1, names.size());
+	}
 
 	@Test
-	public void testMBeanExporterExists() throws InterruptedException {
-		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
-		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
-		assertEquals(server, exporter.getServer());
-		exporter.destroy();
+	public void testRouterMBeanOnlyRegisteredOnce() throws Exception {
+		// System.err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
+		// The errorLogger and the router
+		assertEquals(2, server.queryNames(new ObjectName("*:type=MessageHandler,*"), null).size());
 	}
 
 }

@@ -21,8 +21,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -165,13 +167,24 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+
+		if (bean instanceof Advised) {
+			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
+				Advice advice = advisor.getAdvice();
+				if (advice instanceof MessageHandlerMonitor || advice instanceof MessageSourceMonitor
+						|| advice instanceof MessageChannelMonitor) {
+					// Already advised - so probably a factory bean product
+					return bean;
+				}
+			}
+		}
+
 		if (bean instanceof MessageHandler) {
 			SimpleMessageHandlerMonitor monitor = null;
-			if (bean instanceof MessageProducer) { // we need to maintain semantics of the handler also being a producer
-													// see INT-1431
+			if (bean instanceof MessageProducer) {
+				// We need to maintain semantics of the handler also being a producer
 				monitor = new SimpleMessageProducingHandlerMonitor((MessageHandler) bean);
-			}
-			else {
+			} else {
 				monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
 			}
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
@@ -183,25 +196,26 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			sources.add(monitor);
 			return advised;
 		}
+
 		if (bean instanceof MessageChannel) {
 			DirectChannelMonitor monitor;
 			if (bean instanceof PollableChannel) {
 				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
 					monitor = new QueueChannelMonitor((QueueChannel) target, beanName);
-				}
-				else {
+				} else {
 					monitor = new PollableChannelMonitor(beanName);
 				}
-			}
-			else {
+			} else {
 				monitor = new DirectChannelMonitor(beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
 			return advised;
 		}
+
 		return bean;
+
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -225,8 +239,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.lifecycleLock.lock();
 		try {
 			return this.running;
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -241,8 +254,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("started " + this);
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -257,8 +269,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("stopped " + this);
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -268,8 +279,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		try {
 			this.stop();
 			callback.run();
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -434,13 +444,15 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return applyAdvice(bean, channelsAdvice, beanClassLoader);
 	}
 
-	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMonitor interceptor, ClassLoader beanClassLoader) {
+	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMonitor interceptor,
+			ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		handlerAdvice.addMethodName("handleMessage");
 		return applyAdvice(bean, handlerAdvice, beanClassLoader);
 	}
 
-	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMonitor interceptor, ClassLoader beanClassLoader) {
+	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMonitor interceptor,
+			ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		sourceAdvice.addMethodName("receive");
 		return applyAdvice(bean, sourceAdvice, beanClassLoader);
@@ -456,8 +468,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("Could not extract target", e);
 			return null;
 		}
@@ -469,8 +480,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (bean instanceof Advised) {
 				((Advised) bean).addAdvisor(advisor);
 				return bean;
-			}
-			else {
+			} else {
 				ProxyFactory proxyFactory = new ProxyFactory(bean);
 				proxyFactory.addAdvisor(advisor);
 				return proxyFactory.getProxy(beanClassLoader);
@@ -530,9 +540,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "handler"));
-			}
-			catch (Exception e) {
-				logger.debug("Could not get handler from bean = " + beanName);
+			} catch (Exception e) {
+				logger.trace("Could not get handler from bean = " + beanName);
 			}
 			if (field == monitor.getMessageHandler()) {
 				name = beanName;
@@ -550,8 +559,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					}
-					catch (Exception e) {
+					} catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
@@ -612,9 +620,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			Object field = null;
 			try {
 				field = extractTarget(getField(endpoint, "source"));
-			}
-			catch (Exception e) {
-				logger.debug("Could not get source from bean = " + beanName);
+			} catch (Exception e) {
+				logger.trace("Could not get source from bean = " + beanName);
 			}
 			if (field == monitor.getMessageSource()) {
 				name = beanName;
@@ -632,8 +639,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					}
-					catch (Exception e) {
+					} catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
