@@ -92,7 +92,8 @@ public class ExponentialMovingAverageRatio {
 	public double getMean() {
 		int count = cumulative.getCount();
 		if (count == 0) {
-			return 0;
+			// Optimistic to start: success rate is 100%
+			return 1;
 		}
 		long t = System.currentTimeMillis();
 		double alpha = Math.exp((t0 - t) * lapse);

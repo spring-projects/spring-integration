@@ -45,14 +45,14 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetEarlyMean() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.success();
 		assertEquals(1, history.getMean(), 0.01);
 	}
 
 	@Test
 	public void testGetEarlyFailure() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.failure();
 		assertEquals(0, history.getMean(), 0.01);
 	}
@@ -66,7 +66,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetMean() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.success();
 		assertEquals(1, history.getMean(), 0.01);
 		history.success();
@@ -77,7 +77,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetMeanFailuresHighRate() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.success();
 		assertEquals(average(1), history.getMean(), 0.01);
 		history.failure();
@@ -88,7 +88,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetMeanFailuresLowRate() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.failure();
 		assertEquals(average(0), history.getMean(), 0.01);
 		history.failure();
