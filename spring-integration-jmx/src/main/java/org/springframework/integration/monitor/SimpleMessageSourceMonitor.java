@@ -65,10 +65,11 @@ public class SimpleMessageSourceMonitor implements MethodInterceptor, MessageSou
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		String method = invocation.getMethod().getName();
-		if ("receive".equals(method)) {
+		Object result = invocation.proceed();
+		if ("receive".equals(method) && result!=null) {
 			messageCount.incrementAndGet();
 		}
-		return invocation.proceed();
+		return result;
 	}
 
 	@Override
