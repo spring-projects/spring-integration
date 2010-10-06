@@ -14,7 +14,7 @@
 
 	<context:mbean-server id="mbs" />
 	
-	<context:mbean-export server="mbs"/>
+	<context:mbean-export server="mbs" default-domain="spring.application"/>
 
 	<int:channel id="testChannel" />
 	
@@ -25,6 +25,6 @@
 	
 	<int:logging-channel-adapter channel="testChannel"/>
 	
-	<jmx:mbean-export server="mbs"/>
+	<jmx:mbean-export id="integrationMbeanExporter" server="mbs"/>
 
 </beans>

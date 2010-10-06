@@ -15,7 +15,10 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Set;
+
 import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,10 +40,12 @@ public class PollingAdapterMBeanTests {
 	private ApplicationContext context;
 
 	@Test
-	public void testMBeanExporterExists() throws InterruptedException {
+	public void testMBeanExporterExists() throws Exception {
 		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
 		assertEquals(server, exporter.getServer());
+		Set<ObjectName> names = server.queryNames(new ObjectName("spring.application:type=MessageSource,*"), null);
+		assertEquals(1, names.size());
 		exporter.destroy();
 	}
 
