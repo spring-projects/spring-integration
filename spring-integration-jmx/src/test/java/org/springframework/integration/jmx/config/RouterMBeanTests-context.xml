@@ -25,6 +25,6 @@
 	</int:payload-type-router>
 
 	<jmx:mbean-export id="mbeanExporter" server="mbs"
-		domain="tests.RouterMBean" />
+		default-domain="test.RouterMBean" />
 
 </beans>

@@ -156,7 +156,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * 
 	 * @param domain the domain name to set
 	 */
-	public void setDomain(String domain) {
+	public void setDefaultDomain(String domain) {
 		this.domain = domain;
 	}
 

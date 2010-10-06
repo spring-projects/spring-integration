@@ -17,6 +17,6 @@
 
 	<si:channel id="testChannel"/>
 
-	<jmx:mbean-export id="mbeanExporter" server="mbs" domain="tests.MBeanExpoerterParser"/>
+	<jmx:mbean-export id="mbeanExporter" server="mbs" default-domain="tests.MBeanExpoerterParser"/>
 
 </beans>

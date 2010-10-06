@@ -39,7 +39,7 @@ public class RouterMBeanTests {
 	
 	@Test
 	public void testRouterMBeanExists() throws Exception {
-		Set<ObjectName> names = server.queryNames(new ObjectName("*:type=MessageHandler,name=ptRouter,*"), null);
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,name=ptRouter,*"), null);
 		assertEquals(1, names.size());
 	}
 
@@ -47,7 +47,7 @@ public class RouterMBeanTests {
 	public void testRouterMBeanOnlyRegisteredOnce() throws Exception {
 		// System.err.println(server.queryNames(new ObjectName("*:type=MessageHandler,*"), null));
 		// The errorLogger and the router
-		assertEquals(2, server.queryNames(new ObjectName("*:type=MessageHandler,*"), null).size());
+		assertEquals(2, server.queryNames(new ObjectName("test.RouterMBean:type=MessageHandler,*"), null).size());
 	}
 
 }

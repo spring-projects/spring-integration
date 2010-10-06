@@ -19,6 +19,6 @@
 
 	<jmx:control-bus mbean-exporter="mbeanExporter" operation-channel="testChannel"/>
 
-	<jmx:mbean-export id="mbeanExporter" server="mbs" domain="tests.ControlBusParser"/>
+	<jmx:mbean-export id="mbeanExporter" server="mbs" default-domain="tests.ControlBusParser"/>
 
 </beans>

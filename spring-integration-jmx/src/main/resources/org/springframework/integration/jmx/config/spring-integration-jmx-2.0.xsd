@@ -105,7 +105,7 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="mbeanServerIdentifyerType">
-					<xsd:attribute name="domain" use="optional">
+					<xsd:attribute name="default-domain" use="optional">
 						<xsd:annotation>
 							<xsd:documentation>
 								The domain name for the MBeans exported by this Exporter.

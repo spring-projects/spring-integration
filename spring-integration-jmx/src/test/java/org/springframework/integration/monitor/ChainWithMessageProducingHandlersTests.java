@@ -24,7 +24,7 @@ public class ChainWithMessageProducingHandlersTests {
 	private ApplicationContext applicationContext;
 	
 	@Test
-	public void testSuccessfullApplicationContext(){
+	public void testSuccessfulApplicationContext(){
 		// this is all we need to do. Until INT-1431 was solved initialization of this AC would fail.
 		assertNotNull(applicationContext);
 	}

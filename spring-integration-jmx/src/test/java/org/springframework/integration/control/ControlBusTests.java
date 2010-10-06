@@ -188,7 +188,7 @@ public class ControlBusTests {
 	private BeanDefinition registerControlBus(GenericApplicationContext context, String domain) {
 		BeanDefinition exporterDef = new RootBeanDefinition(IntegrationMBeanExporter.class);
 		exporterDef.getPropertyValues().addPropertyValue("server", new RuntimeBeanReference("mbeanServer"));
-		exporterDef.getPropertyValues().addPropertyValue("domain", domain);
+		exporterDef.getPropertyValues().addPropertyValue("defaultDomain", domain);
 		context.registerBeanDefinition("exporter", exporterDef);
 		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
 		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));
