@@ -46,7 +46,6 @@ public class PollingAdapterMBeanTests {
 
 	public static class Source {
 		public String get() {
-			System.err.println("*** " + System.currentTimeMillis());
 			return "foo";
 		}
 	}

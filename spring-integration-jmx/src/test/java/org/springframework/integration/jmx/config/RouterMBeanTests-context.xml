@@ -17,14 +17,14 @@
 	<int:channel id="testChannel" />
 	<int:channel id="intChannel" />
 	<int:channel id="stringChannel" />
-	
+
 	<int:payload-type-router id="ptRouter"
 		input-channel="testChannel">
 		<int:mapping type="java.lang.String" channel="stringChannel" />
 		<int:mapping type="java.lang.Integer" channel="intChannel" />
 	</int:payload-type-router>
 
-	<jmx:mbean-exporter id="mbeanExporter" mbean-server="mbs"
+	<jmx:mbean-export id="mbeanExporter" server="mbs"
 		domain="tests.MBeanExpoerterParser" />
 
 </beans>

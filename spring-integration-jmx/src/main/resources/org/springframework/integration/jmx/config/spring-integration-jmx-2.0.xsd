@@ -96,7 +96,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="mbean-exporter">
+	<xsd:element name="mbean-export">
 		<xsd:annotation>
 			<xsd:documentation>
 				Exports Message Channels and Endpoints as MBeans.
@@ -186,7 +186,7 @@
 
 	<xsd:complexType name="mbeanServerIdentifyerType">
 		<xsd:attribute name="id" type="xsd:ID" use="optional" />
-		<xsd:attribute name="mbean-server" type="xsd:string" default="mbeanServer">
+		<xsd:attribute name="server" type="xsd:string" default="mbeanServer">
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines the name of the MBeanServer bean to connect to.

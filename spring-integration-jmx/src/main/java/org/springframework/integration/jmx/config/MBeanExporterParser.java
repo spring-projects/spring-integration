@@ -51,7 +51,7 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	private Object getMBeanServer(Element element, ParserContext parserContext) {
-		String mbeanServer = element.getAttribute("mbean-server");
+		String mbeanServer = element.getAttribute("server");
 		if (StringUtils.hasText(mbeanServer)) {
 			return new RuntimeBeanReference(mbeanServer);
 		}

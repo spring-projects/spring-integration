@@ -13,14 +13,18 @@
 			http://www.springframework.org/schema/integration/jmx/spring-integration-jmx.xsd">
 
 	<context:mbean-server id="mbs" />
+	
+	<context:mbean-export server="mbs"/>
 
 	<int:channel id="testChannel" />
 	
 	<int:inbound-channel-adapter channel="testChannel" method="get">
 		<bean class="org.springframework.integration.jmx.config.PollingAdapterMBeanTests$Source"/>
-		<int:poller fixed-rate="5000"/>
+		<int:poller fixed-rate="5000" max-messages-per-poll="1"/>
 	</int:inbound-channel-adapter>
 	
 	<int:logging-channel-adapter channel="testChannel"/>
+	
+	<jmx:mbean-export server="mbs"/>
 
 </beans>
