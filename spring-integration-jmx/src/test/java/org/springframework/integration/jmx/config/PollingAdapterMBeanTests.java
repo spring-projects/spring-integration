@@ -40,7 +40,7 @@ public class PollingAdapterMBeanTests {
 	@Test
 	public void testMessageSourceMBeanExists() throws Exception {
 		// System.err.println(server.queryNames(new ObjectName("*:type=MessageSource,*"), null));
-		Set<ObjectName> names = server.queryNames(new ObjectName("spring.application:type=MessageSource,*"), null);
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.PollingAdapterMBean:type=MessageSource,*"), null);
 		assertEquals(1, names.size());
 	}
 

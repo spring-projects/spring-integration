@@ -89,7 +89,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
-	public static final String DEFAULT_DOMAIN = "spring.application";
+	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
 	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
 
