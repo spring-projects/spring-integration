@@ -285,6 +285,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	protected void doStop() {
+		unregisterBeans();
+		channelsByName.clear();
+		handlersByName.clear();
+		sourcesByName.clear();
 	}
 
 	protected void doStart() {
