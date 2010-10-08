@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.expression.Expression;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.event.ApplicationEventInboundChannelAdapter;
@@ -62,9 +63,9 @@ public class EventInboundChannelAdapterParserTests {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
 		Assert.assertEquals(context.getBean("input"), adapterAccessor.getPropertyValue("outputChannel"));
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	@Test
+	@SuppressWarnings("unchecked")
 	public void validateEventParserWithEventTypes() {
 		Object adapter = context.getBean("eventAdapterFiltered");
 		Assert.assertNotNull(adapter);
@@ -77,9 +78,9 @@ public class EventInboundChannelAdapterParserTests {
 		assertTrue(eventTypes.contains(SampleEvent.class));
 		assertTrue(eventTypes.contains(AnotherSampleEvent.class));
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	@Test
+	@SuppressWarnings("unchecked")
 	public void validateEventParserWithEventTypesAndPlaceholder() {
 		Object adapter = context.getBean("eventAdapterFilteredPlaceHolder");
 		Assert.assertNotNull(adapter);
@@ -106,6 +107,16 @@ public class EventInboundChannelAdapterParserTests {
 		assertEquals("event:inbound-channel-adapter", componentHistoryRecord.get("type"));
 		assertNotNull(message);
 		assertEquals(SampleEvent.class, message.getPayload().getClass());
+	}
+
+	@Test
+	public void validatePayloadExpression() {
+		Object adapter = context.getBean("eventAdapterSpel");
+		Assert.assertNotNull(adapter);
+		Assert.assertTrue(adapter instanceof ApplicationEventInboundChannelAdapter);
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		Expression expression = (Expression) adapterAccessor.getPropertyValue("payloadExpression");
+		Assert.assertEquals("source + '-test'", expression.getExpressionString());
 	}
 
 

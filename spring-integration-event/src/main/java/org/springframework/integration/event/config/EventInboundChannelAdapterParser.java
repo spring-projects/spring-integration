@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.event.config;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -30,11 +31,11 @@ import org.w3c.dom.Element;
 public class EventInboundChannelAdapterParser extends AbstractChannelAdapterParser{
 
 	@Override
-	protected AbstractBeanDefinition doParse(Element element,
-			ParserContext parserContext, String channelName) {
+	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.rootBeanDefinition(ApplicationEventInboundChannelAdapter.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(adapterBuilder, element, "channel", "outputChannel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "event-types");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "payload-expression");
 		return adapterBuilder.getBeanDefinition();
 	}
 
