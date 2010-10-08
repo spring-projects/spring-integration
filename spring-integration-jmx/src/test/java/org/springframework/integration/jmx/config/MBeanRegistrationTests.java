@@ -46,7 +46,7 @@ public class MBeanRegistrationTests {
 	@Test
 	public void testExporterMBeanRegistration() throws Exception {
 		// System.err.println(server.queryNames(new ObjectName("*:type=*MBeanExporter,*"), null));
-		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=*MBeanExporter,name=integrationMbeanExporter,*"), null);
+		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
 		assertEquals(1, names.size());
 	}
 
