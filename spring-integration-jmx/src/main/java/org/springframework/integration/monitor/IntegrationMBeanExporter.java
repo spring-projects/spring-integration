@@ -99,17 +99,17 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<Object, AtomicLong>();
 
-	private Set<SimpleMessageHandlerMonitor> handlers = new HashSet<SimpleMessageHandlerMonitor>();
+	private Set<SimpleMessageHandlerMetrics> handlers = new HashSet<SimpleMessageHandlerMetrics>();
 
-	private Set<SimpleMessageSourceMonitor> sources = new HashSet<SimpleMessageSourceMonitor>();
+	private Set<SimpleMessageSourceMetrics> sources = new HashSet<SimpleMessageSourceMetrics>();
 
-	private Set<DirectChannelMonitor> channels = new HashSet<DirectChannelMonitor>();
+	private Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
 
-	private Map<String, DirectChannelMonitor> channelsByName = new HashMap<String, DirectChannelMonitor>();
+	private Map<String, DirectChannelMetrics> channelsByName = new HashMap<String, DirectChannelMetrics>();
 
-	private Map<String, MessageHandlerMonitor> handlersByName = new HashMap<String, MessageHandlerMonitor>();
+	private Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
 
-	private Map<String, MessageSourceMonitor> sourcesByName = new HashMap<String, MessageSourceMonitor>();
+	private Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
 
 	private Map<String, String> objectNamesByName = new HashMap<String, String>();
 
@@ -171,8 +171,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		if (bean instanceof Advised) {
 			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
 				Advice advice = advisor.getAdvice();
-				if (advice instanceof MessageHandlerMonitor || advice instanceof MessageSourceMonitor
-						|| advice instanceof MessageChannelMonitor) {
+				if (advice instanceof MessageHandlerMetrics || advice instanceof MessageSourceMetrics
+						|| advice instanceof MessageChannelMetrics) {
 					// Already advised - so probably a factory bean product
 					return bean;
 				}
@@ -180,34 +180,34 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 
 		if (bean instanceof MessageHandler) {
-			SimpleMessageHandlerMonitor monitor = null;
+			SimpleMessageHandlerMetrics monitor = null;
 			if (bean instanceof MessageProducer) {
 				// We need to maintain semantics of the handler also being a producer
-				monitor = new SimpleMessageProducingHandlerMonitor((MessageHandler) bean);
+				monitor = new SimpleMessageProducingHandlerMetrics((MessageHandler) bean);
 			} else {
-				monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
+				monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
 			}
 			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
 			handlers.add(monitor);
 			return advised;
 		} else if (bean instanceof MessageSource<?>) {
-			SimpleMessageSourceMonitor monitor = new SimpleMessageSourceMonitor((MessageSource<?>) bean);
+			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
 			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
 			sources.add(monitor);
 			return advised;
 		}
 
 		if (bean instanceof MessageChannel) {
-			DirectChannelMonitor monitor;
+			DirectChannelMetrics monitor;
 			if (bean instanceof PollableChannel) {
 				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
-					monitor = new QueueChannelMonitor((QueueChannel) target, beanName);
+					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
 				} else {
-					monitor = new PollableChannelMonitor(beanName);
+					monitor = new PollableChannelMetrics(beanName);
 				}
 			} else {
-				monitor = new DirectChannelMonitor(beanName);
+				monitor = new DirectChannelMetrics(beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
@@ -301,10 +301,10 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@Override
 	public void destroy() {
 		super.destroy();
-		for (MessageChannelMonitor monitor : channels) {
+		for (MessageChannelMetrics monitor : channels) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
-		for (MessageHandlerMonitor monitor : handlers) {
+		for (MessageHandlerMetrics monitor : handlers) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
 	}
@@ -327,7 +327,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
 	public int getActiveHandlerCount() {
 		int count = 0;
-		for (MessageHandlerMonitor monitor : handlers) {
+		for (MessageHandlerMetrics monitor : handlers) {
 			count += monitor.getActiveCount();
 		}
 		return count;
@@ -336,9 +336,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
 	public int getQueuedMessageCount() {
 		int count = 0;
-		for (MessageChannelMonitor monitor : channels) {
-			if (monitor instanceof QueueChannelMonitor) {
-				count += ((QueueChannelMonitor) monitor).getQueueSize();
+		for (MessageChannelMetrics monitor : channels) {
+			if (monitor instanceof QueueChannelMetrics) {
+				count += ((QueueChannelMetrics) monitor).getQueueSize();
 			}
 		}
 		return count;
@@ -369,8 +369,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public int getChannelReceiveCount(String name) {
 		if (channelsByName.containsKey(name)) {
-			if (channelsByName.get(name) instanceof PollableChannelMonitor) {
-				return ((PollableChannelMonitor) channelsByName.get(name)).getReceiveCount();
+			if (channelsByName.get(name) instanceof PollableChannelMetrics) {
+				return ((PollableChannelMetrics) channelsByName.get(name)).getReceiveCount();
 			}
 		}
 		logger.debug("No channel found for (" + name + ")");
@@ -394,7 +394,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerChannels() {
-		for (DirectChannelMonitor monitor : channels) {
+		for (DirectChannelMetrics monitor : channels) {
 			String name = monitor.getName();
 			// Only register once...
 			if (!channelsByName.containsKey(name)) {
@@ -410,8 +410,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerHandlers() {
-		for (SimpleMessageHandlerMonitor source : handlers) {
-			MessageHandlerMonitor monitor = enhanceHandlerMonitor(source);
+		for (SimpleMessageHandlerMetrics source : handlers) {
+			MessageHandlerMetrics monitor = enhanceHandlerMonitor(source);
 			String name = monitor.getName();
 			// Only register once...
 			if (!handlersByName.containsKey(name)) {
@@ -426,8 +426,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerSources() {
-		for (SimpleMessageSourceMonitor source : sources) {
-			MessageSourceMonitor monitor = enhanceSourceMonitor(source);
+		for (SimpleMessageSourceMetrics source : sources) {
+			MessageSourceMetrics monitor = enhanceSourceMonitor(source);
 			String name = monitor.getName();
 			// Only register once...
 			if (!sourcesByName.containsKey(name)) {
@@ -441,21 +441,21 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
-	private Object applyChannelInterceptor(Object bean, DirectChannelMonitor interceptor, ClassLoader beanClassLoader) {
+	private Object applyChannelInterceptor(Object bean, DirectChannelMetrics interceptor, ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor channelsAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		channelsAdvice.addMethodName("send");
 		channelsAdvice.addMethodName("receive");
 		return applyAdvice(bean, channelsAdvice, beanClassLoader);
 	}
 
-	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMonitor interceptor,
+	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMetrics interceptor,
 			ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		handlerAdvice.addMethodName("handleMessage");
 		return applyAdvice(bean, handlerAdvice, beanClassLoader);
 	}
 
-	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMonitor interceptor,
+	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMetrics interceptor,
 			ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		sourceAdvice.addMethodName("receive");
@@ -501,13 +501,13 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return String.format(domain + ":type=MessageChannel,name=%s" + getStaticNames(), name);
 	}
 
-	private String getHandlerBeanKey(MessageHandlerMonitor handler) {
+	private String getHandlerBeanKey(MessageHandlerMetrics handler) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(), handler.getName(),
 				handler.getSource());
 	}
 
-	private String getSourceBeanKey(MessageSourceMonitor handler) {
+	private String getSourceBeanKey(MessageSourceMetrics handler) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(), handler.getName(),
 				handler.getSource());
@@ -524,9 +524,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return builder.toString();
 	}
 
-	private MessageHandlerMonitor enhanceHandlerMonitor(SimpleMessageHandlerMonitor monitor) {
+	private MessageHandlerMetrics enhanceHandlerMonitor(SimpleMessageHandlerMetrics monitor) {
 
-		MessageHandlerMonitor result = monitor;
+		MessageHandlerMetrics result = monitor;
 
 		if (monitor.getName() != null && monitor.getSource() != null) {
 			return monitor;
@@ -589,7 +589,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
-			result = new LifecycleMessageHandlerMonitor((Lifecycle) endpoint, monitor);
+			result = new LifecycleMessageHandlerMetrics((Lifecycle) endpoint, monitor);
 		}
 
 		if (name == null) {
@@ -604,9 +604,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	}
 
-	private MessageSourceMonitor enhanceSourceMonitor(SimpleMessageSourceMonitor monitor) {
+	private MessageSourceMetrics enhanceSourceMonitor(SimpleMessageSourceMetrics monitor) {
 
-		MessageSourceMonitor result = monitor;
+		MessageSourceMetrics result = monitor;
 
 		if (monitor.getName() != null && monitor.getSource() != null) {
 			return monitor;
@@ -669,7 +669,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
-			result = new LifecycleMessageSourceMonitor((Lifecycle) endpoint, monitor);
+			result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
 		}
 
 		if (name == null) {

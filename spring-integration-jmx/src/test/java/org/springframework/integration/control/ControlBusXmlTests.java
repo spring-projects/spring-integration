@@ -26,9 +26,9 @@ import javax.management.ObjectInstance;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.monitor.LifecycleMessageHandlerMonitor;
-import org.springframework.integration.monitor.QueueChannelMonitor;
-import org.springframework.integration.monitor.DirectChannelMonitor;
+import org.springframework.integration.monitor.LifecycleMessageHandlerMetrics;
+import org.springframework.integration.monitor.QueueChannelMetrics;
+import org.springframework.integration.monitor.DirectChannelMetrics;
 import org.springframework.jmx.support.ObjectNameManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,21 +51,21 @@ public class ControlBusXmlTests {
 	public void directChannelRegistered() throws Exception {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageChannel,name=testDirectChannel"));
-		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
 	public void queueChannelRegistered() throws Exception {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageChannel,name=testQueueChannel"));
-		assertEquals(QueueChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(QueueChannelMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
 	public void eventDrivenConsumerRegistered() throws Exception {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageHandler,name=testEventDrivenBridge,bean=endpoint"));
-		assertEquals(LifecycleMessageHandlerMonitor.class.getName(), instance.getClassName());
+		assertEquals(LifecycleMessageHandlerMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -73,14 +73,14 @@ public class ControlBusXmlTests {
 		Set<ObjectInstance> instances = mbeanServer.queryMBeans(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageHandler,bean=anonymous,*"), null);
 		assertEquals(1, instances.size());
-		assertEquals(LifecycleMessageHandlerMonitor.class.getName(), instances.iterator().next().getClassName());
+		assertEquals(LifecycleMessageHandlerMetrics.class.getName(), instances.iterator().next().getClassName());
 	}
 
 	@Test
 	public void pollingConsumerRegistered() throws Exception {
 		ObjectInstance instance = mbeanServer.getObjectInstance(
 				ObjectNameManager.getInstance(DOMAIN + ":type=MessageHandler,name=testPollingBridge,bean=endpoint"));
-		assertEquals(LifecycleMessageHandlerMonitor.class.getName(), instance.getClassName());
+		assertEquals(LifecycleMessageHandlerMetrics.class.getName(), instance.getClassName());
 	}
 
 }
