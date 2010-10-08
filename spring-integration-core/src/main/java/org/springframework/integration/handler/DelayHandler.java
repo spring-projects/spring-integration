@@ -31,6 +31,7 @@ import org.springframework.integration.MessageHeaders;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.core.MessageHandler;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.store.MessageStore;
@@ -70,7 +71,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class DelayHandler extends IntegrationObjectSupport implements MessageHandler, Ordered, DisposableBean {
+public class DelayHandler extends IntegrationObjectSupport implements MessageHandler, MessageProducer, Ordered, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
