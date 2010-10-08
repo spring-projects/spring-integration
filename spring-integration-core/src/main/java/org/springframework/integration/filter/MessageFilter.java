@@ -107,7 +107,7 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 			this.getMessagingTemplate().send(this.discardChannel, message);
 		}
 		if (this.throwExceptionOnRejection) {
-			throw new MessageRejectedException(message);
+			throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName() + "' rejected Message");
 		}
 		return null;
 	}
