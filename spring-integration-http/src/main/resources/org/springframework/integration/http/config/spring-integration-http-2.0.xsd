@@ -245,9 +245,24 @@
 			</xsd:attribute>
 			<xsd:attribute name="request-factory" type="xsd:string">
 				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
+					]]></xsd:documentation>
 					<xsd:appinfo>
 						<tool:annotation kind="ref">
 							<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
+						</tool:annotation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:attribute>
+			<xsd:attribute name="error-handler" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
+					]]></xsd:documentation>
+					<xsd:appinfo>
+						<tool:annotation kind="ref">
+							<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
 						</tool:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -347,9 +362,24 @@
 					<xsd:attribute name="charset" type="xsd:string" />
 					<xsd:attribute name="request-factory" type="xsd:string">
 						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Reference to a ClientHttpRequestFactory to be used by the underlying RestTemplate.
+							]]></xsd:documentation>
 							<xsd:appinfo>
 								<tool:annotation kind="ref">
 									<tool:expected-type type="org.springframework.http.client.ClientHttpRequestFactory" />
+								</tool:annotation>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:attribute>
+					<xsd:attribute name="error-handler" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation><![CDATA[
+	Reference to a ResponseErrorHandler to be used by the underlying RestTemplate.
+							]]></xsd:documentation>
+							<xsd:appinfo>
+								<tool:annotation kind="ref">
+									<tool:expected-type type="org.springframework.web.client.ResponseErrorHandler" />
 								</tool:annotation>
 							</xsd:appinfo>
 						</xsd:annotation>
