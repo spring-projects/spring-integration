@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageSelector;
@@ -67,7 +68,7 @@ public class FilterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.createFilter(new ExpressionEvaluatingSelector(expression));
 	}
 

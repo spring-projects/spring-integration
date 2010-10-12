@@ -16,6 +16,7 @@
 
 package org.springframework.integration.transformer;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
 /**
@@ -28,7 +29,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingTransformer extends AbstractMessageProcessingTransformer {
 
-	public ExpressionEvaluatingTransformer(String expression) {
+	public ExpressionEvaluatingTransformer(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Object>(expression));
 	}
 

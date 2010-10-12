@@ -22,6 +22,10 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.AbstractMessageHandler;
@@ -38,13 +42,16 @@ import org.springframework.util.StringUtils;
  */
 abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageHandler>, BeanFactoryAware {
 
+	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
+
 	private volatile MessageHandler handler;
 
 	private volatile Object targetObject;
 
 	private volatile String targetMethodName;
 
-	private volatile String expression;
+	private volatile Expression expression;
 
 	private volatile MessageChannel outputChannel;
 
@@ -65,7 +72,11 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 		this.targetMethodName = targetMethodName;
 	}
 
-	public void setExpression(String expression) {
+	public void setExpressionString(String expressionString) {
+		this.expression = expressionParser.parseExpression(expressionString);
+	}
+
+	public void setExpression(Expression expression) {
 		this.expression = expression;
 	}
 
@@ -158,7 +169,7 @@ abstract class AbstractMessageHandlerFactoryBean implements FactoryBean<MessageH
 	 */
 	abstract MessageHandler createMethodInvokingHandler(Object targetObject, String targetMethodName);
 
-	MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support expressions.");
 	}
 

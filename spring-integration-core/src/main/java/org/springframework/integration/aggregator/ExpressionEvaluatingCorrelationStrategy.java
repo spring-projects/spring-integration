@@ -16,8 +16,13 @@
 
 package org.springframework.integration.aggregator;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
+import org.springframework.util.Assert;
 
 /**
  * {@link CorrelationStrategy} implementation that evaluates an expression.
@@ -26,11 +31,22 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingCorrelationStrategy implements CorrelationStrategy {
 
+	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
+
 	private final ExpressionEvaluatingMessageProcessor<Object> processor;
 
-	public ExpressionEvaluatingCorrelationStrategy(String expression) {
+
+	public ExpressionEvaluatingCorrelationStrategy(String expressionString) {
+		Assert.hasText(expressionString, "expressionString must not be empty");
+		Expression expression = expressionParser.parseExpression(expressionString);
 		this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
 	}
+
+	public ExpressionEvaluatingCorrelationStrategy(Expression expression) {
+		this.processor = new ExpressionEvaluatingMessageProcessor<Object>(expression, Object.class);
+	}
+
 
 	public Object getCorrelationKey(Message<?> message) {
 		return processor.processMessage(message);

@@ -15,6 +15,7 @@ package org.springframework.integration.config;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
+import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
@@ -123,7 +124,7 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureRouter(new ExpressionEvaluatingRouter(expression));
 	}
 

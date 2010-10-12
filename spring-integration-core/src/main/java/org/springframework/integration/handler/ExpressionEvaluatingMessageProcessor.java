@@ -18,10 +18,7 @@ package org.springframework.integration.handler;
 
 import org.springframework.context.expression.MapAccessor;
 import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
-import org.springframework.expression.spel.SpelParserConfiguration;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.util.Assert;
 
@@ -34,25 +31,27 @@ import org.springframework.util.Assert;
  */
 public class ExpressionEvaluatingMessageProcessor<T> extends AbstractMessageProcessor<T> {
 
-	private final ExpressionParser parser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
-
 	private final Expression expression;
 
 	private final Class<T> expectedType;
 
 
-	public ExpressionEvaluatingMessageProcessor(String expression) {
+	/**
+	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression.
+	 */
+	public ExpressionEvaluatingMessageProcessor(Expression expression) {
 		this(expression, null);
 	}
 
 
 	/**
-	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression String.
+	 * Create an {@link ExpressionEvaluatingMessageProcessor} for the given expression
+	 * and expected type for its evaluation result.
 	 */
-	public ExpressionEvaluatingMessageProcessor(String expression, Class<T> expectedType) {
-		Assert.hasLength(expression, "The expression must be non empty");
+	public ExpressionEvaluatingMessageProcessor(Expression expression, Class<T> expectedType) {
+		Assert.notNull(expression, "The expression must not be null");
 		try {
-			this.expression = parser.parseExpression(expression);
+			this.expression = expression;
 			this.getEvaluationContext().addPropertyAccessor(new MapAccessor());
 			this.expectedType = expectedType;
 		}

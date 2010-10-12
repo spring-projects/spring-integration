@@ -68,15 +68,15 @@ public class DynamicExpression implements Expression {
 	}
 
 	public Object getValue(EvaluationContext context, Object rootObject) throws EvaluationException {
-		return this.getValue(context, rootObject);
+		return this.resolveExpression().getValue(context, rootObject);
 	}
 
 	public <T> T getValue(EvaluationContext context, Class<T> desiredResultType) throws EvaluationException {
-		return this.getValue(context, desiredResultType);
+		return this.resolveExpression().getValue(context, desiredResultType);
 	}
 
 	public <T> T getValue(EvaluationContext context, Object rootObject, Class<T> desiredResultType) throws EvaluationException {
-		return this.getValue(context, rootObject, desiredResultType);
+		return this.resolveExpression().getValue(context, rootObject, desiredResultType);
 	}
 
 	public Class<?> getValueType() throws EvaluationException {
@@ -120,7 +120,7 @@ public class DynamicExpression implements Expression {
 	}
 
 	public boolean isWritable(Object rootObject) throws EvaluationException {
-		return this.isWritable(rootObject);
+		return this.resolveExpression().isWritable(rootObject);
 	}
 
 	public void setValue(EvaluationContext context, Object value) throws EvaluationException {
@@ -141,7 +141,9 @@ public class DynamicExpression implements Expression {
 
 	private Expression resolveExpression() {
 		Locale locale = LocaleContextHolder.getLocale();
-		return this.expressionSource.getExpression(this.key, locale);
+		Expression expression = this.expressionSource.getExpression(this.key, locale);
+		Assert.state(expression != null, "Unable to resolve Expression with key '" + this.key + "'");
+		return expression;
 	}
 
 }

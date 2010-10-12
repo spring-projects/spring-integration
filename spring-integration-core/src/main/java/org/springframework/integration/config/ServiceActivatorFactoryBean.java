@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 import org.springframework.integration.handler.MessageProcessor;
@@ -51,7 +52,7 @@ public class ServiceActivatorFactoryBean extends AbstractMessageHandlerFactoryBe
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		ExpressionEvaluatingMessageProcessor<Object> processor = new ExpressionEvaluatingMessageProcessor<Object>(expression);
 		processor.setBeanFactory(this.getBeanFactory());
 		return this.configureHandler(new ServiceActivatingHandler(processor));

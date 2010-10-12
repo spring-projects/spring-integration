@@ -2357,7 +2357,12 @@ Name of the header whose value to use.
 
 	<xsd:complexType name="expressionOrInnerEndpointDefinitionAware">
 		<xsd:complexContent>
-			<xsd:extension base="innerEndpointDefinitionAware">
+			<xsd:extension base="handlerEndpointType">
+				<xsd:choice minOccurs="0" maxOccurs="2">
+					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1"/>
+					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
+				</xsd:choice>
 				<xsd:attribute name="expression" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
@@ -2367,6 +2372,28 @@ Name of the header whose value to use.
 				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="innerExpressionType">
+		<xsd:attribute name="key" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The key for retrieving the expression from an ExpressionSource.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="source" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The reference to an ExpressionSource.
+				</xsd:documentation>
+				<xsd:appinfo>
+					<tool:annotation kind="ref">
+						<tool:expected-type type="org.springframework.integration.expression.ExpressionSource" />
+					</tool:annotation>				
+				</xsd:appinfo>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="innerEndpointDefinitionAware">
