@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,17 @@ import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.TypeConverter;
-
+/**
+ * 
+ * @author Dave Syer
+ * @author Oleg Zhurakousky
+ *
+ */
 public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware {
 
 	private SimpleTypeConverter delegate = new SimpleTypeConverter();
@@ -89,13 +95,19 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if (targetType.getType() == Void.class || targetType.getType() == Void.TYPE) {
 			return null;
 		}
-		if (conversionService.canConvert(sourceType, targetType)) {
+		try {
 			return conversionService.convert(value, sourceType, targetType);
+		} catch (ConversionFailedException e) {
+			throw e;		
+		} catch (Exception ex){
+			// ignore because we have a fallback strategy, see SPR-7548 for more details
 		}
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
-			editor.setValue(value);
-			return editor.getAsText();
+			if (editor != null){ // INT-1441
+				editor.setValue(value);
+				return editor.getAsText();
+			}
 		}
 		return delegate.convertIfNecessary(value, targetType.getType());
 	}
