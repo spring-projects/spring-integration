@@ -84,7 +84,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.pollerMetadata.getTrigger(), "Trigger is required");
-			Assert.notNull(this.getBeanFactory(), "BeanFactory is required");
 			TaskExecutor providedExecutor = this.pollerMetadata.getTaskExecutor();
 			if (providedExecutor != null) {
 				this.taskExecutor = providedExecutor;
@@ -92,6 +91,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 			if (this.taskExecutor != null) {
 				if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {				
 					if (this.errorHandler == null) {
+						Assert.notNull(this.getBeanFactory(), "BeanFactory is required");
 						this.errorHandler = new MessagePublishingErrorHandler(
 								new BeanFactoryChannelResolver(getBeanFactory()));
 					}
