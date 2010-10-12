@@ -47,7 +47,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private volatile ErrorHandler errorHandler;
 
-	private volatile PollerMetadata pollerMetadata;
+	private volatile PollerMetadata pollerMetadata = new PollerMetadata();
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
