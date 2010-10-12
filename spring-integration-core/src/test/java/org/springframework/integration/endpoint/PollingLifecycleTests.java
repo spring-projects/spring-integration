@@ -19,11 +19,13 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static org.easymock.EasyMock.reset;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
@@ -77,11 +79,16 @@ public class PollingLifecycleTests {
 		consumer.afterPropertiesSet();
 		consumer.start();
 		assertTrue(latch.await(2, TimeUnit.SECONDS));
+		Mockito.verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
 		consumer.stop();
 		for (int i = 0; i < 10; i++) {
 			channel.send(new GenericMessage<String>("foo"));
 		}
-		Mockito.verify(handler, times(1)).handleMessage(Mockito.any(Message.class));
+		Thread.sleep(2000); // give enough time for poller to kick in if it didn't stop properly
+		// we'll still have a natural race condition between call to stop() and poller polling
+		// so what we really have to assert is that it doesn't poll for more then once after stop() was called
+		Mockito.reset(handler);
+		Mockito.verify(handler, atMost(1)).handleMessage(Mockito.any(Message.class));
 	}
 	
 	@Test
@@ -91,7 +98,6 @@ public class PollingLifecycleTests {
 		
 		SourcePollingChannelAdapterFactoryBean adapterFactory = new SourcePollingChannelAdapterFactoryBean();
 		PollerMetadata pollerMetadata = new PollerMetadata();
-		pollerMetadata.setMaxMessagesPerPoll(-1); // should be overriden in FB
 		pollerMetadata.setTrigger(new PeriodicTrigger(2000));
 		adapterFactory.setPollerMetadata(pollerMetadata);
 		MessageSource<String> source = spy(new MessageSource<String>() {
