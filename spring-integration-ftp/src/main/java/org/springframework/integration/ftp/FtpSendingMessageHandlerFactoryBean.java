@@ -71,9 +71,10 @@ public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<Ftp
                 defaultFtpClientFactory);
 
         FtpSendingMessageHandler ftpSendingMessageHandler = new FtpSendingMessageHandler(queuedFtpClientPool);
-		ftpSendingMessageHandler.setCharset( this.charset);
+        if (this.charset != null) {
+        	ftpSendingMessageHandler.setCharset(this.charset);
+        }
         ftpSendingMessageHandler.afterPropertiesSet();
-
         return ftpSendingMessageHandler;
     }
 
