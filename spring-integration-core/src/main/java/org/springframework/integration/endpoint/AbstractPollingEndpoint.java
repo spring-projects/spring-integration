@@ -18,13 +18,13 @@ package org.springframework.integration.endpoint;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledFuture;
 
 import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -43,7 +43,7 @@ import org.springframework.util.ErrorHandler;
  */
 public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements BeanClassLoaderAware {
 
-	private volatile TaskExecutor taskExecutor = new SyncTaskExecutor();
+	private volatile Executor taskExecutor = new SyncTaskExecutor();
 
 	private volatile ErrorHandler errorHandler;
 
@@ -84,7 +84,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			Assert.notNull(this.pollerMetadata.getTrigger(), "Trigger is required");
-			TaskExecutor providedExecutor = this.pollerMetadata.getTaskExecutor();
+			Executor providedExecutor = this.pollerMetadata.getTaskExecutor();
 			if (providedExecutor != null) {
 				this.taskExecutor = providedExecutor;
 			}
