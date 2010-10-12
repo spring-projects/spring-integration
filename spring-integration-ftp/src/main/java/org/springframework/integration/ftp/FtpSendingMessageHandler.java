@@ -81,6 +81,10 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(ftpClientPool, "'ftpClientPool' must not be null");
 		Assert.notNull(temporaryBufferFolder,
@@ -90,15 +94,12 @@ public class FtpSendingMessageHandler implements MessageHandler, InitializingBea
 
 	/* Ugh this needs to be put in a convenient place accessible for all the file:, sftp:, and ftp:* adapters */
 
-	private File handleFileMessage(File sourceFile, File tempFile,
-								   File resultFile) throws IOException {
+	private File handleFileMessage(File sourceFile, File tempFile, File resultFile) throws IOException {
 		if (sourceFile.renameTo(resultFile)) {
 			return resultFile;
 		}
-
 		FileCopyUtils.copy(sourceFile, tempFile);
 		tempFile.renameTo(resultFile);
-
 		return resultFile;
 	}
 
