@@ -26,25 +26,27 @@
 
 	<context:component-scan base-package="org.springframework.integration.xmpp"/>
 
-	<context:property-placeholder location="file://${user.home}/Desktop/test.properties" ignore-unresolvable="true"/>
+	<context:property-placeholder location="file://${user.home}/Desktop/xmpp.properties" ignore-unresolvable="true"/>
 
-	<beans:bean id="xmppProducer" class="org.springframework.integration.xmpp.messages.XmppMessageProducer" p:recipient="${user.2.login}"/>
+	<beans:bean id="xmppProducer"
+                class="org.springframework.integration.xmpp.messages.XmppMessageProducer"
+                p:recipient="starbuxman@gmail.com"/>
 
 	<poller default="true">
 		<interval-trigger fixed-rate="true" interval="10" time-unit="SECONDS"/>
 	</poller>
+    <xmpp:xmpp-connection
+            id="testConnection"
+            user="${user.2.login}"
+            password="${user.2.password}"
+            host="${user.2.host}"
+            port="${user.2.port}"
+            resource="${user.2.resource}"
+            sasl-mechanism-supported="${user.2.sasl.mechanism}"
+            sasl-mechanism-supported-index="0"
+            service-name="${user.2.service}"
+            />
 
-	<xmpp:xmpp-connection
-			id="testConnection"
-			user="${user.1.login}"
-			password="${user.1.password}"
-			host="${user.1.host}"
-			port="${user.1.port}"
-			resource="${user.1.resource}"
-			sasl-mechanism-supported="${user.1.sasl.mechanism}"
-			sasl-mechanism-supported-index="${user.1.sasl.index}"
-			service-name="${user.1.service}"
-			/>
 
 
 	<inbound-channel-adapter ref="xmppProducer" channel="outboundChannel"/>

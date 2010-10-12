@@ -88,7 +88,8 @@ public class ConsoleBasedAccessTokenInitialRequestProcessListener implements Acc
         String key = StringUtils.trim(props.getProperty("twitter.oauth.consumerKey"));
         String secret = StringUtils.trim(  props.getProperty("twitter.oauth.consumerSecret") ) ;
 
-        ConsoleBasedAccessTokenInitialRequestProcessListener consoleBasedAccessTokenInitialRequestProcessListener = new ConsoleBasedAccessTokenInitialRequestProcessListener();
+        ConsoleBasedAccessTokenInitialRequestProcessListener consoleBasedAccessTokenInitialRequestProcessListener =
+				new ConsoleBasedAccessTokenInitialRequestProcessListener();
 
         Twitter twitter = new TwitterFactory().getOAuthAuthorizedInstance( key, secret);
 

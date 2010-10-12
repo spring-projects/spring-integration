@@ -39,7 +39,7 @@
 	<context:property-placeholder
 			location="file://${user.home}/Desktop/twitter.properties"
 			ignore-unresolvable="true"/>
-
+        
 	<twitter:twitter-connection
 			id="tc"
 			access-token="${twitter.oauth.accessToken}"
