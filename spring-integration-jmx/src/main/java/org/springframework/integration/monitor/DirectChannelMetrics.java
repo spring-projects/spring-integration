@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.util.StopWatch;
@@ -129,6 +130,16 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 				logger.trace(timer);
 			}
 		}
+	}
+	
+	@ManagedOperation
+	public synchronized void reset() {
+		sendDuration.reset();
+		sendErrorRate.reset();
+		sendSuccessRatio.reset();
+		sendRate.reset();
+		sendCount.set(0);
+		sendErrorCount.set(0);
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Sends")

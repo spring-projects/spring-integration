@@ -16,6 +16,7 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
 
 /**
@@ -24,6 +25,9 @@ import org.springframework.jmx.support.MetricType;
  * @since 2.0
  */
 public interface MessageHandlerMetrics {
+
+	@ManagedOperation
+	void reset();
 
 	/**
 	 * @return the number of successful handler calls

@@ -56,6 +56,11 @@ public class LifecycleMessageHandlerMetrics implements MessageHandlerMetrics, Li
 		lifecycle.stop();
 	}
 
+	@ManagedOperation
+	public void reset() {
+		delegate.reset();
+	}
+
 	public int getErrorCount() {
 		return delegate.getErrorCount();
 	}

@@ -41,6 +41,11 @@ public class LifecycleMessageSourceMetrics implements MessageSourceMetrics, Life
 		this.delegate = delegate;
 	}
 
+	@ManagedOperation
+	public void reset() {
+		delegate.reset();
+	}
+
 	@ManagedAttribute
 	public boolean isRunning() {
 		return lifecycle.isRunning();

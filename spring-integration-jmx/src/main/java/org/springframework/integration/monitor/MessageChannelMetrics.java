@@ -16,6 +16,7 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
 
 /**
@@ -28,6 +29,9 @@ import org.springframework.jmx.support.MetricType;
  * 
  */
 public interface MessageChannelMetrics {
+
+	@ManagedOperation
+	void reset();
 
 	/**
 	 * @return the number of successful sends

@@ -18,6 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.core.MessageSource;
+import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.support.MetricType;
 
 /**
  * @author Dave Syer
@@ -59,6 +62,12 @@ public class SimpleMessageSourceMetrics implements MethodInterceptor, MessageSou
 		return messageSource;
 	}
 
+	@ManagedOperation
+	public void reset() {
+		messageCount.set(0);
+	}
+
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count")
 	public int getMessageCount() {
 		return messageCount.get();
 	}

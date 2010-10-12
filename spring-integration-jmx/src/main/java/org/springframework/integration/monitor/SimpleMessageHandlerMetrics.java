@@ -27,6 +27,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.jmx.support.MetricType;
 import org.springframework.util.StopWatch;
@@ -123,6 +124,13 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		} finally {
 			activeCount.decrementAndGet();
 		}
+	}
+
+	@ManagedOperation
+	public synchronized void reset() {
+		duration.reset();
+		errorCount.set(0);
+		handleCount.set(0);
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count", description = "rate=1h")

@@ -13,6 +13,7 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Ignore;
@@ -72,6 +73,19 @@ public class ExponentialMovingAverageRateTests {
 		Thread.sleep(18L);
 		// System.err.println(history);
 		assertTrue("Standard deviation should be non-zero: " + history, history.getStandardDeviation() > 0);
+	}
+
+	@Test
+	@Ignore
+	public void testReset() throws Exception {
+		assertEquals(0, history.getStandardDeviation(), 0.01);
+		history.increment();
+		Thread.sleep(30L);
+		history.increment();
+		assertFalse(0==history.getStandardDeviation());
+		history.reset();
+		assertEquals(0, history.getStandardDeviation(), 0.01);
+		assertEquals("[[N=0, min=0.000000, max=0.000000, mean=0.000000, sigma=0.000000], timeSinceLast=0.000000]", history.toString());
 	}
 
 }

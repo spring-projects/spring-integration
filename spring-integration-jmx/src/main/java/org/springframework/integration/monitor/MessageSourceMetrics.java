@@ -14,6 +14,7 @@
 package org.springframework.integration.monitor;
 
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
 
 /**
@@ -23,10 +24,13 @@ import org.springframework.jmx.support.MetricType;
  */
 public interface MessageSourceMetrics {
 
+	@ManagedOperation
+	void reset();
+
 	/**
 	 * @return the number of successful handler calls
 	 */
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count", description = "rate=1h")
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Message Source Message Count")
 	int getMessageCount();
 
 	String getName();

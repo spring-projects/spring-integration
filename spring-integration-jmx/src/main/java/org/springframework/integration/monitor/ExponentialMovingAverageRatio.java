@@ -28,9 +28,9 @@ package org.springframework.integration.monitor;
  */
 public class ExponentialMovingAverageRatio {
 
-	private double weight;
+	private volatile double weight;
 
-	private double sum;
+	private volatile double sum;
 
 	private volatile long t0 = System.currentTimeMillis();
 
@@ -61,7 +61,14 @@ public class ExponentialMovingAverageRatio {
 		append(0);
 	}
 
-	private void append(int value) {
+	public synchronized void reset() {
+		weight = 0;
+		sum = 0;
+		t0 = System.currentTimeMillis();
+		cumulative.reset();
+	}
+
+	private synchronized void append(int value) {
 
 		long t = System.currentTimeMillis();
 		double alpha = Math.exp((t0 - t) * lapse);

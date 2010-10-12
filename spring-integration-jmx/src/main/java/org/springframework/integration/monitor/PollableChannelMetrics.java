@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.MessageChannel;
 import org.springframework.jmx.export.annotation.ManagedMetric;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.support.MetricType;
 
 /**
@@ -65,6 +66,13 @@ public class PollableChannelMetrics extends DirectChannelMetrics {
 			receiveErrorCount.incrementAndGet();
 			throw e;
 		}
+	}
+
+	@ManagedOperation
+	public synchronized void reset() {
+		super.reset();
+		receiveErrorCount.set(0);
+		receiveCount.set(0);
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Receives")
