@@ -2383,7 +2383,7 @@ Name of the header whose value to use.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="source" type="xsd:string" use="required">
+		<xsd:attribute name="source" type="xsd:string" default="expressionSource">
 			<xsd:annotation>
 				<xsd:documentation>
 					The reference to an ExpressionSource.
