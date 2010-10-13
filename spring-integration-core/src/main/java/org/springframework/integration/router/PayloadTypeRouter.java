@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  */
-public class PayloadTypeRouter extends AbstractChannelNameResolvingMessageRouter {
+public class PayloadTypeRouter extends AbstractMessageRouter {
 
 	@Override
 	protected List<Object> getChannelIndicatorList(Message<?> message) {

@@ -19,7 +19,7 @@ package org.springframework.integration.xml.router;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.XPathExpression;
@@ -31,7 +31,7 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  * 
  * @author Jonas Partner
  */
-public abstract class AbstractXPathRouter extends AbstractChannelNameResolvingMessageRouter {
+public abstract class AbstractXPathRouter extends AbstractMessageRouter {
 
 	private final XPathExpression xPathExpression;
 

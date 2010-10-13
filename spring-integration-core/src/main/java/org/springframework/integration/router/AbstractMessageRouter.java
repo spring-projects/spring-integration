@@ -16,8 +16,15 @@
 
 package org.springframework.integration.router;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
@@ -25,11 +32,17 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for Message Routers.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
@@ -42,6 +55,177 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	private volatile boolean applySequence;
 
 	private final MessagingTemplate messagingTemplate = new MessagingTemplate();
+	
+	private volatile String prefix;
+
+	private volatile String suffix;
+
+	private volatile ChannelResolver channelResolver;
+
+	private volatile boolean ignoreChannelNameResolutionFailures;
+	
+	protected volatile Map<String, String> channelIdentifierMap;
+	
+	/**
+	 * Specify the {@link ChannelResolver} strategy to use.
+	 * The default is a BeanFactoryChannelResolver.
+	 */
+	public void setChannelResolver(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "'channelResolver' must not be null");
+		this.channelResolver = channelResolver;
+	}
+
+	/**
+	 * Specify a prefix to be added to each channel name prior to resolution.
+	 */
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
+	}
+
+	/**
+	 * Specify a suffix to be added to each channel name prior to resolution.
+	 */
+	public void setSuffix(String suffix) {
+		this.suffix = suffix;
+	}
+
+	/**
+	 * Specify whether this router should ignore any failure to resolve a channel name to
+	 * an actual MessageChannel instance when delegating to the ChannelResolver strategy.
+	 */
+	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
+		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
+	}
+
+	@Override
+	public void onInit() {
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.channelResolver == null && beanFactory != null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
+	}
+
+	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
+		Assert.state(this.channelResolver != null,
+				"unable to resolve channel names, no ChannelResolver available");
+		MessageChannel channel = null;
+		try {
+			channel = this.channelResolver.resolveChannelName(channelName);
+		}
+		catch (ChannelResolutionException e) {
+			if (!this.ignoreChannelNameResolutionFailures) {
+				throw new MessagingException(message,
+						"failed to resolve channel name '" + channelName + "'", e);
+			}
+		}
+		if (channel == null && !this.ignoreChannelNameResolutionFailures) {
+			throw new MessagingException(message,
+					"failed to resolve channel name '" + channelName + "'");
+		}
+		return channel;
+	}
+	
+	private void addChannelFromString(Collection<MessageChannel> channels, String channelIdentifier, Message<?> message) {
+		if (channelIdentifier.indexOf(',') != -1) {
+			for (String name : StringUtils.commaDelimitedListToStringArray(channelIdentifier)) {
+				addChannelFromString(channels, name, message);
+			}
+			return;
+		}
+		if (this.prefix != null) {
+			channelIdentifier = this.prefix + channelIdentifier;
+		}
+		if (this.suffix != null) {
+			channelIdentifier = channelIdentifier + suffix;
+		}
+		/*
+		 * Some routers due to their complex nature will already resolve 'channelIdentifier'
+		 * to 'channelName' (e.g., PTR, EMETR)
+		 */
+		String channelName = channelIdentifier;
+		if (channelIdentifierMap != null && channelIdentifierMap.containsKey(channelIdentifier)){
+			channelName = channelIdentifierMap.get(channelIdentifier);
+		}
+
+		if (this.channelResolver != null){
+			MessageChannel channel = resolveChannelForName(channelName, message);
+			if (channel != null) {
+				channels.add(channel);
+			}
+		}
+	}
+	
+	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
+		if (channelIndicators == null) {
+			return;
+		}
+		for (Object channelIndicator : channelIndicators) {
+			if (channelIndicator == null) {
+				continue;
+			}
+			else if (channelIndicator instanceof MessageChannel) {
+				channels.add((MessageChannel) channelIndicator);
+			}
+			else if (channelIndicator instanceof MessageChannel[]) {
+				channels.addAll(Arrays.asList((MessageChannel[]) channelIndicator));
+			}
+			else if (channelIndicator instanceof String) {
+				addChannelFromString(channels, (String) channelIndicator, message);
+			}
+			else if (channelIndicator instanceof String[]) {
+				for (String indicatorName : (String[]) channelIndicator) {
+					addChannelFromString(channels, indicatorName, message);
+				}
+			}
+			else if (channelIndicator instanceof Collection) {
+				addToCollection(channels, (Collection<?>) channelIndicator, message);
+			}
+			else if (this.getRequiredConversionService().canConvert(channelIndicator.getClass(), String.class)) {
+				addChannelFromString(channels,
+						this.getConversionService().convert(channelIndicator, String.class), message);
+			}
+			else {
+				throw new MessagingException(
+						"unsupported return type for router [" + channelIndicator.getClass() + "]");
+			}
+		}
+	}
+	
+	
+	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+		this.afterPropertiesSet();
+		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
+		Collection<Object> channelsReturned = this.getChannelIndicatorList(message);
+		addToCollection(channels, channelsReturned, message);
+		return channels;
+	}
+	
+	protected ConversionService getRequiredConversionService() {
+		if (this.getConversionService() == null) {
+			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
+		}
+		return this.getConversionService();
+	}
+	
+	public Map<String, String> getChannelIdentifierMap() {
+		return channelIdentifierMap;
+	}
+
+	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
+		this.channelIdentifierMap = channelIdentifierMap;
+	}
+	
+	public void setChannelMapping(String channelIdentifier, String channelName){
+		this.channelIdentifierMap.put(channelIdentifier, channelName);
+	}
+	
+	public void removeChannelMapping(String channelIdentifier){
+		this.channelIdentifierMap.remove(channelIdentifier);
+	}
+	/**
+	 * Subclasses must implement this method to return the channel indicators.
+	 */
+	protected abstract List<Object> getChannelIndicatorList(Message<?> message);
 
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution fails to return any channels. If no
@@ -137,9 +321,9 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		}
 	}
 
-	/**
-	 * Subclasses must implement this method to return the target channels for a given Message.
-	 */
-	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
+//	/**
+//	 * Subclasses must implement this method to return the target channels for a given Message.
+//	 */
+//	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
 
 }

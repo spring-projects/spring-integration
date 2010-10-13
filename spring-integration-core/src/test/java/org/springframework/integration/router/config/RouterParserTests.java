@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -205,9 +206,10 @@ public class RouterParserTests {
 			this.channel = channel;
 		}
 
+
 		@Override
-		protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-			return Collections.singletonList(this.channel);
+		protected List<Object> getChannelIndicatorList(Message<?> message) {
+			return Collections.singletonList((Object)this.channel);
 		}
 	}
 

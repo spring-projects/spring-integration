@@ -20,7 +20,6 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.expression.Expression;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.integration.router.AbstractChannelNameResolvingMessageRouter;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.ExpressionEvaluatingRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
@@ -144,11 +143,11 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
-		if (this.channelResolver != null && router instanceof AbstractChannelNameResolvingMessageRouter) {
-			((AbstractChannelNameResolvingMessageRouter) router).setChannelResolver(this.channelResolver);
+		if (this.channelResolver != null && router instanceof AbstractMessageRouter) {
+			((AbstractMessageRouter) router).setChannelResolver(this.channelResolver);
 		}
-		if (this.channelIdentifierMap != null && router instanceof AbstractChannelNameResolvingMessageRouter) {
-			((AbstractChannelNameResolvingMessageRouter) router).setChannelIdentifierMap(this.channelIdentifierMap);
+		if (this.channelIdentifierMap != null && router instanceof AbstractMessageRouter) {
+			((AbstractMessageRouter) router).setChannelIdentifierMap(this.channelIdentifierMap);
 		}
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);
@@ -157,10 +156,10 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 			router.setTimeout(timeout.longValue());
 		}
 		if (this.ignoreChannelNameResolutionFailures != null) {
-			Assert.isTrue(router instanceof AbstractChannelNameResolvingMessageRouter,
+			Assert.isTrue(router instanceof AbstractMessageRouter,
 					"The 'ignoreChannelNameResolutionFailures' property can only be set on routers that extend "
-							+ AbstractChannelNameResolvingMessageRouter.class.getName());
-			((AbstractChannelNameResolvingMessageRouter) router)
+							+ AbstractMessageRouter.class.getName());
+			((AbstractMessageRouter) router)
 					.setIgnoreChannelNameResolutionFailures(ignoreChannelNameResolutionFailures);
 		}
 		if (this.applySequence != null) {
