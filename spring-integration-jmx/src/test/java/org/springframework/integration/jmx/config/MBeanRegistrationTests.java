@@ -15,7 +15,6 @@ package org.springframework.integration.jmx.config;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -47,7 +46,7 @@ public class MBeanRegistrationTests {
 	@Test
 	public void testExporterMBeanRegistration() throws Exception {
 		// System.err.println(server.queryNames(new ObjectName("*:type=*MBeanExporter,*"), null));
-		System.err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
+		// System.err.println(Arrays.asList(server.getMBeanInfo(server.queryNames(new ObjectName("*:type=*Handler,*"), null).iterator().next()).getAttributes()));
 		Set<ObjectName> names = server.queryNames(new ObjectName("test.MBeanRegistration:type=IntegrationMBeanExporter,name=integrationMbeanExporter,*"), null);
 		assertEquals(1, names.size());
 	}
