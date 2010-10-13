@@ -1929,6 +1929,7 @@ Name of the header whose value to use.
 			<xsd:extension base="channelNameResolvingRouterType">
 				<xsd:choice minOccurs="0" maxOccurs="2">
 					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="expression" type="innerExpressionType" minOccurs="0" maxOccurs="1" />
 					<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="1" />
 				</xsd:choice>
 				<xsd:attribute name="ref" type="xsd:string">
