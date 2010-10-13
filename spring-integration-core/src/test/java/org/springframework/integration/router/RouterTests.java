@@ -17,6 +17,7 @@
 package org.springframework.integration.router;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -32,6 +34,7 @@ import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -148,6 +151,7 @@ public class RouterTests {
 				return "notImportant";
 			}
 		};
+		router.setChannelResolver(new BeanFactoryChannelResolver(mock(BeanFactory.class)));
 		router.handleMessage(new GenericMessage<String>("this should fail"));
 	}
 
@@ -159,6 +163,7 @@ public class RouterTests {
 				return CollectionUtils.arrayToList(new String[] { "notImportant" });
 			}
 		};
+		router.setChannelResolver(new BeanFactoryChannelResolver(mock(BeanFactory.class)));
 		router.handleMessage(new GenericMessage<String>("this should fail"));
 	}
 

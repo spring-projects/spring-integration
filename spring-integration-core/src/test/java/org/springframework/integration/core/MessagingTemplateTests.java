@@ -31,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.MapBasedChannelResolver;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -45,6 +45,7 @@ import org.springframework.integration.mapping.OutboundMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
@@ -306,9 +307,12 @@ public class MessagingTemplateTests {
 	@Test
 	public void sendByChannelNameWithCustomChannelResolver() {
 		QueueChannel testChannel = new QueueChannel();
-		Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
-		channelMap.put("testChannel", testChannel);
-		MapBasedChannelResolver channelResolver = new MapBasedChannelResolver(channelMap);
+//		Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
+//		channelMap.put("testChannel", testChannel);
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("testChannel", testChannel);
+		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(beanFactory);
+//		MapBasedChannelResolver channelResolver = new MapBasedChannelResolver(channelMap);
 		MessagingTemplate template = new MessagingTemplate();
 		template.setChannelResolver(channelResolver);
 		template.afterPropertiesSet();
@@ -352,11 +356,11 @@ public class MessagingTemplateTests {
 	@Test
 	public void receiveByChannelNameWithCustomChannelResolver() {
 		QueueChannel testChannel = new QueueChannel();
-		Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
-		channelMap.put("testChannel", testChannel);
-		MapBasedChannelResolver channelResolver = new MapBasedChannelResolver(channelMap);
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		beanFactory.registerSingleton("testChannel", testChannel);
+
 		MessagingTemplate template = new MessagingTemplate();
-		template.setChannelResolver(channelResolver);
+		template.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
 		template.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		testChannel.send(message);

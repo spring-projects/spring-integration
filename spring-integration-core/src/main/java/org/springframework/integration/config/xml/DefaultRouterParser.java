@@ -18,9 +18,6 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -28,11 +25,13 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;router/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParser {
 
@@ -60,13 +59,12 @@ public class DefaultRouterParser extends AbstractDelegatingConsumerEndpointParse
 						parserContext.extractSource(element));
 			}
 			BeanDefinitionBuilder channelResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-					IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MapBasedChannelResolver");
-			ManagedMap<String, RuntimeBeanReference> channelMap = new ManagedMap<String, RuntimeBeanReference>();
+					IntegrationNamespaceUtils.BASE_PACKAGE + ".support.channel.BeanFactoryChannelResolver");
+			ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
 			for (Element mappingElement : mappingElements) {
-				channelMap.put(mappingElement.getAttribute("value"),
-						new RuntimeBeanReference(mappingElement.getAttribute("channel")));
+				channelMap.put(mappingElement.getAttribute("value"), mappingElement.getAttribute("channel"));
 			}
-			channelResolverBuilder.addPropertyValue("channelMap", channelMap);
+			builder.addPropertyValue("channelIdentifierMap", channelMap);
 			builder.addPropertyValue(CHANNEL_RESOLVER_PROPERTY, channelResolverBuilder.getBeanDefinition());
 		}
 		else if (StringUtils.hasText(resolverBeanName)) {

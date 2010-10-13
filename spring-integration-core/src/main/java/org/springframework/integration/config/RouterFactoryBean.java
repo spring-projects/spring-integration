@@ -13,6 +13,8 @@
 
 package org.springframework.integration.config;
 
+import java.util.Map;
+
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
 import org.springframework.expression.Expression;
@@ -31,10 +33,13 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
 public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile ChannelResolver channelResolver;
+	
+	private volatile Map<String, String> channelIdentifierMap;
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -74,6 +79,10 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	public void setIgnoreSendFailures(Boolean ignoreSendFailures) {
 		this.ignoreSendFailures = ignoreSendFailures;
+	}
+	
+	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
+		this.channelIdentifierMap = channelIdentifierMap;
 	}
 
 	@Override
@@ -137,6 +146,9 @@ public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	private AbstractMessageRouter configureRouter(AbstractMessageRouter router) {
 		if (this.channelResolver != null && router instanceof AbstractChannelNameResolvingMessageRouter) {
 			((AbstractChannelNameResolvingMessageRouter) router).setChannelResolver(this.channelResolver);
+		}
+		if (this.channelIdentifierMap != null && router instanceof AbstractChannelNameResolvingMessageRouter) {
+			((AbstractChannelNameResolvingMessageRouter) router).setChannelIdentifierMap(this.channelIdentifierMap);
 		}
 		if (this.defaultOutputChannel != null) {
 			router.setDefaultOutputChannel(this.defaultOutputChannel);

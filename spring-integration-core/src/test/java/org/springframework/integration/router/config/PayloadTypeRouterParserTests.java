@@ -62,15 +62,6 @@ public class PayloadTypeRouterParserTests {
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
-	public void testFakeTypes(){
-		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigFakeType.getBytes());
-		GenericApplicationContext ac = new GenericApplicationContext();
-		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(ac);
-		reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);
-		reader.loadBeanDefinitions(new InputStreamResource(stream));
-	}
-
-	@Test(expected=BeanDefinitionStoreException.class)
 	public void testNoMappingElement(){
 		ByteArrayInputStream stream = new ByteArrayInputStream(routerConfigNoMaping.getBytes());
 		GenericApplicationContext ac = new GenericApplicationContext();

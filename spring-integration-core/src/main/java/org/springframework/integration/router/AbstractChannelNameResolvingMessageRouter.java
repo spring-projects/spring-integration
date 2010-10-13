@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -39,6 +40,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  * @author Jonas Partner
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractChannelNameResolvingMessageRouter extends AbstractMessageRouter {
 
@@ -49,6 +51,8 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean ignoreChannelNameResolutionFailures;
+	
+	protected volatile Map<String, String> channelIdentifierMap;
 
 
 	/**
@@ -155,32 +159,58 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 		}
 	}
 
-	private void addChannelFromString(Collection<MessageChannel> channels, String channelName, Message<?> message) {
-		if (channelName.indexOf(',') != -1) {
-			for (String name : StringUtils.commaDelimitedListToStringArray(channelName)) {
+	private void addChannelFromString(Collection<MessageChannel> channels, String channelIdentifier, Message<?> message) {
+		if (channelIdentifier.indexOf(',') != -1) {
+			for (String name : StringUtils.commaDelimitedListToStringArray(channelIdentifier)) {
 				addChannelFromString(channels, name, message);
 			}
 			return;
 		}
 		if (this.prefix != null) {
-			channelName = this.prefix + channelName;
+			channelIdentifier = this.prefix + channelIdentifier;
 		}
 		if (this.suffix != null) {
-			channelName = channelName + suffix;
+			channelIdentifier = channelIdentifier + suffix;
 		}
-		MessageChannel channel = resolveChannelForName(channelName, message);
-		if (channel != null) {
-			channels.add(channel);
+		/*
+		 * Some routers due to their complex nature will already resolve 'channelIdentifier'
+		 * to 'channelName' (e.g., PTR, EMETR)
+		 */
+		String channelName = channelIdentifier;
+		if (channelIdentifierMap != null && channelIdentifierMap.containsKey(channelIdentifier)){
+			channelName = channelIdentifierMap.get(channelIdentifier);
+		}
+
+		if (this.channelResolver != null){
+			MessageChannel channel = resolveChannelForName(channelName, message);
+			if (channel != null) {
+				channels.add(channel);
+			}
 		}
 	}
 
-	private ConversionService getRequiredConversionService() {
+	protected ConversionService getRequiredConversionService() {
 		if (this.getConversionService() == null) {
 			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
 		}
 		return this.getConversionService();
 	}
+	
+	public Map<String, String> getChannelIdentifierMap() {
+		return channelIdentifierMap;
+	}
 
+	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
+		this.channelIdentifierMap = channelIdentifierMap;
+	}
+	
+	public void setChannelMapping(String channelIdentifier, String channelName){
+		this.channelIdentifierMap.put(channelIdentifier, channelName);
+	}
+	
+	public void removeChannelMapping(String channelIdentifier){
+		this.channelIdentifierMap.remove(channelIdentifier);
+	}
 	/**
 	 * Subclasses must implement this method to return the channel indicators.
 	 */

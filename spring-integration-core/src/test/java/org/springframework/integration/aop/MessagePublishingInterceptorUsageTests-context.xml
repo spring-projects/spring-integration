@@ -37,19 +37,19 @@
 				</property>
 				<property name="channelMap">
 					<map>
-						<entry key="setName" value="channel" />
+						<entry key="setName" value="messagePublishingInterceptorUsageTestChannel" />
 					</map>
 				</property>
 			</bean>
 		</constructor-arg>
 		<property name="channelResolver">
 			<bean
-				class="org.springframework.integration.channel.MapBasedChannelResolver">
-				<property name="channelMap">
-					<map>
-						<entry key="channel" value-ref="messagePublishingInterceptorUsageTestChannel" />
-					</map>
-				</property>
+				class="org.springframework.integration.support.channel.BeanFactoryChannelResolver">
+<!--				<property name="channelMap">-->
+<!--					<map>-->
+<!--						<entry key="channel" value-ref="messagePublishingInterceptorUsageTestChannel" />-->
+<!--					</map>-->
+<!--				</property>-->
 			</bean>
 		</property>
 	</bean>

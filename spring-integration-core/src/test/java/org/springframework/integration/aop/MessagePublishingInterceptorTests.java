@@ -20,17 +20,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.integration.Message;
-import org.springframework.integration.channel.MapBasedChannelResolver;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolver;
 
 /**
  * @author Mark Fisher
@@ -39,14 +39,16 @@ import org.springframework.integration.channel.QueueChannel;
  */
 public class MessagePublishingInterceptorTests {
 
-	private final MapBasedChannelResolver channelResolver = new MapBasedChannelResolver();
+	private ChannelResolver channelResolver;
 
 	private final QueueChannel testChannel = new QueueChannel();
 
 
 	@Before
 	public void setup() {
-		channelResolver.setChannelMap(Collections.singletonMap("c", testChannel));
+		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+		channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		beanFactory.registerSingleton("c", testChannel);
 	}
 
 	@Test

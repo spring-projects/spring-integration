@@ -18,19 +18,19 @@ package org.springframework.integration.config.xml;
 
 import java.util.List;
 
-import org.w3c.dom.Element;
-
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Base parser for routers that create instances that are subclasses of AbstractChannelNameResolvingMessageRouter.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public abstract class AbstractChannelNameResolvingRouterParser extends AbstractRouterParser {
 
@@ -42,13 +42,23 @@ public abstract class AbstractChannelNameResolvingRouterParser extends AbstractR
 			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
 			if (childElements != null && childElements.size() > 0) {
 				BeanDefinitionBuilder channelResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".channel.MapBasedChannelResolver");
-				ManagedMap<String, RuntimeBeanReference> channelMap = new ManagedMap<String, RuntimeBeanReference>();
+						IntegrationNamespaceUtils.BASE_PACKAGE + ".support.channel.BeanFactoryChannelResolver");
+				ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
 				for (Element childElement : childElements) {
-					channelMap.put(childElement.getAttribute("value"),
-							new RuntimeBeanReference(childElement.getAttribute("channel")));
+					String beanClassName = beanDefinition.getBeanClassName();
+					String key = null;
+					if (beanClassName.endsWith("PayloadTypeRouter")){
+						key = childElement.getAttribute("type"); 
+					} 
+					else if (beanClassName.endsWith("HeaderValueRouter")){
+						key = childElement.getAttribute("value");
+					} 
+					else {
+						throw new BeanCreationException("Building '" + beanClassName + "' is not supported by this parser");
+					}
+					channelMap.put(key, childElement.getAttribute("channel"));
 				}
-				channelResolverBuilder.addPropertyValue("channelMap", channelMap);
+				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);
 				beanDefinition.getPropertyValues().add("channelResolver", channelResolverBuilder.getBeanDefinition());
 			}
 		}

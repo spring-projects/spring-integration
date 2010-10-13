@@ -20,19 +20,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.channel.MapBasedChannelResolver;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class HeaderValueRouterTests {
 
@@ -76,12 +76,13 @@ public class HeaderValueRouterTests {
 	public void resolveChannelNameFromMap() {
 		StaticApplicationContext context = new StaticApplicationContext();
 		ManagedMap channelMap = new ManagedMap();
-		channelMap.put("testKey", new RuntimeBeanReference("testChannel"));
-		RootBeanDefinition channelResolverBeanDefinition = new RootBeanDefinition(MapBasedChannelResolver.class);
-		channelResolverBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(channelMap);
+		channelMap.put("testKey", "testChannel");
+		RootBeanDefinition channelResolverBeanDefinition = new RootBeanDefinition(BeanFactoryChannelResolver.class);
+		channelResolverBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(context);
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new RuntimeBeanReference("resolver"));
 		context.registerBeanDefinition("resolver", channelResolverBeanDefinition);
 		context.registerBeanDefinition("router", routerBeanDefinition);
