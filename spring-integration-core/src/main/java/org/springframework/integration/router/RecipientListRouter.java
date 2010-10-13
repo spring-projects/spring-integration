@@ -17,8 +17,8 @@
 package org.springframework.integration.router;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
@@ -51,6 +51,7 @@ import org.springframework.util.Assert;
  * solution.
  *
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
@@ -88,20 +89,19 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
     public final void onInit() {
         Assert.notEmpty(this.recipients, "a non-empty recipient list is required");
     }
-
-//	@Override
-//	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-//		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-//		List<Recipient> recipientList = this.recipients;
-//		for (Recipient recipient : recipientList) {
-//			if (recipient.accept(message)) {
-//				channels.add(recipient.getChannel());
-//			}
-//		}
-//		return channels;
-//	}
-
-
+    
+    @Override
+	protected List<Object> getChannelIndicatorList(Message<?> message) {
+		List<Object> channels = new ArrayList<Object>();
+		List<Recipient> recipientList = this.recipients;
+		for (Recipient recipient : recipientList) {
+			if (recipient.accept(message)) {
+				channels.add(recipient.getChannel());
+			}
+		}
+		return channels;
+	}
+    
 	public static class Recipient {
 
 		private final MessageChannel channel;
@@ -125,18 +125,4 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 			return this.channel;
 		}
 	}
-
-
-	@Override
-	protected List<Object> getChannelIndicatorList(Message<?> message) {
-		List<Object> channels = new ArrayList<Object>();
-		List<Recipient> recipientList = this.recipients;
-		for (Recipient recipient : recipientList) {
-			if (recipient.accept(message)) {
-				channels.add(recipient.getChannel());
-			}
-		}
-		return channels;
-	}
-
 }

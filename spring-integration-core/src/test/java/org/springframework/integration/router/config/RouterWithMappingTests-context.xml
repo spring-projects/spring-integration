@@ -19,7 +19,7 @@
 		<queue capacity="1" />
 	</channel>
 
-	<router input-channel="expressionRouter" expression="payload.name"
+	<router id="spelRouter" input-channel="expressionRouter" expression="payload.name"
 			default-output-channel="defaultChannelForExpression"
 			ignore-channel-name-resolution-failures="true">
 		<mapping value="foo" channel="fooChannelForExpression"/>

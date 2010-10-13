@@ -37,10 +37,11 @@ import org.springframework.integration.support.channel.BeanFactoryChannelResolve
 import org.springframework.integration.support.channel.ChannelResolutionException;
 import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for Message Routers.
+ * Base class for all Message Routers.
  * 
  * @author Mark Fisher
  * @author Oleg Zhurakousky
@@ -65,7 +66,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile boolean ignoreChannelNameResolutionFailures;
 	
-	protected volatile Map<String, String> channelIdentifierMap;
+	protected volatile Map<String, String> channelIdentifierMap = new ConcurrentHashMap<String, String>();
 	
 	/**
 	 * Specify the {@link ChannelResolver} strategy to use.
@@ -97,139 +98,26 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	public void setIgnoreChannelNameResolutionFailures(boolean ignoreChannelNameResolutionFailures) {
 		this.ignoreChannelNameResolutionFailures = ignoreChannelNameResolutionFailures;
 	}
-
-	@Override
-	public void onInit() {
-		BeanFactory beanFactory = this.getBeanFactory();
-		if (this.channelResolver == null && beanFactory != null) {
-			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
-		}
-	}
-
-	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
-		Assert.state(this.channelResolver != null,
-				"unable to resolve channel names, no ChannelResolver available");
-		MessageChannel channel = null;
-		try {
-			channel = this.channelResolver.resolveChannelName(channelName);
-		}
-		catch (ChannelResolutionException e) {
-			if (!this.ignoreChannelNameResolutionFailures) {
-				throw new MessagingException(message,
-						"failed to resolve channel name '" + channelName + "'", e);
-			}
-		}
-		if (channel == null && !this.ignoreChannelNameResolutionFailures) {
-			throw new MessagingException(message,
-					"failed to resolve channel name '" + channelName + "'");
-		}
-		return channel;
-	}
-	
-	private void addChannelFromString(Collection<MessageChannel> channels, String channelIdentifier, Message<?> message) {
-		if (channelIdentifier.indexOf(',') != -1) {
-			for (String name : StringUtils.commaDelimitedListToStringArray(channelIdentifier)) {
-				addChannelFromString(channels, name, message);
-			}
-			return;
-		}
-		if (this.prefix != null) {
-			channelIdentifier = this.prefix + channelIdentifier;
-		}
-		if (this.suffix != null) {
-			channelIdentifier = channelIdentifier + suffix;
-		}
-		/*
-		 * Some routers due to their complex nature will already resolve 'channelIdentifier'
-		 * to 'channelName' (e.g., PTR, EMETR)
-		 */
-		String channelName = channelIdentifier;
-		if (channelIdentifierMap != null && channelIdentifierMap.containsKey(channelIdentifier)){
-			channelName = channelIdentifierMap.get(channelIdentifier);
-		}
-
-		if (this.channelResolver != null){
-			MessageChannel channel = resolveChannelForName(channelName, message);
-			if (channel != null) {
-				channels.add(channel);
-			}
-		}
-	}
-	
-	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
-		if (channelIndicators == null) {
-			return;
-		}
-		for (Object channelIndicator : channelIndicators) {
-			if (channelIndicator == null) {
-				continue;
-			}
-			else if (channelIndicator instanceof MessageChannel) {
-				channels.add((MessageChannel) channelIndicator);
-			}
-			else if (channelIndicator instanceof MessageChannel[]) {
-				channels.addAll(Arrays.asList((MessageChannel[]) channelIndicator));
-			}
-			else if (channelIndicator instanceof String) {
-				addChannelFromString(channels, (String) channelIndicator, message);
-			}
-			else if (channelIndicator instanceof String[]) {
-				for (String indicatorName : (String[]) channelIndicator) {
-					addChannelFromString(channels, indicatorName, message);
-				}
-			}
-			else if (channelIndicator instanceof Collection) {
-				addToCollection(channels, (Collection<?>) channelIndicator, message);
-			}
-			else if (this.getRequiredConversionService().canConvert(channelIndicator.getClass(), String.class)) {
-				addChannelFromString(channels,
-						this.getConversionService().convert(channelIndicator, String.class), message);
-			}
-			else {
-				throw new MessagingException(
-						"unsupported return type for router [" + channelIndicator.getClass() + "]");
-			}
-		}
-	}
-	
-	
-	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
-		this.afterPropertiesSet();
-		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
-		Collection<Object> channelsReturned = this.getChannelIndicatorList(message);
-		addToCollection(channels, channelsReturned, message);
-		return channels;
-	}
-	
-	protected ConversionService getRequiredConversionService() {
-		if (this.getConversionService() == null) {
-			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
-		}
-		return this.getConversionService();
-	}
-	
-	public Map<String, String> getChannelIdentifierMap() {
-		return channelIdentifierMap;
-	}
-
+	/**
+	 * Allows you to set the map which will map channel identifiers to channel names.
+	 * Channel names will be resolve via {@link ChannelResolver}
+	 * @param channelIdentifierMap
+	 */
 	public void setChannelIdentifierMap(Map<String, String> channelIdentifierMap) {
-		this.channelIdentifierMap = channelIdentifierMap;
+		this.channelIdentifierMap.clear();
+		this.channelIdentifierMap.putAll(channelIdentifierMap);
 	}
 	
-	public synchronized void setChannelMapping(String channelIdentifier, String channelName){
-		if (channelIdentifierMap == null){
-			channelIdentifierMap = new ConcurrentHashMap<String, String>();
-		}
+	public void setChannelMapping(String channelIdentifier, String channelName){
 		this.channelIdentifierMap.put(channelIdentifier, channelName);
 	}
-	
-	public synchronized void removeChannelMapping(String channelIdentifier){
+	/**
+	 * Removes channel mapping for a give channel identifier
+	 * @param channelIdentifier
+	 */
+	public void removeChannelMapping(String channelIdentifier){
 		this.channelIdentifierMap.remove(channelIdentifier);
 	}
-	/**
-	 * Subclasses must implement this method to return the channel indicators.
-	 */
-	protected abstract List<Object> getChannelIndicatorList(Message<?> message);
 
 	/**
 	 * Set the default channel where Messages should be sent if channel resolution fails to return any channels. If no
@@ -287,6 +175,33 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 	protected MessagingTemplate getMessagingTemplate() {
 		return this.messagingTemplate;
 	}
+	
+	@Override
+	public void onInit() {
+		BeanFactory beanFactory = this.getBeanFactory();
+		if (this.channelResolver == null && beanFactory != null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
+	}
+	
+	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+		this.afterPropertiesSet();
+		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
+		Collection<Object> channelsReturned = this.getChannelIndicatorList(message);
+		addToCollection(channels, channelsReturned, message);
+		return channels;
+	}
+	
+	protected ConversionService getRequiredConversionService() {
+		if (this.getConversionService() == null) {
+			this.setConversionService(ConversionServiceFactory.createDefaultConversionService());
+		}
+		return this.getConversionService();
+	}
+	/**
+	 * Subclasses must implement this method to return the channel indicators.
+	 */
+	protected abstract List<Object> getChannelIndicatorList(Message<?> message);
 
 	@Override
 	protected void handleMessageInternal(Message<?> message) {
@@ -321,6 +236,92 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			else if (this.resolutionRequired) {
 				throw new MessageDeliveryException(message,
 						"no channel resolved by router and no default output channel defined");
+			}
+		}
+	}
+
+	private MessageChannel resolveChannelForName(String channelName, Message<?> message) {
+		Assert.state(this.channelResolver != null,
+				"unable to resolve channel names, no ChannelResolver available");
+		MessageChannel channel = null;
+		try {
+			channel = this.channelResolver.resolveChannelName(channelName);
+		}
+		catch (ChannelResolutionException e) {
+			if (!this.ignoreChannelNameResolutionFailures) {
+				throw new MessagingException(message,
+						"failed to resolve channel name '" + channelName + "'", e);
+			}
+		}
+		if (channel == null && !this.ignoreChannelNameResolutionFailures) {
+			throw new MessagingException(message,
+					"failed to resolve channel name '" + channelName + "'");
+		}
+		return channel;
+	}
+	
+	private void addChannelFromString(Collection<MessageChannel> channels, String channelIdentifier, Message<?> message) {
+		if (channelIdentifier.indexOf(',') != -1) {
+			for (String name : StringUtils.commaDelimitedListToStringArray(channelIdentifier)) {
+				addChannelFromString(channels, name, message);
+			}
+			return;
+		}
+		if (this.prefix != null) {
+			channelIdentifier = this.prefix + channelIdentifier;
+		}
+		if (this.suffix != null) {
+			channelIdentifier = channelIdentifier + suffix;
+		}
+		/*
+		 * Some routers due to their complex nature will already resolve 'channelIdentifier'
+		 * to 'channelName' (e.g., PTR, EMETR)
+		 */
+		String channelName = channelIdentifier;
+		if (!CollectionUtils.isEmpty(channelIdentifierMap) && channelIdentifierMap.containsKey(channelIdentifier)){
+			channelName = channelIdentifierMap.get(channelIdentifier);
+		}
+
+		if (this.channelResolver != null){
+			MessageChannel channel = resolveChannelForName(channelName, message);
+			if (channel != null) {
+				channels.add(channel);
+			}
+		}
+	}
+	
+	private void addToCollection(Collection<MessageChannel> channels, Collection<?> channelIndicators, Message<?> message) {
+		if (channelIndicators == null) {
+			return;
+		}
+		for (Object channelIndicator : channelIndicators) {
+			if (channelIndicator == null) {
+				continue;
+			}
+			else if (channelIndicator instanceof MessageChannel) {
+				channels.add((MessageChannel) channelIndicator);
+			}
+			else if (channelIndicator instanceof MessageChannel[]) {
+				channels.addAll(Arrays.asList((MessageChannel[]) channelIndicator));
+			}
+			else if (channelIndicator instanceof String) {
+				addChannelFromString(channels, (String) channelIndicator, message);
+			}
+			else if (channelIndicator instanceof String[]) {
+				for (String indicatorName : (String[]) channelIndicator) {
+					addChannelFromString(channels, indicatorName, message);
+				}
+			}
+			else if (channelIndicator instanceof Collection) {
+				addToCollection(channels, (Collection<?>) channelIndicator, message);
+			}
+			else if (this.getRequiredConversionService().canConvert(channelIndicator.getClass(), String.class)) {
+				addChannelFromString(channels,
+						this.getConversionService().convert(channelIndicator, String.class), message);
+			}
+			else {
+				throw new MessagingException(
+						"unsupported return type for router [" + channelIndicator.getClass() + "]");
 			}
 		}
 	}

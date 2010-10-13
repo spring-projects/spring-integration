@@ -24,6 +24,7 @@ import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,13 +35,22 @@ import org.springframework.util.StringUtils;
  * @author Oleg Zhurakousky
  */
 public class PayloadTypeRouter extends AbstractMessageRouter {
-
+	/**
+	 * Will select the most appropriate channel name matching channel identifiers 
+	 * which are fully qualifies class name to type available while traversing payload type.
+	 * To resolve ties and conflicts (e.g., Serializable and String) it will match:
+	 * 1. Type name to channel identifier else...
+	 * 2. Name of the subclass of the type to channel identifier elc...
+	 * 3. Name of the Interface of the type to channel identifier while also
+	 *    preferring direct interface over in-direct subclass
+	 * 
+	 */
 	@Override
 	protected List<Object> getChannelIndicatorList(Message<?> message) {
 		Class<?> firstInterfaceMatch = null;
 		Class<?> type = message.getPayload().getClass();
 		
-		while (type != null && channelIdentifierMap != null) {
+		while (type != null && !CollectionUtils.isEmpty(channelIdentifierMap)) {
 			Class<?>[] interfaces = type.getInterfaces();
 			// first try to find a match amongst the interfaces and also check if there is more then one
 			for (Class<?> interfase : interfaces) {
