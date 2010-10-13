@@ -151,7 +151,7 @@ public class RouterTests {
 				return "notImportant";
 			}
 		};
-		router.setChannelResolver(new BeanFactoryChannelResolver(mock(BeanFactory.class)));
+		router.setBeanFactory(mock(BeanFactory.class));
 		router.handleMessage(new GenericMessage<String>("this should fail"));
 	}
 
@@ -163,7 +163,7 @@ public class RouterTests {
 				return CollectionUtils.arrayToList(new String[] { "notImportant" });
 			}
 		};
-		router.setChannelResolver(new BeanFactoryChannelResolver(mock(BeanFactory.class)));
+		router.setBeanFactory(mock(BeanFactory.class));
 		router.handleMessage(new GenericMessage<String>("this should fail"));
 	}
 

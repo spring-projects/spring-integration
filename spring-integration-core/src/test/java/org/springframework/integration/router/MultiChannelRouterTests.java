@@ -84,7 +84,7 @@ public class MultiChannelRouterTests {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"});
 			}
 		};
-		router.setChannelResolver(new BeanFactoryChannelResolver(mock(BeanFactory.class)));
+		router.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}

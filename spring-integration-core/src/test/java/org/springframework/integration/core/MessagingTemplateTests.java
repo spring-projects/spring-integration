@@ -307,14 +307,12 @@ public class MessagingTemplateTests {
 	@Test
 	public void sendByChannelNameWithCustomChannelResolver() {
 		QueueChannel testChannel = new QueueChannel();
-//		Map<String, MessageChannel> channelMap = new HashMap<String, MessageChannel>();
-//		channelMap.put("testChannel", testChannel);
+
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", testChannel);
-		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(beanFactory);
-//		MapBasedChannelResolver channelResolver = new MapBasedChannelResolver(channelMap);
+		
 		MessagingTemplate template = new MessagingTemplate();
-		template.setChannelResolver(channelResolver);
+		template.setBeanFactory(beanFactory);
 		template.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		template.send("testChannel", message);
@@ -360,7 +358,7 @@ public class MessagingTemplateTests {
 		beanFactory.registerSingleton("testChannel", testChannel);
 
 		MessagingTemplate template = new MessagingTemplate();
-		template.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		template.setBeanFactory(beanFactory);
 		template.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		testChannel.send(message);

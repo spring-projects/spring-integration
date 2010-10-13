@@ -41,8 +41,6 @@ public abstract class AbstractChannelNameResolvingRouterParser extends AbstractR
 			// check if mapping is provided otherwise returned values will be treated as channel names
 			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
 			if (childElements != null && childElements.size() > 0) {
-				BeanDefinitionBuilder channelResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-						IntegrationNamespaceUtils.BASE_PACKAGE + ".support.channel.BeanFactoryChannelResolver");
 				ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
 				for (Element childElement : childElements) {
 					String beanClassName = beanDefinition.getBeanClassName();
@@ -59,7 +57,6 @@ public abstract class AbstractChannelNameResolvingRouterParser extends AbstractR
 					channelMap.put(key, childElement.getAttribute("channel"));
 				}
 				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);
-				beanDefinition.getPropertyValues().add("channelResolver", channelResolverBuilder.getBeanDefinition());
 			}
 		}
 		return beanDefinition;

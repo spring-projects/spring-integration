@@ -75,7 +75,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
 		
-		router.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		router.setBeanFactory(beanFactory);
 
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
@@ -97,7 +97,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "runtimeExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
-		router.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		router.setBeanFactory(beanFactory);
 
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
@@ -118,7 +118,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
-		router.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
@@ -154,7 +154,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		Map<String, String> exceptionTypeChannelMap = new HashMap<String, String>();
 		exceptionTypeChannelMap.put(MessageDeliveryException.class.getName(), "messageDeliveryExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
-		router.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		router.setBeanFactory(beanFactory);
 		router.setResolutionRequired(true);
 		router.handleMessage(message);
 	}
@@ -172,7 +172,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(RuntimeException.class.getName(), "runtimeExceptionChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
-		router.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
@@ -193,7 +193,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(IllegalArgumentException.class.getName(), "illegalArgumentChannel");
 		exceptionTypeChannelMap.put(MessageHandlingException.class.getName(), "messageHandlingExceptionChannel");
 		router.setChannelIdentifierMap(exceptionTypeChannelMap);
-		router.setChannelResolver(new BeanFactoryChannelResolver(beanFactory));
+		router.setBeanFactory(beanFactory);
 		router.setDefaultOutputChannel(defaultChannel);
 		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
