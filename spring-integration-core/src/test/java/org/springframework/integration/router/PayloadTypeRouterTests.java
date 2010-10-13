@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -31,7 +32,6 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 
 /**
  * @author Mark Fisher
@@ -57,11 +57,32 @@ public class PayloadTypeRouterTests {
 		
 		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
+		assertEquals(1, router.determineTargetChannels(message1).size());
 		MessageChannel result1 = router.determineTargetChannels(message1).iterator().next();
+		assertEquals(1, router.determineTargetChannels(message2).size());
 		MessageChannel result2 = router.determineTargetChannels(message2).iterator().next();
 		
 		assertEquals(stringChannel, result1);
 		assertEquals(integerChannel, result2);
+		// validate dynamics
+		QueueChannel newChannel = new QueueChannel();
+		beanFactory.registerSingleton("newChannel", newChannel);
+		router.setChannelMapping(String.class.getName(), "newChannel");
+		assertEquals(1, router.determineTargetChannels(message1).size());
+		result1 = router.determineTargetChannels(message1).iterator().next();
+		assertEquals(newChannel, result1);
+		// validate nothing happens if mappings were removed and resolutionRequires = false
+		router.removeChannelMapping(String.class.getName());
+		router.removeChannelMapping(Integer.class.getName());
+		router.handleMessage(message1);
+		// validate exception is thrown if mappings were removed and resolutionRequires = true
+		router.setResolutionRequired(true);
+		try {
+			router.handleMessage(message1);
+			fail();
+		} catch (Exception e) {
+			// ignore
+		}
 	}
 
 	@Test
@@ -86,6 +107,15 @@ public class PayloadTypeRouterTests {
 		assertNotNull(result);
 		assertEquals(99, result.getPayload());
 		assertNull(defaultChannel.receive(0));
+		
+		// validate dynamics
+		QueueChannel newChannel = new QueueChannel();
+		beanFactory.registerSingleton("newChannel", newChannel);
+		router.setChannelMapping(Integer.class.getName(), "newChannel");
+		assertEquals(1, router.determineTargetChannels(message).size());
+		router.handleMessage(message);
+		result = newChannel.receive(10);
+		assertNotNull(result);
 	}
 
 	@Test
@@ -177,6 +207,15 @@ public class PayloadTypeRouterTests {
 		assertEquals(99, result.getPayload());
 		assertNull(numberChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
+		
+		// validate dynamics
+		QueueChannel newChannel = new QueueChannel();
+		beanFactory.registerSingleton("newChannel", newChannel);
+		router.setChannelMapping(Integer.class.getName(), "newChannel");
+		assertEquals(1, router.determineTargetChannels(message).size());
+		router.handleMessage(message);
+		result = newChannel.receive(10);
+		assertNotNull(result);
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -305,5 +344,4 @@ public class PayloadTypeRouterTests {
 		assertNotNull(result2);
 		assertEquals(123, result2.getPayload());
 	}
-
 }

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
@@ -25,10 +26,12 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.Message;
+import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.support.channel.ChannelResolver;
 
 /**
  * @author Mark Fisher
@@ -61,12 +64,27 @@ public class HeaderValueRouterTests {
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
+		context.registerBeanDefinition("newChannel", new RootBeanDefinition(QueueChannel.class));
 		context.refresh();
 		MessageHandler handler = (MessageHandler) context.getBean("router");
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeaderName", "testChannel").build();
 		handler.handleMessage(message);
 		QueueChannel channel = (QueueChannel) context.getBean("testChannel");
 		Message<?> result = channel.receive(1000);
+		assertNotNull(result);
+		assertSame(message, result);
+		
+		// validate dynamics  
+		HeaderValueRouter router = (HeaderValueRouter) context.getBean("router");
+		router.setChannelMapping("testChannel", "newChannel");
+		router.handleMessage(message);
+		QueueChannel newChannel = (QueueChannel) context.getBean("newChannel");
+		result = newChannel.receive(10);
+		assertNotNull(result);
+		
+		router.removeChannelMapping("testChannel");
+		router.handleMessage(message);
+		result = channel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
 	}
@@ -77,14 +95,11 @@ public class HeaderValueRouterTests {
 		StaticApplicationContext context = new StaticApplicationContext();
 		ManagedMap channelMap = new ManagedMap();
 		channelMap.put("testKey", "testChannel");
-		RootBeanDefinition channelResolverBeanDefinition = new RootBeanDefinition(BeanFactoryChannelResolver.class);
-		channelResolverBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue(context);
 		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
 		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
 		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
-		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new RuntimeBeanReference("resolver"));
-		context.registerBeanDefinition("resolver", channelResolverBeanDefinition);
+		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
 		context.registerBeanDefinition("router", routerBeanDefinition);
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
 		context.refresh();
@@ -92,6 +107,34 @@ public class HeaderValueRouterTests {
 		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeaderName", "testKey").build();
 		handler.handleMessage(message);
 		QueueChannel channel = (QueueChannel) context.getBean("testChannel");
+		Message<?> result = channel.receive(1000);
+		assertNotNull(result);
+		assertSame(message, result);
+	}
+	@Test
+	@SuppressWarnings("unchecked")
+	public void resolveChannelNameFromMapAndCustomeResolver() {
+		final StaticApplicationContext context = new StaticApplicationContext();
+		ManagedMap channelMap = new ManagedMap();
+		channelMap.put("testKey", "testChannel");
+		RootBeanDefinition routerBeanDefinition = new RootBeanDefinition(HeaderValueRouter.class);
+		routerBeanDefinition.getConstructorArgumentValues().addGenericArgumentValue("testHeaderName");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("resolutionRequired", "true");
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelIdentifierMap", channelMap);
+		routerBeanDefinition.getPropertyValues().addPropertyValue("beanFactory", context);
+		routerBeanDefinition.getPropertyValues().addPropertyValue("channelResolver", new ChannelResolver() {
+			public MessageChannel resolveChannelName(String channelName) {
+				return context.getBean("anotherChannel", MessageChannel.class);
+			}
+		});
+		context.registerBeanDefinition("router", routerBeanDefinition);
+		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
+		context.registerBeanDefinition("anotherChannel", new RootBeanDefinition(QueueChannel.class));
+		context.refresh();
+		MessageHandler handler = (MessageHandler) context.getBean("router");
+		Message<?> message = MessageBuilder.withPayload("test").setHeader("testHeaderName", "testKey").build();
+		handler.handleMessage(message);
+		QueueChannel channel = (QueueChannel) context.getBean("anotherChannel");
 		Message<?> result = channel.receive(1000);
 		assertNotNull(result);
 		assertSame(message, result);
@@ -145,4 +188,5 @@ public class HeaderValueRouterTests {
 		assertSame(message, result2);
 	}
 
+	
 }

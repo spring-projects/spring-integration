@@ -47,6 +47,7 @@ import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.support.channel.ChannelResolutionException;
+import org.springframework.integration.support.channel.ChannelResolver;
 import org.springframework.integration.support.converter.SimpleMessageConverter;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.test.util.TestUtils.TestApplicationContext;
@@ -307,16 +308,27 @@ public class MessagingTemplateTests {
 	@Test
 	public void sendByChannelNameWithCustomChannelResolver() {
 		QueueChannel testChannel = new QueueChannel();
+		final QueueChannel anotherChannel = new QueueChannel();
 
 		DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
 		beanFactory.registerSingleton("testChannel", testChannel);
 		
 		MessagingTemplate template = new MessagingTemplate();
 		template.setBeanFactory(beanFactory);
+	
 		template.afterPropertiesSet();
 		Message<?> message = MessageBuilder.withPayload("test").build();
 		template.send("testChannel", message);
 		assertEquals(message, testChannel.receive(0));
+		
+		template.setChannelResolver(new ChannelResolver() {	
+			public MessageChannel resolveChannelName(String channelName) {
+				return anotherChannel;
+			}
+		});
+		message = MessageBuilder.withPayload("test").build();
+		template.send("testChannel", message);
+		assertEquals(message, anotherChannel.receive(0));
 	}
 
 	@Test(expected = IllegalStateException.class)

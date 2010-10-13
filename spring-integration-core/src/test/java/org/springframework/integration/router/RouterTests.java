@@ -20,25 +20,22 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
-import org.springframework.integration.MessageChannel;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.CollectionUtils;
 
 /**
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
 public class RouterTests {
 
@@ -48,8 +45,7 @@ public class RouterTests {
 			@Override
 			protected List<Object> getChannelIndicatorList(Message<?> message) {
 				return null;
-			}
-			
+			}		
 		};
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);

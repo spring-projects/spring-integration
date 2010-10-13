@@ -19,8 +19,11 @@ package org.springframework.integration.router;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -37,7 +40,7 @@ public class PayloadTypeRouter extends AbstractMessageRouter {
 		Class<?> firstInterfaceMatch = null;
 		Class<?> type = message.getPayload().getClass();
 		
-		while (type != null) {
+		while (type != null && channelIdentifierMap != null) {
 			Class<?>[] interfaces = type.getInterfaces();
 			// first try to find a match amongst the interfaces and also check if there is more then one
 			for (Class<?> interfase : interfaces) {

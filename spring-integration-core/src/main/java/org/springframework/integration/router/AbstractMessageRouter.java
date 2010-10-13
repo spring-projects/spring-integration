@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.convert.ConversionService;
@@ -215,11 +216,14 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 		this.channelIdentifierMap = channelIdentifierMap;
 	}
 	
-	public void setChannelMapping(String channelIdentifier, String channelName){
+	public synchronized void setChannelMapping(String channelIdentifier, String channelName){
+		if (channelIdentifierMap == null){
+			channelIdentifierMap = new ConcurrentHashMap<String, String>();
+		}
 		this.channelIdentifierMap.put(channelIdentifier, channelName);
 	}
 	
-	public void removeChannelMapping(String channelIdentifier){
+	public synchronized void removeChannelMapping(String channelIdentifier){
 		this.channelIdentifierMap.remove(channelIdentifier);
 	}
 	/**
@@ -320,10 +324,4 @@ public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 			}
 		}
 	}
-
-//	/**
-//	 * Subclasses must implement this method to return the target channels for a given Message.
-//	 */
-//	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
-
 }
