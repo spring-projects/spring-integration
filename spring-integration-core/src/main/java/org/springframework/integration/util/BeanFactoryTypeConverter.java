@@ -16,6 +16,7 @@
 package org.springframework.integration.util;
 
 import java.beans.PropertyEditor;
+import java.util.Collection;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.SimpleTypeConverter;
@@ -27,6 +28,7 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.ConversionServiceFactory;
 import org.springframework.expression.TypeConverter;
+import org.springframework.util.CollectionUtils;
 /**
  * 
  * @author Dave Syer
@@ -95,13 +97,15 @@ public class BeanFactoryTypeConverter implements TypeConverter, BeanFactoryAware
 		if (targetType.getType() == Void.class || targetType.getType() == Void.TYPE) {
 			return null;
 		}
-		try {
-			return conversionService.convert(value, sourceType, targetType);
-		} catch (ConversionFailedException e) {
-			throw e;		
-		} catch (Exception ex){
-			// ignore because we have a fallback strategy, see SPR-7548 for more details
+		if (value instanceof Collection<?> 
+				&& CollectionUtils.isEmpty((Collection<?>) value) 
+				&& Collection.class.isAssignableFrom(targetType.getObjectType())){
+			return value;
 		}
+		if (conversionService.canConvert(sourceType, targetType)) {
+			return conversionService.convert(value, sourceType, targetType);
+		}
+		
 		if (!String.class.isAssignableFrom(sourceType.getType())) {
 			PropertyEditor editor = delegate.findCustomEditor(sourceType.getType(), null);
 			if (editor != null){ // INT-1441
