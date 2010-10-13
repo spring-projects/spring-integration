@@ -176,6 +176,14 @@ public class HeaderEnricher implements Transformer {
 		private final ExpressionEvaluatingMessageProcessor<T> targetProcessor;
 
 		/**
+		 * Create a header value processor for the given Expression and the expected type
+		 * of the expression evaluation result. The expectedType may be null if unknown.
+		 */
+		public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, Class<T> expectedType) {
+			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
+		}
+
+		/**
 		 * Create a header value processor for the given expression string and the expected type
 		 * of the expression evaluation result. The expectedType may be null if unknown.
 		 */

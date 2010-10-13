@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Base support class for 'header-enricher' parsers.
@@ -110,12 +111,17 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 				if (headerName != null) {
 					String value = headerElement.getAttribute("value");
 					String ref = headerElement.getAttribute("ref");
-					String expression = headerElement.getAttribute("expression");
 					String method = headerElement.getAttribute("method");
+					String expression = headerElement.getAttribute("expression");
+					Element expressionElement = DomUtils.getChildElementByTagName(headerElement, "expression");
+					if (StringUtils.hasText(expression) && expressionElement != null) {
+						parserContext.getReaderContext().error("The 'expression' attribute and sub-element are mutually exclusive", element);
+						return;
+					}
 					boolean isValue = StringUtils.hasText(value);
 					boolean isRef = StringUtils.hasText(ref);
-					boolean isExpression = StringUtils.hasText(expression);
 					boolean hasMethod = StringUtils.hasText(method);
+					boolean isExpression = StringUtils.hasText(expression) || expressionElement != null;
 					if (!(isValue ^ (isRef ^ isExpression))) {
 						parserContext.getReaderContext().error(
 								"Exactly one of the 'ref', 'value', or 'expression' attributes is required.", element);
@@ -139,7 +145,16 @@ public abstract class HeaderEnricherParserSupport extends AbstractTransformerPar
 						}
 						valueProcessorBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 								IntegrationNamespaceUtils.BASE_PACKAGE + ".transformer.HeaderEnricher$ExpressionEvaluatingHeaderValueMessageProcessor");
-						valueProcessorBuilder.addConstructorArgValue(expression);
+						if (expressionElement != null) {
+							BeanDefinitionBuilder dynamicExpressionBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+									"org.springframework.integration.expression.DynamicExpression");
+							dynamicExpressionBuilder.addConstructorArgValue(expressionElement.getAttribute("key"));
+							dynamicExpressionBuilder.addConstructorArgReference(expressionElement.getAttribute("source"));
+							valueProcessorBuilder.addConstructorArgValue(dynamicExpressionBuilder.getBeanDefinition());
+						}
+						else {
+							valueProcessorBuilder.addConstructorArgValue(expression);
+						}
 						valueProcessorBuilder.addConstructorArgValue(headerType);
 					}
 					else {
