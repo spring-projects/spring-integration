@@ -32,37 +32,37 @@ public interface MessageHandlerMetrics {
 	/**
 	 * @return the number of successful handler calls
 	 */
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count", description = "rate=1h")
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count")
 	int getHandleCount();
 
 	/**
 	 * @return the number of failed handler calls
 	 */
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count", description = "rate=1h")
+	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count")
 	int getErrorCount();
 
 	/**
 	 * @return the maximum handler duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration (ms)")
 	double getMeanDuration();
 
 	/**
 	 * @return the minimum handler duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Min Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Min Duration (ms)")
 	double getMinDuration();
 
 	/**
 	 * @return the standard deviation handler duration (milliseconds)
 	 */
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration (ms)")
 	double getMaxDuration();
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration (ms)")
 	double getStandardDeviationDuration();
 	
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Status")
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Count")
 	int getActiveCount();
 	
 	/**

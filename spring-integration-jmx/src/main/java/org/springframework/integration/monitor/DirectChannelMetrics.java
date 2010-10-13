@@ -20,10 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.jmx.export.annotation.ManagedMetric;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.jmx.support.MetricType;
 import org.springframework.util.StopWatch;
 
 /**
@@ -110,7 +107,7 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 			timer.stop();
 			if ((Boolean)result) {
 				sendSuccessRatio.success();
-				sendDuration.append(timer.getTotalTimeSeconds());
+				sendDuration.append(timer.getTotalTimeMillis());
 			} else {
 				sendSuccessRatio.failure();
 				sendErrorCount.incrementAndGet();
@@ -132,7 +129,6 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		}
 	}
 	
-	@ManagedOperation
 	public synchronized void reset() {
 		sendDuration.reset();
 		sendErrorRate.reset();
@@ -142,52 +138,42 @@ public class DirectChannelMetrics implements MethodInterceptor, MessageChannelMe
 		sendErrorCount.set(0);
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Sends")
 	public int getSendCount() {
 		return sendCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Send Errors")
 	public int getSendErrorCount() {
 		return sendErrorCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Time Since Last Send in Seconds")
 	public double getTimeSinceLastSend() {
 		return sendRate.getTimeSinceLastMeasurement();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Rate per Second")
 	public double getMeanSendRate() {
 		return sendRate.getMean();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Error Rate per Second")
 	public double getMeanErrorRate() {
 		return sendErrorRate.getMean();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Mean Channel Error Ratio per Minute")
 	public double getMeanErrorRatio() {
 		return 1 - sendSuccessRatio.getMean();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Mean Duration")
 	public double getMeanSendDuration() {
 		return sendDuration.getMean();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Min Duration")
 	public double getMinSendDuration() {
 		return sendDuration.getMin();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Max Duration")
 	public double getMaxSendDuration() {
 		return sendDuration.getMax();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Channel Send Standard Deviation Duration")
 	public double getStandardDeviationSendDuration() {
 		return sendDuration.getStandardDeviation();
 	}

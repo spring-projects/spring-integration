@@ -26,10 +26,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageHandler;
-import org.springframework.jmx.export.annotation.ManagedMetric;
-import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.jmx.support.MetricType;
 import org.springframework.util.StopWatch;
 
 /**
@@ -114,7 +111,7 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 			handler.handleMessage(message);
 
 			timer.stop();
-			duration.append(timer.getTotalTimeSeconds());
+			duration.append(timer.getTotalTimeMillis());
 		} catch (RuntimeException e) {
 			errorCount.incrementAndGet();
 			throw e;
@@ -126,14 +123,12 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		}
 	}
 
-	@ManagedOperation
 	public synchronized void reset() {
 		duration.reset();
 		errorCount.set(0);
 		handleCount.set(0);
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Execution Count", description = "rate=1h")
 	public int getHandleCount() {
 		if (logger.isTraceEnabled()) {
 			logger.trace("Getting Handle Count:" + this);
@@ -141,32 +136,26 @@ public class SimpleMessageHandlerMetrics implements MethodInterceptor, MessageHa
 		return handleCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "Handler Error Count", description = "rate=1h")
 	public int getErrorCount() {
 		return errorCount.get();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Mean Duration")
 	public double getMeanDuration() {
 		return duration.getMean();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Min Duration")
 	public double getMinDuration() {
 		return duration.getMin();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Max Duration")
 	public double getMaxDuration() {
 		return duration.getMax();
 	}
 
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Standard Deviation Duration")
 	public double getStandardDeviationDuration() {
 		return duration.getStandardDeviation();
 	}
 	
-	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Handler Active Count")
 	public int getActiveCount() {
 		return activeCount.get();
 	}
