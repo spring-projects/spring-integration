@@ -33,8 +33,8 @@ public class PayloadTypeRouterParser extends AbstractChannelNameResolvingRouterP
 	@Override
 	protected BeanDefinition doParseRouter(Element element,
 			ParserContext parserContext) {
-		BeanDefinitionBuilder headerValueRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+		BeanDefinitionBuilder payloadTypeRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
-		return headerValueRouterBuilder.getBeanDefinition();
+		return payloadTypeRouterBuilder.getBeanDefinition();
 	}
 }
