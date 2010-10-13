@@ -168,5 +168,81 @@ For a more detailed example, please refer to the <emphasis>async-gateway</emphas
     </para>
     
   </section>
+  <section>
+  	<title>Gateway behavior when no response is coming</title>
+  	<para>
+  	As it was explained earlier, Gateway provides a convenient way of interacting with Messaging system via POJO method 
+  	invocations, but realizing that a typical method invocation, which is generally expected to always return (even with Exception), 
+  	might not always map one-to-one to message exchanges (e.g., reply message might not be coming which is equivalent to 
+  	method not returning), it is important to go over several scenarios especially in the Sync Gateway case and understand 
+  	what the default behavior of the Gateway and how to deal with these scenarios to make Sync Gateway behavior more 
+  	predictable regardless of the outcome of the message flow that was initialed from such Gateway.
+  	</para>
+  	<para>
+  	There are certain attributes that could be configured to make Sync Gateway behavior more predictable, 
+  	but some of them might not always work as you might have expected. One of them is <emphasis>reply-timeout</emphasis>.
+  	So, lets look at the <emphasis>reply-timeout</emphasis> attribute and see how it can/can't influence the behavior 
+  	of the Sync Gateway in various scenarios. We will look at single-theraded scenario 
+  	(all components downstream are connected via Direct Channel) and multi-theraded scenarios 
+  	(e.g., somewhere downstream you may have Pollable or Executor Channel which breaks single-thread boundary)
+  	</para>
+  	<para>
+  	<emphasis>Long running process downstream</emphasis>
+  	</para>
+  	<para>
+  	<emphasis>Sync Gateway - single-threaded</emphasis>. 
+	If a component downstream is still running (e.g., infinite loop or a very slow service), then setting <emphasis>reply-timeout</emphasis> 
+	has no effect and Gateway method call will not return until such downstream service exits (e.g., return or exception).
+  	<emphasis>Sync Gateway - multi-threaded</emphasis>.
+	If a component downstream is still running (e.g., infinite loop or a very slow service), in a multi-threaded message
+	flow setting <emphasis>reply-timeout</emphasis> will have an effect by allowing gateway method invocation to 
+	return once the timeout has been reached, since <classname>GatewayProxyFactoryBean</classname>  will simply 
+	poll on the reply channel waiting for a message untill the timeout expires. However it could result in the 'null' return 
+	from the Gateway method if the timeout has been reached before the actual reply was produced. It is also important to understand that 
+	the reply message (if produced) will be sent to a reply channel after Gateway method invocation might have returned, so you must be aware of that
+	and design your flow with this in mind.
+  	</para>
+  	<para>
+  	<emphasis>Downstream component returns 'null'</emphasis>
+  	</para>
+  	<para>
+  	<emphasis>Sync Gateway - single-threaded</emphasis>.
+	If a component downstream returns 'null' and no <emphasis>reply-timeout</emphasis> has been configured, the Gateway 
+	method call will hang indefinitely unless: a) <emphasis>reply-timeout</emphasis> has been configured or b) 
+	<emphasis>requires-reply</emphasis> attribute has been set on the downstream component (e.g., service-activator) 
+	that might return 'null'. In this case, the exception will be thrown and propagated to the Gateway.
+	<emphasis>Sync Gateway - multi-threaded</emphasis>. Behavior is the same as above.
+  	</para>
+  	<para>
+  	<emphasis>Downstream component return signature is 'void' while Gateway method signature is non-void</emphasis>
+  	</para>
+  	<para>
+  	<emphasis>Sync Gateway - single-threaded</emphasis>.
+	If a component downstream returns 'void' and no <emphasis>reply-timeout</emphasis> has been configured, 
+	the Gateway method call will hang indefinitely unless <emphasis>reply-timeout</emphasis> has been configured 
+	<emphasis>Sync Gateway - multi-threaded</emphasis> Behavior is the same as above.
+  	</para>
+  	<para>
+  	<emphasis>Downstream component results in Runtime Exception (regardless of the method signature)</emphasis>
+  	</para>
+  	<para>
+  	<emphasis>Sync Gateway - single-threaded</emphasis>.
+	If a component downstream throws a Runtime Exception, such exception will be propagated via Error Message back to 
+	the gateway and re-thrown.
+	<emphasis>Sync Gateway - multi-threaded</emphasis> Behavior is the same as above.
+  	</para>
+  	<para>
+  		<important>
+  	It is also important to understand that by default <emphasis>reply-timout</emphasis> is unbounded which means that 
+  	if not explicitly set there are several scenarios (described above) where your Gateway method invocation might 
+  	hang indefinitely, so make sure you analyze your flow and if there is even a remote possibility of one of these 
+  	scenarios to occur in your flow, set the <emphasis>reply-timout</emphasis> to a 'safe' value at least for the sake 
+  	of bringing method invocation to a close. But also, realize that there are some scenarios (see the very first one) 
+  	where <emphasis>reply-timout</emphasis> will not help which means it is also important to analyze your message 
+  	flow and decide when to use Sync Gateway vs Async Gateway where Gateway method invocation is always guaranteed 
+  	to return while giving you a more granular control over the results of the invocation via Java Futures.
+  		</important>
+  	</para>
+  </section>
 
 </chapter>
