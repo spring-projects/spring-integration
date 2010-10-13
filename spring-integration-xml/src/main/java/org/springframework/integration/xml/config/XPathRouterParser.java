@@ -16,16 +16,21 @@
 
 package org.springframework.integration.xml.config;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;xpath-router/&gt; element.
@@ -63,6 +68,19 @@ public class XPathRouterParser extends AbstractConsumerEndpointParser {
 		String classname = "org.springframework.integration.xml.router." +
 				((multiChannel) ? "XPathMultiChannelRouter" : "XPathSingleChannelRouter");
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(classname);
+		
+		
+		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
+		if (childElements != null && childElements.size() > 0) {
+			ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
+			for (Element childElement : childElements) {
+				String key = childElement.getAttribute("value");
+				channelMap.put(key, childElement.getAttribute("channel"));
+			}
+			builder.addPropertyValue("channelIdentifierMap", channelMap);
+		}
+		
+		
 		if (xPathExpressionChildPresent) {
 			BeanDefinition beanDefinition = this.xpathParser.parse(
 					(Element) xPathExpressionNodes.item(0), parserContext);

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xml.config;
 
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.After;
@@ -25,11 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Document;
@@ -194,6 +200,69 @@ public class XPathRouterParserTests {
 		assertEquals("Default output channel not correctly set ", defaultOutput, defaultOutputChannelValue);
 		inputChannel.send(MessageBuilder.withPayload("<unrelated/>").build());
 		assertEquals("Wrong count of messages on default output channel",1, defaultOutput.getQueueSize());
+	}
+	@Test
+	public void testWithDynamicChanges() throws Exception {
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
+		
+		MessageChannel inputChannel = ac.getBean("xpathRouterEmptyChannel", MessageChannel.class);
+		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
+		PollableChannel channelB = ac.getBean("channelB", PollableChannel.class);
+		Document doc = XmlTestUtil.getDocumentForString("<name>channelA</name>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		inputChannel.send(docMessage);
+		assertNotNull(channelA.receive(10));
+		assertNull(channelB.receive(10));
+		
+		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterEmpty", EventDrivenConsumer.class);
+		AbstractMessageRouter xpathRouter = (AbstractMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
+		xpathRouter.setChannelMapping("channelA", "channelB");
+		inputChannel.send(docMessage);
+		assertNotNull(channelB.receive(10));
+		assertNull(channelA.receive(10));
+	}
+	@Test
+	public void testWithDynamicChangesWithExistingMappings() throws Exception {
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
+		
+		MessageChannel inputChannel = ac.getBean("xpathRouterWithMappingChannel", MessageChannel.class);
+		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
+		PollableChannel channelB = ac.getBean("channelB", PollableChannel.class);
+		Document doc = XmlTestUtil.getDocumentForString("<name>channelA</name>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		inputChannel.send(docMessage);
+		assertNull(channelA.receive(10));
+		assertNotNull(channelB.receive(10));
+		
+		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMapping", EventDrivenConsumer.class);
+		AbstractMessageRouter xpathRouter = (AbstractMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
+		xpathRouter.removeChannelMapping("channelA");
+		inputChannel.send(docMessage);
+		assertNotNull(channelA.receive(10));
+		assertNull(channelB.receive(10));
+	}
+	
+	@Test
+	public void testWithDynamicChangesWithExistingMappingsAndMultiChannel() throws Exception {
+		ClassPathXmlApplicationContext ac = new ClassPathXmlApplicationContext("XPathRouterTests-context.xml", this.getClass());
+		
+		MessageChannel inputChannel = ac.getBean("multiChannelRouterChannel", MessageChannel.class);
+		PollableChannel channelA = ac.getBean("channelA", PollableChannel.class);
+		PollableChannel channelB = ac.getBean("channelB", PollableChannel.class);
+		Document doc = XmlTestUtil.getDocumentForString("<root><name>channelA</name><name>channelB</name></root>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		inputChannel.send(docMessage);
+		assertNotNull(channelA.receive(10));
+		assertNotNull(channelA.receive(10));
+		assertNull(channelB.receive(10));
+		
+		EventDrivenConsumer routerEndpoint = ac.getBean("xpathRouterWithMappingMultiChannel", EventDrivenConsumer.class);
+		AbstractMessageRouter xpathRouter = (AbstractMessageRouter) TestUtils.getPropertyValue(routerEndpoint, "handler");
+		xpathRouter.removeChannelMapping("channelA");
+		xpathRouter.removeChannelMapping("channelB");
+		inputChannel.send(docMessage);
+		assertNotNull(channelA.receive(10));
+		assertNotNull(channelB.receive(10));
 	}
 
 }
