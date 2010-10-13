@@ -1388,6 +1388,9 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="referenceHeaderType">
+				<xsd:sequence minOccurs="0" maxOccurs="1">
+					<xsd:element name="expression" type="innerExpressionType"/>
+				</xsd:sequence>
 				<xsd:attribute name="value" type="xsd:string">
 					<xsd:annotation>
 						<xsd:documentation>
