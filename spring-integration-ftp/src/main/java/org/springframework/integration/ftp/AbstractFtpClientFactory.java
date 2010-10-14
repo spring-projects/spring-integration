@@ -13,7 +13,15 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 import java.net.SocketException;
 
-
+/**
+ *
+ * base class for the other {@link org.springframework.integration.ftp.FtpClientFactory} implementations.
+ * Most of this came out of the {@link DefaultFtpClientFactory} and was refactored into a base class
+ *
+ * @author Iwein Fuld
+ *
+ * @param <T>
+ */
 abstract public class AbstractFtpClientFactory<T extends FTPClient> implements FtpClientFactory<T> {
 	private static final Log logger = LogFactory.getLog(FtpClientFactory.class);
 	private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";

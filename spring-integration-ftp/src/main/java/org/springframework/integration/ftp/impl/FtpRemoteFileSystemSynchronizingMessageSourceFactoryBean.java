@@ -21,6 +21,7 @@ import java.io.File;
 /**
  * Factory to make building the namespace easier
  *
+ * @author Iwein Fuld
  * @author Josh Long
  */
 public class FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean extends AbstractFactoryBean<FtpInboundRemoteFileSystemSynchronizingMessageSource> implements ResourceLoaderAware {

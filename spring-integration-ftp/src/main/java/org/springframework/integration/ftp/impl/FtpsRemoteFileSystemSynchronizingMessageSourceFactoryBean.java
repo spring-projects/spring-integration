@@ -30,6 +30,7 @@ import javax.net.ssl.TrustManager;
 /**
  * Factory to make building the namespace easier
  *
+ * @author Iwein Fuld
  * @author Josh Long
  */
 public class FtpsRemoteFileSystemSynchronizingMessageSourceFactoryBean extends FtpRemoteFileSystemSynchronizingMessageSourceFactoryBean {

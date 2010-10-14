@@ -8,6 +8,7 @@ import org.springframework.integration.ftp.FtpClientPool;
 /**
  * a {@link org.springframework.integration.core.MessageSource} implementation for FTP
  *
+ * @author Iwein Fuld
  * @author Josh Long
  */
 public class FtpInboundRemoteFileSystemSynchronizingMessageSource extends AbstractInboundRemoteFileSystemSynchronizingMessageSource<FTPFile, FtpInboundRemoteFileSystemSynchronizer> {

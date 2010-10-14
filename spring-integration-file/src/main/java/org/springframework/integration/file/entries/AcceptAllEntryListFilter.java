@@ -21,6 +21,7 @@ package org.springframework.integration.file.entries;
  * Simple NOOP implementation for {@link org.springframework.integration.file.entries.EntryListFilter} implementation.
  * Suitable as a default in implementations.
  *
+ * @author Iwein Fuld
  * @author Josh Long
  * @param <T>
  */

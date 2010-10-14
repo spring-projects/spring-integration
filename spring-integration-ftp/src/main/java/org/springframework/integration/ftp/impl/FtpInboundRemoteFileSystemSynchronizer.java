@@ -21,6 +21,7 @@ import java.util.Collection;
 /**
  * An FTP-adapter implementation of {@link org.springframework.integration.file.AbstractInboundRemoteFileSystemSychronizer}
  *
+ * @author Iwein Fuld
  * @author Josh Long
  */
 public class FtpInboundRemoteFileSystemSynchronizer extends AbstractInboundRemoteFileSystemSychronizer<FTPFile> {

@@ -23,11 +23,12 @@ import java.util.regex.Pattern;
 
 
 /**
- * <emphasis>experimental</emphasis>
- * <p/>
+ *
+ *
  * Filters a listing of entries (T) by qualifying their 'name' (as determined by {@link org.springframework.integration.file.entries.EntryNamer})
  * against a regular expression (an instance of {@link java.util.regex.Pattern})
  *
+ * @author Iwein Fuld
  * @author Josh Long
  * @param <T>   the type of entry
  */
@@ -59,7 +60,7 @@ public class PatternMatchingEntryListFilter<T> extends AbstractEntryListFilter<T
 			this.pattern = Pattern.compile(this.patternExpression);
 		}
 		Assert.notNull(this.entryNamer, "'entryNamer' must not be null!");
-		Assert.notNull(this.pattern, "'pattern' mustn't be null!");
+		Assert.notNull(this.pattern, "'pattern' must not be null!");
 	}
 
 	@Override

@@ -3,6 +3,12 @@ package org.springframework.integration.ftp;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 
+/**
+ * Sends files to a remote FTPS file system. Based heavily on {@link org.springframework.integration.ftp.FtpSendingMessageHandler}
+ *
+ * @author Josh Long
+ * @author Iwein Fuld
+ */
 public class FtpsSendingMessageHandlerFactoryBean extends FtpSendingMessageHandlerFactoryBean {
 	/**
 	   * Sets whether the connection is implicit. Local testing reveals this to be a good choice.
