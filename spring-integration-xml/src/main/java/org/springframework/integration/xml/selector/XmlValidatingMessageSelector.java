@@ -19,6 +19,7 @@ package org.springframework.integration.xml.selector;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.MessageRejectedException;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.xml.AggregatedXmlMessageValidationException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
@@ -76,7 +77,8 @@ public class XmlValidatingMessageSelector implements MessageSelector {
 		}
 		boolean validationSuccess = ObjectUtils.isEmpty(validationExceptions);
 		if (!validationSuccess && throwExceptionOnRejection){
-			throw new AggregatedXmlMessageValidationException(CollectionUtils.arrayToList(validationExceptions));
+			throw new MessageRejectedException(message, "Message was rejected due to XML Validation errors", 
+					new AggregatedXmlMessageValidationException(CollectionUtils.arrayToList(validationExceptions)));
 		}
 		return validationSuccess;
 	}
