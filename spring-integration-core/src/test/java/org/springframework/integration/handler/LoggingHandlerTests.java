@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
@@ -41,7 +40,6 @@ public class LoggingHandlerTests {
 		TestBean bean = new TestBean("test", 55);
 		input.send(MessageBuilder.withPayload(bean).setHeader("foo", "bar").build());
 	}
-
 
 	public static class TestBean {
 

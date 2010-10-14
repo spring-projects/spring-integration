@@ -31,6 +31,7 @@
 			expected-response-type="java.lang.String"
 			mapped-request-headers="requestHeader1, requestHeader2"
 			mapped-response-headers="responseHeader"
+			error-handler="testErrorHandler"
 			reply-channel="replies"
 			charset="UTF-8"
 			order="77"
@@ -39,6 +40,8 @@
 	</outbound-gateway>
 
 	<beans:bean id="testRequestFactory" class="org.springframework.http.client.SimpleClientHttpRequestFactory"/>
+
+	<beans:bean id="testErrorHandler" class="org.springframework.integration.http.config.HttpOutboundGatewayParserTests$StubErrorHandler"/>
 
 	<util:list id="converterList">
 		<beans:bean class="org.springframework.integration.http.config.StubHttpMessageConverter"/>

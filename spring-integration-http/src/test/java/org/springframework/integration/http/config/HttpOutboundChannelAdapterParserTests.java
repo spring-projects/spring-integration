@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.junit.Test;
@@ -32,12 +33,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.expression.Expression;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.http.HttpRequestExecutingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.ObjectUtils;
+import org.springframework.web.client.ResponseErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -94,6 +97,8 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(converterListBean, templateAccessor.getPropertyValue("messageConverters"));
 		Object requestFactoryBean = this.applicationContext.getBean("testRequestFactory");
 		assertEquals(requestFactoryBean, requestFactory);
+		Object errorHandlerBean = this.applicationContext.getBean("testErrorHandler");
+		assertEquals(errorHandlerBean, templateAccessor.getPropertyValue("errorHandler"));
 		assertEquals("http://localhost/test2/{foo}", handlerAccessor.getPropertyValue("uri"));
 		assertEquals(HttpMethod.GET, handlerAccessor.getPropertyValue("httpMethod"));
 		assertEquals("UTF-8", handlerAccessor.getPropertyValue("charset"));
@@ -109,6 +114,17 @@ public class HttpOutboundChannelAdapterParserTests {
 		assertEquals(0, mappedResponseHeaders.length);
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader1"));
 		assertTrue(ObjectUtils.containsElement(mappedRequestHeaders, "requestHeader2"));
+	}
+
+
+	public static class StubErrorHandler implements ResponseErrorHandler {
+
+		public boolean hasError(ClientHttpResponse response) throws IOException {
+			return false;
+		}
+
+		public void handleError(ClientHttpResponse response) throws IOException {
+		}
 	}
 
 }

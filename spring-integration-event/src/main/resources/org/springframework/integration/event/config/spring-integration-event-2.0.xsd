@@ -47,7 +47,15 @@
 	            types will be sent [OPTIONAL]
             		</xsd:documentation>
                 </xsd:annotation>
-            </xsd:attribute>     
+            </xsd:attribute>
+            <xsd:attribute name="payload-expression">
+            	<xsd:annotation>
+            		<xsd:documentation><![CDATA[
+	SpEL expression to be evaluated against the ApplicationEvent to create the payload instance.
+	If not provided, the ApplicationEvent itself will be used as the payload.
+            		]]></xsd:documentation>
+            	</xsd:annotation>
+            </xsd:attribute>
         </xsd:complexType>
     </xsd:element>
     

@@ -13,7 +13,6 @@
 package org.springframework.integration.monitor;
 
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,8 +21,10 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.aop.Advisor;
 import org.springframework.aop.PointcutAdvisor;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.Advised;
@@ -42,6 +43,7 @@ import org.springframework.integration.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.core.MessageProducer;
+import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.core.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jmx.export.MBeanExporter;
@@ -87,25 +89,27 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	private static final Log logger = LogFactory.getLog(IntegrationMBeanExporter.class);
 
-	public static final String DEFAULT_DOMAIN = "spring.application";
-
-	private Set<String> channelKeys = new HashSet<String>();
-
-	private Set<String> handlerKeys = new HashSet<String>();
+	public static final String DEFAULT_DOMAIN = "org.springframework.integration";
 
 	private final AnnotationJmxAttributeSource attributeSource = new AnnotationJmxAttributeSource();
 
 	private ListableBeanFactory beanFactory;
 
-	private Map<Object, AtomicLong> anonymousCounters = new HashMap<Object, AtomicLong>();
+	private Map<Object, AtomicLong> anonymousHandlerCounters = new HashMap<Object, AtomicLong>();
 
-	private Set<SimpleMessageHandlerMonitor> handlers = new HashSet<SimpleMessageHandlerMonitor>();
+	private Map<Object, AtomicLong> anonymousSourceCounters = new HashMap<Object, AtomicLong>();
 
-	private Set<DirectChannelMonitor> channels = new HashSet<DirectChannelMonitor>();
+	private Set<SimpleMessageHandlerMetrics> handlers = new HashSet<SimpleMessageHandlerMetrics>();
 
-	private Map<String, DirectChannelMonitor> channelsByName = new HashMap<String, DirectChannelMonitor>();
+	private Set<SimpleMessageSourceMetrics> sources = new HashSet<SimpleMessageSourceMetrics>();
 
-	private Map<String, MessageHandlerMonitor> handlersByName = new HashMap<String, MessageHandlerMonitor>();
+	private Set<DirectChannelMetrics> channels = new HashSet<DirectChannelMetrics>();
+
+	private Map<String, DirectChannelMetrics> channelsByName = new HashMap<String, DirectChannelMetrics>();
+
+	private Map<String, MessageHandlerMetrics> handlersByName = new HashMap<String, MessageHandlerMetrics>();
+
+	private Map<String, MessageSourceMetrics> sourcesByName = new HashMap<String, MessageSourceMetrics>();
 
 	private Map<String, String> objectNamesByName = new HashMap<String, String>();
 
@@ -152,7 +156,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	 * 
 	 * @param domain the domain name to set
 	 */
-	public void setDomain(String domain) {
+	public void setDefaultDomain(String domain) {
 		this.domain = domain;
 	}
 
@@ -163,35 +167,55 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageHandler) {
-			SimpleMessageHandlerMonitor monitor = null;
-			if (bean instanceof MessageProducer){ // we need to maintain semantics of the handler also being a producer see INT-1431
-				monitor = new SimpleMessageProducingHandlerMonitor((MessageHandler) bean);
-			} else {
-				monitor = new SimpleMessageHandlerMonitor((MessageHandler) bean);
-			}	
-			handlers.add(monitor);
-			return monitor;
+
+		if (bean instanceof Advised) {
+			for (Advisor advisor : ((Advised) bean).getAdvisors()) {
+				Advice advice = advisor.getAdvice();
+				if (advice instanceof MessageHandlerMetrics || advice instanceof MessageSourceMetrics
+						|| advice instanceof MessageChannelMetrics) {
+					// Already advised - so probably a factory bean product
+					return bean;
+				}
+			}
 		}
+
+		if (bean instanceof MessageHandler) {
+			SimpleMessageHandlerMetrics monitor = null;
+			if (bean instanceof MessageProducer) {
+				// We need to maintain semantics of the handler also being a producer
+				monitor = new SimpleMessageProducingHandlerMetrics((MessageHandler) bean);
+			} else {
+				monitor = new SimpleMessageHandlerMetrics((MessageHandler) bean);
+			}
+			Object advised = applyHandlerInterceptor(bean, monitor, beanClassLoader);
+			handlers.add(monitor);
+			return advised;
+		} else if (bean instanceof MessageSource<?>) {
+			SimpleMessageSourceMetrics monitor = new SimpleMessageSourceMetrics((MessageSource<?>) bean);
+			Object advised = applySourceInterceptor(bean, monitor, beanClassLoader);
+			sources.add(monitor);
+			return advised;
+		}
+
 		if (bean instanceof MessageChannel) {
-			DirectChannelMonitor monitor;
+			DirectChannelMetrics monitor;
 			if (bean instanceof PollableChannel) {
 				Object target = extractTarget(bean);
 				if (target instanceof QueueChannel) {
-					monitor = new QueueChannelMonitor((QueueChannel) target, beanName);
+					monitor = new QueueChannelMetrics((QueueChannel) target, beanName);
+				} else {
+					monitor = new PollableChannelMetrics(beanName);
 				}
-				else {
-					monitor = new PollableChannelMonitor(beanName);
-				}
-			}
-			else {
-				monitor = new DirectChannelMonitor(beanName);
+			} else {
+				monitor = new DirectChannelMetrics(beanName);
 			}
 			Object advised = applyChannelInterceptor(bean, monitor, beanClassLoader);
 			channels.add(monitor);
 			return advised;
 		}
+
 		return bean;
+
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -215,8 +239,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		this.lifecycleLock.lock();
 		try {
 			return this.running;
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -231,8 +254,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("started " + this);
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -247,8 +269,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 					logger.info("stopped " + this);
 				}
 			}
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
@@ -258,50 +279,74 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		try {
 			this.stop();
 			callback.run();
-		}
-		finally {
+		} finally {
 			this.lifecycleLock.unlock();
 		}
 	}
 
 	protected void doStop() {
+		unregisterBeans();
+		channelsByName.clear();
+		handlersByName.clear();
+		sourcesByName.clear();
 	}
 
 	protected void doStart() {
 		registerChannels();
 		registerHandlers();
+		registerSources();
 		logger.info("Summary on start: " + objectNamesByName);
 	}
 
 	@Override
 	public void destroy() {
 		super.destroy();
-		for (MessageChannelMonitor monitor : channels) {
+		for (MessageChannelMetrics monitor : channels) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
-		for (MessageHandlerMonitor monitor : handlers) {
+		for (MessageHandlerMetrics monitor : handlers) {
 			logger.info("Summary on shutdown: " + monitor);
 		}
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageChannel Channel Count")
-	public double getChannelCount() {
-		return channelKeys.size();
+	public int getChannelCount() {
+		return channelsByName.size();
 	}
 
 	@ManagedMetric(metricType = MetricType.COUNTER, displayName = "MessageHandler Handler Count")
-	public double getHandlerCount() {
-		return handlerKeys.size();
+	public int getHandlerCount() {
+		return handlersByName.size();
 	}
 
 	@ManagedAttribute
-	public Collection<String> getHandlerNames() {
-		return handlersByName.keySet();
+	public String[] getHandlerNames() {
+		return handlersByName.keySet().toArray(new String[0]);
+	}
+
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Active Handler Count")
+	public int getActiveHandlerCount() {
+		int count = 0;
+		for (MessageHandlerMetrics monitor : handlers) {
+			count += monitor.getActiveCount();
+		}
+		return count;
+	}
+
+	@ManagedMetric(metricType = MetricType.GAUGE, displayName = "Queued Message Count")
+	public int getQueuedMessageCount() {
+		int count = 0;
+		for (MessageChannelMetrics monitor : channels) {
+			if (monitor instanceof QueueChannelMetrics) {
+				count += ((QueueChannelMetrics) monitor).getQueueSize();
+			}
+		}
+		return count;
 	}
 
 	@ManagedAttribute
-	public Collection<String> getChannelNames() {
-		return channelsByName.keySet();
+	public String[] getChannelNames() {
+		return channelsByName.keySet().toArray(new String[0]);
 	}
 
 	@ManagedOperation(description = "Get the JMX object name (as a String) for the specified Spring bean name")
@@ -324,8 +369,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 	public int getChannelReceiveCount(String name) {
 		if (channelsByName.containsKey(name)) {
-			if (channelsByName.get(name) instanceof PollableChannelMonitor) {
-				return ((PollableChannelMonitor) channelsByName.get(name)).getReceiveCount();
+			if (channelsByName.get(name) instanceof PollableChannelMetrics) {
+				return ((PollableChannelMetrics) channelsByName.get(name)).getReceiveCount();
 			}
 		}
 		logger.debug("No channel found for (" + name + ")");
@@ -349,7 +394,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerChannels() {
-		for (DirectChannelMonitor monitor : channels) {
+		for (DirectChannelMetrics monitor : channels) {
 			String name = monitor.getName();
 			// Only register once...
 			if (!channelsByName.containsKey(name)) {
@@ -365,8 +410,8 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 	}
 
 	private void registerHandlers() {
-		for (SimpleMessageHandlerMonitor source : handlers) {
-			MessageHandlerMonitor monitor = enhanceMonitor(source);
+		for (SimpleMessageHandlerMetrics source : handlers) {
+			MessageHandlerMetrics monitor = enhanceHandlerMonitor(source);
 			String name = monitor.getName();
 			// Only register once...
 			if (!handlersByName.containsKey(name)) {
@@ -380,11 +425,41 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 	}
 
-	private Object applyChannelInterceptor(Object bean, DirectChannelMonitor interceptor, ClassLoader beanClassLoader) {
+	private void registerSources() {
+		for (SimpleMessageSourceMetrics source : sources) {
+			MessageSourceMetrics monitor = enhanceSourceMonitor(source);
+			String name = monitor.getName();
+			// Only register once...
+			if (!sourcesByName.containsKey(name)) {
+				String beanKey = getSourceBeanKey(monitor);
+				if (name != null) {
+					sourcesByName.put(name, monitor);
+					objectNamesByName.put(name, beanKey);
+				}
+				registerBeanNameOrInstance(monitor, beanKey);
+			}
+		}
+	}
+
+	private Object applyChannelInterceptor(Object bean, DirectChannelMetrics interceptor, ClassLoader beanClassLoader) {
 		NameMatchMethodPointcutAdvisor channelsAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
 		channelsAdvice.addMethodName("send");
 		channelsAdvice.addMethodName("receive");
 		return applyAdvice(bean, channelsAdvice, beanClassLoader);
+	}
+
+	private Object applyHandlerInterceptor(Object bean, SimpleMessageHandlerMetrics interceptor,
+			ClassLoader beanClassLoader) {
+		NameMatchMethodPointcutAdvisor handlerAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
+		handlerAdvice.addMethodName("handleMessage");
+		return applyAdvice(bean, handlerAdvice, beanClassLoader);
+	}
+
+	private Object applySourceInterceptor(Object bean, SimpleMessageSourceMetrics interceptor,
+			ClassLoader beanClassLoader) {
+		NameMatchMethodPointcutAdvisor sourceAdvice = new NameMatchMethodPointcutAdvisor(interceptor);
+		sourceAdvice.addMethodName("receive");
+		return applyAdvice(bean, sourceAdvice, beanClassLoader);
 	}
 
 	private Object extractTarget(Object bean) {
@@ -397,8 +472,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		}
 		try {
 			return extractTarget(advised.getTargetSource().getTarget());
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.error("Could not extract target", e);
 			return null;
 		}
@@ -410,8 +484,7 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			if (bean instanceof Advised) {
 				((Advised) bean).addAdvisor(advisor);
 				return bean;
-			}
-			else {
+			} else {
 				ProxyFactory proxyFactory = new ProxyFactory(bean);
 				proxyFactory.addAdvisor(advisor);
 				return proxyFactory.getProxy(beanClassLoader);
@@ -428,9 +501,15 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return String.format(domain + ":type=MessageChannel,name=%s" + getStaticNames(), name);
 	}
 
-	private String getHandlerBeanKey(MessageHandlerMonitor handler) {
+	private String getHandlerBeanKey(MessageHandlerMetrics handler) {
 		// This ordering of keys seems to work with default settings of JConsole
 		return String.format(domain + ":type=MessageHandler,name=%s,bean=%s" + getStaticNames(), handler.getName(),
+				handler.getSource());
+	}
+
+	private String getSourceBeanKey(MessageSourceMetrics handler) {
+		// This ordering of keys seems to work with default settings of JConsole
+		return String.format(domain + ":type=MessageSource,name=%s,bean=%s" + getStaticNames(), handler.getName(),
 				handler.getSource());
 	}
 
@@ -445,9 +524,9 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 		return builder.toString();
 	}
 
-	private MessageHandlerMonitor enhanceMonitor(SimpleMessageHandlerMonitor monitor) {
+	private MessageHandlerMetrics enhanceHandlerMonitor(SimpleMessageHandlerMetrics monitor) {
 
-		MessageHandlerMonitor result = monitor;
+		MessageHandlerMetrics result = monitor;
 
 		if (monitor.getName() != null && monitor.getSource() != null) {
 			return monitor;
@@ -464,12 +543,11 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 			endpoint = beanFactory.getBean(beanName);
 			Object field = null;
 			try {
-				field = getField(endpoint, "handler");
+				field = extractTarget(getField(endpoint, "handler"));
+			} catch (Exception e) {
+				logger.trace("Could not get handler from bean = " + beanName);
 			}
-			catch (Exception e) {
-				logger.debug("Could not get handler from bean = " + beanName);
-			}
-			if (field == monitor) {
+			if (field == monitor.getMessageHandler()) {
 				name = beanName;
 				break;
 			}
@@ -485,18 +563,17 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 				if (targetSource != null) {
 					try {
 						target = targetSource.getTarget();
-					}
-					catch (Exception e) {
+					} catch (Exception e) {
 						logger.debug("Could not get handler from bean = " + name);
 					}
 				}
 			}
 			Object field = getField(target, "inputChannel");
 			if (field != null) {
-				if (!anonymousCounters.containsKey(field)) {
-					anonymousCounters.put(field, new AtomicLong());
+				if (!anonymousHandlerCounters.containsKey(field)) {
+					anonymousHandlerCounters.put(field, new AtomicLong());
 				}
-				AtomicLong count = anonymousCounters.get(field);
+				AtomicLong count = anonymousHandlerCounters.get(field);
 				long total = count.incrementAndGet();
 				String suffix = "";
 				/*
@@ -512,11 +589,91 @@ public class IntegrationMBeanExporter extends MBeanExporter implements BeanPostP
 
 		if (endpoint instanceof Lifecycle) {
 			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
-			result = new LifecycleMessageHandlerMonitor((Lifecycle) endpoint, monitor);
+			result = new LifecycleMessageHandlerMetrics((Lifecycle) endpoint, monitor);
 		}
 
 		if (name == null) {
 			name = monitor.getMessageHandler().toString();
+			source = "handler";
+		}
+
+		monitor.setSource(source);
+		monitor.setName(name);
+
+		return result;
+
+	}
+
+	private MessageSourceMetrics enhanceSourceMonitor(SimpleMessageSourceMetrics monitor) {
+
+		MessageSourceMetrics result = monitor;
+
+		if (monitor.getName() != null && monitor.getSource() != null) {
+			return monitor;
+		}
+
+		// Assignment algorithm and bean id, with bean id pulled reflectively out of enclosing endpoint if possible
+		String[] names = beanFactory.getBeanNamesForType(AbstractEndpoint.class);
+
+		String name = null;
+		String source = "endpoint";
+		Object endpoint = null;
+
+		for (String beanName : names) {
+			endpoint = beanFactory.getBean(beanName);
+			Object field = null;
+			try {
+				field = extractTarget(getField(endpoint, "source"));
+			} catch (Exception e) {
+				logger.trace("Could not get source from bean = " + beanName);
+			}
+			if (field == monitor.getMessageSource()) {
+				name = beanName;
+				break;
+			}
+		}
+		if (name != null && endpoint != null && name.startsWith("_org.springframework.integration")) {
+			name = name.substring("_org.springframework.integration".length() + 1);
+			source = "internal";
+		}
+		if (name != null && endpoint != null && name.startsWith("org.springframework.integration")) {
+			Object target = endpoint;
+			if (endpoint instanceof Advised) {
+				TargetSource targetSource = ((Advised) endpoint).getTargetSource();
+				if (targetSource != null) {
+					try {
+						target = targetSource.getTarget();
+					} catch (Exception e) {
+						logger.debug("Could not get handler from bean = " + name);
+					}
+				}
+			}
+			Object field = getField(target, "outputChannel");
+			if (field != null) {
+				if (!anonymousSourceCounters.containsKey(field)) {
+					anonymousSourceCounters.put(field, new AtomicLong());
+				}
+				AtomicLong count = anonymousSourceCounters.get(field);
+				long total = count.incrementAndGet();
+				String suffix = "";
+				/*
+				 * Short hack to makes sure object names are unique if more than one endpoint has the same input channel
+				 */
+				if (total > 1) {
+					suffix = "#" + total;
+				}
+				name = field + suffix;
+				source = "anonymous";
+			}
+		}
+
+		if (endpoint instanceof Lifecycle) {
+			// Wrap the monitor in a lifecycle so it exposes the start/stop operations
+			result = new LifecycleMessageSourceMetrics((Lifecycle) endpoint, monitor);
+		}
+
+		if (name == null) {
+			name = monitor.getMessageSource().toString();
 			source = "handler";
 		}
 

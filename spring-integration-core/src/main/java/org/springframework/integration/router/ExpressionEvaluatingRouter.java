@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
 /**
@@ -28,7 +29,7 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingRouter extends AbstractMessageProcessingRouter {
 
-	public ExpressionEvaluatingRouter(String expression) {
+	public ExpressionEvaluatingRouter(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Object>(expression));
 	}
 

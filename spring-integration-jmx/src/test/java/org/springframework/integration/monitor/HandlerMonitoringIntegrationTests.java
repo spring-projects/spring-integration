@@ -15,6 +15,8 @@ package org.springframework.integration.monitor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.annotation.Aspect;
@@ -64,7 +66,7 @@ public class HandlerMonitoringIntegrationTests {
 
 		ClassPathXmlApplicationContext context = createContext("anonymous-handler.xml", "anonymous");
 		try {
-			assertTrue(messageHandlersMonitor.getHandlerNames().contains("errorLogger"));
+			assertTrue(Arrays.asList(messageHandlersMonitor.getHandlerNames()).contains("errorLogger"));
 		}
 		finally {
 			context.close();

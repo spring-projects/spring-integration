@@ -21,9 +21,12 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
@@ -168,15 +171,25 @@ public class HeaderEnricher implements Transformer {
 
 	static class ExpressionEvaluatingHeaderValueMessageProcessor<T> extends AbstractHeaderValueMessageProcessor<T> implements BeanFactoryAware {
 
+		private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
 		private final ExpressionEvaluatingMessageProcessor<T> targetProcessor;
 
 		/**
-		 * Create a header value processor for the given expression String and the expected type
+		 * Create a header value processor for the given Expression and the expected type
+		 * of the expression evaluation result. The expectedType may be null if unknown.
+		 */
+		public ExpressionEvaluatingHeaderValueMessageProcessor(Expression expression, Class<T> expectedType) {
+			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
+		}
+
+		/**
+		 * Create a header value processor for the given expression string and the expected type
 		 * of the expression evaluation result. The expectedType may be null if unknown.
 		 */
 		public ExpressionEvaluatingHeaderValueMessageProcessor(String expressionString, Class<T> expectedType) {
-			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expressionString, expectedType);
-			//this.targetProcessor.setExpectedType(expectedType);
+			Expression expression = expressionParser.parseExpression(expressionString);
+			this.targetProcessor = new ExpressionEvaluatingMessageProcessor<T>(expression, expectedType);
 		}
 
 		public void setBeanFactory(BeanFactory beanFactory) {

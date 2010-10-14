@@ -40,7 +40,7 @@ public class MBeanExporterParserTests {
 	private ApplicationContext context;
 
 	@Test
-	public void test() throws InterruptedException {
+	public void testMBeanExporterExists() throws InterruptedException {
 		IntegrationMBeanExporter exporter = this.context.getBean(IntegrationMBeanExporter.class);
 		MBeanServer server = this.context.getBean("mbs", MBeanServer.class);
 		assertEquals(server, exporter.getServer());

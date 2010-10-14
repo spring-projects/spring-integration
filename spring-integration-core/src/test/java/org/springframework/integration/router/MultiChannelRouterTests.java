@@ -18,16 +18,19 @@ package org.springframework.integration.router;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessagingException;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -37,7 +40,7 @@ public class MultiChannelRouterTests {
 
 	@Test
 	public void routeWithChannelMapping() {
-		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
+		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
 			public List<Object> getChannelIndicatorList(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"channel1", "channel2"});
@@ -61,7 +64,7 @@ public class MultiChannelRouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void channelNameLookupFailure() {
-		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
+		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
 			public List<Object> getChannelIndicatorList(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"} );
@@ -75,12 +78,13 @@ public class MultiChannelRouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void channelMappingNotAvailable() {
-		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
+		AbstractMessageRouter router = new AbstractMessageRouter() {
 			@SuppressWarnings("unchecked")
 			public List<Object> getChannelIndicatorList(Message<?> message) {
 				return CollectionUtils.arrayToList(new String[] {"noSuchChannel"});
 			}
 		};
+		router.setBeanFactory(mock(BeanFactory.class));
 		Message<String> message = new GenericMessage<String>("test");
 		router.handleMessage(message);
 	}

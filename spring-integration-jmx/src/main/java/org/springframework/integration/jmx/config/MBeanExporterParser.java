@@ -46,12 +46,12 @@ public class MBeanExporterParser extends AbstractSingleBeanDefinitionParser {
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		Object mbeanServer = getMBeanServer(element, parserContext);
 		builder.getRawBeanDefinition().setSource(parserContext.extractSource(element));
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "domain");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "default-domain");
 		builder.addPropertyValue("server", mbeanServer);
 	}
 
 	private Object getMBeanServer(Element element, ParserContext parserContext) {
-		String mbeanServer = element.getAttribute("mbean-server");
+		String mbeanServer = element.getAttribute("server");
 		if (StringUtils.hasText(mbeanServer)) {
 			return new RuntimeBeanReference(mbeanServer);
 		}

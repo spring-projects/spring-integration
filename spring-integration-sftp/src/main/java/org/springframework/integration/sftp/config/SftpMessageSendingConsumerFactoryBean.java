@@ -36,6 +36,7 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 	private String username;
 	private boolean autoCreateDirectories;
 	private int port;
+	private String charset;
 
 	public SftpSendingMessageHandler getObject() throws Exception {
 		SftpSessionFactory sessionFactory = SftpSessionUtils.buildSftpSessionFactory(
@@ -46,6 +47,7 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 
 		SftpSendingMessageHandler sftpSendingMessageHandler = new SftpSendingMessageHandler(queuedSFTPSessionPool);
 		sftpSendingMessageHandler.setRemoteDirectory(this.remoteDirectory);
+		sftpSendingMessageHandler.setCharset(this.charset);
 		sftpSendingMessageHandler.afterPropertiesSet();
 
 		return sftpSendingMessageHandler;
@@ -61,6 +63,10 @@ public class SftpMessageSendingConsumerFactoryBean implements FactoryBean<SftpSe
 
 	public void setAutoCreateDirectories(final boolean autoCreateDirectories) {
 		this.autoCreateDirectories = autoCreateDirectories;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = charset;
 	}
 
 	public void setHost(final String host) {

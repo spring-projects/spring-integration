@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package org.springframework.integration.router;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.util.Assert;
 
 /**
  * A Message Router that resolves the target {@link MessageChannel} for
@@ -29,34 +28,26 @@ import org.springframework.util.Assert;
  * the most specific cause of the error for which a channel-mapping exists.
  * 
  * @author Mark Fisher
- */
-public class ErrorMessageExceptionTypeRouter extends AbstractSingleChannelRouter {
-
-	private volatile Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
-			new ConcurrentHashMap<Class<? extends Throwable>, MessageChannel>();
-
-
-	public void setExceptionTypeChannelMap(Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap) {
-		Assert.notNull(exceptionTypeChannelMap, "exceptionTypeChannelMap must not be null");
-		this.exceptionTypeChannelMap = exceptionTypeChannelMap;
-	}
-
+ * @author Oleg Zhurakousky
+ */  
+public class ErrorMessageExceptionTypeRouter extends AbstractMessageRouter {
 
 	@Override
-	protected MessageChannel determineTargetChannel(Message<?> message) {
-		MessageChannel channel = null;
+	protected List<Object> getChannelIndicatorList(Message<?> message) {
+		String channelName = null;
+		String channelIdentifier = null;
 		Object payload = message.getPayload();
 		if (payload != null && (payload instanceof Throwable)) {
 			Throwable mostSpecificCause = (Throwable) payload;
 			while (mostSpecificCause != null) {
-				MessageChannel mappedChannel = this.exceptionTypeChannelMap.get(mostSpecificCause.getClass());
-				if (mappedChannel != null) {
-					channel = mappedChannel;
+				channelIdentifier = mostSpecificCause.getClass().getName();
+				if (channelIdentifierMap != null){
+					String tempChannelName = channelIdentifierMap.get(channelIdentifier);
+					channelName = tempChannelName == null ? channelName : tempChannelName;
 				}
 				mostSpecificCause = mostSpecificCause.getCause();
 			}
 		}
-		return channel;
+		return Collections.singletonList((Object)channelName);
 	}
-
 }

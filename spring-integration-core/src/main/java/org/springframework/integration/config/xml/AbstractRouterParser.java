@@ -16,11 +16,17 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.List;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Base parser for routers.
@@ -44,6 +50,34 @@ public abstract class AbstractRouterParser extends AbstractConsumerEndpointParse
 		return builder;
 	}
 
-	protected abstract BeanDefinition parseRouter(Element element, ParserContext parserContext);
+	protected final BeanDefinition parseRouter(Element element, ParserContext parserContext) {
+		BeanDefinition beanDefinition = this.doParseRouter(element, parserContext);
+		if (beanDefinition != null) {
+			String channelResolver = element.getAttribute("channel-resolver");
+			if (StringUtils.hasText(channelResolver)){
+				beanDefinition.getPropertyValues().add("channelResolver", new RuntimeBeanReference(channelResolver));
+			}
+			// check if mapping is provided otherwise returned values will be treated as channel names
+			List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
+			if (childElements != null && childElements.size() > 0) {
+				ManagedMap<String, String> channelMap = new ManagedMap<String, String>();
+				for (Element childElement : childElements) {
+					String beanClassName = beanDefinition.getBeanClassName();
+					String key = null;
+					if (beanClassName.endsWith("PayloadTypeRouter")){
+						key = childElement.getAttribute("type"); 
+					} 
+					else {
+						key = childElement.getAttribute("value");
+					} 
+					channelMap.put(key, childElement.getAttribute("channel"));
+				}
+				beanDefinition.getPropertyValues().add("channelIdentifierMap", channelMap);
+			}
+		}
+		return beanDefinition;
+	}
+
+	protected abstract BeanDefinition doParseRouter(Element element, ParserContext parserContext);
 
 }

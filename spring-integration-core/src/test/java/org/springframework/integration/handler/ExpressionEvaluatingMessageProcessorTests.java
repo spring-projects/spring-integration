@@ -32,6 +32,10 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationException;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.message.GenericMessage;
 
 /**
@@ -43,6 +47,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	private static final Log logger = LogFactory.getLog(ExpressionEvaluatingMessageProcessorTests.class);
 
+	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
 
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
@@ -50,7 +56,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessage() {
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload");
+		Expression expression = expressionParser.parseExpression("payload");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
@@ -62,7 +69,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				return number+"";
 			}
 		}
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.stringify(payload)");
+		Expression expression = expressionParser.parseExpression("#target.stringify(payload)");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
 		assertEquals("2", processor.processMessage(new GenericMessage<String>("2")));
 	}
@@ -74,7 +82,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			public void ping(String input) {
 			}
 		}
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.ping(payload)");
+		Expression expression = expressionParser.parseExpression("#target.ping(payload)");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
 		assertEquals(null, processor.processMessage(new GenericMessage<String>("2")));
 	}
@@ -88,7 +97,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			}
 			
 		}
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("#target.find(payload)");
+		Expression expression = expressionParser.parseExpression("#target.find(payload)");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(new GenericApplicationContext().getBeanFactory());
 		processor.getEvaluationContext().setVariable("target", new TestTarget());
 		String result = (String) processor.processMessage(new GenericMessage<String>("classpath:*.properties"));
@@ -97,21 +107,24 @@ public class ExpressionEvaluatingMessageProcessorTests {
 
 	@Test
 	public void testProcessMessageWithDollarInBrackets() {
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers['$id']");
+		Expression expression = expressionParser.parseExpression("headers['$id']");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
 	@Test
 	public void testProcessMessageWithDollarPropertyAccess() {
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers.$id");
+		Expression expression = expressionParser.parseExpression("headers.$id");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
 
 	@Test
 	public void testProcessMessageWithStaticKey() {
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("headers[headers.ID]");
+		Expression expression = expressionParser.parseExpression("headers[headers.ID]");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals(message.getHeaders().getId(), processor.processMessage(message));
 	}
@@ -122,7 +135,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
 		context.registerBeanDefinition("testString", beanDefinition);
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.concat(@testString)");
+		Expression expression = expressionParser.parseExpression("payload.concat(@testString)");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(context);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("foobar", processor.processMessage(message));
@@ -134,7 +148,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 		BeanDefinition beanDefinition = new RootBeanDefinition(String.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue("bar");
 		context.registerBeanDefinition("testString", beanDefinition);
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("@testString.concat(payload)");
+		Expression expression = expressionParser.parseExpression("@testString.concat(payload)");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		processor.setBeanFactory(context);
 		GenericMessage<String> message = new GenericMessage<String>("foo");
 		assertEquals("barfoo", processor.processMessage(message));
@@ -154,7 +169,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				description.appendText("cause to be EvaluationException but was ").appendValue(cause);
 			}
 		});
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.fixMe()");
+		Expression expression = expressionParser.parseExpression("payload.fixMe()");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		assertEquals("foo", processor.processMessage(new GenericMessage<String>("foo")));
 	}
 
@@ -172,7 +188,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				description.appendText("cause to be UnsupportedOperationException but was ").appendValue(cause);
 			}
 		});
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.throwRuntimeException()");
+		Expression expression = expressionParser.parseExpression("payload.throwRuntimeException()");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		assertEquals("foo", processor.processMessage(new GenericMessage<TestPayload>(new TestPayload())));
 	}
 
@@ -190,7 +207,8 @@ public class ExpressionEvaluatingMessageProcessorTests {
 				description.appendText("cause to be CheckedException but was ").appendValue(cause);
 			}
 		});
-		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor("payload.throwCheckedException()");
+		Expression expression = expressionParser.parseExpression("payload.throwCheckedException()");
+		ExpressionEvaluatingMessageProcessor processor = new ExpressionEvaluatingMessageProcessor(expression);
 		assertEquals("foo", processor.processMessage(new GenericMessage<TestPayload>(new TestPayload())));
 	}
 
@@ -213,5 +231,5 @@ public class ExpressionEvaluatingMessageProcessorTests {
 			super(string);
 		}
 	}
- 
+
 }

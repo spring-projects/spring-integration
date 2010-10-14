@@ -21,20 +21,27 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.expression.Expression;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * An inbound Channel Adapter that passes Spring
- * {@link ApplicationEvent ApplicationEvents} within messages.
+ * An inbound Channel Adapter that passes Spring {@link ApplicationEvent ApplicationEvents} within messages.
+ * If a {@link #setPayloadExpression(String) payloadExpression} is provided, it will be evaluated against
+ * the ApplicationEvent instance to create the Message payload.
  * 
  * @author Mark Fisher
  */
 public class ApplicationEventInboundChannelAdapter extends MessageProducerSupport implements ApplicationListener<ApplicationEvent> {
 
 	private final Set<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArraySet<Class<? extends ApplicationEvent>>();
+
+	private volatile Expression payloadExpression;
+
+	private final SpelExpressionParser parser = new SpelExpressionParser();
 
 
 	/**
@@ -51,6 +58,24 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 		}
 	}
 
+	/**
+	 * Provide an expression to be evaluated against the received ApplicationEvent
+	 * instance (the "root object") in order to create the Message payload. If none
+	 * is provided, the ApplicationEvent itself will be used as the payload.
+	 */
+	public void setPayloadExpression(String payloadExpression) {
+		if (payloadExpression == null) {
+			this.payloadExpression = null;
+		}
+		else {
+			this.payloadExpression = this.parser.parseExpression(payloadExpression);
+		}
+	}
+
+	public String getComponentType() {
+		return "event:inbound-channel-adapter";
+	}
+
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (CollectionUtils.isEmpty(this.eventTypes)) {
 			this.sendEventAsMessage(event);
@@ -65,11 +90,8 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 	}
 
 	private void sendEventAsMessage(ApplicationEvent event) {
-		this.sendMessage(MessageBuilder.withPayload(event).build());
-	}
-	
-	public String getComponentType(){
-		return "event:inbound-channel-adapter";
+		Object payload = (this.payloadExpression != null) ? this.payloadExpression.getValue(event) : event;
+		this.sendMessage(MessageBuilder.withPayload(payload).build());
 	}
 
 	@Override

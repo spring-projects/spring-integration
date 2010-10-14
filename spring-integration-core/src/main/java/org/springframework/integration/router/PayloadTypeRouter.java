@@ -16,39 +16,67 @@
 
 package org.springframework.integration.router;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
+import java.util.List;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
-import org.springframework.integration.util.ClassUtils;
+import org.springframework.integration.support.channel.BeanFactoryChannelResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A Message Router that resolves the {@link MessageChannel} based on the
  * {@link Message Message's} payload type.
  * 
  * @author Mark Fisher
+ * @author Oleg Zhurakousky
  */
-public class PayloadTypeRouter extends AbstractSingleChannelRouter {
-
-	private volatile Map<Class<?>, MessageChannel> payloadTypeChannelMap =
-			new ConcurrentHashMap<Class<?>, MessageChannel>();
-
-
-	public void setPayloadTypeChannelMap(Map<Class<?>, MessageChannel> payloadTypeChannelMap) {
-		Assert.notNull(payloadTypeChannelMap, "payloadTypeChannelMap must not be null");
-		this.payloadTypeChannelMap = payloadTypeChannelMap;
-	}
-
+public class PayloadTypeRouter extends AbstractMessageRouter {
+	/**
+	 * Will select the most appropriate channel name matching channel identifiers 
+	 * which are fully qualifies class name to type available while traversing payload type.
+	 * To resolve ties and conflicts (e.g., Serializable and String) it will match:
+	 * 1. Type name to channel identifier else...
+	 * 2. Name of the subclass of the type to channel identifier elc...
+	 * 3. Name of the Interface of the type to channel identifier while also
+	 *    preferring direct interface over in-direct subclass
+	 * 
+	 */
 	@Override
-	protected MessageChannel determineTargetChannel(Message<?> message) {
-		Class<?> closestMatch = ClassUtils.findClosestMatch(
-				message.getPayload().getClass(), this.payloadTypeChannelMap.keySet(), true);
-		if (closestMatch != null) {
-			return this.payloadTypeChannelMap.get(closestMatch);
+	protected List<Object> getChannelIndicatorList(Message<?> message) {
+		Class<?> firstInterfaceMatch = null;
+		Class<?> type = message.getPayload().getClass();
+		
+		while (type != null && !CollectionUtils.isEmpty(channelIdentifierMap)) {
+			Class<?>[] interfaces = type.getInterfaces();
+			// first try to find a match amongst the interfaces and also check if there is more then one
+			for (Class<?> interfase : interfaces) {
+				if (channelIdentifierMap.containsKey(interfase.getName())){
+					if (firstInterfaceMatch != null){
+						throw new IllegalStateException("Unresolvable ambiguity while attempting to find closest match for [" +
+								type.getName() + "]. Candidate types [" + firstInterfaceMatch.getName() + "] and [" + interfase.getName() + 
+								"] have equal weight.");
+					}
+					else {
+						firstInterfaceMatch = interfase;
+					}
+				}
+			}
+			// the actual type should favor the possible interface match
+			String channelName = channelIdentifierMap.get(type.getName());
+			if (!StringUtils.hasText(channelName)){
+				if (firstInterfaceMatch != null){
+					return Collections.singletonList((Object)channelIdentifierMap.get(firstInterfaceMatch.getName()));
+				}	
+			}
+			else {
+				return Collections.singletonList((Object)channelName);
+			}
+			type = type.getSuperclass();
 		}
 		return null;
 	}
-
 }

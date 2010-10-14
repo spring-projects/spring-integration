@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ public class ApplicationEventInboundChannelAdapterTests {
 		assertEquals("event2", ((ApplicationEvent) message3.getPayload()).getSource());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings("unchecked")
 	public void onlyConfiguredEventTypesAreSent() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
@@ -93,6 +93,24 @@ public class ApplicationEventInboundChannelAdapterTests {
 		assertEquals(ContextClosedEvent.class, closedEventMessage.getPayload().getClass());
 	}
 
+	@Test
+	public void payloadExpressionEvaluatedAgainstApplicationEvent() {
+		QueueChannel channel = new QueueChannel();
+		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
+		adapter.setPayloadExpression("'received: ' + source");
+		adapter.setOutputChannel(channel);
+		Message<?> message1 = channel.receive(0);
+		assertNull(message1);
+		adapter.onApplicationEvent(new TestApplicationEvent1());
+		adapter.onApplicationEvent(new TestApplicationEvent2());
+		Message<?> message2 = channel.receive(20);
+		assertNotNull(message2);
+		assertEquals("received: event1", message2.getPayload());
+		Message<?> message3 = channel.receive(20);
+		assertNotNull(message3);
+		assertEquals("received: event2", message3.getPayload());
+	}
+
 
 	@SuppressWarnings("serial")
 	private static class TestApplicationEvent1 extends ApplicationEvent {
@@ -100,6 +118,8 @@ public class ApplicationEventInboundChannelAdapterTests {
 		public TestApplicationEvent1() {
 			super("event1");
 		}
+
+		
 	}
 
 

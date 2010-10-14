@@ -16,6 +16,7 @@
 package org.springframework.integration.monitor;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -45,14 +46,14 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetEarlyMean() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.success();
 		assertEquals(1, history.getMean(), 0.01);
 	}
 
 	@Test
 	public void testGetEarlyFailure() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.failure();
 		assertEquals(0, history.getMean(), 0.01);
 	}
@@ -66,7 +67,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetMean() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.success();
 		assertEquals(1, history.getMean(), 0.01);
 		history.success();
@@ -77,7 +78,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetMeanFailuresHighRate() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.success();
 		assertEquals(average(1), history.getMean(), 0.01);
 		history.failure();
@@ -88,7 +89,7 @@ public class ExponentialMovingAverageRatioTests {
 
 	@Test
 	public void testGetMeanFailuresLowRate() throws Exception {
-		assertEquals(0, history.getMean(), 0.01);
+		assertEquals(1, history.getMean(), 0.01);
 		history.failure();
 		assertEquals(average(0), history.getMean(), 0.01);
 		history.failure();
@@ -102,6 +103,17 @@ public class ExponentialMovingAverageRatioTests {
 		assertEquals(0, history.getStandardDeviation(), 0.01);
 		history.success();
 		assertEquals(0, history.getStandardDeviation(), 1);
+	}
+
+	@Test
+	public void testReset() throws Exception {
+		assertEquals(0, history.getStandardDeviation(), 0.01);
+		history.success();
+		history.failure();
+		assertFalse(0==history.getStandardDeviation());
+		history.reset();
+		assertEquals(0, history.getStandardDeviation(), 0.01);
+		assertEquals("[[N=0, min=0.000000, max=0.000000, mean=1.000000, sigma=0.000000], timeSinceLast=0.000000]", history.toString());
 	}
 
 	private double average(double... values) {

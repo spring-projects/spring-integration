@@ -25,17 +25,17 @@ package org.springframework.integration.monitor;
  */
 public class ExponentialMovingAverage {
 
-	private int count;
+	private volatile int count;
 
-	private double weight;
+	private volatile double weight;
 
-	private double sum;
+	private volatile double sum;
 
-	private double sumSquares;
+	private volatile double sumSquares;
 
-	private double min;
+	private volatile double min;
 
-	private double max;
+	private volatile double max;
 
 	private final double decay;
 
@@ -49,12 +49,21 @@ public class ExponentialMovingAverage {
 		this.decay = 1 - 1. / window;
 	}
 
+	public synchronized void reset() {
+		weight = 0;
+		sum = 0;
+		sumSquares = 0;
+		count = 0;
+		min = 0;
+		max = 0;
+	}
+
 	/**
 	 * Add a new measurement to the series.
 	 * 
 	 * @param value the measurement to append
 	 */
-	public void append(double value) {
+	public synchronized void append(double value) {
 		if (value > max || count == 0)
 			max = value;
 		if (value < min || count == 0)

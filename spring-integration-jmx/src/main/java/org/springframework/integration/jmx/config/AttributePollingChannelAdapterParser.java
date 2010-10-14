@@ -39,7 +39,7 @@ public class AttributePollingChannelAdapterParser extends AbstractPollingInbound
 	protected String parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(
 				"org.springframework.integration.jmx.AttributePollingMessageSource");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "mbean-server", "server");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server", "server");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "object-name");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "attribute-name");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(

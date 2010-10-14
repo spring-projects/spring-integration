@@ -75,6 +75,7 @@ public class HttpOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "expected-response-type");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout", "sendTimeout");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-factory");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel", "outputChannel");
 		List<Element> uriVariableElements = DomUtils.getChildElementsByTagName(element, "uri-variable");
 		if (!CollectionUtils.isEmpty(uriVariableElements)) {

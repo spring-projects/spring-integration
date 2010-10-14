@@ -48,7 +48,7 @@ public class NotificationListeningChannelAdapterParser extends AbstractSimpleBea
 			parserContext.getReaderContext().error("The 'channel' attribute is required.", source);
 		}
 		builder.addPropertyReference("outputChannel", channel);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "mbean-server", "server");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "server");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "notification-filter", "filter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "handback");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout");

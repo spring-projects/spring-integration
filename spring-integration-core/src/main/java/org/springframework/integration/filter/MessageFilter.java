@@ -100,14 +100,24 @@ public class MessageFilter extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	protected Object handleRequestMessage(Message<?> message) {
-		if (this.selector.accept(message)) {
-			return message;
-		}
+		Throwable filterException = null;
+		try {
+			if (this.selector.accept(message)) {
+				return message;
+			}
+		} catch (Exception e) {
+			filterException = e;
+		}	
 		if (this.discardChannel != null) {
 			this.getMessagingTemplate().send(this.discardChannel, message);
 		}
 		if (this.throwExceptionOnRejection) {
-			throw new MessageRejectedException(message);
+			if (filterException != null){
+				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName() + "' rejected Message", filterException);
+			}
+			else {
+				throw new MessageRejectedException(message, "MessageFilter '" + this.getComponentName() + "' rejected Message");
+			}
 		}
 		return null;
 	}

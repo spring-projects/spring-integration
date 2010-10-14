@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:int="http://www.springframework.org/schema/integration"
+	xmlns:int-xml="http://www.springframework.org/schema/integration/xml"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+		http://www.springframework.org/schema/integration/xml http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
+
+
+	<int-xml:validating-filter id="filterA" 
+							   input-channel="inputChannelA"
+							   output-channel="validOutputChannel"
+							   discard-channel="invalidOutputChannel"
+							   schema-location="org/springframework/integration/xml/config/validationTestsSchema.xsd"/>
+
+	<int-xml:validating-filter id="filterB" 
+							   input-channel="inputChannelB"
+							   output-channel="validOutputChannel"
+							   discard-channel="invalidOutputChannel"
+							   throw-exception-on-rejection="true"
+							   schema-location="org/springframework/integration/xml/config/validationTestsSchema.xsd"/>
+							   
+	<int-xml:validating-filter id="filterC" 
+							   input-channel="inputChannelC"
+							   output-channel="validOutputChannel"
+							   discard-channel="invalidOutputChannel"
+							   xml-validator="xmlValidator"/>
+							   
+	<bean id="xmlValidator" class="org.springframework.xml.validation.XmlValidatorFactory" factory-method="createValidator">
+		<constructor-arg value="classpath:org/springframework/integration/xml/config/validationTestsSchema.xsd"/>
+		<constructor-arg value="http://www.w3.org/2001/XMLSchema"/>
+	</bean>
+							   
+	<int:channel id="validOutputChannel">
+		<int:queue/>
+	</int:channel>
+	
+	<int:channel id="invalidOutputChannel">
+		<int:queue/>
+	</int:channel>
+</beans>

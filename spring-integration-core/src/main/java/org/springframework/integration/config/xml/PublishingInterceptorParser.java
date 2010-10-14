@@ -53,10 +53,9 @@ public class PublishingInterceptorParser extends AbstractBeanDefinitionParser {
 			spelSourceBuilder.addPropertyValue("headerExpressionMap", mappings.get("headers"));
 		}
 		BeanDefinitionBuilder chResolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(
-				"org.springframework.integration.channel.MapBasedChannelResolver");
+				"org.springframework.integration.support.channel.BeanFactoryChannelResolver");
 		if (mappings.get("channels") != null){
 			spelSourceBuilder.addPropertyValue("channelMap", mappings.get("channels"));
-			chResolverBuilder.addConstructorArgValue(mappings.get("resolvableChannels"));
 		}
 		String chResolverName = 
 				BeanDefinitionReaderUtils.registerWithGeneratedName(chResolverBuilder.getBeanDefinition(), parserContext.getRegistry());

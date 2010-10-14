@@ -16,18 +16,10 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.List;
-
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedMap;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;payload-type-router/&gt; element.
@@ -37,27 +29,12 @@ import org.springframework.util.xml.DomUtils;
  * @since 1.0.3
  */
 public class PayloadTypeRouterParser extends AbstractRouterParser {
-
+	
 	@Override
-	@SuppressWarnings("unchecked")
-	protected BeanDefinition parseRouter(Element element, ParserContext parserContext) {
+	protected BeanDefinition doParseRouter(Element element,
+			ParserContext parserContext) {
 		BeanDefinitionBuilder payloadTypeRouterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 				IntegrationNamespaceUtils.BASE_PACKAGE + ".router.PayloadTypeRouter");
-		List<Element> childElements = DomUtils.getChildElementsByTagName(element, "mapping");
-		Assert.notEmpty(childElements,
-				"Type mapping must be provided (e.g., <mapping type=\"X\" channel=\"channel1\"/>)");
-		ManagedMap channelMap = new ManagedMap();
-		for (Element childElement : childElements) {
-			String typeName = childElement.getAttribute("type");
-			ClassLoader classLoader = parserContext.getReaderContext().getBeanClassLoader();
-			if (classLoader == null) {
-				classLoader = ClassUtils.getDefaultClassLoader();
-			}
-			Assert.isTrue(ClassUtils.isPresent(typeName, classLoader), typeName + " can not be loaded");
-			channelMap.put(typeName, new RuntimeBeanReference(childElement.getAttribute("channel")));
-		}
-		payloadTypeRouterBuilder.addPropertyValue("payloadTypeChannelMap", channelMap);
 		return payloadTypeRouterBuilder.getBeanDefinition();
 	}
-
 }

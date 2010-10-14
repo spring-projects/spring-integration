@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.transformer.ExpressionEvaluatingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
@@ -54,7 +55,7 @@ public class TransformerFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		Transformer transformer = new ExpressionEvaluatingTransformer(expression);
 		return this.createHandler(transformer);
 	}

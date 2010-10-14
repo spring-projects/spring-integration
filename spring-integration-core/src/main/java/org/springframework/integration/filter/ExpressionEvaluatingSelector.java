@@ -16,6 +16,10 @@
 
 package org.springframework.integration.filter;
 
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.SpelParserConfiguration;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.integration.core.MessageSelector;
 import org.springframework.integration.handler.ExpressionEvaluatingMessageProcessor;
 
@@ -28,7 +32,14 @@ import org.springframework.integration.handler.ExpressionEvaluatingMessageProces
  */
 public class ExpressionEvaluatingSelector extends AbstractMessageProcessingSelector {
 
-	public ExpressionEvaluatingSelector(String expression) {
+	private static final ExpressionParser expressionParser = new SpelExpressionParser(new SpelParserConfiguration(true, true));
+
+
+	public ExpressionEvaluatingSelector(String expressionString) {
+		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expressionParser.parseExpression(expressionString), Boolean.class));
+	}
+
+	public ExpressionEvaluatingSelector(Expression expression) {
 		super(new ExpressionEvaluatingMessageProcessor<Boolean>(expression, Boolean.class));
 	}
 

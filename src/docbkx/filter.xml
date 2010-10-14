@@ -97,6 +97,36 @@
       <programlisting language="xml">
         <![CDATA[  <filter input-channel="input" expression="payload.matches(#{filterPatterns.nonsensePattern})"/>]]>
       </programlisting>
+      If the Expression itself needs to be dynamic, then an 'expression' sub-element may be used. That provides a level of
+      indirection for resolving the Expression by its key from an ExpressionSource. That is a strategy interface that you
+      can implement directly, or you can rely upon a version available in Spring Integration that loads Expressions from
+      a "resource bundle" and can check for modifications after a given number of seconds. All of this is demonstrated in
+      the following configuration sample where the Expression could be reloaded within one minute if the underlying file
+      had been modified. If the ExpressionSource bean is named "expressionSource", then it is not necessary to provide the
+      "source" attribute on the &lt;expression&gt; element, but in this case it's shown for completeness.
+      <programlisting language="xml">
+        <![CDATA[  <filter input-channel="input" output-channel="output">
+      <expression key="filterPatterns.example" source="myExpressions"/>
+  </filter>
+
+  <beans:bean id="myExpressions" id="myExpressions"
+          class="org.springframework.integration.expression.ReloadableResourceBundleExpressionSource">
+      <beans:property name="basename" value="config/integration/expressions"/>
+      <beans:property name="cacheSeconds" value="60"/>
+  </beans:bean>
+]]></programlisting>
+
+    Then, the 'config/integration/expressions.properties' file (or any more specific version with a locale extension
+    to be resolved in the typical way that resource-bundles are loaded) would contain a key/value pair:
+	<programlisting language="xml">
+        <![CDATA[  filterPatterns.example=payload > 100
+]]></programlisting>
+
+    <note>All of the examples that use "expression" as an attribute or sub-element can also be applied within
+      transformer, router, splitter, service-activator, and header-enricher elements. Of course, the semantics/role
+      of the given component type would affect the interpretation of the evaluation result in the same way that the
+      return or a method-invocation would be interpreted. For example, an expression can return Strings that are
+      to be treated as Message Channel names by a router component.</note>
     </para>
   </section>
 </chapter>

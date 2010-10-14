@@ -50,7 +50,6 @@
 				</xsd:annotation>
 			</xsd:attribute>
 
-
 			<xsd:attribute name="username" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
@@ -60,6 +59,7 @@
 			<xsd:attribute name="key-file" type="xsd:string"/>
 			<xsd:attribute name="key-file-password" type="xsd:string"/>
 
+			<xsd:attribute name="charset" type="xsd:string"/>
 			<xsd:attribute name="auto-create-directories" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>

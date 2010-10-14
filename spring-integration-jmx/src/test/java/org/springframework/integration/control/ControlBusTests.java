@@ -43,9 +43,9 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.integration.monitor.IntegrationMBeanExporter;
-import org.springframework.integration.monitor.LifecycleMessageHandlerMonitor;
-import org.springframework.integration.monitor.QueueChannelMonitor;
-import org.springframework.integration.monitor.DirectChannelMonitor;
+import org.springframework.integration.monitor.LifecycleMessageHandlerMetrics;
+import org.springframework.integration.monitor.QueueChannelMetrics;
+import org.springframework.integration.monitor.DirectChannelMetrics;
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.springframework.jmx.support.ObjectNameManager;
@@ -88,7 +88,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test1:type=MessageChannel,name=directChannel"));
-		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -101,7 +101,7 @@ public class ControlBusTests {
 		ObjectInstance instance = mbeanServer
 				.getObjectInstance(ObjectNameManager
 						.getInstance("domain.test1b:type=MessageChannel,name=org.springframework.integration.generated#0,source=anonymous"));
-		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -113,7 +113,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test1a:type=MessageChannel,name=directChannel,foo=bar"));
-		assertEquals(DirectChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(DirectChannelMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -124,7 +124,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test2:type=MessageChannel,name=queueChannel"));
-		assertEquals(QueueChannelMonitor.class.getName(), instance.getClassName());
+		assertEquals(QueueChannelMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -139,7 +139,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test3:type=MessageHandler,name=eventDrivenConsumer,bean=endpoint"));
-		assertEquals(LifecycleMessageHandlerMonitor.class.getName(), instance.getClassName());
+		assertEquals(LifecycleMessageHandlerMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -158,7 +158,7 @@ public class ControlBusTests {
 		MBeanServer mbeanServer = context.getBean("mbeanServer", MBeanServer.class);
 		ObjectInstance instance = mbeanServer.getObjectInstance(ObjectNameManager
 				.getInstance("domain.test4:type=MessageHandler,name=pollingConsumer,bean=endpoint"));
-		assertEquals(LifecycleMessageHandlerMonitor.class.getName(), instance.getClassName());
+		assertEquals(LifecycleMessageHandlerMetrics.class.getName(), instance.getClassName());
 	}
 
 	@Test
@@ -188,7 +188,7 @@ public class ControlBusTests {
 	private BeanDefinition registerControlBus(GenericApplicationContext context, String domain) {
 		BeanDefinition exporterDef = new RootBeanDefinition(IntegrationMBeanExporter.class);
 		exporterDef.getPropertyValues().addPropertyValue("server", new RuntimeBeanReference("mbeanServer"));
-		exporterDef.getPropertyValues().addPropertyValue("domain", domain);
+		exporterDef.getPropertyValues().addPropertyValue("defaultDomain", domain);
 		context.registerBeanDefinition("exporter", exporterDef);
 		BeanDefinition controlBusDef = new RootBeanDefinition(ControlBus.class);
 		controlBusDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference("mbeanServer"));

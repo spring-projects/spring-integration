@@ -29,7 +29,7 @@ import org.springframework.beans.factory.xml.ParserContext;
  * @author Mark Fisher
  * @since 1.0.3
  */
-public class HeaderValueRouterParser extends AbstractChannelNameResolvingRouterParser {
+public class HeaderValueRouterParser extends AbstractRouterParser {
 
 	@Override
 	protected BeanDefinition doParseRouter(Element element, ParserContext parserContext) {

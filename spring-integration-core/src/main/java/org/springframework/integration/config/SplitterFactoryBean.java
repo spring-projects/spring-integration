@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2009 the original author or authors.
+ * Copyright 2002-2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.expression.Expression;
 import org.springframework.integration.core.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
@@ -31,10 +32,20 @@ import org.springframework.util.StringUtils;
 public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile Long sendTimeout;
+
 	private volatile boolean requiresReply;
+
 
 	public void setSendTimeout(Long sendTimeout) {
 		this.sendTimeout = sendTimeout;
+	}
+
+	public boolean isRequiresReply() {
+		return requiresReply;
+	}
+
+	public void setRequiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
 	}
 
 	@Override
@@ -52,7 +63,7 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 	}
 
 	@Override
-	MessageHandler createExpressionEvaluatingHandler(String expression) {
+	MessageHandler createExpressionEvaluatingHandler(Expression expression) {
 		return this.configureSplitter(new ExpressionEvaluatingSplitter(expression));
 	}
 
@@ -68,11 +79,5 @@ public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 		splitter.setRequiresReply(requiresReply);
 		return splitter;
 	}
-	public boolean isRequiresReply() {
-		return requiresReply;
-	}
 
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
-	}
 }

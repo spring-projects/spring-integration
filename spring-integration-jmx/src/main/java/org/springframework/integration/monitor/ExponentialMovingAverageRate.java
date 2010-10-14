@@ -32,13 +32,13 @@ public class ExponentialMovingAverageRate {
 
 	private final ExponentialMovingAverage rates;
 
-	private double weight;
+	private volatile double weight;
 
-	private double sum;
+	private volatile double sum;
 
-	private double min;
+	private volatile double min;
 
-	private double max;
+	private volatile double max;
 
 	private volatile long t0 = System.currentTimeMillis();
 
@@ -57,10 +57,19 @@ public class ExponentialMovingAverageRate {
 		this.period = period * 1000; // convert to millisecs
 	}
 
+	public synchronized void reset() {
+		min = 0;
+		max = 0;
+		weight = 0;
+		sum = 0;
+		t0 = System.currentTimeMillis();
+		rates.reset();
+	}
+
 	/**
 	 * Add a new event to the series.
 	 */
-	public void increment() {
+	public synchronized void increment() {
 
 		long t = System.currentTimeMillis();
 		double value = t > t0 ? (t - t0) / period : 0;
