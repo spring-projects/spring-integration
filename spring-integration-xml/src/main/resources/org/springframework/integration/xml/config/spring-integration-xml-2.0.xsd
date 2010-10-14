@@ -510,11 +510,11 @@
 		</xsd:complexType>
 	</xsd:element>
 	
-	<xsd:element name="validating-router">
+	<xsd:element name="validating-filter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a validating router.
+	Defines a validating filter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -530,17 +530,8 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:attribute>
-			<xsd:attribute name="channel-resolver" type="xsd:string" use="optional">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<tool:annotation kind="ref">
-							<tool:expected-type type="org.springframework.integration.core.ChannelResolver"/>
-						</tool:annotation>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:attribute>
-			<xsd:attribute name="valid-channel" type="xsd:string" use="required" />
-			<xsd:attribute name="invalid-channel" type="xsd:string" use="required" />
+			<xsd:attribute name="output-channel" type="xsd:string" use="required" />
+			<xsd:attribute name="discard-channel" type="xsd:string" use="required" />
 			<xsd:attribute name="schema-location" use="required" />
 			<xsd:attribute name="schema-type" default="xml-schema">
 				<xsd:simpleType>
