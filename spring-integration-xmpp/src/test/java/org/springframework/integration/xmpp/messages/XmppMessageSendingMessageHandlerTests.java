@@ -66,12 +66,12 @@ public class XmppMessageSendingMessageHandlerTests {
 	@Test(expected=MessageHandlingException.class)
 	public void validateFailureNoChatToUser() throws Exception{	
 		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
-		handler.handleMessage(new GenericMessage("hello"));
+		handler.handleMessage(new GenericMessage<String>("hello"));
 	}
 	
 	@Test(expected=MessageHandlingException.class)
 	public void validateMessageWithUnsupportedPayload() throws Exception{	
 		XmppMessageSendingMessageHandler handler = new XmppMessageSendingMessageHandler();
-		handler.handleMessage(new GenericMessage(123));
+		handler.handleMessage(new GenericMessage<Integer>(123));
 	}
 }
