@@ -7,6 +7,7 @@ import org.springframework.integration.file.AbstractInboundRemoteFileSystemSynch
 /**
  * a {@link org.springframework.integration.core.MessageSource} implementation for FTP
  *
+ * @author Iwein Fuld
  * @author Josh Long
  */
 public class FtpInboundRemoteFileSystemSynchronizingMessageSource

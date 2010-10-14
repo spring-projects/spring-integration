@@ -19,9 +19,10 @@ import java.util.Properties;
 
 
 /**
- * provides a working FTPS implementation
- *
+ * provides a working FTPS implementation. Based heavily on {@link org.springframework.integration.ftp.DefaultFtpClientFactory}
+ * 
  * @author Josh Long
+ * @author Iwein Fuld
  */
 public class DefaultFtpsClientFactory extends AbstractFtpClientFactory<FTPSClient> {
 	private Boolean useClientMode;

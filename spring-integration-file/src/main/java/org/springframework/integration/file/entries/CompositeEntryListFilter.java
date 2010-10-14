@@ -20,7 +20,15 @@ import org.springframework.util.Assert;
 
 import java.util.*;
 
-
+/**
+ * Simple {@link org.springframework.integration.file.entries.EntryListFilter} that predicates its matches
+ * against any of many configured {@link org.springframework.integration.file.entries.EntryListFilter}
+ *
+ * @author Iwein Fuld
+ * @author Josh Long
+ *
+ * @param <T>
+ */
 public class CompositeEntryListFilter<T> implements EntryListFilter<T> {
 	private final Set<EntryListFilter<T>> fileFilters;
 

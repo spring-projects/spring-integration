@@ -28,7 +28,8 @@ import org.w3c.dom.Element;
 
 
 /**
- * Provides namespace support for using SFTP
+ * Provides namespace support for using SFTP.
+ * This is very largely based on the FTP support by Iwein Fuld.
  *
  * @author Josh Long
  */

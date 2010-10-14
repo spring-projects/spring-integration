@@ -13,6 +13,7 @@ import org.springframework.core.io.ResourceLoader;
 /**
  * A factory bean implementation that handles constructing an outbound FTP adapter.
  *
+ * @author Iwein Fuld
  * @author Josh Long
  */
 public class FtpSendingMessageHandlerFactoryBean extends AbstractFactoryBean<FtpSendingMessageHandler>
