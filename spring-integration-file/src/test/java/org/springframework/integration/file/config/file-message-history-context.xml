@@ -9,8 +9,10 @@
 
 
 		<int:message-history/>
-		
-		<int-file:inbound-channel-adapter id="fileAdapter" directory="input"
+
+	<bean id="input" class="org.junit.rules.TemporaryFolder" init-method="create" destroy-method="delete"/>
+
+		<int-file:inbound-channel-adapter id="fileAdapter" directory="#{input.root}"
                              auto-startup="true" 
                              channel="outChannel"
                              auto-create-directory="true">
